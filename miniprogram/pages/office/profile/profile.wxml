@@ -1,0 +1,82 @@
+<view class="office-page profile-page">
+  <view class="office-gradient-header profile-header">
+    <view class="profile-theme-switch">{{primaryTag}}</view>
+
+    <view class="profile-user-row">
+      <view class="profile-avatar-wrap">
+        <view class="profile-avatar">{{avatarText}}</view>
+        <view class="profile-avatar-status"></view>
+      </view>
+      <view class="profile-user-main">
+        <view class="profile-name">{{userName}}</view>
+        <view class="profile-role">{{roleLabel}}</view>
+        <view class="profile-tags">
+          <view class="profile-tag">{{primaryTag}}</view>
+          <view class="profile-tag is-light">{{secondaryTag}}</view>
+        </view>
+      </view>
+      <view class="profile-arrow">›</view>
+    </view>
+
+    <view class="profile-stats-grid">
+      <view class="profile-stat-item" wx:for="{{stats}}" wx:key="label">
+        <view class="profile-stat-icon">{{item.icon}}</view>
+        <view class="profile-stat-value">{{item.value}}</view>
+        <view class="profile-stat-label">{{item.label}}</view>
+      </view>
+    </view>
+  </view>
+
+  <view class="office-content">
+    <view class="profile-reward-card">
+      <view class="profile-reward-icon">🏆</view>
+      <view class="profile-reward-main">
+        <view class="profile-reward-title">本月全勤奖励</view>
+        <view class="profile-reward-sub">坚持打卡已获得 100 积分</view>
+      </view>
+      <view class="profile-reward-btn">领取</view>
+    </view>
+
+    <view class="profile-info-grid">
+      <view class="office-card profile-info-card" wx:for="{{quickInfo}}" wx:key="title">
+        <view class="profile-info-top">
+          <view class="profile-info-icon">{{item.icon}}</view>
+          <view class="profile-info-title">{{item.title}}</view>
+        </view>
+        <view class="profile-info-value" style="color: {{item.valueColor}};">{{item.value}}</view>
+        <view class="profile-info-desc">{{item.desc}}</view>
+      </view>
+    </view>
+
+    <view class="profile-group" wx:for="{{menuGroups}}" wx:key="title">
+      <view class="profile-group-title">{{item.title}}</view>
+      <view class="office-card profile-menu-card">
+        <view class="profile-menu-item" wx:for="{{item.items}}" wx:key="label" wx:for-item="menu">
+          <view class="profile-menu-icon">{{menu.icon}}</view>
+          <view class="profile-menu-label">{{menu.label}}</view>
+          <view wx:if="{{menu.badge}}" class="profile-menu-badge">{{menu.badge}}</view>
+          <view class="profile-menu-arrow">›</view>
+        </view>
+      </view>
+    </view>
+
+    <view class="office-card profile-company-card">
+      <view class="profile-company-head">
+        <view class="profile-company-logo">🏢</view>
+        <view>
+          <view class="profile-company-name">智汇科技有限公司</view>
+          <view class="profile-company-address">上海市浦东新区张江高科技园区</view>
+        </view>
+      </view>
+      <view class="profile-company-grid">
+        <view class="profile-company-item" wx:for="{{companyInfo}}" wx:key="label">
+          <view class="profile-company-label">{{item.label}}</view>
+          <view class="profile-company-value">{{item.value}}</view>
+        </view>
+      </view>
+    </view>
+
+    <view class="office-card profile-logout-btn" bindtap="handleLogout">退出登录</view>
+    <view class="profile-version">OFFICE MINI · UI V2.2.0</view>
+  </view>
+</view>

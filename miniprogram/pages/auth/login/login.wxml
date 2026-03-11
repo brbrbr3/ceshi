@@ -1,0 +1,40 @@
+<view class="auth-page login-page">
+  <view class="auth-hero">
+    <view class="auth-brand">智</view>
+    <view class="auth-title">智汇办公</view>
+    <view class="auth-subtitle">无需账号密码，点击按钮后将自动校验当前微信身份的注册状态。</view>
+    <view class="auth-tip-row">
+      <view class="auth-tip-pill">微信身份校验</view>
+      <view class="auth-tip-pill">云数据库查询</view>
+      <view class="auth-tip-pill">审批后可用</view>
+    </view>
+  </view>
+
+  <view class="auth-card">
+    <view class="auth-card-title">微信一键登录</view>
+    <view class="auth-card-desc">已注册用户直接进入首页；未注册用户将跳转到登记页面填写基础资料。</view>
+
+    <view class="auth-wechat-panel">
+      <view class="auth-wechat-icon">微</view>
+      <view>
+        <view class="auth-wechat-title">当前登录方式</view>
+        <view class="auth-wechat-desc">使用微信身份识别当前用户，无需手动输入用户名或密码。</view>
+      </view>
+    </view>
+
+    <button class="auth-submit-btn" loading="{{loading}}" bindtap="handleWxLogin">点击使用微信登录</button>
+    <view class="auth-note">如果你已提交过申请，本页会展示当前审核状态；若被退回，可直接重新填写并再次提交。</view>
+  </view>
+
+  <view wx:if="{{statusCard}}" class="auth-card auth-status-card {{statusCard.className}}">
+    <view class="auth-status-head">
+      <view class="auth-status-title">{{statusCard.title}}</view>
+      <view class="auth-status-tag">{{statusCard.tag}}</view>
+    </view>
+    <view class="auth-status-desc">{{statusCard.desc}}</view>
+    <view wx:if="{{statusCard.extra}}" class="auth-status-extra">{{statusCard.extra}}</view>
+    <view wx:if="{{statusCard.time}}" class="auth-status-time">{{statusCard.time}}</view>
+  </view>
+
+  <view wx:if="{{showRegisterLink}}" class="auth-bottom-link" bindtap="goRegister">还没有登记资料？去填写注册申请</view>
+</view>

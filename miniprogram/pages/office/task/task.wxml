@@ -1,0 +1,127 @@
+<view class="office-page work-page">
+  <view class="office-gradient-header work-header">
+    <view class="office-header-top">
+      <view>
+        <view class="work-title">工作台</view>
+        <view class="work-subtitle">任务、日程与项目进度一站查看</view>
+      </view>
+      <view class="work-create-btn">＋ 新建</view>
+    </view>
+
+    <view class="work-top-tabs">
+      <view
+        wx:for="{{primaryTabs}}"
+        wx:key="key"
+        class="work-top-tab {{activePrimaryTab == item.key ? 'is-active' : ''}}"
+        data-tab="{{item.key}}"
+        bindtap="switchPrimaryTab"
+      >
+        {{item.label}}
+      </view>
+    </view>
+  </view>
+
+  <view class="office-content">
+    <view wx:if="{{activePrimaryTab == 'task'}}">
+      <scroll-view scroll-x="true" class="office-chip-scroll work-filter-scroll" enable-flex="true">
+        <view
+          wx:for="{{taskFilters}}"
+          wx:key="*this"
+          class="office-chip {{activeTaskFilter == item ? 'is-active' : ''}}"
+          data-filter="{{item}}"
+          bindtap="switchTaskFilter"
+        >
+          {{item}}
+        </view>
+      </scroll-view>
+
+      <view class="office-section-header work-list-header">
+        <view class="office-section-title">任务列表</view>
+        <view class="office-link">{{filteredTasks.length}} 项</view>
+      </view>
+
+      <view class="work-card office-card" wx:for="{{filteredTasks}}" wx:key="id">
+        <view class="work-card-top">
+          <view class="office-pill" style="background: {{item.priorityBg}}; color: {{item.priorityColor}};">{{item.priority}}</view>
+          <view class="work-card-time">{{item.done ? '已完成' : item.due}}</view>
+        </view>
+
+        <view class="work-card-title {{item.done ? 'is-done' : ''}}">{{item.title}}</view>
+
+        <view class="work-card-meta">
+          <view class="office-pill work-project-pill">{{item.project}}</view>
+          <view class="work-card-progress-text">进度 {{item.progress}}%</view>
+        </view>
+
+        <view wx:if="{{!item.done}}" class="work-progress-bar">
+          <view class="work-progress-inner" style="width: {{item.progress}}%;"></view>
+        </view>
+
+        <view class="work-card-footer">
+          <view class="work-avatars">
+            <view wx:for="{{item.assignees}}" wx:key="name" wx:for-item="user" class="work-avatar-mini" style="background: {{user.color}};">{{user.name}}</view>
+          </view>
+          <view class="{{item.done ? 'office-btn-secondary' : 'office-btn-primary'}} work-action-btn">{{item.done ? '查看归档' : '查看详情'}}</view>
+        </view>
+      </view>
+    </view>
+
+    <view wx:elif="{{activePrimaryTab == 'schedule'}}">
+      <view class="office-card work-calendar-card">
+        <view class="work-calendar-head">
+          <view class="office-section-title work-calendar-title">2026 年 3 月</view>
+          <view class="office-link">查看月历</view>
+        </view>
+        <view class="work-week-row">
+          <view wx:for="{{weekDays}}" wx:key="*this" class="work-week-item">{{item}}</view>
+        </view>
+        <view class="work-days-grid">
+          <view wx:for="{{calendarDays}}" wx:key="day" class="work-day-item {{item.current ? 'is-current' : ''}} {{item.weekend ? 'is-weekend' : ''}}">{{item.day}}</view>
+        </view>
+      </view>
+
+      <view class="work-schedule-group" wx:for="{{scheduleGroups}}" wx:key="date">
+        <view class="work-group-title">{{item.date}}</view>
+        <view class="office-card work-schedule-card">
+          <view class="work-event-item" wx:for="{{item.events}}" wx:key="title" wx:for-item="event">
+            <view class="work-event-line" style="background: {{event.color}};"></view>
+            <view class="work-event-main">
+              <view class="work-event-header">
+                <view class="work-event-title">{{event.title}}</view>
+                <view class="office-pill" style="background: {{event.bg}}; color: {{event.color}};">{{event.type}}</view>
+              </view>
+              <view class="work-event-time">{{event.time}}</view>
+              <view class="work-event-location">📍 {{event.location}}</view>
+            </view>
+          </view>
+        </view>
+      </view>
+    </view>
+
+    <view wx:else>
+      <view class="office-section-header work-list-header">
+        <view class="office-section-title">参与项目</view>
+        <view class="office-link">{{projects.length}} 个</view>
+      </view>
+
+      <view class="office-card work-project-card" wx:for="{{projects}}" wx:key="name">
+        <view class="work-project-top">
+          <view>
+            <view class="work-project-name">{{item.name}}</view>
+            <view class="work-project-members">{{item.members}} 人参与 · 截止 {{item.deadline}}</view>
+          </view>
+          <view class="work-project-value" style="color: {{item.color}};">{{item.progress}}%</view>
+        </view>
+
+        <view class="work-avatars work-project-avatars">
+          <view wx:for="{{item.membersPreview}}" wx:key="*this" class="work-avatar-mini" style="background: {{item.color}};">{{item}}</view>
+          <view class="work-avatar-more">+{{item.members - item.membersPreview.length}}</view>
+        </view>
+
+        <view class="work-progress-bar is-project">
+          <view class="work-progress-inner" style="width: {{item.progress}}%; background: {{item.color}};"></view>
+        </view>
+      </view>
+    </view>
+  </view>
+</view>

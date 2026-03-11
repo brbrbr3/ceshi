@@ -1,0 +1,302 @@
+page {
+  background: #EEF2FF;
+}
+
+.profile-header {
+  padding-bottom: 162rpx;
+}
+
+.profile-theme-switch {
+  width: 140rpx;
+  height: 56rpx;
+  margin-left: auto;
+  border-radius: 999rpx;
+  background: rgba(255, 255, 255, 0.16);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 22rpx;
+}
+
+.profile-user-row {
+  display: flex;
+  align-items: center;
+  gap: 20rpx;
+  margin-top: 28rpx;
+}
+
+.profile-avatar-wrap {
+  position: relative;
+}
+
+.profile-avatar {
+  width: 120rpx;
+  height: 120rpx;
+  border-radius: 40rpx;
+  background: rgba(255, 255, 255, 0.18);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 40rpx;
+  font-weight: 700;
+}
+
+.profile-avatar-status {
+  position: absolute;
+  right: 2rpx;
+  bottom: 2rpx;
+  width: 24rpx;
+  height: 24rpx;
+  border-radius: 50%;
+  background: #4ADE80;
+  border: 4rpx solid #FFFFFF;
+}
+
+.profile-user-main {
+  flex: 1;
+}
+
+.profile-name {
+  font-size: 38rpx;
+  font-weight: 600;
+}
+
+.profile-role {
+  margin-top: 8rpx;
+  font-size: 24rpx;
+  opacity: 0.76;
+}
+
+.profile-tags {
+  display: flex;
+  gap: 12rpx;
+  margin-top: 14rpx;
+}
+
+.profile-tag {
+  padding: 8rpx 16rpx;
+  border-radius: 999rpx;
+  background: rgba(255, 255, 255, 0.18);
+  font-size: 20rpx;
+}
+
+.profile-tag.is-light {
+  background: rgba(255, 255, 255, 0.1);
+  opacity: 0.82;
+}
+
+.profile-arrow {
+  font-size: 40rpx;
+  opacity: 0.64;
+}
+
+.profile-stats-grid {
+  display: grid;
+  grid-template-columns: repeat(3, 1fr);
+  gap: 16rpx;
+  margin-top: 28rpx;
+}
+
+.profile-stat-item {
+  padding: 20rpx 16rpx;
+  border-radius: 24rpx;
+  background: rgba(255, 255, 255, 0.14);
+  text-align: center;
+}
+
+.profile-stat-icon {
+  font-size: 28rpx;
+}
+
+.profile-stat-value {
+  margin-top: 10rpx;
+  font-size: 28rpx;
+  font-weight: 700;
+}
+
+.profile-stat-label {
+  margin-top: 6rpx;
+  font-size: 20rpx;
+  opacity: 0.7;
+}
+
+.profile-reward-card {
+  border-radius: 32rpx;
+  padding: 24rpx;
+  background: linear-gradient(135deg, #FF9800 0%, #FF5722 100%);
+  box-shadow: 0 16rpx 34rpx rgba(255, 152, 0, 0.22);
+  display: flex;
+  align-items: center;
+  gap: 18rpx;
+}
+
+.profile-reward-icon {
+  width: 80rpx;
+  height: 80rpx;
+  border-radius: 24rpx;
+  background: rgba(255, 255, 255, 0.18);
+  color: #FFFFFF;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 34rpx;
+}
+
+.profile-reward-main {
+  flex: 1;
+  color: #FFFFFF;
+}
+
+.profile-reward-title {
+  font-size: 26rpx;
+  font-weight: 600;
+}
+
+.profile-reward-sub {
+  margin-top: 8rpx;
+  font-size: 22rpx;
+  opacity: 0.8;
+}
+
+.profile-reward-btn {
+  min-width: 92rpx;
+  height: 56rpx;
+  border-radius: 999rpx;
+  background: rgba(255, 255, 255, 0.18);
+  color: #FFFFFF;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 22rpx;
+}
+
+.profile-info-grid {
+  display: grid;
+  grid-template-columns: repeat(2, 1fr);
+  gap: 18rpx;
+  margin-top: 24rpx;
+}
+
+.profile-info-card,
+.profile-menu-card,
+.profile-company-card,
+.profile-logout-btn {
+  padding: 24rpx;
+}
+
+.profile-info-top,
+.profile-company-head,
+.profile-menu-item {
+  display: flex;
+  align-items: center;
+}
+
+.profile-info-icon,
+.profile-company-logo,
+.profile-menu-icon {
+  width: 64rpx;
+  height: 64rpx;
+  border-radius: 20rpx;
+  background: #EFF6FF;
+  color: #2563EB;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 28rpx;
+}
+
+.profile-info-title,
+.profile-company-name,
+.profile-menu-label {
+  margin-left: 16rpx;
+  font-size: 24rpx;
+  color: #1E293B;
+  font-weight: 600;
+}
+
+.profile-info-value {
+  margin-top: 18rpx;
+  font-size: 40rpx;
+  font-weight: 700;
+}
+
+.profile-info-desc,
+.profile-group-title,
+.profile-company-address,
+.profile-company-label {
+  font-size: 22rpx;
+  color: #94A3B8;
+}
+
+.profile-info-desc {
+  margin-top: 8rpx;
+}
+
+.profile-group {
+  margin-top: 24rpx;
+}
+
+.profile-group-title {
+  margin-bottom: 14rpx;
+  padding-left: 6rpx;
+}
+
+.profile-menu-item + .profile-menu-item {
+  border-top: 1rpx solid rgba(37, 99, 235, 0.1);
+  margin-top: 18rpx;
+  padding-top: 18rpx;
+}
+
+.profile-menu-label {
+  flex: 1;
+}
+
+.profile-menu-badge {
+  color: #2563EB;
+  font-size: 20rpx;
+}
+
+.profile-menu-arrow {
+  margin-left: 12rpx;
+  font-size: 34rpx;
+  color: #94A3B8;
+}
+
+.profile-company-card {
+  margin-top: 24rpx;
+}
+
+.profile-company-address {
+  margin-top: 8rpx;
+}
+
+.profile-company-grid {
+  display: grid;
+  grid-template-columns: repeat(3, 1fr);
+  gap: 16rpx;
+  margin-top: 24rpx;
+  padding-top: 24rpx;
+  border-top: 1rpx solid rgba(37, 99, 235, 0.1);
+}
+
+.profile-company-value {
+  margin-top: 8rpx;
+  font-size: 22rpx;
+  color: #1E293B;
+}
+
+.profile-logout-btn {
+  margin-top: 24rpx;
+  text-align: center;
+  font-size: 26rpx;
+  font-weight: 600;
+  color: #EF4444;
+}
+
+.profile-version {
+  margin: 24rpx 0 20rpx;
+  text-align: center;
+  font-size: 20rpx;
+  letter-spacing: 2rpx;
+  color: #94A3B8;
+}

@@ -1,0 +1,103 @@
+<view class="office-page contacts-page">
+  <view class="office-gradient-header contacts-header">
+    <view class="office-header-top">
+      <view>
+        <view class="contacts-title">通讯录</view>
+        <view class="contacts-subtitle">快速查找同事并发起沟通</view>
+      </view>
+      <view class="contacts-online-pill">{{onlineCount}} 人在线</view>
+    </view>
+
+    <view class="office-search contacts-search">
+      <view class="contacts-search-icon">⌕</view>
+      <input value="{{search}}" bindinput="onSearchInput" placeholder="搜索姓名、职位、部门..." placeholder-class="office-search-placeholder" />
+    </view>
+  </view>
+
+  <view class="office-content">
+    <view wx:if="{{selectedDept == '全部' && !search}}" class="office-card contacts-overview-card">
+      <view class="contacts-overview-icon">👥</view>
+      <view class="contacts-overview-main">
+        <view class="contacts-overview-title">智汇科技 · 全员</view>
+        <view class="contacts-overview-sub">共 {{totalCount}} 名成员 · {{onlineCount}} 人在线</view>
+      </view>
+      <view class="contacts-overview-arrow">›</view>
+    </view>
+
+    <scroll-view scroll-x="true" class="office-chip-scroll contacts-chip-scroll" enable-flex="true">
+      <view
+        wx:for="{{departments}}"
+        wx:key="*this"
+        class="office-chip {{selectedDept == item ? 'is-active' : ''}}"
+        data-dept="{{item}}"
+        bindtap="switchDept"
+      >
+        {{item}}
+      </view>
+    </scroll-view>
+
+    <view wx:if="{{groupedContacts.length}}">
+      <view class="contacts-group" wx:for="{{groupedContacts}}" wx:key="dept">
+        <view wx:if="{{selectedDept == '全部'}}" class="contacts-group-title">
+          <text>{{item.dept}}</text>
+          <text class="contacts-group-count">{{item.members.length}} 人</text>
+        </view>
+
+        <view class="office-card contacts-list-card">
+          <view class="contacts-item" wx:for="{{item.members}}" wx:key="id" wx:for-item="member" data-id="{{member.id}}" bindtap="toggleContact">
+            <view class="contacts-item-row">
+              <view class="contacts-avatar-wrap">
+                <view class="office-avatar" style="background: {{member.color}};">{{member.initial}}</view>
+                <view class="contacts-status-dot" style="background: {{member.statusColor}};"></view>
+              </view>
+
+              <view class="contacts-item-main">
+                <view class="contacts-item-title-row">
+                  <view class="contacts-item-name">{{member.name}}</view>
+                  <view wx:if="{{member.isSelf}}" class="contacts-self-tag">我</view>
+                  <view class="office-pill" style="background: {{member.statusBg}}; color: {{member.statusColor}};">{{member.statusLabel}}</view>
+                </view>
+                <view class="contacts-item-role">{{member.role}}</view>
+              </view>
+
+              <view class="contacts-item-actions">
+                <view class="contacts-action-btn">☎</view>
+                <view class="contacts-action-btn">✉</view>
+              </view>
+            </view>
+
+            <view wx:if="{{expandedId == member.id}}" class="contacts-expand-box">
+              <view class="contacts-expand-grid">
+                <view class="contacts-expand-cell">
+                  <view class="contacts-expand-label">部门</view>
+                  <view class="contacts-expand-value">{{member.dept}}</view>
+                </view>
+                <view class="contacts-expand-cell">
+                  <view class="contacts-expand-label">职位</view>
+                  <view class="contacts-expand-value">{{member.role}}</view>
+                </view>
+                <view class="contacts-expand-cell">
+                  <view class="contacts-expand-label">手机</view>
+                  <view class="contacts-expand-value">{{member.phone}}</view>
+                </view>
+                <view class="contacts-expand-cell">
+                  <view class="contacts-expand-label">状态</view>
+                  <view class="contacts-expand-value">{{member.statusLabel}}</view>
+                </view>
+              </view>
+              <view class="contacts-expand-actions">
+                <view class="office-btn-primary contacts-expand-btn">拨打电话</view>
+                <view class="office-btn-secondary contacts-expand-btn">发送消息</view>
+              </view>
+            </view>
+          </view>
+        </view>
+      </view>
+    </view>
+
+    <view wx:else class="office-card office-empty">
+      <view class="contacts-empty-icon">⌕</view>
+      <view>未找到相关联系人</view>
+    </view>
+  </view>
+</view>

@@ -1,0 +1,218 @@
+page {
+  background: #EEF2FF;
+}
+
+.contacts-header {
+  padding-bottom: 156rpx;
+}
+
+.contacts-title {
+  font-size: 40rpx;
+  font-weight: 600;
+}
+
+.contacts-subtitle {
+  margin-top: 10rpx;
+  font-size: 22rpx;
+  opacity: 0.76;
+}
+
+.contacts-online-pill {
+  padding: 12rpx 20rpx;
+  border-radius: 999rpx;
+  background: rgba(255, 255, 255, 0.16);
+  font-size: 22rpx;
+  font-weight: 600;
+}
+
+.contacts-search {
+  margin-top: 28rpx;
+  background: rgba(255, 255, 255, 0.18);
+  box-shadow: none;
+}
+
+.contacts-search input {
+  color: #FFFFFF;
+}
+
+.contacts-search-icon {
+  color: rgba(255, 255, 255, 0.74);
+  font-size: 26rpx;
+}
+
+.contacts-overview-card,
+.contacts-list-card {
+  padding: 24rpx;
+}
+
+.contacts-overview-card {
+  display: flex;
+  align-items: center;
+  gap: 18rpx;
+}
+
+.contacts-overview-icon {
+  width: 80rpx;
+  height: 80rpx;
+  border-radius: 24rpx;
+  background: #EFF6FF;
+  color: #2563EB;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 34rpx;
+}
+
+.contacts-overview-main {
+  flex: 1;
+}
+
+.contacts-overview-title,
+.contacts-item-name,
+.contacts-expand-value {
+  font-size: 28rpx;
+  font-weight: 600;
+  color: #1E293B;
+}
+
+.contacts-overview-sub,
+.contacts-item-role,
+.contacts-group-count,
+.contacts-expand-label {
+  font-size: 22rpx;
+  color: #94A3B8;
+}
+
+.contacts-overview-sub {
+  margin-top: 8rpx;
+}
+
+.contacts-overview-arrow {
+  font-size: 40rpx;
+  color: #94A3B8;
+}
+
+.contacts-chip-scroll {
+  margin-top: 24rpx;
+}
+
+.contacts-group {
+  margin-top: 24rpx;
+}
+
+.contacts-group-title {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding: 0 6rpx 12rpx;
+  font-size: 24rpx;
+  font-weight: 600;
+  color: #4B6080;
+}
+
+.contacts-item + .contacts-item {
+  border-top: 1rpx solid rgba(37, 99, 235, 0.1);
+  margin-top: 18rpx;
+  padding-top: 18rpx;
+}
+
+.contacts-item-row {
+  display: flex;
+  align-items: center;
+  gap: 18rpx;
+}
+
+.contacts-avatar-wrap {
+  position: relative;
+}
+
+.contacts-status-dot {
+  position: absolute;
+  right: 2rpx;
+  bottom: 2rpx;
+  width: 18rpx;
+  height: 18rpx;
+  border-radius: 50%;
+  border: 4rpx solid #FFFFFF;
+}
+
+.contacts-item-main {
+  flex: 1;
+  min-width: 0;
+}
+
+.contacts-item-title-row {
+  display: flex;
+  align-items: center;
+  gap: 10rpx;
+}
+
+.contacts-item-role {
+  margin-top: 8rpx;
+}
+
+.contacts-self-tag {
+  padding: 4rpx 10rpx;
+  border-radius: 999rpx;
+  background: #EFF6FF;
+  color: #2563EB;
+  font-size: 18rpx;
+}
+
+.contacts-item-actions {
+  display: flex;
+  gap: 12rpx;
+}
+
+.contacts-action-btn {
+  width: 56rpx;
+  height: 56rpx;
+  border-radius: 18rpx;
+  background: #EFF6FF;
+  color: #2563EB;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 24rpx;
+}
+
+.contacts-expand-box {
+  margin-top: 20rpx;
+  padding: 20rpx;
+  border-radius: 24rpx;
+  background: #F8FAFC;
+}
+
+.contacts-expand-grid {
+  display: grid;
+  grid-template-columns: repeat(2, 1fr);
+  gap: 18rpx;
+}
+
+.contacts-expand-value {
+  margin-top: 8rpx;
+  font-size: 24rpx;
+}
+
+.contacts-expand-actions {
+  display: flex;
+  gap: 16rpx;
+  margin-top: 20rpx;
+}
+
+.contacts-expand-btn {
+  flex: 1;
+}
+
+.contacts-empty-icon {
+  width: 88rpx;
+  height: 88rpx;
+  border-radius: 44rpx;
+  margin: 0 auto 20rpx;
+  background: #EFF6FF;
+  color: #2563EB;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 36rpx;
+}
