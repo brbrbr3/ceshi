@@ -36,7 +36,7 @@
   <view class="office-content">
     <view class="office-card home-stats-card">
       <view class="home-stats-grid">
-        <view class="home-stat-item" wx:for="{{stats}}" wx:key="label">
+        <view class="home-stat-item {{item.label === '待审批' ? 'stat-clickable' : ''}}" wx:for="{{stats}}" wx:key="label" bindtap="{{item.label === '待审批' ? 'goApprovalTab' : ''}}">
           <view class="home-stat-badge" style="background: {{item.bg}}; color: {{item.color}};">{{item.value}}</view>
           <view class="home-stat-label">{{item.label}}</view>
         </view>
@@ -62,7 +62,7 @@
       <view class="office-section-header">
         <view class="home-title-with-badge">
           <view class="office-section-title">待我审批</view>
-          <view class="home-count-badge">{{pendingApprovalCount}}</view>
+          <view class="home-count-badge" bindtap="goApprovalTab">{{pendingApprovalCount}}</view>
         </view>
         <view class="office-link" bindtap="goApprovalTab">查看全部</view>
       </view>

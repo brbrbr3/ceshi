@@ -4,13 +4,13 @@ const util = require('../../../util/util.js')
 Page({
   data: {
     displayName: '访客',
-    greetingText: '欢迎使用智汇办公',
+    greetingText: '欢迎使用Embaixada办公系统',
     currentDateText: '',
     roleLabel: '待认证用户',
-    pendingApprovalCount: 3,
+    pendingApprovalCount: 0,
     unreadNotificationCount: 0,
     stats: [
-      { label: '待审批', value: '5', color: '#F44336', bg: '#FFEBEE' },
+      { label: '待审批', value: '0', color: '#F44336', bg: '#FFEBEE' },
       { label: '待办事项', value: '12', color: '#FF9800', bg: '#FFF3E0' },
       { label: '本月出勤', value: '7天', color: '#4CAF50', bg: '#E8F5E9' },
       { label: '绩效得分', value: '92', color: '#2563EB', bg: '#EFF6FF' }
@@ -76,15 +76,26 @@ Page({
         this.setData({
           displayName: result.user.name,
           greetingText: this.getGreeting(result.user.name),
-          roleLabel,
-          pendingApprovalCount: this.data.approvals.length
+          roleLabel
         })
+
+        // 获取待审批数量
+        return app.callOfficeAuth('getApprovalData')
+      })
+      .then((data) => {
+        console.log('getApprovalData 返回:', data)
+        if (data && data.summary) {
+          const pendingCount = data.summary.pendingCount || 0
+          const newStats = [...this.data.stats]
+          newStats[0].value = pendingCount
+          this.setData({
+            pendingApprovalCount: pendingCount,
+            stats: newStats
+          })
+        }
       })
       .catch((error) => {
-        util.showToast({
-          title: error.message || '加载失败',
-          icon: 'none'
-        })
+        console.error('获取待审批数量失败', error)
       })
   },
 

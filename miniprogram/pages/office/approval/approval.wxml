@@ -3,9 +3,11 @@
     <view class="office-header-top">
       <view>
         <view class="approval-title">审批中心</view>
-        <view class="approval-subtitle">管理员可处理注册申请，普通用户可查看自己的申请进度</view>
+        <view class="approval-subtitle">馆领导、部门负责人及管理员可处理申请，普通用户只能查看自己提交的申请</view>
       </view>
-      <view class="approval-launch-btn" bindtap="showLaunchTip">{{canReview ? '审批中' : '只读'}}</view>
+      <view class="approval-launch-btn" bindtap="showLaunchTip">
+      {{canReview ? '有审批权' : '无审批权'}}
+      </view>
     </view>
 
     <view class="approval-tabs-shell">

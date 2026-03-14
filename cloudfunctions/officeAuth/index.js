@@ -317,6 +317,14 @@ async function getApprovalData(openid) {
   const mineRequest = await findRequestByOpenId(openid)
   const canReview = !!(currentUser && currentUser.status === REQUEST_STATUS.APPROVED && currentUser.isAdmin)
 
+  // 始终查询待审批数量
+  const [pendingCountRes, pendingRes, approvedRes, rejectedRes] = await Promise.all([
+    requestCollection.where({ status: REQUEST_STATUS.PENDING }).count(),
+    requestCollection.where({ status: REQUEST_STATUS.PENDING }).orderBy('updatedAt', 'desc').limit(50).get(),
+    requestCollection.where({ status: REQUEST_STATUS.APPROVED }).orderBy('updatedAt', 'desc').limit(50).get(),
+    requestCollection.where({ status: REQUEST_STATUS.REJECTED }).orderBy('updatedAt', 'desc').limit(50).get()
+  ])
+
   const result = {
     canReview,
     currentUser: formatUserRecord(currentUser),
@@ -324,7 +332,7 @@ async function getApprovalData(openid) {
     pendingList: [],
     doneList: [],
     summary: {
-      pendingCount: 0,
+      pendingCount: pendingCountRes.total || 0,
       approvedCount: 0,
       rejectedCount: 0
     }
@@ -334,19 +342,13 @@ async function getApprovalData(openid) {
     return success(result)
   }
 
-  const [pendingRes, approvedRes, rejectedRes] = await Promise.all([
-    requestCollection.where({ status: REQUEST_STATUS.PENDING }).orderBy('updatedAt', 'desc').limit(50).get(),
-    requestCollection.where({ status: REQUEST_STATUS.APPROVED }).orderBy('updatedAt', 'desc').limit(50).get(),
-    requestCollection.where({ status: REQUEST_STATUS.REJECTED }).orderBy('updatedAt', 'desc').limit(50).get()
-  ])
-
   result.pendingList = pendingRes.data.map(formatRequestRecord)
   result.doneList = approvedRes.data.concat(rejectedRes.data)
     .sort((left, right) => (right.updatedAt || 0) - (left.updatedAt || 0))
     .slice(0, 50)
     .map(formatRequestRecord)
   result.summary = {
-    pendingCount: pendingRes.data.length,
+    pendingCount: pendingCountRes.total || 0,
     approvedCount: approvedRes.data.length,
     rejectedCount: rejectedRes.data.length
   }

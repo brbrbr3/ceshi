@@ -140,6 +140,15 @@ page {
   align-items: center;
 }
 
+.home-stat-item.stat-clickable {
+  cursor: pointer;
+  transition: opacity 0.2s;
+}
+
+.home-stat-item.stat-clickable:active {
+  opacity: 0.7;
+}
+
 .home-stat-badge {
   min-width: 76rpx;
   height: 76rpx;
