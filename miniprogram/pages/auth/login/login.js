@@ -94,62 +94,65 @@ Page({
     }
 
     this.setData({ loading: true })
+    console.log('=== 开始登录流程 ===')
 
-    wx.login({
-      success: () => {
-        app.checkUserRegistration()
-          .then((result) => {
-            if (result.registered) {
-              wx.showToast({
-                title: '登录成功',
-                icon: 'success'
-              })
-              setTimeout(() => {
-                wx.switchTab({
-                  url: '/pages/office/home/home'
-                })
-              }, 200)
-              return
-            }
+    // 直接检查用户注册状态，不再需要 wx.login
+    app.checkUserRegistration()
+      .then((result) => {
+        console.log('登录检查结果:', JSON.stringify(result))
+        console.log('registered值:', result.registered, '类型:', typeof result.registered)
 
-            if (result.request && result.request.status === 'pending') {
-              this.setData({
-                statusCard: buildStatusCard(result.request),
-                showRegisterLink: false
-              })
-              wx.showToast({
-                title: '申请审核中',
-                icon: 'none'
-              })
-              return
-            }
-
-            wx.navigateTo({
-              url: result.request && result.request.status === 'rejected'
-                ? '/pages/auth/register/register?mode=reapply'
-                : '/pages/auth/register/register'
+        if (result.registered === true) {
+          // 已注册用户，跳转主页
+          console.log('用户已注册，准备跳转首页')
+          wx.showToast({
+            title: '登录成功',
+            icon: 'success'
+          })
+          setTimeout(() => {
+            console.log('执行 wx.switchTab 到 /pages/office/home/home')
+            wx.switchTab({
+              url: '/pages/office/home/home',
+              success: () => console.log('跳转成功'),
+              fail: (err) => console.error('跳转失败:', err)
             })
+          }, 200)
+          return
+        }
+
+        // 检查是否有待审核的申请
+        if (result.request && result.request.status === 'pending') {
+          console.log('申请审核中')
+          this.setData({
+            statusCard: buildStatusCard(result.request),
+            showRegisterLink: false
           })
-          .catch((error) => {
-            wx.showToast({
-              title: error.message || '登录失败',
-              icon: 'none'
-            })
+          wx.showToast({
+            title: '申请审核中',
+            icon: 'none'
           })
-          .then(() => {
-            this.setData({ loading: false })
-            this.refreshStatus()
-          })
-      },
-      fail: (error) => {
-        console.error('微信登录失败', error)
-        this.setData({ loading: false })
+          return
+        }
+
+        // 未注册或申请被退回，跳转注册页面
+        console.log('未注册或已退回，跳转注册页')
+        wx.navigateTo({
+          url: result.request && result.request.status === 'rejected'
+            ? '/pages/auth/register/register?mode=reapply'
+            : '/pages/auth/register/register'
+        })
+      })
+      .catch((error) => {
+        console.error('登录错误:', error)
         wx.showToast({
-          title: '微信登录失败',
+          title: error.message || '登录失败',
           icon: 'none'
         })
-      }
-    })
+      })
+      .finally(() => {
+        this.setData({ loading: false })
+        this.refreshStatus()
+      })
   },
 
   goRegister() {

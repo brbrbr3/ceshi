@@ -152,8 +152,15 @@ async function ensureAdminUser(openid) {
 }
 
 async function checkRegistration(openid) {
+  console.log('=== checkRegistration 开始 ===')
+  console.log('openid:', openid)
+
+  // 先查询用户表
   const userRecord = await findUserByOpenId(openid)
+  console.log('查询用户表结果:', userRecord ? '找到记录' : '未找到记录')
+
   if (userRecord && userRecord.status === REQUEST_STATUS.APPROVED) {
+    console.log('用户表找到已批准记录，返回已注册')
     return success({
       openid,
       registered: true,
@@ -163,8 +170,56 @@ async function checkRegistration(openid) {
     })
   }
 
+  // 查询申请表
   const requestRecord = await findRequestByOpenId(openid)
+  console.log('查询申请表结果:', requestRecord ? '找到记录，状态:' + requestRecord.status : '未找到记录')
+
+  // 如果申请已批准但用户表无记录，自动创建用户记录（数据修复）
+  if (requestRecord && requestRecord.status === REQUEST_STATUS.APPROVED) {
+    console.log('申请已批准但用户表无记录，自动创建用户记录')
+    const now = Date.now()
+    const userPayload = {
+      openid: requestRecord.openid,
+      name: requestRecord.name,
+      gender: requestRecord.gender,
+      birthday: requestRecord.birthday,
+      role: requestRecord.role,
+      isAdmin: !!requestRecord.isAdmin,
+      avatarText: requestRecord.avatarText || (requestRecord.name ? requestRecord.name.slice(0, 1) : '智'),
+      status: REQUEST_STATUS.APPROVED,
+      sourceRequestId: requestRecord._id,
+      approvedAt: now,
+      approvedBy: requestRecord.reviewedBy || '',
+      createdAt: now,
+      updatedAt: now
+    }
+
+    try {
+      await usersCollection.add({ data: userPayload })
+      console.log('自动创建用户记录成功')
+      return success({
+        openid,
+        registered: true,
+        authStatus: REQUEST_STATUS.APPROVED,
+        user: formatUserRecord(userPayload),
+        request: formatRequestRecord(requestRecord)
+      })
+    } catch (e) {
+      console.error('自动创建用户记录失败:', e)
+      // 即使创建失败，也返回已注册状态，让用户能正常使用
+      return success({
+        openid,
+        registered: true,
+        authStatus: REQUEST_STATUS.APPROVED,
+        user: formatUserRecord(requestRecord),
+        request: formatRequestRecord(requestRecord)
+      })
+    }
+  }
+
+  // 申请待审核或已驳回
   if (requestRecord) {
+    console.log('返回: 未注册，申请状态:', requestRecord.status)
     return success({
       openid,
       registered: false,
@@ -174,6 +229,7 @@ async function checkRegistration(openid) {
     })
   }
 
+  console.log('返回: 未注册，无申请记录')
   return success({
     openid,
     registered: false,
