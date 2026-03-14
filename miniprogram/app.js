@@ -315,48 +315,31 @@ App({
   },
 
   markNotificationAsRead(id, callback) {
-    const openid = this.globalData.openid
-    if (!openid) {
+    wx.cloud.callFunction({
+      name: 'notificationManager',
+      data: {
+        action: 'markAsRead',
+        notificationId: id
+      }
+    }).then(res => {
+      if (callback) callback(res.result.success)
+    }).catch(error => {
+      console.error('标记通知已读失败', error)
       if (callback) callback(false)
-      return
-    }
-
-    const db = wx.cloud.database()
-    db.collection('notifications')
-      .doc(id)
-      .update({
-        data: {
-          read: true
-        }
-      })
-      .then(() => {
-        if (callback) callback(true)
-      })
-      .catch(error => {
-        console.error('标记通知已读失败', error)
-        if (callback) callback(false)
-      })
+    })
   },
 
   clearAllNotifications(callback) {
-    const openid = this.globalData.openid
-    if (!openid) {
+    wx.cloud.callFunction({
+      name: 'notificationManager',
+      data: {
+        action: 'clearAll'
+      }
+    }).then(res => {
+      if (callback) callback(res.result.success)
+    }).catch(error => {
+      console.error('清空通知失败', error)
       if (callback) callback(false)
-      return
-    }
-
-    const db = wx.cloud.database()
-    db.collection('notifications')
-      .where({
-        openid: openid
-      })
-      .remove()
-      .then(() => {
-        if (callback) callback(true)
-      })
-      .catch(error => {
-        console.error('清空通知失败', error)
-        if (callback) callback(false)
-      })
+    })
   }
 })

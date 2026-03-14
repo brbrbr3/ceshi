@@ -152,31 +152,37 @@ Page({
       .then((res) => {
         // 只在新增菜单时广播通知
         if (!this.data.isEdit) {
-          const menuId = res._id || res.id
+          // 云函数返回结构：{ code: 0, message: '添加成功', data: { _id: xxx, id: xxx } }
+          const menuId = res.result?.data?._id || res.result?.data?.id
           const menuTitle = this.data.form.title
           const userName = this.data.currentUser ? this.data.currentUser.name : '用户'
           const notificationTitle = '新菜单通知'
           const notificationContent = `${userName}提交了新的工作餐菜单「${menuTitle}」，点击查看`
 
           console.log('=== 开始广播通知 ===')
+          console.log('云函数返回:', res)
           console.log('菜单ID:', menuId)
           console.log('菜单标题:', menuTitle)
           console.log('用户名:', userName)
 
-          wx.cloud.callFunction({
-            name: 'broadcastNotification',
-            data: {
-              title: notificationTitle,
-              content: notificationContent,
-              type: 'menu',
-              menuId: menuId
-            }
-          }).then(res => {
-            console.log('广播通知返回:', res)
-            console.log('=== 广播通知成功 ===')
-          }).catch(err => {
-            console.error('广播通知失败', err)
-          })
+          if (menuId) {
+            wx.cloud.callFunction({
+              name: 'broadcastNotification',
+              data: {
+                title: notificationTitle,
+                content: notificationContent,
+                type: 'menu',
+                menuId: menuId
+              }
+            }).then(res => {
+              console.log('广播通知返回:', res)
+              console.log('=== 广播通知成功 ===')
+            }).catch(err => {
+              console.error('广播通知失败', err)
+            })
+          } else {
+            console.error('无法获取菜单ID，广播通知失败')
+          }
         }
 
         util.showToast({

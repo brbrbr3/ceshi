@@ -67,6 +67,7 @@
 }
 
 .notification-left {
+  padding-left: 10rpx;
   display: flex;
   flex: 1;
   gap: 20rpx;
@@ -119,6 +120,7 @@
 }
 
 .notification-right {
+  padding-right: 10rpx;
   display: flex;
   align-items: center;
   padding-left: 16rpx;

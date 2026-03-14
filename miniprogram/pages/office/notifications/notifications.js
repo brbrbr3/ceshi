@@ -75,18 +75,31 @@ Page({
   },
 
   markAllAsRead() {
-    app.getNotifications(function(notifications) {
-      notifications.forEach(function(n) {
-        if (!n.read) {
-          app.markNotificationAsRead(n._id)
-        }
-      })
-      this.loadNotifications()
+    wx.cloud.callFunction({
+      name: 'notificationManager',
+      data: {
+        action: 'markAllAsRead'
+      }
+    }).then(res => {
+      if (res.result.success) {
+        this.loadNotifications()
+        util.showToast({
+          title: '已全部标记为已读',
+          icon: 'success'
+        })
+      } else {
+        util.showToast({
+          title: '操作失败',
+          icon: 'none'
+        })
+      }
+    }).catch(error => {
+      console.error('全部已读失败', error)
       util.showToast({
-        title: '已全部标记为已读',
-        icon: 'success'
+        title: '操作失败',
+        icon: 'none'
       })
-    }.bind(this))
+    })
   },
 
   clearAll() {
