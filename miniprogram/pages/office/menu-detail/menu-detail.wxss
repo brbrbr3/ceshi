@@ -1,0 +1,171 @@
+.menu-detail-page {
+  min-height: 100%;
+}
+
+.menu-detail-header {
+  text-align: center;
+  padding-bottom: 100rpx;
+}
+
+.menu-detail-title {
+  font-size: 36rpx;
+  font-weight: 700;
+  color: #FFFFFF;
+}
+
+.menu-detail-meta {
+  margin-top: 8rpx;
+  font-size: 22rpx;
+  color: rgba(255, 255, 255, 0.9);
+}
+
+.menu-detail-content {
+  margin-top: -60rpx;
+}
+
+.menu-content-card {
+  padding: 28rpx;
+  margin-bottom: 28rpx;
+}
+
+.menu-content-title {
+  font-size: 28rpx;
+  font-weight: 600;
+  color: #1E293B;
+  margin-bottom: 20rpx;
+}
+
+.menu-content-html {
+  font-size: 26rpx;
+  line-height: 1.8;
+  color: #475569;
+}
+
+.menu-detail-actions {
+  display: flex;
+  gap: 16rpx;
+  margin-top: 28rpx;
+}
+
+.menu-action-btn {
+  flex: 1;
+}
+
+.menu-action-btn.is-delete {
+  background: #FEE2E2;
+  color: #DC2626;
+}
+
+.menu-comments-card {
+  padding: 24rpx;
+}
+
+.menu-comment-input {
+  margin-bottom: 32rpx;
+}
+
+.menu-comment-input textarea {
+  width: 100%;
+  min-height: 140rpx;
+  padding: 20rpx;
+  border-radius: 16rpx;
+  background: #F8FAFC;
+  border: 2rpx solid transparent;
+  font-size: 26rpx;
+  color: #0F172A;
+  box-sizing: border-box;
+  margin-bottom: 16rpx;
+}
+
+.menu-comment-placeholder {
+  color: #94A3B8;
+}
+
+.menu-comment-submit {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+}
+
+.menu-comment-count {
+  font-size: 22rpx;
+  color: #94A3B8;
+}
+
+.menu-comment-btn {
+  padding: 12rpx 32rpx;
+  font-size: 24rpx;
+}
+
+.menu-comment-list {
+  margin-top: 24rpx;
+}
+
+.menu-comment-item {
+  display: flex;
+  gap: 16rpx;
+  padding: 20rpx 0;
+  border-bottom: 1rpx solid rgba(37, 99, 235, 0.08);
+}
+
+.menu-comment-item:last-child {
+  border-bottom: none;
+}
+
+.menu-comment-avatar {
+  width: 64rpx;
+  height: 64rpx;
+  border-radius: 32rpx;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  color: #FFFFFF;
+  font-size: 24rpx;
+  font-weight: 600;
+  flex-shrink: 0;
+}
+
+.menu-comment-main {
+  flex: 1;
+  min-width: 0;
+}
+
+.menu-comment-header {
+  display: flex;
+  align-items: center;
+  gap: 16rpx;
+  margin-bottom: 8rpx;
+}
+
+.menu-comment-author {
+  font-size: 24rpx;
+  font-weight: 600;
+  color: #1E293B;
+}
+
+.menu-comment-time {
+  font-size: 20rpx;
+  color: #94A3B8;
+}
+
+.menu-comment-text {
+  font-size: 24rpx;
+  line-height: 1.6;
+  color: #475569;
+  word-break: break-all;
+}
+
+.menu-comment-delete {
+  flex-shrink: 0;
+  padding: 8rpx 16rpx;
+  font-size: 22rpx;
+  color: #DC2626;
+}
+
+.empty-state.is-mini {
+  padding: 40rpx 24rpx;
+}
+
+.empty-state.is-mini .empty-text {
+  font-size: 24rpx;
+}

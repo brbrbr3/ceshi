@@ -1,0 +1,50 @@
+<view class="office-page menu-edit-page">
+  <view class="office-gradient-header menu-edit-header">
+    <view class="menu-edit-title">{{isEdit ? '编辑菜单' : '新增菜单'}}</view>
+  </view>
+
+  <view class="office-content menu-edit-content">
+    <view class="office-card menu-edit-form">
+      <view class="auth-form">
+        <view class="auth-field">
+          <view class="auth-field-label">菜单标题</view>
+          <view class="auth-input-shell">
+            <input
+              value="{{form.title}}"
+              bindinput="onTitleInput"
+              placeholder="请输入菜单标题"
+              placeholder-class="auth-input-placeholder"
+              maxlength="50"
+            />
+          </view>
+        </view>
+
+        <view class="auth-field">
+          <view class="auth-field-label">菜单内容</view>
+          <view class="menu-editor-wrapper">
+            <editor
+              id="editor"
+              show-img-size
+              show-img-toolbar
+              show-img-resize
+              bindready="onEditorReady"
+              bindinput="onEditorInput"
+              placeholder="请输入菜单内容..."
+            ></editor>
+          </view>
+        </view>
+
+        <view class="menu-edit-submit">
+          <button
+            class="auth-submit-btn menu-submit-btn"
+            loading="{{loading}}"
+            bindtap="handleSubmit"
+          >
+            {{isEdit ? '保存修改' : '提交'}}
+          </button>
+        </view>
+      </view>
+    </view>
+  </view>
+</view>
+

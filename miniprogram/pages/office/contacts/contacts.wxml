@@ -15,7 +15,7 @@
   </view>
 
   <view class="office-content">
-    <view wx:if="{{selectedDept == '全部' && !search}}" class="office-card contacts-overview-card">
+    <view wx:if="{{selectedDept == '全部' && !search}}" class="office-card contacts-overview-card" bindtap="showComingSoon">
       <view class="contacts-overview-icon">👥</view>
       <view class="contacts-overview-main">
         <view class="contacts-overview-title">智汇科技 · 全员</view>
@@ -61,8 +61,8 @@
               </view>
 
               <view class="contacts-item-actions">
-                <view class="contacts-action-btn">☎</view>
-                <view class="contacts-action-btn">✉</view>
+                <view class="contacts-action-btn" bindtap="showComingSoon">☎</view>
+                <view class="contacts-action-btn" bindtap="showComingSoon">✉</view>
               </view>
             </view>
 
@@ -86,8 +86,8 @@
                 </view>
               </view>
               <view class="contacts-expand-actions">
-                <view class="office-btn-primary contacts-expand-btn">拨打电话</view>
-                <view class="office-btn-secondary contacts-expand-btn">发送消息</view>
+                <view class="office-btn-primary contacts-expand-btn" bindtap="showComingSoon">拨打电话</view>
+                <view class="office-btn-secondary contacts-expand-btn" bindtap="showComingSoon">发送消息</view>
               </view>
             </view>
           </view>

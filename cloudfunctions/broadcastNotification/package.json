@@ -1,0 +1,9 @@
+{
+  "name": "broadcastNotification",
+  "version": "1.0.0",
+  "description": "向全体用户广播通知",
+  "main": "index.js",
+  "dependencies": {
+    "wx-server-sdk": "~2.6.3"
+  }
+}

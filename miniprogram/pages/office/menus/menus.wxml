@@ -1,0 +1,39 @@
+<view class="office-page menus-page">
+  <view class="office-gradient-header menus-header">
+    <view class="office-header-top">
+      <view>
+        <view class="menus-title">每周菜单</view>
+        <view class="menus-subtitle">查看本周及历史菜单安排</view>
+      </view>
+      <view wx:if="{{showAddButton}}" class="menus-add-btn" bindtap="goAddMenu">
+        <text>＋ 新增</text>
+      </view>
+    </view>
+  </view>
+
+  <view class="office-content menus-content">
+    <view class="empty-state" wx:if="{{!loading && menuList.length === 0}}">
+      <view class="empty-icon">🍽️</view>
+      <view class="empty-text">暂无菜单</view>
+    </view>
+
+    <view class="office-card menus-list" wx:else>
+      <view class="menu-item" wx:for="{{menuList}}" wx:key="_id" bindtap="goMenuDetail" data-id="{{item._id}}">
+        <view class="menu-item-left">
+          <view class="menu-item-icon">📋</view>
+          <view class="menu-item-main">
+            <view class="menu-item-title">{{item.title}}</view>
+            <view class="menu-item-meta">
+              <text class="menu-item-time">提交于 {{item.timeText}}</text>
+              <text class="menu-item-author">· {{item.authorName}}</text>
+            </view>
+          </view>
+        </view>
+        <view class="menu-item-right">
+          <view class="menu-item-arrow">›</view>
+        </view>
+      </view>
+    </view>
+  </view>
+</view>
+

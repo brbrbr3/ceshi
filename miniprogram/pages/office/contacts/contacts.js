@@ -81,5 +81,12 @@ Page({
     }));
 
     this.setData({ groupedContacts });
+  },
+
+  showComingSoon() {
+    wx.showToast({
+      title: '功能开发中，敬请期待',
+      icon: 'none'
+    })
   }
 });

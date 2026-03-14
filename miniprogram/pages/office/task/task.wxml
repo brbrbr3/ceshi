@@ -5,7 +5,7 @@
         <view class="work-title">工作台</view>
         <view class="work-subtitle">任务、日程与项目进度一站查看</view>
       </view>
-      <view class="work-create-btn">＋ 新建</view>
+      <view class="work-create-btn" bindtap="showComingSoon">＋ 新建</view>
     </view>
 
     <view class="work-top-tabs">
@@ -61,7 +61,7 @@
           <view class="work-avatars">
             <view wx:for="{{item.assignees}}" wx:key="name" wx:for-item="user" class="work-avatar-mini" style="background: {{user.color}};">{{user.name}}</view>
           </view>
-          <view class="{{item.done ? 'office-btn-secondary' : 'office-btn-primary'}} work-action-btn">{{item.done ? '查看归档' : '查看详情'}}</view>
+          <view class="{{item.done ? 'office-btn-secondary' : 'office-btn-primary'}} work-action-btn" bindtap="showComingSoon">{{item.done ? '查看归档' : '查看详情'}}</view>
         </view>
       </view>
     </view>
@@ -70,7 +70,7 @@
       <view class="office-card work-calendar-card">
         <view class="work-calendar-head">
           <view class="office-section-title work-calendar-title">2026 年 3 月</view>
-          <view class="office-link">查看月历</view>
+          <view class="office-link" bindtap="showComingSoon">查看月历</view>
         </view>
         <view class="work-week-row">
           <view wx:for="{{weekDays}}" wx:key="*this" class="work-week-item">{{item}}</view>

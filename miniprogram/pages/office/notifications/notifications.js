@@ -58,6 +58,15 @@ Page({
 
   handleNotificationTap(e) {
     const id = e.currentTarget.dataset.id
+    const notification = this.data.notifications.find(n => n._id === id)
+
+    // 如果是菜单通知，跳转到菜单详情页
+    if (notification && notification.type === 'menu' && notification.menuId) {
+      wx.navigateTo({
+        url: `/pages/office/menu-detail/menu-detail?id=${notification.menuId}`
+      })
+    }
+
     app.markNotificationAsRead(id, function(success) {
       if (success) {
         this.loadNotifications()

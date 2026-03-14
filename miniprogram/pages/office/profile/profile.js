@@ -94,5 +94,26 @@ Page({
         url: '/pages/auth/login/login'
       })
     }, 200)
+  },
+
+  showComingSoon() {
+    util.showToast({
+      title: '功能开发中，敬请期待',
+      icon: 'none'
+    })
+  },
+
+  handleMenuTap(e) {
+    const label = e.currentTarget.dataset.label
+    if (label === '消息通知') {
+      wx.navigateTo({
+        url: '/pages/office/notifications/notifications'
+      })
+    } else {
+      util.showToast({
+        title: '功能开发中，敬请期待',
+        icon: 'none'
+      })
+    }
   }
 })

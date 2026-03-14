@@ -267,6 +267,7 @@ page {
 }
 
 .profile-company-address {
+  margin-left: 16rpx;
   margin-top: 8rpx;
 }
 

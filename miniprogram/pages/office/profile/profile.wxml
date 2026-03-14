@@ -1,8 +1,8 @@
 <view class="office-page profile-page">
   <view class="office-gradient-header profile-header">
-    <view class="profile-theme-switch">{{primaryTag}}</view>
+    <view class="profile-theme-switch" bindtap="showComingSoon">{{primaryTag}}</view>
 
-    <view class="profile-user-row">
+    <view class="profile-user-row" bindtap="showComingSoon">
       <view class="profile-avatar-wrap">
         <view class="profile-avatar">{{avatarText}}</view>
         <view class="profile-avatar-status"></view>
@@ -34,7 +34,7 @@
         <view class="profile-reward-title">本月全勤奖励</view>
         <view class="profile-reward-sub">坚持打卡已获得 100 积分</view>
       </view>
-      <view class="profile-reward-btn">领取</view>
+      <view class="profile-reward-btn" bindtap="showComingSoon">领取</view>
     </view>
 
     <view class="profile-info-grid">
@@ -51,7 +51,7 @@
     <view class="profile-group" wx:for="{{menuGroups}}" wx:key="title">
       <view class="profile-group-title">{{item.title}}</view>
       <view class="office-card profile-menu-card">
-        <view class="profile-menu-item" wx:for="{{item.items}}" wx:key="label" wx:for-item="menu">
+        <view class="profile-menu-item" wx:for="{{item.items}}" wx:key="label" wx:for-item="menu" bindtap="handleMenuTap" data-label="{{menu.label}}">
           <view class="profile-menu-icon">{{menu.icon}}</view>
           <view class="profile-menu-label">{{menu.label}}</view>
           <view wx:if="{{menu.badge}}" class="profile-menu-badge">{{menu.badge}}</view>

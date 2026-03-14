@@ -16,13 +16,13 @@ Page({
       { label: '绩效得分', value: '92', color: '#2563EB', bg: '#EFF6FF' }
     ],
     quickActions: [
+      { icon: '🍽️', label: '每周菜单', color: '#16A34A', bg: '#DCFCE7' },
       { icon: '📅', label: '打卡签到', color: '#4CAF50', bg: '#E8F5E9' },
       { icon: '📋', label: '发起审批', color: '#FF9800', bg: '#FFF3E0' },
       { icon: '📢', label: '公告通知', color: '#9C27B0', bg: '#F3E5F5' },
       { icon: '📊', label: '工作报告', color: '#00BCD4', bg: '#E0F7FA' },
       { icon: '💬', label: '企业通讯', color: '#F44336', bg: '#FFEBEE' },
       { icon: '📁', label: '云端文档', color: '#FF5722', bg: '#FBE9E7' },
-      { icon: '🗓️', label: '日程安排', color: '#3F51B5', bg: '#E8EAF6' },
       { icon: '🎯', label: '任务中心', color: '#795548', bg: '#EFEBE9' }
     ],
     approvals: [
@@ -48,7 +48,6 @@ Page({
     })
     this.syncUserProfile()
     this.syncNotifications()
-    this.requestSubscribeMessage()
   },
 
   getCurrentDateText() {
@@ -116,6 +115,27 @@ Page({
   goNotifications() {
     wx.navigateTo({
       url: '/pages/office/notifications/notifications'
+    })
+  },
+
+  handleQuickAction(e) {
+    const label = e.currentTarget.dataset.label
+    if (label === '每周菜单') {
+      wx.navigateTo({
+        url: '/pages/office/menus/menus'
+      })
+    } else {
+      util.showToast({
+        title: '功能开发中，敬请期待',
+        icon: 'none'
+      })
+    }
+  },
+
+  showComingSoon() {
+    util.showToast({
+      title: '功能开发中，敬请期待',
+      icon: 'none'
     })
   }
 })
