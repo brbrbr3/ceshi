@@ -124,26 +124,27 @@ Page({
         this.setData({ currentUser: result.user })
 
         const openid = app.globalData.openid
-        const db = wx.cloud.database()
         const menuData = {
           title: title,
           content: content,
-          authorOpenid: openid,
-          authorName: result.user.name,
-          updatedAt: Date.now()
+          authorName: result.user.name
         }
 
         if (this.data.isEdit) {
-          return db.collection('menus')
-            .doc(this.data.menuId)
-            .update({
-              data: menuData
-            })
-        } else {
-          return db.collection('menus').add({
+          return wx.cloud.callFunction({
+            name: 'menuManager',
             data: {
-              ...menuData,
-              createdAt: Date.now()
+              action: 'updateMenu',
+              menuId: this.data.menuId,
+              menuData: menuData
+            }
+          })
+        } else {
+          return wx.cloud.callFunction({
+            name: 'menuManager',
+            data: {
+              action: 'addMenu',
+              menuData: menuData
             }
           })
         }

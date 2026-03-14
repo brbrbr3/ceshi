@@ -88,48 +88,74 @@ Page({
   },
 
   loadComments() {
-    const db = wx.cloud.database()
-    db.collection('menu_comments')
-      .where({
-        menuId: this.data.menuId
-      })
-      .orderBy('createdAt', 'asc')
-      .get()
-      .then(res => {
-        const comments = (res.data || []).map(item => {
-          return {
-            ...item,
-            timeText: formatTime(item.createdAt),
-            avatar: (item.authorName || '用').slice(0, 1),
-            avatarBg: getAvatarColor(item.authorName)
-          }
-        })
+    // 先获取当前用户信息
+    app.checkUserRegistration()
+      .then((result) => {
+        const currentUser = result.user
+        const isAdmin = result.user ? result.user.isAdmin : false
+        const currentOpenid = app.globalData.openid || ''
 
-        app.checkUserRegistration()
-          .then((result) => {
-            if (!result.registered || !result.user) {
-              this.setData({ comments })
-              return
-            }
+        const db = wx.cloud.database()
+        db.collection('menu_comments')
+          .where({
+            menuId: this.data.menuId
+          })
+          .orderBy('createdAt', 'asc')
+          .get()
+          .then(res => {
+            const comments = (res.data || []).map(item => {
+              // 兼容新旧字段名
+              const authorName = item.authorName || item.userName || '用户'
+              const authorOpenid = item.authorOpenid || item.openid || ''
 
-            const currentUser = result.user
-            const isAdmin = currentUser.isAdmin
-
-            const commentsWithPermission = comments.map(comment => {
               return {
-                ...comment,
-                canDelete: isAdmin || comment.authorOpenid === app.globalData.openid
+                ...item,
+                authorName: authorName,
+                authorOpenid: authorOpenid,
+                timeText: formatTime(item.createdAt),
+                avatar: authorName.slice(0, 1),
+                avatarBg: getAvatarColor(authorName),
+                canDelete: isAdmin || authorOpenid === currentOpenid
               }
             })
 
-            this.setData({ comments: commentsWithPermission })
-          })
-          .catch(() => {
             this.setData({ comments })
           })
+          .catch(error => {
+            console.error('加载评论失败', error)
+          })
       })
-      .catch(error => {
-        console.error('加载评论失败', error)
+      .catch(() => {
+        // 未登录用户，加载评论但不设置删除权限
+        const db = wx.cloud.database()
+        db.collection('menu_comments')
+          .where({
+            menuId: this.data.menuId
+          })
+          .orderBy('createdAt', 'asc')
+          .get()
+          .then(res => {
+            const comments = (res.data || []).map(item => {
+              // 兼容新旧字段名
+              const authorName = item.authorName || item.userName || '用户'
+              const authorOpenid = item.authorOpenid || item.openid || ''
+
+              return {
+                ...item,
+                authorName: authorName,
+                authorOpenid: authorOpenid,
+                timeText: formatTime(item.createdAt),
+                avatar: authorName.slice(0, 1),
+                avatarBg: getAvatarColor(authorName),
+                canDelete: false
+              }
+            })
+
+            this.setData({ comments })
+          })
+          .catch(error => {
+            console.error('加载评论失败', error)
+          })
       })
   },
 
@@ -168,14 +194,16 @@ Page({
           return
         }
 
-        const db = wx.cloud.database()
-        db.collection('menu_comments').add({
+        const commentData = {
+          menuId: this.data.menuId,
+          content: content
+        }
+
+        wx.cloud.callFunction({
+          name: 'menuManager',
           data: {
-            menuId: this.data.menuId,
-            content: content,
-            authorOpenid: openid,
-            authorName: result.user.name,
-            createdAt: Date.now()
+            action: 'addComment',
+            commentData: commentData
           }
         })
           .then(() => {
@@ -209,10 +237,13 @@ Page({
       content: '确定要删除这条评论吗？',
       success: (res) => {
         if (res.confirm) {
-          const db = wx.cloud.database()
-          db.collection('menu_comments')
-            .doc(id)
-            .remove()
+          wx.cloud.callFunction({
+            name: 'menuManager',
+            data: {
+              action: 'deleteComment',
+              menuId: id
+            }
+          })
             .then(() => {
               this.loadComments()
               util.showToast({
@@ -244,10 +275,13 @@ Page({
       content: '确定要删除这个菜单吗？删除后无法恢复。',
       success: (res) => {
         if (res.confirm) {
-          const db = wx.cloud.database()
-          db.collection('menus')
-            .doc(this.data.menuId)
-            .remove()
+          wx.cloud.callFunction({
+            name: 'menuManager',
+            data: {
+              action: 'deleteMenu',
+              menuId: this.data.menuId
+            }
+          })
             .then(() => {
               util.showToast({
                 title: '删除成功',
