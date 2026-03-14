@@ -85,10 +85,26 @@ function compareVersion(v1, v2) {
   return 0
 }
 
+function showToast(options) {
+  if (typeof options === 'string') {
+    options = { title: options }
+  }
+
+  const minDuration = 1500
+  const duration = options.duration || minDuration
+  const actualDuration = Math.max(duration, minDuration)
+
+  return wx.showToast({
+    ...options,
+    duration: actualDuration
+  })
+}
+
 module.exports = {
   formatTime,
   formatLocation,
   fib,
   formatDateTime,
-  compareVersion
+  compareVersion,
+  showToast
 }

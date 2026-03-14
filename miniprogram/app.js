@@ -1,6 +1,7 @@
 const config = require('./config')
 const themeListeners = []
 const AUTH_STORAGE_KEY = 'office-auth-cache'
+const SUBSCRIBE_REQUEST_KEY = 'office-subscribe-requested'
 
 global.isDemo = true
 
@@ -36,6 +37,22 @@ function removeStorage(key) {
     wx.removeStorageSync(key)
   } catch (error) {
     console.error('清理本地缓存失败', error)
+  }
+}
+
+function hasRequestedSubscribe() {
+  try {
+    return wx.getStorageSync(SUBSCRIBE_REQUEST_KEY) || false
+  } catch (error) {
+    return false
+  }
+}
+
+function setSubscribeRequested() {
+  try {
+    wx.setStorageSync(SUBSCRIBE_REQUEST_KEY, true)
+  } catch (error) {
+    console.error('保存订阅请求状态失败', error)
   }
 }
 
@@ -211,5 +228,135 @@ App({
 
   logout() {
     this.clearAuthState()
+  },
+
+  requestSubscribeMessage() {
+    if (hasRequestedSubscribe()) {
+      return Promise.resolve(false)
+    }
+
+    return wx.requestSubscribeMessage({
+      tmplIds: ['y1bXHAg_oDuvrQ3pHgcODcMPl-2hZHenWugsqdB2CXY']
+    }).then((res) => {
+      const subscribed = res['y1bXHAg_oDuvrQ3pHgcODcMPl-2hZHenWugsqdB2CXY'] === 'accept'
+      if (subscribed) {
+        setSubscribeRequested()
+        this.saveSubscriptionRecord()
+      }
+      return subscribed
+    }).catch((error) => {
+      console.error('订阅消息失败', error)
+      return false
+    })
+  },
+
+  saveSubscriptionRecord() {
+    const openid = this.globalData.openid
+    if (!openid) {
+      return
+    }
+
+    const db = wx.cloud.database()
+    db.collection('subscriptions').add({
+      data: {
+        openid: openid,
+        templateId: 'y1bXHAg_oDuvrQ3pHgcODcMPl-2hZHenWugsqdB2CXY',
+        createdAt: new Date(),
+        status: 'subscribed'
+      }
+    }).catch(error => {
+      console.error('保存订阅记录失败', error)
+    })
+  },
+
+  addApprovalNotification(type, content) {
+    const openid = this.globalData.openid
+    if (!openid) {
+      console.warn('无法添加通知：未获取到 openid')
+      return
+    }
+
+    const db = wx.cloud.database()
+    db.collection('notifications').add({
+      data: {
+        openid: openid,
+        type: 'approval',
+        title: `新的${type}`,
+        content: content,
+        read: false,
+        createdAt: Date.now()
+      }
+    }).catch(error => {
+      console.error('添加通知失败', error)
+    })
+  },
+
+  getNotifications(callback) {
+    const openid = this.globalData.openid
+    if (!openid) {
+      callback([])
+      return
+    }
+
+    const db = wx.cloud.database()
+    db.collection('notifications')
+      .where({
+        openid: openid
+      })
+      .orderBy('createdAt', 'desc')
+      .get()
+      .then(res => {
+        callback(res.data || [])
+      })
+      .catch(error => {
+        console.error('获取通知列表失败', error)
+        callback([])
+      })
+  },
+
+  markNotificationAsRead(id, callback) {
+    const openid = this.globalData.openid
+    if (!openid) {
+      if (callback) callback(false)
+      return
+    }
+
+    const db = wx.cloud.database()
+    db.collection('notifications')
+      .doc(id)
+      .update({
+        data: {
+          read: true
+        }
+      })
+      .then(() => {
+        if (callback) callback(true)
+      })
+      .catch(error => {
+        console.error('标记通知已读失败', error)
+        if (callback) callback(false)
+      })
+  },
+
+  clearAllNotifications(callback) {
+    const openid = this.globalData.openid
+    if (!openid) {
+      if (callback) callback(false)
+      return
+    }
+
+    const db = wx.cloud.database()
+    db.collection('notifications')
+      .where({
+        openid: openid
+      })
+      .remove()
+      .then(() => {
+        if (callback) callback(true)
+      })
+      .catch(error => {
+        console.error('清空通知失败', error)
+        if (callback) callback(false)
+      })
   }
 })

@@ -64,8 +64,8 @@
       <view class="profile-company-head">
         <view class="profile-company-logo">🏢</view>
         <view>
-          <view class="profile-company-name">智汇科技有限公司</view>
-          <view class="profile-company-address">上海市浦东新区张江高科技园区</view>
+          <view class="profile-company-name">Embaixada da China</view>
+          <view class="profile-company-address">SES 813, LOTE 52</view>
         </view>
       </view>
       <view class="profile-company-grid">
@@ -77,6 +77,6 @@
     </view>
 
     <view class="office-card profile-logout-btn" bindtap="handleLogout">退出登录</view>
-    <view class="profile-version">OFFICE MINI · UI V2.2.0</view>
+    <view class="profile-version">利亚通 · V0.0.0.2</view>
   </view>
 </view>

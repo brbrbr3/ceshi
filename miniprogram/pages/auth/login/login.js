@@ -1,4 +1,5 @@
 const app = getApp()
+const util = require('../../../util/util.js')
 
 function formatTime(timestamp) {
   if (!timestamp) {
@@ -43,7 +44,7 @@ function buildStatusCard(request) {
   return {
     className: 'is-approved',
     title: '账号已完成注册',
-    desc: '您已通过管理员审批，点击下方按钮进入首页。',
+    desc: '您已通过管理员审批，点击上方按钮进入首页。',
     tag: '已通过',
     extra: '',
     time: ''
@@ -54,11 +55,65 @@ Page({
   data: {
     loading: false,
     statusCard: null,
-    showRegisterLink: true
+    showRegisterLink: true,
+    avatarUrl: '',
+    tempAvatarUrl: ''
   },
 
   onShow() {
     this.refreshStatus()
+    this.loadUserAvatar()
+  },
+
+  // 处理头像选择
+  onChooseAvatar(e) {
+    const { avatarUrl } = e.detail
+    this.setData({
+      tempAvatarUrl: avatarUrl,
+      avatarUrl: avatarUrl
+    })
+  },
+
+  // 加载用户头像
+  loadUserAvatar() {
+    app.checkUserRegistration()
+      .then((result) => {
+        if (result.registered && result.user && result.user.avatarUrl) {
+          this.setData({
+            avatarUrl: result.user.avatarUrl
+          })
+        }
+      })
+      .catch(() => {
+        // 忽略错误
+      })
+  },
+
+  // 上传头像到云存储
+  uploadAvatar(avatarPath) {
+    return new Promise((resolve, reject) => {
+      const openid = app.globalData.openid
+      if (!openid) {
+        reject(new Error('未获取到用户身份'))
+        return
+      }
+
+      // 生成唯一文件名
+      const fileName = `avatars/${openid}_${Date.now()}.jpg`
+
+      wx.cloud.uploadFile({
+        cloudPath: fileName,
+        filePath: avatarPath,
+        success: (res) => {
+          console.log('头像上传成功', res.fileID)
+          resolve(res.fileID)
+        },
+        fail: (error) => {
+          console.error('头像上传失败', error)
+          reject(error)
+        }
+      })
+    })
   },
 
   refreshStatus() {
@@ -68,9 +123,11 @@ Page({
           ? buildStatusCard({ status: 'approved' })
           : buildStatusCard(result.request)
 
+        // 已注册用户不显示注册链接
+        // 未注册用户：没有申请或申请被驳回时显示注册链接，申请审核中不显示
         this.setData({
           statusCard,
-          showRegisterLink: !result.request || result.request.status === 'rejected'
+          showRegisterLink: !result.registered && (!result.request || result.request.status === 'rejected')
         })
       })
       .catch((error) => {
@@ -105,7 +162,7 @@ Page({
         if (result.registered === true) {
           // 已注册用户，跳转主页
           console.log('用户已注册，准备跳转首页')
-          wx.showToast({
+          util.showToast({
             title: '登录成功',
             icon: 'success'
           })
@@ -127,7 +184,7 @@ Page({
             statusCard: buildStatusCard(result.request),
             showRegisterLink: false
           })
-          wx.showToast({
+          util.showToast({
             title: '申请审核中',
             icon: 'none'
           })
@@ -144,7 +201,7 @@ Page({
       })
       .catch((error) => {
         console.error('登录错误:', error)
-        wx.showToast({
+        util.showToast({
           title: error.message || '登录失败',
           icon: 'none'
         })

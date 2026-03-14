@@ -1,0 +1,32 @@
+<view class="office-page notifications-page">
+  <view class="office-header">
+    <view class="office-header-title">消息通知</view>
+    <view class="office-header-actions">
+      <view class="office-link" bindtap="markAllAsRead" wx:if="{{hasUnreadNotifications}}">全部已读</view>
+      <view class="office-link" bindtap="clearAll">清空</view>
+    </view>
+  </view>
+
+  <view class="notifications-content">
+    <view class="empty-state" wx:if="{{notifications.length === 0}}">
+      <view class="empty-icon">📬</view>
+      <view class="empty-text">暂无消息通知</view>
+    </view>
+
+    <view class="office-card notifications-list" wx:else>
+      <view class="notification-item {{item.read ? 'is-read' : ''}}" wx:for="{{notifications}}" wx:key="_id" bindtap="handleNotificationTap" data-id="{{item._id}}">
+        <view class="notification-left">
+          <view class="notification-icon">{{item.type === 'approval' ? '📋' : '📢'}}</view>
+          <view class="notification-main">
+            <view class="notification-title {{!item.read ? 'is-unread' : ''}}">{{item.title}}</view>
+            <view class="notification-content">{{item.content}}</view>
+            <view class="notification-time">{{item.timeText}}</view>
+          </view>
+        </view>
+        <view class="notification-right">
+          <view wx:if="{{!item.read}}" class="notification-dot"></view>
+        </view>
+      </view>
+    </view>
+  </view>
+</view>

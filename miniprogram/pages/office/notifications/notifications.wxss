@@ -1,0 +1,133 @@
+.notifications-page {
+  background: #F7F8FA;
+  min-height: 100vh;
+}
+
+.office-header {
+  background: #FFFFFF;
+  padding: 24rpx 32rpx 20rpx;
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  border-bottom: 1rpx solid #E5E7EB;
+  padding-top: calc(24rpx + env(safe-area-inset-top));
+}
+
+.office-header-title {
+  font-size: 36rpx;
+  font-weight: 600;
+  color: #1F2937;
+}
+
+.office-header-actions {
+  display: flex;
+  gap: 24rpx;
+}
+
+.notifications-content {
+  padding: 24rpx 32rpx;
+}
+
+.empty-state {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  padding: 120rpx 0;
+}
+
+.empty-icon {
+  font-size: 120rpx;
+  margin-bottom: 24rpx;
+}
+
+.empty-text {
+  font-size: 28rpx;
+  color: #9CA3AF;
+}
+
+.notifications-list {
+  padding: 0;
+}
+
+.notification-item {
+  display: flex;
+  justify-content: space-between;
+  align-items: flex-start;
+  padding: 24rpx 0;
+  border-bottom: 1rpx solid #F3F4F6;
+  background: transparent !important;
+}
+
+.notification-item:last-child {
+  border-bottom: none;
+}
+
+.notification-item.is-read {
+  opacity: 0.6;
+}
+
+.notification-left {
+  display: flex;
+  flex: 1;
+  gap: 20rpx;
+}
+
+.notification-icon {
+  width: 80rpx;
+  height: 80rpx;
+  border-radius: 16rpx;
+  background: #EFF6FF;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 40rpx;
+  flex-shrink: 0;
+}
+
+.notification-main {
+  flex: 1;
+  min-width: 0;
+}
+
+.notification-title {
+  font-size: 28rpx;
+  font-weight: 500;
+  color: #1F2937;
+  margin-bottom: 8rpx;
+}
+
+.notification-title.is-unread {
+  color: #2563EB;
+  font-weight: 600;
+}
+
+.notification-content {
+  font-size: 24rpx;
+  color: #6B7280;
+  line-height: 1.6;
+  margin-bottom: 8rpx;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  display: -webkit-box;
+  -webkit-line-clamp: 2;
+  -webkit-box-orient: vertical;
+}
+
+.notification-time {
+  font-size: 22rpx;
+  color: #9CA3AF;
+}
+
+.notification-right {
+  display: flex;
+  align-items: center;
+  padding-left: 16rpx;
+}
+
+.notification-dot {
+  width: 16rpx;
+  height: 16rpx;
+  border-radius: 50%;
+  background: #EF4444;
+  flex-shrink: 0;
+}

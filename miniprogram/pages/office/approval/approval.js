@@ -1,4 +1,5 @@
 const app = getApp()
+const util = require('../../../util/util.js')
 
 const approvalTypes = [
   { icon: '📝', label: '注册申请', color: '#2563EB', bg: '#EFF6FF' },
@@ -155,7 +156,7 @@ Page({
         })
       })
       .catch((error) => {
-        wx.showToast({
+        util.showToast({
           title: error.message || '加载失败',
           icon: 'none'
         })
@@ -231,16 +232,24 @@ Page({
       requestId: this.data.selectedRequest._id,
       decision
     })
-      .then(() => {
-        wx.showToast({
+      .then((result) => {
+        util.showToast({
           title: decision === 'approve' ? '已批准' : '已驳回',
           icon: 'success'
         })
+
+        // 添加本地通知
+        if (result && result.request) {
+          const notificationType = decision === 'approve' ? '注册申请通过' : '注册申请被驳回'
+          const notificationContent = `您提交的${result.request.name}的${result.request.role}申请${decision === 'approve' ? '已通过' : '已被驳回'}${decision === 'rejected' && result.reviewRemark ? '，原因：' + result.reviewRemark : ''}`
+          app.addApprovalNotification(notificationType, notificationContent)
+        }
+
         this.closeDetail()
         this.loadApprovalData()
       })
       .catch((error) => {
-        wx.showToast({
+        util.showToast({
           title: error.message || '处理失败',
           icon: 'none'
         })

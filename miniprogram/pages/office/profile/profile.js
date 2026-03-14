@@ -1,4 +1,5 @@
 const app = getApp()
+const util = require('../../../util/util.js')
 
 Page({
   data: {
@@ -7,6 +8,7 @@ Page({
     primaryTag: '微信身份',
     secondaryTag: '状态：未注册',
     avatarText: '智',
+    userAvatarUrl: '',
     isAdmin: false,
     stats: [
       { label: '本月出勤', value: '7天', icon: '📅' },
@@ -74,7 +76,7 @@ Page({
         })
       })
       .catch((error) => {
-        wx.showToast({
+        util.showToast({
           title: error.message || '加载失败',
           icon: 'none'
         })
@@ -83,7 +85,7 @@ Page({
 
   handleLogout() {
     app.logout()
-    wx.showToast({
+    util.showToast({
       title: '已退出',
       icon: 'success'
     })

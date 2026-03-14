@@ -1,4 +1,5 @@
 const app = getApp()
+const util = require('../../../util/util.js')
 const ROLE_OPTIONS = ['馆领导', '部门负责人', '馆员', '工勤', '物业', '配偶', '家属']
 
 Page({
@@ -101,19 +102,19 @@ Page({
 
     const form = this.data.form
     if (!String(form.name || '').trim()) {
-      wx.showToast({ title: '请输入姓名', icon: 'none' })
+      util.showToast({ title: '请输入姓名', icon: 'none' })
       return
     }
     if (!form.gender) {
-      wx.showToast({ title: '请选择性别', icon: 'none' })
+      util.showToast({ title: '请选择性别', icon: 'none' })
       return
     }
     if (!form.birthday) {
-      wx.showToast({ title: '请选择出生日期', icon: 'none' })
+      util.showToast({ title: '请选择出生日期', icon: 'none' })
       return
     }
     if (!form.role) {
-      wx.showToast({ title: '请选择角色', icon: 'none' })
+      util.showToast({ title: '请选择角色', icon: 'none' })
       return
     }
 

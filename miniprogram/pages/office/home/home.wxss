@@ -40,6 +40,31 @@ page {
   gap: 16rpx;
 }
 
+.office-icon-btn-wrapper {
+  position: relative;
+  display: flex;
+  align-items: center;
+}
+
+.office-badge {
+  position: absolute;
+  top: -4rpx;
+  right: -4rpx;
+  min-width: 32rpx;
+  height: 32rpx;
+  padding: 0 10rpx;
+  border-radius: 16rpx;
+  background: #F44336;
+  color: #FFFFFF;
+  font-size: 18rpx;
+  font-weight: 600;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  line-height: 1;
+  box-shadow: 0 2rpx 8rpx rgba(244, 67, 54, 0.3);
+}
+
 .home-greeting {
   margin-top: 32rpx;
   font-size: 40rpx;

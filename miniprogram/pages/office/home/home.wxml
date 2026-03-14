@@ -2,14 +2,18 @@
   <view class="office-gradient-header home-header">
     <view class="office-header-top">
       <view class="home-brand">
-        <view class="home-brand-mark">智</view>
+        <image wx:if="{{avatarUrl}}" class="home-user-avatar" src="{{avatarUrl}}" mode="aspectFill" />
+        <view wx:else class="home-user-avatar home-user-avatar-placeholder">{{avatarText || displayName.slice(0, 1)}}</view>
         <view>
-          <view class="home-brand-name">智汇科技有限公司</view>
+          <view class="home-brand-name">{{displayName}}</view>
           <view class="home-brand-sub">{{roleLabel}}</view>
         </view>
       </view>
       <view class="home-actions">
-        <view class="office-icon-btn">🔔</view>
+        <view class="office-icon-btn-wrapper" bindtap="goNotifications">
+          <view class="office-icon-btn">🔔</view>
+          <view wx:if="{{unreadNotificationCount > 0}}" class="office-badge">{{unreadNotificationCount}}</view>
+        </view>
         <view class="office-icon-btn">⌕</view>
       </view>
     </view>

@@ -1,4 +1,5 @@
 const app = getApp()
+const util = require('../../../util/util.js')
 
 Page({
   data: {
@@ -7,6 +8,7 @@ Page({
     currentDateText: '',
     roleLabel: '待认证用户',
     pendingApprovalCount: 3,
+    unreadNotificationCount: 0,
     stats: [
       { label: '待审批', value: '5', color: '#F44336', bg: '#FFEBEE' },
       { label: '待办事项', value: '12', color: '#FF9800', bg: '#FFF3E0' },
@@ -45,6 +47,8 @@ Page({
       currentDateText: this.getCurrentDateText()
     })
     this.syncUserProfile()
+    this.syncNotifications()
+    this.requestSubscribeMessage()
   },
 
   getCurrentDateText() {
@@ -78,7 +82,7 @@ Page({
         })
       })
       .catch((error) => {
-        wx.showToast({
+        util.showToast({
           title: error.message || '加载失败',
           icon: 'none'
         })
@@ -88,6 +92,30 @@ Page({
   goApprovalTab() {
     wx.switchTab({
       url: '/pages/office/approval/approval'
+    })
+  },
+
+  requestSubscribeMessage() {
+    app.requestSubscribeMessage().then((subscribed) => {
+      if (subscribed) {
+        util.showToast({
+          title: '订阅成功',
+          icon: 'success'
+        })
+      }
+    })
+  },
+
+  syncNotifications() {
+    app.getNotifications(function(notifications) {
+      const unreadCount = notifications.filter(function(n) { return !n.read }).length
+      this.setData({ unreadNotificationCount: unreadCount })
+    }.bind(this))
+  },
+
+  goNotifications() {
+    wx.navigateTo({
+      url: '/pages/office/notifications/notifications'
     })
   }
 })
