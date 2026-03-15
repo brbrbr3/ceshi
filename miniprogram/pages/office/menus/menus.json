@@ -1,4 +1,6 @@
 {
   "navigationBarTitleText": "每周菜单",
+  "enablePullDownRefresh": true,
+  "onReachBottomDistance": 50,
   "usingComponents": {}
 }

@@ -287,12 +287,14 @@ App({
     })
   },
 
-  getNotifications(callback) {
+  getNotifications(options, callback) {
     const openid = this.globalData.openid
     if (!openid) {
       callback([])
       return
     }
+
+    const { page = 1, pageSize = 20 } = options || {}
 
     const db = wx.cloud.database()
     db.collection('notifications')
@@ -300,12 +302,33 @@ App({
         openid: openid
       })
       .orderBy('createdAt', 'desc')
+      .skip((page - 1) * pageSize)
+      .limit(pageSize)
       .get()
       .then(res => {
-        callback(res.data || [])
+        const data = res.data || []
+        const result = {
+          data: data,
+          hasMore: data.length >= pageSize
+        }
+        
+        if (callback && typeof callback === 'function') {
+          callback(result)
+        } else {
+          return result
+        }
       })
       .catch(error => {
-        callback([])
+        const errorResult = {
+          data: [],
+          hasMore: false
+        }
+        
+        if (callback && typeof callback === 'function') {
+          callback(errorResult)
+        } else {
+          return errorResult
+        }
       })
   },
 

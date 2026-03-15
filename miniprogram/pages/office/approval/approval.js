@@ -1,5 +1,6 @@
 const app = getApp()
 const util = require('../../../util/util.js')
+const paginationBehavior = require('../../../behaviors/pagination.js')
 
 const approvalTypes = [
   { icon: '🏥', label: '就医申请', color: '#EF4444', bg: '#FEE2E2' },
@@ -208,6 +209,7 @@ function mapRequestItem(request) {
 }
 
 Page({
+  behaviors: [paginationBehavior],
   filters: {
     formatDateTime
   },
@@ -236,11 +238,30 @@ Page({
     selectedRequest: null,
     currentUser: null,
     workflowLogs: [], // 添加工作流日志
-    currentOpenid: '' // 添加当前用户的 openid
+    currentOpenid: '', // 添加当前用户的 openid
+    
+    // 分页状态管理（每个 tab 独立）
+    pagination: {
+      pending: { page: 1, hasMore: true, loading: false },
+      mine: { page: 1, hasMore: true, loading: false },
+      done: { page: 1, hasMore: true, loading: false }
+    }
+  },
+
+  onLoad() {
+    // 初始化每个 tab 的分页配置
+    this.initPagination({
+      initialPageSize: 20,
+      loadMorePageSize: 10
+    })
+    this.loadApprovalData()
   },
 
   onShow() {
-    this.loadApprovalData()
+    // 如果列表为空，重新加载
+    if (this.data.currentList.length === 0) {
+      this.loadApprovalData()
+    }
   },
 
   getListByTab(tab, lists) {
@@ -266,36 +287,80 @@ Page({
     return '暂无待审批申请'
   },
 
-  loadApprovalData() {
+  loadApprovalData(loadMore = false) {
+    const activeTab = this.data.activeTab
+    const { page, loading } = this.data.pagination[activeTab]
+    
+    // 防止重复加载
+    if (loading && loadMore) {
+      return
+    }
+
+    // 检查是否还有更多数据
+    if (loadMore && !this.data.pagination[activeTab].hasMore) {
+      return
+    }
+
     this.setData({
       loading: true,
-      currentOpenid: app.globalData.openid || ''
+      currentOpenid: app.globalData.openid || '',
+      [`pagination.${activeTab}.loading`]: true
     })
 
-    app.callOfficeAuth('getApprovalData')
+    const currentPage = loadMore ? page : 1
+    const pageSize = loadMore ? 10 : 20
+
+    app.callOfficeAuth('getApprovalData', {
+      page: currentPage,
+      pageSize: pageSize
+    })
       .then((data) => {
         const pendingList = (data.pendingList || []).map(mapRequestItem)
         const mineList = (data.mineList || []).map(mapRequestItem)
         const doneList = (data.doneList || []).map(mapRequestItem)
         const canReview = !!data.canReview
-        const activeTab = canReview ? this.data.activeTab : (mineList.length ? 'mine' : 'pending')
-        const lists = { pendingList, mineList, doneList }
+        
+        // 如果是首次加载，确定当前激活的 tab
+        let finalActiveTab = this.data.activeTab
+        if (!loadMore) {
+          finalActiveTab = canReview ? this.data.activeTab : (mineList.length ? 'mine' : 'pending')
+        }
+
+        const paginationInfo = data.pagination || {}
+        const hasMoreInfo = paginationInfo.hasMore || {
+          mineList: mineList.length >= pageSize,
+          pendingList: canReview ? (pendingList.length >= pageSize) : false,
+          doneList: canReview ? (doneList.length >= pageSize) : false
+        }
+
+        // 根据当前 activeTab 更新对应的列表
+        let newLists = { pendingList: this.data.pendingList, mineList: this.data.mineList, doneList: this.data.doneList }
+        
+        if (!loadMore) {
+          // 首次加载或刷新，替换所有列表
+          newLists = { pendingList, mineList, doneList }
+        } else {
+          // 加载更多，只更新当前 tab 的列表
+          newLists[activeTab + 'List'] = [...this.data[activeTab + 'List'], ...(activeTab === 'pending' ? pendingList : (activeTab === 'mine' ? mineList : doneList))]
+        }
 
         this.setData({
           canReview,
-          currentUser: data.currentUser, // 保存当前用户信息
+          currentUser: data.currentUser,
           summary: data.summary || this.data.summary,
-          pendingList,
-          mineList,
-          doneList,
-          activeTab,
+          ...newLists,
+          activeTab: finalActiveTab,
           tabs: [
             { key: 'pending', label: '待审批', count: pendingList.length },
             { key: 'mine', label: '我发起的', count: mineList.length },
             { key: 'done', label: '已处理', count: doneList.length }
           ],
-          currentList: this.getListByTab(activeTab, lists),
-          emptyText: this.getEmptyText(activeTab, canReview)
+          currentList: this.getListByTab(activeTab, newLists),
+          emptyText: this.getEmptyText(activeTab, canReview),
+          loading: false,
+          [`pagination.${activeTab}.page`]: currentPage,
+          [`pagination.${activeTab}.hasMore`]: hasMoreInfo[activeTab + 'List'] || (activeTab === 'pending' ? pendingList.length >= pageSize : (activeTab === 'mine' ? mineList.length >= pageSize : doneList.length >= pageSize)),
+          [`pagination.${activeTab}.loading`]: false
         })
       })
       .catch((error) => {
@@ -303,16 +368,49 @@ Page({
           title: error.message || '加载失败',
           icon: 'none'
         })
-      })
-      .then(() => {
-        this.setData({ loading: false })
+        this.setData({
+          loading: false,
+          [`pagination.${activeTab}.loading`]: false
+        })
       })
   },
 
   switchTab(e) {
     const tab = e.currentTarget.dataset.tab
     this.setData({ activeTab: tab })
-    this.loadApprovalData()
+    
+    // 切换 tab 时，如果该 tab 的列表为空，加载第一页
+    if (this.data[tab + 'List'].length === 0) {
+      this.loadApprovalData(false)
+    } else {
+      // 否则只更新 currentList
+      const lists = {
+        pendingList: this.data.pendingList,
+        mineList: this.data.mineList,
+        doneList: this.data.doneList
+      }
+      this.setData({
+        currentList: this.getListByTab(tab, lists),
+        emptyText: this.getEmptyText(tab, this.data.canReview)
+      })
+    }
+  },
+
+  onReachBottom() {
+    // 滚动到底部，加载更多当前 tab 的数据
+    this.loadApprovalData(true)
+  },
+
+  onPullDownRefresh() {
+    // 下拉刷新，重置当前 tab 的分页状态
+    const activeTab = this.data.activeTab
+    this.setData({
+      [`pagination.${activeTab}.page`]: 1,
+      [`pagination.${activeTab}.hasMore`]: true
+    })
+    this.loadApprovalData(false).then(() => {
+      wx.stopPullDownRefresh()
+    })
   },
 
   openRequestDetail(e) {

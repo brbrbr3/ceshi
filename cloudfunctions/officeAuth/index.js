@@ -507,7 +507,8 @@ async function submitRegistration(openid, formData) {
   }
 }
 
-async function getApprovalData(openid) {
+async function getApprovalData(openid, pagination = {}) {
+  const { page = 1, pageSize = 20 } = pagination
   const currentUser = await findUserByOpenId(openid)
   
   // 权限判断：馆领导、部门负责人、管理员可以审批
@@ -522,6 +523,7 @@ async function getApprovalData(openid) {
       orderType: _.in(['user_registration', 'medical_application'])
     })
     .orderBy('createdAt', 'desc')
+    .limit(pageSize)
     .get()
 
   // 查询当前用户的待审批任务，用于判断是否是当前步骤的审批人
@@ -678,10 +680,13 @@ async function getApprovalData(openid) {
   // 管理员/馆领导/部门负责人查询所有待审批工单
   let pendingList = []
   let doneList = []
+  let pendingTasksResult = null
+  let processedTasksResult = null
+  let completedOrdersResult = null
 
   if (canReview) {
     // 查询待审批的任务（包括直接分配给用户和角色审批的任务）
-    const pendingTasksResult = await workflowTasksCollection
+    pendingTasksResult = await workflowTasksCollection
       .where(
         _.or([
           { approverId: openid },
@@ -690,6 +695,7 @@ async function getApprovalData(openid) {
       )
       .where({ taskStatus: 'pending' })
       .orderBy('assignedAt', 'desc')
+      .limit(pageSize)
       .get()
 
     if (pendingTasksResult.data) {
@@ -810,13 +816,13 @@ async function getApprovalData(openid) {
     }
 
     // 查询当前用户处理过的任务（包括已批准和已驳回的任务）
-    const processedTasksResult = await workflowTasksCollection
+    processedTasksResult = await workflowTasksCollection
       .where({
         approverId: openid,
         taskStatus: db.command.in(['approved', 'rejected'])
       })
       .orderBy('updatedAt', 'desc')
-      .limit(100)
+      .limit(Math.min(pageSize, 100))
       .get()
 
     // 获取这些任务对应的工单ID
@@ -826,14 +832,14 @@ async function getApprovalData(openid) {
     }
 
     // 查询已完成的工单（只包括当前用户处理过的工单）
-    const completedOrdersResult = await workOrdersCollection
+    completedOrdersResult = await workOrdersCollection
       .where({
         _id: db.command.in(processedOrderIds),
         orderType: _.in(['user_registration', 'medical_application']),
         workflowStatus: db.command.in(['completed', 'rejected'])
       })
       .orderBy('updatedAt', 'desc')
-      .limit(50)
+      .limit(pageSize)
       .get()
 
     // 获取已驳回工单的驳回原因
@@ -968,6 +974,15 @@ async function getApprovalData(openid) {
     mineList,
     pendingList,
     doneList,
+    pagination: {
+      page,
+      pageSize,
+      hasMore: {
+        mineList: (myOrderResult.data && myOrderResult.data.length >= pageSize),
+        pendingList: canReview ? (pendingTasksResult && pendingTasksResult.data && pendingTasksResult.data.length >= pageSize) : false,
+        doneList: canReview ? (completedOrdersResult && completedOrdersResult.data && completedOrdersResult.data.length >= pageSize) : false
+      }
+    },
     summary: {
       pendingCount: pendingList.length,
       approvedCount: doneList.filter(r => r.status === REQUEST_STATUS.APPROVED).length,
@@ -1147,7 +1162,11 @@ exports.main = async (event) => {
     }
 
     if (action === 'getApprovalData') {
-      return await getApprovalData(openid)
+      const pagination = {
+        page: event.page || 1,
+        pageSize: event.pageSize || 20
+      }
+      return await getApprovalData(openid, pagination)
     }
 
     if (action === 'reviewRegistration') {

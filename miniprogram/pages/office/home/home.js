@@ -117,7 +117,9 @@ Page({
   },
 
   syncNotifications() {
-    app.getNotifications(function(notifications) {
+    // 只加载第一页数据，用于统计未读数量
+    app.getNotifications({ page: 1, pageSize: 20 }, function(result) {
+      const notifications = result.data || []
       const unreadCount = notifications.filter(function(n) { return !n.read }).length
       this.setData({ unreadNotificationCount: unreadCount })
     }.bind(this))

@@ -1,0 +1,46 @@
+<!-- 分页加载组件模板 -->
+<!-- 
+使用方法：
+在页面 WXML 中引入：
+<import src="/components/pagination-loading/pagination-loading.wxml" />
+
+然后使用模板：
+<template is="pagination-loading" data="{{ ...$root }}" />
+
+-->
+
+<template name="pagination-loading">
+  <!-- 加载中状态 -->
+  <view class="pagination-loading" wx:if="{{ loading }}">
+    <view class="loading-spinner"></view>
+    <text class="loading-text">加载中...</text>
+  </view>
+
+  <!-- 没有更多数据提示 -->
+  <view class="pagination-no-more" wx:elif="{{ !hasMore && list.length > 0 }}">
+    <text class="no-more-text">没有更多数据了</text>
+  </view>
+
+  <!-- 空状态提示 -->
+  <view class="pagination-empty" wx:elif="{{ list.length === 0 && !loading }}">
+    <image class="empty-icon" src="/image/empty.png" mode="aspectFit" />
+    <text class="empty-text">暂无数据</text>
+  </view>
+</template>
+
+<!-- 列表容器模板（配合分页使用） -->
+<template name="pagination-list-container">
+  <scroll-view 
+    scroll-y 
+    bindscrolltolower="{{ onPageReachBottom || 'onReachBottom' }}"
+    style="height: {{ containerHeight || '100vh' }};"
+    enhanced="{{ true }}"
+    show-scrollbar="{{ showScrollbar !== false }}"
+  >
+    <!-- 列表内容插槽 -->
+    <slot name="list"></slot>
+    
+    <!-- 分页加载状态 -->
+    <template is="pagination-loading" data="{{ ...$root }}" />
+  </scroll-view>
+</template>

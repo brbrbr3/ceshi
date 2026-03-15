@@ -1,5 +1,6 @@
 const app = getApp()
 const util = require('../../../util/util.js')
+const paginationBehavior = require('../../../behaviors/pagination.js')
 
 function formatTime(timestamp) {
   if (!timestamp) {
@@ -28,32 +29,69 @@ function formatTime(timestamp) {
 }
 
 Page({
+  behaviors: [paginationBehavior],
+
   data: {
     notifications: [],
     hasUnreadNotifications: false
   },
 
   onLoad() {
+    this.initPagination({
+      initialPageSize: 20,
+      loadMorePageSize: 10
+    })
     this.loadNotifications()
   },
 
   onShow() {
-    this.loadNotifications()
+    // 如果列表为空或需要刷新，重新加载
+    if (this.data.list.length === 0) {
+      this.loadNotifications()
+    }
   },
 
-  loadNotifications() {
-    app.getNotifications(function(notifications) {
-      const hasUnread = notifications.some(function(n) { return !n.read })
-      this.setData({
-        notifications: notifications.map(function(n) {
-          return {
+  /**
+   * 重写 loadData 方法，实现分页加载逻辑
+   */
+  loadData(params) {
+    return new Promise((resolve, reject) => {
+      app.getNotifications(params, (result) => {
+        if (result && result.data) {
+          const formattedData = result.data.map(n => ({
             ...n,
             timeText: formatTime(n.createdAt)
-          }
-        }),
-        hasUnreadNotifications: hasUnread
+          }))
+
+          const hasUnread = formattedData.some(n => !n.read)
+          this.setData({
+            notifications: this.data.page === 1 
+              ? formattedData 
+              : [...this.data.notifications, ...formattedData],
+            hasUnreadNotifications: this.data.page === 1 ? hasUnread : this.data.hasUnreadNotifications
+          })
+
+          // 将格式化后的数据同步到 list
+          this.setData({
+            list: this.data.notifications
+          })
+
+          resolve({
+            data: formattedData,
+            hasMore: result.hasMore
+          })
+        } else {
+          resolve({
+            data: [],
+            hasMore: false
+          })
+        }
       })
-    }.bind(this))
+    })
+  },
+
+  loadNotifications(loadMore = false) {
+    this.loadListData(loadMore)
   },
 
   handleNotificationTap(e) {

@@ -1,5 +1,6 @@
 const app = getApp()
 const util = require('../../../util/util.js')
+const paginationBehavior = require('../../../behaviors/pagination.js')
 
 function formatTime(timestamp) {
   if (!timestamp) {
@@ -13,14 +14,26 @@ function formatTime(timestamp) {
 }
 
 Page({
+  behaviors: [paginationBehavior],
+  
   data: {
-    loading: true,
     menuList: [],
     showAddButton: false
   },
 
+  onLoad() {
+    // 初始化分页配置
+    this.initPagination({
+      initialPageSize: 20,
+      loadMorePageSize: 10
+    })
+  },
+
   onShow() {
-    this.loadMenus()
+    // 如果列表为空，加载数据
+    if (this.data.list.length === 0) {
+      this.loadMenus()
+    }
     this.checkPermission()
   },
 
@@ -43,32 +56,49 @@ Page({
       })
   },
 
-  loadMenus() {
-    this.setData({ loading: true })
+  /**
+   * 重写 loadData 方法，实现分页加载逻辑
+   */
+  async loadData(params) {
+    const { page, pageSize } = params
+    const skipCount = (page - 1) * pageSize
 
-    const db = wx.cloud.database()
-    db.collection('menus')
-      .orderBy('createdAt', 'desc')
-      .get()
-      .then(res => {
-        const menuList = (res.data || []).map(item => {
-          return {
+    return new Promise((resolve, reject) => {
+      const db = wx.cloud.database()
+      db.collection('menus')
+        .orderBy('createdAt', 'desc')
+        .skip(skipCount)
+        .limit(pageSize)
+        .get()
+        .then(res => {
+          const menuList = (res.data || []).map(item => ({
             ...item,
             timeText: formatTime(item.createdAt)
-          }
+          }))
+
+          // 同步到 menuList
+          this.setData({
+            menuList: page === 1 ? menuList : [...this.data.menuList, ...menuList]
+          })
+
+          resolve({
+            data: menuList,
+            hasMore: menuList.length >= pageSize
+          })
         })
-        this.setData({ menuList })
-      })
-      .catch(error => {
-        console.error('加载菜单失败', error)
-        util.showToast({
-          title: '加载失败',
-          icon: 'none'
+        .catch(error => {
+          console.error('加载菜单失败', error)
+          util.showToast({
+            title: '加载失败',
+            icon: 'none'
+          })
+          reject(error)
         })
-      })
-      .finally(() => {
-        this.setData({ loading: false })
-      })
+    })
+  },
+
+  loadMenus(loadMore = false) {
+    this.loadListData(loadMore)
   },
 
   goMenuDetail(e) {
@@ -82,5 +112,20 @@ Page({
     wx.navigateTo({
       url: '/pages/office/menu-edit/menu-edit'
     })
+  },
+
+  /**
+   * 重写 onReachBottom 方法
+   */
+  onReachBottom() {
+    this.loadMore()
+  },
+
+  /**
+   * 重写 onPullDownRefresh 方法
+   */
+  async onPullDownRefresh() {
+    await this.refreshList()
+    wx.stopPullDownRefresh()
   }
 })
