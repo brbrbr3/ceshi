@@ -1,0 +1,1044 @@
+// 工作流引擎核心云函数
+const cloud = require('wx-server-sdk')
+
+cloud.init({
+  env: cloud.DYNAMIC_CURRENT_ENV
+})
+
+const db = cloud.database()
+const _ = db.command
+
+// 数据库集合引用
+const templatesCollection = db.collection('workflow_templates')
+const ordersCollection = db.collection('work_orders')
+const tasksCollection = db.collection('workflow_tasks')
+const logsCollection = db.collection('workflow_logs')
+
+// 常量定义
+const TASK_STATUS = {
+  PENDING: 'pending',
+  APPROVED: 'approved',
+  REJECTED: 'rejected',
+  CANCELLED: 'cancelled',
+  RETURNED: 'returned'
+}
+
+const ORDER_STATUS = {
+  PENDING: 'pending',
+  SUPPLEMENT: 'supplement',
+  COMPLETED: 'completed',
+  REJECTED: 'rejected',
+  CANCELLED: 'cancelled'
+}
+
+const STEP_TYPE = {
+  SERIAL: 'serial',
+  PARALLEL: 'parallel',
+  CONDITION: 'condition'
+}
+
+const APPROVER_TYPE = {
+  USER: 'user',
+  ROLE: 'role',
+  DEPT: 'dept',
+  EXPRESSION: 'expression'
+}
+
+const TIMEOUT_ACTION = {
+  AUTO_APPROVE: 'auto_approve',
+  AUTO_REJECT: 'auto_reject',
+  ESCALATE: 'escalate',
+  REMIND: 'remind'
+}
+
+// 工具函数
+function success(data, message) {
+  return {
+    code: 0,
+    message: message || 'ok',
+    data: data || {}
+  }
+}
+
+function fail(message, code, data) {
+  return {
+    code: code || 500,
+    message: message || '服务异常',
+    data: data || null
+  }
+}
+
+// 生成工单编号
+function generateOrderNo(orderType) {
+  const now = new Date()
+  const year = now.getFullYear()
+  const month = String(now.getMonth() + 1).padStart(2, '0')
+  const date = String(now.getDate()).padStart(2, '0')
+  const hour = String(now.getHours()).padStart(2, '0')
+  const minute = String(now.getMinutes()).padStart(2, '0')
+  const suffix = Math.random().toString(36).slice(2, 8).toUpperCase()
+  return `WO${orderType.toUpperCase().slice(0, 4)}${year}${month}${date}${hour}${minute}${suffix}`
+}
+
+// 生成并行组ID
+function generateParallelGroupId() {
+  return `PG${Date.now()}${Math.random().toString(36).slice(2, 8)}`
+}
+
+// 获取嵌套字段的值
+function getNestedValue(obj, path) {
+  const keys = path.split('.')
+  let value = obj
+  
+  for (const key of keys) {
+    if (value && typeof value === 'object') {
+      value = value[key]
+    } else {
+      return undefined
+    }
+  }
+  
+  return value
+}
+
+// 条件评估
+function evaluateCondition(left, operator, right) {
+  switch (operator) {
+    case 'gt': return Number(left) > Number(right)
+    case 'lt': return Number(left) < Number(right)
+    case 'eq': return left === right
+    case 'neq': return left !== right
+    case 'gte': return Number(left) >= Number(right)
+    case 'lte': return Number(left) <= Number(right)
+    case 'in': return Array.isArray(right) && right.includes(left)
+    case 'contains': return String(left).includes(String(right))
+    default: return false
+  }
+}
+
+// 评估步骤条件
+function evaluateSteps(steps, businessData) {
+  return steps.filter(step => {
+    if (!step.condition) return true
+    
+    const { field, operator, value } = step.condition
+    const fieldValue = getNestedValue(businessData, field)
+    
+    return evaluateCondition(fieldValue, operator, value)
+  })
+}
+
+// 解析审批人
+async function resolveApprovers(approverType, approverConfig, businessData) {
+  try {
+    switch (approverType) {
+      case APPROVER_TYPE.USER:
+        // 具体用户
+        if (!approverConfig.userIds || approverConfig.userIds.length === 0) {
+          return []
+        }
+        return approverConfig.userIds.map(userId => ({ 
+          id: userId, 
+          name: userId.slice(0, 2) + '**' 
+        }))
+      
+      case APPROVER_TYPE.ROLE:
+        // 角色
+        if (!approverConfig.roleIds || approverConfig.roleIds.length === 0) {
+          return []
+        }
+        // 这里可以从用户表按角色查询
+        // 暂时返回示例数据
+        return approverConfig.roleIds.map(roleId => ({ 
+          id: `role_${roleId}`, 
+          name: `角色${roleId}` 
+        }))
+      
+      case APPROVER_TYPE.DEPT:
+        // 部门
+        if (!approverConfig.deptId) {
+          return []
+        }
+        // 这里可以从用户表按部门查询
+        return [{ 
+          id: `dept_${approverConfig.deptId}`, 
+          name: `部门${approverConfig.deptId}` 
+        }]
+      
+      case APPROVER_TYPE.EXPRESSION:
+        // 动态表达式(如申请人的直属领导)
+        if (!approverConfig.expression) {
+          return []
+        }
+        const expressionValue = getNestedValue(businessData, approverConfig.expression)
+        if (!expressionValue) {
+          return []
+        }
+        return [{ 
+          id: expressionValue, 
+          name: expressionValue 
+        }]
+      
+      default:
+        return []
+    }
+  } catch (error) {
+    console.error('解析审批人失败:', error)
+    return []
+  }
+}
+
+// 记录工作流日志
+async function logWorkflowAction(orderId, action, operatorId, operatorName, description, taskId, beforeData, afterData, changes) {
+  try {
+    const now = Date.now()
+    await logsCollection.add({
+      data: {
+        orderId,
+        taskId,
+        action,
+        operatorType: operatorId === 'system' ? 'system' : 'user',
+        operatorId,
+        operatorName,
+        description,
+        detail: description,
+        beforeData,
+        afterData,
+        changes,
+        createdAt: now
+      }
+    })
+  } catch (error) {
+    console.error('记录日志失败:', error)
+  }
+}
+
+// 验证任务审批权限
+function hasPermission(task, operatorId) {
+  if (!task || !operatorId) {
+    return false
+  }
+  
+  // 系统用户有权限
+  if (operatorId === 'system') {
+    return true
+  }
+  
+  // 审批人匹配
+  if (task.approverId === operatorId) {
+    return true
+  }
+  
+  // 代理人匹配
+  if (task.agentId === operatorId) {
+    return true
+  }
+  
+  return false
+}
+
+// 启动工作流
+async function startWorkflow(orderType, businessData) {
+  try {
+    // 1. 查询激活的模板
+    const templateRes = await templatesCollection
+      .where({ 
+        code: orderType,
+        status: 'active'
+      })
+      .orderBy('version', 'desc')
+      .limit(1)
+      .get()
+    
+    if (!templateRes.data || templateRes.data.length === 0) {
+      throw new Error('未找到对应的工作流模板')
+    }
+    
+    const template = templateRes.data[0]
+    
+    // 2. 评估步骤条件,筛选实际执行的步骤
+    const activeSteps = evaluateSteps(template.steps, businessData)
+    
+    if (!activeSteps || activeSteps.length === 0) {
+      throw new Error('未找到可执行的步骤')
+    }
+    
+    // 3. 生成工单编号
+    const orderNo = generateOrderNo(orderType)
+    const now = Date.now()
+    
+    // 4. 创建工单
+    const orderRes = await ordersCollection.add({
+      data: {
+        orderNo,
+        orderType,
+        templateId: template._id,
+        templateVersion: template.version,
+        businessData,
+        workflowSnapshot: {
+          templateId: template._id,
+          version: template.version,
+          steps: activeSteps
+        },
+        workflowStatus: ORDER_STATUS.PENDING,
+        currentStep: 1,
+        submittedAt: now,
+        startedAt: now,
+        supplementCount: 0,
+        needSupplement: false,
+        createdAt: now,
+        updatedAt: now
+      }
+    })
+    
+    const orderId = orderRes._id
+    
+    // 5. 创建第一个任务节点
+    const firstStep = activeSteps[0]
+    await createTasks(orderId, firstStep, businessData)
+    
+    // 6. 记录日志
+    await logWorkflowAction(
+      orderId,
+      'start',
+      businessData.applicantId || 'unknown',
+      '申请人',
+      '提交工单',
+      null,
+      null,
+      { orderNo, orderType },
+      null
+    )
+    
+    return success({
+      orderId,
+      orderNo,
+      templateId: template._id,
+      templateName: template.name,
+      currentStep: firstStep.stepNo,
+      currentStepName: firstStep.stepName
+    }, '工单提交成功')
+    
+  } catch (error) {
+    console.error('启动工作流失败:', error)
+    throw error
+  }
+}
+
+// 创建任务节点
+async function createTasks(orderId, step, businessData) {
+  try {
+    const parallelGroupId = step.stepType === STEP_TYPE.PARALLEL 
+      ? generateParallelGroupId() 
+      : null
+    
+    // 解析审批人
+    const approvers = await resolveApprovers(step.approverType, step.approverConfig, businessData)
+    
+    if (!approvers || approvers.length === 0) {
+      throw new Error(`步骤"${step.stepName}"未找到审批人`)
+    }
+    
+    const now = Date.now()
+    const timeoutHours = step.timeout || 72 // 默认72小时
+    const timeoutAt = now + (timeoutHours * 60 * 60 * 1000)
+    
+    // 创建任务
+    const tasks = approvers.map(approver => ({
+      orderId,
+      stepNo: step.stepNo,
+      stepName: step.stepName,
+      stepType: step.stepType,
+      approverType: step.approverType,
+      approverId: approver.id,
+      approverName: approver.name,
+      taskStatus: TASK_STATUS.PENDING,
+      createdAt: now,
+      assignedAt: now,
+      timeoutAt,
+      timeoutAction: step.timeoutAction || TIMEOUT_ACTION.REMIND,
+      isTimeout: false,
+      parallelGroupId,
+      comment: '',
+      attachments: []
+    }))
+    
+    // 批量创建任务
+    for (const task of tasks) {
+      await tasksCollection.add({ data: task })
+    }
+    
+    return tasks
+    
+  } catch (error) {
+    console.error('创建任务节点失败:', error)
+    throw error
+  }
+}
+
+// 审批任务
+async function approveTask(taskId, action, comment, operatorId, operatorName, attachments) {
+  try {
+    // 1. 获取任务和工单
+    const taskRes = await tasksCollection.doc(taskId).get()
+    if (!taskRes.data) {
+      throw new Error('任务不存在')
+    }
+    
+    const task = taskRes.data
+    const orderRes = await ordersCollection.doc(task.orderId).get()
+    if (!orderRes.data) {
+      throw new Error('工单不存在')
+    }
+    
+    const order = orderRes.data
+    
+    if (task.taskStatus !== TASK_STATUS.PENDING) {
+      throw new Error('任务已被处理')
+    }
+    
+    // 2. 验证审批权限
+    if (!hasPermission(task, operatorId)) {
+      throw new Error('无权审批此任务')
+    }
+    
+    const now = Date.now()
+    
+    // 3. 更新任务状态
+    await tasksCollection.doc(taskId).update({
+      data: {
+        taskStatus: action === 'approve' ? TASK_STATUS.APPROVED : (action === 'return' ? TASK_STATUS.RETURNED : TASK_STATUS.REJECTED),
+        action,
+        comment,
+        attachments: attachments || [],
+        startedAt: task.startedAt || now,
+        completedAt: now,
+        updatedAt: now
+      }
+    })
+    
+    // 4. 记录日志
+    const actionText = {
+      'approve': '通过',
+      'reject': '驳回',
+      'return': '退回'
+    }[action] || action
+    
+    await logWorkflowAction(
+      order._id,
+      action,
+      operatorId,
+      operatorName,
+      `审批操作: ${actionText}`,
+      taskId,
+      { taskStatus: task.taskStatus },
+      { taskStatus: action === 'approve' ? TASK_STATUS.APPROVED : (action === 'return' ? TASK_STATUS.RETURNED : TASK_STATUS.REJECTED), comment },
+      null
+    )
+    
+    // 5. 根据操作类型处理流程
+    if (action === 'approve') {
+      await handleApproval(task, order, operatorId, operatorName, comment)
+    } else if (action === 'reject') {
+      await handleRejection(task, order, operatorId, operatorName, comment)
+    } else if (action === 'return') {
+      await handleReturn(task, order, operatorId, operatorName, comment)
+    }
+    
+    return success({ success: true }, actionText + '成功')
+    
+  } catch (error) {
+    console.error('审批任务失败:', error)
+    throw error
+  }
+}
+
+// 处理审批通过
+async function handleApproval(task, order, approverId, approverName, comment) {
+  const snapshot = order.workflowSnapshot
+  const currentStep = snapshot.steps.find(s => s.stepNo === task.stepNo)
+  
+  if (!currentStep) {
+    throw new Error('未找到当前步骤配置')
+  }
+  
+  // 判断是否为并行步骤
+  if (currentStep.stepType === STEP_TYPE.PARALLEL) {
+    const parallelTasksRes = await tasksCollection
+      .where({
+        orderId: order._id,
+        stepNo: task.stepNo,
+        parallelGroupId: task.parallelGroupId
+      })
+      .get()
+    
+    const allApproved = parallelTasksRes.data.every(t => 
+      t.taskStatus === TASK_STATUS.APPROVED || t._id === task._id
+    )
+    
+    if (!allApproved) {
+      // 并行任务未全部完成,等待其他任务
+      return
+    }
+    
+    // 取消未处理的并行任务
+    const pendingTasks = parallelTasksRes.data.filter(t => t.taskStatus === TASK_STATUS.PENDING)
+    for (const pendingTask of pendingTasks) {
+      if (pendingTask._id !== task._id) {
+        await tasksCollection.doc(pendingTask._id).update({
+          data: { 
+            taskStatus: TASK_STATUS.CANCELLED, 
+            cancelledAt: Date.now(),
+            updatedAt: Date.now()
+          }
+        })
+      }
+    }
+  }
+  
+  // 检查是否有下一步骤
+  const nextStep = snapshot.steps.find(s => s.stepNo === task.stepNo + 1)
+  if (nextStep) {
+    // 动态评估下一步骤条件(如果业务数据可能被修改)
+    const activeSteps = evaluateSteps([nextStep], order.businessData)
+    
+    if (activeSteps.length > 0) {
+      // 创建下一步任务
+      await createTasks(order._id, activeSteps[0], order.businessData)
+      
+      // 更新工单当前步骤
+      await ordersCollection.doc(order._id).update({
+        data: { 
+          currentStep: activeSteps[0].stepNo,
+          updatedAt: Date.now()
+        }
+      })
+      
+      // TODO: 发送通知给下一步审批人
+      // await sendTaskNotification(order, activeSteps[0])
+    }
+  } else {
+    // 流程完成
+    await completeWorkflow(order._id, 'approved', approverId, approverName, comment)
+  }
+}
+
+// 处理审批驳回
+async function handleRejection(task, order, approverId, approverName, comment) {
+  // 更新工单状态为已驳回
+  await ordersCollection.doc(order._id).update({
+    data: {
+      workflowStatus: ORDER_STATUS.REJECTED,
+      finalDecision: 'rejected',
+      completedAt: Date.now(),
+      totalDuration: Date.now() - (order.startedAt || order.submittedAt),
+      updatedAt: Date.now()
+    }
+  })
+  
+  // 取消所有待处理任务
+  await cancelPendingTasks(order._id)
+  
+  // TODO: 发送驳回通知给申请人
+  // await sendRejectionNotification(order, approverName, comment)
+}
+
+// 处理退回
+async function handleReturn(task, order, approverId, approverName, comment) {
+  const snapshot = order.workflowSnapshot
+  
+  // 默认退回到申请人
+  const returnToStep = task.returnToStep || 0
+  
+  if (returnToStep === 0) {
+    // 退回到申请人
+    await returnToApplicant(task, order, comment)
+  } else {
+    // 退回到指定步骤
+    await returnToStep(order, returnToStep, task.stepNo, comment)
+  }
+}
+
+// 退回到申请人
+async function returnToApplicant(task, order, comment) {
+  await ordersCollection.doc(order._id).update({
+    data: {
+      workflowStatus: ORDER_STATUS.SUPPLEMENT,
+      needSupplement: true,
+      supplementReason: comment,
+      updatedAt: Date.now()
+    }
+  })
+  
+  // 取消所有待处理任务
+  await cancelPendingTasks(order._id)
+  
+  // TODO: 发送退回通知给申请人
+  // await sendReturnNotification(order, comment)
+}
+
+// 退回到指定步骤
+async function returnToStep(order, returnToStepNo, currentStepNo, comment) {
+  // 将被退回的任务标记为已退回
+  const currentTasksRes = await tasksCollection
+    .where({
+      orderId: order._id,
+      stepNo: currentStepNo
+    })
+    .get()
+  
+  const now = Date.now()
+  for (const task of currentTasksRes.data) {
+    await tasksCollection.doc(task._id).update({
+      data: {
+        taskStatus: TASK_STATUS.RETURNED,
+        returnedFromStep: currentStepNo,
+        returnReason: comment,
+        returnedAt: now,
+        updatedAt: now
+      }
+    })
+  }
+  
+  // 重新激活目标步骤的任务
+  const targetTasksRes = await tasksCollection
+    .where({
+      orderId: order._id,
+      stepNo: returnToStepNo
+    })
+    .get()
+  
+  for (const task of targetTasksRes.data) {
+    await tasksCollection.doc(task._id).update({
+      data: {
+        taskStatus: TASK_STATUS.PENDING,
+        updatedAt: now
+      }
+    })
+  }
+  
+  // 更新工单当前步骤
+  await ordersCollection.doc(order._id).update({
+    data: {
+      currentStep: returnToStepNo,
+      updatedAt: now
+    }
+  })
+  
+  // 取消当前步骤和后续步骤的待处理任务
+  await cancelPendingTasks(order._id, returnToStepNo)
+  
+  // TODO: 发送退回通知
+  // await sendReturnNotification(order, comment)
+}
+
+// 取消待处理任务
+async function cancelPendingTasks(orderId, fromStepNo = 0) {
+  const now = Date.now()
+  let query = { orderId, taskStatus: TASK_STATUS.PENDING }
+  
+  if (fromStepNo > 0) {
+    query.stepNo = _.gt(fromStepNo)
+  }
+  
+  const pendingTasksRes = await tasksCollection.where(query).get()
+  
+  for (const task of pendingTasksRes.data) {
+    await tasksCollection.doc(task._id).update({
+      data: { 
+        taskStatus: TASK_STATUS.CANCELLED, 
+        cancelledAt: now,
+        updatedAt: now
+      }
+    })
+  }
+}
+
+// 完成工作流
+async function completeWorkflow(orderId, decision, approverId, approverName, comment) {
+  const now = Date.now()
+  
+  const orderRes = await ordersCollection.doc(orderId).get()
+  const order = orderRes.data
+  
+  // 更新工单状态
+  await ordersCollection.doc(orderId).update({
+    data: {
+      workflowStatus: decision === 'approved' ? ORDER_STATUS.COMPLETED : ORDER_STATUS.REJECTED,
+      finalDecision: decision,
+      completedAt: now,
+      totalDuration: now - (order.startedAt || order.submittedAt),
+      updatedAt: now
+    }
+  })
+  
+  // 记录日志
+  await logWorkflowAction(
+    orderId,
+    'complete',
+    approverId || 'system',
+    approverName || '系统',
+    `流程${decision === 'approved' ? '通过' : '驳回'}`,
+    null,
+    { workflowStatus: order.workflowStatus },
+    { workflowStatus: decision === 'approved' ? ORDER_STATUS.COMPLETED : ORDER_STATUS.REJECTED },
+    null
+  )
+  
+  // 特殊处理：用户注册审批通过，自动创建用户记录
+  if (order.orderType === 'user_registration' && decision === 'approved') {
+    console.log('=== 用户注册审批通过，自动创建用户记录 ===')
+    
+    const usersCollection = db.collection('office_users')
+    const businessData = order.businessData || {}
+    
+    // 检查是否已存在用户
+    const existingUserResult = await usersCollection
+      .where({ openid: businessData.applicantId })
+      .limit(1)
+      .get()
+    
+    const now = Date.now()
+    const userPayload = {
+      openid: businessData.applicantId,
+      name: businessData.applicantName || '',
+      gender: businessData.gender || '',
+      birthday: businessData.birthday || '',
+      role: businessData.role || '馆员',
+      isAdmin: !!businessData.isAdmin,
+      avatarText: businessData.avatarText || '',
+      status: 'approved',
+      sourceOrderId: order.orderId,
+      approvedAt: now,
+      approvedBy: approverId || 'system',
+      createdAt: existingUserResult.data && existingUserResult.data[0] 
+        ? (existingUserResult.data[0].createdAt || now) 
+        : now,
+      updatedAt: now
+    }
+    
+    try {
+      if (existingUserResult.data && existingUserResult.data.length > 0) {
+        // 更新已有用户
+        await usersCollection.doc(existingUserResult.data[0]._id).update({ data: userPayload })
+        console.log('用户记录更新成功')
+      } else {
+        // 创建新用户
+        await usersCollection.add({ data: userPayload })
+        console.log('用户记录创建成功')
+      }
+    } catch (error) {
+      console.error('创建/更新用户记录失败:', error)
+      // 不抛出错误，允许流程继续
+    }
+  }
+  
+  // TODO: 发送完成通知给申请人
+  // await sendCompletionNotification(order, decision)
+}
+
+// 查询我的工单列表
+async function getMyOrders(openid, status, page = 1, pageSize = 20) {
+  try {
+    const query = {
+      'businessData.applicantId': openid
+    }
+    
+    if (status) {
+      query.workflowStatus = status
+    }
+    
+    const countRes = await ordersCollection.where(query).count()
+    const dataRes = await ordersCollection
+      .where(query)
+      .orderBy('createdAt', 'desc')
+      .skip((page - 1) * pageSize)
+      .limit(pageSize)
+      .get()
+    
+    return success({
+      list: dataRes.data,
+      total: countRes.total,
+      page,
+      pageSize
+    })
+    
+  } catch (error) {
+    console.error('查询我的工单列表失败:', error)
+    throw error
+  }
+}
+
+// 查询我的待办任务
+async function getMyTasks(openid, page = 1, pageSize = 20) {
+  try {
+    const countRes = await tasksCollection.where({
+      approverId: openid,
+      taskStatus: TASK_STATUS.PENDING
+    }).count()
+    
+    const dataRes = await tasksCollection
+      .where({
+        approverId: openid,
+        taskStatus: TASK_STATUS.PENDING
+      })
+      .orderBy('createdAt', 'desc')
+      .skip((page - 1) * pageSize)
+      .limit(pageSize)
+      .get()
+    
+    // 查询工单信息
+    const orderIds = dataRes.data.map(t => t.orderId)
+    const ordersRes = await ordersCollection
+      .where({
+        _id: _.in(orderIds)
+      })
+      .get()
+    
+    const ordersMap = {}
+    ordersRes.data.forEach(order => {
+      ordersMap[order._id] = order
+    })
+    
+    // 组装返回数据
+    const list = dataRes.data.map(task => ({
+      ...task,
+      order: ordersMap[task.orderId] || null
+    }))
+    
+    return success({
+      list,
+      total: countRes.total,
+      page,
+      pageSize
+    })
+    
+  } catch (error) {
+    console.error('查询我的待办任务失败:', error)
+    throw error
+  }
+}
+
+// 查询工单详情
+async function getOrderDetail(orderId, openid) {
+  try {
+    const orderRes = await ordersCollection.doc(orderId).get()
+    if (!orderRes.data) {
+      throw new Error('工单不存在')
+    }
+    
+    const order = orderRes.data
+    
+    // 验证权限: 申请人或审批人
+    const applicantId = order.businessData.applicantId
+    if (applicantId !== openid) {
+      // 检查是否为审批人
+      const taskRes = await tasksCollection
+        .where({
+          orderId,
+          approverId: openid
+        })
+        .get()
+      
+      if (!taskRes.data || taskRes.data.length === 0) {
+        throw new Error('无权查看此工单')
+      }
+    }
+    
+    // 查询任务列表
+    const tasksRes = await tasksCollection
+      .where({ orderId })
+      .orderBy('stepNo', 'asc')
+      .get()
+    
+    // 查询日志
+    const logsRes = await logsCollection
+      .where({ orderId })
+      .orderBy('createdAt', 'desc')
+      .get()
+    
+    return success({
+      order,
+      tasks: tasksRes.data,
+      logs: logsRes.data
+    })
+    
+  } catch (error) {
+    console.error('查询工单详情失败:', error)
+    throw error
+  }
+}
+
+// 补充资料
+async function supplementOrder(orderId, openid, supplementData, comment) {
+  try {
+    const orderRes = await ordersCollection.doc(orderId).get()
+    if (!orderRes.data) {
+      throw new Error('工单不存在')
+    }
+    
+    const order = orderRes.data
+    
+    // 验证权限: 申请人
+    if (order.businessData.applicantId !== openid) {
+      throw new Error('无权补充此工单')
+    }
+    
+    // 验证状态: 必须是待补充状态
+    if (order.workflowStatus !== ORDER_STATUS.SUPPLEMENT) {
+      throw new Error('工单当前不允许补充资料')
+    }
+    
+    // 合并补充数据
+    const mergedBusinessData = {
+      ...order.businessData,
+      ...supplementData
+    }
+    
+    const now = Date.now()
+    
+    // 更新工单
+    await ordersCollection.doc(orderId).update({
+      data: {
+        businessData: mergedBusinessData,
+        supplementCount: order.supplementCount + 1,
+        needSupplement: false,
+        supplementReason: '',
+        workflowStatus: ORDER_STATUS.PENDING,
+        updatedAt: now
+      }
+    })
+    
+    // 重新创建被退回步骤的任务
+    const snapshot = order.workflowSnapshot
+    const stepToRestore = snapshot.steps.find(s => s.stepNo === order.currentStep)
+    
+    if (stepToRestore) {
+      await createTasks(orderId, stepToRestore, mergedBusinessData)
+    }
+    
+    // 记录日志
+    await logWorkflowAction(
+      orderId,
+      'supplement',
+      openid,
+      order.businessData.applicantName || '申请人',
+      '补充资料',
+      null,
+      { workflowStatus: ORDER_STATUS.SUPPLEMENT },
+      { workflowStatus: ORDER_STATUS.PENDING },
+      null
+    )
+    
+    return success({}, '补充资料成功,流程已恢复')
+    
+  } catch (error) {
+    console.error('补充资料失败:', error)
+    throw error
+  }
+}
+
+// 撤回工单
+async function cancelOrder(orderId, openid) {
+  try {
+    const orderRes = await ordersCollection.doc(orderId).get()
+    if (!orderRes.data) {
+      throw new Error('工单不存在')
+    }
+    
+    const order = orderRes.data
+    
+    // 验证权限: 申请人
+    if (order.businessData.applicantId !== openid) {
+      throw new Error('无权撤回此工单')
+    }
+    
+    // 验证状态: 只能撤回待审批状态的工单
+    if (order.workflowStatus !== ORDER_STATUS.PENDING) {
+      throw new Error('只能撤回待审批的工单')
+    }
+    
+    const now = Date.now()
+    
+    // 更新工单状态
+    await ordersCollection.doc(orderId).update({
+      data: {
+        workflowStatus: ORDER_STATUS.CANCELLED,
+        completedAt: now,
+        totalDuration: now - (order.startedAt || order.submittedAt),
+        updatedAt: now
+      }
+    })
+    
+    // 取消所有待处理任务
+    await cancelPendingTasks(orderId)
+    
+    // 记录日志
+    await logWorkflowAction(
+      orderId,
+      'cancel',
+      openid,
+      order.businessData.applicantName || '申请人',
+      '撤回工单',
+      null,
+      { workflowStatus: ORDER_STATUS.PENDING },
+      { workflowStatus: ORDER_STATUS.CANCELLED },
+      null
+    )
+    
+    return success({}, '工单已撤回')
+    
+  } catch (error) {
+    console.error('撤回工单失败:', error)
+    throw error
+  }
+}
+
+// 云函数入口
+exports.main = async (event) => {
+  const wxContext = cloud.getWXContext()
+  const openid = wxContext.OPENID
+  const action = event && event.action
+  
+  if (!openid) {
+    return fail('获取微信身份失败,请稍后重试', 401)
+  }
+  
+  try {
+    switch (action) {
+      case 'submitOrder':
+        return await startWorkflow(event.orderType, event.businessData)
+      
+      case 'approveTask':
+        return await approveTask(
+          event.taskId,
+          event.action,
+          event.comment,
+          openid,
+          event.operatorName || wxContext.SERVERID || '审批人',
+          event.attachments
+        )
+      
+      case 'getMyOrders':
+        return await getMyOrders(openid, event.status, event.page, event.pageSize)
+      
+      case 'getMyTasks':
+        return await getMyTasks(openid, event.page, event.pageSize)
+      
+      case 'getOrderDetail':
+        return await getOrderDetail(event.orderId, openid)
+      
+      case 'supplementOrder':
+        return await supplementOrder(event.orderId, openid, event.supplementData, event.comment)
+      
+      case 'cancelOrder':
+        return await cancelOrder(event.orderId, openid)
+      
+      default:
+        return fail('不支持的操作类型', 400)
+    }
+  } catch (error) {
+    console.error('workflowEngine 执行失败', error)
+    return fail(error.message || '服务异常,请稍后重试', 500)
+  }
+}

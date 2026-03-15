@@ -17,6 +17,117 @@ npm i
 
 使用[微信开发者工具](https://developers.weixin.qq.com/miniprogram/dev/devtools/download.html)打开该示例代码，云开发环境搭建请参考[云开发示例说明](https://github.com/wechat-miniprogram/miniprogram-demo/blob/master/miniprogram/page/cloud/README.md)。
 
+## 工作流基础框架
+
+本项目包含一个通用、可扩展的工作流基础框架，支持从简单的单步审批到复杂的多步骤流转。
+
+### 核心特性
+
+✅ **灵活的模板配置** - 通过配置工作流模板定义审批流程，无需修改代码
+✅ **版本控制** - 模板支持版本管理，升级不影响进行中的流程
+✅ **多步审批** - 支持串行、并行、条件分支等多种流程模式
+✅ **并行审批** - 支持会签（全员通过）和或签（一人通过）
+✅ **流程回退** - 支持退回到申请人补充资料或退回到上一步骤
+✅ **条件分支** - 基于业务数据动态选择审批路径
+✅ **超时处理** - 支持自动通过、自动驳回、升级、提醒等策略
+✅ **完整审计** - 所有操作均有日志记录，支持合规审计
+✅ **权限控制** - 严格的数据访问权限控制
+
+### 快速开始
+
+#### 1. 部署工作流引擎
+
+```bash
+# 部署工作流引擎云函数
+cd cloudfunctions/workflowEngine
+npm install
+# 使用微信开发者工具上传并部署
+```
+
+#### 2. 创建数据库集合
+
+在 CloudBase 控制台创建以下集合：
+- `workflow_templates` - 工作流模板
+- `work_orders` - 工单
+- `workflow_tasks` - 任务节点
+- `workflow_logs` - 审计日志
+- `workflow_subscriptions` - 订阅消息配置
+
+#### 3. 导入示例模板
+
+参考 `.codebuddy/workflow/example-templates.js` 文件，导入示例模板到 `workflow_templates` 集合。
+
+#### 4. 使用工作流
+
+```javascript
+// 提交工单
+wx.cloud.callFunction({
+  name: 'workflowEngine',
+  data: {
+    action: 'submitOrder',
+    orderType: 'user_registration',
+    businessData: {
+      applicantId: app.globalData.openid,
+      applicantName: '张三',
+      // ...其他业务数据
+    }
+  }
+})
+
+// 查询我的待办
+wx.cloud.callFunction({
+  name: 'workflowEngine',
+  data: {
+    action: 'getMyTasks',
+    page: 1,
+    pageSize: 20
+  }
+})
+
+// 审批任务
+wx.cloud.callFunction({
+  name: 'workflowEngine',
+  data: {
+    action: 'approveTask',
+    taskId: taskId,
+    action: 'approve',
+    comment: '审批通过'
+  }
+})
+```
+
+### 文档说明
+
+详细的使用文档请参考：
+- **需求文档**: `specs/workflow-framework/requirements.md`
+- **技术方案**: `specs/workflow-framework/design.md`
+- **实施计划**: `specs/workflow-framework/tasks.md`
+- **使用指南**: `.codebuddy/workflow/README.md`
+- **示例模板**: `.codebuddy/workflow/example-templates.js`
+- **安全规则**: `.codebuddy/database-rules/workflow-rules.json`
+
+### 常见场景
+
+#### 场景 1: 单步审批（用户注册）
+
+提交 → 管理员审批 → 通过/驳回
+
+#### 场景 2: 多步串行审批（请假流程）
+
+提交 → 直属领导审批 → HR审批 → 馆领导审批
+
+#### 场景 3: 并行审批（购车流程）
+
+提交 → 【部门审批 + 财务审批】（会签）→ 领导审批
+
+#### 场景 4: 条件分支（请假流程）
+
+提交 → 直属领导审批 → 【天数>3 ? HR审批】→ 【天数>7 ? 馆领导审批】
+
+#### 场景 5: 流程回退（补充资料）
+
+提交 → 审批人退回 → 申请人补充资料 → 重新提交 → 审批
+
 
 ## 贡献
 

@@ -120,6 +120,35 @@ Page({
 
     this.setData({ loading: true })
 
+    // 请求订阅消息权限（模板ID需要在微信后台配置）
+    // 如果模板ID还未配置，可以跳过此步骤，或者使用临时的模板ID测试
+    const templateIds = [
+      // '你的模板ID_1',  // 任务完成通知
+      // '你的模板ID_2'   // 流程退回通知
+    ]
+
+    // 如果配置了模板ID，请求订阅权限
+    if (templateIds.length > 0 && templateIds[0]) {
+      wx.requestSubscribeMessage({
+        tmplIds: templateIds,
+        success: (res) => {
+          console.log('订阅消息授权结果:', res)
+          // 继续提交注册
+          this.doSubmit(form)
+        },
+        fail: (err) => {
+          console.error('订阅消息授权失败:', err)
+          // 即使授权失败也允许提交
+          this.doSubmit(form)
+        }
+      })
+    } else {
+      // 未配置模板ID，直接提交
+      this.doSubmit(form)
+    }
+  },
+
+  doSubmit(form) {
     app.submitRegistration(form)
       .then(() => {
         wx.showModal({

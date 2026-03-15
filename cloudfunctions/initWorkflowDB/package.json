@@ -1,0 +1,14 @@
+{
+  "name": "initWorkflowDB",
+  "version": "1.0.0",
+  "description": "工作流数据库初始化云函数",
+  "main": "index.js",
+  "dependencies": {
+    "wx-server-sdk": "latest"
+  },
+  "cloudfunction-config": {
+    "timeout": 60,
+    "memorySize": 512,
+    "runtime": "Nodejs18.15"
+  }
+}

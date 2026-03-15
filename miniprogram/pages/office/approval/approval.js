@@ -228,9 +228,13 @@ Page({
   reviewRequest(decision) {
     this.setData({ actionLoading: true })
 
+    // 获取审批意见
+    const reviewRemark = this.data.reviewRemark || ''
+
     app.callOfficeAuth('reviewRegistration', {
-      requestId: this.data.selectedRequest._id,
-      decision
+      taskId: this.data.selectedRequest.taskId || this.data.selectedRequest._id,
+      decision,
+      reviewRemark
     })
       .then((result) => {
         util.showToast({

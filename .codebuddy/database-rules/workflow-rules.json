@@ -1,0 +1,28 @@
+{
+  "rules": {
+    "workflow_templates": {
+      "read": "auth != null && (get('database.users.' + auth.openid + '.role') == 'admin' || get('database.users.' + auth.openid + '.isAdmin') == true)",
+      "write": "auth != null && (get('database.users.' + auth.openid + '.role') == 'admin' || get('database.users.' + auth.openid + '.isAdmin') == true)"
+    },
+    "work_orders": {
+      "read": "auth != null && (resource.businessData.applicantId == auth.openid || exists(get('database.workflow_tasks.' + auth.openid)))",
+      "create": "auth != null",
+      "update": "auth != null && resource.businessData.applicantId == auth.openid",
+      "delete": "auth != null && resource.businessData.applicantId == auth.openid"
+    },
+    "workflow_tasks": {
+      "read": "auth != null && (resource.approverId == auth.openid || resource.orderId in get('database.work_orders.' + auth.openid))",
+      "create": "auth != null", // 云函数创建
+      "update": "auth != null && (resource.approverId == auth.openid || auth.openid == 'system')",
+      "delete": "auth != null && auth.openid == 'system'"
+    },
+    "workflow_logs": {
+      "read": "auth != null && (resource.orderId in get('database.work_orders.' + auth.openid) || get('database.users.' + auth.openid + '.isAdmin') == true)",
+      "write": "auth != null" // 云函数写入
+    },
+    "workflow_subscriptions": {
+      "read": "auth != null",
+      "write": "auth != null && (get('database.users.' + auth.openid + '.isAdmin') == true)"
+    }
+  }
+}
