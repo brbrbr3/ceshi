@@ -1,0 +1,160 @@
+.medical-page {
+  min-height: 100%;
+}
+
+.medical-header {
+  padding-bottom: 100rpx;
+}
+
+.medical-title {
+  font-size: 48rpx;
+  font-weight: 700;
+  color: #FFFFFF;
+}
+
+.medical-subtitle {
+  margin-top: 12rpx;
+  font-size: 24rpx;
+  color: rgba(255, 255, 255, 0.9);
+}
+
+.medical-content {
+  margin-top: -60rpx;
+}
+
+.medical-form-card {
+  padding: 32rpx;
+}
+
+.medical-form {
+  display: flex;
+  flex-direction: column;
+  gap: 24rpx;
+}
+
+.medical-field {
+  display: flex;
+  flex-direction: column;
+  gap: 12rpx;
+}
+
+.medical-field-label {
+  font-size: 28rpx;
+  font-weight: 500;
+  color: #374151;
+}
+
+.medical-required {
+  color: #EF4444;
+  margin-left: 4rpx;
+}
+
+.medical-input-shell,
+.medical-picker-shell,
+.medical-textarea-shell {
+  background: #FFFFFF;
+  border: 1rpx solid #E5E7EB;
+  border-radius: 12rpx;
+  padding: 24rpx 28rpx;
+  font-size: 28rpx;
+}
+
+.medical-input-shell input,
+.medical-textarea-shell textarea {
+  width: 100%;
+  font-size: 28rpx;
+}
+
+.medical-input-placeholder,
+.medical-picker-placeholder,
+.medical-textarea-placeholder {
+  color: #9CA3AF;
+}
+
+.medical-picker-shell {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+}
+
+.medical-picker-value {
+  flex: 1;
+  color: #1F2937;
+}
+
+.medical-picker-arrow {
+  color: #9CA3AF;
+  font-size: 40rpx;
+}
+
+.medical-picker-shell.is-placeholder .medical-picker-value {
+  color: #9CA3AF;
+}
+
+.medical-textarea-shell textarea {
+  height: 200rpx;
+  line-height: 1.6;
+}
+
+.medical-note {
+  background: #FEF3C7;
+  border: 1rpx solid #FCD34D;
+  border-radius: 12rpx;
+  padding: 24rpx;
+  margin-top: 8rpx;
+}
+
+.medical-note-title {
+  font-size: 26rpx;
+  font-weight: 500;
+  color: #92400E;
+  margin-bottom: 16rpx;
+}
+
+.medical-note-steps {
+  display: flex;
+  align-items: center;
+  gap: 16rpx;
+  flex-wrap: wrap;
+}
+
+.medical-note-step {
+  display: flex;
+  align-items: center;
+  gap: 8rpx;
+}
+
+.medical-step-dot {
+  width: 12rpx;
+  height: 12rpx;
+  border-radius: 50%;
+  background: #F59E0B;
+  flex-shrink: 0;
+}
+
+.medical-step-text {
+  font-size: 24rpx;
+  color: #92400E;
+}
+
+.medical-note-arrow {
+  color: #F59E0B;
+  font-size: 24rpx;
+}
+
+.medical-submit-btn {
+  margin-top: 32rpx;
+  background: linear-gradient(135deg, #2563EB 0%, #1D4ED8 100%);
+  color: #FFFFFF;
+  border: none;
+  border-radius: 16rpx;
+  height: 96rpx;
+  font-size: 32rpx;
+  font-weight: 600;
+  box-shadow: 0 8rpx 24rpx rgba(37, 99, 235, 0.2);
+}
+
+.medical-submit-btn::after {
+  border: none;
+}
+

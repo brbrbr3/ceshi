@@ -324,3 +324,83 @@ page {
   font-size: 22rpx;
   line-height: 1.7;
 }
+
+/* 就医申请进度条样式 */
+.approval-progress {
+  margin-top: 16rpx;
+  padding: 24rpx;
+  background: #F9FAFB;
+  border-radius: 12rpx;
+}
+
+.approval-progress-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 16rpx;
+}
+
+.approval-progress-info {
+  display: flex;
+  align-items: center;
+  gap: 12rpx;
+  flex: 1;
+}
+
+.approval-progress-step {
+  font-size: 24rpx;
+  font-weight: 500;
+  color: #6B7280;
+}
+
+.approval-progress-text {
+  font-size: 22rpx;
+  color: #9CA3AF;
+}
+
+.approval-progress-bar {
+  width: 100%;
+  height: 8rpx;
+  background: #E5E7EB;
+  border-radius: 4rpx;
+  overflow: hidden;
+}
+
+.approval-progress-fill {
+  height: 100%;
+  background: linear-gradient(90deg, #2563EB 0%, #1D4ED8 100%);
+  border-radius: 4rpx;
+  transition: width 0.3s ease;
+}
+
+.approval-modal-copy {
+  margin-top: 24rpx;
+  padding: 24rpx;
+  background: #FEF3C7;
+  border-radius: 12rpx;
+  border: 1rpx solid #FCD34D;
+}
+
+.approval-modal-copy-text {
+  font-size: 24rpx;
+  color: #92400E;
+  margin-bottom: 16rpx;
+  line-height: 1.6;
+}
+
+.approval-copy-btn {
+  width: 100%;
+  background: linear-gradient(135deg, #2563EB 0%, #1D4ED8 100%);
+  color: #FFFFFF;
+  border: none;
+  border-radius: 16rpx;
+  height: 88rpx;
+  font-size: 28rpx;
+  font-weight: 600;
+  box-sizing: border-box;
+}
+
+.approval-copy-btn::after {
+  border: none;
+}
+

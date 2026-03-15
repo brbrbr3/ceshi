@@ -508,37 +508,101 @@ async function submitRegistration(openid, formData) {
 
 async function getApprovalData(openid) {
   const currentUser = await findUserByOpenId(openid)
-  const canReview = !!(currentUser && currentUser.status === REQUEST_STATUS.APPROVED && currentUser.isAdmin)
+  
+  // 权限判断：馆领导、部门负责人、管理员可以审批
+  const canReview = !!(currentUser && 
+    currentUser.status === REQUEST_STATUS.APPROVED && 
+    (currentUser.isAdmin || currentUser.role === '馆领导' || currentUser.role === '部门负责人'))
 
-  // 查询我的工单
+  // 查询我的工单（包括注册申请和就医申请）
   const myOrderResult = await workOrdersCollection
     .where({
       'businessData.applicantId': openid,
-      orderType: 'user_registration'
+      orderType: _.in(['user_registration', 'medical_application'])
     })
     .orderBy('createdAt', 'desc')
     .get()
 
-  const mineList = myOrderResult.data ? myOrderResult.data.map(order => ({
-    _id: order._id,
-    openid: order.businessData.applicantId,
-    name: order.businessData.applicantName,
-    gender: order.businessData.gender,
-    birthday: order.businessData.birthday,
-    role: order.businessData.role,
-    relativeName: order.businessData.relativeName || '',
-    position: order.businessData.position || '无',
-    isAdmin: order.businessData.isAdmin,
-    avatarText: order.businessData.avatarText,
-    status: order.workflowStatus === 'completed' ? REQUEST_STATUS.APPROVED : (order.workflowStatus === 'rejected' ? REQUEST_STATUS.REJECTED : REQUEST_STATUS.PENDING),
-    reviewRemark: '',
-    submittedAt: order.createdAt,
-    reviewedAt: order.updatedAt,
-    reviewedBy: '',
-    updatedAt: order.updatedAt
-  })) : []
+  // 查询当前用户的待审批任务，用于判断是否是当前步骤的审批人
+  let userTaskMap = {}
+  if (canReview) {
+    const userTasksResult = await workflowTasksCollection
+      .where({
+        approverId: openid,
+        taskStatus: 'pending'
+      })
+      .get()
 
-  // 管理员查询所有待审批工单
+    if (userTasksResult.data) {
+      userTasksResult.data.forEach(task => {
+        userTaskMap[task.orderId] = {
+          taskId: task._id,
+          stepName: task.stepName
+        }
+      })
+    }
+  }
+
+  const mineList = myOrderResult.data ? myOrderResult.data.map(order => {
+    // 判断当前用户是否是当前步骤的审批人
+    const isCurrentApprover = canReview && userTaskMap[order._id] ? true : false
+
+    // 根据订单类型返回不同的字段
+    if (order.orderType === 'medical_application') {
+      // 就医申请
+      return {
+        _id: order._id,
+        openid: order.businessData.applicantId,
+        name: order.businessData.applicantName,
+        role: order.businessData.applicantRole,
+        patientName: order.businessData.patientName,
+        relation: order.businessData.relation,
+        medicalDate: order.businessData.medicalDate,
+        institution: order.businessData.institution,
+        otherInstitution: order.businessData.otherInstitution,
+        reasonForSelection: order.businessData.reasonForSelection,
+        reason: order.businessData.reason,
+        avatarText: order.businessData.applicantName ? order.businessData.applicantName.slice(0, 1) : '就',
+        status: order.workflowStatus === 'completed' ? REQUEST_STATUS.APPROVED : (order.workflowStatus === 'rejected' ? REQUEST_STATUS.REJECTED : REQUEST_STATUS.PENDING),
+        reviewRemark: '',
+        submittedAt: order.createdAt,
+        reviewedAt: order.updatedAt,
+        reviewedBy: '',
+        updatedAt: order.updatedAt,
+        orderType: 'medical_application',
+        currentStep: order.currentStep,
+        orderNo: order.orderNo,
+        taskId: isCurrentApprover ? userTaskMap[order._id].taskId : null,
+        isCurrentApprover: isCurrentApprover
+      }
+    } else {
+      // 注册申请
+      return {
+        _id: order._id,
+        openid: order.businessData.applicantId,
+        name: order.businessData.applicantName,
+        gender: order.businessData.gender,
+        birthday: order.businessData.birthday,
+        role: order.businessData.role,
+        relativeName: order.businessData.relativeName || '',
+        position: order.businessData.position || '无',
+        isAdmin: order.businessData.isAdmin,
+        avatarText: order.businessData.avatarText,
+        status: order.workflowStatus === 'completed' ? REQUEST_STATUS.APPROVED : (order.workflowStatus === 'rejected' ? REQUEST_STATUS.REJECTED : REQUEST_STATUS.PENDING),
+        reviewRemark: '',
+        submittedAt: order.createdAt,
+        reviewedAt: order.updatedAt,
+        reviewedBy: '',
+        updatedAt: order.updatedAt,
+        orderType: 'user_registration',
+        orderNo: order.orderNo,
+        taskId: isCurrentApprover ? userTaskMap[order._id].taskId : null,
+        isCurrentApprover: isCurrentApprover
+      }
+    }
+  }) : []
+
+  // 管理员/馆领导/部门负责人查询所有待审批工单
   let pendingList = []
   let doneList = []
 
@@ -573,37 +637,86 @@ async function getApprovalData(openid) {
           })
         }
 
-        // 过滤：角色审批任务只显示给管理员
+        // 过滤：根据角色和岗位显示相应的审批任务
         pendingList = pendingTasksResult.data.filter(task => {
           // 直接分配的任务总是显示
           if (task.approverId === openid) {
             return true
           }
-          // 角色审批任务只显示给管理员
-          if (task.approverType === 'role' && canReview) {
-            return true
+
+          // 角色审批任务：根据任务步骤名称和用户的角色/岗位判断
+          if (task.approverType === 'role' && currentUser) {
+            // 部门负责人审批
+            if (task.stepName === '部门负责人审批' && currentUser.role === '部门负责人') {
+              return true
+            }
+            // 会计主管审批（按岗位）
+            if (task.stepName === '会计主管审批' && currentUser.position === '会计主管') {
+              return true
+            }
+            // 馆领导审批
+            if (task.stepName === '馆领导审批' && currentUser.role === '馆领导') {
+              return true
+            }
+            // 管理员审批（管理员可以看到所有角色审批任务）
+            if (currentUser.isAdmin) {
+              return true
+            }
           }
           return false
         }).map(task => {
           const order = ordersMap[task.orderId]
-          const name = order ? order.businessData.applicantName : ''
-          return {
-            _id: task._id,
-            orderId: task.orderId,
-            openid: order ? order.businessData.applicantId : '',
-            name: name,
-            gender: order ? order.businessData.gender : '',
-            birthday: order ? order.businessData.birthday : '',
-            role: order ? order.businessData.role : '',
-            relativeName: order ? (order.businessData.relativeName || '') : '',
-            position: order ? (order.businessData.position || '无') : '无',
-            isAdmin: order ? order.businessData.isAdmin : false,
-            avatarText: order ? order.businessData.avatarText : (name ? name.slice(0, 1) : '智'),
-            status: REQUEST_STATUS.PENDING,
-            submittedAt: order ? order.createdAt : null,
-            taskId: task._id,
-            taskName: task.stepName,
-            updatedAt: order ? order.updatedAt : null
+          
+          // 根据订单类型返回不同的字段
+          if (order && order.orderType === 'medical_application') {
+            // 就医申请
+            const name = order.businessData.applicantName || ''
+            return {
+              _id: task._id,
+              orderId: task.orderId,
+              openid: order ? order.businessData.applicantId : '',
+              name: name,
+              role: order ? order.businessData.applicantRole : '',
+              patientName: order ? order.businessData.patientName : '',
+              relation: order ? order.businessData.relation : '',
+              medicalDate: order ? order.businessData.medicalDate : '',
+              institution: order ? order.businessData.institution : '',
+              otherInstitution: order ? order.businessData.otherInstitution : '',
+              reasonForSelection: order ? order.businessData.reasonForSelection : '',
+              reason: order ? order.businessData.reason : '',
+              avatarText: name ? name.slice(0, 1) : '就',
+              status: REQUEST_STATUS.PENDING,
+              submittedAt: order ? order.createdAt : null,
+              taskId: task._id,
+              taskName: task.stepName,
+              updatedAt: order ? order.updatedAt : null,
+              orderType: 'medical_application',
+              currentStep: order ? order.currentStep : 1,
+              orderNo: order ? order.orderNo : ''
+            }
+          } else {
+            // 注册申请
+            const name = order ? order.businessData.applicantName : ''
+            return {
+              _id: task._id,
+              orderId: task.orderId,
+              openid: order ? order.businessData.applicantId : '',
+              name: name,
+              gender: order ? order.businessData.gender : '',
+              birthday: order ? order.businessData.birthday : '',
+              role: order ? order.businessData.role : '',
+              relativeName: order ? (order.businessData.relativeName || '') : '',
+              position: order ? (order.businessData.position || '无') : '无',
+              isAdmin: order ? order.businessData.isAdmin : false,
+              avatarText: order ? order.businessData.avatarText : (name ? name.slice(0, 1) : '智'),
+              status: REQUEST_STATUS.PENDING,
+              submittedAt: order ? order.createdAt : null,
+              taskId: task._id,
+              taskName: task.stepName,
+              updatedAt: order ? order.updatedAt : null,
+              orderType: 'user_registration',
+              orderNo: order ? order.orderNo : ''
+            }
           }
         })
       }
@@ -612,14 +725,12 @@ async function getApprovalData(openid) {
     // 查询已完成的工单（包括已通过和已驳回）
     const completedOrdersResult = await workOrdersCollection
       .where({
-        orderType: 'user_registration',
+        orderType: _.in(['user_registration', 'medical_application']),
         workflowStatus: db.command.in(['completed', 'rejected'])
       })
       .orderBy('updatedAt', 'desc')
       .limit(50)
       .get()
-
-
 
     // 获取已驳回工单的驳回原因
     const rejectedOrderIds = completedOrdersResult.data
@@ -697,22 +808,52 @@ async function getApprovalData(openid) {
     doneList = completedOrdersResult.data ? completedOrdersResult.data.map(order => {
       const status = order.workflowStatus === 'completed' ? REQUEST_STATUS.APPROVED : REQUEST_STATUS.REJECTED
       const info = approvalInfo[order._id] || { reviewedBy: '管理员', reviewedAt: order.updatedAt }
-      return {
-        _id: order._id,
-        openid: order.businessData.applicantId,
-        name: order.businessData.applicantName,
-        gender: order.businessData.gender,
-        birthday: order.businessData.birthday,
-        role: order.businessData.role,
-        relativeName: order.businessData.relativeName || '',
-        position: order.businessData.position || '无',
-        isAdmin: order.businessData.isAdmin,
-        avatarText: order.businessData.avatarText,
-        status: status,
-        reviewRemark: reviewRemarks[order._id] || '',  // 移除默认值，只返回真正的驳回原因
-        submittedAt: order.createdAt,
-        reviewedAt: info.reviewedAt,
-        reviewedBy: info.reviewedBy
+      
+      // 根据订单类型返回不同的字段
+      if (order.orderType === 'medical_application') {
+        // 就医申请
+        return {
+          _id: order._id,
+          openid: order.businessData.applicantId,
+          name: order.businessData.applicantName,
+          role: order.businessData.applicantRole,
+          patientName: order.businessData.patientName,
+          relation: order.businessData.relation,
+          medicalDate: order.businessData.medicalDate,
+          institution: order.businessData.institution,
+          otherInstitution: order.businessData.otherInstitution,
+          reasonForSelection: order.businessData.reasonForSelection,
+          reason: order.businessData.reason,
+          avatarText: order.businessData.applicantName ? order.businessData.applicantName.slice(0, 1) : '就',
+          status: status,
+          reviewRemark: reviewRemarks[order._id] || '',  // 移除默认值，只返回真正的驳回原因
+          submittedAt: order.createdAt,
+          reviewedAt: info.reviewedAt,
+          reviewedBy: info.reviewedBy,
+          orderType: 'medical_application',
+          orderNo: order.orderNo
+        }
+      } else {
+        // 注册申请
+        return {
+          _id: order._id,
+          openid: order.businessData.applicantId,
+          name: order.businessData.applicantName,
+          gender: order.businessData.gender,
+          birthday: order.businessData.birthday,
+          role: order.businessData.role,
+          relativeName: order.businessData.relativeName || '',
+          position: order.businessData.position || '无',
+          isAdmin: order.businessData.isAdmin,
+          avatarText: order.businessData.avatarText,
+          status: status,
+          reviewRemark: reviewRemarks[order._id] || '',  // 移除默认值，只返回真正的驳回原因
+          submittedAt: order.createdAt,
+          reviewedAt: info.reviewedAt,
+          reviewedBy: info.reviewedBy,
+          orderType: 'user_registration',
+          orderNo: order.orderNo
+        }
       }
     }) : []
   }

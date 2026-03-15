@@ -138,9 +138,13 @@ async function resolveApprovers(approverType, approverConfig, businessData) {
         if (!approverConfig.userIds || approverConfig.userIds.length === 0) {
           return []
         }
-        return approverConfig.userIds.map(userId => ({ 
-          id: userId, 
-          name: userId.slice(0, 2) + '**' 
+        // 查询用户信息
+        const userQueryResult = await usersCollection
+          .where({ openid: db.command.in(approverConfig.userIds) })
+          .get()
+        return userQueryResult.data.map(user => ({
+          id: user.openid,
+          name: user.name
         }))
       
       case APPROVER_TYPE.ROLE:
@@ -148,12 +152,52 @@ async function resolveApprovers(approverType, approverConfig, businessData) {
         if (!approverConfig.roleIds || approverConfig.roleIds.length === 0) {
           return []
         }
-        // 这里可以从用户表按角色查询
-        // 暂时返回示例数据
-        return approverConfig.roleIds.map(roleId => ({ 
-          id: `role_${roleId}`, 
-          name: `角色${roleId}` 
-        }))
+        
+        const approvers = []
+        for (const roleId of approverConfig.roleIds) {
+          let userQuery = {
+            status: 'approved'
+          }
+          
+          // 根据角色ID查询用户
+          if (roleId === 'admin') {
+            // 管理员角色
+            userQuery.isAdmin = true
+          } else if (roleId === 'department_head') {
+            // 部门负责人角色
+            userQuery.role = '部门负责人'
+          } else if (roleId === 'accountant_supervisor') {
+            // 会计主管：按岗位查询（position）
+            userQuery.position = '会计主管'
+          } else if (roleId === 'library_leader') {
+            // 馆领导角色
+            userQuery.role = '馆领导'
+          } else {
+            // 其他角色，按 role 字段查询
+            const roleMap = {
+              '馆员': '馆员',
+              '工勤': '工勤',
+              '物业': '物业',
+              '配偶': '配偶',
+              '家属': '家属'
+            }
+            if (roleMap[roleId]) {
+              userQuery.role = roleMap[roleId]
+            }
+          }
+          
+          const roleUsersResult = await usersCollection.where(userQuery).get()
+          if (roleUsersResult.data && roleUsersResult.data.length > 0) {
+            roleUsersResult.data.forEach(user => {
+              approvers.push({
+                id: user.openid,
+                name: user.name
+              })
+            })
+          }
+        }
+        
+        return approvers
       
       case APPROVER_TYPE.DEPT:
         // 部门
@@ -224,8 +268,8 @@ async function hasPermission(task, operatorId) {
     return true
   }
 
-  // 审批人匹配
-  if (task.approverId === operatorId) {
+  // 具体用户审批：直接匹配 openid
+  if (task.approverType === 'user' && task.approverId === operatorId) {
     return true
   }
 
@@ -234,7 +278,7 @@ async function hasPermission(task, operatorId) {
     return true
   }
 
-  // 角色审批：检查用户是否具有该角色
+  // 角色审批：检查用户是否具有该角色或岗位
   if (task.approverType === 'role') {
     try {
       // 解析角色ID
@@ -254,8 +298,20 @@ async function hasPermission(task, operatorId) {
           return true
         }
 
-        // 可以添加其他角色的判断逻辑
-        // if (roleId === 'hr_manager' && user.role === 'HR经理') { return true }
+        // 部门负责人（按角色）
+        if (roleId === 'department_head' && user.role === '部门负责人') {
+          return true
+        }
+
+        // 会计主管（按岗位 position）
+        if (roleId === 'accountant_supervisor' && user.position === '会计主管') {
+          return true
+        }
+
+        // 馆领导（按角色）
+        if (roleId === 'library_leader' && user.role === '馆领导') {
+          return true
+        }
       }
     } catch (error) {
       // 角色权限检查失败，返回false
@@ -377,6 +433,9 @@ async function createTasks(orderId, step, businessData) {
       throw new Error(`步骤"${step.stepName}"未找到审批人`)
     }
     
+    // 判断是否找到具体用户
+    const foundSpecificUsers = approvers.some(approver => !approver.id.startsWith('role_') && !approver.id.startsWith('dept_'))
+    
     const now = Date.now()
     const timeoutHours = step.timeout || 72 // 默认72小时
     const timeoutAt = now + (timeoutHours * 60 * 60 * 1000)
@@ -387,7 +446,7 @@ async function createTasks(orderId, step, businessData) {
       stepNo: step.stepNo,
       stepName: step.stepName,
       stepType: step.stepType,
-      approverType: step.approverType,
+      approverType: foundSpecificUsers ? 'user' : step.approverType, // 如果找到具体用户，设为 user 类型
       approverId: approver.id,
       approverName: approver.name,
       taskStatus: TASK_STATUS.PENDING,

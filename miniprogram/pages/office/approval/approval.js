@@ -2,6 +2,7 @@ const app = getApp()
 const util = require('../../../util/util.js')
 
 const approvalTypes = [
+  { icon: '🏥', label: '就医申请', color: '#EF4444', bg: '#FEE2E2' },
   { icon: '📝', label: '注册申请', color: '#2563EB', bg: '#EFF6FF' },
   { icon: '👔', label: '馆领导', color: '#7C3AED', bg: '#F3E8FF' },
   { icon: '🏛️', label: '部门负责人', color: '#0891B2', bg: '#E0F2FE' },
@@ -69,14 +70,69 @@ function getAvatarColor(text) {
   return colors[code % colors.length]
 }
 
+// 计算就医申请的进度
+function calculateMedicalProgress(currentStep, totalSteps = 3) {
+  if (!currentStep) {
+    return { percent: 0, currentText: '等待提交' }
+  }
+  
+  const percent = Math.min(Math.floor((currentStep / totalSteps) * 100), 100)
+  
+  const stepNames = ['', '部门负责人审批', '会计主管审批', '馆领导审批']
+  const currentText = stepNames[currentStep] || '进行中'
+  
+  return {
+    percent,
+    currentText,
+    currentStep,
+    totalSteps
+  }
+}
+
 function mapRequestItem(request) {
   const statusMeta = getStatusMeta(request.status)
   const avatar = request.avatarText || (request.name ? request.name.slice(0, 1) : '智')
-  const detailParts = [request.birthday]
-  if (request.position && request.position !== '无') {
-    detailParts.push(request.position)
+  
+  // 根据申请类型生成不同的详情
+  let detail = ''
+  let requestType = '注册申请'
+  let showProgress = false
+  
+  if (request.orderType === 'medical_application') {
+    // 就医申请
+    const patientName = request.patientName || ''
+    const relation = request.relation || ''
+    const medicalDate = request.medicalDate || ''
+    const institution = request.institution || ''
+    const detailParts = []
+    
+    if (patientName) {
+      detailParts.push(`就医人：${patientName}`)
+    }
+    if (relation) {
+      detailParts.push(`关系：${relation}`)
+    }
+    if (medicalDate) {
+      detailParts.push(`时间：${medicalDate}`)
+    }
+    if (institution) {
+      detailParts.push(`机构：${institution}`)
+    }
+    
+    detail = detailParts.join(' · ')
+    requestType = '就医申请'
+    showProgress = request.status === 'pending'
+  } else {
+    // 注册申请
+    const detailParts = [request.birthday]
+    if (request.position && request.position !== '无') {
+      detailParts.push(request.position)
+    }
+    detailParts.push(request.isAdmin ? '申请管理员' : '普通成员')
+    detail = detailParts.join(' · ')
+    requestType = '注册申请'
+    showProgress = false
   }
-  detailParts.push(request.isAdmin ? '申请管理员' : '普通成员')
 
   // 生成审批备注信息
   let reviewRemark = request.reviewRemark || ''
@@ -97,12 +153,20 @@ function mapRequestItem(request) {
     }
   }
 
+  // 计算进度（就医申请）
+  let progress = null
+  if (showProgress && request.currentStep) {
+    progress = calculateMedicalProgress(request.currentStep)
+  }
+
   return {
     id: request._id,
     requestNo: request.requestNo,
     name: request.name,
-    dept: `${request.role} · ${request.gender}${request.relativeName ? ' · ' + request.relativeName : ''}`,
-    detail: detailParts.join(' · '),
+    dept: request.dept || '',
+    detail: detail,
+    requestType: requestType,
+    orderType: request.orderType, // 保留原始 orderType
     status: statusMeta.label,
     statusColor: statusMeta.statusColor,
     statusBg: statusMeta.statusBg,
@@ -111,7 +175,9 @@ function mapRequestItem(request) {
     time: formatRelativeTime(request.updatedAt || request.submittedAt),
     urgent: !!request.isAdmin,
     raw: request,
-    reviewRemark: reviewRemark
+    reviewRemark: reviewRemark,
+    showProgress: showProgress,
+    progress: progress
   }
 }
 
@@ -141,7 +207,8 @@ Page({
     currentList: [],
     emptyText: '暂无注册申请',
     showDetail: false,
-    selectedRequest: null
+    selectedRequest: null,
+    currentUser: null
   },
 
   onShow() {
@@ -185,6 +252,7 @@ Page({
 
         this.setData({
           canReview,
+          currentUser: data.currentUser, // 保存当前用户信息
           summary: data.summary || this.data.summary,
           pendingList,
           mineList,
@@ -251,6 +319,48 @@ Page({
     })
   },
 
+  copyAndResubmitMedical() {
+    const request = this.data.selectedRequest
+    if (!request) {
+      return
+    }
+
+    // 只支持就医申请的复制
+    if (request.orderType !== 'medical_application') {
+      util.showToast({
+        title: '该申请类型不支持复制',
+        icon: 'none'
+      })
+      return
+    }
+
+    // 询问用户是否要复制
+    wx.showModal({
+      title: '重新创建申请',
+      content: '将使用此申请的信息创建新的就医申请，是否继续？',
+      success: (res) => {
+        if (res.confirm) {
+          // 导航到就医申请页面，传递复制数据
+          const copyData = {
+            patientName: request.patientName || '',
+            relation: request.relation || '',
+            medicalDate: request.medicalDate || '',
+            institution: request.institution || '',
+            otherInstitution: request.otherInstitution || '',
+            reasonForSelection: request.reasonForSelection || '',
+            reason: request.reason || ''
+          }
+
+          wx.navigateTo({
+            url: `/pages/office/medical-application/medical-application?mode=copy&data=${encodeURIComponent(JSON.stringify(copyData))}`
+          })
+
+          this.closeDetail()
+        }
+      }
+    })
+  },
+
   handleReview(e) {
     if (!this.data.canReview || this.data.actionLoading) {
       return
@@ -289,9 +399,27 @@ Page({
 
   confirmReview(decision) {
     const title = decision === 'approve' ? '确认批准' : '确认驳回'
-    const content = decision === 'approve'
-      ? '批准后，该用户将自动写入用户表并可登录首页。'
-      : '驳回后，用户可重新进入注册页修改资料并再次提交。'
+
+    // 根据申请类型显示不同的提示文本
+    const request = this.data.selectedRequest
+    const isMedicalApplication = request.orderType === 'medical_application'
+
+    let content = ''
+    if (isMedicalApplication) {
+      // 就医申请
+      if (decision === 'approve') {
+        content = '批准后，该就医申请将流转到下一审批环节。'
+      } else {
+        content = '驳回后，申请人可重新提交就医申请。'
+      }
+    } else {
+      // 注册申请
+      if (decision === 'approve') {
+        content = '批准后，该用户将自动写入用户表并可登录首页。'
+      } else {
+        content = '驳回后，用户可重新进入注册页修改资料并再次提交。'
+      }
+    }
 
     wx.showModal({
       title,
@@ -314,36 +442,83 @@ Page({
 
     // 获取审批意见
     const reviewRemark = this.data.reviewRemark || ''
+    
+    // 获取当前用户信息
+    const currentUser = this.data.currentUser || app.globalData.userProfile
+    const openid = app.globalData.openid
+    const operatorName = currentUser ? currentUser.name : '审批人'
 
-    app.callOfficeAuth('reviewRegistration', {
-      taskId: this.data.selectedRequest.taskId || this.data.selectedRequest._id,
-      decision,
-      reviewRemark
-    })
-      .then((result) => {
-        util.showToast({
-          title: decision === 'approve' ? '已批准' : '已驳回',
-          icon: 'success'
-        })
+    // 判断是就医申请还是注册申请
+    const request = this.data.selectedRequest
+    const isMedicalApplication = request.orderType === 'medical_application'
 
-        // 添加本地通知
-        if (result && result.request) {
-          const notificationType = decision === 'approve' ? '注册申请通过' : '注册申请被驳回'
-          const notificationContent = `您提交的${result.request.name}的${result.request.role}申请${decision === 'approve' ? '已通过' : '已被驳回'}${decision === 'rejected' && result.reviewRemark ? '，原因：' + result.reviewRemark : ''}`
-          app.addApprovalNotification(notificationType, notificationContent)
+    if (isMedicalApplication) {
+      // 就医申请，调用 workflowEngine 云函数
+      wx.cloud.callFunction({
+        name: 'workflowEngine',
+        data: {
+          action: 'approveTask',
+          taskId: request.taskId,
+          approveAction: decision,
+          comment: reviewRemark || (decision === 'approve' ? '已批准' : '已驳回'),
+          operatorId: openid,
+          operatorName: operatorName
         }
+      })
+        .then((result) => {
+          if (result.result.code !== 0) {
+            throw new Error(result.result.message || '审批失败')
+          }
+          
+          util.showToast({
+            title: decision === 'approve' ? '已批准' : '已驳回',
+            icon: 'success'
+          })
 
-        this.closeDetail()
-        this.loadApprovalData()
-      })
-      .catch((error) => {
-        util.showToast({
-          title: error.message || '处理失败',
-          icon: 'none'
+          this.closeDetail()
+          this.loadApprovalData()
         })
+        .catch((error) => {
+          util.showToast({
+            title: error.message || '处理失败',
+            icon: 'none'
+          })
+        })
+        .then(() => {
+          this.setData({ actionLoading: false })
+        })
+    } else {
+      // 注册申请，调用 officeAuth 云函数
+      app.callOfficeAuth('reviewRegistration', {
+        taskId: this.data.selectedRequest.taskId || this.data.selectedRequest._id,
+        decision,
+        reviewRemark
       })
-      .then(() => {
-        this.setData({ actionLoading: false })
-      })
+        .then((result) => {
+          util.showToast({
+            title: decision === 'approve' ? '已批准' : '已驳回',
+            icon: 'success'
+          })
+
+          // 添加本地通知
+          if (result && result.request) {
+            const notificationType = decision === 'approve' ? '注册申请通过' : '注册申请被驳回'
+            const notificationContent = `您提交的${result.request.name}的${result.request.role}申请${decision === 'approve' ? '已通过' : '已被驳回'}${decision === 'rejected' && result.reviewRemark ? '，原因：' + result.reviewRemark : ''}`
+            app.addApprovalNotification(notificationType, notificationContent)
+          }
+
+          this.closeDetail()
+          this.loadApprovalData()
+        })
+        .catch((error) => {
+          util.showToast({
+            title: error.message || '处理失败',
+            icon: 'none'
+          })
+        })
+        .then(() => {
+          this.setData({ actionLoading: false })
+        })
+    }
   }
 })

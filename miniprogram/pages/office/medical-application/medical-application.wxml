@@ -1,0 +1,96 @@
+<view class="office-page medical-page">
+  <view class="office-gradient-header medical-header">
+    <view class="office-header-top">
+      <view>
+        <view class="medical-title">就医申请</view>
+        <view class="medical-subtitle">填写就医信息，需经部门负责人、会计主管、馆领导三级审批</view>
+      </view>
+    </view>
+  </view>
+
+  <view class="office-content medical-content">
+    <view class="office-card medical-form-card">
+      <view class="medical-form">
+        <view class="medical-field">
+          <view class="medical-field-label">就医人姓名 <text class="medical-required">*</text></view>
+          <view class="medical-input-shell">
+            <input value="{{form.patientName}}" placeholder="请填写就医人姓名" placeholder-class="medical-input-placeholder" bindinput="handlePatientNameInput" />
+          </view>
+        </view>
+
+        <view class="medical-field">
+          <view class="medical-field-label">与申请人关系 <text class="medical-required">*</text></view>
+          <picker mode="selector" range="{{relationOptions}}" value="{{relationIndex >= 0 ? relationIndex : 0}}" bindchange="handleRelationChange">
+            <view class="medical-picker-shell {{form.relation ? '' : 'is-placeholder'}}">
+              <view class="medical-picker-value">{{form.relation || '请选择关系'}}</view>
+              <view class="medical-picker-arrow">›</view>
+            </view>
+          </picker>
+        </view>
+
+        <view class="medical-field">
+          <view class="medical-field-label">就医时间 <text class="medical-required">*</text></view>
+          <picker mode="date" value="{{form.medicalDate}}" start="2024-01-01" end="2030-12-31" bindchange="handleMedicalDateChange">
+            <view class="medical-picker-shell {{form.medicalDate ? '' : 'is-placeholder'}}">
+              <view class="medical-picker-value">{{form.medicalDate || '请选择就医时间'}}</view>
+              <view class="medical-picker-arrow">›</view>
+            </view>
+          </picker>
+        </view>
+
+        <view class="medical-field">
+          <view class="medical-field-label">就医机构 <text class="medical-required">*</text></view>
+          <picker mode="selector" range="{{medicalInstitutions}}" value="{{institutionIndex >= 0 ? institutionIndex : 0}}" bindchange="handleInstitutionChange">
+            <view class="medical-picker-shell {{form.institution ? '' : 'is-placeholder'}}">
+              <view class="medical-picker-value">{{form.institution || '请选择就医机构'}}</view>
+              <view class="medical-picker-arrow">›</view>
+            </view>
+          </picker>
+        </view>
+
+        <view wx:if="{{form.institution === '其他'}}" class="medical-field">
+          <view class="medical-field-label">就医机构名称 <text class="medical-required">*</text></view>
+          <view class="medical-input-shell">
+            <input value="{{form.otherInstitution}}" placeholder="请填写就医机构名称" placeholder-class="medical-input-placeholder" bindinput="handleOtherInstitutionInput" />
+          </view>
+        </view>
+
+        <view wx:if="{{form.institution === '其他'}}" class="medical-field">
+          <view class="medical-field-label">选择此机构的原因 <text class="medical-required">*</text></view>
+          <view class="medical-textarea-shell">
+            <textarea value="{{form.reasonForSelection}}" placeholder="请说明选择此就医机构的原因" placeholder-class="medical-textarea-placeholder" bindinput="handleReasonForSelectionInput" maxlength="500" />
+          </view>
+        </view>
+
+        <view class="medical-field">
+          <view class="medical-field-label">就医原因 <text class="medical-required">*</text></view>
+          <view class="medical-textarea-shell">
+            <textarea value="{{form.reason}}" placeholder="请填写就医原因（如：突发疾病、定期检查、专科就诊等）" placeholder-class="medical-textarea-placeholder" bindinput="handleReasonInput" maxlength="500" />
+          </view>
+        </view>
+
+        <view class="medical-note">
+          <view class="medical-note-title">📋 审批流程</view>
+          <view class="medical-note-steps">
+            <view class="medical-note-step">
+              <view class="medical-step-dot"></view>
+              <view class="medical-step-text">部门负责人审批</view>
+            </view>
+            <view class="medical-note-arrow">→</view>
+            <view class="medical-note-step">
+              <view class="medical-step-dot"></view>
+              <view class="medical-step-text">会计主管审批</view>
+            </view>
+            <view class="medical-note-arrow">→</view>
+            <view class="medical-note-step">
+              <view class="medical-step-dot"></view>
+              <view class="medical-step-text">馆领导审批</view>
+            </view>
+          </view>
+        </view>
+
+        <button class="medical-submit-btn" loading="{{loading}}" bindtap="submitApplication">提交申请</button>
+      </view>
+    </view>
+  </view>
+</view>

@@ -18,7 +18,7 @@ Page({
     quickActions: [
       { icon: '🍽️', label: '每周菜单', color: '#16A34A', bg: '#DCFCE7' },
       { icon: '📅', label: '打卡签到', color: '#4CAF50', bg: '#E8F5E9' },
-      { icon: '📋', label: '发起审批', color: '#FF9800', bg: '#FFF3E0' },
+      { icon: '🏥', label: '就医申请', color: '#EF4444', bg: '#FEE2E2' },
       { icon: '📢', label: '公告通知', color: '#9C27B0', bg: '#F3E5F5' },
       { icon: '📊', label: '工作报告', color: '#00BCD4', bg: '#E0F7FA' },
       { icon: '💬', label: '企业通讯', color: '#F44336', bg: '#FFEBEE' },
@@ -134,6 +134,10 @@ Page({
     if (label === '每周菜单') {
       wx.navigateTo({
         url: '/pages/office/menus/menus'
+      })
+    } else if (label === '就医申请') {
+      wx.navigateTo({
+        url: '/pages/office/medical-application/medical-application'
       })
     } else {
       util.showToast({
