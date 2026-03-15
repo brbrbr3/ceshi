@@ -323,7 +323,7 @@ async function startWorkflow(orderType, businessData) {
     
     // 5. 创建第一个任务节点
     const firstStep = activeSteps[0]
-    await createTasks(orderId, firstStep, businessData)
+    const tasks = await createTasks(orderId, firstStep, businessData)
     
     // 6. 记录日志
     await logWorkflowAction(
@@ -337,6 +337,17 @@ async function startWorkflow(orderType, businessData) {
       { orderNo, orderType },
       null
     )
+    
+    // 7. 发送任务分配通知
+    if (tasks && tasks.length > 0) {
+      const orderData = {
+        _id: orderId,
+        orderNo,
+        orderType,
+        businessData
+      }
+      await sendTaskAssignedNotification(tasks, orderData)
+    }
     
     return success({
       orderId,
@@ -530,7 +541,7 @@ async function handleApproval(task, order, approverId, approverName, comment) {
     
     if (activeSteps.length > 0) {
       // 创建下一步任务
-      await createTasks(order._id, activeSteps[0], order.businessData)
+      const nextTasks = await createTasks(order._id, activeSteps[0], order.businessData)
       
       // 更新工单当前步骤
       await ordersCollection.doc(order._id).update({
@@ -540,8 +551,10 @@ async function handleApproval(task, order, approverId, approverName, comment) {
         }
       })
       
-      // TODO: 发送通知给下一步审批人
-      // await sendTaskNotification(order, activeSteps[0])
+      // 发送任务分配通知给下一步审批人
+      if (nextTasks && nextTasks.length > 0) {
+        await sendTaskAssignedNotification(nextTasks, order)
+      }
     }
   } else {
     // 流程完成
@@ -565,8 +578,8 @@ async function handleRejection(task, order, approverId, approverName, comment) {
   // 取消所有待处理任务
   await cancelPendingTasks(order._id)
   
-  // TODO: 发送驳回通知给申请人
-  // await sendRejectionNotification(order, approverName, comment)
+  // 发送驳回通知给申请人
+  await sendTaskCompletedNotification(order, 'rejected', comment)
 }
 
 // 处理退回
@@ -599,8 +612,8 @@ async function returnToApplicant(task, order, comment) {
   // 取消所有待处理任务
   await cancelPendingTasks(order._id)
   
-  // TODO: 发送退回通知给申请人
-  // await sendReturnNotification(order, comment)
+  // 发送退回通知给申请人
+  await sendProcessReturnedNotification(order, comment)
 }
 
 // 退回到指定步骤
@@ -654,8 +667,24 @@ async function returnToStep(order, returnToStepNo, currentStepNo, comment) {
   // 取消当前步骤和后续步骤的待处理任务
   await cancelPendingTasks(order._id, returnToStepNo)
   
-  // TODO: 发送退回通知
-  // await sendReturnNotification(order, comment)
+  // 发送退回通知给目标步骤审批人
+  if (targetTasksRes.data && targetTasksRes.data.length > 0) {
+    const returnTasks = targetTasksRes.data.map(task => ({
+      _id: task._id,
+      orderId: task.orderId,
+      stepNo: task.stepNo,
+      stepName: task.stepName,
+      stepType: task.stepType,
+      approverType: task.approverType,
+      approverId: task.approverId,
+      approverName: task.approverName,
+      taskStatus: task.taskStatus,
+      createdAt: task.createdAt,
+      assignedAt: now,
+      comment: comment
+    }))
+    await sendTaskAssignedNotification(returnTasks, order)
+  }
 }
 
 // 取消待处理任务
@@ -678,6 +707,211 @@ async function cancelPendingTasks(orderId, fromStepNo = 0) {
       }
     })
   }
+}
+
+// 发送小程序内通知
+async function sendAppNotification(openid, notificationData) {
+  try {
+    await db.collection('notifications').add({
+      data: {
+        openid: openid,
+        read: false,
+        createdAt: Date.now(),
+        ...notificationData
+      }
+    })
+    return { success: true }
+  } catch (error) {
+    return { success: false, error: error.message }
+  }
+}
+
+// 批量发送小程序内通知
+async function sendBatchAppNotifications(notifications) {
+  try {
+    const promises = notifications.map(notification =>
+      db.collection('notifications').add({
+        data: {
+          openid: notification.openid,
+          read: false,
+          createdAt: Date.now(),
+          ...notification.data
+        }
+      })
+    )
+    await Promise.all(promises)
+    return { success: true }
+  } catch (error) {
+    return { success: false, error: error.message }
+  }
+}
+
+// 发送通知（集成工作流通知服务）
+async function sendNotification(event) {
+  try {
+    const result = await cloud.callFunction({
+      name: 'workflowNotify',
+      data: event
+    })
+    return result.result
+  } catch (error) {
+    // 通知失败不影响主流程
+    return { code: -1, message: '通知发送失败' }
+  }
+}
+
+// 发送任务分配通知
+async function sendTaskAssignedNotification(tasks, order) {
+  if (!tasks || tasks.length === 0) return
+
+  // 准备通知列表
+  let notifications = []
+
+  for (const task of tasks) {
+    // 如果审批人是角色，需要查询该角色的所有用户
+    if (task.approverType === 'role') {
+      const roleId = task.approverId.replace('role_', '')
+      
+      // 根据角色ID查询用户
+      let users = []
+      if (roleId === 'admin') {
+        // 管理员角色
+        const usersRes = await usersCollection.where({
+          isAdmin: true,
+          status: 'approved'
+        }).field({ openid: true }).get()
+        users = usersRes.data || []
+      } else {
+        // 其他角色（如果有实现的话）
+        // 目前只有管理员角色有特殊处理
+        users = []
+      }
+
+      // 为每个用户创建通知
+      for (const user of users) {
+        notifications.push({
+          openid: user.openid,
+          data: {
+            type: 'task_assigned',
+            title: '新的审批任务',
+            content: `您有一个来自${order.businessData.applicantName || '申请人'}的${task.stepName || '审批'}任务待处理`,
+            orderId: order._id,
+            orderNo: order.orderNo,
+            orderType: order.orderType,
+            stepName: task.stepName,
+            taskId: task._id,
+            applicantName: order.businessData.applicantName,
+            roleId: roleId
+          }
+        })
+      }
+    } else {
+      // 具体用户，直接创建通知
+      notifications.push({
+        openid: task.approverId,
+        data: {
+          type: 'task_assigned',
+          title: '新的审批任务',
+          content: `您有一个来自${order.businessData.applicantName || '申请人'}的${task.stepName || '审批'}任务待处理`,
+          orderId: order._id,
+          orderNo: order.orderNo,
+          orderType: order.orderType,
+          stepName: task.stepName,
+          taskId: task._id,
+          applicantName: order.businessData.applicantName
+        }
+      })
+    }
+  }
+
+  // 批量写入小程序内通知
+  if (notifications.length > 0) {
+    await sendBatchAppNotifications(notifications)
+  }
+
+  // 可选：同时发送微信订阅消息（只发送给具体用户，不发送给角色）
+  const tasksForSubMessage = tasks.filter(task => task.approverType !== 'role')
+  if (tasksForSubMessage.length > 0) {
+    const subMessages = tasksForSubMessage.map(task => ({
+      action: 'sendTaskAssigned',
+      task: task,
+      order: order
+    }))
+
+    if (subMessages.length === 1) {
+      await sendNotification(subMessages[0])
+    } else {
+      await sendNotification({
+        action: 'sendBatchMessages',
+        messages: subMessages
+      })
+    }
+  }
+}
+
+// 发送审批完成通知
+async function sendTaskCompletedNotification(order, approvalResult, comment) {
+  // 发送微信订阅消息
+  await sendNotification({
+    action: 'sendTaskCompleted',
+    order: order,
+    approvalResult: approvalResult,
+    comment: comment
+  })
+
+  // 发送小程序内通知给申请人
+  await sendAppNotification(order.businessData.applicantId, {
+    type: 'task_completed',
+    title: approvalResult === 'approved' ? '审批通过' : '审批驳回',
+    content: comment || (approvalResult === 'approved' ? '您的申请已通过审批' : '您的申请已被驳回'),
+    orderId: order._id,
+    orderNo: order.orderNo,
+    orderType: order.orderType,
+    approvalResult: approvalResult,
+    comment: comment
+  })
+}
+
+// 发送流程退回通知
+async function sendProcessReturnedNotification(order, returnReason) {
+  // 发送微信订阅消息
+  await sendNotification({
+    action: 'sendProcessReturned',
+    order: order,
+    returnReason: returnReason
+  })
+
+  // 发送小程序内通知给申请人
+  await sendAppNotification(order.businessData.applicantId, {
+    type: 'process_returned',
+    title: '流程退回',
+    content: returnReason || '请补充资料',
+    orderId: order._id,
+    orderNo: order.orderNo,
+    orderType: order.orderType,
+    returnReason: returnReason
+  })
+}
+
+// 发送工作流完成通知
+async function sendWorkflowCompletedNotification(order, finalStatus) {
+  // 发送微信订阅消息
+  await sendNotification({
+    action: 'sendWorkflowCompleted',
+    order: order,
+    finalStatus: finalStatus
+  })
+
+  // 发送小程序内通知给申请人
+  await sendAppNotification(order.businessData.applicantId, {
+    type: 'workflow_completed',
+    title: finalStatus === 'approved' ? '审批通过' : '审批驳回',
+    content: finalStatus === 'approved' ? '您的申请已通过审批' : '您的申请已被驳回',
+    orderId: order._id,
+    orderNo: order.orderNo,
+    orderType: order.orderType,
+    finalStatus: finalStatus
+  })
 }
 
 // 完成工作流
@@ -756,8 +990,8 @@ async function completeWorkflow(orderId, decision, approverId, approverName, com
     }
   }
   
-  // TODO: 发送完成通知给申请人
-  // await sendCompletionNotification(order, decision)
+  // 发送完成通知给申请人
+  await sendWorkflowCompletedNotification(order, decision)
 }
 
 // 查询我的工单列表

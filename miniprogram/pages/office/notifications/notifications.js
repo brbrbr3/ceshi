@@ -60,18 +60,47 @@ Page({
     const id = e.currentTarget.dataset.id
     const notification = this.data.notifications.find(n => n._id === id)
 
-    // 如果是菜单通知，跳转到菜单详情页
-    if (notification && notification.type === 'menu' && notification.menuId) {
-      wx.navigateTo({
-        url: `/pages/office/menu-detail/menu-detail?id=${notification.menuId}`
-      })
-    }
-
+    // 标记为已读
     app.markNotificationAsRead(id, function(success) {
       if (success) {
         this.loadNotifications()
       }
     }.bind(this))
+
+    // 根据通知类型跳转到对应页面
+    if (notification) {
+      if (notification.type === 'menu' && notification.menuId) {
+        // 菜单通知，跳转到菜单详情页
+        wx.navigateTo({
+          url: `/pages/office/menu-detail/menu-detail?id=${notification.menuId}`
+        })
+      } else if (notification.type === 'new_registration') {
+        // 新注册申请，跳转到审批中心
+        wx.switchTab({
+          url: '/pages/office/approval/approval'
+        })
+      } else if (notification.type === 'task_assigned') {
+        // 任务分配通知，跳转到审批中心
+        wx.switchTab({
+          url: '/pages/office/approval/approval'
+        })
+      } else if (notification.type === 'task_completed' && notification.orderId) {
+        // 审批完成通知，跳转到工单详情页
+        wx.navigateTo({
+          url: `/pages/office/work-order-detail/work-order-detail?id=${notification.orderId}`
+        })
+      } else if (notification.type === 'process_returned' && notification.orderId) {
+        // 流程退回通知，跳转到工单详情页
+        wx.navigateTo({
+          url: `/pages/office/work-order-detail/work-order-detail?id=${notification.orderId}`
+        })
+      } else if (notification.type === 'workflow_completed' && notification.orderId) {
+        // 工作流完成通知，跳转到工单详情页
+        wx.navigateTo({
+          url: `/pages/office/work-order-detail/work-order-detail?id=${notification.orderId}`
+        })
+      }
+    }
   },
 
   markAllAsRead() {
@@ -93,8 +122,7 @@ Page({
           icon: 'none'
         })
       }
-    }).catch(error => {
-      console.error('全部已读失败', error)
+    }).catch(() => {
       util.showToast({
         title: '操作失败',
         icon: 'none'

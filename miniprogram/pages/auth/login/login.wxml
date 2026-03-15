@@ -1,6 +1,6 @@
 <view class="auth-page login-page">
   <view class="auth-hero">
-    <view class="auth-brand">C</view>
+    <view class="auth-brand">CHN</view>
     <view class="auth-title">Embaixada da China</view>
     <view class="auth-subtitle">无需账号密码，点击按钮后将自动校验当前微信身份的注册状态。</view>
     <view class="auth-tip-row">

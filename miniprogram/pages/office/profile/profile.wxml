@@ -64,8 +64,8 @@
       <view class="profile-company-head">
         <view class="profile-company-logo">🏢</view>
         <view>
-          <view class="profile-company-name">Embaixada da China</view>
-          <view class="profile-company-address">SES 813, LOTE 52</view>
+          <view class="profile-company-name">组织：Embaixada da China</view>
+          <view class="profile-company-address">地址：SES 813, LOTE 52</view>
         </view>
       </view>
       <view class="profile-company-grid">
@@ -77,6 +77,6 @@
     </view>
 
     <view class="office-card profile-logout-btn" bindtap="handleLogout">退出登录</view>
-    <view class="profile-version">利亚通 · V0.0.1</view>
+    <view class="profile-version">利亚通 · V0.1.0</view>
   </view>
 </view>
