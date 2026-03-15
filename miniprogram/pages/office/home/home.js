@@ -17,9 +17,8 @@ Page({
     ],
     quickActions: [
       { icon: '🍽️', label: '每周菜单', color: '#16A34A', bg: '#DCFCE7', implemented: true },
-      { icon: '📅', label: '打卡签到', color: '#94A3B8', bg: '#F1F5F9', implemented: false },
       { icon: '🏥', label: '就医申请', color: '#EF4444', bg: '#FEE2E2', implemented: true },
-      { icon: '📢', label: '公告通知', color: '#94A3B8', bg: '#F1F5F9', implemented: false },
+      { icon: '📅', label: '打卡签到', color: '#94A3B8', bg: '#F1F5F9', implemented: false },
       { icon: '📊', label: '工作报告', color: '#94A3B8', bg: '#F1F5F9', implemented: false },
       { icon: '💬', label: '企业通讯', color: '#94A3B8', bg: '#F1F5F9', implemented: false },
       { icon: '📁', label: '云端文档', color: '#94A3B8', bg: '#F1F5F9', implemented: false },
@@ -138,9 +137,40 @@ Page({
         url: '/pages/office/menus/menus'
       })
     } else if (label === '就医申请') {
-      wx.navigateTo({
-        url: '/pages/office/medical-application/medical-application'
-      })
+      // 使用统一的权限检查
+      app.checkPermission('medical_application')
+        .then((hasPermission) => {
+          if (hasPermission) {
+            wx.navigateTo({
+              url: '/pages/office/medical-application/medical-application'
+            })
+          } else {
+            // 获取详细的权限信息
+            app.getPermissionInfo('medical_application')
+              .then((permInfo) => {
+                const message = permInfo.feature ? permInfo.feature.message : '您没有权限使用此功能'
+                wx.showModal({
+                  title: '权限提示',
+                  content: message,
+                  showCancel: false,
+                  confirmText: '我知道了'
+                })
+              })
+              .catch(() => {
+                wx.showToast({
+                  title: '您没有权限使用此功能',
+                  icon: 'none'
+                })
+              })
+          }
+        })
+        .catch((error) => {
+          console.error('权限检查失败:', error)
+          // 权限检查失败时，允许访问（向后兼容）
+          wx.navigateTo({
+            url: '/pages/office/medical-application/medical-application'
+          })
+        })
     } else {
       util.showToast({
         title: '功能开发中，敬请期待',

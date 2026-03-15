@@ -357,5 +357,134 @@ App({
     }).catch(error => {
       if (callback) callback(false)
     })
+  },
+
+  // ========== 权限管理相关方法 ==========
+
+  /**
+   * 检查用户是否有权限访问指定功能
+   * @param {string} featureKey - 功能标识，如 'medical_application'
+   * @returns {Promise<boolean>} 是否有权限
+   */
+  checkPermission(featureKey) {
+    return wx.cloud.callFunction({
+      name: 'permissionManager',
+      data: {
+        action: 'checkPermission',
+        featureKey: featureKey
+      }
+    }).then(res => {
+      const result = res.result || {}
+      if (result.code !== 0) {
+        return false
+      }
+      return result.data ? result.data.allowed : false
+    }).catch(error => {
+      console.error('权限检查失败:', error)
+      return false
+    })
+  },
+
+  /**
+   * 获取权限详细信息
+   * @param {string} featureKey - 功能标识
+   * @returns {Promise<Object>} 权限信息
+   */
+  getPermissionInfo(featureKey) {
+    return wx.cloud.callFunction({
+      name: 'permissionManager',
+      data: {
+        action: 'checkPermission',
+        featureKey: featureKey
+      }
+    }).then(res => {
+      const result = res.result || {}
+      if (result.code !== 0) {
+        throw new Error(result.message || '权限检查失败')
+      }
+      return result.data || {}
+    })
+  },
+
+  /**
+   * 批量检查多个功能的权限
+   * @param {string[]} featureKeys - 功能标识数组
+   * @returns {Promise<Object>} 权限检查结果
+   */
+  batchCheckPermissions(featureKeys) {
+    return wx.cloud.callFunction({
+      name: 'permissionManager',
+      data: {
+        action: 'batchCheckPermissions',
+        featureKeys: featureKeys
+      }
+    }).then(res => {
+      const result = res.result || {}
+      if (result.code !== 0) {
+        throw new Error(result.message || '批量权限检查失败')
+      }
+      return result.data || {}
+    })
+  },
+
+  /**
+   * 初始化权限配置（仅管理员可调用）
+   * @returns {Promise<Object>} 初始化结果
+   */
+  initPermissions() {
+    return wx.cloud.callFunction({
+      name: 'permissionManager',
+      data: {
+        action: 'initPermissions'
+      }
+    }).then(res => {
+      const result = res.result || {}
+      if (result.code !== 0) {
+        throw new Error(result.message || '权限初始化失败')
+      }
+      return result.data || {}
+    })
+  },
+
+  /**
+   * 获取所有权限配置（仅管理员）
+   * @returns {Promise<Object>} 权限配置列表
+   */
+  listPermissions() {
+    return wx.cloud.callFunction({
+      name: 'permissionManager',
+      data: {
+        action: 'listPermissions'
+      }
+    }).then(res => {
+      const result = res.result || {}
+      if (result.code !== 0) {
+        throw new Error(result.message || '获取权限配置失败')
+      }
+      return result.data || {}
+    })
+  },
+
+  /**
+   * 更新权限配置（仅管理员）
+   * @param {string} featureKey - 功能标识
+   * @param {Object} config - 配置信息
+   * @returns {Promise<Object>} 更新结果
+   */
+  updatePermission(featureKey, config) {
+    return wx.cloud.callFunction({
+      name: 'permissionManager',
+      data: {
+        action: 'updatePermission',
+        featureKey: featureKey,
+        config: config
+      }
+    }).then(res => {
+      const result = res.result || {}
+      if (result.code !== 0) {
+        throw new Error(result.message || '更新权限配置失败')
+      }
+      return result.data || {}
+    })
   }
 })

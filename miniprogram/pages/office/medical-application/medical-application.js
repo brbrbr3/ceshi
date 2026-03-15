@@ -62,33 +62,41 @@ Page({
         }
 
         const user = result.user
-        const role = user.role || ''
 
-        // 检查权限：物业、配偶、家属无权限
-        if (role === '物业' || role === '配偶' || role === '家属') {
-          wx.showModal({
-            title: '权限提示',
-            content: '您当前的角色（' + role + '）无权提交就医申请。请联系管理员或具有相应权限的用户。',
-            showCancel: false,
-            confirmText: '我知道了'
+        // 使用统一的权限检查
+        return app.checkPermission('medical_application')
+          .then((hasPermission) => {
+            if (!hasPermission) {
+              // 获取详细的权限信息
+              return app.getPermissionInfo('medical_application')
+                .then((permInfo) => {
+                  const message = permInfo.feature ? permInfo.feature.message : '您没有权限使用此功能'
+                  wx.showModal({
+                    title: '权限提示',
+                    content: message,
+                    showCancel: false,
+                    confirmText: '我知道了'
+                  })
+                  setTimeout(() => {
+                    wx.navigateBack()
+                  }, 2000)
+                })
+            }
+
+            // 有权限，设置用户信息
+            this.setData({
+              currentUser: user,
+              mode: options.mode === 'copy' ? 'copy' : 'create'
+            })
+
+            // 如果是复制模式，从 options 中加载数据
+            if (options.mode === 'copy') {
+              this.loadCopyData(options)
+            }
           })
-          setTimeout(() => {
-            wx.navigateBack()
-          }, 2000)
-          return
-        }
-
-        this.setData({
-          currentUser: user,
-          mode: options.mode === 'copy' ? 'copy' : 'create'
-        })
-
-        // 如果是复制模式，从 options 中加载数据
-        if (options.mode === 'copy') {
-          this.loadCopyData(options)
-        }
       })
       .catch((error) => {
+        console.error('权限检查失败:', error)
         wx.showToast({
           title: error.message || '获取用户信息失败',
           icon: 'none'

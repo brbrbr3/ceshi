@@ -60,7 +60,7 @@
 
     <view class="office-section">
       <view class="office-section-header">
-        <view class="office-section-title">公司公告</view>
+        <view class="office-section-title">通知公告</view>
         <view class="office-link" bindtap="showComingSoon">更多</view>
       </view>
       <view class="office-card home-news-card">
