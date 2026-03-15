@@ -2,31 +2,8 @@ const app = getApp()
 const util = require('../../../util/util.js')
 const paginationBehavior = require('../../../behaviors/pagination.js')
 
-function formatTime(timestamp) {
-  if (!timestamp) {
-    return '刚刚'
-  }
-
-  const diff = Date.now() - timestamp
-  const minute = 60 * 1000
-  const hour = 60 * minute
-  const day = 24 * hour
-
-  if (diff < hour) {
-    return `${Math.max(1, Math.floor(diff / minute))} 分钟前`
-  }
-  if (diff < day) {
-    return `${Math.max(1, Math.floor(diff / hour))} 小时前`
-  }
-  if (diff < day * 2) {
-    return '昨天'
-  }
-
-  const date = new Date(timestamp)
-  const month = String(date.getMonth() + 1).padStart(2, '0')
-  const dayText = String(date.getDate()).padStart(2, '0')
-  return `${month}-${dayText}`
-}
+// 使用统一的时间格式化函数（GMT-3 巴西利亚时间）
+const formatTime = util.formatTimeToGMT3
 
 Page({
   behaviors: [paginationBehavior],

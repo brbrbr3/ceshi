@@ -14,43 +14,9 @@ const approvalTypes = [
   { icon: '👪', label: '家属', color: '#4F46E5', bg: '#E0E7FF' }
 ]
 
-function formatRelativeTime(timestamp) {
-  if (!timestamp) {
-    return '刚刚'
-  }
-
-  const diff = Date.now() - timestamp
-  const minute = 60 * 1000
-  const hour = 60 * minute
-  const day = 24 * hour
-
-  if (diff < hour) {
-    return `${Math.max(1, Math.floor(diff / minute))} 分钟前`
-  }
-  if (diff < day) {
-    return `${Math.max(1, Math.floor(diff / hour))} 小时前`
-  }
-
-  const date = new Date(timestamp)
-  const month = String(date.getMonth() + 1).padStart(2, '0')
-  const dayText = String(date.getDate()).padStart(2, '0')
-  return `${month}-${dayText}`
-}
-
-function formatDateTime(timestamp) {
-  if (!timestamp) {
-    return ''
-  }
-
-  const date = new Date(timestamp)
-  const year = date.getFullYear()
-  const month = String(date.getMonth() + 1).padStart(2, '0')
-  const day = String(date.getDate()).padStart(2, '0')
-  const hour = String(date.getHours()).padStart(2, '0')
-  const minute = String(date.getMinutes()).padStart(2, '0')
-  const second = String(date.getSeconds()).padStart(2, '0')
-  return `${year}-${month}-${day} ${hour}:${minute}:${second}`
-}
+// 使用统一的时间格式化函数（GMT-3 巴西利亚时间）
+const formatRelativeTime = util.formatRelativeTimeToGMT3
+const formatDateTime = util.formatDateTimeToGMT3
 
 function getStatusMeta(status) {
   if (status === 'approved') {
@@ -145,24 +111,60 @@ function mapRequestItem(request) {
     const reviewedBy = request.reviewedBy || ''
     const reviewedTime = request.reviewedAt ? formatDateTime(request.reviewedAt) : ''
 
-    // 根据工作流步骤确定审批人角色
-    let approverRole = '审批人'
-    if (request.orderType === 'medical_application') {
-      // 就医申请的工作流步骤
-      const stepRoles = ['', '部门负责人', '会计主管', '馆领导']
-      const currentStep = request.currentStep || 0
-      approverRole = stepRoles[currentStep] || '审批人'
-    }
+    // 特殊处理中止状态
+    if (request.status === 'terminated') {
+      // 判断是否是申请人自行中止
+      // 通过比较中止人和申请人的 openid 或名字来判断
+      const applicantOpenid = request.openid || ''
+      const currentOpenid = app.globalData.openid || ''
+      const isApplicantTerminated = applicantOpenid === currentOpenid || reviewedBy === request.name
 
-    // 如果 reviewedBy 不包含角色名，则添加角色前缀
-    const rolePrefix = reviewedBy.includes('管理员') || reviewedBy.includes('部门负责人') || reviewedBy.includes('会计主管') || reviewedBy.includes('馆领导') ? '' : approverRole
-    const approvalInfo = `${rolePrefix}${reviewedBy}已于${reviewedTime}${actionText}该申请`
+      if (isApplicantTerminated) {
+        // 申请人自行中止
+        const applicantInfo = `申请人${request.name}已于${reviewedTime}自行中止该申请`
+        if (reviewRemark) {
+          reviewRemark = `${applicantInfo}，原因：${reviewRemark}`
+        } else {
+          reviewRemark = applicantInfo
+        }
+      } else {
+        // 审批人中止，按原来的逻辑处理
+        let approverRole = '审批人'
+        if (request.orderType === 'medical_application') {
+          const stepRoles = ['', '部门负责人', '会计主管', '馆领导']
+          const currentStep = request.currentStep || 0
+          approverRole = stepRoles[currentStep] || '审批人'
+        }
 
-    if (reviewRemark) {
-      // 如果有驳回原因，则拼接：审批信息，原因
-      reviewRemark = `${approvalInfo}，原因：${reviewRemark}`
+        const rolePrefix = reviewedBy.includes('管理员') || reviewedBy.includes('部门负责人') || reviewedBy.includes('会计主管') || reviewedBy.includes('馆领导') ? '' : approverRole
+        const approvalInfo = `${rolePrefix}${reviewedBy}已于${reviewedTime}中止该申请`
+
+        if (reviewRemark) {
+          reviewRemark = `${approvalInfo}，原因：${reviewRemark}`
+        } else {
+          reviewRemark = approvalInfo
+        }
+      }
     } else {
-      reviewRemark = approvalInfo
+      // 非中止状态，按原来的逻辑处理
+      let approverRole = '审批人'
+      if (request.orderType === 'medical_application') {
+        // 就医申请的工作流步骤
+        const stepRoles = ['', '部门负责人', '会计主管', '馆领导']
+        const currentStep = request.currentStep || 0
+        approverRole = stepRoles[currentStep] || '审批人'
+      }
+
+      // 如果 reviewedBy 不包含角色名，则添加角色前缀
+      const rolePrefix = reviewedBy.includes('管理员') || reviewedBy.includes('部门负责人') || reviewedBy.includes('会计主管') || reviewedBy.includes('馆领导') ? '' : approverRole
+      const approvalInfo = `${rolePrefix}${reviewedBy}已于${reviewedTime}${actionText}该申请`
+
+      if (reviewRemark) {
+        // 如果有驳回原因，则拼接：审批信息，原因
+        reviewRemark = `${approvalInfo}，原因：${reviewRemark}`
+      } else {
+        reviewRemark = approvalInfo
+      }
     }
   }
 
@@ -258,9 +260,24 @@ Page({
   },
 
   onShow() {
-    // 如果列表为空，重新加载
+    // 从其他页面切换回来时，显示加载中并清空列表
     if (this.data.currentList.length === 0) {
-      this.loadApprovalData()
+      // 显示加载中动画toast
+      wx.showLoading({
+        title: '加载中',
+        mask: true
+      })
+
+      // 先清空列表
+      this.setData({
+        currentList: [],
+        loading: true
+      })
+
+      // 重新加载数据
+      this.loadApprovalData(false).finally(() => {
+        wx.hideLoading()
+      })
     }
   },
 
@@ -290,15 +307,15 @@ Page({
   loadApprovalData(loadMore = false) {
     const activeTab = this.data.activeTab
     const { page, loading } = this.data.pagination[activeTab]
-    
+
     // 防止重复加载
     if (loading && loadMore) {
-      return
+      return Promise.resolve()
     }
 
     // 检查是否还有更多数据
     if (loadMore && !this.data.pagination[activeTab].hasMore) {
-      return
+      return Promise.resolve()
     }
 
     this.setData({
@@ -310,7 +327,7 @@ Page({
     const currentPage = loadMore ? page : 1
     const pageSize = loadMore ? 10 : 20
 
-    app.callOfficeAuth('getApprovalData', {
+    return app.callOfficeAuth('getApprovalData', {
       page: currentPage,
       pageSize: pageSize
     })
@@ -377,23 +394,29 @@ Page({
 
   switchTab(e) {
     const tab = e.currentTarget.dataset.tab
-    this.setData({ activeTab: tab })
-    
-    // 切换 tab 时，如果该 tab 的列表为空，加载第一页
-    if (this.data[tab + 'List'].length === 0) {
-      this.loadApprovalData(false)
-    } else {
-      // 否则只更新 currentList
-      const lists = {
-        pendingList: this.data.pendingList,
-        mineList: this.data.mineList,
-        doneList: this.data.doneList
-      }
-      this.setData({
-        currentList: this.getListByTab(tab, lists),
-        emptyText: this.getEmptyText(tab, this.data.canReview)
-      })
-    }
+
+    // 切换 tab 时，先清空列表并显示加载中
+    this.setData({
+      activeTab: tab,
+      currentList: [],
+      loading: true
+    })
+
+    // 显示加载中动画toast
+    wx.showLoading({
+      title: '加载中',
+      mask: true
+    })
+
+    // 始终重新加载第一页数据
+    this.setData({
+      [`pagination.${tab}.page`]: 1,
+      [`pagination.${tab}.hasMore`]: true
+    })
+
+    this.loadApprovalData(false).finally(() => {
+      wx.hideLoading()
+    })
   },
 
   onReachBottom() {
@@ -453,8 +476,15 @@ Page({
       .then((data) => {
         console.log('工作流日志数据:', data)
         console.log('工作流日志数量:', data ? data.length : 0)
+
+        // 使用 util 中的函数统一格式化时间为 GMT-3（巴西利亚时间）
+        const formattedLogs = (data || []).map(log => ({
+          ...log,
+          formattedTime: util.formatDateTimeToGMT3(log.createdAt)
+        }))
+
         this.setData({
-          workflowLogs: data || []
+          workflowLogs: formattedLogs
         })
       })
       .catch((error) => {

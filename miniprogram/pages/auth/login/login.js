@@ -6,7 +6,8 @@ function formatTime(timestamp) {
     return ''
   }
 
-  const date = new Date(timestamp)
+  // 使用统一的时间处理函数（GMT-3 巴西利亚时间）
+  const date = util.toGMT3Date(timestamp)
   const month = String(date.getMonth() + 1).padStart(2, '0')
   const day = String(date.getDate()).padStart(2, '0')
   const hours = String(date.getHours()).padStart(2, '0')

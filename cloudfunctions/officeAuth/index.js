@@ -573,7 +573,7 @@ async function getApprovalData(openid, pagination = {}) {
     const myLogsResult = await workflowLogsCollection
       .where({
         orderId: db.command.in(allMyOrderIds),
-        action: db.command.in(['approve', 'reject'])
+        action: db.command.in(['approve', 'reject', 'terminate'])
       })
       .orderBy('createdAt', 'desc')
       .get()
@@ -836,7 +836,7 @@ async function getApprovalData(openid, pagination = {}) {
       .where({
         _id: db.command.in(processedOrderIds),
         orderType: _.in(['user_registration', 'medical_application']),
-        workflowStatus: db.command.in(['completed', 'rejected'])
+        workflowStatus: db.command.in(['completed', 'rejected', 'terminated'])
       })
       .orderBy('updatedAt', 'desc')
       .limit(pageSize)
@@ -872,7 +872,7 @@ async function getApprovalData(openid, pagination = {}) {
       const logsResult = await workflowLogsCollection
         .where({
           orderId: db.command.in(allCompletedOrderIds),
-          action: db.command.in(['approve', 'reject'])
+          action: db.command.in(['approve', 'reject', 'terminate'])
         })
         .orderBy('createdAt', 'desc')  // 按时间倒序排列，最新的在前面
         .get()
@@ -916,9 +916,9 @@ async function getApprovalData(openid, pagination = {}) {
     }
 
     doneList = completedOrdersResult.data ? completedOrdersResult.data.map(order => {
-      const status = order.workflowStatus === 'completed' ? REQUEST_STATUS.APPROVED : REQUEST_STATUS.REJECTED
+      const status = order.workflowStatus === 'completed' ? REQUEST_STATUS.APPROVED : (order.workflowStatus === 'rejected' ? REQUEST_STATUS.REJECTED : REQUEST_STATUS.TERMINATED)
       const info = approvalInfo[order._id] || { reviewedBy: '管理员', reviewedAt: order.updatedAt }
-      
+
       // 根据订单类型返回不同的字段
       if (order.orderType === 'medical_application') {
         // 就医申请
@@ -1111,8 +1111,7 @@ async function getWorkflowLogs(orderId) {
         operatorId: log.operatorId,
         operatorName: operatorName,
         description: log.description,
-        createdAt: log.createdAt,
-        formattedTime: formatDateTime(log.createdAt)
+        createdAt: log.createdAt
       }
     })
 
@@ -1122,7 +1121,7 @@ async function getWorkflowLogs(orderId) {
   }
 }
 
-// 格式化日期时间
+// 格式化日期时间（本地时区）
 function formatDateTime(timestamp) {
   if (!timestamp) {
     return ''

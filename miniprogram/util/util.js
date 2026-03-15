@@ -15,6 +15,98 @@ function formatTime(time) {
   }).join(':')
 }
 
+/**
+ * 将时间戳转换为巴西利亚时间（GMT-3）的 Date 对象
+ * @param {number} timestamp - 时间戳（毫秒）
+ * @returns {Date} GMT-3 时区的 Date 对象
+ */
+function toGMT3Date(timestamp) {
+  if (!timestamp) {
+    return new Date()
+  }
+
+  const date = new Date(timestamp)
+  // GMT-3 = UTC - 3小时 = UTC - 180分钟
+  const utcTime = date.getTime() + (date.getTimezoneOffset() * 60000)
+  return new Date(utcTime - (3 * 3600000))
+}
+
+/**
+ * 格式化为巴西利亚时间（GMT-3）的相对时间
+ * @param {number} timestamp - 时间戳（毫秒）
+ * @returns {string} 格式化后的相对时间字符串
+ */
+function formatRelativeTimeToGMT3(timestamp) {
+  if (!timestamp) {
+    return '刚刚'
+  }
+
+  const date = toGMT3Date(timestamp)
+  const diff = Date.now() - timestamp
+  const minute = 60 * 1000
+  const hour = 60 * minute
+  const day = 24 * hour
+
+  if (diff < hour) {
+    return `${Math.max(1, Math.floor(diff / minute))} 分钟前`
+  }
+  if (diff < day) {
+    return `${Math.max(1, Math.floor(diff / hour))} 小时前`
+  }
+
+  const month = String(date.getMonth() + 1).padStart(2, '0')
+  const dayText = String(date.getDate()).padStart(2, '0')
+  return `${month}-${dayText}`
+}
+
+/**
+ * 格式化为巴西利亚时间（GMT-3）的完整日期时间
+ * @param {number} timestamp - 时间戳（毫秒）
+ * @returns {string} 格式化后的日期时间字符串（YYYY-MM-DD HH:mm:ss）
+ */
+function formatDateTimeToGMT3(timestamp) {
+  if (!timestamp) {
+    return ''
+  }
+
+  const date = toGMT3Date(timestamp)
+  const year = date.getFullYear()
+  const month = String(date.getMonth() + 1).padStart(2, '0')
+  const day = String(date.getDate()).padStart(2, '0')
+  const hour = String(date.getHours()).padStart(2, '0')
+  const minute = String(date.getMinutes()).padStart(2, '0')
+  const second = String(date.getSeconds()).padStart(2, '0')
+  return `${year}-${month}-${day} ${hour}:${minute}:${second}`
+}
+
+/**
+ * 格式化为巴西利亚时间（GMT-3）的简短时间
+ * @param {number} timestamp - 时间戳（毫秒）
+ * @returns {string} 格式化后的时间字符串
+ */
+function formatTimeToGMT3(timestamp) {
+  if (!timestamp) {
+    return '刚刚'
+  }
+
+  const date = toGMT3Date(timestamp)
+  const diff = Date.now() - timestamp
+  const minute = 60 * 1000
+  const hour = 60 * minute
+  const day = 24 * hour
+
+  if (diff < hour) {
+    return `${Math.max(1, Math.floor(diff / minute))} 分钟前`
+  }
+  if (diff < day) {
+    return `${Math.max(1, Math.floor(diff / hour))} 小时前`
+  }
+
+  const month = String(date.getMonth() + 1).padStart(2, '0')
+  const dayText = String(date.getDate()).padStart(2, '0')
+  return `${month}-${dayText}`
+}
+
 function formatLocation(longitude, latitude) {
   if (typeof longitude === 'string' && typeof latitude === 'string') {
     longitude = parseFloat(longitude)
@@ -106,5 +198,9 @@ module.exports = {
   fib,
   formatDateTime,
   compareVersion,
-  showToast
+  showToast,
+  toGMT3Date,
+  formatRelativeTimeToGMT3,
+  formatDateTimeToGMT3,
+  formatTimeToGMT3
 }
