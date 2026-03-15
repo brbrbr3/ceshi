@@ -208,18 +208,21 @@ Page({
   },
 
   submitApplication() {
-    // 防止重复提交
-    if (this.data.submitting || this.data.loading) {
+    // 防止重复提交 - 使用本地变量立即阻止
+    if (this._isSubmitting || this.data.loading) {
       return
     }
+
+    // 立即设置本地标记，防止重复点击
+    this._isSubmitting = true
 
     if (!this.validateForm()) {
+      this._isSubmitting = false
       return
     }
 
-    // 立即设置提交状态，防止重复点击
+    // 立即设置提交状态
     this.setData({
-      submitting: true,
       loading: true
     })
 
@@ -266,10 +269,14 @@ Page({
         icon: 'none'
       })
     }).finally(() => {
+      // 清理状态
       this.setData({
-        loading: false,
-        submitting: false
+        loading: false
       })
+      // 延迟清理本地标记，防止快速重复点击
+      setTimeout(() => {
+        this._isSubmitting = false
+      }, 1000)
     })
   }
 })

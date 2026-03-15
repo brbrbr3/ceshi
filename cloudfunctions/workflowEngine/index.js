@@ -381,8 +381,8 @@ async function startWorkflow(orderType, businessData) {
     const firstStep = activeSteps[0]
     const tasks = await createTasks(orderId, firstStep, businessData)
     
-    // 6. 记录日志
-    await logWorkflowAction(
+    // 6. 记录日志（异步执行，不阻塞主流程）
+    logWorkflowAction(
       orderId,
       'start',
       businessData.applicantId || 'unknown',
@@ -392,9 +392,11 @@ async function startWorkflow(orderType, businessData) {
       null,
       { orderNo, orderType },
       null
-    )
+    ).catch(() => {
+      // 日志记录失败不影响主流程
+    })
     
-    // 7. 发送任务分配通知
+    // 7. 发送任务分配通知（异步执行，不阻塞主流程）
     if (tasks && tasks.length > 0) {
       const orderData = {
         _id: orderId,
@@ -402,7 +404,9 @@ async function startWorkflow(orderType, businessData) {
         orderType,
         businessData
       }
-      await sendTaskAssignedNotification(tasks, orderData)
+      sendTaskAssignedNotification(tasks, orderData).catch(() => {
+        // 通知发送失败不影响主流程
+      })
     }
     
     return success({

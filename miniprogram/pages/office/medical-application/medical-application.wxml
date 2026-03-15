@@ -39,7 +39,7 @@
         </view>
 
         <view class="medical-field">
-          <view class="medical-field-label">就医机构 <text class="medical-required">*</text></view>
+          <view class="medical-field-label">就医机构 (2025年6月更新) <text class="medical-required">*</text></view>
           <picker mode="selector" range="{{medicalInstitutions}}" value="{{institutionIndex >= 0 ? institutionIndex : 0}}" bindchange="handleInstitutionChange">
             <view class="medical-picker-shell {{form.institution ? '' : 'is-placeholder'}}">
               <view class="medical-picker-value">{{form.institution || '请选择就医机构'}}</view>
@@ -89,7 +89,7 @@
           </view>
         </view>
 
-        <button class="medical-submit-btn" loading="{{loading}}" bindtap="submitApplication">提交申请</button>
+        <button class="medical-submit-btn" loading="{{loading}}" disabled="{{loading}}" bindtap="submitApplication">提交申请</button>
       </view>
     </view>
   </view>
