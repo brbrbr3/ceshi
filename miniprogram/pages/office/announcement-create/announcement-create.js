@@ -6,7 +6,7 @@ Page({
     title: '',
     content: '',
     type: 'normal',
-    typeIndex: 0,
+    typeIndex: -1,
     typeOptions: [
       { label: '普通', value: 'normal' },
       { label: '紧急', value: 'urgent' },

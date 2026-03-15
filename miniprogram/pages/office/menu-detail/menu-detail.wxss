@@ -8,7 +8,7 @@
 }
 
 .menu-detail-title {
-  font-size: 36rpx;
+  font-size: 48rpx;
   font-weight: 700;
   color: #FFFFFF;
 }

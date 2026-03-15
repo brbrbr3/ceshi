@@ -14,32 +14,32 @@
 
   <!-- 筛选标签 -->
   <view class="announcements-content">
-    <view class="office-card filter-card" wx:if="{{list.length > 0}}">
+    <view class="office-card filter-card">
       <view class="filter-tabs">
-        <view 
-          class="filter-tab {{filterType === 'all' ? 'active' : ''}}" 
-          bindtap="handleFilterChange" 
+        <view
+          class="filter-tab {{filterType === 'all' ? 'active' : ''}}"
+          bindtap="handleFilterChange"
           data-type="all"
         >
           全部
         </view>
-        <view 
-          class="filter-tab {{filterType === 'urgent' ? 'active' : ''}}" 
-          bindtap="handleFilterChange" 
+        <view
+          class="filter-tab {{filterType === 'urgent' ? 'active' : ''}}"
+          bindtap="handleFilterChange"
           data-type="urgent"
         >
           紧急
         </view>
-        <view 
-          class="filter-tab {{filterType === 'important' ? 'active' : ''}}" 
-          bindtap="handleFilterChange" 
+        <view
+          class="filter-tab {{filterType === 'important' ? 'active' : ''}}"
+          bindtap="handleFilterChange"
           data-type="important"
         >
           重要
         </view>
-        <view 
-          class="filter-tab {{filterType === 'normal' ? 'active' : ''}}" 
-          bindtap="handleFilterChange" 
+        <view
+          class="filter-tab {{filterType === 'normal' ? 'active' : ''}}"
+          bindtap="handleFilterChange"
           data-type="normal"
         >
           普通
