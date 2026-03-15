@@ -1,70 +1,91 @@
-<view class="container">
-  <!-- 筛选栏 -->
-  <view class="filter-bar">
-    <view 
-      class="filter-item {{filterType === 'all' ? 'active' : ''}}" 
-      bindtap="handleFilterChange" 
-      data-type="all"
-    >
-      全部
-    </view>
-    <view 
-      class="filter-item {{filterType === 'urgent' ? 'active' : ''}}" 
-      bindtap="handleFilterChange" 
-      data-type="urgent"
-    >
-      紧急
-    </view>
-    <view 
-      class="filter-item {{filterType === 'important' ? 'active' : ''}}" 
-      bindtap="handleFilterChange" 
-      data-type="important"
-    >
-      重要
-    </view>
-    <view 
-      class="filter-item {{filterType === 'normal' ? 'active' : ''}}" 
-      bindtap="handleFilterChange" 
-      data-type="normal"
-    >
-      普通
+<view class="office-page announcements-page">
+  <!-- 渐变头部 -->
+  <view class="office-gradient-header announcements-header">
+    <view class="office-header-top">
+      <view>
+        <view class="announcements-title">通知公告</view>
+        <view class="announcements-subtitle">查看最新通知公告</view>
+      </view>
+      <view wx:if="{{showCreateButton}}" class="announcements-add-btn" bindtap="handleCreate">
+        <text>＋ 发布</text>
+      </view>
     </view>
   </view>
 
-  <!-- 通知公告列表 -->
-  <view class="list-container">
-    <view 
-      wx:for="{{list}}" 
-      wx:key="_id" 
-      class="announcement-item"
-      bindtap="handleAnnouncementTap"
-      data-id="{{item._id}}"
-    >
-      <view class="announcement-header">
-        <view class="announcement-title">{{item.title}}</view>
-        <view class="announcement-tag {{item.typeClass}}">{{item.typeText}}</view>
-      </view>
-      <view class="announcement-content">
-        <text class="content-text">{{item.content}}</text>
-      </view>
-      <view class="announcement-footer">
-        <text class="publisher">{{item.publisherName}}</text>
-        <text class="time">{{item.timeText}}</text>
-        <view class="read-info">
-          <text class="read-count">{{item.readCount}}</text>
-          <text class="read-label">人已读</text>
+  <!-- 筛选标签 -->
+  <view class="announcements-content">
+    <view class="office-card filter-card" wx:if="{{list.length > 0}}">
+      <view class="filter-tabs">
+        <view 
+          class="filter-tab {{filterType === 'all' ? 'active' : ''}}" 
+          bindtap="handleFilterChange" 
+          data-type="all"
+        >
+          全部
+        </view>
+        <view 
+          class="filter-tab {{filterType === 'urgent' ? 'active' : ''}}" 
+          bindtap="handleFilterChange" 
+          data-type="urgent"
+        >
+          紧急
+        </view>
+        <view 
+          class="filter-tab {{filterType === 'important' ? 'active' : ''}}" 
+          bindtap="handleFilterChange" 
+          data-type="important"
+        >
+          重要
+        </view>
+        <view 
+          class="filter-tab {{filterType === 'normal' ? 'active' : ''}}" 
+          bindtap="handleFilterChange" 
+          data-type="normal"
+        >
+          普通
         </view>
       </view>
     </view>
 
-    <!-- 空状态 -->
-    <view wx:if="{{!loading && list.length === 0}}" class="empty-state">
-      <text class="empty-text">暂无通知公告</text>
+    <!-- 列表内容 -->
+    <view class="office-card announcements-list" wx:if="{{list.length > 0}}">
+      <view class="announcement-item" wx:for="{{list}}" wx:key="_id" bindtap="handleAnnouncementTap" data-id="{{item._id}}">
+        <view class="announcement-item-left">
+          <view class="announcement-item-icon {{item.typeClass}}">
+            <text wx:if="{{item.type === 'urgent'}}">🔔</text>
+            <text wx:elif="{{item.type === 'important'}}">⚠️</text>
+            <text wx:else>📢</text>
+          </view>
+          <view class="announcement-item-main">
+            <view class="announcement-item-title">{{item.title}}</view>
+            <view class="announcement-item-meta">
+              <text class="announcement-item-time">{{item.timeText}}</text>
+              <text class="announcement-item-author">· {{item.publisherName}}</text>
+              <text wx:if="{{item.unread}}" class="announcement-item-dot"></text>
+            </view>
+          </view>
+        </view>
+        <view class="announcement-item-right">
+          <view class="announcement-item-arrow">›</view>
+        </view>
+      </view>
     </view>
-  </view>
 
-  <!-- 发布按钮 -->
-  <view class="create-btn" bindtap="handleCreate">
-    <text class="create-icon">+</text>
+    <!-- 分页加载状态 -->
+    <view class="pagination-loading" wx:if="{{loading}}">
+      <view class="loading-spinner"></view>
+      <text class="loading-text">加载中...</text>
+    </view>
+
+    <!-- 没有更多数据提示 -->
+    <view class="pagination-no-more" wx:elif="{{!hasMore && list.length > 0}}">
+      <text class="no-more-text">没有更多数据了</text>
+    </view>
+
+    <!-- 空状态 -->
+    <view class="empty-state" wx:elif="{{list.length === 0 && !loading}}">
+      <view class="empty-icon">📢</view>
+      <view class="empty-text">暂无通知公告</view>
+    </view>
   </view>
 </view>

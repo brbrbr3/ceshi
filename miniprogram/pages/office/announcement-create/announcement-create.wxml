@@ -1,66 +1,82 @@
-<view class="container">
-  <view class="form-container">
-    <!-- 通知类型 -->
-    <view class="form-item">
-      <view class="form-label">通知类型</view>
-      <picker
-        mode="selector"
-        range="{{typeOptions}}"
-        range-key="label"
-        value="{{typeIndex}}"
-        bindchange="handleTypeChange"
-      >
-        <view class="picker-value">
-          <text>{{typeOptions[typeIndex].label}}</text>
-          <text class="picker-arrow">›</text>
+<view class="office-page announcement-create-page">
+  <!-- 渐变头部 -->
+  <view class="office-gradient-header create-header">
+    <view class="office-header-top">
+      <view>
+        <view class="create-title">发布通知公告</view>
+        <view class="create-subtitle">创建新的通知公告</view>
+      </view>
+    </view>
+  </view>
+
+  <!-- 表单内容 -->
+  <view class="office-content create-content">
+    <view class="office-card form-card">
+      <!-- 通知类型 -->
+      <view class="form-item">
+        <view class="form-label">
+          通知类型
+          <text class="required">*</text>
         </view>
-      </picker>
-    </view>
-
-    <!-- 标题 -->
-    <view class="form-item">
-      <view class="form-label">
-        标题
-        <text class="required">*</text>
+        <picker
+          mode="selector"
+          range="{{typeOptions}}"
+          range-key="label"
+          value="{{typeIndex}}"
+          bindchange="handleTypeChange"
+        >
+          <view class="picker-value">
+            <text>{{typeOptions[typeIndex].label}}</text>
+            <text class="picker-arrow">›</text>
+          </view>
+        </picker>
       </view>
-      <input
-        class="form-input"
-        placeholder="请输入通知标题"
-        value="{{title}}"
-        bindinput="handleTitleInput"
-        maxlength="100"
-      />
-      <view class="char-count">{{title.length}}/100</view>
-    </view>
 
-    <!-- 内容 -->
-    <view class="form-item">
-      <view class="form-label">
-        内容
-        <text class="required">*</text>
+      <!-- 标题 -->
+      <view class="form-item">
+        <view class="form-label">
+          标题
+          <text class="required">*</text>
+        </view>
+        <input
+          class="form-input"
+          placeholder="请输入通知标题"
+          value="{{title}}"
+          bindinput="handleTitleInput"
+          maxlength="100"
+        />
+        <view class="char-count">{{title.length}}/100</view>
       </view>
-      <textarea
-        class="form-textarea"
-        placeholder="请输入通知内容"
-        value="{{content}}"
-        bindinput="handleContentInput"
-        maxlength="1000"
-        auto-height
-      />
-      <view class="char-count">{{content.length}}/1000</view>
-    </view>
 
-    <!-- 按钮组 -->
-    <view class="button-group">
-      <button 
-        class="btn-submit" 
-        bindtap="handleSubmit" 
-        disabled="{{submitting}}"
-        loading="{{submitting}}"
-      >
-        立即发布
-      </button>
-      <button class="btn-cancel" bindtap="handleCancel">取消</button>
+      <!-- 内容 -->
+      <view class="form-item">
+        <view class="form-label">
+          内容
+          <text class="required">*</text>
+        </view>
+        <textarea
+          class="form-textarea"
+          placeholder="请输入通知内容"
+          value="{{content}}"
+          bindinput="handleContentInput"
+          maxlength="1000"
+          auto-height
+        />
+        <view class="char-count">{{content.length}}/1000</view>
+      </view>
+
+      <!-- 按钮组 -->
+      <view class="button-group">
+        <button
+          class="btn-submit"
+          bindtap="handleSubmit"
+          disabled="{{submitting}}"
+          loading="{{submitting}}"
+        >
+          立即发布
+        </button>
+        <button class="btn-cancel" bindtap="handleCancel">取消</button>
+      </view>
     </view>
   </view>
 </view>

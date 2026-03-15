@@ -9,8 +9,9 @@ Page({
   behaviors: [paginationBehavior],
 
   data: {
-    announcements: [],
-    filterType: 'all'  // all, urgent, important, normal
+    list: [],
+    filterType: 'all',
+    showCreateButton: false
   },
 
   onLoad() {
@@ -26,6 +27,26 @@ Page({
     if (this.data.list.length === 0) {
       this.loadAnnouncements()
     }
+    this.checkPermission()
+  },
+
+  checkPermission() {
+    app.checkUserRegistration()
+      .then((result) => {
+        if (!result.registered || !result.user) {
+          this.setData({ showCreateButton: false })
+          return
+        }
+
+        // 所有用户都可以发布通知公告
+        this.setData({
+          showCreateButton: true
+        })
+      })
+      .catch((error) => {
+        console.error('检查权限失败', error)
+        this.setData({ showCreateButton: false })
+      })
   },
 
   /**
@@ -57,14 +78,13 @@ Page({
             timeText: formatTime(item.publishedAt),
             // 通知类型对应的文本和样式
             typeText: this.getTypeText(item.type),
-            typeClass: this.getTypeClass(item.type)
+            typeClass: this.getTypeClass(item.type),
+            unread: !item.readUsers || !item.readUsers.includes(app.globalData.openid)
           }))
 
-          // 同步到 announcements
+          // 同步到 list
           this.setData({
-            announcements: this.data.page === 1 
-              ? formattedList 
-              : [...this.data.announcements, ...formattedList]
+            list: page === 1 ? formattedList : [...this.data.list, ...formattedList]
           })
 
           resolve({
