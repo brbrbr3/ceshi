@@ -61,18 +61,30 @@ Page({
         }
 
         const user = result.user
+        const companyInfo = [
+          { label: '出生日期', value: user.birthday || '未填写' },
+          { label: '角色', value: user.role || '未设置' },
+          { label: '管理员', value: user.isAdmin ? '是' : '否' }
+        ]
+
+        // 如果有岗位信息，添加到信息卡片中
+        if (user.position && user.position !== '无') {
+          companyInfo.splice(2, 0, { label: '岗位', value: user.position })
+        }
+
+        // 如果有亲属信息，添加到信息卡片中
+        if (user.relativeName) {
+          companyInfo.splice(companyInfo.length - 1, 0, { label: '亲属', value: user.relativeName })
+        }
+
         this.setData({
           userName: user.name,
           roleLabel: user.isAdmin ? `${user.role} · 管理员` : user.role,
-          primaryTag: user.isAdmin ? '管理员账号' : '微信身份',
+          primaryTag: user.isAdmin ? '管理员' : '普通用户',
           secondaryTag: '状态：已通过',
           avatarText: (user.avatarText || user.name || '智').slice(0, 1),
           isAdmin: !!user.isAdmin,
-          companyInfo: [
-            { label: '出生日期', value: user.birthday || '未填写' },
-            { label: '角色', value: user.role || '未设置' },
-            { label: '管理员', value: user.isAdmin ? '是' : '否' }
-          ]
+          companyInfo
         })
       })
       .catch((error) => {

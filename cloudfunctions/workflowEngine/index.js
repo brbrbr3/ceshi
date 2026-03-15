@@ -13,6 +13,7 @@ const templatesCollection = db.collection('workflow_templates')
 const ordersCollection = db.collection('work_orders')
 const tasksCollection = db.collection('workflow_tasks')
 const logsCollection = db.collection('workflow_logs')
+const usersCollection = db.collection('office_users')
 
 // 常量定义
 const TASK_STATUS = {
@@ -183,7 +184,6 @@ async function resolveApprovers(approverType, approverConfig, businessData) {
         return []
     }
   } catch (error) {
-    console.error('解析审批人失败:', error)
     return []
   }
 }
@@ -209,31 +209,59 @@ async function logWorkflowAction(orderId, action, operatorId, operatorName, desc
       }
     })
   } catch (error) {
-    console.error('记录日志失败:', error)
+    // 日志记录失败不影响主流程
   }
 }
 
 // 验证任务审批权限
-function hasPermission(task, operatorId) {
+async function hasPermission(task, operatorId) {
   if (!task || !operatorId) {
     return false
   }
-  
+
   // 系统用户有权限
   if (operatorId === 'system') {
     return true
   }
-  
+
   // 审批人匹配
   if (task.approverId === operatorId) {
     return true
   }
-  
+
   // 代理人匹配
   if (task.agentId === operatorId) {
     return true
   }
-  
+
+  // 角色审批：检查用户是否具有该角色
+  if (task.approverType === 'role') {
+    try {
+      // 解析角色ID
+      const roleId = task.approverId.replace('role_', '')
+
+      // 查询用户信息
+      const userRes = await usersCollection.where({
+        openid: operatorId,
+        status: 'approved'
+      }).limit(1).get()
+
+      if (userRes.data && userRes.data.length > 0) {
+        const user = userRes.data[0]
+
+        // 检查角色权限
+        if (roleId === 'admin' && user.isAdmin) {
+          return true
+        }
+
+        // 可以添加其他角色的判断逻辑
+        // if (roleId === 'hr_manager' && user.role === 'HR经理') { return true }
+      }
+    } catch (error) {
+      // 角色权限检查失败，返回false
+    }
+  }
+
   return false
 }
 
@@ -318,9 +346,8 @@ async function startWorkflow(orderType, businessData) {
       currentStep: firstStep.stepNo,
       currentStepName: firstStep.stepName
     }, '工单提交成功')
-    
+
   } catch (error) {
-    console.error('启动工作流失败:', error)
     throw error
   }
 }
@@ -367,11 +394,10 @@ async function createTasks(orderId, step, businessData) {
     for (const task of tasks) {
       await tasksCollection.add({ data: task })
     }
-    
+
     return tasks
-    
+
   } catch (error) {
-    console.error('创建任务节点失败:', error)
     throw error
   }
 }
@@ -398,7 +424,8 @@ async function approveTask(taskId, action, comment, operatorId, operatorName, at
     }
     
     // 2. 验证审批权限
-    if (!hasPermission(task, operatorId)) {
+    const hasPermissionResult = await hasPermission(task, operatorId)
+    if (!hasPermissionResult) {
       throw new Error('无权审批此任务')
     }
     
@@ -446,9 +473,8 @@ async function approveTask(taskId, action, comment, operatorId, operatorName, at
     }
     
     return success({ success: true }, actionText + '成功')
-    
+
   } catch (error) {
-    console.error('审批任务失败:', error)
     throw error
   }
 }
@@ -687,17 +713,15 @@ async function completeWorkflow(orderId, decision, approverId, approverName, com
   
   // 特殊处理：用户注册审批通过，自动创建用户记录
   if (order.orderType === 'user_registration' && decision === 'approved') {
-    console.log('=== 用户注册审批通过，自动创建用户记录 ===')
-    
     const usersCollection = db.collection('office_users')
     const businessData = order.businessData || {}
-    
+
     // 检查是否已存在用户
     const existingUserResult = await usersCollection
       .where({ openid: businessData.applicantId })
       .limit(1)
       .get()
-    
+
     const now = Date.now()
     const userPayload = {
       openid: businessData.applicantId,
@@ -707,12 +731,14 @@ async function completeWorkflow(orderId, decision, approverId, approverName, com
       role: businessData.role || '馆员',
       isAdmin: !!businessData.isAdmin,
       avatarText: businessData.avatarText || '',
+      relativeName: businessData.relativeName || '',
+      position: businessData.position || '无',
       status: 'approved',
       sourceOrderId: order.orderId,
       approvedAt: now,
       approvedBy: approverId || 'system',
-      createdAt: existingUserResult.data && existingUserResult.data[0] 
-        ? (existingUserResult.data[0].createdAt || now) 
+      createdAt: existingUserResult.data && existingUserResult.data.length > 0
+        ? (existingUserResult.data[0].createdAt || now)
         : now,
       updatedAt: now
     }
@@ -721,14 +747,11 @@ async function completeWorkflow(orderId, decision, approverId, approverName, com
       if (existingUserResult.data && existingUserResult.data.length > 0) {
         // 更新已有用户
         await usersCollection.doc(existingUserResult.data[0]._id).update({ data: userPayload })
-        console.log('用户记录更新成功')
       } else {
         // 创建新用户
         await usersCollection.add({ data: userPayload })
-        console.log('用户记录创建成功')
       }
     } catch (error) {
-      console.error('创建/更新用户记录失败:', error)
       // 不抛出错误，允许流程继续
     }
   }
@@ -762,9 +785,8 @@ async function getMyOrders(openid, status, page = 1, pageSize = 20) {
       page,
       pageSize
     })
-    
+
   } catch (error) {
-    console.error('查询我的工单列表失败:', error)
     throw error
   }
 }
@@ -812,9 +834,8 @@ async function getMyTasks(openid, page = 1, pageSize = 20) {
       page,
       pageSize
     })
-    
+
   } catch (error) {
-    console.error('查询我的待办任务失败:', error)
     throw error
   }
 }
@@ -862,9 +883,8 @@ async function getOrderDetail(orderId, openid) {
       tasks: tasksRes.data,
       logs: logsRes.data
     })
-    
+
   } catch (error) {
-    console.error('查询工单详情失败:', error)
     throw error
   }
 }
@@ -931,9 +951,8 @@ async function supplementOrder(orderId, openid, supplementData, comment) {
     )
     
     return success({}, '补充资料成功,流程已恢复')
-    
+
   } catch (error) {
-    console.error('补充资料失败:', error)
     throw error
   }
 }
@@ -987,9 +1006,8 @@ async function cancelOrder(orderId, openid) {
     )
     
     return success({}, '工单已撤回')
-    
+
   } catch (error) {
-    console.error('撤回工单失败:', error)
     throw error
   }
 }
@@ -999,22 +1017,35 @@ exports.main = async (event) => {
   const wxContext = cloud.getWXContext()
   const openid = wxContext.OPENID
   const action = event && event.action
-  
-  if (!openid) {
+
+  // 只有需要 openid 的操作才进行验证
+  const actionsRequireOpenid = ['getMyOrders', 'getMyTasks', 'getOrderDetail', 'supplementOrder', 'cancelOrder', 'approveTask']
+
+  // 对于 approveTask，如果提供了 operatorId，则不依赖 wxContext.OPENID
+  const requireOpenid = actionsRequireOpenid.includes(action) && action !== 'approveTask'
+  if (requireOpenid && !openid) {
     return fail('获取微信身份失败,请稍后重试', 401)
   }
+  
+  // 对于 approveTask，必须提供 operatorId 或 openid
+  if (action === 'approveTask' && !event.operatorId && !openid) {
+    return fail('缺少操作员信息', 401)
+  }
+
   
   try {
     switch (action) {
       case 'submitOrder':
         return await startWorkflow(event.orderType, event.businessData)
-      
+
       case 'approveTask':
+        // 兼容 approveAction 参数，避免参数名冲突
+        const actionType = event.approveAction || event.action
         return await approveTask(
           event.taskId,
-          event.action,
+          actionType,
           event.comment,
-          openid,
+          event.operatorId || openid,  // 优先使用传入的 operatorId
           event.operatorName || wxContext.SERVERID || '审批人',
           event.attachments
         )
@@ -1038,7 +1069,6 @@ exports.main = async (event) => {
         return fail('不支持的操作类型', 400)
     }
   } catch (error) {
-    console.error('workflowEngine 执行失败', error)
     return fail(error.message || '服务异常,请稍后重试', 500)
   }
 }

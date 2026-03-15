@@ -19,7 +19,6 @@ function readStorage(key) {
   try {
     return wx.getStorageSync(key)
   } catch (error) {
-    console.error('读取本地缓存失败', error)
     return null
   }
 }
@@ -28,7 +27,7 @@ function writeStorage(key, value) {
   try {
     wx.setStorageSync(key, value)
   } catch (error) {
-    console.error('写入本地缓存失败', error)
+    // 静默失败
   }
 }
 
@@ -36,7 +35,7 @@ function removeStorage(key) {
   try {
     wx.removeStorageSync(key)
   } catch (error) {
-    console.error('清理本地缓存失败', error)
+    // 静默失败
   }
 }
 
@@ -52,20 +51,19 @@ function setSubscribeRequested() {
   try {
     wx.setStorageSync(SUBSCRIBE_REQUEST_KEY, true)
   } catch (error) {
-    console.error('保存订阅请求状态失败', error)
+    // 静默失败
   }
 }
 
 App({
   onLaunch(opts, data) {
-    console.log('App Launch', opts)
     if (data && data.path) {
       wx.navigateTo({
         url: data.path,
       })
     }
     if (!wx.cloud) {
-      console.error('请使用 2.2.3 或以上的基础库以使用云能力')
+      // 基础库不支持云能力
     } else {
       wx.cloud.init({
         env: config.envId,
@@ -76,11 +74,11 @@ App({
   },
 
   onShow(opts) {
-    console.log('App Show', opts)
+    // App 显示
   },
 
   onHide() {
-    console.log('App Hide')
+    // App 隐藏
   },
 
   onThemeChange({ theme }) {
@@ -244,8 +242,7 @@ App({
         this.saveSubscriptionRecord()
       }
       return subscribed
-    }).catch((error) => {
-      console.error('订阅消息失败', error)
+    }).catch(() => {
       return false
     })
   },
@@ -265,14 +262,13 @@ App({
         status: 'subscribed'
       }
     }).catch(error => {
-      console.error('保存订阅记录失败', error)
+      // 静默失败
     })
   },
 
   addApprovalNotification(type, content) {
     const openid = this.globalData.openid
     if (!openid) {
-      console.warn('无法添加通知：未获取到 openid')
       return
     }
 
@@ -287,7 +283,7 @@ App({
         createdAt: Date.now()
       }
     }).catch(error => {
-      console.error('添加通知失败', error)
+      // 静默失败
     })
   },
 
@@ -309,7 +305,6 @@ App({
         callback(res.data || [])
       })
       .catch(error => {
-        console.error('获取通知列表失败', error)
         callback([])
       })
   },
@@ -324,7 +319,6 @@ App({
     }).then(res => {
       if (callback) callback(res.result.success)
     }).catch(error => {
-      console.error('标记通知已读失败', error)
       if (callback) callback(false)
     })
   },
@@ -338,7 +332,6 @@ App({
     }).then(res => {
       if (callback) callback(res.result.success)
     }).catch(error => {
-      console.error('清空通知失败', error)
       if (callback) callback(false)
     })
   }

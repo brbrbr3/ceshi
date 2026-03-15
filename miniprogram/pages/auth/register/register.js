@@ -1,28 +1,52 @@
 const app = getApp()
 const util = require('../../../util/util.js')
 const ROLE_OPTIONS = ['馆领导', '部门负责人', '馆员', '工勤', '物业', '配偶', '家属']
+const POSITION_OPTIONS = ['无', '会计主管', '会计', '俱乐部', '阳光课堂', '招待员', '厨师', '内聘' ]
+
+// 独立函数，用于获取今天的日期
+function getTodayDate() {
+  const now = new Date()
+  const year = now.getFullYear()
+  const month = String(now.getMonth() + 1).padStart(2, '0')
+  const day = String(now.getDate()).padStart(2, '0')
+  return `${year}-${month}-${day}`
+}
 
 Page({
   data: {
     loading: false,
     mode: 'create',
     roleOptions: ROLE_OPTIONS,
+    positionOptions: POSITION_OPTIONS,
     roleIndex: -1,
+    positionIndex: 0,
+    showRelativeField: false,
     reviewRemark: '',
+    today: getTodayDate(),
     form: {
       name: '',
       gender: '男',
       birthday: '',
       role: '',
-      isAdmin: false
+      isAdmin: false,
+      relativeName: '',
+      position: '无'
     }
   },
 
   onLoad(options) {
+    // 设置今天的日期作为最大可选日期
+    const today = getTodayDate()
     this.setData({
+      today: today,
       mode: options && options.mode === 'reapply' ? 'reapply' : 'create'
     })
     this.prefillForm()
+  },
+
+  onShow() {
+    // 每次显示时更新今天的日期
+    this.setData({ today: getTodayDate() })
   },
 
   prefillForm() {
@@ -40,8 +64,13 @@ Page({
         }
 
         const roleIndex = result.request.role ? ROLE_OPTIONS.indexOf(result.request.role) : -1
+        const role = result.request.role || ''
+        const showRelativeField = role === '配偶' || role === '家属'
+        const positionIndex = result.request.position ? POSITION_OPTIONS.indexOf(result.request.position) : 0
         this.setData({
           roleIndex,
+          positionIndex,
+          showRelativeField,
           reviewRemark: result.request.status === 'rejected'
             ? (result.request.reviewRemark || '管理员已退回该申请，请修改后重新提交。')
             : '',
@@ -50,8 +79,10 @@ Page({
             name: result.request.name || '',
             gender: result.request.gender || '男',
             birthday: result.request.birthday || '',
-            role: result.request.role || '',
-            isAdmin: !!result.request.isAdmin
+            role: role,
+            isAdmin: !!result.request.isAdmin,
+            relativeName: result.request.relativeName || '',
+            position: result.request.position || '无'
           }
         })
       })
@@ -76,16 +107,50 @@ Page({
   },
 
   handleBirthdayChange(e) {
+    const selectedDate = e.detail.value
+    const today = getTodayDate()
+
+    // 验证选择的日期不能超过今天
+    if (selectedDate > today) {
+      wx.showToast({
+        title: '出生日期不能超过今天',
+        icon: 'none'
+      })
+      return
+    }
+
     this.setData({
-      'form.birthday': e.detail.value
+      'form.birthday': selectedDate
     })
+  },
+
+  handleBirthdayColumnChange() {
+    // 暂时不需要处理列变化
   },
 
   handleRoleChange(e) {
     const roleIndex = Number(e.detail.value)
+    const role = ROLE_OPTIONS[roleIndex]
+    const showRelativeField = role === '配偶' || role === '家属'
     this.setData({
       roleIndex,
-      'form.role': ROLE_OPTIONS[roleIndex]
+      'form.role': role,
+      showRelativeField,
+      'form.relativeName': showRelativeField ? this.data.form.relativeName : ''
+    })
+  },
+
+  handleRelativeNameInput(e) {
+    this.setData({
+      'form.relativeName': e.detail.value
+    })
+  },
+
+  handlePositionChange(e) {
+    const positionIndex = Number(e.detail.value)
+    this.setData({
+      positionIndex,
+      'form.position': POSITION_OPTIONS[positionIndex]
     })
   },
 
@@ -117,6 +182,10 @@ Page({
       util.showToast({ title: '请选择角色', icon: 'none' })
       return
     }
+    if ((form.role === '配偶' || form.role === '家属') && !String(form.relativeName || '').trim()) {
+      util.showToast({ title: '请填写亲属姓名', icon: 'none' })
+      return
+    }
 
     this.setData({ loading: true })
 
@@ -131,13 +200,11 @@ Page({
     if (templateIds.length > 0 && templateIds[0]) {
       wx.requestSubscribeMessage({
         tmplIds: templateIds,
-        success: (res) => {
-          console.log('订阅消息授权结果:', res)
+        success: () => {
           // 继续提交注册
           this.doSubmit(form)
         },
-        fail: (err) => {
-          console.error('订阅消息授权失败:', err)
+        fail: () => {
           // 即使授权失败也允许提交
           this.doSubmit(form)
         }
@@ -153,7 +220,7 @@ Page({
       .then(() => {
         wx.showModal({
           title: '提交成功',
-          content: '注册申请已提交，请等待管理员审批。审批通过后即可使用首页与业务功能。',
+          content: '注册申请已提交，请等待管理员审批。审批通过后即可成为正式用户。',
           showCancel: false,
           success: () => {
             wx.reLaunch({

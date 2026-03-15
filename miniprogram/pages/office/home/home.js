@@ -83,7 +83,6 @@ Page({
         return app.callOfficeAuth('getApprovalData')
       })
       .then((data) => {
-        console.log('getApprovalData 返回:', data)
         if (data && data.summary) {
           const pendingCount = data.summary.pendingCount || 0
           const newStats = [...this.data.stats]
@@ -94,9 +93,10 @@ Page({
           })
         }
       })
-      .catch((error) => {
-        console.error('获取待审批数量失败', error)
+      .catch(() => {
+        // 静默失败
       })
+      return
   },
 
   goApprovalTab() {

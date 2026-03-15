@@ -57,12 +57,18 @@ function getAvatarColor(text) {
 function mapRequestItem(request) {
   const statusMeta = getStatusMeta(request.status)
   const avatar = request.avatarText || (request.name ? request.name.slice(0, 1) : '智')
+  const detailParts = [request.birthday]
+  if (request.position && request.position !== '无') {
+    detailParts.push(request.position)
+  }
+  detailParts.push(request.isAdmin ? '申请管理员' : '普通成员')
+
   return {
     id: request._id,
     requestNo: request.requestNo,
     name: request.name,
-    dept: `${request.role} · ${request.gender}`,
-    detail: `${request.birthday} · ${request.isAdmin ? '申请管理员' : '普通成员'}`,
+    dept: `${request.role} · ${request.gender}${request.relativeName ? ' · ' + request.relativeName : ''}`,
+    detail: detailParts.join(' · '),
     status: statusMeta.label,
     statusColor: statusMeta.statusColor,
     statusBg: statusMeta.statusBg,
@@ -119,7 +125,7 @@ Page({
       return '仅管理员可查看当前分组'
     }
     if (tab === 'mine') {
-      return '暂无我发起的注册申请'
+      return '暂无我发起的申请'
     }
     if (tab === 'done') {
       return '暂无已处理申请'
@@ -204,11 +210,39 @@ Page({
   },
 
   handleReview(e) {
-    if (!this.data.canReview || this.data.actionLoading || !this.data.selectedRequest) {
+    if (!this.data.canReview || this.data.actionLoading) {
       return
     }
 
+    const itemId = e.currentTarget.dataset.id
     const decision = e.currentTarget.dataset.decision
+
+    // 如果已经打开详情弹窗，使用 selectedRequest
+    if (this.data.selectedRequest) {
+      this.confirmReview(decision)
+      return
+    }
+
+    // 否则，从列表中找到对应的 item
+    const target = (this.data.currentList || []).find((item) => item.id === itemId)
+    if (!target) {
+      util.showToast({
+        title: '未找到申请记录',
+        icon: 'none'
+      })
+      return
+    }
+
+    // 设置当前选中的请求（不打开弹窗）
+    this.setData({
+      selectedRequest: target.raw || target
+    })
+
+    // 确认审批
+    this.confirmReview(decision)
+  },
+
+  confirmReview(decision) {
     const title = decision === 'approve' ? '确认批准' : '确认驳回'
     const content = decision === 'approve'
       ? '批准后，该用户将自动写入用户表并可登录首页。'
@@ -220,6 +254,11 @@ Page({
       success: (res) => {
         if (res.confirm) {
           this.reviewRequest(decision)
+        } else {
+          // 取消审批，清除 selectedRequest（如果未打开弹窗）
+          if (!this.data.showDetail) {
+            this.setData({ selectedRequest: null })
+          }
         }
       }
     })

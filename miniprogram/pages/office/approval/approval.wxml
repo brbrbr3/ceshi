@@ -25,21 +25,21 @@
   </view>
 
   <view class="office-content">
-    <view wx:if="{{activeTab == 'pending' && canReview}}" class="office-card approval-type-card">
+    <!-- <view wx:if="{{activeTab == 'pending' && canReview}}" class="office-card approval-type-card">
       <view class="approval-type-grid">
         <view class="approval-type-item" wx:for="{{approvalTypes}}" wx:key="label">
           <view class="approval-type-icon" style="background: {{item.bg}}; color: {{item.color}};">{{item.icon}}</view>
           <view class="approval-type-label">{{item.label}}</view>
         </view>
       </view>
-    </view>
+    </view> -->
 
     <view wx:if="{{!canReview}}" class="office-card approval-note-card">
       <view class="approval-note-title">当前账号暂无管理员权限</view>
-      <view class="approval-note-desc">你仍可在“我发起的”分组中查看自己的注册申请状态；待管理员批准后即可正常进入首页。</view>
+      <view class="approval-note-desc">你仍可在"我发起的"分组中查看自己的申请状态。</view>
     </view>
 
-    <view class="office-card approval-summary-card">
+    <view wx:if="{{canReview}}" class="office-card approval-summary-card">
       <view class="approval-summary-top">审批概览</view>
       <view class="approval-summary-grid is-three">
         <view>
@@ -58,7 +58,7 @@
     </view>
 
     <view class="office-section-header approval-list-header">
-      <view class="office-section-title">{{activeTab == 'pending' ? '待处理申请' : activeTab == 'mine' ? '我的注册申请' : '历史处理记录'}}</view>
+      <view class="office-section-title">{{activeTab == 'pending' ? '待处理申请' : activeTab == 'mine' ? '我发起的申请' : '历史处理记录'}}</view>
       <view class="approval-filter">{{loading ? '加载中…' : '点击卡片查看详情'}}</view>
     </view>
 
@@ -84,8 +84,8 @@
         <view class="approval-time">{{item.time}}</view>
 
         <view wx:if="{{activeTab == 'pending' && canReview}}" class="approval-actions">
-          <view class="approval-reject-btn" data-decision="reject" catchtap="handleReview">驳回</view>
-          <view class="office-btn-primary approval-approve-btn" data-decision="approve" catchtap="handleReview">同意</view>
+          <view class="approval-reject-btn" data-id="{{item.id}}" data-decision="reject" catchtap="handleReview">驳回</view>
+          <view class="office-btn-primary approval-approve-btn" data-id="{{item.id}}" data-decision="approve" catchtap="handleReview">同意</view>
         </view>
       </view>
     </view>
@@ -122,6 +122,14 @@
         <view class="approval-modal-row">
           <text class="approval-modal-label">角色</text>
           <text class="approval-modal-value">{{selectedRequest.role}}</text>
+        </view>
+        <view wx:if="{{selectedRequest.relativeName}}" class="approval-modal-row">
+          <text class="approval-modal-label">亲属姓名</text>
+          <text class="approval-modal-value">{{selectedRequest.relativeName}}</text>
+        </view>
+        <view class="approval-modal-row">
+          <text class="approval-modal-label">岗位</text>
+          <text class="approval-modal-value">{{selectedRequest.position}}</text>
         </view>
         <view class="approval-modal-row">
           <text class="approval-modal-label">管理员</text>
