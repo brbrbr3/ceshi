@@ -543,6 +543,74 @@ async function getApprovalData(openid) {
     }
   }
 
+  // 获取已驳回工单的驳回原因（用于 mineList）
+  const myRejectedOrderIds = myOrderResult.data
+    ? myOrderResult.data.filter(o => o.workflowStatus === 'rejected').map(o => o._id)
+    : []
+
+  let myReviewRemarks = {}
+  if (myRejectedOrderIds.length > 0) {
+    const myRejectedTasks = await workflowTasksCollection
+      .where({
+        orderId: db.command.in(myRejectedOrderIds),
+        taskStatus: 'rejected'
+      })
+      .get()
+
+    myRejectedTasks.data.forEach(task => {
+      myReviewRemarks[task.orderId] = task.comment || ''
+    })
+  }
+
+  // 获取所有已完成工单的审批信息（从工作流日志中，用于 mineList）
+  const allMyOrderIds = myOrderResult.data ? myOrderResult.data.map(o => o._id) : []
+
+  let myApprovalInfo = {}
+  if (allMyOrderIds.length > 0) {
+    const myLogsResult = await workflowLogsCollection
+      .where({
+        orderId: db.command.in(allMyOrderIds),
+        action: db.command.in(['approve', 'reject'])
+      })
+      .orderBy('createdAt', 'desc')
+      .get()
+
+    // 获取所有审批人的 openid，批量查询用户信息
+    const myApproverOpenids = myLogsResult.data
+      .map(log => log.operatorId)
+      .filter(id => id && id !== 'system')
+
+    let myUsersMap = {}
+    if (myApproverOpenids.length > 0) {
+      const myUsersResult = await usersCollection
+        .where({
+          openid: db.command.in(myApproverOpenids)
+        })
+        .get()
+
+      myUsersResult.data.forEach(user => {
+        myUsersMap[user.openid] = user.name
+      })
+    }
+
+    // 使用 Map 记录每个工单的最新审批信息
+    const myLastApprovalMap = {}
+    myLogsResult.data.forEach(log => {
+      if (!myLastApprovalMap[log.orderId]) {
+        let finalApproverName = log.operatorName
+        if (!finalApproverName || finalApproverName === '管理员' || finalApproverName === '审批人') {
+          finalApproverName = myUsersMap[log.operatorId] || '管理员'
+        }
+        myLastApprovalMap[log.orderId] = {
+          reviewedBy: finalApproverName,
+          reviewedAt: log.createdAt
+        }
+      }
+    })
+
+    myApprovalInfo = myLastApprovalMap
+  }
+
   const mineList = myOrderResult.data ? myOrderResult.data.map(order => {
     // 判断当前用户是否是当前步骤的审批人
     const isCurrentApprover = canReview && userTaskMap[order._id] ? true : false
@@ -550,6 +618,8 @@ async function getApprovalData(openid) {
     // 根据订单类型返回不同的字段
     if (order.orderType === 'medical_application') {
       // 就医申请
+      const orderStatus = order.workflowStatus === 'completed' ? REQUEST_STATUS.APPROVED : (order.workflowStatus === 'rejected' ? REQUEST_STATUS.REJECTED : REQUEST_STATUS.PENDING)
+      const approvalInfo = myApprovalInfo[order._id] || { reviewedBy: '', reviewedAt: order.updatedAt }
       return {
         _id: order._id,
         openid: order.businessData.applicantId,
@@ -563,11 +633,11 @@ async function getApprovalData(openid) {
         reasonForSelection: order.businessData.reasonForSelection,
         reason: order.businessData.reason,
         avatarText: order.businessData.applicantName ? order.businessData.applicantName.slice(0, 1) : '就',
-        status: order.workflowStatus === 'completed' ? REQUEST_STATUS.APPROVED : (order.workflowStatus === 'rejected' ? REQUEST_STATUS.REJECTED : REQUEST_STATUS.PENDING),
-        reviewRemark: '',
+        status: orderStatus,
+        reviewRemark: myReviewRemarks[order._id] || '',
         submittedAt: order.createdAt,
-        reviewedAt: order.updatedAt,
-        reviewedBy: '',
+        reviewedAt: approvalInfo.reviewedAt,
+        reviewedBy: approvalInfo.reviewedBy,
         updatedAt: order.updatedAt,
         orderType: 'medical_application',
         currentStep: order.currentStep,
@@ -577,6 +647,8 @@ async function getApprovalData(openid) {
       }
     } else {
       // 注册申请
+      const orderStatus = order.workflowStatus === 'completed' ? REQUEST_STATUS.APPROVED : (order.workflowStatus === 'rejected' ? REQUEST_STATUS.REJECTED : REQUEST_STATUS.PENDING)
+      const approvalInfo = myApprovalInfo[order._id] || { reviewedBy: '', reviewedAt: order.updatedAt }
       return {
         _id: order._id,
         openid: order.businessData.applicantId,
@@ -588,11 +660,11 @@ async function getApprovalData(openid) {
         position: order.businessData.position || '无',
         isAdmin: order.businessData.isAdmin,
         avatarText: order.businessData.avatarText,
-        status: order.workflowStatus === 'completed' ? REQUEST_STATUS.APPROVED : (order.workflowStatus === 'rejected' ? REQUEST_STATUS.REJECTED : REQUEST_STATUS.PENDING),
-        reviewRemark: '',
+        status: orderStatus,
+        reviewRemark: myReviewRemarks[order._id] || '',
         submittedAt: order.createdAt,
-        reviewedAt: order.updatedAt,
-        reviewedBy: '',
+        reviewedAt: approvalInfo.reviewedAt,
+        reviewedBy: approvalInfo.reviewedBy,
         updatedAt: order.updatedAt,
         orderType: 'user_registration',
         orderNo: order.orderNo,
@@ -639,28 +711,42 @@ async function getApprovalData(openid) {
 
         // 过滤：根据角色和岗位显示相应的审批任务
         pendingList = pendingTasksResult.data.filter(task => {
+          // 获取对应的工单信息
+          const order = ordersMap[task.orderId]
+          if (!order) {
+            return false
+          }
+
           // 直接分配的任务总是显示
           if (task.approverId === openid) {
             return true
           }
 
-          // 角色审批任务：根据任务步骤名称和用户的角色/岗位判断
+          // 角色审批任务：根据任务步骤名称、订单类型和用户的角色/岗位判断
           if (task.approverType === 'role' && currentUser) {
-            // 部门负责人审批
-            if (task.stepName === '部门负责人审批' && currentUser.role === '部门负责人') {
-              return true
+            // 注册申请：只有管理员可以审批
+            if (order.orderType === 'user_registration') {
+              return currentUser.isAdmin === true
             }
-            // 会计主管审批（按岗位）
-            if (task.stepName === '会计主管审批' && currentUser.position === '会计主管') {
-              return true
-            }
-            // 馆领导审批
-            if (task.stepName === '馆领导审批' && currentUser.role === '馆领导') {
-              return true
-            }
-            // 管理员审批（管理员可以看到所有角色审批任务）
-            if (currentUser.isAdmin) {
-              return true
+
+            // 就医申请：根据步骤名称和角色/岗位判断
+            if (order.orderType === 'medical_application') {
+              // 部门负责人审批
+              if (task.stepName === '部门负责人审批' && currentUser.role === '部门负责人') {
+                return true
+              }
+              // 会计主管审批（按岗位）
+              if (task.stepName === '会计主管审批' && currentUser.position === '会计主管') {
+                return true
+              }
+              // 馆领导审批
+              if (task.stepName === '馆领导审批' && currentUser.role === '馆领导') {
+                return true
+              }
+              // 管理员审批（管理员可以看到所有就医申请的任务）
+              if (currentUser.isAdmin) {
+                return true
+              }
             }
           }
           return false
@@ -722,9 +808,26 @@ async function getApprovalData(openid) {
       }
     }
 
-    // 查询已完成的工单（包括已通过和已驳回）
+    // 查询当前用户处理过的任务（包括已批准和已驳回的任务）
+    const processedTasksResult = await workflowTasksCollection
+      .where({
+        approverId: openid,
+        taskStatus: db.command.in(['approved', 'rejected'])
+      })
+      .orderBy('updatedAt', 'desc')
+      .limit(100)
+      .get()
+
+    // 获取这些任务对应的工单ID
+    let processedOrderIds = []
+    if (processedTasksResult.data) {
+      processedOrderIds = [...new Set(processedTasksResult.data.map(task => task.orderId))]
+    }
+
+    // 查询已完成的工单（只包括当前用户处理过的工单）
     const completedOrdersResult = await workOrdersCollection
       .where({
+        _id: db.command.in(processedOrderIds),
         orderType: _.in(['user_registration', 'medical_application']),
         workflowStatus: db.command.in(['completed', 'rejected'])
       })

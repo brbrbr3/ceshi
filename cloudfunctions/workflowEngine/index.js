@@ -381,6 +381,14 @@ async function startWorkflow(orderType, businessData) {
     const firstStep = activeSteps[0]
     const tasks = await createTasks(orderId, firstStep, businessData)
     
+    // 检查是否成功创建任务
+    if (!tasks || tasks.length === 0) {
+      // 没有创建到任务（因为没有找到审批人），删除工单并返回错误
+      console.warn(`步骤"${firstStep.stepName}"未找到审批人，无法启动工作流`)
+      await ordersCollection.doc(orderId).remove()
+      throw new Error(`步骤"${firstStep.stepName}"未找到审批人，请联系管理员配置审批人`)
+    }
+    
     // 6. 记录日志（异步执行，不阻塞主流程）
     logWorkflowAction(
       orderId,
@@ -434,7 +442,9 @@ async function createTasks(orderId, step, businessData) {
     const approvers = await resolveApprovers(step.approverType, step.approverConfig, businessData)
     
     if (!approvers || approvers.length === 0) {
-      throw new Error(`步骤"${step.stepName}"未找到审批人`)
+      // 不再抛出错误，而是记录日志并返回空数组
+      console.warn(`步骤"${step.stepName}"未找到审批人，工单将停留在当前步骤`)
+      return []
     }
     
     // 判断是否找到具体用户
@@ -472,7 +482,9 @@ async function createTasks(orderId, step, businessData) {
     return tasks
 
   } catch (error) {
-    throw error
+    // 不再抛出错误，而是记录日志并返回空数组
+    console.error('创建任务失败:', error)
+    return []
   }
 }
 
@@ -484,28 +496,35 @@ async function approveTask(taskId, action, comment, operatorId, operatorName, at
     if (!taskRes.data) {
       throw new Error('任务不存在')
     }
-    
+
     const task = taskRes.data
     const orderRes = await ordersCollection.doc(task.orderId).get()
     if (!orderRes.data) {
       throw new Error('工单不存在')
     }
-    
+
     const order = orderRes.data
-    
-    if (task.taskStatus !== TASK_STATUS.PENDING) {
-      throw new Error('任务已被处理')
-    }
-    
+
     // 2. 验证审批权限
     const hasPermissionResult = await hasPermission(task, operatorId)
     if (!hasPermissionResult) {
       throw new Error('无权审批此任务')
     }
-    
+
+    // 3. 检查任务状态，如果不是 pending，给出更详细的错误信息
+    if (task.taskStatus !== TASK_STATUS.PENDING) {
+      const statusText = {
+        'approved': '已通过',
+        'rejected': '已驳回',
+        'cancelled': '已取消',
+        'returned': '已退回'
+      }[task.taskStatus] || task.taskStatus
+      throw new Error(`任务${statusText}，请刷新页面后重试`)
+    }
+
     const now = Date.now()
-    
-    // 3. 更新任务状态
+
+    // 4. 更新任务状态
     await tasksCollection.doc(taskId).update({
       data: {
         taskStatus: action === 'approve' ? TASK_STATUS.APPROVED : (action === 'return' ? TASK_STATUS.RETURNED : TASK_STATUS.REJECTED),
@@ -517,14 +536,14 @@ async function approveTask(taskId, action, comment, operatorId, operatorName, at
         updatedAt: now
       }
     })
-    
-    // 4. 记录日志
+
+    // 5. 记录日志
     const actionText = {
       'approve': '通过',
       'reject': '驳回',
       'return': '退回'
     }[action] || action
-    
+
     await logWorkflowAction(
       order._id,
       action,
@@ -536,17 +555,21 @@ async function approveTask(taskId, action, comment, operatorId, operatorName, at
       { taskStatus: action === 'approve' ? TASK_STATUS.APPROVED : (action === 'return' ? TASK_STATUS.RETURNED : TASK_STATUS.REJECTED), comment },
       null
     )
-    
-    // 5. 根据操作类型处理流程
+
+    // 6. 根据操作类型处理流程
+    let warningMessage = null
     if (action === 'approve') {
-      await handleApproval(task, order, operatorId, operatorName, comment)
+      const handleResult = await handleApproval(task, order, operatorId, operatorName, comment)
+      warningMessage = handleResult.warningMessage
     } else if (action === 'reject') {
       await handleRejection(task, order, operatorId, operatorName, comment)
     } else if (action === 'return') {
       await handleReturn(task, order, operatorId, operatorName, comment)
     }
-    
-    return success({ success: true }, actionText + '成功')
+
+    // 如果有警告消息，使用警告消息；否则使用成功消息
+    const message = warningMessage || (actionText + '成功')
+    return success({ success: true }, message)
 
   } catch (error) {
     throw error
@@ -555,6 +578,10 @@ async function approveTask(taskId, action, comment, operatorId, operatorName, at
 
 // 处理审批通过
 async function handleApproval(task, order, approverId, approverName, comment) {
+  console.log('==== handleApproval 开始 ====')
+  console.log('task:', task)
+  console.log('order:', order._id, order.orderNo, order.currentStep)
+  
   const snapshot = order.workflowSnapshot
   const currentStep = snapshot.steps.find(s => s.stepNo === task.stepNo)
   
@@ -562,8 +589,15 @@ async function handleApproval(task, order, approverId, approverName, comment) {
     throw new Error('未找到当前步骤配置')
   }
   
+  console.log('currentStep:', currentStep)
+  console.log('stepType:', currentStep.stepType)
+  console.log('是否为并行步骤:', currentStep.stepType === STEP_TYPE.PARALLEL)
+  
+  let warningMessage = null
+  
   // 判断是否为并行步骤
   if (currentStep.stepType === STEP_TYPE.PARALLEL) {
+    console.log('进入并行任务处理逻辑')
     const parallelTasksRes = await tasksCollection
       .where({
         orderId: order._id,
@@ -572,22 +606,32 @@ async function handleApproval(task, order, approverId, approverName, comment) {
       })
       .get()
     
-    const allApproved = parallelTasksRes.data.every(t => 
+    console.log('并行任务列表:', parallelTasksRes.data.map(t => ({
+      _id: t._id,
+      approverId: t.approverId,
+      taskStatus: t.taskStatus
+    })))
+    
+    const allApproved = parallelTasksRes.data.every(t =>
       t.taskStatus === TASK_STATUS.APPROVED || t._id === task._id
     )
     
+    console.log('所有并行任务是否已通过:', allApproved)
+    
     if (!allApproved) {
       // 并行任务未全部完成,等待其他任务
-      return
+      console.log('并行任务未全部完成，等待其他任务')
+      return { warningMessage: null }
     }
     
     // 取消未处理的并行任务
     const pendingTasks = parallelTasksRes.data.filter(t => t.taskStatus === TASK_STATUS.PENDING)
+    console.log('需要取消的待处理任务:', pendingTasks.map(t => t._id))
     for (const pendingTask of pendingTasks) {
       if (pendingTask._id !== task._id) {
         await tasksCollection.doc(pendingTask._id).update({
-          data: { 
-            taskStatus: TASK_STATUS.CANCELLED, 
+          data: {
+            taskStatus: TASK_STATUS.CANCELLED,
             cancelledAt: Date.now(),
             updatedAt: Date.now()
           }
@@ -598,51 +642,108 @@ async function handleApproval(task, order, approverId, approverName, comment) {
   
   // 检查是否有下一步骤
   const nextStep = snapshot.steps.find(s => s.stepNo === task.stepNo + 1)
+  console.log('nextStep:', nextStep)
+  
   if (nextStep) {
+    console.log('有下一步骤，尝试创建下一步任务')
     // 动态评估下一步骤条件(如果业务数据可能被修改)
     const activeSteps = evaluateSteps([nextStep], order.businessData)
     
+    console.log('activeSteps:', activeSteps)
+    
     if (activeSteps.length > 0) {
-      // 创建下一步任务
-      const nextTasks = await createTasks(order._id, activeSteps[0], order.businessData)
-      
-      // 更新工单当前步骤
-      await ordersCollection.doc(order._id).update({
-        data: { 
-          currentStep: activeSteps[0].stepNo,
-          updatedAt: Date.now()
+      try {
+        // 创建下一步任务
+        const nextTasks = await createTasks(order._id, activeSteps[0], order.businessData)
+        
+        console.log('创建的下一步任务:', nextTasks.map(t => ({
+          _id: t._id,
+          stepName: t.stepName,
+          approverId: t.approverId
+        })))
+        
+        // 检查是否成功创建任务
+        if (!nextTasks || nextTasks.length === 0) {
+          // 没有创建到任务（因为没有找到审批人），设置警告消息
+          warningMessage = '审批通过，但下一步骤未找到审批人，工单将停留在当前步骤'
+          console.log(warningMessage)
+        } else {
+          // 成功创建任务，更新工单当前步骤
+          await ordersCollection.doc(order._id).update({
+            data: {
+              currentStep: activeSteps[0].stepNo,
+              updatedAt: Date.now()
+            }
+          })
+          
+          // 发送任务分配通知给下一步审批人
+          await sendTaskAssignedNotification(nextTasks, order)
         }
-      })
-      
-      // 发送任务分配通知给下一步审批人
-      if (nextTasks && nextTasks.length > 0) {
-        await sendTaskAssignedNotification(nextTasks, order)
+      } catch (createError) {
+        // 创建下一步任务失败（比如没有找到审批人），记录错误但不影响当前任务的审批结果
+        console.error('创建下一步任务失败:', createError)
+        warningMessage = '审批通过，但无法继续下一步，工单将停留在当前步骤'
+        console.log(warningMessage)
+        
+        // 不更新工单的 currentStep，保持在当前步骤
+        // 不抛出异常，确保当前任务的状态已经正确更新
       }
     }
   } else {
+    console.log('流程完成')
     // 流程完成
     await completeWorkflow(order._id, 'approved', approverId, approverName, comment)
   }
+  
+  console.log('==== handleApproval 结束 ====')
+  return { warningMessage }
 }
 
 // 处理审批驳回
 async function handleRejection(task, order, approverId, approverName, comment) {
-  // 更新工单状态为已驳回
-  await ordersCollection.doc(order._id).update({
-    data: {
-      workflowStatus: ORDER_STATUS.REJECTED,
-      finalDecision: 'rejected',
-      completedAt: Date.now(),
-      totalDuration: Date.now() - (order.startedAt || order.submittedAt),
-      updatedAt: Date.now()
+  try {
+    // 更新工单状态为已驳回
+    await ordersCollection.doc(order._id).update({
+      data: {
+        workflowStatus: ORDER_STATUS.REJECTED,
+        finalDecision: 'rejected',
+        completedAt: Date.now(),
+        totalDuration: Date.now() - (order.startedAt || order.submittedAt),
+        updatedAt: Date.now()
+      }
+    })
+
+    // 取消所有待处理任务
+    await cancelPendingTasks(order._id)
+
+    // 发送驳回通知给申请人
+    await sendTaskCompletedNotification(order, 'rejected', comment)
+  } catch (error) {
+    // 如果工单状态更新失败，尝试修复
+    console.error('handleRejection 错误:', error)
+
+    // 重新获取工单状态
+    const orderRes = await ordersCollection.doc(order._id).get()
+    if (orderRes.data && orderRes.data.workflowStatus === ORDER_STATUS.PENDING) {
+      // 如果工单状态仍然是 pending，强制更新
+      try {
+        await ordersCollection.doc(order._id).update({
+          data: {
+            workflowStatus: ORDER_STATUS.REJECTED,
+            finalDecision: 'rejected',
+            completedAt: Date.now(),
+            totalDuration: Date.now() - (orderRes.data.startedAt || orderRes.data.submittedAt),
+            updatedAt: Date.now()
+          }
+        })
+      } catch (retryError) {
+        console.error('修复工单状态失败:', retryError)
+        throw new Error('驳回操作已完成，但数据同步可能存在延迟，请稍后刷新查看')
+      }
     }
-  })
-  
-  // 取消所有待处理任务
-  await cancelPendingTasks(order._id)
-  
-  // 发送驳回通知给申请人
-  await sendTaskCompletedNotification(order, 'rejected', comment)
+
+    throw error
+  }
 }
 
 // 处理退回

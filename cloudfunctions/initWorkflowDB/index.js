@@ -51,42 +51,40 @@ const EXAMPLE_TEMPLATES = [
   },
 
   {
-    name: '请假申请审批',
-    code: 'leave_request',
+    name: '就医申请审批',
+    code: 'medical_application',
     version: 1,
-    description: '员工请假审批流程',
-    category: 'request',
-    steps: [{
+    description: '就医申请审批流程',
+    category: 'approval',
+    steps: [
+      {
         stepNo: 1,
-        stepName: '直属领导审批',
+        stepName: '部门负责人审批',
         stepType: 'serial',
-        approverType: 'expression',
+        approverType: 'role',
         approverConfig: {
-          expression: 'applicant.leaderId'
+          roleIds: ['department_head']
         },
+        approvalStrategy: 'sequential',
         canReject: true,
-        canReturn: true,
+        canReturn: false,
         returnTo: 0,
-        timeout: 24,
+        timeout: 72,
         timeoutAction: 'remind'
       },
       {
         stepNo: 2,
-        stepName: 'HR审批',
+        stepName: '会计主管审批',
         stepType: 'serial',
         approverType: 'role',
         approverConfig: {
-          roleIds: ['hr_manager']
+          roleIds: ['accountant_supervisor']
         },
-        condition: {
-          field: 'days',
-          operator: 'gt',
-          value: 3
-        },
+        approvalStrategy: 'sequential',
         canReject: true,
-        canReturn: true,
-        returnTo: 1,
-        timeout: 24,
+        canReturn: false,
+        returnTo: 0,
+        timeout: 72,
         timeoutAction: 'remind'
       },
       {
@@ -95,65 +93,13 @@ const EXAMPLE_TEMPLATES = [
         stepType: 'serial',
         approverType: 'role',
         approverConfig: {
-          roleIds: ['director']
+          roleIds: ['library_leader']
         },
-        condition: {
-          field: 'days',
-          operator: 'gt',
-          value: 7
-        },
-        canReject: true,
-        canReturn: true,
-        returnTo: 2,
-        timeout: 48,
-        timeoutAction: 'escalate'
-      }
-    ],
-    defaultTimeout: 72,
-    notifyOnSubmit: true,
-    notifyOnComplete: true,
-    notifyOnTimeout: true,
-    status: 'active',
-    createdAt: Date.now(),
-    updatedAt: Date.now()
-  },
-
-  {
-    name: '公务用车申请',
-    code: 'car_usage',
-    version: 1,
-    description: '公务用车申请流程',
-    category: 'request',
-    steps: [{
-        stepNo: 1,
-        stepName: '资料审核(会签)',
-        stepType: 'parallel',
-        parallelConfig: {
-          parallelType: 'and',
-          minApprovals: 2
-        },
-        approverType: 'role',
-        approverConfig: {
-          roleIds: ['dept_manager', 'finance_manager']
-        },
-        canReject: true,
-        canReturn: true,
-        returnTo: 0,
-        timeout: 48,
-        timeoutAction: 'remind'
-      },
-      {
-        stepNo: 2,
-        stepName: '车辆调度',
-        stepType: 'serial',
-        approverType: 'role',
-        approverConfig: {
-          roleIds: ['driver']
-        },
+        approvalStrategy: 'sequential',
         canReject: true,
         canReturn: false,
-        returnTo: 1,
-        timeout: 24,
+        returnTo: 0,
+        timeout: 72,
         timeoutAction: 'remind'
       }
     ],

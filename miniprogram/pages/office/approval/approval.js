@@ -177,7 +177,11 @@ function mapRequestItem(request) {
     raw: request,
     reviewRemark: reviewRemark,
     showProgress: showProgress,
-    progress: progress
+    progress: progress,
+    openid: request.openid || '', // 添加申请人 openid
+    _id: request._id, // 添加原始 _id
+    taskId: request.taskId, // 添加任务 ID
+    isCurrentApprover: request.isCurrentApprover // 添加是否当前审批人标志
   }
 }
 
@@ -280,12 +284,8 @@ Page({
 
   switchTab(e) {
     const tab = e.currentTarget.dataset.tab
-    const currentList = this.getListByTab(tab, this.data)
-    this.setData({
-      activeTab: tab,
-      currentList,
-      emptyText: this.getEmptyText(tab, this.data.canReview)
-    })
+    this.setData({ activeTab: tab })
+    this.loadApprovalData()
   },
 
   openRequestDetail(e) {
@@ -295,10 +295,13 @@ Page({
       return
     }
 
-    // 使用 target 对象而不是 target.raw，因为 reviewRemark 已经在 mapRequestItem 中处理过
+    // 使用原始数据（target.raw）来显示详情，同时保留需要的额外字段
     this.setData({
       selectedRequest: {
         ...target.raw,
+        openid: target.openid,
+        taskId: target.taskId,
+        isCurrentApprover: target.isCurrentApprover,
         reviewRemark: target.reviewRemark
       },
       showDetail: true
@@ -451,8 +454,15 @@ Page({
     // 判断是就医申请还是注册申请
     const request = this.data.selectedRequest
     const isMedicalApplication = request.orderType === 'medical_application'
+    
+    console.log('==== 审批调试信息 ====')
+    console.log('request:', request)
+    console.log('request.orderType:', request.orderType)
+    console.log('isMedicalApplication:', isMedicalApplication)
+    console.log('taskId:', request.taskId)
 
     if (isMedicalApplication) {
+      console.log('就医申请：调用 workflowEngine 云函数')
       // 就医申请，调用 workflowEngine 云函数
       wx.cloud.callFunction({
         name: 'workflowEngine',
@@ -466,17 +476,38 @@ Page({
         }
       })
         .then((result) => {
+          console.log('workflowEngine 返回结果:', result)
           if (result.result.code !== 0) {
             throw new Error(result.result.message || '审批失败')
           }
-          
-          util.showToast({
-            title: decision === 'approve' ? '已批准' : '已驳回',
-            icon: 'success'
-          })
 
-          this.closeDetail()
-          this.loadApprovalData()
+          const message = result.result.message || (decision === 'approve' ? '已批准' : '已驳回')
+
+          // 检查是否是警告消息（无法继续下一步的情况）
+          const isWarningMessage = message.includes('无法继续') || message.includes('未找到审批人') || message.includes('找不到审批人')
+
+          if (isWarningMessage) {
+            // 警告消息使用对话框显示
+            wx.showModal({
+              title: '提示',
+              content: message,
+              showCancel: false,
+              confirmText: '我知道了',
+              success: () => {
+                this.closeDetail()
+                this.loadApprovalData()
+              }
+            })
+          } else {
+            // 成功消息使用 toast 显示
+            util.showToast({
+              title: message,
+              icon: 'success'
+            })
+
+            this.closeDetail()
+            this.loadApprovalData()
+          }
         })
         .catch((error) => {
           util.showToast({
@@ -488,6 +519,7 @@ Page({
           this.setData({ actionLoading: false })
         })
     } else {
+      console.log('注册申请：调用 officeAuth 云函数')
       // 注册申请，调用 officeAuth 云函数
       app.callOfficeAuth('reviewRegistration', {
         taskId: this.data.selectedRequest.taskId || this.data.selectedRequest._id,

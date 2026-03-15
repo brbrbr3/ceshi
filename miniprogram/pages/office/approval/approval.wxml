@@ -215,8 +215,8 @@
         <view class="office-btn-primary approval-approve-btn" data-decision="approve" bindtap="handleReview">同意</view>
       </view>
 
-      <!-- 就医申请被驳回后的复制申请按钮 -->
-      <view wx:if="{{selectedRequest.status === 'rejected' && selectedRequest.orderType === 'medical_application'}}" class="approval-modal-copy">
+      <!-- 就医申请被驳回后的复制申请按钮（仅申请人可见） -->
+      <view wx:if="{{selectedRequest.status === 'rejected' && selectedRequest.orderType === 'medical_application' && selectedRequest.openid === app.globalData.openid}}" class="approval-modal-copy">
         <view class="approval-modal-copy-text">该申请已被驳回，是否依据此申请信息重新创建？</view>
         <view class="office-btn-primary approval-copy-btn" bindtap="copyAndResubmitMedical">重新创建申请</view>
       </view>
