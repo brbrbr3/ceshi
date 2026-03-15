@@ -35,6 +35,21 @@ function formatRelativeTime(timestamp) {
   return `${month}-${dayText}`
 }
 
+function formatDateTime(timestamp) {
+  if (!timestamp) {
+    return ''
+  }
+
+  const date = new Date(timestamp)
+  const year = date.getFullYear()
+  const month = String(date.getMonth() + 1).padStart(2, '0')
+  const day = String(date.getDate()).padStart(2, '0')
+  const hour = String(date.getHours()).padStart(2, '0')
+  const minute = String(date.getMinutes()).padStart(2, '0')
+  const second = String(date.getSeconds()).padStart(2, '0')
+  return `${year}-${month}-${day} ${hour}:${minute}:${second}`
+}
+
 function getStatusMeta(status) {
   if (status === 'approved') {
     return { label: '已通过', statusColor: '#16A34A', statusBg: '#DCFCE7' }
@@ -63,6 +78,25 @@ function mapRequestItem(request) {
   }
   detailParts.push(request.isAdmin ? '申请管理员' : '普通成员')
 
+  // 生成审批备注信息
+  let reviewRemark = request.reviewRemark || ''
+  if (request.status === 'approved' || request.status === 'rejected') {
+    const actionText = request.status === 'approved' ? '批准' : '驳回'
+    const reviewedBy = request.reviewedBy || '管理员'
+    const reviewedTime = request.reviewedAt ? formatDateTime(request.reviewedAt) : ''
+    
+    // 如果 reviewedBy 不包含"管理员"，则添加前缀
+    const adminPrefix = reviewedBy.includes('管理员') ? '' : '管理员'
+    const approvalInfo = `${adminPrefix}${reviewedBy}已于${reviewedTime}${actionText}该申请`
+    
+    if (reviewRemark) {
+      // 如果有驳回原因，则拼接：审批信息，原因
+      reviewRemark = `${approvalInfo}，原因：${reviewRemark}`
+    } else {
+      reviewRemark = approvalInfo
+    }
+  }
+
   return {
     id: request._id,
     requestNo: request.requestNo,
@@ -76,11 +110,15 @@ function mapRequestItem(request) {
     avatarColor: getAvatarColor(avatar),
     time: formatRelativeTime(request.updatedAt || request.submittedAt),
     urgent: !!request.isAdmin,
-    raw: request
+    raw: request,
+    reviewRemark: reviewRemark
   }
 }
 
 Page({
+  filters: {
+    formatDateTime
+  },
   data: {
     loading: true,
     actionLoading: false,
@@ -189,8 +227,12 @@ Page({
       return
     }
 
+    // 使用 target 对象而不是 target.raw，因为 reviewRemark 已经在 mapRequestItem 中处理过
     this.setData({
-      selectedRequest: target.raw,
+      selectedRequest: {
+        ...target.raw,
+        reviewRemark: target.reviewRemark
+      },
       showDetail: true
     })
   },
@@ -233,9 +275,12 @@ Page({
       return
     }
 
-    // 设置当前选中的请求（不打开弹窗）
+    // 设置当前选中的请求（不打开弹窗），确保使用处理过的 reviewRemark
     this.setData({
-      selectedRequest: target.raw || target
+      selectedRequest: {
+        ...target.raw,
+        reviewRemark: target.reviewRemark
+      }
     })
 
     // 确认审批

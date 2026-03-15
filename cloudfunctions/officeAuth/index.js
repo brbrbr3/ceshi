@@ -10,6 +10,7 @@ const usersCollection = db.collection('office_users')
 const requestCollection = db.collection('office_registration_requests')
 const workOrdersCollection = db.collection('work_orders')
 const workflowTasksCollection = db.collection('workflow_tasks')
+const workflowLogsCollection = db.collection('workflow_logs')
 const ROLE_OPTIONS = ['馆领导', '部门负责人', '馆员', '工勤', '物业', '配偶', '家属']
 const GENDER_OPTIONS = ['男', '女']
 const REQUEST_STATUS = {
@@ -618,6 +619,8 @@ async function getApprovalData(openid) {
       .limit(50)
       .get()
 
+
+
     // 获取已驳回工单的驳回原因
     const rejectedOrderIds = completedOrdersResult.data
       ? completedOrdersResult.data.filter(o => o.workflowStatus === 'rejected').map(o => o._id)
@@ -633,25 +636,83 @@ async function getApprovalData(openid) {
         .get()
 
       rejectedTasks.data.forEach(task => {
-        reviewRemarks[task.orderId] = task.comment || '管理员已驳回该申请'
+        // 只保存真正的驳回原因（用户填写的），不设置默认值
+        reviewRemarks[task.orderId] = task.comment || ''
       })
+    }
+
+    // 获取所有已完成工单的审批信息（从工作流日志中）
+    const allCompletedOrderIds = completedOrdersResult.data
+      ? completedOrdersResult.data.map(o => o._id)
+      : []
+
+    let approvalInfo = {}
+    if (allCompletedOrderIds.length > 0) {
+      const logsResult = await workflowLogsCollection
+        .where({
+          orderId: db.command.in(allCompletedOrderIds),
+          action: db.command.in(['approve', 'reject'])
+        })
+        .orderBy('createdAt', 'desc')  // 按时间倒序排列，最新的在前面
+        .get()
+
+      // 获取所有审批人的 openid，批量查询用户信息
+      const approverOpenids = logsResult.data
+        .map(log => log.operatorId)
+        .filter(id => id && id !== 'system')
+
+      let usersMap = {}
+      if (approverOpenids.length > 0) {
+        const usersResult = await usersCollection
+          .where({
+            openid: db.command.in(approverOpenids)
+          })
+          .get()
+        
+        usersResult.data.forEach(user => {
+          usersMap[user.openid] = user.name
+        })
+      }
+
+      // 使用 Map 记录每个工单的最新审批信息
+      const lastApprovalMap = {}
+      logsResult.data.forEach(log => {
+        if (!lastApprovalMap[log.orderId]) {
+          // 第一次遇到该工单的记录，就是最新的（因为已经按时间倒序排列）
+          let finalApproverName = log.operatorName
+          // 如果审批人姓名为空或只是通用词，尝试从用户表查询
+          if (!finalApproverName || finalApproverName === '管理员' || finalApproverName === '审批人') {
+            finalApproverName = usersMap[log.operatorId] || '管理员'
+          }
+          lastApprovalMap[log.orderId] = {
+            reviewedBy: finalApproverName,
+            reviewedAt: log.createdAt
+          }
+        }
+      })
+      
+      approvalInfo = lastApprovalMap
     }
 
     doneList = completedOrdersResult.data ? completedOrdersResult.data.map(order => {
       const status = order.workflowStatus === 'completed' ? REQUEST_STATUS.APPROVED : REQUEST_STATUS.REJECTED
+      const info = approvalInfo[order._id] || { reviewedBy: '管理员', reviewedAt: order.updatedAt }
       return {
         _id: order._id,
         openid: order.businessData.applicantId,
         name: order.businessData.applicantName,
         gender: order.businessData.gender,
+        birthday: order.businessData.birthday,
         role: order.businessData.role,
         relativeName: order.businessData.relativeName || '',
         position: order.businessData.position || '无',
+        isAdmin: order.businessData.isAdmin,
+        avatarText: order.businessData.avatarText,
         status: status,
-        reviewRemark: status === REQUEST_STATUS.REJECTED ? (reviewRemarks[order._id] || '管理员已驳回该申请') : '',
+        reviewRemark: reviewRemarks[order._id] || '',  // 移除默认值，只返回真正的驳回原因
         submittedAt: order.createdAt,
-        reviewedAt: order.updatedAt,
-        reviewedBy: '管理员'
+        reviewedAt: info.reviewedAt,
+        reviewedBy: info.reviewedBy
       }
     }) : []
   }

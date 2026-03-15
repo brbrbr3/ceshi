@@ -3,12 +3,16 @@ const util = require('../../../util/util.js')
 const ROLE_OPTIONS = ['馆领导', '部门负责人', '馆员', '工勤', '物业', '配偶', '家属']
 const POSITION_OPTIONS = ['无', '会计主管', '会计', '俱乐部', '阳光课堂', '招待员', '厨师', '内聘' ]
 
-// 独立函数，用于获取今天的日期
+// 独立函数，用于获取今天的日期（使用巴西利亚时间 GMT-3）
 function getTodayDate() {
   const now = new Date()
-  const year = now.getFullYear()
-  const month = String(now.getMonth() + 1).padStart(2, '0')
-  const day = String(now.getDate()).padStart(2, '0')
+  // 转换为巴西利亚时间 (GMT-3)
+  const braziliaOffset = -3
+  const utc = now.getTime() + (now.getTimezoneOffset() * 60000)
+  const braziliaTime = new Date(utc + (3600000 * braziliaOffset))
+  const year = braziliaTime.getFullYear()
+  const month = String(braziliaTime.getMonth() + 1).padStart(2, '0')
+  const day = String(braziliaTime.getDate()).padStart(2, '0')
   return `${year}-${month}-${day}`
 }
 
