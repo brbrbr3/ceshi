@@ -54,7 +54,7 @@ const EXAMPLE_TEMPLATES = [
     name: '就医申请审批',
     code: 'medical_application',
     version: 1,
-    description: '就医申请审批流程',
+    description: '就医申请审批流程（4步：部门负责人→会计主管→馆领导）',
     category: 'approval',
     steps: [
       {

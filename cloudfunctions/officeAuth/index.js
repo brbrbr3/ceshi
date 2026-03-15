@@ -16,7 +16,8 @@ const GENDER_OPTIONS = ['男', '女']
 const REQUEST_STATUS = {
   PENDING: 'pending',
   APPROVED: 'approved',
-  REJECTED: 'rejected'
+  REJECTED: 'rejected',
+  TERMINATED: 'terminated'
 }
 
 function success(data, message) {
@@ -618,7 +619,7 @@ async function getApprovalData(openid) {
     // 根据订单类型返回不同的字段
     if (order.orderType === 'medical_application') {
       // 就医申请
-      const orderStatus = order.workflowStatus === 'completed' ? REQUEST_STATUS.APPROVED : (order.workflowStatus === 'rejected' ? REQUEST_STATUS.REJECTED : REQUEST_STATUS.PENDING)
+      const orderStatus = order.workflowStatus === 'completed' ? REQUEST_STATUS.APPROVED : (order.workflowStatus === 'rejected' ? REQUEST_STATUS.REJECTED : (order.workflowStatus === 'terminated' ? REQUEST_STATUS.TERMINATED : REQUEST_STATUS.PENDING))
       const approvalInfo = myApprovalInfo[order._id] || { reviewedBy: '', reviewedAt: order.updatedAt }
       return {
         _id: order._id,
@@ -647,7 +648,7 @@ async function getApprovalData(openid) {
       }
     } else {
       // 注册申请
-      const orderStatus = order.workflowStatus === 'completed' ? REQUEST_STATUS.APPROVED : (order.workflowStatus === 'rejected' ? REQUEST_STATUS.REJECTED : REQUEST_STATUS.PENDING)
+      const orderStatus = order.workflowStatus === 'completed' ? REQUEST_STATUS.APPROVED : (order.workflowStatus === 'rejected' ? REQUEST_STATUS.REJECTED : (order.workflowStatus === 'terminated' ? REQUEST_STATUS.TERMINATED : REQUEST_STATUS.PENDING))
       const approvalInfo = myApprovalInfo[order._id] || { reviewedBy: '', reviewedAt: order.updatedAt }
       return {
         _id: order._id,
@@ -1035,6 +1036,93 @@ async function reviewRegistration(openid, payload) {
   }
 }
 
+// 获取工作流日志
+async function getWorkflowLogs(orderId) {
+  try {
+    const logsResult = await workflowLogsCollection
+      .where({
+        orderId: orderId
+      })
+      .orderBy('createdAt', 'asc')
+      .limit(50)
+      .get()
+
+    if (!logsResult.data) {
+      return success([], '获取成功')
+    }
+
+    // 获取所有操作人的 openid
+    const operatorOpenids = logsResult.data
+      .map(log => log.operatorId)
+      .filter(id => id && id !== 'system')
+
+    // 批量查询用户信息
+    let usersMap = {}
+    if (operatorOpenids.length > 0) {
+      const usersResult = await usersCollection
+        .where({
+          openid: db.command.in(operatorOpenids)
+        })
+        .get()
+
+      usersResult.data.forEach(user => {
+        usersMap[user.openid] = user.name
+      })
+    }
+
+    // 格式化日志
+    const logs = logsResult.data.map(log => {
+      const operatorName = log.operatorName ||
+        (log.operatorId === 'system' ? '系统' : (usersMap[log.operatorId] || '未知'))
+
+      const actionText = {
+        'start': '提交工单',
+        'approve': '审批通过',
+        'reject': '审批驳回',
+        'return': '退回补充',
+        'cancel': '撤回工单',
+        'terminate': '中止工单',
+        'timeout': '超时处理',
+        'escalate': '升级处理',
+        'auto_approve': '自动通过',
+        'auto_reject': '自动驳回',
+        'remind': '发送提醒'
+      }[log.action] || log.action
+
+      return {
+        _id: log._id,
+        action: log.action,
+        actionText: actionText,
+        operatorId: log.operatorId,
+        operatorName: operatorName,
+        description: log.description,
+        createdAt: log.createdAt,
+        formattedTime: formatDateTime(log.createdAt)
+      }
+    })
+
+    return success(logs, '获取成功')
+  } catch (error) {
+    throw error
+  }
+}
+
+// 格式化日期时间
+function formatDateTime(timestamp) {
+  if (!timestamp) {
+    return ''
+  }
+
+  const date = new Date(timestamp)
+  const year = date.getFullYear()
+  const month = String(date.getMonth() + 1).padStart(2, '0')
+  const day = String(date.getDate()).padStart(2, '0')
+  const hour = String(date.getHours()).padStart(2, '0')
+  const minute = String(date.getMinutes()).padStart(2, '0')
+  const second = String(date.getSeconds()).padStart(2, '0')
+  return `${year}-${month}-${day} ${hour}:${minute}:${second}`
+}
+
 exports.main = async (event) => {
   const wxContext = cloud.getWXContext()
   const openid = wxContext.OPENID
@@ -1064,6 +1152,10 @@ exports.main = async (event) => {
 
     if (action === 'reviewRegistration') {
       return await reviewRegistration(openid, event)
+    }
+
+    if (action === 'getWorkflowLogs') {
+      return await getWorkflowLogs(event.orderId)
     }
 
     return fail('不支持的操作类型', 400)

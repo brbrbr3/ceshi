@@ -58,6 +58,9 @@ function getStatusMeta(status) {
   if (status === 'rejected') {
     return { label: '已驳回', statusColor: '#DC2626', statusBg: '#FEE2E2' }
   }
+  if (status === 'terminated') {
+    return { label: '已中止', statusColor: '#DC2626', statusBg: '#FEE2E2' }
+  }
   return { label: '待审批', statusColor: '#D97706', statusBg: '#FEF3C7' }
 }
 
@@ -136,15 +139,24 @@ function mapRequestItem(request) {
 
   // 生成审批备注信息
   let reviewRemark = request.reviewRemark || ''
-  if (request.status === 'approved' || request.status === 'rejected') {
-    const actionText = request.status === 'approved' ? '批准' : '驳回'
-    const reviewedBy = request.reviewedBy || '管理员'
+  if (request.status === 'approved' || request.status === 'rejected' || request.status === 'terminated') {
+    const actionText = request.status === 'approved' ? '批准' : (request.status === 'rejected' ? '驳回' : '中止')
+    const reviewedBy = request.reviewedBy || ''
     const reviewedTime = request.reviewedAt ? formatDateTime(request.reviewedAt) : ''
-    
-    // 如果 reviewedBy 不包含"管理员"，则添加前缀
-    const adminPrefix = reviewedBy.includes('管理员') ? '' : '管理员'
-    const approvalInfo = `${adminPrefix}${reviewedBy}已于${reviewedTime}${actionText}该申请`
-    
+
+    // 根据工作流步骤确定审批人角色
+    let approverRole = '审批人'
+    if (request.orderType === 'medical_application') {
+      // 就医申请的工作流步骤
+      const stepRoles = ['', '部门负责人', '会计主管', '馆领导']
+      const currentStep = request.currentStep || 0
+      approverRole = stepRoles[currentStep] || '审批人'
+    }
+
+    // 如果 reviewedBy 不包含角色名，则添加角色前缀
+    const rolePrefix = reviewedBy.includes('管理员') || reviewedBy.includes('部门负责人') || reviewedBy.includes('会计主管') || reviewedBy.includes('馆领导') ? '' : approverRole
+    const approvalInfo = `${rolePrefix}${reviewedBy}已于${reviewedTime}${actionText}该申请`
+
     if (reviewRemark) {
       // 如果有驳回原因，则拼接：审批信息，原因
       reviewRemark = `${approvalInfo}，原因：${reviewRemark}`
@@ -167,21 +179,31 @@ function mapRequestItem(request) {
     detail: detail,
     requestType: requestType,
     orderType: request.orderType, // 保留原始 orderType
-    status: statusMeta.label,
+    status: request.status, // 使用原始状态值（pending/approved/rejected/terminated）
+    statusLabel: statusMeta.label, // 添加中文状态标签
     statusColor: statusMeta.statusColor,
     statusBg: statusMeta.statusBg,
     avatar,
     avatarColor: getAvatarColor(avatar),
     time: formatRelativeTime(request.updatedAt || request.submittedAt),
     urgent: !!request.isAdmin,
-    raw: request,
+    raw: request, // 保留原始数据
     reviewRemark: reviewRemark,
     showProgress: showProgress,
     progress: progress,
     openid: request.openid || '', // 添加申请人 openid
+    orderId: request.orderId || request._id, // 工单ID（优先使用 orderId 字段）
     _id: request._id, // 添加原始 _id
     taskId: request.taskId, // 添加任务 ID
-    isCurrentApprover: request.isCurrentApprover // 添加是否当前审批人标志
+    isCurrentApprover: request.isCurrentApprover, // 添加是否当前审批人标志
+    // 就医申请字段（用于列表显示详情文本）
+    patientName: request.patientName || '',
+    relation: request.relation || '',
+    medicalDate: request.medicalDate || '',
+    institution: request.institution || '',
+    otherInstitution: request.otherInstitution || '',
+    reasonForSelection: request.reasonForSelection || '',
+    reason: request.reason || ''
   }
 }
 
@@ -212,7 +234,9 @@ Page({
     emptyText: '暂无注册申请',
     showDetail: false,
     selectedRequest: null,
-    currentUser: null
+    currentUser: null,
+    workflowLogs: [], // 添加工作流日志
+    currentOpenid: '' // 添加当前用户的 openid
   },
 
   onShow() {
@@ -243,7 +267,10 @@ Page({
   },
 
   loadApprovalData() {
-    this.setData({ loading: true })
+    this.setData({
+      loading: true,
+      currentOpenid: app.globalData.openid || ''
+    })
 
     app.callOfficeAuth('getApprovalData')
       .then((data) => {
@@ -295,17 +322,49 @@ Page({
       return
     }
 
-    // 使用原始数据（target.raw）来显示详情，同时保留需要的额外字段
+    console.log('==== 打开详情调试信息 ====')
+    console.log('target:', target)
+    console.log('target.orderType:', target.orderType)
+    console.log('target.status:', target.status)
+    console.log('target.patientName:', target.patientName)
+    console.log('target.openid:', target.openid)
+    console.log('app.globalData.openid:', app.globalData.openid)
+
+    // 直接使用 target 作为 selectedRequest，因为 target 已经包含了所有需要的字段
     this.setData({
-      selectedRequest: {
-        ...target.raw,
-        openid: target.openid,
-        taskId: target.taskId,
-        isCurrentApprover: target.isCurrentApprover,
-        reviewRemark: target.reviewRemark
-      },
+      selectedRequest: target,
       showDetail: true
     })
+
+    // 加载工作流日志：使用工单ID
+    const orderId = target.orderId || target._id
+    this.loadWorkflowLogs(orderId)
+  },
+
+  // 加载工作流日志
+  loadWorkflowLogs(orderId) {
+    if (!orderId) {
+      console.warn('loadWorkflowLogs: orderId 为空，跳过加载')
+      return
+    }
+
+    console.log('==== 加载工作流日志 ====')
+    console.log('orderId:', orderId)
+
+    app.callOfficeAuth('getWorkflowLogs', { orderId })
+      .then((data) => {
+        console.log('工作流日志数据:', data)
+        console.log('工作流日志数量:', data ? data.length : 0)
+        this.setData({
+          workflowLogs: data || []
+        })
+      })
+      .catch((error) => {
+        console.error('加载工作流日志失败:', error)
+        this.setData({
+          workflowLogs: []
+        })
+      })
   },
 
   closeDetail() {
@@ -359,6 +418,81 @@ Page({
           })
 
           this.closeDetail()
+        }
+      }
+    })
+  },
+
+  // 中止申请
+  terminateOrder() {
+    const request = this.data.selectedRequest
+    if (!request) {
+      return
+    }
+
+    console.log('==== 中止申请调试信息 ====')
+    console.log('request:', request)
+    console.log('request._id:', request._id)
+    console.log('request.orderId:', request.orderId)
+    console.log('app.globalData.openid:', app.globalData.openid)
+
+    // 检查申请状态：只能中止待审批状态的申请
+    if (request.status !== 'pending') {
+      util.showToast({
+        title: '只能中止待审批的申请',
+        icon: 'none'
+      })
+      return
+    }
+
+    // 询问用户是否要中止申请
+    wx.showModal({
+      title: '确认中止',
+      content: '确定要中止此申请吗？中止后申请将无法继续处理。',
+      confirmText: '确认中止',
+      confirmColor: '#DC2626',
+      success: (res) => {
+        if (res.confirm) {
+          this.setData({ actionLoading: true })
+
+          // 使用 orderId 作为工单ID
+          const orderId = request.orderId
+
+          console.log('==== 调用云函数中止申请 ====')
+          console.log('orderId:', orderId)
+
+          wx.cloud.callFunction({
+            name: 'workflowEngine',
+            data: {
+              action: 'terminateOrder',
+              orderId: orderId,
+              openid: app.globalData.openid
+            }
+          })
+            .then((result) => {
+              console.log('中止申请返回结果:', result)
+              if (result.result.code !== 0) {
+                throw new Error(result.result.message || '中止失败')
+              }
+
+              util.showToast({
+                title: '申请已中止',
+                icon: 'success'
+              })
+
+              this.closeDetail()
+              this.loadApprovalData()
+            })
+            .catch((error) => {
+              console.error('中止申请失败:', error)
+              util.showToast({
+                title: error.message || '中止失败',
+                icon: 'none'
+              })
+            })
+            .then(() => {
+              this.setData({ actionLoading: false })
+            })
         }
       }
     })
@@ -427,14 +561,10 @@ Page({
     wx.showModal({
       title,
       content,
+      showCancel: false, // 禁用取消按钮，强制选择
       success: (res) => {
         if (res.confirm) {
           this.reviewRequest(decision)
-        } else {
-          // 取消审批，清除 selectedRequest（如果未打开弹窗）
-          if (!this.data.showDetail) {
-            this.setData({ selectedRequest: null })
-          }
         }
       }
     })
@@ -487,15 +617,56 @@ Page({
           const isWarningMessage = message.includes('无法继续') || message.includes('未找到审批人') || message.includes('找不到审批人')
 
           if (isWarningMessage) {
-            // 警告消息使用对话框显示
+            // 警告消息：弹出对话框让审批人确认中止申请
             wx.showModal({
               title: '提示',
-              content: message,
-              showCancel: false,
-              confirmText: '我知道了',
-              success: () => {
-                this.closeDetail()
-                this.loadApprovalData()
+              content: '审批通过，但下一步骤未找到审批人，工单将自动中止',
+              confirmText: '中止申请',
+              confirmColor: '#DC2626',
+              showCancel: false, // 禁用取消按钮，只能点击"中止申请"
+              success: (res) => {
+                if (res.confirm) {
+                  // 审批人确认中止申请
+                  // 注意：在 pendingList 中，_id 是任务ID，orderId 是工单ID
+                  // 在 doneList 和 mineList 中，_id 是工单ID
+                  const workOrderId = request.orderId || request._id
+
+                  console.log('==== 审批人中止申请 ====')
+                  console.log('request._id:', request._id)
+                  console.log('request.orderId:', request.orderId)
+                  console.log('workOrderId:', workOrderId)
+
+                  wx.cloud.callFunction({
+                    name: 'workflowEngine',
+                    data: {
+                      action: 'terminateOrder',
+                      orderId: workOrderId,
+                      openid: app.globalData.openid
+                    }
+                  })
+                    .then((terminateResult) => {
+                      if (terminateResult.result.code !== 0) {
+                        throw new Error(terminateResult.result.message || '中止失败')
+                      }
+
+                      util.showToast({
+                        title: '申请已中止',
+                        icon: 'success'
+                      })
+
+                      this.closeDetail()
+                      this.loadApprovalData()
+                    })
+                    .catch((error) => {
+                      util.showToast({
+                        title: error.message || '中止失败',
+                        icon: 'none'
+                      })
+                    })
+                    .then(() => {
+                      this.setData({ actionLoading: false })
+                    })
+                }
               }
             })
           } else {
@@ -510,6 +681,7 @@ Page({
           }
         })
         .catch((error) => {
+          console.error('审批失败:', error)
           util.showToast({
             title: error.message || '处理失败',
             icon: 'none'

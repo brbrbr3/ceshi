@@ -242,11 +242,44 @@ page {
   justify-content: center;
   font-size: 24rpx;
   font-weight: 600;
+  transition: all 0.3s ease;
+  position: relative;
 }
 
 .approval-reject-btn {
   background: #F8FAFC;
   color: #4B6080;
+}
+
+.approval-reject-btn.is-disabled,
+.approval-approve-btn.is-disabled {
+  opacity: 0.6;
+  pointer-events: none;
+}
+
+/* 加载动画 */
+.approval-reject-btn.is-disabled::after,
+.approval-approve-btn.is-disabled::after {
+  content: '';
+  position: absolute;
+  right: 20rpx;
+  width: 24rpx;
+  height: 24rpx;
+  border: 3rpx solid currentColor;
+  border-top-color: transparent;
+  border-right-color: transparent;
+  border-radius: 50%;
+  animation: spin 0.8s linear infinite;
+  opacity: 0.8;
+}
+
+@keyframes spin {
+  0% {
+    transform: rotate(0deg);
+  }
+  100% {
+    transform: rotate(360deg);
+  }
 }
 
 .approval-empty-icon {
@@ -333,6 +366,54 @@ page {
   border-radius: 12rpx;
 }
 
+/* 详情弹窗中的进度条样式 */
+.approval-modal-progress {
+  margin-top: 24rpx;
+  padding: 24rpx;
+  background: #F9FAFB;
+  border-radius: 12rpx;
+}
+
+.approval-modal-progress-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 16rpx;
+}
+
+.approval-modal-progress-info {
+  display: flex;
+  align-items: center;
+  gap: 12rpx;
+  flex: 1;
+}
+
+.approval-modal-progress-step {
+  font-size: 24rpx;
+  font-weight: 600;
+  color: #1E293B;
+}
+
+.approval-modal-progress-text {
+  font-size: 22rpx;
+  color: #9CA3AF;
+}
+
+.approval-modal-progress-bar {
+  width: 100%;
+  height: 8rpx;
+  background: #E5E7EB;
+  border-radius: 4rpx;
+  overflow: hidden;
+}
+
+.approval-modal-progress-fill {
+  height: 100%;
+  background: linear-gradient(90deg, #2563EB 0%, #1D4ED8 100%);
+  border-radius: 4rpx;
+  transition: width 0.3s ease;
+}
+
 .approval-progress-header {
   display: flex;
   justify-content: space-between;
@@ -349,8 +430,8 @@ page {
 
 .approval-progress-step {
   font-size: 24rpx;
-  font-weight: 500;
-  color: #6B7280;
+  font-weight: 600;
+  color: #1E293B;
 }
 
 .approval-progress-text {
@@ -403,4 +484,142 @@ page {
 .approval-copy-btn::after {
   border: none;
 }
+
+/* 工作流日志样式 */
+.approval-modal-logs {
+  margin-top: 24rpx;
+  padding: 24rpx;
+  background: #F8FAFC;
+  border-radius: 12rpx;
+}
+
+.approval-modal-logs-title {
+  font-size: 28rpx;
+  font-weight: 600;
+  color: #1E293B;
+  margin-bottom: 16rpx;
+}
+
+.approval-modal-logs-list {
+  display: flex;
+  flex-direction: column;
+  gap: 16rpx;
+}
+
+.approval-modal-logs-item {
+  padding: 16rpx;
+  background: #FFFFFF;
+  border-radius: 8rpx;
+  border-left: 3rpx solid #2563EB;
+}
+
+.approval-modal-logs-item.is-error {
+  border-left-color: #DC2626;
+}
+
+.approval-modal-logs-action {
+  font-size: 26rpx;
+  font-weight: 600;
+  color: #1F2937;
+  margin-bottom: 8rpx;
+}
+
+.approval-modal-logs-info {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 8rpx;
+}
+
+.approval-modal-logs-operator {
+  font-size: 24rpx;
+  color: #6B7280;
+  font-weight: 500;
+}
+
+.approval-modal-logs-time {
+  font-size: 22rpx;
+  color: #9CA3AF;
+}
+
+.approval-modal-logs-desc {
+  font-size: 24rpx;
+  color: #6B7280;
+  line-height: 1.6;
+  padding-top: 8rpx;
+  border-top: 1rpx solid #F3F4F6;
+  margin-top: 8rpx;
+}
+
+/* 空状态提示 */
+.approval-modal-logs-empty {
+  font-size: 24rpx;
+  color: #9CA3AF;
+  text-align: center;
+  padding: 32rpx 0;
+  line-height: 1.6;
+}
+
+/* 中止申请按钮样式 */
+.approval-modal-terminate {
+  margin-top: 24rpx;
+  padding: 24rpx;
+  background: #FEE2E2;
+  border-radius: 12rpx;
+  border: 1rpx solid #FCA5A5;
+}
+
+.approval-modal-terminate-text {
+  font-size: 24rpx;
+  color: #991B1B;
+  margin-bottom: 16rpx;
+  line-height: 1.6;
+}
+
+.approval-terminate-btn {
+  width: 100%;
+  background: #DC2626;
+  color: #FFFFFF;
+  border: none;
+  border-radius: 16rpx;
+  height: 88rpx;
+  font-size: 28rpx;
+  font-weight: 600;
+  box-sizing: border-box;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  transition: all 0.3s ease;
+  position: relative;
+}
+
+.approval-terminate-btn.is-disabled {
+  opacity: 0.6;
+  pointer-events: none;
+}
+
+/* 加载动画 */
+.approval-terminate-btn.is-disabled::after {
+  content: '';
+  position: absolute;
+  right: 20rpx;
+  width: 28rpx;
+  height: 28rpx;
+  border: 3rpx solid #FFFFFF;
+  border-top-color: transparent;
+  border-right-color: transparent;
+  border-radius: 50%;
+  animation: spin 0.8s linear infinite;
+  opacity: 0.8;
+}
+
+@keyframes spin {
+  0% {
+    transform: rotate(0deg);
+  }
+  100% {
+    transform: rotate(360deg);
+  }
+}
+
 

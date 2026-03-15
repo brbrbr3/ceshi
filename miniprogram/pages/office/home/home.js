@@ -16,14 +16,14 @@ Page({
       { label: '绩效得分', value: '92', color: '#2563EB', bg: '#EFF6FF' }
     ],
     quickActions: [
-      { icon: '🍽️', label: '每周菜单', color: '#16A34A', bg: '#DCFCE7' },
-      { icon: '📅', label: '打卡签到', color: '#4CAF50', bg: '#E8F5E9' },
-      { icon: '🏥', label: '就医申请', color: '#EF4444', bg: '#FEE2E2' },
-      { icon: '📢', label: '公告通知', color: '#9C27B0', bg: '#F3E5F5' },
-      { icon: '📊', label: '工作报告', color: '#00BCD4', bg: '#E0F7FA' },
-      { icon: '💬', label: '企业通讯', color: '#F44336', bg: '#FFEBEE' },
-      { icon: '📁', label: '云端文档', color: '#FF5722', bg: '#FBE9E7' },
-      { icon: '🎯', label: '任务中心', color: '#795548', bg: '#EFEBE9' }
+      { icon: '🍽️', label: '每周菜单', color: '#16A34A', bg: '#DCFCE7', implemented: true },
+      { icon: '📅', label: '打卡签到', color: '#94A3B8', bg: '#F1F5F9', implemented: false },
+      { icon: '🏥', label: '就医申请', color: '#EF4444', bg: '#FEE2E2', implemented: true },
+      { icon: '📢', label: '公告通知', color: '#94A3B8', bg: '#F1F5F9', implemented: false },
+      { icon: '📊', label: '工作报告', color: '#94A3B8', bg: '#F1F5F9', implemented: false },
+      { icon: '💬', label: '企业通讯', color: '#94A3B8', bg: '#F1F5F9', implemented: false },
+      { icon: '📁', label: '云端文档', color: '#94A3B8', bg: '#F1F5F9', implemented: false },
+      { icon: '🎯', label: '任务中心', color: '#94A3B8', bg: '#F1F5F9', implemented: false }
     ],
     approvals: [
       { name: '张晓明', dept: '技术部', type: '请假申请', time: '30分钟前', avatar: '张', avatarBg: '#4CAF50' },

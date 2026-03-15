@@ -196,12 +196,21 @@ page {
   font-size: 38rpx;
 }
 
+.home-grid-icon.is-implemented {
+  background: #F1F5F9 !important;
+  color: #94A3B8 !important;
+}
+
 .home-grid-label {
   margin-top: 14rpx;
   font-size: 22rpx;
   color: #4B6080;
   text-align: center;
   line-height: 1.4;
+}
+
+.home-grid-label.is-implemented {
+  color: #94A3B8;
 }
 
 .home-title-with-badge {

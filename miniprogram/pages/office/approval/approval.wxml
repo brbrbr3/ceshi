@@ -75,7 +75,7 @@
               <view class="approval-person-sub">{{item.dept}}</view>
             </view>
           </view>
-          <view class="office-pill" style="background: {{item.statusBg}}; color: {{item.statusColor}};">{{item.status}}</view>
+          <view class="office-pill" style="background: {{item.statusBg}}; color: {{item.statusColor}};">{{item.statusLabel}}</view>
         </view>
 
         <view class="approval-type-title">{{item.requestType}}</view>
@@ -97,8 +97,12 @@
         </view>
 
         <view wx:if="{{activeTab == 'pending' && canReview}}" class="approval-actions">
-          <view class="approval-reject-btn" data-id="{{item.id}}" data-decision="reject" catchtap="handleReview">驳回</view>
-          <view class="office-btn-primary approval-approve-btn" data-id="{{item.id}}" data-decision="approve" catchtap="handleReview">同意</view>
+          <view class="approval-reject-btn {{actionLoading ? 'is-disabled' : ''}}" data-id="{{item.id}}" data-decision="reject" catchtap="handleReview">
+            {{actionLoading ? '处理中' : '驳回'}}
+          </view>
+          <view class="office-btn-primary approval-approve-btn {{actionLoading ? 'is-disabled' : ''}}" data-id="{{item.id}}" data-decision="approve" catchtap="handleReview">
+            {{actionLoading ? '处理中' : '同意'}}
+          </view>
         </view>
       </view>
     </view>
@@ -152,21 +156,6 @@
             <text class="approval-modal-label">就医原因</text>
             <text class="approval-modal-value">{{selectedRequest.reason || ''}}</text>
           </view>
-
-          <!-- 进度条 -->
-          <block wx:if="{{selectedRequest.showProgress && selectedRequest.progress}}">
-            <view class="approval-modal-progress">
-              <view class="approval-modal-progress-header">
-                <view class="approval-modal-progress-info">
-                  <view class="approval-modal-progress-step">第 {{selectedRequest.progress.currentStep}}/{{selectedRequest.progress.totalSteps}} 步</view>
-                  <view class="approval-modal-progress-text">{{selectedRequest.progress.currentText}}</view>
-                </view>
-              </view>
-              <view class="approval-modal-progress-bar">
-                <view class="approval-modal-progress-fill" style="width: {{selectedRequest.progress.percent}}%;"></view>
-              </view>
-            </view>
-          </block>
         </block>
 
         <!-- 注册申请详情 -->
@@ -205,18 +194,65 @@
 
         <view class="approval-modal-row">
           <text class="approval-modal-label">当前状态</text>
-          <text class="approval-modal-value">{{selectedRequest.status === 'approved' ? '已通过' : selectedRequest.status === 'rejected' ? '已驳回' : '待审批'}}</text>
+          <text class="approval-modal-value" style="color: {{selectedRequest.status === 'approved' ? '#16A34A' : selectedRequest.status === 'rejected' ? '#DC2626' : selectedRequest.status === 'terminated' ? '#DC2626' : '#D97706'}};">
+            {{selectedRequest.status === 'approved' ? '已通过' : selectedRequest.status === 'rejected' ? '已驳回' : selectedRequest.status === 'terminated' ? '已中止' : '待审批'}}
+          </text>
         </view>
         <view wx:if="{{selectedRequest.reviewRemark}}" class="approval-modal-remark">{{selectedRequest.reviewRemark}}</view>
+
+        <!-- 进度条（仅在就医申请且状态为待审批时显示） -->
+        <block wx:if="{{selectedRequest.orderType === 'medical_application' && selectedRequest.showProgress && selectedRequest.progress}}">
+          <view class="approval-modal-progress">
+            <view class="approval-modal-progress-header">
+              <view class="approval-modal-progress-info">
+                <view class="approval-modal-progress-step">第 {{selectedRequest.progress.currentStep}}/{{selectedRequest.progress.totalSteps}} 步</view>
+                <view class="approval-modal-progress-text">{{selectedRequest.progress.currentText}}</view>
+              </view>
+            </view>
+            <view class="approval-modal-progress-bar">
+              <view class="approval-modal-progress-fill" style="width: {{selectedRequest.progress.percent}}%;"></view>
+            </view>
+          </view>
+        </block>
       </view>
 
-      <view wx:if="{{canReview && selectedRequest.status === 'pending' && selectedRequest.isCurrentApprover}}" class="approval-modal-actions">
-        <view class="approval-reject-btn" data-decision="reject" bindtap="handleReview">驳回</view>
-        <view class="office-btn-primary approval-approve-btn" data-decision="approve" bindtap="handleReview">同意</view>
+      <!-- 工作流日志（审批历史） -->
+      <view wx:if="{{selectedRequest}}" class="approval-modal-logs">
+        <view class="approval-modal-logs-title">审批历史</view>
+        <view wx:if="{{workflowLogs && workflowLogs.length > 0}}" class="approval-modal-logs-list">
+          <view wx:for="{{workflowLogs}}" wx:key="_id" wx:for-index="idx" class="approval-modal-logs-item {{item.action === 'reject' || item.action === 'terminate' ? 'is-error' : ''}}">
+            <view class="approval-modal-logs-action">{{item.actionText}}</view>
+            <view class="approval-modal-logs-info">
+              <text class="approval-modal-logs-operator">{{idx === 0 && item.action === 'start' ? selectedRequest.name : item.operatorName}}</text>
+              <text class="approval-modal-logs-time">{{item.formattedTime}}</text>
+            </view>
+            <view wx:if="{{item.description}}" class="approval-modal-logs-desc">{{item.description}}</view>
+          </view>
+        </view>
+        <view wx:else class="approval-modal-logs-empty">
+          {{selectedRequest.status === 'pending' ? '申请已提交，暂无审批历史' : '暂无审批历史记录'}}
+        </view>
       </view>
+
+        <view wx:if="{{canReview && selectedRequest.status === 'pending' && selectedRequest.isCurrentApprover}}" class="approval-modal-actions">
+          <view class="approval-reject-btn {{actionLoading ? 'is-disabled' : ''}}" bindtap="handleReview" data-decision="reject">
+            {{actionLoading ? '处理中' : '驳回'}}
+          </view>
+          <view class="office-btn-primary approval-approve-btn {{actionLoading ? 'is-disabled' : ''}}" bindtap="handleReview" data-decision="approve">
+            {{actionLoading ? '处理中' : '同意'}}
+          </view>
+        </view>
+
+        <!-- 申请人中止申请按钮（仅申请人可见，且状态为待审批） -->
+        <view wx:if="{{selectedRequest.status === 'pending' && selectedRequest.openid === currentOpenid}}" class="approval-modal-terminate">
+          <view class="approval-modal-terminate-text">作为申请人，您可以随时中止此申请</view>
+          <view class="approval-terminate-btn {{actionLoading ? 'is-disabled' : ''}}" bindtap="terminateOrder">
+            {{actionLoading ? '处理中' : '中止申请'}}
+          </view>
+        </view>
 
       <!-- 就医申请被驳回后的复制申请按钮（仅申请人可见） -->
-      <view wx:if="{{selectedRequest.status === 'rejected' && selectedRequest.orderType === 'medical_application' && selectedRequest.openid === app.globalData.openid}}" class="approval-modal-copy">
+      <view wx:if="{{selectedRequest.status === 'rejected' && selectedRequest.orderType === 'medical_application' && selectedRequest.openid === currentOpenid}}" class="approval-modal-copy">
         <view class="approval-modal-copy-text">该申请已被驳回，是否依据此申请信息重新创建？</view>
         <view class="office-btn-primary approval-copy-btn" bindtap="copyAndResubmitMedical">重新创建申请</view>
       </view>

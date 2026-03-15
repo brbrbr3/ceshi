@@ -29,7 +29,8 @@ const ORDER_STATUS = {
   SUPPLEMENT: 'supplement',
   COMPLETED: 'completed',
   REJECTED: 'rejected',
-  CANCELLED: 'cancelled'
+  CANCELLED: 'cancelled',
+  TERMINATED: 'terminated'
 }
 
 const STEP_TYPE = {
@@ -1362,21 +1363,21 @@ async function cancelOrder(orderId, openid) {
     if (!orderRes.data) {
       throw new Error('工单不存在')
     }
-    
+
     const order = orderRes.data
-    
+
     // 验证权限: 申请人
     if (order.businessData.applicantId !== openid) {
       throw new Error('无权撤回此工单')
     }
-    
+
     // 验证状态: 只能撤回待审批状态的工单
     if (order.workflowStatus !== ORDER_STATUS.PENDING) {
       throw new Error('只能撤回待审批的工单')
     }
-    
+
     const now = Date.now()
-    
+
     // 更新工单状态
     await ordersCollection.doc(orderId).update({
       data: {
@@ -1386,10 +1387,10 @@ async function cancelOrder(orderId, openid) {
         updatedAt: now
       }
     })
-    
+
     // 取消所有待处理任务
     await cancelPendingTasks(orderId)
-    
+
     // 记录日志
     await logWorkflowAction(
       orderId,
@@ -1402,8 +1403,73 @@ async function cancelOrder(orderId, openid) {
       { workflowStatus: ORDER_STATUS.CANCELLED },
       null
     )
-    
+
     return success({}, '工单已撤回')
+
+  } catch (error) {
+    throw error
+  }
+}
+
+// 中止工单（申请人或审批人）
+async function terminateOrder(orderId, openid, operatorName = '审批人', reason = '流程无法继续，已中止') {
+  try {
+    const orderRes = await ordersCollection.doc(orderId).get()
+    if (!orderRes.data) {
+      throw new Error('工单不存在')
+    }
+
+    const order = orderRes.data
+
+    // 验证权限: 申请人或有权限的审批人
+    const isApplicant = order.businessData.applicantId === openid
+    if (!isApplicant) {
+      // 检查是否是审批人（通过角色判断）
+      const userRes = await usersCollection.where({ openid }).get()
+      if (!userRes.data || userRes.data.length === 0) {
+        throw new Error('无权中止此工单')
+      }
+      const user = userRes.data[0]
+      if (user.role !== '馆领导' && user.role !== '部门负责人' && user.role !== '会计主管') {
+        throw new Error('无权中止此工单')
+      }
+    }
+
+    // 验证状态: 只能中止待审批状态的工单
+    if (order.workflowStatus !== ORDER_STATUS.PENDING) {
+      throw new Error('只能中止待审批的工单')
+    }
+
+    const now = Date.now()
+
+    // 更新工单状态
+    await ordersCollection.doc(orderId).update({
+      data: {
+        workflowStatus: ORDER_STATUS.TERMINATED,
+        finalDecision: 'terminated',
+        completedAt: now,
+        totalDuration: now - (order.startedAt || order.submittedAt),
+        updatedAt: now
+      }
+    })
+
+    // 取消所有待处理任务
+    await cancelPendingTasks(orderId)
+
+    // 记录日志
+    await logWorkflowAction(
+      orderId,
+      'terminate',
+      openid,
+      isApplicant ? (order.businessData.applicantName || '申请人') : operatorName,
+      '中止工单',
+      null,
+      { workflowStatus: ORDER_STATUS.PENDING },
+      { workflowStatus: ORDER_STATUS.TERMINATED, reason },
+      null
+    )
+
+    return success({}, '工单已中止')
 
   } catch (error) {
     throw error
@@ -1417,7 +1483,7 @@ exports.main = async (event) => {
   const action = event && event.action
 
   // 只有需要 openid 的操作才进行验证
-  const actionsRequireOpenid = ['getMyOrders', 'getMyTasks', 'getOrderDetail', 'supplementOrder', 'cancelOrder', 'approveTask']
+  const actionsRequireOpenid = ['getMyOrders', 'getMyTasks', 'getOrderDetail', 'supplementOrder', 'cancelOrder', 'terminateOrder', 'approveTask']
 
   // 对于 approveTask，如果提供了 operatorId，则不依赖 wxContext.OPENID
   const requireOpenid = actionsRequireOpenid.includes(action) && action !== 'approveTask'
@@ -1462,7 +1528,10 @@ exports.main = async (event) => {
       
       case 'cancelOrder':
         return await cancelOrder(event.orderId, openid)
-      
+
+      case 'terminateOrder':
+        return await terminateOrder(event.orderId, openid, event.operatorName, event.reason)
+
       default:
         return fail('不支持的操作类型', 400)
     }
