@@ -1,0 +1,40 @@
+<view class="container">
+  <!-- 加载状态 -->
+  <view wx:if="{{loading}}" class="loading">
+    <text class="loading-text">加载中...</text>
+  </view>
+
+  <!-- 公告详情 -->
+  <view wx:else class="detail-container">
+    <!-- 公告头部 -->
+    <view class="announcement-header">
+      <view class="header-top">
+        <view class="announcement-tag {{announcement.typeClass}}">{{announcement.typeText}}</view>
+        <view wx:if="{{announcement.status === 'revoked'}}" class="status-tag status-revoked">已撤回</view>
+      </view>
+      <view class="announcement-title">{{announcement.title}}</view>
+      <view class="announcement-meta">
+        <text class="publisher">{{announcement.publisherName}}</text>
+        <text class="time">{{announcement.timeText}}</text>
+      </view>
+    </view>
+
+    <!-- 公告内容 -->
+    <view class="announcement-content">
+      <text class="content-text">{{announcement.content}}</text>
+    </view>
+
+    <!-- 阅读统计 -->
+    <view class="read-stats">
+      <view class="stat-item">
+        <text class="stat-count">{{announcement.readCount}}</text>
+        <text class="stat-label">人已阅读</text>
+      </view>
+    </view>
+
+    <!-- 操作按钮 -->
+    <view class="action-bar" wx:if="{{announcement.canRevoke}}">
+      <button class="btn-revoke" bindtap="handleRevoke">撤回公告</button>
+    </view>
+  </view>
+</view>

@@ -1,0 +1,152 @@
+/* pages/office/announcement-detail/announcement-detail.wxss */
+.container {
+  min-height: 100vh;
+  background-color: #f5f7fa;
+}
+
+/* 加载状态 */
+.loading {
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  padding: 200rpx 0;
+}
+
+.loading-text {
+  font-size: 28rpx;
+  color: #999;
+}
+
+/* 详情容器 */
+.detail-container {
+  padding: 20rpx;
+}
+
+/* 公告头部 */
+.announcement-header {
+  background-color: #fff;
+  border-radius: 12rpx;
+  padding: 30rpx;
+  margin-bottom: 20rpx;
+  box-shadow: 0 2rpx 8rpx rgba(0, 0, 0, 0.05);
+}
+
+.header-top {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 16rpx;
+}
+
+.announcement-tag {
+  padding: 4rpx 16rpx;
+  border-radius: 6rpx;
+  font-size: 22rpx;
+}
+
+.tag-urgent {
+  background-color: #FEE2E2;
+  color: #DC2626;
+}
+
+.tag-important {
+  background-color: #FEF3C7;
+  color: #D97706;
+}
+
+.tag-normal {
+  background-color: #E0F2FE;
+  color: #0284C7;
+}
+
+.status-tag {
+  padding: 4rpx 16rpx;
+  border-radius: 6rpx;
+  font-size: 22rpx;
+  background-color: #F3F4F6;
+  color: #6B7280;
+}
+
+.announcement-title {
+  font-size: 36rpx;
+  font-weight: 500;
+  color: #333;
+  line-height: 1.5;
+  margin-bottom: 20rpx;
+}
+
+.announcement-meta {
+  display: flex;
+  align-items: center;
+  font-size: 26rpx;
+  color: #999;
+  gap: 20rpx;
+}
+
+/* 公告内容 */
+.announcement-content {
+  background-color: #fff;
+  border-radius: 12rpx;
+  padding: 30rpx;
+  margin-bottom: 20rpx;
+  box-shadow: 0 2rpx 8rpx rgba(0, 0, 0, 0.05);
+}
+
+.content-text {
+  font-size: 30rpx;
+  color: #333;
+  line-height: 1.8;
+  white-space: pre-wrap;
+  word-break: break-all;
+}
+
+/* 阅读统计 */
+.read-stats {
+  background-color: #fff;
+  border-radius: 12rpx;
+  padding: 30rpx;
+  margin-bottom: 20rpx;
+  box-shadow: 0 2rpx 8rpx rgba(0, 0, 0, 0.05);
+  display: flex;
+  justify-content: center;
+}
+
+.stat-item {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+}
+
+.stat-count {
+  font-size: 48rpx;
+  font-weight: 500;
+  color: #2563EB;
+  margin-bottom: 8rpx;
+}
+
+.stat-label {
+  font-size: 26rpx;
+  color: #999;
+}
+
+/* 操作按钮 */
+.action-bar {
+  background-color: #fff;
+  border-radius: 12rpx;
+  padding: 20rpx 30rpx;
+  box-shadow: 0 2rpx 8rpx rgba(0, 0, 0, 0.05);
+}
+
+.btn-revoke {
+  width: 100%;
+  background-color: #DC2626;
+  color: #fff;
+  border: none;
+  border-radius: 8rpx;
+  font-size: 30rpx;
+  padding: 24rpx 0;
+}
+
+.btn-revoke:active {
+  background-color: #B91C1C;
+}

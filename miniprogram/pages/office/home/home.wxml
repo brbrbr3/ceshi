@@ -61,16 +61,19 @@
     <view class="office-section">
       <view class="office-section-header">
         <view class="office-section-title">通知公告</view>
-        <view class="office-link" bindtap="showComingSoon">更多</view>
+        <view class="office-link" bindtap="goAnnouncements">更多</view>
       </view>
       <view class="office-card home-news-card">
-        <view class="home-news-item" wx:for="{{announcements}}" wx:key="title">
+        <view class="home-news-item" wx:for="{{announcements}}" wx:key="_id" bindtap="handleAnnouncementTap" data-id="{{item._id}}">
           <view class="office-pill home-news-tag" style="background: {{item.tagBg}}; color: {{item.tagColor}};">{{item.tag}}</view>
           <view class="home-news-main">
             <view class="home-news-title {{!item.unread ? 'is-read' : ''}}">{{item.title}}</view>
             <view class="home-news-time">{{item.time}}</view>
           </view>
           <view wx:if="{{item.unread}}" class="home-news-dot"></view>
+        </view>
+        <view wx:if="{{!loading && announcements.length === 0}}" class="empty-announcement">
+          <text class="empty-text">暂无通知公告</text>
         </view>
       </view>
     </view>

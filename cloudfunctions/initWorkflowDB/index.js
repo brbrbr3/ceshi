@@ -110,6 +110,22 @@ const EXAMPLE_TEMPLATES = [
     status: 'active',
     createdAt: Date.now(),
     updatedAt: Date.now()
+  },
+
+  {
+    name: '通知公告发布',
+    code: 'notification_publish',
+    version: 1,
+    description: '发布通知公告（0步审批，直接发布）',
+    category: 'approval',
+    steps: [],
+    defaultTimeout: 72,
+    notifyOnSubmit: false,
+    notifyOnComplete: false,
+    notifyOnTimeout: false,
+    status: 'active',
+    createdAt: 1757917052000,
+    updatedAt: 1757917052000
   }
 ]
 

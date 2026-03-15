@@ -1,6 +1,9 @@
 const app = getApp()
 const util = require('../../../util/util.js')
 
+// 使用统一的时间格式化函数
+const formatTime = util.formatTimeToGMT3
+
 Page({
   data: {
     displayName: '访客',
@@ -9,6 +12,7 @@ Page({
     roleLabel: '待认证用户',
     pendingApprovalCount: 0,
     unreadNotificationCount: 0,
+    loading: false,
     stats: [
       { label: '待审批', value: '0', color: '#F44336', bg: '#FFEBEE' },
       { label: '待办事项', value: '12', color: '#FF9800', bg: '#FFF3E0' },
@@ -29,11 +33,7 @@ Page({
       { name: '李婷婷', dept: '市场部', type: '费用报销', time: '1小时前', avatar: '李', avatarBg: '#FF9800' },
       { name: '王建国', dept: '销售部', type: '出差申请', time: '2小时前', avatar: '王', avatarBg: '#9C27B0' }
     ],
-    announcements: [
-      { tag: '重要', tagColor: '#F44336', tagBg: '#FFEBEE', title: '关于 2026 年 Q1 绩效考核通知', time: '今天 09:30', unread: true },
-      { tag: '通知', tagColor: '#FF9800', tagBg: '#FFF3E0', title: '3 月份团建活动报名截止时间提醒', time: '昨天 14:20', unread: true },
-      { tag: '公告', tagColor: '#9C27B0', tagBg: '#F3E5F5', title: '办公系统升级维护公告（3 月 15 日）', time: '03-08', unread: false }
-    ],
+    announcements: [],
     schedules: [
       { time: '10:00', title: '产品周会', type: '会议', color: '#7C3AED', bg: '#F3E8FF' },
       { time: '14:00', title: 'Q1 季度总结汇报', type: '汇报', color: '#0891B2', bg: '#E0F2FE' },
@@ -47,6 +47,7 @@ Page({
     })
     this.syncUserProfile()
     this.syncNotifications()
+    this.loadAnnouncements()
   },
 
   getCurrentDateText() {
@@ -128,6 +129,75 @@ Page({
     wx.navigateTo({
       url: '/pages/office/notifications/notifications'
     })
+  },
+
+  loadAnnouncements() {
+    this.setData({ loading: true })
+
+    wx.cloud.callFunction({
+      name: 'announcementManager',
+      data: {
+        action: 'list',
+        params: {
+          page: 1,
+          pageSize: 3
+        }
+      }
+    }).then(res => {
+      const result = res.result
+      if (result && result.code === 0) {
+        const list = result.data.list || []
+        const formattedList = list.map(item => this.formatAnnouncement(item))
+        this.setData({
+          announcements: formattedList,
+          loading: false
+        })
+      } else {
+        throw new Error(result.message || '加载失败')
+      }
+    }).catch(error => {
+      console.error('加载通知公告失败:', error)
+      this.setData({
+        loading: false
+      })
+    })
+  },
+
+  formatAnnouncement(item) {
+    const typeInfo = this.getAnnouncementTypeInfo(item.type)
+    return {
+      _id: item._id,
+      title: item.title,
+      tag: typeInfo.text,
+      tagColor: typeInfo.color,
+      tagBg: typeInfo.bg,
+      time: formatTime(item.publishedAt),
+      unread: !item.readUsers || !item.readUsers.includes(app.globalData.openid)
+    }
+  },
+
+  getAnnouncementTypeInfo(type) {
+    const typeMap = {
+      'urgent': { text: '紧急', color: '#DC2626', bg: '#FEE2E2' },
+      'important': { text: '重要', color: '#D97706', bg: '#FEF3C7' },
+      'normal': { text: '通知', color: '#0284C7', bg: '#E0F2FE' }
+    }
+    return typeMap[type] || typeMap.normal
+  },
+
+  goAnnouncements() {
+    wx.navigateTo({
+      url: '/pages/office/announcement-list/announcement-list'
+    })
+  },
+
+  handleAnnouncementTap(e) {
+    const id = e.currentTarget.dataset.id
+    if (id) {
+      wx.navigateTo({
+        url: `/pages/office/announcement-detail/announcement-detail?id=${id}`
+      })
+    }
   },
 
   handleQuickAction(e) {

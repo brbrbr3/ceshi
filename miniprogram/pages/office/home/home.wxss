@@ -371,3 +371,15 @@ page {
 .home-schedule-type {
   flex-shrink: 0;
 }
+
+.empty-announcement {
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  padding: 60rpx 0;
+}
+
+.empty-text {
+  font-size: 26rpx;
+  color: #94A3B8;
+}

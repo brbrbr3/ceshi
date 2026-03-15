@@ -2,6 +2,7 @@ const config = require('./config')
 const themeListeners = []
 const AUTH_STORAGE_KEY = 'office-auth-cache'
 const SUBSCRIBE_REQUEST_KEY = 'office-subscribe-requested'
+const WORKFLOW_INIT_KEY = 'office-workflow-initialized'
 
 global.isDemo = true
 
@@ -71,6 +72,7 @@ App({
       })
     }
     this.restoreAuthState()
+    this.initWorkflowTemplates()
   },
 
   onShow(opts) {
@@ -485,6 +487,66 @@ App({
         throw new Error(result.message || '更新权限配置失败')
       }
       return result.data || {}
+    })
+  },
+
+  /**
+   * 初始化工作流模板（确保必需的工作流模板已导入）
+   * 使用本地存储标记避免重复初始化
+   */
+  initWorkflowTemplates() {
+    const initialized = readStorage(WORKFLOW_INIT_KEY)
+
+    // 如果已经初始化过，则跳过
+    if (initialized) {
+      return
+    }
+
+    // 调用云函数初始化工作流模板
+    wx.cloud.callFunction({
+      name: 'initWorkflowDB',
+      data: {}
+    }).then(res => {
+      const result = res.result || {}
+      if (result.code === 0) {
+        console.log('工作流模板初始化成功:', result.data)
+        // 标记为已初始化
+        writeStorage(WORKFLOW_INIT_KEY, {
+          initialized: true,
+          timestamp: Date.now(),
+          data: result.data
+        })
+      } else {
+        console.warn('工作流模板初始化失败:', result.message)
+      }
+    }).catch(error => {
+      console.error('工作流模板初始化异常:', error)
+      // 静默失败，不影响用户使用
+    })
+  },
+
+  /**
+   * 重新初始化工作流模板（用于强制刷新模板）
+   * @returns {Promise<Object>} 初始化结果
+   */
+  reinitWorkflowTemplates() {
+    return wx.cloud.callFunction({
+      name: 'initWorkflowDB',
+      data: {}
+    }).then(res => {
+      const result = res.result || {}
+      if (result.code === 0) {
+        console.log('工作流模板重新初始化成功:', result.data)
+        // 更新初始化标记
+        writeStorage(WORKFLOW_INIT_KEY, {
+          initialized: true,
+          timestamp: Date.now(),
+          data: result.data
+        })
+        return result.data
+      } else {
+        throw new Error(result.message || '重新初始化失败')
+      }
     })
   }
 })
