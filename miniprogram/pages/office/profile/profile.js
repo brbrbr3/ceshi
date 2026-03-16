@@ -72,6 +72,11 @@ Page({
           companyInfo.splice(2, 0, { label: '岗位', value: user.position })
         }
 
+        // 如果有部门信息，添加到信息卡片中
+        if (user.department) {
+          companyInfo.splice(companyInfo.length - 1, 0, { label: '部门', value: user.department })
+        }
+
         // 如果有亲属信息，添加到信息卡片中
         if (user.relativeName) {
           companyInfo.splice(companyInfo.length - 1, 0, { label: '亲属', value: user.relativeName })

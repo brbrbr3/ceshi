@@ -106,6 +106,42 @@ wx.cloud.callFunction({
 - **示例模板**: `.codebuddy/workflow/example-templates.js`
 - **安全规则**: `.codebuddy/database-rules/workflow-rules.json`
 
+---
+
+## 项目文档索引
+
+### 开发规范
+
+- **[编码规范](.codebuddy/docs/CODING_STANDARDS.md)** - 项目编码标准和最佳实践
+- **[MCP工具执行规范](.codebuddy/docs/MCP_EXECUTION_STANDARD.md)** - AI助手如何自动使用MCP工具
+- **[数据库集合参考](.codebuddy/docs/DATABASE_COLLECTIONS_REFERENCE.md)** - 所有数据库集合的详细说明
+- **[权限管理](.codebuddy/docs/PERMISSION-MANAGEMENT.md)** - 数据库权限配置指南
+- **[分页框架](.codebuddy/docs/pagination-framework.md)** - 分页组件使用指南
+- **[文档组织说明](.codebuddy/README_ORGANIZATION.md)** - 项目文档结构和查找指南
+
+### 功能文档
+
+- **[通知公告UI重设计](.codebuddy/docs/features/ANNOUNCEMENT_UI_REDESIGN.md)** - 通知公告页面设计改进总结
+- **[工作流自动初始化](.codebuddy/docs/features/WORKFLOW_AUTO_INIT.md)** - 工作流模板自动初始化机制
+
+### 工作流文档
+
+- **[工作流框架说明](.codebuddy/workflow/README.md)** - 工作流框架介绍和快速开始
+- **[工作流部署指南](.codebuddy/workflow/DEPLOYMENT.md)** - 工作流云函数部署步骤
+- **[工作流模板导入](.codebuddy/workflow/guides/IMPORT_WORKFLOW_GUIDE.md)** - 通用工作流模板导入流程
+- **[通知公告工作流导入](.codebuddy/workflow/guides/WORKFLOW_IMPORT_GUIDE.md)** - 通知公告工作流详细导入指南
+- **[订阅消息配置](.codebuddy/workflow/SUBSCRIBE_MESSAGE_CONFIG.md)** - 订阅消息模板配置说明
+
+### CloudBase规则
+
+完整规则文档位于 `.codebuddy/rules/` 目录，包括：
+- CloudBase平台规则
+- AI模型使用规则（Node.js/Web/小程序）
+- 认证规则（Web/小程序/HTTP API）
+- 云函数开发规则
+- 数据库操作规则
+- 前端开发规则
+
 ### 常见场景
 
 #### 场景 1: 单步审批（用户注册）

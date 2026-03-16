@@ -139,6 +139,19 @@
   createdAt: Number,               // 创建时间戳
   updatedAt: Number                // 更新时间戳
 }
+
+**formData 字段结构**：
+```javascript
+{
+  name: String,                   // 姓名
+  gender: String,                 // 性别：'男' | '女'
+  birthday: String,               // 生日
+  role: String,                   // 角色：'馆领导' | '部门负责人' | '馆员' | '工勤' | '物业' | '配偶' | '家属'
+  position: String,               // 职位
+  isAdmin: Boolean,              // 是否管理员
+  relativeName: String,           // 关系人姓名（紧急联系人）
+  department: String              // 部门：'政治处' | '新公处' | '经商处' | '科技处' | '武官处' | '领侨处' | '文化处' | '办公室' | '党委办'
+}
 ```
 
 ---
@@ -169,6 +182,7 @@
   status: String,                 // 状态：'approved'（已通过）| 'pending'（待审批）| 'rejected'（已拒绝）
   avatarText: String,              // 头像文字（取姓名第一个字）
   relativeName: String,            // 关系人姓名（紧急联系人）
+  department: String               // 部门：'政治处' | '新公处' | '经商处' | '科技处' | '武官处' | '领侨处' | '文化处' | '办公室' | '党委办'
   createdAt: Number,               // 创建时间戳
   updatedAt: Number,               // 更新时间戳
   approvedAt: Number               // 审批通过时间戳

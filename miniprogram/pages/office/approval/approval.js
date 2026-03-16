@@ -98,6 +98,9 @@ function mapRequestItem(request) {
     if (request.position && request.position !== '无') {
       detailParts.push(request.position)
     }
+    if (request.department) {
+      detailParts.push(request.department)
+    }
     detailParts.push(request.isAdmin ? '申请管理员' : '普通成员')
     detail = detailParts.join(' · ')
     requestType = '注册申请'

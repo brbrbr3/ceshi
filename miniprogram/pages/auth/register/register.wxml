@@ -58,6 +58,16 @@
         </picker>
       </view>
 
+      <view wx:if="{{showDepartmentField}}" class="auth-field">
+        <view class="auth-field-label">部门</view>
+        <picker mode="selector" range="{{departmentOptions}}" value="{{departmentIndex}}" bindchange="handleDepartmentChange">
+          <view class="auth-picker-shell {{form.department ? '' : 'is-placeholder'}}">
+            <view class="auth-picker-value">{{form.department || '请选择部门'}}</view>
+            <view class="auth-picker-arrow">›</view>
+          </view>
+        </picker>
+      </view>
+
       <view wx:if="{{showRelativeField}}" class="auth-field">
         <view class="auth-field-label">您是哪位馆员的亲属？</view>
         <view class="auth-input-shell">

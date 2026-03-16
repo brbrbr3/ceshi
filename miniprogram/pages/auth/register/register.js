@@ -2,6 +2,7 @@ const app = getApp()
 const util = require('../../../util/util.js')
 const ROLE_OPTIONS = ['馆领导', '部门负责人', '馆员', '工勤', '物业', '配偶', '家属']
 const POSITION_OPTIONS = ['无', '会计主管', '会计', '俱乐部', '阳光课堂', '招待员', '厨师', '内聘' ]
+const DEPARTMENT_OPTIONS = ['政治处', '新公处', '经商处', '科技处', '武官处', '领侨处', '文化处', '办公室', '党委办']
 
 // 独立函数，用于获取今天的日期（使用巴西利亚时间 GMT-3）
 function getTodayDate() {
@@ -22,9 +23,12 @@ Page({
     mode: 'create',
     roleOptions: ROLE_OPTIONS,
     positionOptions: POSITION_OPTIONS,
+    departmentOptions: DEPARTMENT_OPTIONS,
     roleIndex: -1,
     positionIndex: 0,
+    departmentIndex: 0,
     showRelativeField: false,
+    showDepartmentField: false,
     reviewRemark: '',
     today: getTodayDate(),
     form: {
@@ -34,7 +38,8 @@ Page({
       role: '',
       isAdmin: false,
       relativeName: '',
-      position: '无'
+      position: '无',
+      department: ''
     }
   },
 
@@ -70,11 +75,33 @@ Page({
         const roleIndex = result.request.role ? ROLE_OPTIONS.indexOf(result.request.role) : -1
         const role = result.request.role || ''
         const showRelativeField = role === '配偶' || role === '家属'
+        const showDepartmentField = role === '部门负责人' || role === '馆员' || role === '工勤'
         const positionIndex = result.request.position ? POSITION_OPTIONS.indexOf(result.request.position) : 0
+
+        let department = result.request.department || ''
+        let departmentIndex = 0
+        let departmentOptions = DEPARTMENT_OPTIONS
+
+        // 如果是工勤角色，部门固定为"办公室"
+        if (role === '工勤') {
+          department = '办公室'
+          departmentIndex = 7
+          departmentOptions = ['办公室']
+        } else if (department) {
+          departmentIndex = DEPARTMENT_OPTIONS.indexOf(department)
+          if (departmentIndex === -1) {
+            departmentIndex = 0
+            department = ''
+          }
+        }
+
         this.setData({
           roleIndex,
           positionIndex,
           showRelativeField,
+          showDepartmentField,
+          departmentIndex,
+          departmentOptions,
           reviewRemark: result.request.status === 'rejected'
             ? (result.request.reviewRemark || '管理员已退回该申请，请修改后重新提交。')
             : '',
@@ -86,7 +113,8 @@ Page({
             role: role,
             isAdmin: !!result.request.isAdmin,
             relativeName: result.request.relativeName || '',
-            position: result.request.position || '无'
+            position: result.request.position || '无',
+            department: department
           }
         })
       })
@@ -136,11 +164,29 @@ Page({
     const roleIndex = Number(e.detail.value)
     const role = ROLE_OPTIONS[roleIndex]
     const showRelativeField = role === '配偶' || role === '家属'
+    const showDepartmentField = role === '部门负责人' || role === '馆员' || role === '工勤'
+    const isWorker = role === '工勤'
+
+    let department = ''
+    let departmentIndex = 0
+    let departmentOptions = DEPARTMENT_OPTIONS
+
+    // 如果是工勤角色，部门固定为"办公室"
+    if (isWorker) {
+      department = '办公室'
+      departmentIndex = 7  // "办公室"在数组中的索引
+      departmentOptions = ['办公室']  // 只显示这一个选项
+    }
+
     this.setData({
       roleIndex,
       'form.role': role,
       showRelativeField,
-      'form.relativeName': showRelativeField ? this.data.form.relativeName : ''
+      showDepartmentField,
+      'form.relativeName': showRelativeField ? this.data.form.relativeName : '',
+      'form.department': department,
+      departmentIndex,
+      departmentOptions
     })
   },
 
@@ -155,6 +201,14 @@ Page({
     this.setData({
       positionIndex,
       'form.position': POSITION_OPTIONS[positionIndex]
+    })
+  },
+
+  handleDepartmentChange(e) {
+    const departmentIndex = Number(e.detail.value)
+    this.setData({
+      departmentIndex,
+      'form.department': this.data.departmentOptions[departmentIndex]
     })
   },
 
@@ -188,6 +242,10 @@ Page({
     }
     if ((form.role === '配偶' || form.role === '家属') && !String(form.relativeName || '').trim()) {
       util.showToast({ title: '请填写亲属姓名', icon: 'none' })
+      return
+    }
+    if ((form.role === '部门负责人' || form.role === '馆员' || form.role === '工勤') && !form.department) {
+      util.showToast({ title: '请选择部门', icon: 'none' })
       return
     }
 
