@@ -1,0 +1,24 @@
+page {
+  background: #EEF2FF;
+}
+
+.auth-input-shell.is-disabled {
+  background: #F1F5F9;
+  opacity: 0.8;
+}
+
+.auth-input-shell.is-disabled input {
+  color: #64748B;
+}
+
+.auth-segment.is-disabled .auth-segment-item {
+  opacity: 0.8;
+  pointer-events: none;
+}
+
+.auth-field-hint {
+  margin-top: 8rpx;
+  font-size: 20rpx;
+  color: #64748B;
+  padding-left: 4rpx;
+}

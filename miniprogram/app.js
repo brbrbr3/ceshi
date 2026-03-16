@@ -214,6 +214,12 @@ App({
     })
   },
 
+  submitProfileUpdate(formData) {
+    return this.callOfficeAuth('submitProfileUpdate', { formData }).then((data) => {
+      return data
+    })
+  },
+
   ensureApprovedUser() {
     return this.checkUserRegistration().then((data) => {
       if (data.registered && data.user) {

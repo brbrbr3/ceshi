@@ -441,10 +441,84 @@ await invokeFunction({
 
 ---
 
+## 小程序页面开发注意事项
+
+### 相对路径引用规范
+
+创建新页面时，必须正确计算相对于项目根目录的路径：
+
+#### 路径计算公式
+
+```
+../ 的数量 = (当前页面深度 - 1) + (目标文件深度)
+```
+
+#### 目录深度参考
+
+| 文件路径 | 深度 |
+|---------|------|
+| `util/util.js` | 1 |
+| `pages/auth/login/login.js` | 3 |
+| `pages/office/home/home.js` | 4 |
+| `pages/office/profile/profile.js` | 5 |
+| `pages/office/profile/edit-profile/edit-profile.js` | 6 |
+
+#### 常用引用路径示例
+
+| 当前文件 | 引用文件 | 正确路径 |
+|---------|---------|---------|
+| `pages/auth/register/register.js` | `util/util.js` | `../../../../util/util.js` (4个../) |
+| `pages/office/home/home.js` | `util/util.js` | `../../../util/util.js` (3个../) |
+| `pages/office/profile/profile.js` | `util/util.js` | `../../../util/util.js` (3个../) |
+| `pages/office/profile/edit-profile/edit-profile.js` | `util/util.js` | `../../../../util/util.js` (5个../) |
+| `pages/office/profile/edit-profile/edit-profile.js` | `app.js` | `../../../../app.js` (5个../) |
+
+#### 常见错误示例
+
+❌ **错误**：`pages/office/profile/edit-profile/edit-profile.js` 引用 `util/util.js`
+```javascript
+const util = require('../../../util/util.js')  // ❌ 路径错误，只有3个../
+```
+
+✅ **正确**：
+```javascript
+const util = require('../../../../util/util.js')  // ✅ 正确，5个../
+```
+
+#### 验证方法
+
+1. **创建页面后立即编译**：确保没有 "module not defined" 错误
+2. **检查路径层级**：
+   - 从当前文件位置开始，每向上一级目录添加一个 `../`
+   - 直到到达项目根目录
+   - 然后加上目标文件的相对路径
+3. **使用微信开发者工具验证**：点击文件跳转功能，确认路径正确
+
+#### app.json 页面注册规范
+
+创建新页面时，必须在 `app.json` 的 `pages` 数组中注册页面路径：
+
+```json
+{
+  "pages": [
+    "pages/office/profile/edit-profile/edit-profile"  // 必须添加完整路径
+  ]
+}
+```
+
+**验证方法**：
+1. 在 `app.json` 中添加页面路径
+2. 保存文件
+3. 在其他页面使用 `wx.navigateTo` 测试跳转
+4. 如果点击无反应，检查页面路径是否正确
+
+---
+
 ## 更新日志
 
 | 日期 | 版本 | 更新内容 |
 |------|------|---------|
+| 2026-03-17 | 1.1 | 新增"小程序页面开发注意事项"章节，包含相对路径引用规范和页面注册规范 |
 | 2026-03-16 | 1.0 | 初始版本，定义MCP工具自动执行规范 |
 
 ---

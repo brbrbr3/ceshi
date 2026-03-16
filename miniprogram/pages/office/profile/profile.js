@@ -32,6 +32,7 @@ Page({
       {
         title: '个人设置',
         items: [
+          { icon: '👤', label: '修改个人信息' },
           { icon: '🔔', label: '消息通知' },
           { icon: '🔒', label: '账号安全' },
           { icon: '❓', label: '帮助中心' },
@@ -122,7 +123,11 @@ Page({
 
   handleMenuTap(e) {
     const label = e.currentTarget.dataset.label
-    if (label === '消息通知') {
+    if (label === '修改个人信息') {
+      wx.navigateTo({
+        url: '/pages/office/profile/edit-profile/edit-profile'
+      })
+    } else if (label === '消息通知') {
       wx.navigateTo({
         url: '/pages/office/notifications/notifications'
       })

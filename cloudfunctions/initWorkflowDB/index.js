@@ -51,6 +51,36 @@ const EXAMPLE_TEMPLATES = [
   },
 
   {
+    name: '用户信息修改审批',
+    code: 'user_profile_update',
+    version: 1,
+    description: '用户修改个人信息审批流程',
+    category: 'approval',
+    steps: [{
+      stepNo: 1,
+      stepName: '管理员审批',
+      stepType: 'serial',
+      approverType: 'role',
+      approverConfig: {
+        roleIds: ['admin']
+      },
+      approvalStrategy: 'sequential',
+      canReject: true,
+      canReturn: true,
+      returnTo: 0,
+      timeout: 72,
+      timeoutAction: 'remind'
+    }],
+    defaultTimeout: 72,
+    notifyOnSubmit: true,
+    notifyOnComplete: true,
+    notifyOnTimeout: true,
+    status: 'active',
+    createdAt: Date.now(),
+    updatedAt: Date.now()
+  },
+
+  {
     name: '就医申请审批',
     code: 'medical_application',
     version: 1,

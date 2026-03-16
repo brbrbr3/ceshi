@@ -1109,7 +1109,7 @@ async function completeWorkflow(orderId, decision, approverId, approverName, com
     { workflowStatus: decision === 'approved' ? ORDER_STATUS.COMPLETED : ORDER_STATUS.REJECTED },
     null
   )
-  
+
   // 特殊处理：用户注册审批通过，自动创建用户记录
   if (order.orderType === 'user_registration' && decision === 'approved') {
     const usersCollection = db.collection('office_users')
@@ -1141,7 +1141,7 @@ async function completeWorkflow(orderId, decision, approverId, approverName, com
         : now,
       updatedAt: now
     }
-    
+
     try {
       if (existingUserResult.data && existingUserResult.data.length > 0) {
         // 更新已有用户
@@ -1154,7 +1154,34 @@ async function completeWorkflow(orderId, decision, approverId, approverName, com
       // 不抛出错误，允许流程继续
     }
   }
-  
+
+  // 特殊处理：用户信息修改审批通过，更新用户信息
+  if (order.orderType === 'user_profile_update' && decision === 'approved') {
+    const usersCollection = db.collection('office_users')
+    const businessData = order.businessData || {}
+    const userId = businessData.userId
+
+    if (userId) {
+      const now = Date.now()
+      const updatePayload = {
+        gender: businessData.gender || '',
+        birthday: businessData.birthday || '',
+        role: businessData.role || '馆员',
+        isAdmin: !!businessData.isAdmin,
+        relativeName: businessData.relativeName || '',
+        position: businessData.position || '无',
+        department: businessData.department || '',
+        updatedAt: now
+      }
+
+      try {
+        await usersCollection.doc(userId).update({ data: updatePayload })
+      } catch (error) {
+        // 不抛出错误，允许流程继续
+      }
+    }
+  }
+
   // 发送完成通知给申请人
   await sendWorkflowCompletedNotification(order, decision)
 }

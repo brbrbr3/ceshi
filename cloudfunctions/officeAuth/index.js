@@ -527,6 +527,75 @@ async function submitRegistration(openid, formData) {
   }
 }
 
+async function submitProfileUpdate(openid, formData) {
+  // 验证用户已注册
+  const existingUser = await findUserByOpenId(openid)
+  if (!existingUser || existingUser.status !== REQUEST_STATUS.APPROVED) {
+    return fail('请先完成注册审批', 401, {
+      authStatus: REQUEST_STATUS.PENDING
+    })
+  }
+
+  // 验证表单数据
+  const form = validateForm(formData)
+
+  // 检查是否已有待审批的修改申请
+  const existingOrderResult = await workOrdersCollection
+    .where({
+      'businessData.applicantId': openid,
+      orderType: 'user_profile_update',
+      status: 'in_progress'
+    })
+    .limit(1)
+    .get()
+
+  if (existingOrderResult.data && existingOrderResult.data.length > 0) {
+    const existingOrder = existingOrderResult.data[0]
+    return fail('您的修改申请正在审核中，请勿重复提交', 409, {
+      orderId: existingOrder.orderId,
+      submittedAt: existingOrder.createTime
+    })
+  }
+
+  // 调用工作流引擎提交工单
+  try {
+    const workflowResult = await cloud.callFunction({
+      name: 'workflowEngine',
+      data: {
+        action: 'submitOrder',
+        orderType: 'user_profile_update',
+        businessData: {
+          applicantId: openid,
+          applicantName: form.name,
+          gender: form.gender,
+          birthday: form.birthday,
+          role: form.role,
+          isAdmin: form.isAdmin,
+          relativeName: form.relativeName || '',
+          position: form.position || '无',
+          department: form.department || '',
+          userId: existingUser._id, // 关联原用户ID
+          updateReason: formData.updateReason || '申请修改个人信息'
+        }
+      }
+    })
+
+    if (workflowResult.result.code !== 0) {
+      throw new Error(workflowResult.result.message || '提交工作流工单失败')
+    }
+
+    const orderId = workflowResult.result.data.orderId
+
+    return success({
+      openid,
+      orderId: orderId,
+      message: '修改申请已提交，等待管理员审批'
+    }, '修改申请已提交')
+  } catch (error) {
+    throw new Error('提交工作流工单失败: ' + error.message)
+  }
+}
+
 async function getApprovalData(openid, pagination = {}) {
   const { page = 1, pageSize = 20 } = pagination
   const currentUser = await findUserByOpenId(openid)
@@ -1180,6 +1249,10 @@ exports.main = async (event) => {
 
     if (action === 'submitRegistration') {
       return await submitRegistration(openid, event.formData)
+    }
+
+    if (action === 'submitProfileUpdate') {
+      return await submitProfileUpdate(openid, event.formData)
     }
 
     if (action === 'getApprovalData') {

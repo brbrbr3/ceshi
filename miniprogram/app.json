@@ -8,6 +8,7 @@
     "pages/office/task/task",
     "pages/office/contacts/contacts",
     "pages/office/profile/profile",
+    "pages/office/profile/edit-profile/edit-profile",
     "pages/office/notifications/notifications",
     "pages/office/menus/menus",
     "pages/office/menu-detail/menu-detail",
