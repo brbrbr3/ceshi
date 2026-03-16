@@ -7,7 +7,7 @@ Page({
     roleLabel: '点击登录后查看资料',
     primaryTag: '微信身份',
     secondaryTag: '状态：未注册',
-    avatarText: '智',
+    avatarText: 'CHN',
     userAvatarUrl: '',
     isAdmin: false,
     stats: [

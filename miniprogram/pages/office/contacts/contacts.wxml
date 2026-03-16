@@ -18,7 +18,7 @@
     <view wx:if="{{selectedDept == '全部' && !search}}" class="office-card contacts-overview-card" bindtap="showComingSoon">
       <view class="contacts-overview-icon">👥</view>
       <view class="contacts-overview-main">
-        <view class="contacts-overview-title">智汇科技 · 全员</view>
+        <view class="contacts-overview-title">Embaixada da China · 全员</view>
         <view class="contacts-overview-sub">共 {{totalCount}} 名成员 · {{onlineCount}} 人在线</view>
       </view>
       <view class="contacts-overview-arrow">›</view>

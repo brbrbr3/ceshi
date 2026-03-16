@@ -451,6 +451,211 @@ Page({
 }
 ```
 
+### 4.4 Tab切换加载规范
+
+**规则**：所有带Tab切换的列表页面，必须使用统一的Tab切换加载逻辑。
+
+**强制要求**：
+- 切换Tab时先清空列表
+- 设置loading状态
+- 显示加载中toast（使用wx.showLoading）
+- 重置分页状态到第一页
+- 加载数据完成后隐藏toast（使用wx.hideLoading）
+- 使用finally确保toast总是被隐藏
+
+**实现示例**：
+```javascript
+// pages/example/example.js
+Page({
+  data: {
+    activeTab: 'all',  // 当前选中的Tab
+    currentList: [],   // 当前显示的列表
+    loading: false,    // 加载状态
+    pagination: {      // 分页状态
+      all: { page: 1, hasMore: true },
+      pending: { page: 1, hasMore: true },
+      completed: { page: 1, hasMore: true }
+    }
+  },
+
+  onLoad() {
+    this.loadTabData()
+  },
+
+  /**
+   * Tab切换处理
+   */
+  switchTab(e) {
+    const tab = e.currentTarget.dataset.tab
+    
+    // 如果点击的是当前Tab，不执行任何操作
+    if (tab === this.data.activeTab) {
+      return
+    }
+    
+    // 切换 tab 时，先清空列表并显示加载中
+    this.setData({
+      activeTab: tab,
+      currentList: [],  // 先清空列表
+      loading: true
+    })
+
+    // 显示加载中动画toast
+    wx.showLoading({
+      title: '加载中',
+      mask: true
+    })
+
+    // 始终重新加载第一页数据
+    this.setData({
+      [`pagination.${tab}.page`]: 1,
+      [`pagination.${tab}.hasMore`]: true
+    })
+
+    this.loadTabData().finally(() => {
+      wx.hideLoading()  // 加载完成后隐藏toast
+    })
+  },
+
+  /**
+   * 加载Tab数据
+   */
+  async loadTabData() {
+    const { activeTab, pagination } = this.data
+    const { page, pageSize } = pagination[activeTab]
+
+    try {
+      this.setData({ loading: true })
+
+      // 调用云函数加载数据
+      const res = await wx.cloud.callFunction({
+        name: 'exampleCloudFunction',
+        data: {
+          action: 'list',
+          params: {
+            tab: activeTab,
+            page,
+            pageSize
+          }
+        }
+      })
+
+      const result = res.result
+      if (result.code === 0) {
+        const newData = result.data.list || []
+        const hasMore = result.data.hasMore || false
+
+        this.setData({
+          currentList: newData,
+          [`pagination.${activeTab}.hasMore`]: hasMore,
+          loading: false
+        })
+      } else {
+        throw new Error(result.message || '加载失败')
+      }
+    } catch (error) {
+      console.error('加载数据失败:', error)
+      wx.showToast({
+        title: error.message || '加载失败',
+        icon: 'none'
+      })
+      this.setData({ loading: false })
+    }
+  },
+
+  /**
+   * 上拉加载更多
+   */
+  onReachBottom() {
+    const { activeTab, loading, pagination } = this.data
+    const { page, hasMore } = pagination[activeTab]
+
+    // 如果正在加载或没有更多数据，不执行加载
+    if (loading || !hasMore) {
+      return
+    }
+
+    // 更新页码
+    this.setData({
+      [`pagination.${activeTab}.page`]: page + 1
+    })
+
+    // 加载数据
+    this.loadTabData()
+  },
+
+  /**
+   * 下拉刷新
+   */
+  onPullDownRefresh() {
+    const { activeTab } = this.data
+
+    // 重置分页状态
+    this.setData({
+      currentList: [],
+      [`pagination.${activeTab}.page`]: 1,
+      [`pagination.${activeTab}.hasMore`]: true
+    })
+
+    // 加载数据
+    this.loadTabData().then(() => {
+      wx.stopPullDownRefresh()
+    }).catch(() => {
+      wx.stopPullDownRefresh()
+    })
+  }
+})
+```
+
+**WXML示例**：
+```xml
+<view class="tabs">
+  <view 
+    class="tab {{activeTab === 'all' ? 'active' : ''}}" 
+    bindtap="switchTab" 
+    data-tab="all"
+  >
+    全部
+  </view>
+  <view 
+    class="tab {{activeTab === 'pending' ? 'active' : ''}}" 
+    bindtap="switchTab" 
+    data-tab="pending"
+  >
+    待处理
+  </view>
+  <view 
+    class="tab {{activeTab === 'completed' ? 'active' : ''}}" 
+    bindtap="switchTab" 
+    data-tab="completed"
+  >
+    已完成
+  </view>
+</view>
+
+<view class="list" wx:if="{{currentList.length > 0}}">
+  <view class="item" wx:for="{{currentList}}" wx:key="_id">
+    {{item.title}}
+  </view>
+</view>
+
+<view class="loading" wx:if="{{loading}}">
+  <text>加载中...</text>
+</view>
+
+<view class="empty" wx:if="{{!loading && currentList.length === 0}}">
+  <text>暂无数据</text>
+</view>
+```
+
+**重要提示**：
+- 使用 `wx.showLoading` 和 `wx.hideLoading` 显示/隐藏加载提示
+- 使用 `finally` 确保无论成功或失败，加载提示都会被隐藏
+- 使用 `mask: true` 防止用户在加载过程中进行其他操作
+- 每个Tab维护独立的分页状态（`pagination.{tabName}`）
+- 切换Tab时清空列表，提供更好的用户体验
+- 避免重复加载：点击当前Tab时不执行任何操作
+
 ---
 
 ## 5. 权限控制规范

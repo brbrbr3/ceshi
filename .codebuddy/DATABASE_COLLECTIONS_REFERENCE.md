@@ -99,6 +99,7 @@
 **索引**：
 - `_openid` - 用户 openid（云开发自动创建）
 - `_id` - 记录 ID（云开发自动创建）
+- `openid_createdAt_idx` - 组合索引：openid（升序）+ createdAt（降序）
 
 **字段结构**：
 ```javascript

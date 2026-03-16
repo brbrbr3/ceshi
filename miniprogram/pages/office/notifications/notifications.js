@@ -18,7 +18,16 @@ Page({
       initialPageSize: 20,
       loadMorePageSize: 10
     })
-    this.loadNotifications()
+
+    // 显示加载中toast
+    wx.showLoading({
+      title: '加载中',
+      mask: true
+    })
+
+    this.loadNotifications().finally(() => {
+      wx.hideLoading()
+    })
   },
 
   onShow() {
@@ -68,7 +77,7 @@ Page({
   },
 
   loadNotifications(loadMore = false) {
-    this.loadListData(loadMore)
+    return this.loadListData(loadMore)
   },
 
   handleNotificationTap(e) {
@@ -119,6 +128,11 @@ Page({
   },
 
   markAllAsRead() {
+    wx.showLoading({
+      title: '加载中',
+      mask: true
+    })
+
     wx.cloud.callFunction({
       name: 'notificationManager',
       data: {
@@ -126,18 +140,22 @@ Page({
       }
     }).then(res => {
       if (res.result.success) {
-        this.loadNotifications()
-        util.showToast({
-          title: '已全部标记为已读',
-          icon: 'success'
+        this.loadNotifications().finally(() => {
+          wx.hideLoading()
+          util.showToast({
+            title: '已全部标记为已读',
+            icon: 'success'
+          })
         })
       } else {
+        wx.hideLoading()
         util.showToast({
           title: '操作失败',
           icon: 'none'
         })
       }
     }).catch(() => {
+      wx.hideLoading()
       util.showToast({
         title: '操作失败',
         icon: 'none'
@@ -151,15 +169,24 @@ Page({
       content: '确定要清空所有消息吗？',
       success: (res) => {
         if (res.confirm) {
-          app.clearAllNotifications(function(success) {
+          wx.showLoading({
+            title: '加载中',
+            mask: true
+          })
+
+          app.clearAllNotifications((success) => {
             if (success) {
-              this.loadNotifications()
-              util.showToast({
-                title: '已清空所有消息',
-                icon: 'success'
+              this.loadNotifications().finally(() => {
+                wx.hideLoading()
+                util.showToast({
+                  title: '已清空所有消息',
+                  icon: 'success'
+                })
               })
+            } else {
+              wx.hideLoading()
             }
-          }.bind(this))
+          })
         }
       }
     })
