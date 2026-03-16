@@ -715,7 +715,9 @@ Page({
     wx.showModal({
       title,
       content,
-      showCancel: false, // 禁用取消按钮，强制选择
+      showCancel: true, // 启用取消按钮，允许用户取消操作
+      confirmText: '确定',
+      cancelText: '取消',
       success: (res) => {
         if (res.confirm) {
           this.reviewRequest(decision)
@@ -777,7 +779,8 @@ Page({
               content: '审批通过，但下一步骤未找到审批人，工单将自动中止',
               confirmText: '中止申请',
               confirmColor: '#DC2626',
-              showCancel: false, // 禁用取消按钮，只能点击"中止申请"
+              showCancel: true, // 启用取消按钮，允许用户选择是否中止
+              cancelText: '取消',
               success: (res) => {
                 if (res.confirm) {
                   // 审批人确认中止申请
@@ -820,6 +823,9 @@ Page({
                     .then(() => {
                       this.setData({ actionLoading: false })
                     })
+                } else {
+                  // 用户取消中止，不执行任何操作，只是关闭对话框
+                  this.setData({ actionLoading: false })
                 }
               }
             })
