@@ -75,7 +75,24 @@ Page({
         const role = user.role || ''
         const showRelativeField = role === '配偶' || role === '家属'
         const showDepartmentField = role === '部门负责人' || role === '馆员' || role === '工勤'
-        const positionIndex = user.position ? POSITION_OPTIONS.indexOf(user.position) : 0
+        
+        // 根据角色设置岗位选项和显示状态
+        let showPositionField = true
+        let positionOptions = POSITION_OPTIONS
+        let positionIndex = 0
+        
+        if (role === '工勤') {
+          positionOptions = ['厨师', '招待员']
+          positionIndex = user.position ? positionOptions.indexOf(user.position) : -1
+        } else if (role === '配偶') {
+          positionOptions = ['无', '内聘']
+          positionIndex = user.position ? positionOptions.indexOf(user.position) : 0
+        } else if (role === '物业' || role === '家属') {
+          showPositionField = false
+          positionIndex = user.position ? POSITION_OPTIONS.indexOf(user.position) : 0
+        } else {
+          positionIndex = user.position ? POSITION_OPTIONS.indexOf(user.position) : 0
+        }
 
         let department = user.department || ''
         let departmentIndex = 0
@@ -152,6 +169,11 @@ Page({
     let department = ''
     let departmentIndex = 0
     let departmentOptions = DEPARTMENT_OPTIONS
+    
+    // 根据角色设置岗位选项和显示状态
+    let showPositionField = true
+    let positionOptions = POSITION_OPTIONS
+    let positionIndex = 0
 
     // 如果是工勤角色，部门固定为"办公室"
     if (isWorker) {
@@ -159,13 +181,31 @@ Page({
       departmentIndex = 7
       departmentOptions = ['办公室']
     }
+    
+    // 根据角色设置岗位选项
+    if (role === '工勤') {
+      positionOptions = ['厨师', '招待员']
+      positionIndex = -1  // 默认不选择，显示空白状态
+    } else if (role === '配偶') {
+      positionOptions = ['无', '内聘']
+      positionIndex = 0
+    } else if (role === '物业' || role === '家属') {
+      showPositionField = false
+      positionIndex = 0
+    } else {
+      positionIndex = 0
+    }
 
     this.setData({
       roleIndex,
+      positionOptions,
+      positionIndex,
       'form.role': role,
       showRelativeField,
       showDepartmentField,
+      showPositionField,
       'form.relativeName': showRelativeField ? this.data.form.relativeName : '',
+      'form.position': positionIndex >= 0 ? positionOptions[positionIndex] : '',
       'form.department': department,
       departmentIndex,
       departmentOptions
@@ -182,7 +222,7 @@ Page({
     const positionIndex = Number(e.detail.value)
     this.setData({
       positionIndex,
-      'form.position': POSITION_OPTIONS[positionIndex]
+      'form.position': this.data.positionOptions[positionIndex]
     })
   },
 
@@ -224,6 +264,10 @@ Page({
     }
     if ((form.role === '部门负责人' || form.role === '馆员' || form.role === '工勤') && !form.department) {
       util.showToast({ title: '请选择部门', icon: 'none' })
+      return
+    }
+    if (form.role === '工勤' && this.data.positionIndex < 0) {
+      util.showToast({ title: '请选择岗位', icon: 'none' })
       return
     }
 

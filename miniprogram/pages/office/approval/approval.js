@@ -62,12 +62,12 @@ function calculateMedicalProgress(currentStep, totalSteps = 3) {
 function mapRequestItem(request) {
   const statusMeta = getStatusMeta(request.status)
   const avatar = request.avatarText || (request.name ? request.name.slice(0, 1) : '智')
-  
+
   // 根据申请类型生成不同的详情
   let detail = ''
-  let requestType = '注册申请'
+  let requestType = request.requestType || '注册申请' // 使用后端返回的 requestType
   let showProgress = false
-  
+
   if (request.orderType === 'medical_application') {
     // 就医申请
     const patientName = request.patientName || ''
@@ -75,7 +75,7 @@ function mapRequestItem(request) {
     const medicalDate = request.medicalDate || ''
     const institution = request.institution || ''
     const detailParts = []
-    
+
     if (patientName) {
       detailParts.push(`就医人：${patientName}`)
     }
@@ -88,10 +88,23 @@ function mapRequestItem(request) {
     if (institution) {
       detailParts.push(`机构：${institution}`)
     }
-    
+
     detail = detailParts.join(' · ')
-    requestType = '就医申请'
     showProgress = request.status === 'pending'
+  } else if (request.orderType === 'user_profile_update') {
+    // 用户信息修改申请
+    const detailParts = []
+    if (request.role) {
+      detailParts.push(`角色：${request.role}`)
+    }
+    if (request.position && request.position !== '无') {
+      detailParts.push(`岗位：${request.position}`)
+    }
+    if (request.department) {
+      detailParts.push(`部门：${request.department}`)
+    }
+    detail = detailParts.join(' · ')
+    showProgress = false
   } else {
     // 注册申请
     const detailParts = [request.birthday]
@@ -103,7 +116,6 @@ function mapRequestItem(request) {
     }
     detailParts.push(request.isAdmin ? '申请管理员' : '普通成员')
     detail = detailParts.join(' · ')
-    requestType = '注册申请'
     showProgress = false
   }
 
@@ -209,7 +221,18 @@ function mapRequestItem(request) {
     institution: request.institution || '',
     otherInstitution: request.otherInstitution || '',
     reasonForSelection: request.reasonForSelection || '',
-    reason: request.reason || ''
+    reason: request.reason || '',
+    // 注册申请字段（用于详情页面显示）
+    gender: request.gender || '',
+    birthday: request.birthday || '',
+    role: request.role || '',
+    isAdmin: request.isAdmin || false,
+    relativeName: request.relativeName || '',
+    position: request.position || '无',
+    department: request.department || '',
+    avatarText: request.avatarText,
+    // 用户信息修改字段
+    updateReason: request.updateReason || ''
   }
 }
 

@@ -11,6 +11,7 @@ const requestCollection = db.collection('office_registration_requests')
 const workOrdersCollection = db.collection('work_orders')
 const workflowTasksCollection = db.collection('workflow_tasks')
 const workflowLogsCollection = db.collection('workflow_logs')
+const templatesCollection = db.collection('workflow_templates')
 const ROLE_OPTIONS = ['馆领导', '部门负责人', '馆员', '工勤', '物业', '配偶', '家属']
 const GENDER_OPTIONS = ['男', '女']
 const REQUEST_STATUS = {
@@ -599,17 +600,42 @@ async function submitProfileUpdate(openid, formData) {
 async function getApprovalData(openid, pagination = {}) {
   const { page = 1, pageSize = 20 } = pagination
   const currentUser = await findUserByOpenId(openid)
-  
+
   // 权限判断：馆领导、部门负责人、管理员可以审批
-  const canReview = !!(currentUser && 
-    currentUser.status === REQUEST_STATUS.APPROVED && 
+  const canReview = !!(currentUser &&
+    currentUser.status === REQUEST_STATUS.APPROVED &&
     (currentUser.isAdmin || currentUser.role === '馆领导' || currentUser.role === '部门负责人'))
 
-  // 查询我的工单（包括注册申请和就医申请）
+  // 查询所有激活的工作流模板，用于获取申请类型的名称
+  const templatesResult = await templatesCollection
+    .where({
+      status: 'active'
+    })
+    .get()
+
+  // 创建 orderType 到模板 name 的映射
+  const templateMap = {}
+  if (templatesResult.data) {
+    templatesResult.data.forEach(template => {
+      // 处理显示名称：去掉"审批"，如果不是"申请"结尾则添加"申请"
+      let displayName = template.name
+      if (displayName.endsWith('审批')) {
+        displayName = displayName.slice(0, -2) // 去掉"审批"
+        if (!displayName.endsWith('申请')) {
+          displayName += '申请'
+        }
+      }
+      templateMap[template.code] = {
+        name: displayName, // 使用处理后的名称
+        originalName: template.name // 保留原始名称
+      }
+    })
+  }
+
+  // 查询我的工单（包括注册申请、就医申请、用户信息修改）
   const myOrderResult = await workOrdersCollection
     .where({
-      'businessData.applicantId': openid,
-      orderType: _.in(['user_registration', 'medical_application'])
+      'businessData.applicantId': openid
     })
     .orderBy('createdAt', 'desc')
     .limit(pageSize)
@@ -732,7 +758,37 @@ async function getApprovalData(openid, pagination = {}) {
         reviewedBy: approvalInfo.reviewedBy,
         updatedAt: order.updatedAt,
         orderType: 'medical_application',
+        requestType: templateMap[order.orderType]?.name || '就医申请',
         currentStep: order.currentStep,
+        orderNo: order.orderNo,
+        taskId: isCurrentApprover ? userTaskMap[order._id].taskId : null,
+        isCurrentApprover: isCurrentApprover
+      }
+    } else if (order.orderType === 'user_profile_update') {
+      // 用户信息修改申请
+      const orderStatus = order.workflowStatus === 'completed' ? REQUEST_STATUS.APPROVED : (order.workflowStatus === 'rejected' ? REQUEST_STATUS.REJECTED : (order.workflowStatus === 'terminated' ? REQUEST_STATUS.TERMINATED : REQUEST_STATUS.PENDING))
+      const approvalInfo = myApprovalInfo[order._id] || { reviewedBy: '', reviewedAt: order.updatedAt }
+      return {
+        _id: order._id,
+        openid: order.businessData.applicantId,
+        name: order.businessData.applicantName,
+        gender: order.businessData.gender,
+        birthday: order.businessData.birthday,
+        role: order.businessData.role,
+        relativeName: order.businessData.relativeName || '',
+        position: order.businessData.position || '无',
+        department: order.businessData.department || '',
+        isAdmin: order.businessData.isAdmin,
+        avatarText: order.businessData.avatarText,
+        updateReason: order.businessData.updateReason || '申请修改个人信息',
+        status: orderStatus,
+        reviewRemark: myReviewRemarks[order._id] || '',
+        submittedAt: order.createdAt,
+        reviewedAt: approvalInfo.reviewedAt,
+        reviewedBy: approvalInfo.reviewedBy,
+        updatedAt: order.updatedAt,
+        orderType: 'user_profile_update',
+        requestType: templateMap[order.orderType]?.name || '用户信息修改申请',
         orderNo: order.orderNo,
         taskId: isCurrentApprover ? userTaskMap[order._id].taskId : null,
         isCurrentApprover: isCurrentApprover
@@ -760,6 +816,7 @@ async function getApprovalData(openid, pagination = {}) {
         reviewedBy: approvalInfo.reviewedBy,
         updatedAt: order.updatedAt,
         orderType: 'user_registration',
+        requestType: templateMap[order.orderType]?.name || '用户注册申请',
         orderNo: order.orderNo,
         taskId: isCurrentApprover ? userTaskMap[order._id].taskId : null,
         isCurrentApprover: isCurrentApprover
@@ -826,6 +883,11 @@ async function getApprovalData(openid, pagination = {}) {
               return currentUser.isAdmin === true
             }
 
+            // 用户信息修改申请：只有管理员可以审批
+            if (order.orderType === 'user_profile_update') {
+              return currentUser.isAdmin === true
+            }
+
             // 就医申请：根据步骤名称和角色/岗位判断
             if (order.orderType === 'medical_application') {
               // 部门负责人审批
@@ -849,7 +911,7 @@ async function getApprovalData(openid, pagination = {}) {
           return false
         }).map(task => {
           const order = ordersMap[task.orderId]
-          
+
           // 根据订单类型返回不同的字段
           if (order && order.orderType === 'medical_application') {
             // 就医申请
@@ -874,7 +936,34 @@ async function getApprovalData(openid, pagination = {}) {
               taskName: task.stepName,
               updatedAt: order ? order.updatedAt : null,
               orderType: 'medical_application',
+              requestType: templateMap[order.orderType]?.name || '就医申请',
               currentStep: order ? order.currentStep : 1,
+              orderNo: order ? order.orderNo : ''
+            }
+          } else if (order && order.orderType === 'user_profile_update') {
+            // 用户信息修改申请
+            const name = order.businessData.applicantName || ''
+            return {
+              _id: task._id,
+              orderId: task.orderId,
+              openid: order ? order.businessData.applicantId : '',
+              name: name,
+              gender: order ? order.businessData.gender : '',
+              birthday: order ? order.businessData.birthday : '',
+              role: order ? order.businessData.role : '',
+              relativeName: order ? (order.businessData.relativeName || '') : '',
+              position: order ? (order.businessData.position || '无') : '无',
+              department: order ? (order.businessData.department || '') : '',
+              isAdmin: order ? order.businessData.isAdmin : false,
+              avatarText: order ? order.businessData.avatarText : (name ? name.slice(0, 1) : '智'),
+              updateReason: order ? (order.businessData.updateReason || '申请修改个人信息') : '申请修改个人信息',
+              status: REQUEST_STATUS.PENDING,
+              submittedAt: order ? order.createdAt : null,
+              taskId: task._id,
+              taskName: task.stepName,
+              updatedAt: order ? order.updatedAt : null,
+              orderType: 'user_profile_update',
+              requestType: templateMap[order.orderType]?.name || '用户信息修改申请',
               orderNo: order ? order.orderNo : ''
             }
           } else {
@@ -890,6 +979,7 @@ async function getApprovalData(openid, pagination = {}) {
               role: order ? order.businessData.role : '',
               relativeName: order ? (order.businessData.relativeName || '') : '',
               position: order ? (order.businessData.position || '无') : '无',
+              department: order ? (order.businessData.department || '') : '',
               isAdmin: order ? order.businessData.isAdmin : false,
               avatarText: order ? order.businessData.avatarText : (name ? name.slice(0, 1) : '智'),
               status: REQUEST_STATUS.PENDING,
@@ -898,6 +988,7 @@ async function getApprovalData(openid, pagination = {}) {
               taskName: task.stepName,
               updatedAt: order ? order.updatedAt : null,
               orderType: 'user_registration',
+              requestType: templateMap[order?.orderType]?.name || '用户注册申请',
               orderNo: order ? order.orderNo : ''
             }
           }
@@ -925,7 +1016,6 @@ async function getApprovalData(openid, pagination = {}) {
     completedOrdersResult = await workOrdersCollection
       .where({
         _id: db.command.in(processedOrderIds),
-        orderType: _.in(['user_registration', 'medical_application']),
         workflowStatus: db.command.in(['completed', 'rejected', 'terminated'])
       })
       .orderBy('updatedAt', 'desc')
@@ -1026,11 +1116,36 @@ async function getApprovalData(openid, pagination = {}) {
           reason: order.businessData.reason,
           avatarText: order.businessData.applicantName ? order.businessData.applicantName.slice(0, 1) : '就',
           status: status,
-          reviewRemark: reviewRemarks[order._id] || '',  // 移除默认值，只返回真正的驳回原因
+          reviewRemark: reviewRemarks[order._id] || '',
           submittedAt: order.createdAt,
           reviewedAt: info.reviewedAt,
           reviewedBy: info.reviewedBy,
           orderType: 'medical_application',
+          requestType: templateMap[order.orderType]?.name || '就医申请',
+          orderNo: order.orderNo
+        }
+      } else if (order.orderType === 'user_profile_update') {
+        // 用户信息修改申请
+        return {
+          _id: order._id,
+          openid: order.businessData.applicantId,
+          name: order.businessData.applicantName,
+          gender: order.businessData.gender,
+          birthday: order.businessData.birthday,
+          role: order.businessData.role,
+          relativeName: order.businessData.relativeName || '',
+          position: order.businessData.position || '无',
+          department: order.businessData.department || '',
+          isAdmin: order.businessData.isAdmin,
+          avatarText: order.businessData.avatarText,
+          updateReason: order.businessData.updateReason || '申请修改个人信息',
+          status: status,
+          reviewRemark: reviewRemarks[order._id] || '',
+          submittedAt: order.createdAt,
+          reviewedAt: info.reviewedAt,
+          reviewedBy: info.reviewedBy,
+          orderType: 'user_profile_update',
+          requestType: templateMap[order.orderType]?.name || '用户信息修改申请',
           orderNo: order.orderNo
         }
       } else {
@@ -1048,11 +1163,12 @@ async function getApprovalData(openid, pagination = {}) {
           isAdmin: order.businessData.isAdmin,
           avatarText: order.businessData.avatarText,
           status: status,
-          reviewRemark: reviewRemarks[order._id] || '',  // 移除默认值，只返回真正的驳回原因
+          reviewRemark: reviewRemarks[order._id] || '',
           submittedAt: order.createdAt,
           reviewedAt: info.reviewedAt,
           reviewedBy: info.reviewedBy,
           orderType: 'user_registration',
+          requestType: templateMap[order.orderType]?.name || '用户注册申请',
           orderNo: order.orderNo
         }
       }
