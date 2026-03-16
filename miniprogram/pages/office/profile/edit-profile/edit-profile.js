@@ -114,6 +114,8 @@ Page({
         this.setData({
           roleIndex,
           positionIndex,
+          showPositionField,
+          positionOptions,
           showRelativeField,
           showDepartmentField,
           departmentIndex,
