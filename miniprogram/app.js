@@ -3,6 +3,7 @@ const themeListeners = []
 const AUTH_STORAGE_KEY = 'office-auth-cache'
 const SUBSCRIBE_REQUEST_KEY = 'office-subscribe-requested'
 const WORKFLOW_INIT_KEY = 'office-workflow-initialized'
+const SYS_CONFIG_INIT_KEY = 'office-sys-config-initialized'
 
 global.isDemo = true
 
@@ -72,6 +73,7 @@ App({
       })
     }
     this.restoreAuthState()
+    this.initSystemConfig()
     this.initWorkflowTemplates()
   },
 
@@ -493,6 +495,66 @@ App({
         throw new Error(result.message || '更新权限配置失败')
       }
       return result.data || {}
+    })
+  },
+
+  /**
+   * 初始化系统配置（将常量写入数据库）
+   * 使用本地存储标记避免重复初始化
+   */
+  initSystemConfig() {
+    const initialized = readStorage(SYS_CONFIG_INIT_KEY)
+
+    // 如果已经初始化过，则跳过
+    if (initialized) {
+      return
+    }
+
+    // 调用云函数初始化系统配置
+    wx.cloud.callFunction({
+      name: 'initSystemConfig',
+      data: {}
+    }).then(res => {
+      const result = res.result || {}
+      if (result.code === 0) {
+        console.log('系统配置初始化成功:', result.data)
+        // 标记为已初始化
+        writeStorage(SYS_CONFIG_INIT_KEY, {
+          initialized: true,
+          timestamp: Date.now(),
+          data: result.data
+        })
+      } else {
+        console.warn('系统配置初始化失败:', result.message)
+      }
+    }).catch(error => {
+      console.error('系统配置初始化异常:', error)
+      // 静默失败，不影响用户使用
+    })
+  },
+
+  /**
+   * 重新初始化系统配置（用于强制刷新配置）
+   * @returns {Promise<Object>} 初始化结果
+   */
+  reinitSystemConfig() {
+    return wx.cloud.callFunction({
+      name: 'initSystemConfig',
+      data: {}
+    }).then(res => {
+      const result = res.result || {}
+      if (result.code === 0) {
+        console.log('系统配置重新初始化成功:', result.data)
+        // 更新初始化标记
+        writeStorage(SYS_CONFIG_INIT_KEY, {
+          initialized: true,
+          timestamp: Date.now(),
+          data: result.data
+        })
+        return result.data
+      } else {
+        throw new Error(result.message || '重新初始化失败')
+      }
     })
   },
 

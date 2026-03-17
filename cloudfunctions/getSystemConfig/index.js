@@ -9,6 +9,9 @@ const db = cloud.database()
 /**
  * 获取系统配置
  * 从 sys_config 集合读取所有配置，按类型分组返回
+ * 
+ * 注意：本函数只负责读取，不负责初始化
+ * 初始化请调用 initSystemConfig 云函数
  */
 exports.main = async (event, context) => {
   try {
