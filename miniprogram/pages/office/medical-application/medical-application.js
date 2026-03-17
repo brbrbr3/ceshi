@@ -1,5 +1,5 @@
 const app = getApp()
-const util = require('../../../util/util.js')
+const utils = require('../../../common/utils.js')
 
 const ROLE_OPTIONS = ['馆领导', '部门负责人', '馆员', '工勤', '物业', '配偶', '家属']
 const RELATION_OPTIONS = ['本人', '配偶', '子女', '父母', '其他']
@@ -176,39 +176,39 @@ Page({
     const form = this.data.form
 
     if (!String(form.patientName || '').trim()) {
-      util.showToast({ title: '请填写就医人姓名', icon: 'none' })
+      utils.showtoast({ title: '请填写就医人姓名', icon: 'none' })
       return false
     }
 
     if (!form.relation) {
-      util.showToast({ title: '请选择与申请人关系', icon: 'none' })
+      utils.showToast({ title: '请选择与申请人关系', icon: 'none' })
       return false
     }
 
     if (!form.medicalDate) {
-      util.showToast({ title: '请选择就医时间', icon: 'none' })
+      utils.showtoast({ title: '请选择就医时间', icon: 'none' })
       return false
     }
 
     if (!form.institution) {
-      util.showToast({ title: '请选择就医机构', icon: 'none' })
+      utils.showtoast({ title: '请选择就医机构', icon: 'none' })
       return false
     }
 
     // 如果选择了"其他"，必须填写机构名称
     if (form.institution === '其他' && !String(form.otherInstitution || '').trim()) {
-      util.showToast({ title: '请填写就医机构名称', icon: 'none' })
+      utils.showtoast({ title: '请填写就医机构名称', icon: 'none' })
       return false
     }
 
     // 如果选择了"其他"，必须填写选择原因
     if (form.institution === '其他' && !String(form.reasonForSelection || '').trim()) {
-      util.showToast({ title: '请填写选择此机构的原因', icon: 'none' })
+      utils.showToast({ title: '请填写选择此机构的原因', icon: 'none' })
       return false
     }
 
     if (!String(form.reason || '').trim()) {
-      util.showToast({ title: '请填写就医原因', icon: 'none' })
+      utils.showtoast({ title: '请填写就医原因', icon: 'none' })
       return false
     }
 

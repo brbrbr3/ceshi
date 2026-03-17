@@ -12,6 +12,28 @@ const subscriptionsCollection = db.collection('workflow_subscriptions')
 const _ = db.command
 
 /**
+ * 简单的时间格式化函数（专门用于订阅消息）
+ * 注意：这是为微信订阅消息准备的格式化时间，不是用于前端展示
+ * @param {number} timestamp - GMT 时间戳（毫秒）
+ * @returns {string} 格式化后的时间字符串（YYYY-MM-DD HH:mm:ss）
+ */
+function formatTimeForMessage(timestamp) {
+  if (!timestamp) {
+    timestamp = Date.now()
+  }
+  
+  const date = new Date(timestamp)
+  const year = date.getFullYear()
+  const month = String(date.getMonth() + 1).padStart(2, '0')
+  const day = String(date.getDate()).padStart(2, '0')
+  const hour = String(date.getHours()).padStart(2, '0')
+  const minute = String(date.getMinutes()).padStart(2, '0')
+  const second = String(date.getSeconds()).padStart(2, '0')
+  
+  return `${year}-${month}-${day} ${hour}:${minute}:${second}`
+}
+
+/**
  * 发送订阅消息
  */
 async function sendSubscribeMessage(event) {
@@ -206,7 +228,7 @@ async function sendTaskAssignedNotification(task, order) {
     thing1: '审批任务',
     thing2: task.taskName || '待审批',
     phrase4: '待审批',
-    time3: new Date(task.deadlineTime || (Date.now() + 72 * 60 * 60 * 1000)).toLocaleString('zh-CN')
+    time3: formatTimeForMessage(task.deadlineTime || (Date.now() + 72 * 60 * 60 * 1000))
   }
 
   return await sendSubscribeMessage({
@@ -227,7 +249,7 @@ async function sendTaskCompletedNotification(task, order, approvalResult) {
     thing1: approvalResult === 'approved' ? '审批通过' : '审批驳回',
     thing2: task.comment || '无',
     phrase4: approvalResult === 'approved' ? '已完成' : '已驳回',
-    time3: new Date(task.completedTime || Date.now()).toLocaleString('zh-CN')
+    time3: formatTimeForMessage(task.completedTime || Date.now())
   }
 
   // 发送给申请人
@@ -247,9 +269,9 @@ async function sendTaskTimeoutNotification(task) {
   
   const templateData = {
     thing1: '任务超时',
-    thing2: new Date(task.deadlineTime || Date.now()).toLocaleString('zh-CN'),
+    thing2: formatTimeForMessage(task.deadlineTime || Date.now()),
     phrase4: '请及时处理',
-    time3: new Date().toLocaleString('zh-CN')
+    time3: formatTimeForMessage(Date.now())
   }
 
   return await sendSubscribeMessage({
@@ -270,7 +292,7 @@ async function sendProcessReturnedNotification(task, order, returnReason) {
     thing1: '流程退回',
     thing2: returnReason || '请补充资料',
     phrase4: '需补充资料',
-    time3: new Date().toLocaleString('zh-CN')
+    time3: formatTimeForMessage(Date.now())
   }
 
   return await sendSubscribeMessage({
@@ -291,7 +313,7 @@ async function sendWorkflowCompletedNotification(order, finalStatus) {
     thing1: finalStatus === 'approved' ? '审批通过' : '审批驳回',
     thing2: finalStatus === 'approved' ? '您的申请已通过审批' : '您的申请已被驳回',
     phrase4: finalStatus === 'approved' ? '已通过' : '已驳回',
-    time3: new Date().toLocaleString('zh-CN')
+    time3: formatTimeForMessage(Date.now())
   }
 
   return await sendSubscribeMessage({

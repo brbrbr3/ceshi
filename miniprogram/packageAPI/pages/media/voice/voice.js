@@ -1,4 +1,4 @@
-const util = require('../../../../util/util.js')
+const utils = require('../../../../common/utils.js')
 
 let playTimeInterval
 let recordTimeInterval
@@ -49,7 +49,7 @@ Page({
         that.data.recordTime += 1
         const recordTime = that.data.recordTime
         that.setData({
-          formatedRecordTime: util.formatTime(that.data.recordTime),
+          formatedRecordTime: utils.formatDuration(that.data.recordTime),
           recordTime
         })
       }, 1000)
@@ -62,7 +62,7 @@ Page({
         hasRecord: true, // 录音完毕
         recording: false,
         tempFilePath: res.tempFilePath,
-        formatedPlayTime: util.formatTime(that.data.playTime),
+        formatedPlayTime: utils.formatDuration(that.data.playTime),
       })
       // 清除录音计时器
       clearInterval(recordTimeInterval)
@@ -78,7 +78,7 @@ Page({
         } else {
           console.log('update playTime', playTime)
           that.setData({
-            formatedPlayTime: util.formatTime(playTime),
+            formatedPlayTime: utils.formatDuration(playTime),
             playTime
           })
         }
@@ -120,7 +120,7 @@ Page({
           recording: false,
           hasRecord: false,
           recordTime: 0,
-          formatedRecordTime: util.formatTime(0)
+          formatedRecordTime: utils.formatDuration(0)
         })
       }
     })
@@ -149,7 +149,7 @@ Page({
     innerAudioContext.stop()
     this.setData({
       playing: false,
-      formatedPlayTime: util.formatTime(0),
+      formatedPlayTime: utils.formatDuration(0),
       playTime: 0
     })
   },
@@ -161,7 +161,7 @@ Page({
       playing: false,
       hasRecord: false,
       tempFilePath: '',
-      formatedRecordTime: util.formatTime(0),
+      formatedRecordTime: utils.formatDuration(0),
       recordTime: 0,
       playTime: 0
     })

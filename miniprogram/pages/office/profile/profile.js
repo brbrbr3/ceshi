@@ -1,5 +1,4 @@
 const app = getApp()
-const util = require('../../../util/util.js')
 
 Page({
   data: {
@@ -94,7 +93,7 @@ Page({
         })
       })
       .catch((error) => {
-        util.showToast({
+        utils.showtoast({
           title: error.message || '加载失败',
           icon: 'none'
         })
@@ -103,7 +102,7 @@ Page({
 
   handleLogout() {
     app.logout()
-    util.showToast({
+    utils.showtoast({
       title: '已退出',
       icon: 'success'
     })
@@ -115,7 +114,7 @@ Page({
   },
 
   showComingSoon() {
-    util.showToast({
+    utils.showtoast({
       title: '功能开发中，敬请期待',
       icon: 'none'
     })
@@ -132,7 +131,7 @@ Page({
         url: '/pages/office/notifications/notifications'
       })
     } else {
-      util.showToast({
+      utils.showtoast({
         title: '功能开发中，敬请期待',
         icon: 'none'
       })

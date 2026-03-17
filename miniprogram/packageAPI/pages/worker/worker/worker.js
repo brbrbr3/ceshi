@@ -1,4 +1,9 @@
-const {fib} = require('../../../../util/util.js')
+// 简单的斐波那契计算（示例用）
+function fib(n) {
+  if (n < 1) return 0
+  if (n <= 2) return 1
+  return fib(n - 1) + fib(n - 2)
+}
 
 Page({
   onShareAppMessage() {

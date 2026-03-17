@@ -1,35 +1,21 @@
 const app = getApp()
-const util = require('../../../../util/util.js')
-const ROLE_OPTIONS = ['馆领导', '部门负责人', '馆员', '工勤', '物业', '配偶', '家属']
-const POSITION_OPTIONS = ['无', '会计主管', '会计', '俱乐部', '阳光课堂', '招待员', '厨师', '内聘']
-const DEPARTMENT_OPTIONS = ['政治处', '新公处', '经商处', '科技处', '武官处', '领侨处', '文化处', '办公室', '党委办']
-
-// 独立函数，用于获取今天的日期（使用巴西利亚时间 GMT-3）
-function getTodayDate() {
-  const now = new Date()
-  // 转换为巴西利亚时间 (GMT-3)
-  const braziliaOffset = -3
-  const utc = now.getTime() + (now.getTimezoneOffset() * 60000)
-  const braziliaTime = new Date(utc + (3600000 * braziliaOffset))
-  const year = braziliaTime.getFullYear()
-  const month = String(braziliaTime.getMonth() + 1).padStart(2, '0')
-  const day = String(braziliaTime.getDate()).padStart(2, '0')
-  return `${year}-${month}-${day}`
-}
+const constants = require('../../../../common/constants.js')
+const utils = require('../../../../common/utils.js')
 
 Page({
   data: {
     loading: false,
-    roleOptions: ROLE_OPTIONS,
-    positionOptions: POSITION_OPTIONS,
-    departmentOptions: DEPARTMENT_OPTIONS,
+    constants: {}, // 从数据库加载的常量
+    roleOptions: [],
+    positionOptions: [],
+    departmentOptions: [],
     roleIndex: -1,
     positionIndex: 0,
     departmentIndex: 0,
     showRelativeField: false,
     showDepartmentField: false,
     reviewRemark: '',
-    today: getTodayDate(),
+    today: '',
     form: {
       name: '',
       gender: '男',
@@ -42,25 +28,48 @@ Page({
     }
   },
 
-  onLoad(options) {
+  async onLoad(options) {
+    // 加载常量
+    await this.loadConstants()
+    
     // 设置今天的日期作为最大可选日期
-    const today = getTodayDate()
-    this.setData({
-      today: today
-    })
+    const today = await utils.getTodayDate()
+    this.setData({ today })
+    
     this.loadUserProfile()
   },
 
-  onShow() {
+  async onShow() {
     // 每次显示时更新今天的日期
-    this.setData({ today: getTodayDate() })
+    const today = await utils.getTodayDate()
+    this.setData({ today })
+  },
+
+  // 加载常量
+  async loadConstants() {
+    try {
+      const allConstants = await constants.getAllConstants()
+      
+      this.setData({
+        constants: allConstants,
+        roleOptions: allConstants.ROLE_OPTIONS || [],
+        positionOptions: allConstants.POSITION_OPTIONS || [],
+        departmentOptions: allConstants.DEPARTMENT_OPTIONS || []
+      })
+    } catch (error) {
+      console.error('加载常量失败:', error)
+      utils.showToast({
+        title: '加载配置失败',
+        icon: 'none'
+      })
+    }
   },
 
   loadUserProfile() {
     app.checkUserRegistration()
       .then((result) => {
         if (!result.registered || !result.user) {
-          util.showToast({
+          utils.showToast({
             title: '请先完成注册',
             icon: 'none'
           })
@@ -71,40 +80,45 @@ Page({
         }
 
         const user = result.user
-        const roleIndex = user.role ? ROLE_OPTIONS.indexOf(user.role) : -1
+        const { roleOptions, positionOptions, departmentOptions, constants } = this.data
+        const roleIndex = user.role ? roleOptions.indexOf(user.role) : -1
         const role = user.role || ''
-        const showRelativeField = role === '配偶' || role === '家属'
-        const showDepartmentField = role === '部门负责人' || role === '馆员' || role === '工勤'
+        
+        // 使用常量判断
+        const needRelativeRoles = constants.NEED_RELATIVE_ROLES || ['配偶', '家属']
+        const needDepartmentRoles = constants.NEED_DEPARTMENT_ROLES || ['部门负责人', '馆员', '工勤']
+        const rolePositionMap = constants.ROLE_POSITION_MAP || {}
+        const workerDepartment = constants.WORKER_DEPARTMENT || '办公室'
+        
+        const showRelativeField = needRelativeRoles.includes(role)
+        const showDepartmentField = needDepartmentRoles.includes(role)
         
         // 根据角色设置岗位选项和显示状态
         let showPositionField = true
-        let positionOptions = POSITION_OPTIONS
+        let rolePositionOptions = positionOptions
         let positionIndex = 0
         
-        if (role === '工勤') {
-          positionOptions = ['厨师', '招待员']
-          positionIndex = user.position ? positionOptions.indexOf(user.position) : -1
-        } else if (role === '配偶') {
-          positionOptions = ['无', '内聘']
-          positionIndex = user.position ? positionOptions.indexOf(user.position) : 0
+        if (rolePositionMap[role]) {
+          rolePositionOptions = rolePositionMap[role]
+          positionIndex = user.position ? rolePositionOptions.indexOf(user.position) : -1
         } else if (role === '物业' || role === '家属') {
           showPositionField = false
-          positionIndex = user.position ? POSITION_OPTIONS.indexOf(user.position) : 0
+          positionIndex = user.position ? positionOptions.indexOf(user.position) : 0
         } else {
-          positionIndex = user.position ? POSITION_OPTIONS.indexOf(user.position) : 0
+          positionIndex = user.position ? positionOptions.indexOf(user.position) : 0
         }
 
         let department = user.department || ''
         let departmentIndex = 0
-        let departmentOptions = DEPARTMENT_OPTIONS
+        let roleDepartmentOptions = departmentOptions
 
-        // 如果是工勤角色，部门固定为"办公室"
+        // 如果是工勤角色，部门固定
         if (role === '工勤') {
-          department = '办公室'
-          departmentIndex = 7
-          departmentOptions = ['办公室']
+          department = workerDepartment
+          departmentIndex = departmentOptions.indexOf(workerDepartment)
+          roleDepartmentOptions = [workerDepartment]
         } else if (department) {
-          departmentIndex = DEPARTMENT_OPTIONS.indexOf(department)
+          departmentIndex = departmentOptions.indexOf(department)
           if (departmentIndex === -1) {
             departmentIndex = 0
             department = ''
@@ -115,11 +129,11 @@ Page({
           roleIndex,
           positionIndex,
           showPositionField,
-          positionOptions,
+          positionOptions: rolePositionOptions,
           showRelativeField,
           showDepartmentField,
           departmentIndex,
-          departmentOptions,
+          departmentOptions: roleDepartmentOptions,
           form: {
             name: user.name || '',
             gender: user.gender || '男',
@@ -133,7 +147,7 @@ Page({
         })
       })
       .catch((error) => {
-        util.showToast({
+        utils.showToast({
           title: error.message || '加载失败',
           icon: 'none'
         })
@@ -143,9 +157,9 @@ Page({
       })
   },
 
-  handleBirthdayChange(e) {
+  async handleBirthdayChange(e) {
     const selectedDate = e.detail.value
-    const today = getTodayDate()
+    const today = await utils.getTodayDate()
 
     // 验证选择的日期不能超过今天
     if (selectedDate > today) {
@@ -163,34 +177,38 @@ Page({
 
   handleRoleChange(e) {
     const roleIndex = Number(e.detail.value)
-    const role = ROLE_OPTIONS[roleIndex]
-    const showRelativeField = role === '配偶' || role === '家属'
-    const showDepartmentField = role === '部门负责人' || role === '馆员' || role === '工勤'
+    const { roleOptions, departmentOptions, constants } = this.data
+    const role = roleOptions[roleIndex]
+    
+    // 使用常量判断
+    const needRelativeRoles = constants.NEED_RELATIVE_ROLES || ['配偶', '家属']
+    const needDepartmentRoles = constants.NEED_DEPARTMENT_ROLES || ['部门负责人', '馆员', '工勤']
+    const rolePositionMap = constants.ROLE_POSITION_MAP || {}
+    const workerDepartment = constants.WORKER_DEPARTMENT || '办公室'
+    
+    const showRelativeField = needRelativeRoles.includes(role)
+    const showDepartmentField = needDepartmentRoles.includes(role)
     const isWorker = role === '工勤'
 
     let department = ''
     let departmentIndex = 0
-    let departmentOptions = DEPARTMENT_OPTIONS
+    let roleDepartmentOptions = departmentOptions
     
     // 根据角色设置岗位选项和显示状态
     let showPositionField = true
-    let positionOptions = POSITION_OPTIONS
+    let rolePositionOptions = rolePositionMap[role] || this.data.positionOptions
     let positionIndex = 0
 
-    // 如果是工勤角色，部门固定为"办公室"
+    // 如果是工勤角色，部门固定
     if (isWorker) {
-      department = '办公室'
-      departmentIndex = 7
-      departmentOptions = ['办公室']
+      department = workerDepartment
+      departmentIndex = departmentOptions.indexOf(workerDepartment)
+      roleDepartmentOptions = [workerDepartment]
     }
     
     // 根据角色设置岗位选项
-    if (role === '工勤') {
-      positionOptions = ['厨师', '招待员']
-      positionIndex = -1  // 默认不选择，显示空白状态
-    } else if (role === '配偶') {
-      positionOptions = ['无', '内聘']
-      positionIndex = 0
+    if (rolePositionMap[role]) {
+      positionIndex = role === '工勤' ? -1 : 0 // 工勤默认不选择
     } else if (role === '物业' || role === '家属') {
       showPositionField = false
       positionIndex = 0
@@ -200,17 +218,17 @@ Page({
 
     this.setData({
       roleIndex,
-      positionOptions,
+      positionOptions: rolePositionOptions,
       positionIndex,
       'form.role': role,
       showRelativeField,
       showDepartmentField,
       showPositionField,
       'form.relativeName': showRelativeField ? this.data.form.relativeName : '',
-      'form.position': positionIndex >= 0 ? positionOptions[positionIndex] : '',
+      'form.position': positionIndex >= 0 ? rolePositionOptions[positionIndex] : '',
       'form.department': department,
       departmentIndex,
-      departmentOptions
+      departmentOptions: roleDepartmentOptions
     })
   },
 
@@ -248,28 +266,32 @@ Page({
     }
 
     const form = this.data.form
+    const { constants, positionIndex } = this.data
+    const needRelativeRoles = constants.NEED_RELATIVE_ROLES || ['配偶', '家属']
+    const needDepartmentRoles = constants.NEED_DEPARTMENT_ROLES || ['部门负责人', '馆员', '工勤']
+    
     if (!form.gender) {
-      util.showToast({ title: '请选择性别', icon: 'none' })
+      utils.showToast({ title: '请选择性别', icon: 'none' })
       return
     }
     if (!form.birthday) {
-      util.showToast({ title: '请选择出生日期', icon: 'none' })
+      utils.showToast({ title: '请选择出生日期', icon: 'none' })
       return
     }
     if (!form.role) {
-      util.showToast({ title: '请选择角色', icon: 'none' })
+      utils.showToast({ title: '请选择角色', icon: 'none' })
       return
     }
-    if ((form.role === '配偶' || form.role === '家属') && !String(form.relativeName || '').trim()) {
-      util.showToast({ title: '请填写亲属姓名', icon: 'none' })
+    if (needRelativeRoles.includes(form.role) && !String(form.relativeName || '').trim()) {
+      utils.showToast({ title: '请填写亲属姓名', icon: 'none' })
       return
     }
-    if ((form.role === '部门负责人' || form.role === '馆员' || form.role === '工勤') && !form.department) {
-      util.showToast({ title: '请选择部门', icon: 'none' })
+    if (needDepartmentRoles.includes(form.role) && !form.department) {
+      utils.showToast({ title: '请选择部门', icon: 'none' })
       return
     }
-    if (form.role === '工勤' && this.data.positionIndex < 0) {
-      util.showToast({ title: '请选择岗位', icon: 'none' })
+    if (form.role === '工勤' && positionIndex < 0) {
+      utils.showToast({ title: '请选择岗位', icon: 'none' })
       return
     }
 
@@ -287,7 +309,7 @@ Page({
         })
       })
       .catch((error) => {
-        util.showToast({
+        utils.showToast({
           title: error.message || '提交失败',
           icon: 'none'
         })

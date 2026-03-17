@@ -1,5 +1,5 @@
 const app = getApp()
-const util = require('../../../util/util.js')
+const utils = require('../../../common/utils.js')
 
 Page({
   data: {
@@ -53,7 +53,7 @@ Page({
 
     // 验证表单
     if (!title || title.trim() === '') {
-      util.showToast({
+      utils.showToast({
         title: '请输入标题',
         icon: 'none'
       })
@@ -61,7 +61,7 @@ Page({
     }
 
     if (!content || content.trim() === '') {
-      util.showToast({
+      utils.showToast({
         title: '请输入内容',
         icon: 'none'
       })
@@ -69,7 +69,7 @@ Page({
     }
 
     if (title.length > 100) {
-      util.showToast({
+      utils.showToast({
         title: '标题不能超过100个字符',
         icon: 'none'
       })
@@ -77,7 +77,7 @@ Page({
     }
 
     if (content.length > 1000) {
-      util.showToast({
+      utils.showToast({
         title: '内容不能超过1000个字符',
         icon: 'none'
       })
@@ -110,7 +110,7 @@ Page({
       wx.hideLoading()
       const result = res.result
       if (result && result.code === 0) {
-        util.showToast({
+        utils.showToast({
           title: '发布成功',
           icon: 'success'
         })
@@ -123,7 +123,7 @@ Page({
     }).catch(error => {
       wx.hideLoading()
       console.error('发布通知公告失败:', error)
-      util.showToast({
+      utils.showToast({
         title: error.message || '发布失败',
         icon: 'none'
       })

@@ -1,8 +1,8 @@
 const app = getApp()
-const util = require('../../../util/util.js')
+const utils = require('../../../common/utils.js')
 
-// 使用统一的时间格式化函数（GMT-3 巴西利亚时间）
-const formatDateTime = util.formatDateTimeToGMT3
+// 使用统一的时间格式化函数
+const formatDateTime = (timestamp) => utils.formatDateTime(timestamp)
 
 Page({
   data: {
@@ -14,7 +14,7 @@ Page({
   onLoad(options) {
     const id = options.id
     if (!id) {
-      util.showToast({
+      utils.showToast({
         title: '参数错误',
         icon: 'none'
       })
@@ -60,7 +60,7 @@ Page({
       }
     }).catch(error => {
       console.error('加载通知公告失败:', error)
-      util.showToast({
+      utils.showToast({
         title: error.message || '加载失败',
         icon: 'none'
       })
@@ -99,7 +99,7 @@ Page({
       wx.hideLoading()
       const result = res.result
       if (result && result.code === 0) {
-        util.showToast({
+        utils.showToast({
           title: '撤回成功',
           icon: 'success'
         })
@@ -111,7 +111,7 @@ Page({
     }).catch(error => {
       wx.hideLoading()
       console.error('撤回通知公告失败:', error)
-      util.showToast({
+      utils.showToast({
         title: error.message || '撤回失败',
         icon: 'none'
       })

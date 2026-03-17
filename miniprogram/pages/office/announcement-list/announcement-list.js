@@ -1,9 +1,9 @@
 const app = getApp()
-const util = require('../../../util/util.js')
+const utils = require('../../../common/utils.js')
 const paginationBehavior = require('../../../behaviors/pagination.js')
 
-// 使用统一的时间格式化函数（GMT-3 巴西利亚时间）
-const formatTime = util.formatTimeToGMT3
+// 使用统一的时间格式化函数
+const formatTime = (timestamp) => utils.formatRelativeTime(timestamp)
 
 Page({
   behaviors: [paginationBehavior],

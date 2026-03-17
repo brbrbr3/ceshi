@@ -1,5 +1,5 @@
 const app = getApp()
-const util = require('../../../util/util.js')
+const utils = require('../../../common/utils.js')
 const paginationBehavior = require('../../../behaviors/pagination.js')
 
 function formatTime(timestamp) {
@@ -7,11 +7,8 @@ function formatTime(timestamp) {
     return ''
   }
 
-  // 使用统一的时间处理函数（GMT-3 巴西利亚时间）
-  const date = util.toGMT3Date(timestamp)
-  const month = String(date.getMonth() + 1).padStart(2, '0')
-  const day = String(date.getDate()).padStart(2, '0')
-  return `${month}-${day}`
+  // 使用统一的时间处理函数
+  return utils.formatDate(timestamp)
 }
 
 Page({
@@ -89,7 +86,7 @@ Page({
         })
         .catch(error => {
           console.error('加载菜单失败', error)
-          util.showToast({
+          utils.showtoast({
             title: '加载失败',
             icon: 'none'
           })

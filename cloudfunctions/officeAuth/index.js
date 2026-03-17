@@ -7,18 +7,103 @@ cloud.init({
 const db = cloud.database()
 const _ = db.command
 const usersCollection = db.collection('office_users')
-const requestCollection = db.collection('office_registration_requests')
 const workOrdersCollection = db.collection('work_orders')
 const workflowTasksCollection = db.collection('workflow_tasks')
 const workflowLogsCollection = db.collection('workflow_logs')
 const templatesCollection = db.collection('workflow_templates')
-const ROLE_OPTIONS = ['馆领导', '部门负责人', '馆员', '工勤', '物业', '配偶', '家属']
-const GENDER_OPTIONS = ['男', '女']
-const REQUEST_STATUS = {
-  PENDING: 'pending',
-  APPROVED: 'approved',
-  REJECTED: 'rejected',
-  TERMINATED: 'terminated'
+const sysConfigCollection = db.collection('sys_config')
+
+// 从数据库获取常量（带缓存）
+let cachedConstants = null
+let cacheTime = 0
+const CACHE_TTL = 5 * 60 * 1000 // 5分钟缓存
+
+/**
+ * 从数据库读取系统常量
+ */
+async function getSystemConstants() {
+  const now = Date.now()
+  if (cachedConstants && (now - cacheTime) < CACHE_TTL) {
+    return cachedConstants
+  }
+
+  try {
+    // 从 sys_config 集合读取所有配置
+    const result = await sysConfigCollection.get()
+    const configs = result.data || []
+
+    // 构建常量映射
+    const constants = {}
+    for (const config of configs) {
+      constants[config.key] = config.value
+    }
+
+    // 更新缓存
+    cachedConstants = constants
+    cacheTime = now
+
+    return constants
+  } catch (error) {
+    console.error('获取系统常量失败:', error)
+    
+    // 如果有旧缓存，继续使用
+    if (cachedConstants) {
+      console.warn('使用旧缓存数据')
+      return cachedConstants
+    }
+    
+    // 否则返回默认值
+    return getDefaultConstants()
+  }
+}
+
+/**
+ * 获取默认常量（降级方案）
+ */
+function getDefaultConstants() {
+  return {
+    // 角色相关
+    ROLE_OPTIONS: ['馆领导', '部门负责人', '馆员', '工勤', '物业', '配偶', '家属'],
+    NEED_DEPARTMENT_ROLES: ['部门负责人', '馆员', '工勤'],
+    NEED_RELATIVE_ROLES: ['配偶', '家属'],
+    DEFAULT_ROLE: '馆员',
+    
+    // 岗位相关
+    POSITION_OPTIONS: ['无', '会计主管', '会计', '招待员', '厨师'],
+    DEFAULT_POSITION: '无',
+    
+    // 部门相关
+    DEPARTMENT_OPTIONS: ['政治处', '新公处', '经商处', '科技处', '武官处', '领侨处', '文化处', '办公室', '党委办'],
+    DEFAULT_DEPARTMENT: '',
+    WORKER_DEPARTMENT: '办公室',
+    
+    // 性别相关
+    GENDER_OPTIONS: ['男', '女'],
+    DEFAULT_GENDER: '男',
+    
+    // 请求状态
+    REQUEST_STATUS: {
+      PENDING: 'pending',
+      APPROVED: 'approved',
+      REJECTED: 'rejected',
+      TERMINATED: 'terminated'
+    },
+    REQUEST_STATUS_TEXT: {
+      pending: '待审批',
+      approved: '已通过',
+      rejected: '已驳回',
+      terminated: '已中止'
+    },
+    REQUEST_STATUS_STYLE: {
+      pending: { color: '#D97706', bg: '#FEF3C7' },
+      approved: { color: '#16A34A', bg: '#DCFCE7' },
+      rejected: { color: '#DC2626', bg: '#FEE2E2' },
+      terminated: { color: '#DC2626', bg: '#FEE2E2' }
+    },
+    
+    // 审批角色
+    REVIEWER_ROLES: ['馆领导', '部门负责人']
+  }
 }
 
 function success(data, message) {
@@ -61,33 +146,6 @@ function formatUserRecord(record) {
   }
 }
 
-function formatRequestRecord(record) {
-  if (!record) {
-    return null
-  }
-
-  return {
-    _id: record._id,
-    openid: record.openid,
-    requestNo: record.requestNo,
-    name: record.name,
-    gender: record.gender,
-    birthday: record.birthday,
-    role: record.role,
-    isAdmin: !!record.isAdmin,
-    status: record.status,
-    avatarText: record.avatarText || (record.name ? record.name.slice(0, 1) : '智'),
-    reviewRemark: record.reviewRemark || '',
-    submittedAt: record.submittedAt || record.createdAt || null,
-    updatedAt: record.updatedAt || null,
-    reviewedAt: record.reviewedAt || null,
-    reviewedBy: record.reviewedBy || '',
-    relativeName: record.relativeName || '',
-    position: record.position || '无',
-    department: record.department || ''
-  }
-}
-
 function normalizeBoolean(value) {
   if (typeof value === 'boolean') {
     return value
@@ -98,10 +156,35 @@ function normalizeBoolean(value) {
   return !!value
 }
 
-const POSITION_OPTIONS = ['无', '会计主管', '会计', '招待员', '厨师']
-const DEPARTMENT_OPTIONS = ['政治处', '新公处', '经商处', '科技处', '武官处', '领侨处', '文化处', '办公室', '党委办']
+// 动态获取常量
+async function getPositionOptions() {
+  const constants = await getSystemConstants()
+  return constants.positions || ['无', '会计主管', '会计', '招待员', '厨师']
+}
 
-function validateForm(formData) {
+async function getDepartmentOptions() {
+  const constants = await getSystemConstants()
+  return constants.departments || ['政治处', '新公处', '经商处', '科技处', '武官处', '领侨处', '文化处', '办公室', '党委办']
+}
+
+async function getRoleOptions() {
+  const constants = await getSystemConstants()
+  return constants.roles || ['馆领导', '部门负责人', '馆员', '工勤', '物业', '配偶', '家属']
+}
+
+async function getGenderOptions() {
+  const constants = await getSystemConstants()
+  return constants.genders || ['男', '女']
+}
+
+async function validateForm(formData) {
+  const constants = await getSystemConstants()
+  const roleOptions = constants.roles || ['馆领导', '部门负责人', '馆员', '工勤', '物业', '配偶', '家属']
+  const genderOptions = constants.genders || ['男', '女']
+  const positionOptions = constants.positions || ['无', '会计主管', '会计', '招待员', '厨师']
+  const needDepartmentRoles = constants.needDepartmentRoles || ['部门负责人', '馆员', '工勤']
+  const relativeRoles = constants.relativeRoles || ['配偶', '家属']
+
   const payload = formData || {}
   const name = String(payload.name || '').trim()
   const gender = String(payload.gender || '').trim()
@@ -116,7 +199,7 @@ function validateForm(formData) {
     throw new Error('请输入姓名')
   }
 
-  if (!GENDER_OPTIONS.includes(gender)) {
+  if (!genderOptions.includes(gender)) {
     throw new Error('请选择性别')
   }
 
@@ -128,19 +211,19 @@ function validateForm(formData) {
     throw new Error('出生日期格式不正确')
   }
 
-  if (!ROLE_OPTIONS.includes(role)) {
+  if (!roleOptions.includes(role)) {
     throw new Error('请选择角色')
   }
 
-  if ((role === '配偶' || role === '家属') && !relativeName) {
+  if (relativeRoles.includes(role) && !relativeName) {
     throw new Error('请填写亲属姓名')
   }
 
-  if ((role === '部门负责人' || role === '馆员' || role === '工勤') && !department) {
+  if (needDepartmentRoles.includes(role) && !department) {
     throw new Error('请选择部门')
   }
 
-  if (position && !POSITION_OPTIONS.includes(position)) {
+  if (position && !positionOptions.includes(position)) {
     throw new Error('请选择有效的岗位')
   }
 
@@ -155,9 +238,9 @@ function validateForm(formData) {
     birthday,
     role,
     isAdmin,
-    relativeName: (role === '配偶' || role === '家属') ? relativeName : '',
+    relativeName: relativeRoles.includes(role) ? relativeName : '',
     position: position || '无',
-    department: (role === '部门负责人' || role === '馆员' || role === '工勤') ? department : '',
+    department: needDepartmentRoles.includes(role) ? department : '',
     avatarText: name.slice(0, 1)
   }
 }
@@ -176,32 +259,34 @@ async function findUserByOpenId(openid) {
   return result.data[0] || null
 }
 
-async function findRequestByOpenId(openid) {
-  const result = await requestCollection.where({ openid }).limit(1).get()
-  return result.data[0] || null
-}
-
 async function ensureAdminUser(openid) {
   const userRecord = await findUserByOpenId(openid)
-  if (!userRecord || userRecord.status !== REQUEST_STATUS.APPROVED || !userRecord.isAdmin) {
+  const constants = await getSystemConstants()
+  const requestStatus = constants.requestStatus || { PENDING: 'pending', APPROVED: 'approved', REJECTED: 'rejected', TERMINATED: 'terminated' }
+  
+  if (!userRecord || userRecord.status !== requestStatus.APPROVED || !userRecord.isAdmin) {
     throw new Error('仅管理员可执行此操作')
   }
   return userRecord
 }
 
 async function checkRegistration(openid) {
+  const constants = await getSystemConstants()
+  const requestStatus = constants.requestStatus || { PENDING: 'pending', APPROVED: 'approved', REJECTED: 'rejected', TERMINATED: 'terminated' }
+  
   const userRecord = await findUserByOpenId(openid)
 
-  if (userRecord && userRecord.status === REQUEST_STATUS.APPROVED) {
+  if (userRecord && userRecord.status === requestStatus.APPROVED) {
     return success({
       openid,
       registered: true,
-      authStatus: REQUEST_STATUS.APPROVED,
+      authStatus: requestStatus.APPROVED,
       user: formatUserRecord(userRecord),
       request: null
     })
   }
 
+  // 查询工单
   const orderResult = await workOrdersCollection
     .where({
       'businessData.applicantId': openid,
@@ -233,8 +318,7 @@ async function checkRegistration(openid) {
           relativeName: businessData.relativeName || '',
           position: businessData.position || '无',
           department: businessData.department || '',
-          status: REQUEST_STATUS.APPROVED,
-          sourceOrderId: order.orderId,
+          status: requestStatus.APPROVED,
           approvedAt: now,
           approvedBy: order.updatedBy || '',
           createdAt: existingUser ? (existingUser.createdAt || now) : now,
@@ -247,42 +331,16 @@ async function checkRegistration(openid) {
           await usersCollection.add({ data: userPayload })
         }
 
-        // 更新旧申请表
-        const existingRequest = await findRequestByOpenId(openid)
-        if (existingRequest) {
-          await requestCollection.doc(existingRequest._id).update({
-            data: {
-              status: REQUEST_STATUS.APPROVED,
-              reviewedAt: now,
-              reviewedBy: order.updatedBy || '',
-              updatedAt: now
-            }
-          })
-        }
-
         const updatedUser = await findUserByOpenId(openid)
         return success({
           openid,
           registered: true,
-          authStatus: REQUEST_STATUS.APPROVED,
+          authStatus: requestStatus.APPROVED,
           user: formatUserRecord(updatedUser),
           request: null
         })
       } else {
         // 审批驳回
-        const existingRequest = await findRequestByOpenId(openid)
-        if (existingRequest) {
-          await requestCollection.doc(existingRequest._id).update({
-            data: {
-              status: REQUEST_STATUS.REJECTED,
-              reviewRemark: '管理员已驳回该申请',
-              reviewedAt: order.updatedAt || Date.now(),
-              reviewedBy: '管理员',
-              updatedAt: Date.now()
-            }
-          })
-        }
-
         // 获取驳回原因（从任务日志中）
         const taskResult = await workflowTasksCollection
           .where({
@@ -302,12 +360,12 @@ async function checkRegistration(openid) {
         return success({
           openid,
           registered: false,
-          authStatus: REQUEST_STATUS.REJECTED,
+          authStatus: requestStatus.REJECTED,
           user: null,
           request: {
             _id: order._id,
             openid: openid,
-            status: REQUEST_STATUS.REJECTED,
+            status: requestStatus.REJECTED,
             reviewRemark: reviewRemark,
             name: businessData.applicantName || '',
             gender: businessData.gender || '',
@@ -326,71 +384,18 @@ async function checkRegistration(openid) {
     return success({
       openid,
       registered: false,
-      authStatus: REQUEST_STATUS.PENDING,
+      authStatus: requestStatus.PENDING,
       user: null,
       request: {
         _id: order._id,
         openid: openid,
-        status: REQUEST_STATUS.PENDING,
+        status: requestStatus.PENDING,
         submittedAt: order.createdAt
       }
     })
   }
 
-  // 查询旧的申请表（兼容性处理）
-  const requestRecord = await findRequestByOpenId(openid)
-
-  if (requestRecord && requestRecord.status === REQUEST_STATUS.APPROVED) {
-    const now = Date.now()
-    const userPayload = {
-      openid: requestRecord.openid,
-      name: requestRecord.name,
-      gender: requestRecord.gender,
-      birthday: requestRecord.birthday,
-      role: requestRecord.role,
-      isAdmin: !!requestRecord.isAdmin,
-      avatarText: requestRecord.avatarText || (requestRecord.name ? requestRecord.name.slice(0, 1) : '智'),
-      relativeName: requestRecord.relativeName || '',
-      position: requestRecord.position || '无',
-      department: requestRecord.department || '',
-      status: REQUEST_STATUS.APPROVED,
-      sourceRequestId: requestRecord._id,
-      approvedAt: now,
-      approvedBy: requestRecord.reviewedBy || '',
-      createdAt: now,
-      updatedAt: now
-    }
-
-    try {
-      await usersCollection.add({ data: userPayload })
-      return success({
-        openid,
-        registered: true,
-        authStatus: REQUEST_STATUS.APPROVED,
-        user: formatUserRecord(userPayload),
-        request: formatRequestRecord(requestRecord)
-      })
-    } catch (e) {
-      return success({
-        openid,
-        registered: true,
-        authStatus: REQUEST_STATUS.APPROVED,
-        user: formatUserRecord(requestRecord),
-        request: formatRequestRecord(requestRecord)
-      })
-    }
-  }
-
-  if (requestRecord) {
-    return success({
-      openid,
-      registered: false,
-      authStatus: requestRecord.status,
-      user: null,
-      request: formatRequestRecord(requestRecord)
-    })
-  }
-
+  // 未注册
   return success({
     openid,
     registered: false,
@@ -401,12 +406,15 @@ async function checkRegistration(openid) {
 }
 
 async function submitRegistration(openid, formData) {
-  const form = validateForm(formData)
+  const constants = await getSystemConstants()
+  const requestStatus = constants.requestStatus || { PENDING: 'pending', APPROVED: 'approved', REJECTED: 'rejected', TERMINATED: 'terminated' }
+  
+  const form = await validateForm(formData)
   const existingUser = await findUserByOpenId(openid)
-  if (existingUser && existingUser.status === REQUEST_STATUS.APPROVED) {
+  if (existingUser && existingUser.status === requestStatus.APPROVED) {
     return success({
       openid,
-      authStatus: REQUEST_STATUS.APPROVED,
+      authStatus: requestStatus.APPROVED,
       request: null,
       user: formatUserRecord(existingUser)
     }, '您已完成注册')
@@ -425,12 +433,12 @@ async function submitRegistration(openid, formData) {
   if (existingOrderResult.data && existingOrderResult.data.length > 0) {
     const existingOrder = existingOrderResult.data[0]
     return fail('您的注册申请正在审核中，请勿重复提交', 409, {
-      authStatus: REQUEST_STATUS.PENDING,
+      authStatus: requestStatus.PENDING,
       orderId: existingOrder.orderId,
       request: {
         _id: existingOrder.orderId,
         openid: openid,
-        status: REQUEST_STATUS.PENDING,
+        status: requestStatus.PENDING,
         submittedAt: existingOrder.createTime
       }
     })
@@ -438,6 +446,7 @@ async function submitRegistration(openid, formData) {
 
   // 调用工作流引擎提交工单
   try {
+    const now = Date.now()
     const workflowResult = await cloud.callFunction({
       name: 'workflowEngine',
       data: {
@@ -467,48 +476,9 @@ async function submitRegistration(openid, formData) {
 
     const orderId = workflowResult.result.data.orderId
 
-    // 更新旧申请表的数据，保持兼容性
-    const existingRequest = await findRequestByOpenId(openid)
-    const now = Date.now()
-    const requestPayload = {
-      openid,
-      name: form.name,
-      gender: form.gender,
-      birthday: form.birthday,
-      role: form.role,
-      isAdmin: form.isAdmin,
-      avatarText: form.avatarText,
-      relativeName: form.relativeName || '',
-      position: form.position || '无',
-      department: form.department || '',
-      status: REQUEST_STATUS.PENDING,
-      reviewRemark: '',
-      reviewedAt: null,
-      reviewedBy: '',
-      updatedAt: now,
-      submittedAt: now,
-      source: 'workflow',
-      orderId: orderId // 关联工作流工单ID
-    }
-
-    if (existingRequest) {
-      await requestCollection.doc(existingRequest._id).update({
-        data: Object.assign({}, requestPayload, {
-          requestNo: existingRequest.requestNo || createRequestNo(),
-          createdAt: existingRequest.createdAt || now
-        })
-      })
-    } else {
-      const createPayload = Object.assign({}, requestPayload, {
-        requestNo: createRequestNo(),
-        createdAt: now
-      })
-      await requestCollection.add({ data: createPayload })
-    }
-
     return success({
       openid,
-      authStatus: REQUEST_STATUS.PENDING,
+      authStatus: requestStatus.PENDING,
       orderId: orderId,
       request: {
         _id: orderId,
@@ -518,7 +488,7 @@ async function submitRegistration(openid, formData) {
         relativeName: form.relativeName || '',
         position: form.position || '无',
         department: form.department || '',
-        status: REQUEST_STATUS.PENDING,
+        status: requestStatus.PENDING,
         submittedAt: now
       },
       user: null
@@ -529,16 +499,19 @@ async function submitRegistration(openid, formData) {
 }
 
 async function submitProfileUpdate(openid, formData) {
+  const constants = await getSystemConstants()
+  const requestStatus = constants.requestStatus || { PENDING: 'pending', APPROVED: 'approved', REJECTED: 'rejected', TERMINATED: 'terminated' }
+  
   // 验证用户已注册
   const existingUser = await findUserByOpenId(openid)
-  if (!existingUser || existingUser.status !== REQUEST_STATUS.APPROVED) {
+  if (!existingUser || existingUser.status !== requestStatus.APPROVED) {
     return fail('请先完成注册审批', 401, {
-      authStatus: REQUEST_STATUS.PENDING
+      authStatus: requestStatus.PENDING
     })
   }
 
   // 验证表单数据
-  const form = validateForm(formData)
+  const form = await validateForm(formData)
 
   // 检查是否已有待审批的修改申请
   const existingOrderResult = await workOrdersCollection
@@ -598,13 +571,17 @@ async function submitProfileUpdate(openid, formData) {
 }
 
 async function getApprovalData(openid, pagination = {}) {
+  const constants = await getSystemConstants()
+  const requestStatus = constants.requestStatus || { PENDING: 'pending', APPROVED: 'approved', REJECTED: 'rejected', TERMINATED: 'terminated' }
+  const reviewerRoles = constants.reviewerRoles || ['馆领导', '部门负责人']
+  
   const { page = 1, pageSize = 20 } = pagination
   const currentUser = await findUserByOpenId(openid)
 
   // 权限判断：馆领导、部门负责人、管理员可以审批
   const canReview = !!(currentUser &&
-    currentUser.status === REQUEST_STATUS.APPROVED &&
-    (currentUser.isAdmin || currentUser.role === '馆领导' || currentUser.role === '部门负责人'))
+    currentUser.status === requestStatus.APPROVED &&
+    (currentUser.isAdmin || reviewerRoles.includes(currentUser.role)))
 
   // 查询所有激活的工作流模板，用于获取申请类型的名称
   const templatesResult = await templatesCollection
@@ -736,7 +713,7 @@ async function getApprovalData(openid, pagination = {}) {
     // 根据订单类型返回不同的字段
     if (order.orderType === 'medical_application') {
       // 就医申请
-      const orderStatus = order.workflowStatus === 'completed' ? REQUEST_STATUS.APPROVED : (order.workflowStatus === 'rejected' ? REQUEST_STATUS.REJECTED : (order.workflowStatus === 'terminated' ? REQUEST_STATUS.TERMINATED : REQUEST_STATUS.PENDING))
+      const orderStatus = order.workflowStatus === 'completed' ? requestStatus.APPROVED : (order.workflowStatus === 'rejected' ? requestStatus.REJECTED : (order.workflowStatus === 'terminated' ? requestStatus.TERMINATED : requestStatus.PENDING))
       const approvalInfo = myApprovalInfo[order._id] || { reviewedBy: '', reviewedAt: order.updatedAt }
       return {
         _id: order._id,
@@ -766,7 +743,7 @@ async function getApprovalData(openid, pagination = {}) {
       }
     } else if (order.orderType === 'user_profile_update') {
       // 用户信息修改申请
-      const orderStatus = order.workflowStatus === 'completed' ? REQUEST_STATUS.APPROVED : (order.workflowStatus === 'rejected' ? REQUEST_STATUS.REJECTED : (order.workflowStatus === 'terminated' ? REQUEST_STATUS.TERMINATED : REQUEST_STATUS.PENDING))
+      const orderStatus = order.workflowStatus === 'completed' ? requestStatus.APPROVED : (order.workflowStatus === 'rejected' ? requestStatus.REJECTED : (order.workflowStatus === 'terminated' ? requestStatus.TERMINATED : requestStatus.PENDING))
       const approvalInfo = myApprovalInfo[order._id] || { reviewedBy: '', reviewedAt: order.updatedAt }
       return {
         _id: order._id,
@@ -795,7 +772,7 @@ async function getApprovalData(openid, pagination = {}) {
       }
     } else {
       // 注册申请
-      const orderStatus = order.workflowStatus === 'completed' ? REQUEST_STATUS.APPROVED : (order.workflowStatus === 'rejected' ? REQUEST_STATUS.REJECTED : (order.workflowStatus === 'terminated' ? REQUEST_STATUS.TERMINATED : REQUEST_STATUS.PENDING))
+      const orderStatus = order.workflowStatus === 'completed' ? requestStatus.APPROVED : (order.workflowStatus === 'rejected' ? requestStatus.REJECTED : (order.workflowStatus === 'terminated' ? requestStatus.TERMINATED : requestStatus.PENDING))
       const approvalInfo = myApprovalInfo[order._id] || { reviewedBy: '', reviewedAt: order.updatedAt }
       return {
         _id: order._id,
@@ -930,7 +907,7 @@ async function getApprovalData(openid, pagination = {}) {
               reasonForSelection: order ? order.businessData.reasonForSelection : '',
               reason: order ? order.businessData.reason : '',
               avatarText: name ? name.slice(0, 1) : '就',
-              status: REQUEST_STATUS.PENDING,
+              status: requestStatus.PENDING,
               submittedAt: order ? order.createdAt : null,
               taskId: task._id,
               taskName: task.stepName,
@@ -957,7 +934,7 @@ async function getApprovalData(openid, pagination = {}) {
               isAdmin: order ? order.businessData.isAdmin : false,
               avatarText: order ? order.businessData.avatarText : (name ? name.slice(0, 1) : '智'),
               updateReason: order ? (order.businessData.updateReason || '申请修改个人信息') : '申请修改个人信息',
-              status: REQUEST_STATUS.PENDING,
+              status: requestStatus.PENDING,
               submittedAt: order ? order.createdAt : null,
               taskId: task._id,
               taskName: task.stepName,
@@ -982,7 +959,7 @@ async function getApprovalData(openid, pagination = {}) {
               department: order ? (order.businessData.department || '') : '',
               isAdmin: order ? order.businessData.isAdmin : false,
               avatarText: order ? order.businessData.avatarText : (name ? name.slice(0, 1) : '智'),
-              status: REQUEST_STATUS.PENDING,
+              status: requestStatus.PENDING,
               submittedAt: order ? order.createdAt : null,
               taskId: task._id,
               taskName: task.stepName,
@@ -1096,7 +1073,7 @@ async function getApprovalData(openid, pagination = {}) {
     }
 
     doneList = completedOrdersResult.data ? completedOrdersResult.data.map(order => {
-      const status = order.workflowStatus === 'completed' ? REQUEST_STATUS.APPROVED : (order.workflowStatus === 'rejected' ? REQUEST_STATUS.REJECTED : REQUEST_STATUS.TERMINATED)
+      const status = order.workflowStatus === 'completed' ? requestStatus.APPROVED : (order.workflowStatus === 'rejected' ? requestStatus.REJECTED : requestStatus.TERMINATED)
       const info = approvalInfo[order._id] || { reviewedBy: '管理员', reviewedAt: order.updatedAt }
 
       // 根据订单类型返回不同的字段
@@ -1192,8 +1169,8 @@ async function getApprovalData(openid, pagination = {}) {
     },
     summary: {
       pendingCount: pendingList.length,
-      approvedCount: doneList.filter(r => r.status === REQUEST_STATUS.APPROVED).length,
-      rejectedCount: doneList.filter(r => r.status === REQUEST_STATUS.REJECTED).length
+      approvedCount: doneList.filter(r => r.status === requestStatus.APPROVED).length,
+      rejectedCount: doneList.filter(r => r.status === requestStatus.REJECTED).length
     }
   })
 }

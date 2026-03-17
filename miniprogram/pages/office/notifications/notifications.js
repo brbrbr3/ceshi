@@ -1,9 +1,9 @@
 const app = getApp()
-const util = require('../../../util/util.js')
+const utils = require('../../../common/utils.js')
 const paginationBehavior = require('../../../behaviors/pagination.js')
 
-// 使用统一的时间格式化函数（GMT-3 巴西利亚时间）
-const formatTime = util.formatTimeToGMT3
+// 使用统一的时间格式化函数
+const formatTime = (timestamp) => utils.formatRelativeTime(timestamp)
 
 Page({
   behaviors: [paginationBehavior],
@@ -142,21 +142,21 @@ Page({
       if (res.result.success) {
         this.loadNotifications().finally(() => {
           wx.hideLoading()
-          util.showToast({
+          utils.showtoast({
             title: '已全部标记为已读',
             icon: 'success'
           })
         })
       } else {
         wx.hideLoading()
-        util.showToast({
+        utils.showtoast({
           title: '操作失败',
           icon: 'none'
         })
       }
     }).catch(() => {
       wx.hideLoading()
-      util.showToast({
+      utils.showtoast({
         title: '操作失败',
         icon: 'none'
       })
@@ -178,7 +178,7 @@ Page({
             if (success) {
               this.loadNotifications().finally(() => {
                 wx.hideLoading()
-                util.showToast({
+                utils.showtoast({
                   title: '已清空所有消息',
                   icon: 'success'
                 })

@@ -1,18 +1,13 @@
 const app = getApp()
-const util = require('../../../util/util.js')
+const utils = require('../../../common/utils.js')
 
 function formatTime(timestamp) {
   if (!timestamp) {
     return ''
   }
 
-  // 使用统一的时间处理函数（GMT-3 巴西利亚时间）
-  const date = util.toGMT3Date(timestamp)
-  const month = String(date.getMonth() + 1).padStart(2, '0')
-  const day = String(date.getDate()).padStart(2, '0')
-  const hours = String(date.getHours()).padStart(2, '0')
-  const minutes = String(date.getMinutes()).padStart(2, '0')
-  return `${month}-${day} ${hours}:${minutes}`
+  // 使用统一的时间处理函数
+  return utils.formatShortDateTime(timestamp)
 }
 
 function buildStatusCard(request) {
@@ -157,7 +152,7 @@ Page({
       .then((result) => {
         if (result.registered === true) {
           // 已注册用户，跳转主页
-          util.showToast({
+          utils.showToast({
             title: '登录成功',
             icon: 'success'
           })
@@ -175,7 +170,7 @@ Page({
             statusCard: buildStatusCard(result.request),
             showRegisterLink: false
           })
-          util.showToast({
+          utils.showtoast({
             title: '申请审核中',
             icon: 'none'
           })
@@ -190,7 +185,7 @@ Page({
         })
       })
       .catch((error) => {
-        util.showToast({
+        utils.showtoast({
           title: error.message || '登录失败',
           icon: 'none'
         })

@@ -1,5 +1,4 @@
-// const app = getApp()
-const util = require('../../../../util/util.js')
+const utils = require('../../../../common/utils.js')
 
 
 const backgroundAudioManager = wx.getBackgroundAudioManager()
@@ -73,7 +72,7 @@ Page({
     function update() {
       that.setData({
         playTime: backgroundAudioManager.currentTime + 1,
-        formatedPlayTime: util.formatTime(backgroundAudioManager.currentTime + 1)
+        formatedPlayTime: utils.formatDuration(backgroundAudioManager.currentTime + 1)
       })
     }
     updateInterval = setInterval(update, 1000)
@@ -117,7 +116,7 @@ Page({
       that.setData({
         playing: false,
         playTime: 0,
-        formatedPlayTime: util.formatTime(0)
+        formatedPlayTime: utils.formatDuration(0)
       })
     })
 
@@ -126,7 +125,7 @@ Page({
       that.setData({
         playing: false,
         playTime: 0,
-        formatedPlayTime: util.formatTime(0)
+        formatedPlayTime: utils.formatDuration(0)
       })
     })
   },

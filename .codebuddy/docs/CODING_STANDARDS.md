@@ -1734,9 +1734,256 @@ const result = await db.collection(collectionName).add({
 - [ ] 是否记录了详细的错误日志
 - [ ] 是否区分了不同类型的错误
 
+### 10.10 时间处理相关
+- [ ] 后端是否只存储 GMT 时间戳（使用 `Date.now()`）
+- [ ] 后端返回数据时是否返回时间戳而不是格式化字符串
+- [ ] 前端是否使用 `utils.js` 中的时间格式化函数
+- [ ] 前端是否从 `constants.getConstantSync('TIMEZONE_OFFSET')` 获取时区偏移量
+- [ ] 时间显示是否考虑了用户时区设置
+
+### 10.11 工具函数入口检查清单
+- [ ] 是否使用 `common/utils.js` 而不是 `util/util.js`
+- [ ] 引入路径是否正确（`../../../common/utils.js`）
+- [ ] 是否使用 `utils.showToast` 而不是 `util.showToast`
+- [ ] 是否使用 `utils.formatDuration` 而不是 `util.formatTime`
+- [ ] 是否使用 `utils.formatLocation` 而不是 `util.formatLocation`
+
 ---
 
-## 11. 常见错误案例
+## 11. 时间处理规范
+
+### 11.0 工具函数统一入口
+
+**重要**：项目中有两个工具函数文件，请统一使用 **`miniprogram/common/utils.js`**
+
+| 文件 | 状态 | 说明 |
+|------|------|------|
+| `miniprogram/common/utils.js` | ✅ **推荐使用** | 新的统一入口，支持数据库配置时区 |
+| `miniprogram/util/util.js` | ❌ **即将废弃** | 旧文件，时间函数硬编码 GMT-3 |
+
+**迁移计划**：
+1. 新代码统一使用 `common/utils.js`
+2. 旧代码逐步迁移到 `common/utils.js`
+3. 最终删除 `util/util.js`
+
+### 11.1 核心原则
+
+**后端（云函数）**：
+- ✅ 只存储和返回 **GMT 时间戳**（毫秒）
+- ✅ 使用 `Date.now()` 获取当前时间
+- ✅ 返回数据时直接返回时间戳，不进行格式化
+- ❌ 禁止在后端进行时间格式化（除非用于微信订阅消息）
+
+**前端（小程序）**：
+- ✅ 所有时间格式化都在前端进行
+- ✅ 使用 `miniprogram/common/utils.js` 中的时间函数
+- ✅ 基于 `TIMEZONE_OFFSET` 常量计算本地时间
+- ✅ 时间函数都是同步的（从缓存读取时区偏移量）
+
+**引入方式**：
+```javascript
+// ✅ 正确 - 使用新的统一入口
+const utils = require('../../../common/utils.js')
+
+// ❌ 错误 - 旧的入口已废弃
+const util = require('../../../util/util.js')
+```
+
+### 11.2 后端时间处理
+
+**获取当前时间戳**：
+```javascript
+// ✅ 正确
+const now = Date.now()
+
+// ❌ 错误
+const now = new Date().toLocaleString()
+```
+
+**存储到数据库**：
+```javascript
+// ✅ 正确
+await db.collection('work_orders').add({
+  data: {
+    createdAt: Date.now(),  // GMT 时间戳
+    updatedAt: Date.now()
+  }
+})
+```
+
+**返回数据给前端**：
+```javascript
+// ✅ 正确
+return success({
+  createdAt: 1710734400000,  // GMT 时间戳
+  deadlineTime: 1710820800000
+})
+
+// ❌ 错误 - 不要在后端格式化
+return success({
+  createdAt: '2024-03-18 12:00:00'  // 格式化后的字符串
+})
+```
+
+**例外情况（微信订阅消息）**：
+```javascript
+// ✅ 订阅消息可以格式化时间
+function formatTimeForMessage(timestamp) {
+  const date = new Date(timestamp)
+  return `${date.getFullYear()}-${String(date.getMonth() + 1).padStart(2, '0')}-${String(date.getDate()).padStart(2, '0')} ${String(date.getHours()).padStart(2, '0')}:${String(date.getMinutes()).padStart(2, '0')}:${String(date.getSeconds()).padStart(2, '0')}`
+}
+```
+
+### 11.3 前端时间处理
+
+**引入工具函数**：
+```javascript
+// ✅ 正确
+const utils = require('../../../common/utils.js')
+```
+
+**格式化日期时间**：
+```javascript
+// ✅ 正确
+const formattedTime = utils.formatDateTime(timestamp, -3)  // YYYY-MM-DD HH:mm:ss
+
+// ✅ 如果不传 offset，自动使用缓存的时区偏移量
+const formattedTime = utils.formatDateTime(timestamp)
+```
+
+**格式化日期**：
+```javascript
+// ✅ 正确
+const formattedDate = utils.formatDate(timestamp, -3)  // YYYY-MM-DD
+```
+
+**格式化相对时间**：
+```javascript
+// ✅ 正确
+const relativeTime = utils.formatRelativeTime(timestamp, -3)  // "5分钟前"
+```
+
+**获取今天的日期**：
+```javascript
+// ✅ 正确
+const today = utils.getTodayDate(-3)  // YYYY-MM-DD
+```
+
+### 11.4 时间函数 API
+
+**可用函数**（全部在 `miniprogram/common/utils.js` 中）：
+
+| 函数名 | 参数 | 返回值 | 说明 |
+|--------|------|--------|------|
+| `getTimezoneOffset()` | 无 | `number` | 获取时区偏移量（同步，从缓存） |
+| `formatDateTime(timestamp, offset)` | `timestamp`, `offset` | `string` | YYYY-MM-DD HH:mm:ss |
+| `formatDate(timestamp, offset)` | `timestamp`, `offset` | `string` | YYYY-MM-DD |
+| `formatTime(timestamp, offset)` | `timestamp`, `offset` | `string` | HH:mm:ss |
+| `formatRelativeTime(timestamp, offset)` | `timestamp`, `offset` | `string` | "5分钟前" |
+| `formatShortDateTime(timestamp, offset)` | `timestamp`, `offset` | `string` | MM-DD HH:mm |
+| `getTodayDate(offset)` | `offset` | `string` | 今天日期 YYYY-MM-DD |
+| `now()` | 无 | `number` | 当前 GMT 时间戳 |
+
+### 11.5 时区偏移量配置
+
+**从数据库获取**（异步）：
+```javascript
+const constants = require('../../../common/constants.js')
+
+// 异步获取（首次加载时使用）
+async function loadTimezone() {
+  const offset = await constants.getConstant('TIMEZONE_OFFSET')
+  return offset || -3  // 默认圣保罗时区
+}
+```
+
+**从缓存获取**（同步）：
+```javascript
+const constants = require('../../../common/constants.js')
+
+// 同步获取（用于时间格式化函数）
+const offset = constants.getConstantSync('TIMEZONE_OFFSET')  // 返回 -3
+```
+
+### 11.6 常见错误案例
+
+#### 案例A：在后端格式化时间
+
+**错误代码**：
+```javascript
+// ❌ 错误：在后端格式化时间
+exports.main = async (event, context) => {
+  const orders = await db.collection('work_orders').get()
+  
+  const formattedOrders = orders.data.map(order => ({
+    ...order,
+    createdAt: new Date(order.createdAt).toLocaleString('zh-CN')  // ❌ 不要这样做
+  }))
+  
+  return success(formattedOrders)
+}
+```
+
+**问题**：
+- 后端进行了时间格式化，破坏了数据一致性
+- 如果用户时区不同，显示的时间会不正确
+
+**正确代码**：
+```javascript
+// ✅ 正确：后端只返回时间戳
+exports.main = async (event, context) => {
+  const orders = await db.collection('work_orders').get()
+  
+  // 直接返回原始数据，包含时间戳
+  return success(orders.data)
+}
+
+// 前端处理时间显示
+const utils = require('../../../common/utils.js')
+const formattedTime = utils.formatDateTime(order.createdAt)
+```
+
+#### 案例B：使用旧的函数名
+
+**错误代码**：
+```javascript
+// ❌ 错误：使用已废弃的函数名
+const utils = require('../../../common/utils.js')
+const time = utils.formatRelativeTimeToTimezone(timestamp, -3)  // 函数不存在
+```
+
+**正确代码**：
+```javascript
+// ✅ 正确：使用新的函数名
+const utils = require('../../../common/utils.js')
+const time = utils.formatRelativeTime(timestamp, -3)
+```
+
+#### 案例C：时区偏移量硬编码
+
+**错误代码**：
+```javascript
+// ❌ 错误：硬编码时区偏移量
+function formatTime(timestamp) {
+  const offset = -3  // 硬编码
+  return utils.formatDateTime(timestamp, offset)
+}
+```
+
+**正确代码**：
+```javascript
+// ✅ 正确：从配置读取时区偏移量
+const formattedTime = utils.formatDateTime(timestamp)  // 自动使用缓存的偏移量
+
+// 或明确指定
+const constants = require('../../../common/constants.js')
+const offset = constants.getConstantSync('TIMEZONE_OFFSET')
+const formattedTime = utils.formatDateTime(timestamp, offset)
+```
+
+---
+
+## 12. 常见错误案例
 
 ### 案例1：集合名称错误
 
@@ -2118,6 +2365,240 @@ onLoad() {
 
 ---
 
+## 16. MCP工具自动执行规范
+
+### 16.1 规范目的
+
+本规范定义了AI助手在使用CloudBase开发微信小程序时，如何自动执行涉及云数据库和云函数的操作，而无需用户手动操作。
+
+**核心理念**：凡是涉及云数据库和云函数的操作，AI助手应自行使用已绑定的CloudBase MCP工具完成，用户只需关注业务逻辑。
+
+### 16.2 适用范围
+
+**数据库操作**：
+- ✅ 创建数据库集合（collections）
+- ✅ 读取/写入数据库数据
+- ✅ 查询数据库记录
+- ✅ 更新数据库文档
+- ✅ 删除数据库记录
+- ✅ 配置数据库安全规则
+- ✅ 执行SQL查询（MySQL）
+
+**云函数操作**：
+- ✅ 创建云函数
+- ✅ 更新云函数代码
+- ✅ 部署云函数
+- ✅ 调用云函数
+- ✅ 查询云函数日志
+
+**云存储/静态托管操作**：
+- ✅ 上传/下载/删除文件
+- ✅ 查询文件信息
+- ✅ 配置域名
+
+### 16.3 工具选择
+
+| 操作类型 | MCP工具 |
+|---------|--------|
+| NoSQL数据库 | `readNoSqlDatabaseStructure`, `writeNoSqlDatabaseStructure`, `readNoSqlDatabaseContent`, `writeNoSqlDatabaseContent` |
+| MySQL数据库 | `executeReadOnlySQL`, `executeWriteSQL` |
+| 云函数 | `getFunctionList`, `createFunction`, `updateFunctionCode`, `invokeFunction`, `getFunctionLogs` |
+| 云存储 | `queryStorage`, `manageStorage` |
+| 静态托管 | `uploadFiles`, `deleteFiles`, `findFiles` |
+
+### 16.4 执行流程
+
+**重要：调用MCP工具前必须先获取工具描述**
+
+```javascript
+// 1. 获取工具描述（必需）
+await mcp_get_tool_description({
+  toolRequests: JSON.stringify([
+    ["CloudBase MCP", "writeNoSqlDatabaseContent"]
+  ])
+})
+
+// 2. 执行工具调用
+await mcp_call_tool({
+  serverName: "CloudBase MCP",
+  toolName: "writeNoSqlDatabaseContent",
+  arguments: JSON.stringify({
+    // ... 参数
+  })
+})
+```
+
+### 16.5 禁止操作
+
+❌ **禁止**让用户去云开发控制台手动创建集合
+
+❌ **禁止**让用户去控制台手动插入/更新数据库数据
+
+❌ **禁止**让用户去控制台手动部署云函数
+
+❌ **禁止**让用户去控制台手动配置安全规则
+
+❌ **禁止**让用户在小程序中添加临时测试代码来调用云函数
+
+### 16.6 命令执行规范
+
+**核心理念**：优先使用专用文件工具，仅在必要时使用 `execute_command`。
+
+**专用文件工具优先**：
+- 创建文件：`write_to_file`（自动创建目录）
+- 读取文件：`read_file`
+- 删除文件：`delete_file`
+- 搜索文件：`search_file`
+- 搜索内容：`search_content`
+
+**execute_command 支持的简单命令**：
+- `mkdir folder-name` - 创建目录
+- `rd folder-name` - 删除目录
+- `del filename.txt` - 删除文件
+- `dir folder-name` - 查看目录
+
+**execute_command 禁止使用**：
+- ❌ 链式命令：`command1 && command2`
+- ❌ 切换目录：`cd path`
+- ❌ 重定向：`echo text > file.txt`
+- ❌ PowerShell 特定命令
+- ❌ 管道操作：`command1 | command2`
+
+---
+
+## 17. 分页加载框架
+
+### 17.1 框架结构
+
+```
+miniprogram/
+├── behaviors/
+│   └── pagination.js          # 分页加载 Behavior（核心逻辑）
+├── components/
+│   └── pagination-loading/    # 分页加载 UI 组件
+```
+
+### 17.2 快速开始
+
+```javascript
+const paginationBehavior = require('../../../behaviors/pagination.js')
+
+Page({
+  behaviors: [paginationBehavior],
+  
+  onLoad() {
+    // 初始化分页配置
+    this.initPagination({
+      initialPageSize: 20,  // 初始加载数量
+      loadMorePageSize: 10   // 滚动加载更多时的数量
+    })
+    
+    // 加载第一页数据
+    this.loadListData()
+  },
+  
+  // 必须实现 loadData 方法
+  async loadData(params) {
+    const { page, pageSize } = params
+    const result = await app.callOfficeAuth('getApprovalData', {
+      page,
+      pageSize
+    })
+    return {
+      data: result.list || [],
+      hasMore: result.hasMore
+    }
+  }
+})
+```
+
+### 17.3 页面配置
+
+```json
+{
+  "enablePullDownRefresh": true,
+  "onReachBottomDistance": 50
+}
+```
+
+### 17.4 Behavior API
+
+| 方法 | 说明 |
+|------|------|
+| `initPagination(options)` | 初始化分页配置 |
+| `resetPagination()` | 重置分页状态 |
+| `loadListData(loadMore)` | 加载列表数据 |
+| `refreshList()` | 刷新列表 |
+| `loadMore()` | 加载更多 |
+| `setListData(list, hasMore)` | 设置列表数据 |
+| `appendToList(data)` | 追加数据到列表 |
+| `updateListItem(id, updates)` | 更新列表项 |
+| `removeListItem(id)` | 删除列表项 |
+
+### 17.5 多Tab分页
+
+```javascript
+Page({
+  behaviors: [paginationBehavior],
+  
+  data: {
+    activeTab: 'pending',
+    pagination: {
+      pending: { page: 1, hasMore: true },
+      mine: { page: 1, hasMore: true },
+      done: { page: 1, hasMore: true }
+    }
+  },
+  
+  switchTab(e) {
+    const tab = e.currentTarget.dataset.tab
+    this.setData({ activeTab: tab })
+    if (this.data[tab + 'List'].length === 0) {
+      this.loadListData()
+    }
+  }
+})
+```
+
+---
+
+## 18. 小程序页面开发规范
+
+### 18.1 相对路径引用规范
+
+创建新页面时，必须正确计算相对于项目根目录的路径：
+
+**路径计算公式**：
+```
+../ 的数量 = (当前页面深度 - 1) + (目标文件深度)
+```
+
+**常用引用路径示例**：
+
+| 当前文件 | 引用文件 | 正确路径 |
+|---------|---------|---------|
+| `pages/auth/register/register.js` | `util/util.js` | `../../../../util/util.js` (4个../) |
+| `pages/office/home/home.js` | `util/util.js` | `../../../util/util.js` (3个../) |
+| `pages/office/profile/edit-profile/edit-profile.js` | `util/util.js` | `../../../../util/util.js` (5个../) |
+
+**验证方法**：
+1. 创建页面后立即编译，确保没有 "module not defined" 错误
+2. 从当前文件位置开始，每向上一级目录添加一个 `../`
+
+### 18.2 app.json 页面注册规范
+
+创建新页面时，必须在 `app.json` 的 `pages` 数组中注册页面路径：
+
+```json
+{
+  "pages": [
+    "pages/office/profile/edit-profile/edit-profile"
+  ]
+}
+```
+
+---
+
 ## 总结
 
 **核心原则**：
@@ -2125,6 +2606,7 @@ onLoad() {
 2. 遵循命名规范，保持一致性
 3. 参考现有代码，避免重复错误
 4. 重视代码审查，及时修复问题
+5. 优先使用专用工具，避免手动操作控制台
 
 **强制要求**：
 - ✅ 所有数据库操作必须先查阅 `DATABASE_COLLECTIONS_REFERENCE.md`
@@ -2137,5 +2619,7 @@ onLoad() {
 - ✅ 新增功能必须通过 `permissionManager` 云函数配置权限
 - ✅ 工作流功能必须在 app.js onLaunch 中自动初始化
 - ✅ 云函数修改后必须重新部署并测试验证
+- ✅ 数据库和云函数操作必须使用MCP工具自动完成
+- ✅ 文件操作优先使用专用工具，避免使用命令行
 
 记住：规范的目的是提高代码质量和团队协作效率，不是为了限制创造性！

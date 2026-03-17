@@ -1,27 +1,13 @@
 const app = getApp()
-const util = require('../../../util/util.js')
+const utils = require('../../../common/utils.js')
 
 function formatTime(timestamp) {
   if (!timestamp) {
     return ''
   }
 
-  // 使用统一的时间处理函数（GMT-3 巴西利亚时间）
-  const date = util.toGMT3Date(timestamp)
-  const month = String(date.getMonth() + 1).padStart(2, '0')
-  const day = String(date.getDate()).padStart(2, '0')
-  const hours = String(date.getHours()).padStart(2, '0')
-  const minutes = String(date.getMinutes()).padStart(2, '0')
-  return `${month}-${day} ${hours}:${minutes}`
-}
-
-function getAvatarColor(text) {
-  const colors = ['#2563EB', '#059669', '#7C3AED', '#EA580C', '#DB2777', '#0891B2']
-  if (!text) {
-    return colors[0]
-  }
-  const code = text.charCodeAt(0)
-  return colors[code % colors.length]
+  // 使用统一的时间处理函数
+  return utils.formatShortDateTime(timestamp)
 }
 
 Page({
@@ -81,7 +67,7 @@ Page({
       })
       .catch(error => {
         console.error('加载菜单失败', error)
-        util.showToast({
+        utils.showtoast({
           title: '加载失败',
           icon: 'none'
         })
@@ -115,7 +101,7 @@ Page({
                 authorOpenid: authorOpenid,
                 timeText: formatTime(item.createdAt),
                 avatar: authorName.slice(0, 1),
-                avatarBg: getAvatarColor(authorName),
+                avatarBg: utils.getAvatarColor(authorName),
                 canDelete: isAdmin || authorOpenid === currentOpenid
               }
             })
@@ -147,7 +133,7 @@ Page({
                 authorOpenid: authorOpenid,
                 timeText: formatTime(item.createdAt),
                 avatar: authorName.slice(0, 1),
-                avatarBg: getAvatarColor(authorName),
+                avatarBg: utils.getAvatarColor(authorName),
                 canDelete: false
               }
             })
@@ -169,7 +155,7 @@ Page({
   submitComment() {
     const content = this.data.commentText.trim()
     if (!content) {
-      util.showToast({
+      utils.showtoast({
         title: '请输入评论内容',
         icon: 'none'
       })
@@ -178,7 +164,7 @@ Page({
 
     const openid = app.globalData.openid
     if (!openid) {
-      util.showToast({
+      utils.showtoast({
         title: '请先登录',
         icon: 'none'
       })
@@ -188,7 +174,7 @@ Page({
     app.checkUserRegistration()
       .then((result) => {
         if (!result.registered || !result.user) {
-          util.showToast({
+          utils.showtoast({
             title: '请先登录',
             icon: 'none'
           })
@@ -210,21 +196,21 @@ Page({
           .then(() => {
             this.setData({ commentText: '' })
             this.loadComments()
-            util.showToast({
+            utils.showtoast({
               title: '评论成功',
               icon: 'success'
             })
           })
           .catch(error => {
             console.error('提交评论失败', error)
-            util.showToast({
+            utils.showtoast({
               title: '提交失败',
               icon: 'none'
             })
           })
       })
       .catch(() => {
-        util.showToast({
+        utils.showtoast({
           title: '请先登录',
           icon: 'none'
         })
@@ -247,14 +233,14 @@ Page({
           })
             .then(() => {
               this.loadComments()
-              util.showToast({
+              utils.showtoast({
                 title: '删除成功',
                 icon: 'success'
               })
             })
             .catch(error => {
               console.error('删除评论失败', error)
-              util.showToast({
+              utils.showtoast({
                 title: '删除失败',
                 icon: 'none'
               })
@@ -284,7 +270,7 @@ Page({
             }
           })
             .then(() => {
-              util.showToast({
+              utils.showtoast({
                 title: '删除成功',
                 icon: 'success'
               })
@@ -294,7 +280,7 @@ Page({
             })
             .catch(error => {
               console.error('删除菜单失败', error)
-              util.showToast({
+              utils.showtoast({
                 title: '删除失败',
                 icon: 'none'
               })

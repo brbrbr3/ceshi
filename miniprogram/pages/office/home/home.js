@@ -1,8 +1,8 @@
 const app = getApp()
-const util = require('../../../util/util.js')
+const utils = require('../../../common/utils.js')
 
 // 使用统一的时间格式化函数
-const formatTime = util.formatTimeToGMT3
+const formatTime = (timestamp) => utils.formatRelativeTime(timestamp)
 
 Page({
   data: {
@@ -108,7 +108,7 @@ Page({
   requestSubscribeMessage() {
     app.requestSubscribeMessage().then((subscribed) => {
       if (subscribed) {
-        util.showToast({
+        utils.showtoast({
           title: '订阅成功',
           icon: 'success'
         })
@@ -242,7 +242,7 @@ Page({
           })
         })
     } else {
-      util.showToast({
+      utils.showtoast({
         title: '功能开发中，敬请期待',
         icon: 'none'
       })
@@ -250,7 +250,7 @@ Page({
   },
 
   showComingSoon() {
-    util.showToast({
+    utils.showtoast({
       title: '功能开发中，敬请期待',
       icon: 'none'
     })

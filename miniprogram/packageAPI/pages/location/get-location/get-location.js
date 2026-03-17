@@ -1,6 +1,6 @@
-const util = require('../../../../util/util.js')
+const utils = require('../../../../common/utils.js')
 
-const formatLocation = util.formatLocation
+const formatLocation = utils.formatLocation
 
 Page({
   onShareAppMessage() {
