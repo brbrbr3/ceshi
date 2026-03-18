@@ -363,7 +363,8 @@ async function startWorkflow(orderType, businessData) {
         workflowSnapshot: {
           templateId: template._id,
           version: template.version,
-          steps: activeSteps
+          steps: activeSteps,
+          displayConfig: template.displayConfig || null
         },
         workflowStatus: ORDER_STATUS.PENDING,
         currentStep: 1,

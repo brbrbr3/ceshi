@@ -90,52 +90,86 @@ function mapRequestItem(request) {
   const workflowSteps = workflowSnapshot.steps || request.steps || []
   const totalSteps = workflowSteps.length
 
-  if (request.orderType === 'medical_application') {
-    // 就医申请
-    const patientName = request.patientName || ''
-    const relation = request.relation || ''
-    const medicalDate = request.medicalDate || ''
-    const institution = request.institution || ''
-    const detailParts = []
+  // 从 displayConfig 动态生成 detail（如果配置存在）
+  const displayConfig = request.displayConfig || workflowSnapshot.displayConfig || null
 
-    if (patientName) {
-      detailParts.push(`就医人：${patientName}`)
-    }
-    if (relation) {
-      detailParts.push(`关系：${relation}`)
-    }
-    if (medicalDate) {
-      detailParts.push(`时间：${medicalDate}`)
-    }
-    if (institution) {
-      detailParts.push(`机构：${institution}`)
-    }
-
-    detail = detailParts.join(' · ')
-  } else if (request.orderType === 'user_profile_update') {
-    // 用户信息修改申请
+  if (displayConfig && displayConfig.cardFields && displayConfig.cardFields.length > 0) {
+    // 动态生成 detail
+    console.log('使用动态渲染成功')
     const detailParts = []
-    if (request.role) {
-      detailParts.push(`角色：${request.role}`)
-    }
-    if (request.position && request.position !== '无') {
-      detailParts.push(`岗位：${request.position}`)
-    }
-    if (request.department) {
-      detailParts.push(`部门：${request.department}`)
+    for (const fieldConfig of displayConfig.cardFields) {
+      // 检查条件是否满足
+      if (fieldConfig.condition) {
+        const cond = fieldConfig.condition
+        const fieldValue = request[cond.field]
+        let shouldShow = false
+
+        if (cond.op === '==' && fieldValue === cond.value) {
+          shouldShow = true
+        } else if (cond.op === '!=' && fieldValue !== cond.value) {
+          shouldShow = true
+        }
+
+        if (!shouldShow) continue
+      }
+
+      const value = request[fieldConfig.field]
+      if (value !== undefined && value !== null && value !== '') {
+        detailParts.push(`${fieldConfig.label}：${value}`)
+      }
     }
     detail = detailParts.join(' · ')
-  } else {
-    // 注册申请
-    const detailParts = [request.birthday]
-    if (request.position && request.position !== '无') {
-      detailParts.push(request.position)
+  } 
+  else {
+    console.log('使用动态渲染失败，因为displayConfig=', displayConfig )
+    // 兼容处理：使用原有的硬编码逻辑
+    if (request.orderType === 'medical_application') {
+      // 就医申请
+      const patientName = request.patientName || ''
+      const relation = request.relation || ''
+      const medicalDate = request.medicalDate || ''
+      const institution = request.institution || ''
+      const detailParts = []
+
+      if (patientName) {
+        detailParts.push(`就医人：${patientName}`)
+      }
+      if (relation) {
+        detailParts.push(`关系：${relation}`)
+      }
+      if (medicalDate) {
+        detailParts.push(`时间：${medicalDate}`)
+      }
+      if (institution) {
+        detailParts.push(`机构：${institution}`)
+      }
+
+      detail = detailParts.join(' · ')
+    } else if (request.orderType === 'user_profile_update') {
+      // 用户信息修改申请
+      const detailParts = []
+      if (request.role) {
+        detailParts.push(`角色：${request.role}`)
+      }
+      if (request.position && request.position !== '无') {
+        detailParts.push(`岗位：${request.position}`)
+      }
+      if (request.department) {
+        detailParts.push(`部门：${request.department}`)
+      }
+      detail = detailParts.join(' · ')
+    } else {
+      // 注册申请
+      const detailParts = [request.birthday]
+      if (request.position && request.position !== '无') {
+        detailParts.push(request.position)
+      }
+      if (request.department) {
+        detailParts.push(request.department)
+      }
+      detailParts.push(request.isAdmin ? '申请管理员' : '普通成员')
+      detail = detailParts.join(' · ')
     }
-    if (request.department) {
-      detailParts.push(request.department)
-    }
-    detailParts.push(request.isAdmin ? '申请管理员' : '普通成员')
-    detail = detailParts.join(' · ')
   }
 
   // 动态判断是否显示进度条：待审批状态 + 工作流步骤>=2 + 有当前步骤信息

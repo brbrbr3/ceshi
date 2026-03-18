@@ -487,6 +487,9 @@
   description: String,             // 模板描述
   category: String,                // 分类：'approval'（审批）| 'notification'（通知）
   steps: Array,                   // 审批步骤列表（可为空数组，表示0步审批）
+  displayConfig: Object,           // 字段显示配置（可选）
+    - cardFields: Array           // 卡片列表显示字段
+    - detailFields: Array         // 详情页显示字段
   defaultTimeout: Number,          // 默认超时时间（小时）
   notifyOnSubmit: Boolean,         // 提交时是否通知
   notifyOnComplete: Boolean,        // 完成时是否通知
@@ -496,6 +499,36 @@
   updatedAt: Number                // 更新时间戳
 }
 ```
+
+**displayConfig 结构说明**：
+```javascript
+{
+  cardFields: [
+    { field: 'patientName', label: '就医人' },
+    { field: 'relation', label: '关系' }
+  ],
+  detailFields: [
+    { field: 'patientName', label: '就医人姓名' },
+    { field: 'relation', label: '与申请人关系' },
+    { field: 'institution', label: '就医机构' },
+    // 条件显示字段
+    { 
+      field: 'otherInstitution', 
+      label: '机构名称', 
+      condition: { field: 'institution', value: '其他' }  // 当 institution === '其他' 时显示
+    }
+  ]
+}
+```
+
+**字段配置属性**：
+| 属性 | 类型 | 必填 | 说明 |
+|------|------|------|------|
+| `field` | String | 是 | 字段名（对应 businessData 中的字段） |
+| `label` | String | 是 | 显示标签 |
+| `condition` | Object | 否 | 条件显示配置 |
+| `condition.field` | String | 是 | 条件字段名 |
+| `condition.value` | Any | 是 | 条件值（支持字符串、数字、布尔值） |
 
 **steps 数组结构**（审批步骤）：
 ```javascript
@@ -636,6 +669,7 @@ const notificationsCollection = db.collection('notifications')  // ✅
 | 2026-03-18 | 添加 sys_config 集合描述 | AI |
 | 2026-03-18 | 添加索引管理说明，更新各集合索引信息 | AI |
 | 2026-03-18 | 修正 announcements、menus、notifications 安全规则 | AI |
+| 2026-03-18 | 添加 workflow_templates 的 displayConfig 字段说明 | AI |
 
 ---
 

@@ -1232,7 +1232,193 @@ reinitWorkflowTemplates() {
 - [ ] 是否提供重新初始化方法
 - [ ] 工作流模板是否成功导入到 `workflow_templates` 集合
 
-### 6.2 工作流引擎使用规范
+### 6.3 工作流申请卡片和详情页动态渲染规范
+
+**规则**：所有工作流申请类型的卡片显示和详情页显示，必须使用 `displayConfig` 动态配置，禁止硬编码。
+
+**核心要求**：
+- ✅ 在工作流模板的 `displayConfig` 字段中定义显示配置
+- ✅ 创建工单时，`workflowEngine` 云函数自动快照 `displayConfig`
+- ✅ 前端根据 `displayConfig` 动态渲染字段
+- ✅ 支持条件显示（如某些字段只在特定条件下显示）
+- ❌ 禁止在前端代码中硬编码字段列表
+
+**displayConfig 结构**：
+```javascript
+{
+  displayConfig: {
+    cardFields: [
+      { field: 'patientName', label: '就医人' },
+      { field: 'relation', label: '关系' }
+    ],
+    detailFields: [
+      { field: 'patientName', label: '就医人姓名' },
+      { field: 'relation', label: '与申请人关系' },
+      { field: 'institution', label: '就医机构' },
+      // 条件显示字段
+      { 
+        field: 'otherInstitution', 
+        label: '机构名称', 
+        condition: { field: 'institution', value: '其他' }
+      }
+    ]
+  }
+}
+```
+
+**字段配置属性**：
+| 属性 | 类型 | 必填 | 说明 |
+|------|------|------|------|
+| `field` | String | 是 | 字段名（对应 businessData 中的字段） |
+| `label` | String | 是 | 显示标签 |
+| `condition` | Object | 否 | 条件显示配置 |
+| `condition.field` | String | 是 | 条件字段名 |
+| `condition.value` | Any | 是 | 条件值（支持字符串、数字、布尔值） |
+
+**实现示例：卡片列表动态渲染**：
+```javascript
+// miniprogram/pages/office/approval/approval.js
+
+/**
+ * 将请求数据转换为显示格式
+ * @param {Object} request - 请求数据
+ * @returns {Object} 转换后的显示数据
+ */
+function mapRequestItem(request) {
+  const { orderType, businessData, displayConfig, workflowSnapshot } = request
+  
+  // 优先使用 displayConfig（动态配置）
+  const config = displayConfig || workflowSnapshot?.displayConfig || null
+  
+  let detail = ''
+  let detailParts = []
+  
+  if (config && config.cardFields && config.cardFields.length > 0) {
+    // 动态生成字段显示
+    for (const fieldConfig of config.cardFields) {
+      const { field, label, condition } = fieldConfig
+      
+      // 检查条件显示
+      if (condition) {
+        const conditionField = businessData[condition.field]
+        // 支持多种条件判断
+        let showField = false
+        if (condition.op === 'neq') {
+          showField = conditionField !== condition.value
+        } else {
+          // 默认相等判断
+          showField = conditionField === condition.value
+        }
+        if (!showField) continue
+      }
+      
+      const value = businessData[field]
+      if (value !== undefined && value !== null && value !== '') {
+        detailParts.push(`${label}：${value}`)
+      }
+    }
+    detail = detailParts.join(' | ')
+  } else {
+    // 降级方案：使用硬编码（仅用于兼容旧数据）
+    // ... 硬编码逻辑
+  }
+  
+  return {
+    id: request._id,
+    orderType,
+    detail: detail || '暂无详情',
+    // ... 其他字段
+  }
+}
+```
+
+**实现示例：详情页动态渲染**：
+```javascript
+// miniprogram/components/approval-detail/approval-detail.js
+
+Component({
+  properties: {
+    request: {
+      type: Object,
+      value: {}
+    }
+  },
+
+  data: {
+    detailFields: []
+  },
+
+  observers: {
+    'request': function(request) {
+      if (!request) return
+      
+      const { businessData, displayConfig, workflowSnapshot } = request
+      const config = displayConfig || workflowSnapshot?.displayConfig || null
+      
+      let fields = []
+      
+      if (config && config.detailFields) {
+        // 动态生成详情字段
+        fields = config.detailFields.map(fieldConfig => {
+          const { field, label, condition } = fieldConfig
+          
+          // 检查条件显示
+          if (condition) {
+            const conditionValue = businessData[condition.field]
+            let showField = false
+            if (condition.op === 'neq') {
+              showField = conditionValue !== condition.value
+            } else {
+              showField = conditionValue === condition.value
+            }
+            if (!showField) return null
+          }
+          
+          const value = businessData[field]
+          return {
+            field,
+            label,
+            value: value !== undefined && value !== null ? String(value) : ''
+          }
+        }).filter(f => f !== null)
+      } else {
+        // 降级方案：使用硬编码 fieldConfigs
+        // ... 硬编码逻辑
+      }
+      
+      this.setData({ detailFields: fields })
+    }
+  }
+})
+```
+
+**WXML 模板**：
+```xml
+<!-- approval-detail.wxml -->
+<!-- 动态渲染详情字段 -->
+<block wx:for="{{detailFields}}" wx:key="field">
+  <view class="approval-modal-row">
+    <text class="approval-modal-label">{{item.label}}</text>
+    <text class="approval-modal-value">{{item.value}}</text>
+  </view>
+</block>
+```
+
+**新增工作流类型流程**：
+1. 在 `initWorkflowDB` 云函数中添加新模板
+2. 在模板中定义 `displayConfig` 配置
+3. 创建工单时，`workflowEngine` 自动快照配置
+4. 前端自动根据配置渲染，无需修改代码
+
+**检查清单**：
+- [ ] 新增工作流类型是否在模板中定义了 `displayConfig`
+- [ ] `cardFields` 是否包含卡片列表需要显示的关键字段
+- [ ] `detailFields` 是否包含详情页需要显示的所有字段
+- [ ] 条件显示字段是否正确配置了 `condition`
+- [ ] 是否提供了降级方案（兼容旧数据）
+- [ ] 前端代码是否使用动态渲染而非硬编码
+
+### 6.4 工作流引擎使用规范
 
 **规则**：使用工作流功能时，必须通过 `workflowEngine` 云函数操作。
 

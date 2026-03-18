@@ -41,6 +41,22 @@ const EXAMPLE_TEMPLATES = [
       timeout: 72,
       timeoutAction: 'remind'
     }],
+    displayConfig: {
+      cardFields: [
+        { field: 'name', label: '申请人' },
+        { field: 'role', label: '角色' },
+        { field: 'department', label: '部门' }
+      ],
+      detailFields: [
+        { field: 'name', label: '申请人姓名' },
+        { field: 'gender', label: '性别' },
+        { field: 'birthday', label: '生日' },
+        { field: 'role', label: '角色' },
+        { field: 'position', label: '职位' },
+        { field: 'department', label: '部门' },
+        { field: 'relativeName', label: '关系人姓名' }
+      ]
+    },
     defaultTimeout: 72,
     notifyOnSubmit: true,
     notifyOnComplete: true,
@@ -71,6 +87,17 @@ const EXAMPLE_TEMPLATES = [
       timeout: 72,
       timeoutAction: 'remind'
     }],
+    displayConfig: {
+      cardFields: [
+        { field: 'userName', label: '申请人' },
+        { field: 'modifyFields', label: '修改字段' }
+      ],
+      detailFields: [
+        { field: 'userName', label: '申请人姓名' },
+        { field: 'modifyFields', label: '修改字段' },
+        { field: 'modifyContent', label: '修改内容' }
+      ]
+    },
     defaultTimeout: 72,
     notifyOnSubmit: true,
     notifyOnComplete: true,
@@ -133,6 +160,18 @@ const EXAMPLE_TEMPLATES = [
         timeoutAction: 'remind'
       }
     ],
+    displayConfig: {
+      cardFields: [
+        { field: 'patientName', label: '就医人' },
+        { field: 'relation', label: '关系' }
+      ],
+      detailFields: [
+        { field: 'patientName', label: '就医人姓名' },
+        { field: 'relation', label: '与申请人关系' },
+        { field: 'institution', label: '就医机构' },
+        { field: 'otherInstitution', label: '机构名称', condition: { field: 'institution', value: '其他' } }
+      ]
+    },
     defaultTimeout: 72,
     notifyOnSubmit: true,
     notifyOnComplete: true,
