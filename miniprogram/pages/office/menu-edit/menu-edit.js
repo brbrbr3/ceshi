@@ -46,7 +46,7 @@ Page({
       })
       .catch(error => {
         console.error('加载菜单失败', error)
-        utils.showtoast({
+        utils.showToast({
           title: '加载失败',
           icon: 'none'
         })
@@ -91,7 +91,7 @@ Page({
 
     const title = this.data.form.title.trim()
     if (!title) {
-      utils.showtoast({
+      utils.showToast({
         title: '请输入菜单标题',
         icon: 'none'
       })
@@ -100,7 +100,7 @@ Page({
 
     const content = this.data.form.content.trim()
     if (!content) {
-      utils.showtoast({
+      utils.showToast({
         title: '请输入菜单内容',
         icon: 'none'
       })
@@ -112,7 +112,7 @@ Page({
     app.checkUserRegistration()
       .then((result) => {
         if (!result.registered || !result.user) {
-          utils.showtoast({
+          utils.showToast({
             title: '请先登录',
             icon: 'none'
           })
@@ -185,7 +185,7 @@ Page({
           }
         }
 
-        utils.showtoast({
+        utils.showToast({
           title: this.data.isEdit ? '保存成功' : '提交成功',
           icon: 'success'
         })
@@ -195,7 +195,7 @@ Page({
       })
       .catch(error => {
         console.error('提交失败', error)
-        utils.showtoast({
+        utils.showToast({
           title: '提交失败',
           icon: 'none'
         })

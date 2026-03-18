@@ -23,10 +23,9 @@ Page({
   },
 
   onShow() {
-    // 如果列表为空，重新加载
-    if (this.data.list.length === 0) {
-      this.loadAnnouncements()
-    }
+    // 每次显示页面时刷新列表（支持从详情页返回后刷新）
+    this.resetPagination()
+    this.loadAnnouncements()
     this.checkPermission()
   },
 

@@ -13,11 +13,13 @@
 .announcement-create-page .auth-picker-content {
   display: flex;
   align-items: center;
+  justify-content: space-between;
   width: 100%;
 }
 
 .announcement-create-page .auth-picker-value {
   flex: 1;
+  text-align: left;
 }
 
 .announcement-create-header {
