@@ -30,6 +30,11 @@ const db = cloud.database()
 // PRIVATE - 仅创建者可读写
 // CUSTOM - 自定义规则（需要提供 rule 字段）
 
+// 索引说明：
+// - 每个集合默认有 _id 和 _openid 索引（云开发自动创建）
+// - indexes 数组用于定义需要额外创建的索引
+// - 索引格式：{ name: '索引名称', keys: [{ name: '字段名', direction: '1升序/-1降序' }], unique: false }
+
 // 所有必需的数据库集合定义
 const REQUIRED_COLLECTIONS = [
   // ==================== 用户相关 ====================
@@ -37,18 +42,24 @@ const REQUIRED_COLLECTIONS = [
     name: 'office_users',
     description: '办公系统用户',
     aclTag: 'ADMINONLY', // 仅管理员可读写
+    indexes: [], // 暂无额外索引需求
     initialData: null
   },
   {
     name: 'office_registration_requests',
     description: '用户注册请求',
     aclTag: 'READONLY', // 所有用户可读，仅创建者可写
+    indexes: [
+      { name: 'status_updatedAt_idx', keys: [{ name: 'status', direction: '1' }, { name: 'updatedAt', direction: '-1' }] },
+      { name: 'openid_idx', keys: [{ name: 'openid', direction: '1' }] }
+    ],
     initialData: null
   },
   {
     name: 'permissions',
     description: '权限配置',
     aclTag: 'ADMINWRITE', // 所有用户可读，仅管理员可写
+    indexes: [],
     initialData: null
   },
 
@@ -57,6 +68,7 @@ const REQUIRED_COLLECTIONS = [
     name: 'sys_config',
     description: '系统配置（常量）',
     aclTag: 'READONLY', // 所有用户可读，仅创建者可写
+    indexes: [],
     initialData: null
   },
 
@@ -65,12 +77,17 @@ const REQUIRED_COLLECTIONS = [
     name: 'announcements',
     description: '通知公告',
     aclTag: 'ADMINWRITE', // 所有用户可读，仅管理员可写
+    indexes: [],
     initialData: null
   },
   {
     name: 'notifications',
     description: '用户通知',
     aclTag: 'PRIVATE', // 仅创建者可读写（用户只能看到自己的通知）
+    indexes: [
+      // 用于查询用户通知列表（按创建时间倒序）
+      { name: 'openid_createdAt_idx', keys: [{ name: 'openid', direction: '1' }, { name: 'createdAt', direction: '-1' }] }
+    ],
     initialData: null
   },
 
@@ -79,12 +96,14 @@ const REQUIRED_COLLECTIONS = [
     name: 'menus',
     description: '每周菜单',
     aclTag: 'ADMINWRITE', // 所有用户可读，仅管理员可写
+    indexes: [],
     initialData: null
   },
   {
     name: 'menu_comments',
     description: '菜单评论',
     aclTag: 'ADMINWRITE', // 所有用户可读，仅管理员可写
+    indexes: [],
     initialData: null
   },
 
@@ -93,30 +112,56 @@ const REQUIRED_COLLECTIONS = [
     name: 'workflow_templates',
     description: '工作流模板',
     aclTag: 'PRIVATE', // 仅创建者可读写
+    indexes: [
+      // 名称+版本唯一索引
+      { name: 'idx_name_version', keys: [{ name: 'name', direction: '1' }, { name: 'version', direction: '-1' }], unique: true },
+      { name: 'idx_status', keys: [{ name: 'status', direction: '1' }] },
+      { name: 'idx_createTime', keys: [{ name: 'createTime', direction: '-1' }] }
+    ],
     initialData: null
   },
   {
     name: 'work_orders',
     description: '工作订单（注意：不是 workflow_orders）',
     aclTag: 'PRIVATE', // 仅创建者可读写
+    indexes: [
+      { name: 'idx_applicantId', keys: [{ name: 'businessData.applicantId', direction: '1' }] },
+      { name: 'idx_orderType', keys: [{ name: 'orderType', direction: '1' }] },
+      { name: 'idx_status', keys: [{ name: 'status', direction: '1' }] },
+      { name: 'idx_createTime', keys: [{ name: 'createTime', direction: '-1' }] },
+      { name: 'idx_updateTime', keys: [{ name: 'updateTime', direction: '-1' }] }
+    ],
     initialData: null
   },
   {
     name: 'workflow_tasks',
     description: '工作流任务',
     aclTag: 'PRIVATE', // 仅创建者可读写
+    indexes: [
+      { name: 'idx_approverId', keys: [{ name: 'approverId', direction: '1' }] },
+      { name: 'idx_orderId', keys: [{ name: 'orderId', direction: '1' }] },
+      { name: 'idx_status', keys: [{ name: 'status', direction: '1' }] },
+      { name: 'idx_assignTime', keys: [{ name: 'assignTime', direction: '-1' }] }
+    ],
     initialData: null
   },
   {
     name: 'workflow_logs',
     description: '工作流日志',
     aclTag: 'PRIVATE', // 仅创建者可读写
+    indexes: [
+      { name: 'idx_orderId', keys: [{ name: 'orderId', direction: '1' }] },
+      { name: 'idx_action', keys: [{ name: 'action', direction: '1' }] },
+      { name: 'idx_operatorId', keys: [{ name: 'operatorId', direction: '1' }] },
+      { name: 'idx_operateTime', keys: [{ name: 'operateTime', direction: '-1' }] }
+    ],
     initialData: null
   },
   {
     name: 'workflow_subscriptions',
     description: '工作流订阅配置',
     aclTag: 'PRIVATE', // 仅创建者可读写
+    indexes: [],
     initialData: null
   }
 ]
@@ -230,6 +275,7 @@ exports.main = async (event, context) => {
     created: 0,
     failed: 0,
     aclPending: [], // 需要设置安全规则的集合
+    indexPending: [], // 需要创建索引的集合
     details: []
   }
 
@@ -237,9 +283,12 @@ exports.main = async (event, context) => {
   console.log(`共 ${REQUIRED_COLLECTIONS.length} 个必需集合`)
 
   for (const collection of REQUIRED_COLLECTIONS) {
-    const { name, description, aclTag = 'PRIVATE' } = collection
+    const { name, description, aclTag = 'PRIVATE', indexes = [] } = collection
     console.log(`\n检查集合: ${name} (${description})`)
     console.log(`  安全规则: ${aclTag}`)
+    if (indexes.length > 0) {
+      console.log(`  需要索引: ${indexes.map(i => i.name).join(', ')}`)
+    }
 
     try {
       const checkResult = await checkCollectionExists(name)
@@ -250,22 +299,30 @@ exports.main = async (event, context) => {
           console.warn(`  ⚠ 集合可能存在但访问异常: ${name}`)
           results.exists++
           results.aclPending.push({ name, aclTag, reason: 'exists_with_warning' })
+          if (indexes.length > 0) {
+            results.indexPending.push({ name, indexes, reason: 'exists_with_warning' })
+          }
           results.details.push({
             name,
             status: 'exists_with_warning',
             description,
             aclTag,
+            indexes,
             warning: checkResult.error
           })
         } else {
           console.log(`  ✓ 集合已存在: ${name}`)
           results.exists++
           results.aclPending.push({ name, aclTag, reason: 'already_exists' })
+          if (indexes.length > 0) {
+            results.indexPending.push({ name, indexes, reason: 'already_exists' })
+          }
           results.details.push({
             name,
             status: 'exists',
             description,
-            aclTag
+            aclTag,
+            indexes
           })
         }
       } else {
@@ -275,11 +332,15 @@ exports.main = async (event, context) => {
         if (createResult.success) {
           results.created++
           results.aclPending.push({ name, aclTag, reason: 'newly_created' })
+          if (indexes.length > 0) {
+            results.indexPending.push({ name, indexes, reason: 'newly_created' })
+          }
           results.details.push({
             name,
             status: 'created',
             description,
             aclTag,
+            indexes,
             aclWarning: createResult.aclWarning
           })
         } else {
@@ -289,6 +350,7 @@ exports.main = async (event, context) => {
             status: 'failed',
             description,
             aclTag,
+            indexes,
             error: createResult.error || '创建失败'
           })
         }
@@ -301,6 +363,7 @@ exports.main = async (event, context) => {
         status: 'error',
         description,
         aclTag,
+        indexes,
         error: error.message || String(error)
       })
     }
@@ -317,6 +380,17 @@ exports.main = async (event, context) => {
       console.log(`  ${item.name}: ${item.aclTag} (${item.reason})`)
     })
   }
+  
+  if (results.indexPending.length > 0) {
+    console.log(`\n=== 需要创建索引的集合 ===`)
+    results.indexPending.forEach(item => {
+      console.log(`  ${item.name}:`)
+      item.indexes.forEach(idx => {
+        const keysStr = idx.keys.map(k => `${k.name}(${k.direction > 0 ? '升序' : '降序'})`).join(' + ')
+        console.log(`    - ${idx.name}: ${keysStr}${idx.unique ? ' [唯一]' : ''}`)
+      })
+    })
+  }
 
   return {
     code: 0,
@@ -324,7 +398,8 @@ exports.main = async (event, context) => {
     data: {
       duration,
       ...results,
-      aclNote: '安全规则需要通过MCP工具或云开发控制台设置。请使用 writeSecurityRule 工具为每个集合设置对应的 aclTag。'
+      aclNote: '安全规则需要通过MCP工具或云开发控制台设置。请使用 writeSecurityRule 工具为每个集合设置对应的 aclTag。',
+      indexNote: '索引需要通过MCP工具或云开发控制台创建。请使用 writeNoSqlDatabaseStructure 工具的 updateCollection action 创建索引。'
     }
   }
 }

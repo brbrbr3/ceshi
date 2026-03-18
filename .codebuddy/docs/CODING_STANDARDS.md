@@ -270,6 +270,94 @@ mcp_call_tool({
 | workflow_logs | PRIVATE | 仅创建者可读写 |
 | workflow_subscriptions | PRIVATE | 仅创建者可读写 |
 
+### 1.5.2 数据库索引配置规范
+
+**规则**：所有数据库集合应根据查询模式配置合适的索引，提高查询效率。
+
+**索引类型**：
+
+| 索引类型 | 说明 | 适用场景 |
+|----------|------|----------|
+| 单字段索引 | 对单个字段建立索引 | 经常单独查询的字段 |
+| 组合索引 | 对多个字段建立组合索引 | 经常同时查询多个字段 |
+| 唯一索引 | 字段值必须唯一 | 工单编号、用户标识等 |
+
+**索引设计原则**：
+
+1. **根据查询创建索引**：索引应基于实际查询模式创建
+2. **避免过度索引**：每个索引都会占用存储空间并影响写入性能
+3. **组合索引顺序**：将等值查询的字段放在前面，范围查询的字段放在后面
+4. **排序优化**：如果查询包含排序，考虑将排序字段加入索引
+
+**配置流程**：
+
+1. **在 `initDatabase` 云函数中定义**：
+```javascript
+const REQUIRED_COLLECTIONS = [
+  {
+    name: 'my_collection',
+    description: '我的集合',
+    aclTag: 'PRIVATE',
+    indexes: [
+      // 单字段索引
+      { name: 'idx_status', keys: [{ name: 'status', direction: '1' }] },
+      // 组合索引
+      { name: 'idx_openid_createdAt', keys: [{ name: 'openid', direction: '1' }, { name: 'createdAt', direction: '-1' }] },
+      // 唯一索引
+      { name: 'idx_code', keys: [{ name: 'code', direction: '1' }], unique: true }
+    ],
+    initialData: null
+  }
+]
+```
+
+2. **更新 `DATABASE_COLLECTIONS_REFERENCE.md` 文档**：
+```markdown
+**索引**：
+- `_openid` - 用户 openid（云开发自动创建）
+- `_id` - 记录 ID（云开发自动创建）
+- `idx_status` - 状态索引
+- `idx_openid_createdAt` - openid + 创建时间组合索引
+```
+
+3. **使用 MCP 工具创建索引**：
+```javascript
+// AI 助手会自动调用 MCP 工具创建索引
+mcp_call_tool({
+  serverName: "CloudBase MCP",
+  toolName: "writeNoSqlDatabaseStructure",
+  arguments: {
+    action: "updateCollection",
+    collectionName: "my_collection",
+    updateOptions: {
+      CreateIndexes: [
+        {
+          IndexName: "idx_openid_createdAt",
+          MgoKeySchema: {
+            MgoIsUnique: false,
+            MgoIndexKeys: [
+              { Name: "openid", Direction: "1" },
+              { Name: "createdAt", Direction: "-1" }
+            ]
+          }
+        }
+      ]
+    }
+  }
+})
+```
+
+**当前项目索引配置**：
+
+| 集合名 | 索引列表 |
+|--------|----------|
+| notifications | `openid_createdAt_idx` (openid + createdAt) |
+| office_registration_requests | `status_updatedAt_idx`, `openid_idx` |
+| work_orders | `idx_applicantId`, `idx_orderType`, `idx_status`, `idx_createTime`, `idx_updateTime` |
+| workflow_tasks | `idx_approverId`, `idx_orderId`, `idx_status`, `idx_assignTime` |
+| workflow_logs | `idx_orderId`, `idx_action`, `idx_operatorId`, `idx_operateTime` |
+| workflow_templates | `idx_name_version` (唯一), `idx_status`, `idx_createTime` |
+
 ### 1.6 常量统一管理规范
 
 **规则**：所有常量必须统一在 `initSystemConfig` 云函数中定义，禁止在代码中自行定义常量。
@@ -1904,6 +1992,8 @@ const result = await db.collection(collectionName).add({
 - [ ] 是否使用了正确的集合（如 work_orders 而不是 workflow_orders）
 - [ ] 新增集合是否配置了安全规则（aclTag）
 - [ ] 安全规则是否已通过 MCP 工具设置
+- [ ] 新增集合是否配置了必要的索引
+- [ ] 索引是否已通过 MCP 工具创建
 
 ### 10.2 云函数相关
 - [ ] 是否定义了常量集合引用
