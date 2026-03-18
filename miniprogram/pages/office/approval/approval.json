@@ -1,4 +1,8 @@
 {
   "navigationStyle": "custom",
-  "backgroundColor": "#EEF2FF"
+  "backgroundColor": "#EEF2FF",
+  "usingComponents": {
+    "approval-card": "/components/approval-card/approval-card",
+    "approval-detail": "/components/approval-detail/approval-detail"
+  }
 }

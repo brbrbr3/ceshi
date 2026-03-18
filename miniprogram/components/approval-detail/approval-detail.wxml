@@ -1,0 +1,167 @@
+<view wx:if="{{visible && request}}" class="approval-modal-mask" bindtap="handleClose">
+  <view class="approval-modal-card" catchtap="noop">
+    <!-- 标题栏 -->
+    <view class="approval-modal-head">
+      <view>
+        <view class="approval-modal-title">{{request.name}}的{{request.requestType}}详情</view>
+        <view class="approval-modal-sub">{{request.requestNo}}</view>
+      </view>
+      <view class="approval-modal-close" bindtap="handleClose">×</view>
+    </view>
+
+    <!-- 详情内容 -->
+    <view class="approval-modal-body">
+      <!-- 就医申请详情 -->
+      <block wx:if="{{request.orderType === 'medical_application'}}">
+        <view class="approval-modal-row">
+          <text class="approval-modal-label">就医人姓名</text>
+          <text class="approval-modal-value">{{request.patientName || ''}}</text>
+        </view>
+        <view class="approval-modal-row">
+          <text class="approval-modal-label">与申请人关系</text>
+          <text class="approval-modal-value">{{request.relation || ''}}</text>
+        </view>
+        <view class="approval-modal-row">
+          <text class="approval-modal-label">就医时间</text>
+          <text class="approval-modal-value">{{request.medicalDate || ''}}</text>
+        </view>
+        <view class="approval-modal-row">
+          <text class="approval-modal-label">就医机构</text>
+          <text class="approval-modal-value">{{request.institution || ''}}</text>
+        </view>
+        <block wx:if="{{request.institution === '其他'}}">
+          <view class="approval-modal-row">
+            <text class="approval-modal-label">机构名称</text>
+            <text class="approval-modal-value">{{request.otherInstitution || ''}}</text>
+          </view>
+          <view class="approval-modal-row">
+            <text class="approval-modal-label">选择此机构的原因</text>
+            <text class="approval-modal-value">{{request.reasonForSelection || ''}}</text>
+          </view>
+        </block>
+        <view class="approval-modal-row">
+          <text class="approval-modal-label">就医原因</text>
+          <text class="approval-modal-value">{{request.reason || ''}}</text>
+        </view>
+      </block>
+
+      <!-- 注册/修改申请详情 -->
+      <block wx:else>
+        <view class="approval-modal-row">
+          <text class="approval-modal-label">姓名</text>
+          <text class="approval-modal-value">{{request.name}}</text>
+        </view>
+        <view class="approval-modal-row">
+          <text class="approval-modal-label">性别</text>
+          <text class="approval-modal-value">{{request.gender}}</text>
+        </view>
+        <view class="approval-modal-row">
+          <text class="approval-modal-label">出生日期</text>
+          <text class="approval-modal-value">{{request.birthday}}</text>
+        </view>
+        <view class="approval-modal-row">
+          <text class="approval-modal-label">角色</text>
+          <text class="approval-modal-value">{{request.role}}</text>
+        </view>
+        <block wx:if="{{request.department}}">
+          <view class="approval-modal-row">
+            <text class="approval-modal-label">部门</text>
+            <text class="approval-modal-value">{{request.department}}</text>
+          </view>
+        </block>
+        <block wx:if="{{request.relativeName}}">
+          <view class="approval-modal-row">
+            <text class="approval-modal-label">亲属姓名</text>
+            <text class="approval-modal-value">{{request.relativeName}}</text>
+          </view>
+        </block>
+        <view class="approval-modal-row">
+          <text class="approval-modal-label">岗位</text>
+          <text class="approval-modal-value">{{request.position}}</text>
+        </view>
+        <!-- 管理员字段：仅注册申请显示 -->
+        <block wx:if="{{request.orderType === 'user_registration'}}">
+          <view class="approval-modal-row">
+            <text class="approval-modal-label">管理员</text>
+            <text class="approval-modal-value">{{request.isAdmin ? '是' : '否'}}</text>
+          </view>
+        </block>
+        <!-- 修改原因：仅用户信息修改申请显示 -->
+        <block wx:if="{{request.orderType === 'user_profile_update' && request.updateReason}}">
+          <view class="approval-modal-row">
+            <text class="approval-modal-label">修改原因</text>
+            <text class="approval-modal-value">{{request.updateReason}}</text>
+          </view>
+        </block>
+      </block>
+
+      <!-- 当前状态 -->
+      <view class="approval-modal-row">
+        <text class="approval-modal-label">当前状态</text>
+        <text class="approval-modal-value" style="color: {{request.status === 'approved' ? '#16A34A' : request.status === 'rejected' ? '#DC2626' : request.status === 'terminated' ? '#DC2626' : '#D97706'}};">
+          {{request.status === 'approved' ? '已通过' : request.status === 'rejected' ? '已驳回' : request.status === 'terminated' ? '已中止' : '待审批'}}
+        </text>
+      </view>
+
+      <!-- 审批备注 -->
+      <view wx:if="{{request.reviewRemark}}" class="approval-modal-remark">{{request.reviewRemark}}</view>
+
+      <!-- 进度条（工作流步骤>=2且待审批时显示） -->
+      <block wx:if="{{request.progress.totalSteps >= 2 && request.status === 'pending' && request.progress}}">
+        <view class="approval-modal-progress">
+          <view class="approval-modal-progress-header">
+            <view class="approval-modal-progress-info">
+              <view class="approval-modal-progress-step">第 {{request.progress.currentStep}}/{{request.progress.totalSteps}} 步</view>
+              <view class="approval-modal-progress-text">{{request.progress.currentText}}</view>
+            </view>
+          </view>
+          <view class="approval-modal-progress-bar">
+            <view class="approval-modal-progress-fill" style="width: {{request.progress.percent}}%;"></view>
+          </view>
+        </view>
+      </block>
+    </view>
+
+    <!-- 审批历史 -->
+    <view wx:if="{{request}}" class="approval-modal-logs">
+      <view class="approval-modal-logs-title">审批历史</view>
+      <view wx:if="{{workflowLogs && workflowLogs.length > 0}}" class="approval-modal-logs-list">
+        <view wx:for="{{workflowLogs}}" wx:key="_id" wx:for-index="idx" class="approval-modal-logs-item {{item.action === 'reject' || item.action === 'terminate' ? 'is-error' : ''}} {{item.action === 'approve' ? 'is-approved' : ''}}">
+          <view class="approval-modal-logs-action">{{item.actionText}}</view>
+          <view class="approval-modal-logs-info">
+            <text class="approval-modal-logs-operator">{{idx === 0 && item.action === 'start' ? request.name : item.operatorName}}</text>
+            <text class="approval-modal-logs-time">{{item.formattedTime}}</text>
+          </view>
+          <view wx:if="{{item.description}}" class="approval-modal-logs-desc">{{item.description}}</view>
+        </view>
+      </view>
+      <view wx:else class="approval-modal-logs-empty">
+        {{request.status === 'pending' ? '申请已提交，暂无审批历史' : '暂无审批历史记录'}}
+      </view>
+    </view>
+
+    <!-- 审批操作按钮 -->
+    <view wx:if="{{canReview && request.status === 'pending' && request.isCurrentApprover}}" class="approval-modal-actions">
+      <view class="approval-reject-btn {{actionLoading ? 'is-disabled' : ''}}" bindtap="handleReject">
+        {{actionLoading ? '处理中' : '驳回'}}
+      </view>
+      <view class="office-btn-primary approval-approve-btn {{actionLoading ? 'is-disabled' : ''}}" bindtap="handleApprove">
+        {{actionLoading ? '处理中' : '同意'}}
+      </view>
+    </view>
+
+    <!-- 申请人中止申请按钮 -->
+    <view wx:if="{{request.status === 'pending' && request.openid === currentOpenid}}" class="approval-modal-terminate">
+      <view class="approval-modal-terminate-text">作为申请人，您可以随时中止此申请</view>
+      <view class="approval-terminate-btn {{actionLoading ? 'is-disabled' : ''}}" bindtap="handleTerminate">
+        {{actionLoading ? '处理中' : '中止申请'}}
+      </view>
+    </view>
+
+    <!-- 就医申请被驳回后的复制申请按钮 -->
+    <view wx:if="{{request.status === 'rejected' && request.orderType === 'medical_application' && request.openid === currentOpenid}}" class="approval-modal-copy">
+      <view class="approval-modal-copy-text">该申请已被驳回，是否依据此申请信息重新创建？</view>
+      <view class="office-btn-primary approval-copy-btn" bindtap="handleCopyMedical">重新创建申请</view>
+    </view>
+  </view>
+</view>

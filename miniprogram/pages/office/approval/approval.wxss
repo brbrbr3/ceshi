@@ -206,6 +206,13 @@ page {
   margin-bottom: 16rpx;
 }
 
+/* 卡片列表容器间距 */
+.approval-list-container {
+  display: flex;
+  flex-direction: column;
+  gap: 20rpx;
+}
+
 .approval-list-card + .approval-list-card {
   margin-top: 20rpx;
 }

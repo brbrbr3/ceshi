@@ -1,0 +1,45 @@
+<view class="office-card approval-list-card" bindtap="handleTap">
+  <!-- 顶部：申请人信息 + 状态标签 -->
+  <view class="approval-list-top">
+    <view class="approval-person">
+      <view class="office-avatar" style="background: {{request.avatarColor}};">{{request.avatar}}</view>
+      <view class="approval-person-main">
+        <view class="approval-person-row">
+          <view class="approval-person-name">{{request.name}}</view>
+          <view wx:if="{{request.urgent}}" class="approval-urgent">管理员</view>
+        </view>
+        <view class="approval-person-sub">{{request.dept}}</view>
+      </view>
+    </view>
+    <view class="office-pill" style="background: {{request.statusBg}}; color: {{request.statusColor}};">{{request.statusLabel}}</view>
+  </view>
+
+  <!-- 申请类型和详情 -->
+  <view class="approval-type-title">{{request.requestType}}</view>
+  <view class="approval-detail">{{request.detail}}</view>
+  <view class="approval-meta">{{request.requestNo}}</view>
+  <view class="approval-time">{{request.time}}</view>
+
+  <!-- 进度条（工作流步骤>=2且待审批时显示） -->
+  <view wx:if="{{request.progress.totalSteps >= 2 && request.status === 'pending' && request.progress}}" class="approval-progress">
+    <view class="approval-progress-header">
+      <view class="approval-progress-info">
+        <view class="approval-progress-step">第 {{request.progress.currentStep}}/{{request.progress.totalSteps}} 步</view>
+        <view class="approval-progress-text">{{request.progress.currentText}}</view>
+      </view>
+    </view>
+    <view class="approval-progress-bar">
+      <view class="approval-progress-fill" style="width: {{request.progress.percent}}%;"></view>
+    </view>
+  </view>
+
+  <!-- 操作按钮 -->
+  <view wx:if="{{showActions}}" class="approval-actions">
+    <view class="approval-reject-btn {{actionLoading ? 'is-disabled' : ''}}" catchtap="handleReject">
+      {{actionLoading ? '处理中' : '驳回'}}
+    </view>
+    <view class="office-btn-primary approval-approve-btn {{actionLoading ? 'is-disabled' : ''}}" catchtap="handleApprove">
+      {{actionLoading ? '处理中' : '同意'}}
+    </view>
+  </view>
+</view>

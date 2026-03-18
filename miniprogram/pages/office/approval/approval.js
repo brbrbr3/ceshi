@@ -506,22 +506,6 @@ Page({
     })
   },
 
-  openRequestDetail(e) {
-    const requestId = e.currentTarget.dataset.id
-    const target = (this.data.currentList || []).find((item) => item.id === requestId)
-    if (!target) {
-      return
-    }
-
-    this.setData({
-      selectedRequest: target,
-      showDetail: true
-    })
-
-    const orderId = target.orderId || target._id
-    this.loadWorkflowLogs(orderId)
-  },
-
   loadWorkflowLogs(orderId) {
     if (!orderId) {
       return
@@ -551,6 +535,83 @@ Page({
       showDetail: false,
       selectedRequest: null
     })
+  },
+
+  /**
+   * 列表卡片组件事件：点击卡片
+   */
+  openRequestDetail(e) {
+    const requestId = e.detail ? e.detail.id : e.currentTarget.dataset.id
+    const target = (this.data.currentList || []).find((item) => item.id === requestId)
+    if (!target) {
+      return
+    }
+
+    this.setData({
+      selectedRequest: target,
+      showDetail: true
+    })
+
+    const orderId = target.orderId || target._id
+    this.loadWorkflowLogs(orderId)
+  },
+
+  /**
+   * 列表卡片组件事件：同意
+   */
+  handleCardApprove(e) {
+    const itemId = e.detail.id
+    this.processCardReview(itemId, 'approve')
+  },
+
+  /**
+   * 列表卡片组件事件：驳回
+   */
+  handleCardReject(e) {
+    const itemId = e.detail.id
+    this.processCardReview(itemId, 'reject')
+  },
+
+  /**
+   * 处理列表卡片审批
+   */
+  processCardReview(itemId, decision) {
+    if (!this.data.canReview || this.data.actionLoading) {
+      return
+    }
+
+    const target = (this.data.currentList || []).find((item) => item.id === itemId)
+    if (!target) {
+      utils.showToast({
+        title: '未找到申请记录',
+        icon: 'none'
+      })
+      return
+    }
+
+    // 设置 selectedRequest 并执行审批
+    this.setData({
+      selectedRequest: {
+        ...target.raw,
+        reviewRemark: target.reviewRemark
+      }
+    })
+
+    this.confirmReview(decision)
+  },
+
+  /**
+   * 详情弹窗组件事件：同意
+   */
+  handleDetailApprove() {
+    this.confirmReview('approve')
+  },
+
+  /**
+   * 详情弹窗组件事件：驳回
+   */
+  handleDetailReject() {
+    this.confirmReview('reject')
   },
 
   showLaunchTip() {
