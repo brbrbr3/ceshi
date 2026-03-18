@@ -56,28 +56,28 @@ function getAvatarColor(text) {
   return colors[code % colors.length]
 }
 
-// 计算就医申请的进度（stepNames 从常量获取）
-function calculateMedicalProgress(currentStep, medicalApprovalSteps) {
+// 计算工作流进度（从工单数据获取步骤信息）
+function calculateMedicalProgress(currentStep, totalSteps, stepNames) {
   if (!currentStep) {
     return { percent: 0, currentText: '等待提交' }
   }
   
-  const totalSteps = medicalApprovalSteps ? medicalApprovalSteps.length : 3
-  const percent = Math.min(Math.floor((currentStep / totalSteps) * 100), 100)
+  const steps = totalSteps || 3
+  const percent = Math.min(Math.floor((currentStep / steps) * 100), 100)
   
-  const currentText = medicalApprovalSteps ? 
-    (medicalApprovalSteps[currentStep - 1]?.stepName || '进行中') : 
+  const currentText = stepNames ? 
+    (stepNames[currentStep - 1] || '进行中') : 
     '进行中'
   
   return {
     percent,
     currentText,
     currentStep,
-    totalSteps
+    totalSteps: steps
   }
 }
 
-function mapRequestItem(request, medicalApprovalSteps) {
+function mapRequestItem(request) {
   const statusMeta = getStatusMeta(request.status)
   const avatar = request.avatarText || (request.name ? request.name.slice(0, 1) : '智')
 
@@ -159,9 +159,13 @@ function mapRequestItem(request, medicalApprovalSteps) {
         }
       } else {
         let approverRole = '审批人'
-        if (request.orderType === 'medical_application' && medicalApprovalSteps) {
+        if (request.orderType === 'medical_application') {
           const currentStep = request.currentStep || 0
-          approverRole = medicalApprovalSteps[currentStep - 1]?.approverRole || '审批人'
+          const workflowSnapshot = request.workflowSnapshot || {}
+          const steps = workflowSnapshot.steps || []
+          if (steps[currentStep - 1]) {
+            approverRole = steps[currentStep - 1].stepName || '审批人'
+          }
         }
 
         const rolePrefix = reviewedBy.includes('管理员') || reviewedBy.includes('部门负责人') || reviewedBy.includes('会计主管') || reviewedBy.includes('馆领导') ? '' : approverRole
@@ -175,9 +179,13 @@ function mapRequestItem(request, medicalApprovalSteps) {
       }
     } else {
       let approverRole = '审批人'
-      if (request.orderType === 'medical_application' && medicalApprovalSteps) {
+      if (request.orderType === 'medical_application') {
         const currentStep = request.currentStep || 0
-        approverRole = medicalApprovalSteps[currentStep - 1]?.approverRole || '审批人'
+        const workflowSnapshot = request.workflowSnapshot || {}
+        const steps = workflowSnapshot.steps || []
+        if (steps[currentStep - 1]) {
+          approverRole = steps[currentStep - 1].stepName || '审批人'
+        }
       }
 
       const rolePrefix = reviewedBy.includes('管理员') || reviewedBy.includes('部门负责人') || reviewedBy.includes('会计主管') || reviewedBy.includes('馆领导') ? '' : approverRole
@@ -191,10 +199,18 @@ function mapRequestItem(request, medicalApprovalSteps) {
     }
   }
 
-  // 计算进度（就医申请）
+  // 计算进度（从工单数据获取步骤信息）
   let progress = null
-  if (showProgress && request.currentStep && medicalApprovalSteps) {
-    progress = calculateMedicalProgress(request.currentStep, medicalApprovalSteps)
+  if (showProgress && request.currentStep) {
+    // 从工单的 workflowSnapshot 获取步骤信息
+    const workflowSnapshot = request.workflowSnapshot || {}
+    const steps = workflowSnapshot.steps || request.steps || []
+    const totalSteps = steps.length
+    const stepNames = steps.map(s => s.stepName)
+    
+    if (totalSteps > 0) {
+      progress = calculateMedicalProgress(request.currentStep, totalSteps, stepNames)
+    }
   }
 
   return {
@@ -278,9 +294,8 @@ Page({
       mine: { page: 1, hasMore: true, loading: false },
       done: { page: 1, hasMore: true, loading: false }
     },
-    
+
     // 常量数据
-    medicalApprovalSteps: null,
     roleOptions: null
   },
 
@@ -330,7 +345,6 @@ Page({
       // 保存常量到 data
       this.setData({
         approvalTypes,
-        medicalApprovalSteps: allConstants.medicalApprovalSteps || null,
         roleOptions: roleOptions
       })
       
@@ -410,10 +424,9 @@ Page({
       pageSize: pageSize
     })
       .then((data) => {
-        const medicalApprovalSteps = this.data.medicalApprovalSteps
-        const pendingList = (data.pendingList || []).map(r => mapRequestItem(r, medicalApprovalSteps))
-        const mineList = (data.mineList || []).map(r => mapRequestItem(r, medicalApprovalSteps))
-        const doneList = (data.doneList || []).map(r => mapRequestItem(r, medicalApprovalSteps))
+        const pendingList = (data.pendingList || []).map(r => mapRequestItem(r))
+        const mineList = (data.mineList || []).map(r => mapRequestItem(r))
+        const doneList = (data.doneList || []).map(r => mapRequestItem(r))
         const canReview = !!data.canReview
         
         let finalActiveTab = this.data.activeTab

@@ -183,11 +183,6 @@ function getDefaultConstants() {
       CANCELLED: 'cancelled',
       TERMINATED: 'terminated'
     },
-    MEDICAL_APPROVAL_STEPS: [
-      { stepNo: 1, stepName: '部门负责人审批', roleId: 'department_head' },
-      { stepNo: 2, stepName: '会计主管审批', roleId: 'accountant_supervisor' },
-      { stepNo: 3, stepName: '馆领导审批', roleId: 'library_leader' }
-    ],
 
     // 时区配置
     TIMEZONE_OFFSET: -3,

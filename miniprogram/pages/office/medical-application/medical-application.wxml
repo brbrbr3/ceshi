@@ -71,7 +71,16 @@
 
         <view class="medical-note">
           <view class="medical-note-title">📋 审批流程</view>
-          <view class="medical-note-steps">
+          <view wx:if="{{workflowSteps.length > 0}}" class="medical-note-steps">
+            <block wx:for="{{workflowSteps}}" wx:key="index">
+              <view class="medical-note-step">
+                <view class="medical-step-dot"></view>
+                <view class="medical-step-text">{{item}}</view>
+              </view>
+              <view wx:if="{{index < workflowSteps.length - 1}}" class="medical-note-arrow">→</view>
+            </block>
+          </view>
+          <view wx:else class="medical-note-steps">
             <view class="medical-note-step">
               <view class="medical-step-dot"></view>
               <view class="medical-step-text">部门负责人审批</view>

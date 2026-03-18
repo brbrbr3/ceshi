@@ -94,7 +94,7 @@ const SYSTEM_CONFIGS = [
     type: 'role_field_mapping',
     key: 'ROLE_FIELD_VISIBILITY',
     value: {
-      '馆领导': { showPosition: false, showDepartment: false, fixedDepartment: null },
+      '馆领导': { showPosition: true, showDepartment: false, fixedDepartment: null },
       '部门负责人': { showPosition: true, showDepartment: true, fixedDepartment: null },
       '馆员': { showPosition: true, showDepartment: true, fixedDepartment: null },
       '工勤': { showPosition: true, showDepartment: true, fixedDepartment: '办公室' },
@@ -223,18 +223,6 @@ const SYSTEM_CONFIGS = [
     description: '超时处理动作',
     sort: 54
   },
-  {
-    type: 'workflow',
-    key: 'MEDICAL_APPROVAL_STEPS',
-    value: [
-      { stepNo: 1, stepName: '部门负责人审批', roleId: 'department_head' },
-      { stepNo: 2, stepName: '会计主管审批', roleId: 'accountant_supervisor' },
-      { stepNo: 3, stepName: '馆领导审批', roleId: 'library_leader' }
-    ],
-    description: '就医申请审批步骤',
-    sort: 55
-  },
-
   // ==================== 时区配置 ====================
   {
     type: 'timezone',
@@ -249,23 +237,6 @@ const SYSTEM_CONFIGS = [
     value: 'America/Sao_Paulo',
     description: '时区名称',
     sort: 61
-  },
-
-  // ==================== 集合名称 ====================
-  {
-    type: 'collection',
-    key: 'COLLECTIONS',
-    value: {
-      WORKFLOW_TEMPLATES: 'workflow_templates',
-      WORK_ORDERS: 'work_orders',
-      WORKFLOW_TASKS: 'workflow_tasks',
-      WORKFLOW_LOGS: 'workflow_logs',
-      WORKFLOW_SUBSCRIPTIONS: 'workflow_subscriptions',
-      USERS: 'office_users',
-      SYS_CONFIG: 'sys_config'
-    },
-    description: '数据库集合名称',
-    sort: 70
   },
 
   // ==================== 就医申请相关 ====================

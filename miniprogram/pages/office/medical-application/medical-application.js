@@ -9,6 +9,7 @@ Page({
     roleOptions: [],           // 从数据库加载
     relationOptions: [],       // 从数据库加载
     medicalInstitutions: [],   // 从数据库加载
+    workflowSteps: [],         // 工作流步骤（从模板加载）
     relationIndex: -1,
     institutionIndex: -1,
     form: {
@@ -92,10 +93,14 @@ Page({
         constants.getConstant('MEDICAL_INSTITUTIONS')
       ])
 
+      // 加载工作流模板步骤
+      const workflowSteps = await this.loadWorkflowTemplateSteps()
+
       this.setData({
         roleOptions: roleOptions || [],
         relationOptions: relationOptions || [],
-        medicalInstitutions: medicalInstitutions || []
+        medicalInstitutions: medicalInstitutions || [],
+        workflowSteps: workflowSteps
       })
     } catch (error) {
       console.error('加载常量配置失败:', error)
@@ -104,8 +109,35 @@ Page({
       this.setData({
         roleOptions: defaults.ROLE_OPTIONS || [],
         relationOptions: defaults.RELATION_OPTIONS || [],
-        medicalInstitutions: defaults.MEDICAL_INSTITUTIONS || []
+        medicalInstitutions: defaults.MEDICAL_INSTITUTIONS || [],
+        workflowSteps: [] // 默认空数组，后续会显示默认文案
       })
+    }
+  },
+
+  /**
+   * 加载工作流模板步骤
+   */
+  async loadWorkflowTemplateSteps() {
+    try {
+      const res = await wx.cloud.callFunction({
+        name: 'workflowEngine',
+        data: {
+          action: 'getWorkflowTemplate',
+          templateType: 'medical_application'
+        }
+      })
+
+      if (res.result.code === 0 && res.result.data) {
+        const template = res.result.data
+        const steps = template.steps || []
+        // 提取步骤名称用于显示
+        return steps.map(step => step.stepName)
+      }
+      return []
+    } catch (error) {
+      console.error('加载工作流模板失败:', error)
+      return []
     }
   },
 
