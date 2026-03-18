@@ -737,6 +737,7 @@ async function getApprovalData(openid, pagination = {}) {
         orderType: 'medical_application',
         requestType: templateMap[order.orderType]?.name || '就医申请',
         currentStep: order.currentStep,
+        workflowSnapshot: order.workflowSnapshot,
         orderNo: order.orderNo,
         taskId: isCurrentApprover ? userTaskMap[order._id].taskId : null,
         isCurrentApprover: isCurrentApprover
@@ -766,6 +767,8 @@ async function getApprovalData(openid, pagination = {}) {
         updatedAt: order.updatedAt,
         orderType: 'user_profile_update',
         requestType: templateMap[order.orderType]?.name || '用户信息修改申请',
+        currentStep: order.currentStep,
+        workflowSnapshot: order.workflowSnapshot,
         orderNo: order.orderNo,
         taskId: isCurrentApprover ? userTaskMap[order._id].taskId : null,
         isCurrentApprover: isCurrentApprover
@@ -794,6 +797,8 @@ async function getApprovalData(openid, pagination = {}) {
         updatedAt: order.updatedAt,
         orderType: 'user_registration',
         requestType: templateMap[order.orderType]?.name || '用户注册申请',
+        currentStep: order.currentStep,
+        workflowSnapshot: order.workflowSnapshot,
         orderNo: order.orderNo,
         taskId: isCurrentApprover ? userTaskMap[order._id].taskId : null,
         isCurrentApprover: isCurrentApprover
@@ -915,6 +920,7 @@ async function getApprovalData(openid, pagination = {}) {
               orderType: 'medical_application',
               requestType: templateMap[order.orderType]?.name || '就医申请',
               currentStep: order ? order.currentStep : 1,
+              workflowSnapshot: order ? order.workflowSnapshot : null,
               orderNo: order ? order.orderNo : ''
             }
           } else if (order && order.orderType === 'user_profile_update') {
@@ -941,6 +947,8 @@ async function getApprovalData(openid, pagination = {}) {
               updatedAt: order ? order.updatedAt : null,
               orderType: 'user_profile_update',
               requestType: templateMap[order.orderType]?.name || '用户信息修改申请',
+              currentStep: order ? order.currentStep : 1,
+              workflowSnapshot: order ? order.workflowSnapshot : null,
               orderNo: order ? order.orderNo : ''
             }
           } else {
@@ -966,6 +974,8 @@ async function getApprovalData(openid, pagination = {}) {
               updatedAt: order ? order.updatedAt : null,
               orderType: 'user_registration',
               requestType: templateMap[order?.orderType]?.name || '用户注册申请',
+              currentStep: order ? order.currentStep : 1,
+              workflowSnapshot: order ? order.workflowSnapshot : null,
               orderNo: order ? order.orderNo : ''
             }
           }
@@ -1099,6 +1109,8 @@ async function getApprovalData(openid, pagination = {}) {
           reviewedBy: info.reviewedBy,
           orderType: 'medical_application',
           requestType: templateMap[order.orderType]?.name || '就医申请',
+          currentStep: order.currentStep,
+          workflowSnapshot: order.workflowSnapshot,
           orderNo: order.orderNo
         }
       } else if (order.orderType === 'user_profile_update') {
@@ -1123,6 +1135,8 @@ async function getApprovalData(openid, pagination = {}) {
           reviewedBy: info.reviewedBy,
           orderType: 'user_profile_update',
           requestType: templateMap[order.orderType]?.name || '用户信息修改申请',
+          currentStep: order.currentStep,
+          workflowSnapshot: order.workflowSnapshot,
           orderNo: order.orderNo
         }
       } else {
@@ -1146,6 +1160,8 @@ async function getApprovalData(openid, pagination = {}) {
           reviewedBy: info.reviewedBy,
           orderType: 'user_registration',
           requestType: templateMap[order.orderType]?.name || '用户注册申请',
+          currentStep: order.currentStep,
+          workflowSnapshot: order.workflowSnapshot,
           orderNo: order.orderNo
         }
       }

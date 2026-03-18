@@ -84,7 +84,11 @@ function mapRequestItem(request) {
   // 根据申请类型生成不同的详情
   let detail = ''
   let requestType = request.requestType || '注册申请'
-  let showProgress = false
+
+  // 从工单数据获取工作流步骤信息
+  const workflowSnapshot = request.workflowSnapshot || {}
+  const workflowSteps = workflowSnapshot.steps || request.steps || []
+  const totalSteps = workflowSteps.length
 
   if (request.orderType === 'medical_application') {
     // 就医申请
@@ -108,7 +112,6 @@ function mapRequestItem(request) {
     }
 
     detail = detailParts.join(' · ')
-    showProgress = request.status === 'pending'
   } else if (request.orderType === 'user_profile_update') {
     // 用户信息修改申请
     const detailParts = []
@@ -122,7 +125,6 @@ function mapRequestItem(request) {
       detailParts.push(`部门：${request.department}`)
     }
     detail = detailParts.join(' · ')
-    showProgress = false
   } else {
     // 注册申请
     const detailParts = [request.birthday]
@@ -134,8 +136,10 @@ function mapRequestItem(request) {
     }
     detailParts.push(request.isAdmin ? '申请管理员' : '普通成员')
     detail = detailParts.join(' · ')
-    showProgress = false
   }
+
+  // 动态判断是否显示进度条：待审批状态 + 工作流步骤>=2 + 有当前步骤信息
+  const showProgress = request.status === 'pending' && totalSteps >= 2 && request.currentStep
 
   // 生成审批备注信息
   let reviewRemark = request.reviewRemark || ''
@@ -158,14 +162,11 @@ function mapRequestItem(request) {
           reviewRemark = applicantInfo
         }
       } else {
+        // 统一使用工作流步骤数据获取审批人角色（不再硬编码判断申请类型）
         let approverRole = '审批人'
-        if (request.orderType === 'medical_application') {
-          const currentStep = request.currentStep || 0
-          const workflowSnapshot = request.workflowSnapshot || {}
-          const steps = workflowSnapshot.steps || []
-          if (steps[currentStep - 1]) {
-            approverRole = steps[currentStep - 1].stepName || '审批人'
-          }
+        const currentStep = request.currentStep || 0
+        if (workflowSteps[currentStep - 1]) {
+          approverRole = workflowSteps[currentStep - 1].stepName || '审批人'
         }
 
         const rolePrefix = reviewedBy.includes('管理员') || reviewedBy.includes('部门负责人') || reviewedBy.includes('会计主管') || reviewedBy.includes('馆领导') ? '' : approverRole
@@ -178,14 +179,11 @@ function mapRequestItem(request) {
         }
       }
     } else {
+      // 统一使用工作流步骤数据获取审批人角色（不再硬编码判断申请类型）
       let approverRole = '审批人'
-      if (request.orderType === 'medical_application') {
-        const currentStep = request.currentStep || 0
-        const workflowSnapshot = request.workflowSnapshot || {}
-        const steps = workflowSnapshot.steps || []
-        if (steps[currentStep - 1]) {
-          approverRole = steps[currentStep - 1].stepName || '审批人'
-        }
+      const currentStep = request.currentStep || 0
+      if (workflowSteps[currentStep - 1]) {
+        approverRole = workflowSteps[currentStep - 1].stepName || '审批人'
       }
 
       const rolePrefix = reviewedBy.includes('管理员') || reviewedBy.includes('部门负责人') || reviewedBy.includes('会计主管') || reviewedBy.includes('馆领导') ? '' : approverRole
@@ -199,18 +197,11 @@ function mapRequestItem(request) {
     }
   }
 
-  // 计算进度（从工单数据获取步骤信息）
+  // 计算进度（使用已提取的工作流步骤信息）
   let progress = null
-  if (showProgress && request.currentStep) {
-    // 从工单的 workflowSnapshot 获取步骤信息
-    const workflowSnapshot = request.workflowSnapshot || {}
-    const steps = workflowSnapshot.steps || request.steps || []
-    const totalSteps = steps.length
-    const stepNames = steps.map(s => s.stepName)
-    
-    if (totalSteps > 0) {
-      progress = calculateMedicalProgress(request.currentStep, totalSteps, stepNames)
-    }
+  if (showProgress) {
+    const stepNames = workflowSteps.map(s => s.stepName)
+    progress = calculateMedicalProgress(request.currentStep, totalSteps, stepNames)
   }
 
   return {
