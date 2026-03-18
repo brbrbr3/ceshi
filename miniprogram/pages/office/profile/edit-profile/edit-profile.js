@@ -9,6 +9,7 @@ Page({
     roleOptions: [],
     positionOptions: [],
     departmentOptions: [],
+    allDepartmentOptions: [], // 保存完整的部门列表，用于切换角色时恢复
     roleIndex: -1,
     positionIndex: 0,
     departmentIndex: 0,
@@ -55,7 +56,8 @@ Page({
         constants: allConstants,
         roleOptions: allConstants.ROLE_OPTIONS || [],
         positionOptions: allConstants.POSITION_OPTIONS || [],
-        departmentOptions: allConstants.DEPARTMENT_OPTIONS || []
+        departmentOptions: allConstants.DEPARTMENT_OPTIONS || [],
+        allDepartmentOptions: allConstants.DEPARTMENT_OPTIONS || [] // 保存完整列表
       })
     } catch (error) {
       console.error('加载常量失败:', error)
@@ -200,7 +202,7 @@ Page({
 
   handleRoleChange(e) {
     const roleIndex = Number(e.detail.value)
-    const { roleOptions, departmentOptions, constants, positionOptions } = this.data
+    const { roleOptions, allDepartmentOptions, constants, positionOptions } = this.data
     const role = roleOptions[roleIndex]
 
     // 使用常量判断
@@ -217,7 +219,7 @@ Page({
 
     let department = ''
     let departmentIndex = 0
-    let roleDepartmentOptions = departmentOptions
+    let roleDepartmentOptions = allDepartmentOptions // 使用完整部门列表
 
     // 根据角色设置岗位选项和显示状态
     let rolePositionOptions = rolePositionMap[role] || positionOptions
@@ -226,7 +228,7 @@ Page({
     // 使用配置中的固定部门
     if (roleConfig.fixedDepartment) {
       department = roleConfig.fixedDepartment
-      departmentIndex = departmentOptions.indexOf(roleConfig.fixedDepartment)
+      departmentIndex = allDepartmentOptions.indexOf(roleConfig.fixedDepartment)
       roleDepartmentOptions = [roleConfig.fixedDepartment]
     }
 
