@@ -2,8 +2,9 @@ const config = require('./config')
 const themeListeners = []
 const AUTH_STORAGE_KEY = 'office-auth-cache'
 const SUBSCRIBE_REQUEST_KEY = 'office-subscribe-requested'
-const WORKFLOW_INIT_KEY = 'office-workflow-initialized'
+const DATABASE_INIT_KEY = 'office-database-initialized'
 const SYS_CONFIG_INIT_KEY = 'office-sys-config-initialized'
+const WORKFLOW_INIT_KEY = 'office-workflow-initialized'
 
 global.isDemo = true
 
@@ -73,8 +74,8 @@ App({
       })
     }
     this.restoreAuthState()
-    this.initSystemConfig()
-    this.initWorkflowTemplates()
+    // 初始化顺序：1.数据库集合 -> 2.系统配置 -> 3.工作流模板
+    this.initDatabase()
   },
 
   onShow(opts) {
@@ -498,6 +499,74 @@ App({
     })
   },
 
+  // ========== 数据库初始化相关方法 ==========
+
+  /**
+   * 初始化数据库集合
+   * 检查所有必需的集合是否存在，不存在则创建
+   * 此方法应在其他初始化方法之前执行
+   */
+  initDatabase() {
+    const initialized = readStorage(DATABASE_INIT_KEY)
+
+    // 如果已经初始化过，则跳过
+    if (initialized) {
+      // 即使跳过，也要继续执行后续初始化
+      this.initSystemConfig()
+      return
+    }
+
+    // 调用云函数初始化数据库集合
+    wx.cloud.callFunction({
+      name: 'initDatabase',
+      data: {}
+    }).then(res => {
+      const result = res.result || {}
+      if (result.code === 0) {
+        console.log('数据库集合初始化成功:', result.data)
+        // 标记为已初始化
+        writeStorage(DATABASE_INIT_KEY, {
+          initialized: true,
+          timestamp: Date.now(),
+          data: result.data
+        })
+      } else {
+        console.warn('数据库集合初始化失败:', result.message)
+      }
+    }).catch(error => {
+      console.error('数据库集合初始化异常:', error)
+      // 静默失败，不影响用户使用
+    }).finally(() => {
+      // 无论成功失败，都继续执行后续初始化
+      this.initSystemConfig()
+    })
+  },
+
+  /**
+   * 重新初始化数据库集合（用于强制刷新）
+   * @returns {Promise<Object>} 初始化结果
+   */
+  reinitDatabase() {
+    return wx.cloud.callFunction({
+      name: 'initDatabase',
+      data: {}
+    }).then(res => {
+      const result = res.result || {}
+      if (result.code === 0) {
+        console.log('数据库集合重新初始化成功:', result.data)
+        // 更新初始化标记
+        writeStorage(DATABASE_INIT_KEY, {
+          initialized: true,
+          timestamp: Date.now(),
+          data: result.data
+        })
+        return result.data
+      } else {
+        throw new Error(result.message || '重新初始化失败')
+      }
+    })
+  },
+
   /**
    * 初始化系统配置（将常量写入数据库）
    * 使用本地存储标记避免重复初始化
@@ -507,6 +576,8 @@ App({
 
     // 如果已经初始化过，则跳过
     if (initialized) {
+      // 即使跳过，也要继续执行后续初始化
+      this.initWorkflowTemplates()
       return
     }
 
@@ -530,6 +601,9 @@ App({
     }).catch(error => {
       console.error('系统配置初始化异常:', error)
       // 静默失败，不影响用户使用
+    }).finally(() => {
+      // 无论成功失败，都继续执行后续初始化
+      this.initWorkflowTemplates()
     })
   },
 

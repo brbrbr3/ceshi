@@ -2,9 +2,29 @@
 
 ## 概述
 
-本文档列出了项目中所有数据库集合的详细信息，包括集合名称、用途、字段结构、索引等。
+本文档列出了项目中所有数据库集合的详细信息，包括集合名称、用途、字段结构、索引、安全规则等。
 
 **重要**：所有新增功能涉及数据库操作时，必须先参考本文档！如果需要新的集合，请添加到本文档中。
+
+---
+
+## 安全规则说明
+
+### aclTag 权限类别
+
+| aclTag | 名称 | 说明 |
+|--------|------|------|
+| `ADMINONLY` | 仅管理员可读写 | 只有管理员可以读取和写入数据 |
+| `ADMINWRITE` | 管理员可写 | 所有用户可读，仅管理员可写 |
+| `READONLY` | 只读 | 所有用户可读，仅创建者可写 |
+| `PRIVATE` | 私有 | 仅创建者（及管理员）可读写 |
+| `CUSTOM` | 自定义 | 使用自定义安全规则 |
+
+### 权限配置要求
+
+**重要**：所有新增数据库集合必须在以下两处配置安全规则：
+1. 本文档的集合定义中添加 `aclTag` 字段
+2. `cloudfunctions/initDatabase/index.js` 的 `REQUIRED_COLLECTIONS` 数组中添加 `aclTag`
 
 ---
 
@@ -13,6 +33,8 @@
 ### 1. announcements - 通知公告
 
 **用途**：存储系统通知公告
+
+**安全规则**：`ADMINWRITE` - 所有用户可读，仅管理员可写
 
 **记录数**：0
 
@@ -45,6 +67,8 @@
 
 **用途**：存储每周菜单的用户评论
 
+**安全规则**：`ADMINWRITE` - 所有用户可读，仅管理员可写
+
 **记录数**：2
 
 **索引**：
@@ -68,6 +92,8 @@
 ### 3. menus - 每周菜单
 
 **用途**：存储每周菜单信息
+
+**安全规则**：`ADMINWRITE` - 所有用户可读，仅管理员可写
 
 **记录数**：2
 
@@ -93,6 +119,8 @@
 ### 4. notifications - 用户通知
 
 **用途**：存储用户个人通知（如审批通知、系统通知等）
+
+**安全规则**：`PRIVATE` - 仅创建者可读写（用户只能看到自己的通知）
 
 **记录数**：4
 
@@ -120,6 +148,8 @@
 ### 5. office_registration_requests - 用户注册请求
 
 **用途**：存储用户注册申请
+
+**安全规则**：`READONLY` - 所有用户可读，仅创建者可写
 
 **记录数**：0
 
@@ -160,6 +190,8 @@
 
 **用途**：存储注册用户信息
 
+**安全规则**：`ADMINONLY` - 仅管理员可读写
+
 **记录数**：3
 
 **索引**：
@@ -195,6 +227,8 @@
 
 **用途**：存储功能权限配置
 
+**安全规则**：`ADMINWRITE` - 所有用户可读，仅管理员可写
+
 **记录数**：2
 
 **索引**：
@@ -217,9 +251,48 @@
 
 ---
 
-### 8. work_orders - 工作订单（重要：不是 workflow_orders）
+### 8. sys_config - 系统配置
+
+**用途**：存储系统配置常量（角色选项、部门选项、医疗机构等）
+
+**安全规则**：`READONLY` - 所有用户可读，仅创建者可写
+
+**记录数**：动态
+
+**索引**：
+- `_openid` - 用户 openid（云开发自动创建）
+- `_id` - 记录 ID（云开发自动创建）
+
+**字段结构**：
+```javascript
+{
+  _id: String,                    // 记录 ID（自动生成）
+  type: String,                   // 配置类型：'role' | 'department' | 'institution' 等
+  key: String,                    // 配置键名（如 'ROLE_OPTIONS', 'DEPARTMENTS'）
+  value: Any,                     // 配置值（可以是数组、对象等）
+  description: String,            // 配置描述
+  sort: Number,                   // 排序权重
+  createdAt: Number,              // 创建时间戳
+  updatedAt: Number               // 更新时间戳
+}
+```
+
+**常用配置项**：
+| type | key | 说明 |
+|------|-----|------|
+| role | ROLE_OPTIONS | 角色选项列表 |
+| department | DEPARTMENTS | 部门选项列表 |
+| institution | MEDICAL_INSTITUTIONS | 医疗机构列表 |
+| relation | RELATION_OPTIONS | 关系选项列表 |
+| role_field_mapping | ROLE_FIELD_VISIBILITY | 角色字段显示映射 |
+
+---
+
+### 9. work_orders - 工作订单（重要：不是 workflow_orders）
 
 **用途**：存储工作流工单记录
+
+**安全规则**：`PRIVATE` - 仅创建者可读写
 
 **记录数**：4
 
@@ -259,9 +332,11 @@
 
 ---
 
-### 9. workflow_logs - 工作流日志
+### 10. workflow_logs - 工作流日志
 
 **用途**：记录工作流操作日志
+
+**安全规则**：`PRIVATE` - 仅创建者可读写
 
 **记录数**：7
 
@@ -292,9 +367,11 @@
 
 ---
 
-### 10. workflow_subscriptions - 工作流订阅配置
+### 11. workflow_subscriptions - 工作流订阅配置
 
 **用途**：存储订阅消息模板配置
+
+**安全规则**：`PRIVATE` - 仅创建者可读写
 
 **记录数**：4
 
@@ -321,9 +398,11 @@
 
 ---
 
-### 11. workflow_tasks - 工作流任务
+### 12. workflow_tasks - 工作流任务
 
 **用途**：存储工作流任务（审批任务）
+
+**安全规则**：`PRIVATE` - 仅创建者可读写
 
 **记录数**：18
 
@@ -358,9 +437,11 @@
 
 ---
 
-### 12. workflow_templates - 工作流模板
+### 13. workflow_templates - 工作流模板
 
 **用途**：存储工作流模板配置
+
+**安全规则**：`PRIVATE` - 仅创建者可读写
 
 **记录数**：3
 
@@ -526,6 +607,8 @@ const notificationsCollection = db.collection('notifications')  // ✅
 | 2026-03-15 | 创建文档，列出所有现有集合 | AI |
 | 2026-03-15 | 添加工作流相关集合详细信息 | AI |
 | 2026-03-15 | 修正 announcementManager 中的集合名称错误 | AI |
+| 2026-03-18 | 添加安全规则说明和各集合的 aclTag | AI |
+| 2026-03-18 | 添加 sys_config 集合描述 | AI |
 
 ---
 
@@ -544,6 +627,7 @@ https://tcb.cloud.tencent.com/dev?envId=cloud1-8gdftlggae64d5d0#/db/doc
 - [office_registration_requests](https://tcb.cloud.tencent.com/dev?envId=cloud1-8gdftlggae64d5d0#/db/doc/collection/office_registration_requests)
 - [office_users](https://tcb.cloud.tencent.com/dev?envId=cloud1-8gdftlggae64d5d0#/db/doc/collection/office_users)
 - [permissions](https://tcb.cloud.tencent.com/dev?envId=cloud1-8gdftlggae64d5d0#/db/doc/collection/permissions)
+- [sys_config](https://tcb.cloud.tencent.com/dev?envId=cloud1-8gdftlggae64d5d0#/db/doc/collection/sys_config)
 - [work_orders](https://tcb.cloud.tencent.com/dev?envId=cloud1-8gdftlggae64d5d0#/db/doc/collection/work_orders)
 - [workflow_logs](https://tcb.cloud.tencent.com/dev?envId=cloud1-8gdftlggae64d5d0#/db/doc/collection/workflow_logs)
 - [workflow_subscriptions](https://tcb.cloud.tencent.com/dev?envId=cloud1-8gdftlggae64d5d0#/db/doc/collection/workflow_subscriptions)

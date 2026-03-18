@@ -1,40 +1,14 @@
 const app = getApp()
 const utils = require('../../../common/utils.js')
-
-const ROLE_OPTIONS = ['馆领导', '部门负责人', '馆员', '工勤', '物业', '配偶', '家属']
-const RELATION_OPTIONS = ['本人', '配偶', '子女', '父母', '其他']
-const MEDICAL_INSTITUTIONS = [
-  'Hospital Sírio-Libanês（私立综合性医院）',
-  'DF Star-Rede D\'OR（私立综合性医院）',
-  'Hospital Brasília（私立综合性医院）',
-  'Hospital Daher（私立综合性医院）',
-  'Hospital Santa Lúcia（私立综合性医院）',
-  'Hospital Santa Luzia（私立综合性医院）',
-  'Hospital Home（私立综合性医院，骨科专长）',
-  'Sarah Kubitschek（公立医院 – 残障人士友好）',
-  'Hospital das Forças Armadas （公立综合性医院）',
-  'Rita Trindade（牙科）',
-  'Clínica Implanto Odontologia Especializada（牙科）',
-  'CBV（眼科）',
-  'Laboratório Sabin（巴西临床医学典范）',
-  'Cote Brasília（骨科）',
-  'Aluma Dermatologia e Laser（皮肤科）',
-  'Rheos. Reumatologia e Clínica Médica（风湿科）',
-  'Prodigest（消化科）',
-  'CEOL ENT-Otorhinolaryngology Clinic（耳鼻喉科）',
-  'Centro de Acupuntura Shen（针灸、艾灸）',
-  'Consultório Natasha Ferraroni（过敏）',
-  'Hospital Materno Infantil de Brasília（妇幼专科）',
-  '其他'
-]
+const constants = require('../../../common/constants.js')
 
 Page({
   data: {
     loading: false,
     submitting: false, // 防止重复提交
-    roleOptions: ROLE_OPTIONS,
-    relationOptions: RELATION_OPTIONS,
-    medicalInstitutions: MEDICAL_INSTITUTIONS,
+    roleOptions: [],           // 从数据库加载
+    relationOptions: [],       // 从数据库加载
+    medicalInstitutions: [],   // 从数据库加载
     relationIndex: -1,
     institutionIndex: -1,
     form: {
@@ -50,7 +24,10 @@ Page({
     mode: 'create' // create 或 copy
   },
 
-  onLoad(options) {
+  async onLoad(options) {
+    // 先加载常量配置
+    await this.loadConstants()
+
     // 获取当前用户信息
     app.checkUserRegistration()
       .then((result) => {
@@ -104,6 +81,34 @@ Page({
       })
   },
 
+  /**
+   * 加载常量配置
+   */
+  async loadConstants() {
+    try {
+      const [roleOptions, relationOptions, medicalInstitutions] = await Promise.all([
+        constants.getConstant('ROLE_OPTIONS'),
+        constants.getConstant('RELATION_OPTIONS'),
+        constants.getConstant('MEDICAL_INSTITUTIONS')
+      ])
+
+      this.setData({
+        roleOptions: roleOptions || [],
+        relationOptions: relationOptions || [],
+        medicalInstitutions: medicalInstitutions || []
+      })
+    } catch (error) {
+      console.error('加载常量配置失败:', error)
+      // 使用默认值
+      const defaults = constants.getDefaultConstants()
+      this.setData({
+        roleOptions: defaults.ROLE_OPTIONS || [],
+        relationOptions: defaults.RELATION_OPTIONS || [],
+        medicalInstitutions: defaults.MEDICAL_INSTITUTIONS || []
+      })
+    }
+  },
+
   loadCopyData(options) {
     // 从 URL 参数中解析复制的申请数据
     try {
@@ -132,7 +137,7 @@ Page({
 
   handleRelationChange(e) {
     const index = Number(e.detail.value)
-    const relation = RELATION_OPTIONS[index]
+    const relation = this.data.relationOptions[index]
     this.setData({
       relationIndex: index,
       'form.relation': relation
@@ -147,7 +152,7 @@ Page({
 
   handleInstitutionChange(e) {
     const index = Number(e.detail.value)
-    const institution = MEDICAL_INSTITUTIONS[index]
+    const institution = this.data.medicalInstitutions[index]
     this.setData({
       institutionIndex: index,
       'form.institution': institution
@@ -176,7 +181,7 @@ Page({
     const form = this.data.form
 
     if (!String(form.patientName || '').trim()) {
-      utils.showtoast({ title: '请填写就医人姓名', icon: 'none' })
+      utils.showToast({ title: '请填写就医人姓名', icon: 'none' })
       return false
     }
 
@@ -186,18 +191,18 @@ Page({
     }
 
     if (!form.medicalDate) {
-      utils.showtoast({ title: '请选择就医时间', icon: 'none' })
+      utils.showToast({ title: '请选择就医时间', icon: 'none' })
       return false
     }
 
     if (!form.institution) {
-      utils.showtoast({ title: '请选择就医机构', icon: 'none' })
+      utils.showToast({ title: '请选择就医机构', icon: 'none' })
       return false
     }
 
     // 如果选择了"其他"，必须填写机构名称
     if (form.institution === '其他' && !String(form.otherInstitution || '').trim()) {
-      utils.showtoast({ title: '请填写就医机构名称', icon: 'none' })
+      utils.showToast({ title: '请填写就医机构名称', icon: 'none' })
       return false
     }
 
@@ -208,7 +213,7 @@ Page({
     }
 
     if (!String(form.reason || '').trim()) {
-      utils.showtoast({ title: '请填写就医原因', icon: 'none' })
+      utils.showToast({ title: '请填写就医原因', icon: 'none' })
       return false
     }
 

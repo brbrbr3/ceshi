@@ -25,7 +25,7 @@
       <view class="home-attendance-main">
         <view class="home-attendance-icon">⏰</view>
         <view>
-          <view class="home-attendance-title">今日已打卡</view>
+          <view class="home-attendance-title">今日已打卡（占位）</view>
           <view class="home-attendance-desc">上班 08:52 · 在岗中</view>
         </view>
       </view>
@@ -80,7 +80,7 @@
 
     <view class="office-section">
       <view class="office-section-header">
-        <view class="office-section-title">今日日程</view>
+        <view class="office-section-title">今日日程（占位）</view>
         <view class="office-link" bindtap="showComingSoon">日历</view>
       </view>
       <view class="office-card home-schedule-card">

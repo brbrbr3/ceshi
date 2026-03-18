@@ -31,7 +31,7 @@
     <view class="profile-reward-card">
       <view class="profile-reward-icon">🏆</view>
       <view class="profile-reward-main">
-        <view class="profile-reward-title">本月全勤奖励</view>
+        <view class="profile-reward-title">本月全勤奖励（占位）</view>
         <view class="profile-reward-sub">坚持打卡已获得 100 积分</view>
       </view>
       <view class="profile-reward-btn" bindtap="showComingSoon">领取</view>

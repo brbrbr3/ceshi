@@ -15,23 +15,18 @@ Page({
     loading: false,
     stats: [
       { label: '待审批', value: '0', color: '#F44336', bg: '#FFEBEE' },
-      { label: '待办事项', value: '12', color: '#FF9800', bg: '#FFF3E0' },
-      { label: '本月出勤', value: '7天', color: '#4CAF50', bg: '#E8F5E9' },
-      { label: '绩效得分', value: '92', color: '#2563EB', bg: '#EFF6FF' }
+      { label: '待办事项（占位）', value: '12', color: '#FF9800', bg: '#FFF3E0' },
+      { label: '本月出勤（占位）', value: '7天', color: '#4CAF50', bg: '#E8F5E9' },
+      { label: '绩效得分（占位）', value: '92', color: '#2563EB', bg: '#EFF6FF' }
     ],
     quickActions: [
       { icon: '🍽️', label: '每周菜单', color: '#16A34A', bg: '#DCFCE7', implemented: true },
       { icon: '🏥', label: '就医申请', color: '#EF4444', bg: '#FEE2E2', implemented: true },
-      { icon: '📅', label: '打卡签到', color: '#94A3B8', bg: '#F1F5F9', implemented: false },
-      { icon: '📊', label: '工作报告', color: '#94A3B8', bg: '#F1F5F9', implemented: false },
-      { icon: '💬', label: '企业通讯', color: '#94A3B8', bg: '#F1F5F9', implemented: false },
-      { icon: '📁', label: '云端文档', color: '#94A3B8', bg: '#F1F5F9', implemented: false },
-      { icon: '🎯', label: '任务中心', color: '#94A3B8', bg: '#F1F5F9', implemented: false }
-    ],
-    approvals: [
-      { name: '张晓明', dept: '技术部', type: '请假申请', time: '30分钟前', avatar: '张', avatarBg: '#4CAF50' },
-      { name: '李婷婷', dept: '市场部', type: '费用报销', time: '1小时前', avatar: '李', avatarBg: '#FF9800' },
-      { name: '王建国', dept: '销售部', type: '出差申请', time: '2小时前', avatar: '王', avatarBg: '#9C27B0' }
+      { icon: '📅', label: '打卡签到（占位）', color: '#94A3B8', bg: '#F1F5F9', implemented: false },
+      { icon: '📊', label: '工作报告（占位）', color: '#94A3B8', bg: '#F1F5F9', implemented: false },
+      { icon: '💬', label: '企业通讯（占位）', color: '#94A3B8', bg: '#F1F5F9', implemented: false },
+      { icon: '📁', label: '云端文档（占位）', color: '#94A3B8', bg: '#F1F5F9', implemented: false },
+      { icon: '🎯', label: '任务中心（占位）', color: '#94A3B8', bg: '#F1F5F9', implemented: false }
     ],
     announcements: [],
     schedules: [

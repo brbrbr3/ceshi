@@ -91,7 +91,10 @@ wf_tmpls                 // 缩写
 4. 遵循命名规范设计集合名称
 5. 定义完整的字段结构
 6. 添加到 `DATABASE_COLLECTIONS_REFERENCE.md` 文档
-7. 在代码中创建并使用
+7. **在 `initDatabase` 云函数中添加新集合定义**
+8. 在代码中创建并使用
+
+**重要**：新增集合时，必须在 `cloudfunctions/initDatabase/index.js` 的 `REQUIRED_COLLECTIONS` 数组中添加新集合定义，确保集合自动初始化。
 
 **示例**：
 ```javascript
@@ -107,7 +110,18 @@ wf_tmpls                 // 缩写
  * }
  */
 
-// 2. 在代码中创建
+// 2. 在 initDatabase 云函数中添加集合定义
+// cloudfunctions/initDatabase/index.js
+const REQUIRED_COLLECTIONS = [
+  // ... 现有集合 ...
+  {
+    name: 'my_new_collection',
+    description: '我的新集合',
+    initialData: null // 或初始数据数组
+  }
+]
+
+// 3. 在代码中使用
 const db = wx.cloud.database()
 await db.collection('my_new_collection').add({
   data: {
@@ -116,6 +130,229 @@ await db.collection('my_new_collection').add({
   }
 })
 ```
+
+### 1.5 数据库集合初始化规范
+
+**规则**：所有数据库集合必须通过 `initDatabase` 云函数统一初始化。
+
+**强制要求**：
+- 程序启动时，`initDatabase` 云函数最先执行
+- 所有新增集合必须添加到 `initDatabase` 云函数中
+- 禁止在代码中手动创建集合，统一通过云函数自动创建
+- 集合不存在时，云函数会自动创建
+- **所有集合必须配置安全规则（aclTag）**
+
+**初始化顺序**：
+```
+1. initDatabase（数据库集合初始化）
+   ↓
+2. initSystemConfig（系统配置初始化）
+   ↓
+3. initWorkflowDB（工作流模板初始化）
+```
+
+**initDatabase 云函数结构**：
+```javascript
+// cloudfunctions/initDatabase/index.js
+
+const REQUIRED_COLLECTIONS = [
+  // ==================== 用户相关 ====================
+  {
+    name: 'office_users',
+    description: '办公系统用户',
+    aclTag: 'ADMINONLY', // 仅管理员可读写
+    initialData: null
+  },
+  {
+    name: 'office_registration_requests',
+    description: '用户注册请求',
+    aclTag: 'READONLY', // 所有用户可读，仅创建者可写
+    initialData: null
+  },
+
+  // ==================== 系统配置 ====================
+  {
+    name: 'sys_config',
+    description: '系统配置（常量）',
+    aclTag: 'READONLY', // 所有用户可读，仅创建者可写
+    initialData: null
+  },
+
+  // ... 其他集合 ...
+
+  // ==================== 新增集合示例 ====================
+  // {
+  //   name: 'new_collection_name',
+  //   description: '集合描述',
+  //   aclTag: 'PRIVATE', // 安全规则
+  //   initialData: null // 或 [{ name: '初始数据1' }, { name: '初始数据2' }]
+  // }
+]
+```
+
+**检查清单**：
+- [ ] 新增集合是否已添加到 `REQUIRED_COLLECTIONS` 数组
+- [ ] 集合名称是否与 `DATABASE_COLLECTIONS_REFERENCE.md` 一致
+- [ ] 是否设置了正确的 `description`
+- [ ] 是否配置了正确的 `aclTag`（安全规则）
+- [ ] 是否需要初始数据（`initialData`）
+- [ ] 是否已更新 `DATABASE_COLLECTIONS_REFERENCE.md` 文档
+- [ ] 是否已使用 MCP 工具设置安全规则
+
+### 1.5.1 数据库安全规则配置规范
+
+**规则**：所有数据库集合必须配置安全规则，确保数据安全。
+
+**安全规则类别**：
+
+| aclTag | 名称 | 说明 | 适用场景 |
+|--------|------|------|---------|
+| `ADMINONLY` | 仅管理员可读写 | 只有管理员可以读取和写入数据 | 敏感数据（用户信息） |
+| `ADMINWRITE` | 管理员可写 | 所有用户可读，仅管理员可写 | 配置数据（权限、评论） |
+| `READONLY` | 只读 | 所有用户可读，仅创建者可写 | 公开数据（菜单、通知） |
+| `PRIVATE` | 私有 | 仅创建者可读写 | 个人数据（工单、任务） |
+| `CUSTOM` | 自定义 | 使用自定义安全规则 | 复杂权限场景 |
+
+**配置流程**：
+
+1. **在 `initDatabase` 云函数中定义**：
+```javascript
+const REQUIRED_COLLECTIONS = [
+  {
+    name: 'my_collection',
+    description: '我的集合',
+    aclTag: 'PRIVATE',
+    initialData: null
+  }
+]
+```
+
+2. **更新 `DATABASE_COLLECTIONS_REFERENCE.md` 文档**：
+```markdown
+### my_collection - 我的集合
+
+**用途**：存储我的数据
+
+**安全规则**：`PRIVATE` - 仅创建者可读写
+
+**字段结构**：...
+```
+
+3. **使用 MCP 工具设置安全规则**：
+```javascript
+// AI 助手会自动调用 MCP 工具设置安全规则
+mcp_call_tool({
+  serverName: "CloudBase MCP",
+  toolName: "writeSecurityRule",
+  arguments: {
+    resourceType: "noSqlDatabase",
+    resourceId: "my_collection",
+    aclTag: "PRIVATE"
+  }
+})
+```
+
+**当前项目安全规则配置**：
+
+| 集合名 | aclTag | 说明 |
+|--------|--------|------|
+| office_users | ADMINONLY | 仅管理员可读写（敏感用户数据） |
+| office_registration_requests | READONLY | 所有用户可读，仅创建者可写 |
+| permissions | ADMINWRITE | 所有用户可读，仅管理员可写 |
+| sys_config | READONLY | 所有用户可读，仅创建者可写 |
+| announcements | ADMINWRITE | 所有用户可读，仅管理员可写（公告需全员可见） |
+| notifications | PRIVATE | 仅创建者可读写（用户只能看到自己的通知） |
+| menus | ADMINWRITE | 所有用户可读，仅管理员可写（菜单需全员可见） |
+| menu_comments | ADMINWRITE | 所有用户可读，仅管理员可写 |
+| workflow_templates | PRIVATE | 仅创建者可读写 |
+| work_orders | PRIVATE | 仅创建者可读写 |
+| workflow_tasks | PRIVATE | 仅创建者可读写 |
+| workflow_logs | PRIVATE | 仅创建者可读写 |
+| workflow_subscriptions | PRIVATE | 仅创建者可读写 |
+
+### 1.6 常量统一管理规范
+
+**规则**：所有常量必须统一在 `initSystemConfig` 云函数中定义，禁止在代码中自行定义常量。
+
+**强制要求**：
+- 常量统一存储在 `sys_config` 数据库集合中
+- 常量定义只能在 `cloudfunctions/initSystemConfig/index.js` 中
+- 前端代码通过 `common/constants.js` 从数据库获取常量
+- 禁止在前端代码中硬编码常量值
+
+**常量定义位置**：
+```javascript
+// cloudfunctions/initSystemConfig/index.js
+
+const SYSTEM_CONFIGS = [
+  // ==================== 角色相关 ====================
+  {
+    type: 'role',
+    key: 'ROLE_OPTIONS',
+    value: ['馆领导', '部门负责人', '馆员', '工勤', '物业', '配偶', '家属'],
+    description: '角色选项列表',
+    sort: 1
+  },
+
+  // ==================== 角色字段映射 ====================
+  {
+    type: 'role_field_mapping',
+    key: 'ROLE_FIELD_VISIBILITY',
+    value: {
+      '馆领导': { showPosition: false, showDepartment: false, fixedDepartment: null },
+      '部门负责人': { showPosition: true, showDepartment: true, fixedDepartment: null },
+      '馆员': { showPosition: true, showDepartment: true, fixedDepartment: null },
+      '工勤': { showPosition: true, showDepartment: true, fixedDepartment: '办公室' },
+      '物业': { showPosition: false, showDepartment: false, fixedDepartment: null },
+      '配偶': { showPosition: true, showDepartment: false, fixedDepartment: null },
+      '家属': { showPosition: false, showDepartment: false, fixedDepartment: null }
+    },
+    description: '角色-字段显示映射关系',
+    sort: 30
+  },
+
+  // ... 其他常量 ...
+]
+```
+
+**前端获取常量**：
+```javascript
+// miniprogram/pages/example/example.js
+const constants = require('../../../common/constants.js')
+
+Page({
+  data: {
+    roleOptions: []
+  },
+
+  async onLoad() {
+    // 异步获取常量
+    const roleOptions = await constants.getConstant('ROLE_OPTIONS')
+    this.setData({ roleOptions })
+
+    // 或同步获取（使用缓存/默认值）
+    const roleOptions = constants.getConstantSync('ROLE_OPTIONS')
+  }
+})
+```
+
+**违规示例**：
+```javascript
+// ❌ 错误：在页面代码中硬编码常量
+const ROLE_OPTIONS = ['馆领导', '部门负责人', '馆员']
+const MEDICAL_INSTITUTIONS = ['医院A', '医院B']
+
+// ✅ 正确：从数据库获取常量
+const constants = require('../../../common/constants.js')
+const roleOptions = await constants.getConstant('ROLE_OPTIONS')
+const medicalInstitutions = await constants.getConstant('MEDICAL_INSTITUTIONS')
+```
+
+**检查清单**：
+- [ ] 新增常量是否已添加到 `initSystemConfig` 云函数
+- [ ] 是否设置了正确的 `type`、`key`、`value`、`description`
+- [ ] 是否已更新 `common/constants.js` 的默认值（降级方案）
+- [ ] 前端代码是否使用 `constants.getConstant()` 获取常量
 
 ---
 
@@ -1665,6 +1902,8 @@ const result = await db.collection(collectionName).add({
 - [ ] 字段命名是否符合规范
 - [ ] 是否需要新增集合并已更新文档
 - [ ] 是否使用了正确的集合（如 work_orders 而不是 workflow_orders）
+- [ ] 新增集合是否配置了安全规则（aclTag）
+- [ ] 安全规则是否已通过 MCP 工具设置
 
 ### 10.2 云函数相关
 - [ ] 是否定义了常量集合引用

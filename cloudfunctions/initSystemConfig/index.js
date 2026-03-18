@@ -26,8 +26,11 @@ const SYSTEM_CONFIGS = [
     type: 'role',
     key: 'ROLE_POSITION_MAP',
     value: {
-      '工勤': ['会计', '招待员', '厨师'],
-      '配偶': ['无']
+      '馆领导': ['无', '会计主管', '会计', '俱乐部', '阳光课堂'],
+      '部门负责人': ['无', '会计主管', '会计', '俱乐部', '阳光课堂'],
+      '馆员': ['无', '会计主管', '会计', '俱乐部', '阳光课堂'],
+      '工勤': ['招待员', '厨师'],
+      '配偶': ['无', '内聘']
     },
     description: '角色-岗位映射关系',
     sort: 2
@@ -58,7 +61,7 @@ const SYSTEM_CONFIGS = [
   {
     type: 'position',
     key: 'POSITION_OPTIONS',
-    value: ['无', '会计主管', '会计', '招待员', '厨师'],
+    value: ['无', '会计主管', '会计', '俱乐部', '阳光课堂', '招待员', '厨师', '内聘'],
     description: '岗位选项列表',
     sort: 10
   },
@@ -74,7 +77,7 @@ const SYSTEM_CONFIGS = [
   {
     type: 'department',
     key: 'DEPARTMENT_OPTIONS',
-    value: ['政治处', '新公处', '经商处', '科技处', '武官处', '领侨处', '文化处', '办公室', '党委办'],
+    value: ['政治处', '新公处', '经商处', '科技处', '武官处', '领侨处', '文化处', '办公室', 'DW办'],
     description: '部门选项列表',
     sort: 20
   },
@@ -85,12 +88,22 @@ const SYSTEM_CONFIGS = [
     description: '默认部门',
     sort: 21
   },
+
+  // ==================== 角色-字段映射关系 ====================
   {
-    type: 'department',
-    key: 'WORKER_DEPARTMENT',
-    value: '办公室',
-    description: '工勤人员固定部门',
-    sort: 22
+    type: 'role_field_mapping',
+    key: 'ROLE_FIELD_VISIBILITY',
+    value: {
+      '馆领导': { showPosition: false, showDepartment: false, fixedDepartment: null },
+      '部门负责人': { showPosition: true, showDepartment: true, fixedDepartment: null },
+      '馆员': { showPosition: true, showDepartment: true, fixedDepartment: null },
+      '工勤': { showPosition: true, showDepartment: true, fixedDepartment: '办公室' },
+      '物业': { showPosition: false, showDepartment: false, fixedDepartment: null },
+      '配偶': { showPosition: true, showDepartment: false, fixedDepartment: null },
+      '家属': { showPosition: false, showDepartment: false, fixedDepartment: null }
+    },
+    description: '角色-字段显示映射关系（控制各角色是否显示岗位、部门字段及固定部门）',
+    sort: 30
   },
 
   // ==================== 性别相关 ====================
@@ -253,6 +266,45 @@ const SYSTEM_CONFIGS = [
     },
     description: '数据库集合名称',
     sort: 70
+  },
+
+  // ==================== 就医申请相关 ====================
+  {
+    type: 'medical',
+    key: 'RELATION_OPTIONS',
+    value: ['本人', '配偶', '子女', '父母', '其他'],
+    description: '就医申请-与申请人关系选项',
+    sort: 80
+  },
+  {
+    type: 'medical',
+    key: 'MEDICAL_INSTITUTIONS',
+    value: [
+      'Hospital Sírio-Libanês（私立综合性医院）',
+      'DF Star-Rede D\'OR（私立综合性医院）',
+      'Hospital Brasília（私立综合性医院）',
+      'Hospital Daher（私立综合性医院）',
+      'Hospital Santa Lúcia（私立综合性医院）',
+      'Hospital Santa Luzia（私立综合性医院）',
+      'Hospital Home（私立综合性医院，骨科专长）',
+      'Sarah Kubitschek（公立医院 – 残障人士友好）',
+      'Hospital das Forças Armadas （公立综合性医院）',
+      'Rita Trindade（牙科）',
+      'Clínica Implanto Odontologia Especializada（牙科）',
+      'CBV（眼科）',
+      'Laboratório Sabin（巴西临床医学典范）',
+      'Cote Brasília（骨科）',
+      'Aluma Dermatologia e Laser（皮肤科）',
+      'Rheos. Reumatologia e Clínica Médica（风湿科）',
+      'Prodigest（消化科）',
+      'CEOL ENT-Otorhinolaryngology Clinic（耳鼻喉科）',
+      'Centro de Acupuntura Shen（针灸、艾灸）',
+      'Consultório Natasha Ferraroni（过敏）',
+      'Hospital Materno Infantil de Brasília（妇幼专科）',
+      '其他'
+    ],
+    description: '就医申请-医疗机构选项列表',
+    sort: 81
   }
 ]
 

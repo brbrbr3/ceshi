@@ -10,22 +10,22 @@ Page({
     userAvatarUrl: '',
     isAdmin: false,
     stats: [
-      { label: '本月出勤', value: '7天', icon: '📅' },
-      { label: '年假余额', value: '8天', icon: '🏖️' },
-      { label: '绩效得分', value: '92分', icon: '⭐' }
+      { label: '本月出勤（占位）', value: '7天', icon: '📅' },
+      { label: '年假余额（占位）', value: '8天', icon: '🏖️' },
+      { label: '绩效得分（占位）', value: '92分', icon: '⭐' }
     ],
     quickInfo: [
-      { title: '今日工作时长', value: '7h 32m', desc: '08:52 上班 · 在岗中', icon: '📈', valueColor: '#2563EB' },
-      { title: '积分余额', value: '1,280', desc: '本月获得 +100', icon: '✨', valueColor: '#FF9800' }
+      { title: '今日工作时长（占位）', value: '7h 32m', desc: '08:52 上班 · 在岗中', icon: '📈', valueColor: '#2563EB' },
+      { title: '积分余额（占位）', value: '1,280', desc: '本月获得 +100', icon: '✨', valueColor: '#FF9800' }
     ],
     menuGroups: [
       {
-        title: '工作记录',
+        title: '工作记录（占位）',
         items: [
-          { icon: '📅', label: '考勤记录' },
-          { icon: '📊', label: '工作报告', badge: '3 条未读' },
-          { icon: '💰', label: '薪酬明细' },
-          { icon: '🎯', label: '绩效评估' }
+          { icon: '📅', label: '考勤记录（占位）' },
+          { icon: '📊', label: '工作报告（占位）', badge: '3 条未读' },
+          { icon: '💰', label: '薪酬明细（占位）' },
+          { icon: '🎯', label: '绩效评估（占位）' }
         ]
       },
       {
@@ -33,9 +33,9 @@ Page({
         items: [
           { icon: '👤', label: '修改个人信息' },
           { icon: '🔔', label: '消息通知' },
-          { icon: '🔒', label: '账号安全' },
-          { icon: '❓', label: '帮助中心' },
-          { icon: '⭐', label: '意见反馈' }
+          { icon: '🔒', label: '账号安全（占位）' },
+          { icon: '❓', label: '帮助中心（占位）' },
+          { icon: '⭐', label: '意见反馈（占位）' }
         ]
       }
     ],

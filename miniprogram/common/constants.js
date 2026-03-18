@@ -131,7 +131,17 @@ function getDefaultConstants() {
     // 部门相关
     DEPARTMENT_OPTIONS: ['政治处', '新公处', '经商处', '科技处', '武官处', '领侨处', '文化处', '办公室', '党委办'],
     DEFAULT_DEPARTMENT: '',
-    WORKER_DEPARTMENT: '办公室',
+
+    // 角色-字段显示映射关系
+    ROLE_FIELD_VISIBILITY: {
+      '馆领导': { showPosition: false, showDepartment: false, fixedDepartment: null },
+      '部门负责人': { showPosition: true, showDepartment: true, fixedDepartment: null },
+      '馆员': { showPosition: true, showDepartment: true, fixedDepartment: null },
+      '工勤': { showPosition: true, showDepartment: true, fixedDepartment: '办公室' },
+      '物业': { showPosition: false, showDepartment: false, fixedDepartment: null },
+      '配偶': { showPosition: true, showDepartment: false, fixedDepartment: null },
+      '家属': { showPosition: false, showDepartment: false, fixedDepartment: null }
+    },
 
     // 性别相关
     GENDER_OPTIONS: ['男', '女'],
@@ -181,7 +191,34 @@ function getDefaultConstants() {
 
     // 时区配置
     TIMEZONE_OFFSET: -3,
-    TIMEZONE_NAME: 'America/Sao_Paulo'
+    TIMEZONE_NAME: 'America/Sao_Paulo',
+
+    // 就医申请相关
+    RELATION_OPTIONS: ['本人', '配偶', '子女', '父母', '其他'],
+    MEDICAL_INSTITUTIONS: [
+      'Hospital Sírio-Libanês（私立综合性医院）',
+      'DF Star-Rede D\'OR（私立综合性医院）',
+      'Hospital Brasília（私立综合性医院）',
+      'Hospital Daher（私立综合性医院）',
+      'Hospital Santa Lúcia（私立综合性医院）',
+      'Hospital Santa Luzia（私立综合性医院）',
+      'Hospital Home（私立综合性医院，骨科专长）',
+      'Sarah Kubitschek（公立医院 – 残障人士友好）',
+      'Hospital das Forças Armadas （公立综合性医院）',
+      'Rita Trindade（牙科）',
+      'Clínica Implanto Odontologia Especializada（牙科）',
+      'CBV（眼科）',
+      'Laboratório Sabin（巴西临床医学典范）',
+      'Cote Brasília（骨科）',
+      'Aluma Dermatologia e Laser（皮肤科）',
+      'Rheos. Reumatologia e Clínica Médica（风湿科）',
+      'Prodigest（消化科）',
+      'CEOL ENT-Otorhinolaryngology Clinic（耳鼻喉科）',
+      'Centro de Acupuntura Shen（针灸、艾灸）',
+      'Consultório Natasha Ferraroni（过敏）',
+      'Hospital Materno Infantil de Brasília（妇幼专科）',
+      '其他'
+    ]
   }
 }
 
