@@ -666,9 +666,10 @@ async function handleApproval(task, order, approverId, approverName, comment) {
         
         // 检查是否成功创建任务
         if (!nextTasks || nextTasks.length === 0) {
-          // 没有创建到任务（因为没有找到审批人），设置警告消息
-          warningMessage = '审批通过，但下一步骤未找到审批人，工单将停留在当前步骤'
-          console.log(warningMessage)
+          // 没有创建到任务（因为没有找到审批人），自动中止工单
+          console.log('未找到下一步审批人，自动中止工单')
+          await autoTerminateOrder(order, '因下一步骤未找到审批人，系统自动中止申请')
+          warningMessage = '审批通过，但下一步骤未找到审批人，系统已自动中止申请'
         } else {
           // 成功创建任务，更新工单当前步骤
           await ordersCollection.doc(order._id).update({
@@ -682,13 +683,10 @@ async function handleApproval(task, order, approverId, approverName, comment) {
           await sendTaskAssignedNotification(nextTasks, order)
         }
       } catch (createError) {
-        // 创建下一步任务失败（比如没有找到审批人），记录错误但不影响当前任务的审批结果
+        // 创建下一步任务失败（比如没有找到审批人），自动中止工单
         console.error('创建下一步任务失败:', createError)
-        warningMessage = '审批通过，但无法继续下一步，工单将停留在当前步骤'
-        console.log(warningMessage)
-        
-        // 不更新工单的 currentStep，保持在当前步骤
-        // 不抛出异常，确保当前任务的状态已经正确更新
+        await autoTerminateOrder(order, '因下一步骤未找到审批人，系统自动中止申请')
+        warningMessage = '审批通过，但下一步骤未找到审批人，系统已自动中止申请'
       }
     }
   } else {
@@ -718,8 +716,8 @@ async function handleRejection(task, order, approverId, approverName, comment) {
     // 取消所有待处理任务
     await cancelPendingTasks(order._id)
 
-    // 发送驳回通知给申请人
-    await sendTaskCompletedNotification(order, 'rejected', comment)
+    // 发送驳回通知给申请人（包含驳回人信息）
+    await sendTaskCompletedNotification(order, 'rejected', comment, approverName)
   } catch (error) {
     // 如果工单状态更新失败，尝试修复
     console.error('handleRejection 错误:', error)
@@ -876,6 +874,17 @@ async function cancelPendingTasks(orderId, fromStepNo = 0) {
 }
 
 // 发送小程序内通知
+// 获取工单类型的中文名称
+function getOrderTypeName(orderType) {
+  const typeMap = {
+    'medical_application': '就医',
+    'user_registration': '注册',
+    'user_profile_update': '信息修改',
+    'notification_publish': '公告发布'
+  }
+  return typeMap[orderType] || '审批'
+}
+
 async function sendAppNotification(openid, notificationData) {
   try {
     await db.collection('notifications').add({
@@ -985,12 +994,22 @@ async function sendTaskAssignedNotification(tasks, order) {
 }
 
 // 发送审批完成通知
-async function sendTaskCompletedNotification(order, approvalResult, comment) {
+async function sendTaskCompletedNotification(order, approvalResult, comment, approverName) {
+  const orderTypeName = getOrderTypeName(order.orderType)
+  let content = ''
+  
+  if (approvalResult === 'rejected') {
+    // 驳回时包含驳回人信息
+    content = `您的${orderTypeName}申请已被${approverName || '审批人'}驳回，请点击查看`
+  } else {
+    content = comment || '您的申请已通过审批'
+  }
+  
   // 发送小程序内通知给申请人
   await sendAppNotification(order.businessData.applicantId, {
     type: 'task_completed',
     title: approvalResult === 'approved' ? '审批通过' : '审批驳回',
-    content: comment || (approvalResult === 'approved' ? '您的申请已通过审批' : '您的申请已被驳回'),
+    content: content,
     orderId: order._id,
     orderNo: order.orderNo,
     orderType: order.orderType,
@@ -1025,6 +1044,58 @@ async function sendWorkflowCompletedNotification(order, finalStatus) {
     orderType: order.orderType,
     finalStatus: finalStatus
   })
+}
+
+// 发送工单中止通知
+async function sendOrderTerminatedNotification(order, reason) {
+  const orderTypeName = getOrderTypeName(order.orderType)
+  await sendAppNotification(order.businessData.applicantId, {
+    type: 'order_terminated',
+    title: '申请已中止',
+    content: `您的${orderTypeName}申请意外中止，请点击查看`,
+    orderId: order._id,
+    orderNo: order.orderNo,
+    orderType: order.orderType,
+    reason: reason
+  })
+}
+
+// 自动中止工单（系统操作）
+async function autoTerminateOrder(order, reason) {
+  const now = Date.now()
+  
+  // 更新工单状态
+  await ordersCollection.doc(order._id).update({
+    data: {
+      workflowStatus: ORDER_STATUS.TERMINATED,
+      finalDecision: 'terminated',
+      reviewRemark: reason,
+      reviewedBy: '系统',
+      reviewedAt: now,
+      completedAt: now,
+      totalDuration: now - (order.startedAt || order.submittedAt),
+      updatedAt: now
+    }
+  })
+  
+  // 取消所有待处理任务
+  await cancelPendingTasks(order._id)
+  
+  // 记录日志（操作人为"系统"）
+  await logWorkflowAction(
+    order._id,
+    'terminate',
+    'system',
+    '系统',
+    '中止工单',
+    null,
+    { workflowStatus: ORDER_STATUS.PENDING },
+    { workflowStatus: ORDER_STATUS.TERMINATED, reason },
+    null
+  )
+  
+  // 发送中止通知给申请人
+  await sendOrderTerminatedNotification(order, reason)
 }
 
 // 完成工作流

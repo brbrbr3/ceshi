@@ -109,19 +109,24 @@ Page({
           url: '/pages/office/approval/approval'
         })
       } else if (notification.type === 'task_completed' && notification.orderId) {
-        // 审批完成通知，跳转到工单详情页
-        wx.navigateTo({
-          url: `/pages/office/work-order-detail/work-order-detail?id=${notification.orderId}`
+        // 审批完成通知，跳转到审批中心
+        wx.switchTab({
+          url: '/pages/office/approval/approval'
         })
       } else if (notification.type === 'process_returned' && notification.orderId) {
-        // 流程退回通知，跳转到工单详情页
-        wx.navigateTo({
-          url: `/pages/office/work-order-detail/work-order-detail?id=${notification.orderId}`
+        // 流程退回通知，跳转到审批中心
+        wx.switchTab({
+          url: '/pages/office/approval/approval'
         })
       } else if (notification.type === 'workflow_completed' && notification.orderId) {
-        // 工作流完成通知，跳转到工单详情页
-        wx.navigateTo({
-          url: `/pages/office/work-order-detail/work-order-detail?id=${notification.orderId}`
+        // 工作流完成通知，跳转到审批中心
+        wx.switchTab({
+          url: '/pages/office/approval/approval'
+        })
+      } else if (notification.type === 'order_terminated') {
+        // 工单中止通知，跳转到审批中心
+        wx.switchTab({
+          url: '/pages/office/approval/approval'
         })
       }
     }

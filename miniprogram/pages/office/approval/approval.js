@@ -184,32 +184,39 @@ function mapRequestItem(request) {
 
     // 特殊处理中止状态
     if (request.status === 'terminated') {
-      const applicantOpenid = request.openid || ''
-      const currentOpenid = app.globalData.openid || ''
-      const isApplicantTerminated = applicantOpenid === currentOpenid || reviewedBy === request.name
-
-      if (isApplicantTerminated) {
-        const applicantInfo = `申请人${request.name}已于${reviewedTime}自行中止该申请`
-        if (reviewRemark) {
-          reviewRemark = `${applicantInfo}，原因：${reviewRemark}`
-        } else {
-          reviewRemark = applicantInfo
-        }
+      // 优先判断是否系统中止
+      if (reviewedBy === '系统') {
+        // 系统自动中止（因下一步骤未找到审批人）
+        reviewRemark = `因下一步骤未找到审批人，系统于${reviewedTime}自动中止该申请`
       } else {
-        // 统一使用工作流步骤数据获取审批人角色（不再硬编码判断申请类型）
-        let approverRole = '审批人'
-        const currentStep = request.currentStep || 0
-        if (workflowSteps[currentStep - 1]) {
-          approverRole = workflowSteps[currentStep - 1].stepName || '审批人'
-        }
+        // 判断是否申请人自行中止
+        const applicantOpenid = request.openid || ''
+        const currentOpenid = app.globalData.openid || ''
+        const isApplicantTerminated = applicantOpenid === currentOpenid || reviewedBy === request.name
 
-        const rolePrefix = reviewedBy.includes('管理员') || reviewedBy.includes('部门负责人') || reviewedBy.includes('会计主管') || reviewedBy.includes('馆领导') ? '' : approverRole
-        const approvalInfo = `${rolePrefix}${reviewedBy}已于${reviewedTime}中止该申请`
-
-        if (reviewRemark) {
-          reviewRemark = `${approvalInfo}，原因：${reviewRemark}`
+        if (isApplicantTerminated) {
+          const applicantInfo = `申请人${request.name}已于${reviewedTime}自行中止该申请`
+          if (reviewRemark) {
+            reviewRemark = `${applicantInfo}，原因：${reviewRemark}`
+          } else {
+            reviewRemark = applicantInfo
+          }
         } else {
-          reviewRemark = approvalInfo
+          // 其他人中止
+          let approverRole = '审批人'
+          const currentStep = request.currentStep || 0
+          if (workflowSteps[currentStep - 1]) {
+            approverRole = workflowSteps[currentStep - 1].stepName || '审批人'
+          }
+
+          const rolePrefix = reviewedBy.includes('管理员') || reviewedBy.includes('部门负责人') || reviewedBy.includes('会计主管') || reviewedBy.includes('馆领导') ? '' : approverRole
+          const approvalInfo = `${rolePrefix}${reviewedBy}已于${reviewedTime}中止该申请`
+
+          if (reviewRemark) {
+            reviewRemark = `${approvalInfo}，原因：${reviewRemark}`
+          } else {
+            reviewRemark = approvalInfo
+          }
         }
       }
     } else {
@@ -383,21 +390,27 @@ Page({
   },
 
   onShow() {
-    if (this.data.currentList.length === 0) {
-      wx.showLoading({
-        title: '加载中',
-        mask: true
-      })
+    // 每次进入页面都刷新数据
+    wx.showLoading({
+      title: '加载中',
+      mask: true
+    })
 
-      this.setData({
-        currentList: [],
-        loading: true
-      })
+    // 重置所有 tab 的分页状态
+    this.setData({
+      currentList: [],
+      loading: true,
+      'pagination.pending.page': 1,
+      'pagination.pending.hasMore': true,
+      'pagination.mine.page': 1,
+      'pagination.mine.hasMore': true,
+      'pagination.done.page': 1,
+      'pagination.done.hasMore': true
+    })
 
-      this.loadApprovalData(false).finally(() => {
-        wx.hideLoading()
-      })
-    }
+    this.loadApprovalData(false).finally(() => {
+      wx.hideLoading()
+    })
   },
 
   getListByTab(tab, lists) {
@@ -856,64 +869,26 @@ Page({
 
           const message = result.result.message || (decision === 'approve' ? '已批准' : '已驳回')
 
-          const isWarningMessage = message.includes('无法继续') || message.includes('未找到审批人') || message.includes('找不到审批人')
+          // 检查是否是警告消息（后端已自动中止）
+          const isWarningMessage = message.includes('已自动中止')
 
           if (isWarningMessage) {
+            // 后端已自动中止，直接显示提示
             wx.showModal({
               title: '提示',
-              content: '审批通过，但下一步骤未找到审批人，工单将自动中止',
-              confirmText: '中止申请',
-              confirmColor: '#DC2626',
-              showCancel: true,
-              cancelText: '取消',
-              success: (res) => {
-                if (res.confirm) {
-                  const workOrderId = request.orderId || request._id
-
-                  wx.cloud.callFunction({
-                    name: 'workflowEngine',
-                    data: {
-                      action: 'terminateOrder',
-                      orderId: workOrderId,
-                      openid: app.globalData.openid
-                    }
-                  })
-                    .then((terminateResult) => {
-                      if (terminateResult.result.code !== 0) {
-                        throw new Error(terminateResult.result.message || '中止失败')
-                      }
-
-                      utils.showToast({
-                        title: '申请已中止',
-                        icon: 'success'
-                      })
-
-                      this.closeDetail()
-                      this.loadApprovalData()
-                    })
-                    .catch((error) => {
-                      utils.showToast({
-                        title: error.message || '中止失败',
-                        icon: 'none'
-                      })
-                    })
-                    .then(() => {
-                      this.setData({ actionLoading: false })
-                    })
-                } else {
-                  this.setData({ actionLoading: false })
-                }
-              }
+              content: message,
+              showCancel: false,
+              confirmText: '我知道了'
             })
           } else {
             utils.showToast({
               title: message,
               icon: 'success'
             })
-
-            this.closeDetail()
-            this.loadApprovalData()
           }
+
+          this.closeDetail()
+          this.loadApprovalData()
         })
         .catch((error) => {
           utils.showToast({
