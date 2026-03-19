@@ -95,7 +95,6 @@ function mapRequestItem(request) {
 
   if (displayConfig && displayConfig.cardFields && displayConfig.cardFields.length > 0) {
     // 动态生成 detail
-    console.log('使用动态渲染成功')
     const detailParts = []
     for (const fieldConfig of displayConfig.cardFields) {
       // 检查条件是否满足
@@ -121,55 +120,12 @@ function mapRequestItem(request) {
     detail = detailParts.join(' · ')
   } 
   else {
-    console.log('使用动态渲染失败，因为displayConfig=', displayConfig )
-    // 兼容处理：使用原有的硬编码逻辑
-    if (request.orderType === 'medical_application') {
-      // 就医申请
-      const patientName = request.patientName || ''
-      const relation = request.relation || ''
-      const medicalDate = request.medicalDate || ''
-      const institution = request.institution || ''
-      const detailParts = []
-
-      if (patientName) {
-        detailParts.push(`就医人：${patientName}`)
-      }
-      if (relation) {
-        detailParts.push(`关系：${relation}`)
-      }
-      if (medicalDate) {
-        detailParts.push(`时间：${medicalDate}`)
-      }
-      if (institution) {
-        detailParts.push(`机构：${institution}`)
-      }
-
-      detail = detailParts.join(' · ')
-    } else if (request.orderType === 'user_profile_update') {
-      // 用户信息修改申请
-      const detailParts = []
-      if (request.role) {
-        detailParts.push(`角色：${request.role}`)
-      }
-      if (request.position && request.position !== '无') {
-        detailParts.push(`岗位：${request.position}`)
-      }
-      if (request.department) {
-        detailParts.push(`部门：${request.department}`)
-      }
-      detail = detailParts.join(' · ')
-    } else {
-      // 注册申请
-      const detailParts = [request.birthday]
-      if (request.position && request.position !== '无') {
-        detailParts.push(request.position)
-      }
-      if (request.department) {
-        detailParts.push(request.department)
-      }
-      detailParts.push(request.isAdmin ? '申请管理员' : '普通成员')
-      detail = detailParts.join(' · ')
-    }
+    wx.showModal({
+      title: '提示',
+      content: '动态渲染失败，请开发者检查代码',
+      showCancel: false,
+      confirmText: '好的'
+    })
   }
 
   // 动态判断是否显示进度条：待审批状态 + 工作流步骤>=2 + 有当前步骤信息
@@ -889,7 +845,8 @@ Page({
               title: '提示',
               content: message,
               showCancel: false,
-              confirmText: '我知道了'
+              confirmText: '我知道了',
+              confirmColor: '#ff0000'
             })
           } else {
             utils.showToast({
