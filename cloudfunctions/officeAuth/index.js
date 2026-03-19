@@ -925,7 +925,8 @@ async function getApprovalData(openid, pagination = {}) {
               currentStep: order ? order.currentStep : 1,
               workflowSnapshot: order ? order.workflowSnapshot : null,
               displayConfig: order?.workflowSnapshot?.displayConfig || null,
-              orderNo: order ? order.orderNo : ''
+              orderNo: order ? order.orderNo : '',
+              isCurrentApprover: true
             }
           } else if (order && order.orderType === 'user_profile_update') {
             // 用户信息修改申请
@@ -954,7 +955,8 @@ async function getApprovalData(openid, pagination = {}) {
               currentStep: order ? order.currentStep : 1,
               workflowSnapshot: order ? order.workflowSnapshot : null,
               displayConfig: order?.workflowSnapshot?.displayConfig || null,
-              orderNo: order ? order.orderNo : ''
+              orderNo: order ? order.orderNo : '',
+              isCurrentApprover: true
             }
           } else {
             // 注册申请
@@ -982,7 +984,8 @@ async function getApprovalData(openid, pagination = {}) {
               currentStep: order ? order.currentStep : 1,
               workflowSnapshot: order ? order.workflowSnapshot : null,
               displayConfig: order?.workflowSnapshot?.displayConfig || null,
-              orderNo: order ? order.orderNo : ''
+              orderNo: order ? order.orderNo : '',
+              isCurrentApprover: true
             }
           }
         })
@@ -1118,7 +1121,8 @@ async function getApprovalData(openid, pagination = {}) {
           currentStep: order.currentStep,
           workflowSnapshot: order.workflowSnapshot,
           displayConfig: order.workflowSnapshot?.displayConfig || null,
-          orderNo: order.orderNo
+          orderNo: order.orderNo,
+          isCurrentApprover: false
         }
       } else if (order.orderType === 'user_profile_update') {
         // 用户信息修改申请
@@ -1145,7 +1149,8 @@ async function getApprovalData(openid, pagination = {}) {
           currentStep: order.currentStep,
           workflowSnapshot: order.workflowSnapshot,
           displayConfig: order.workflowSnapshot?.displayConfig || null,
-          orderNo: order.orderNo
+          orderNo: order.orderNo,
+          isCurrentApprover: false
         }
       } else {
         // 注册申请
@@ -1171,7 +1176,8 @@ async function getApprovalData(openid, pagination = {}) {
           currentStep: order.currentStep,
           workflowSnapshot: order.workflowSnapshot,
           displayConfig: order.workflowSnapshot?.displayConfig || null,
-          orderNo: order.orderNo
+          orderNo: order.orderNo,
+          isCurrentApprover: false
         }
       }
     }) : []
