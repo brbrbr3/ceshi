@@ -314,7 +314,7 @@ const REQUIRED_COLLECTIONS = [
 2. **更新 `DATABASE_COLLECTIONS_REFERENCE.md` 文档**：
 ```markdown
 **索引**：
-- `_openid` - 用户 openid（云开发自动创建）
+
 - `_id` - 记录 ID（云开发自动创建）
 - `idx_status` - 状态索引
 - `idx_openid_createdAt` - openid + 创建时间组合索引

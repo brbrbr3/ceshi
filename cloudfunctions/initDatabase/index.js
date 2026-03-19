@@ -31,7 +31,7 @@ const db = cloud.database()
 // CUSTOM - 自定义规则（需要提供 rule 字段）
 
 // 索引说明：
-// - 每个集合默认有 _id 和 _openid 索引（云开发自动创建）
+// - 每个集合默认有 _id 索引（云开发自动创建）
 // - indexes 数组用于定义需要额外创建的索引
 // - 索引格式：{ name: '索引名称', keys: [{ name: '字段名', direction: '1升序/-1降序' }], unique: false }
 
