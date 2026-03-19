@@ -132,21 +132,21 @@ Page({
       if (res.result.success) {
         this.loadNotifications().finally(() => {
           wx.hideLoading()
-          utils.showtoast({
+          utils.showToast({
             title: '已全部标记为已读',
             icon: 'success'
           })
         })
       } else {
         wx.hideLoading()
-        utils.showtoast({
+        utils.showToast({
           title: '操作失败',
           icon: 'none'
         })
       }
     }).catch(() => {
       wx.hideLoading()
-      utils.showtoast({
+      utils.showToast({
         title: '操作失败',
         icon: 'none'
       })
@@ -168,7 +168,7 @@ Page({
             if (success) {
               this.loadNotifications().finally(() => {
                 wx.hideLoading()
-                utils.showtoast({
+                utils.showToast({
                   title: '已清空所有消息',
                   icon: 'success'
                 })

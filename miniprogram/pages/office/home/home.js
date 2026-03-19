@@ -103,7 +103,7 @@ Page({
   requestSubscribeMessage() {
     app.requestSubscribeMessage().then((subscribed) => {
       if (subscribed) {
-        utils.showtoast({
+        utils.showToast({
           title: '订阅成功',
           icon: 'success'
         })
@@ -237,7 +237,7 @@ Page({
           })
         })
     } else {
-      utils.showtoast({
+      utils.showToast({
         title: '功能开发中，敬请期待',
         icon: 'none'
       })
@@ -245,7 +245,7 @@ Page({
   },
 
   showComingSoon() {
-    utils.showtoast({
+    utils.showToast({
       title: '功能开发中，敬请期待',
       icon: 'none'
     })

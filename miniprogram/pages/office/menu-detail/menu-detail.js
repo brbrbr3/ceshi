@@ -75,7 +75,7 @@ Page({
       })
       .catch(error => {
         console.error('加载菜单失败', error)
-        utils.showtoast({
+        utils.showToast({
           title: '加载失败',
           icon: 'none'
         })
@@ -163,7 +163,7 @@ Page({
   submitComment() {
     const content = this.data.commentText.trim()
     if (!content) {
-      utils.showtoast({
+      utils.showToast({
         title: '请输入评论内容',
         icon: 'none'
       })
@@ -172,7 +172,7 @@ Page({
 
     const openid = app.globalData.openid
     if (!openid) {
-      utils.showtoast({
+      utils.showToast({
         title: '请先登录',
         icon: 'none'
       })
@@ -182,7 +182,7 @@ Page({
     app.checkUserRegistration()
       .then((result) => {
         if (!result.registered || !result.user) {
-          utils.showtoast({
+          utils.showToast({
             title: '请先登录',
             icon: 'none'
           })
@@ -204,21 +204,21 @@ Page({
           .then(() => {
             this.setData({ commentText: '' })
             this.loadComments()
-            utils.showtoast({
+            utils.showToast({
               title: '评论成功',
               icon: 'success'
             })
           })
           .catch(error => {
             console.error('提交评论失败', error)
-            utils.showtoast({
+            utils.showToast({
               title: '提交失败',
               icon: 'none'
             })
           })
       })
       .catch(() => {
-        utils.showtoast({
+        utils.showToast({
           title: '请先登录',
           icon: 'none'
         })
@@ -241,14 +241,14 @@ Page({
           })
             .then(() => {
               this.loadComments()
-              utils.showtoast({
+              utils.showToast({
                 title: '删除成功',
                 icon: 'success'
               })
             })
             .catch(error => {
               console.error('删除评论失败', error)
-              utils.showtoast({
+              utils.showToast({
                 title: '删除失败',
                 icon: 'none'
               })
@@ -278,7 +278,7 @@ Page({
             }
           })
             .then(() => {
-              utils.showtoast({
+              utils.showToast({
                 title: '删除成功',
                 icon: 'success'
               })
@@ -288,7 +288,7 @@ Page({
             })
             .catch(error => {
               console.error('删除菜单失败', error)
-              utils.showtoast({
+              utils.showToast({
                 title: '删除失败',
                 icon: 'none'
               })

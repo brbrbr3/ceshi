@@ -170,7 +170,7 @@ Page({
             statusCard: buildStatusCard(result.request),
             showRegisterLink: false
           })
-          utils.showtoast({
+          utils.showToast({
             title: '申请审核中',
             icon: 'none'
           })
@@ -185,7 +185,7 @@ Page({
         })
       })
       .catch((error) => {
-        utils.showtoast({
+        utils.showToast({
           title: error.message || '登录失败',
           icon: 'none'
         })

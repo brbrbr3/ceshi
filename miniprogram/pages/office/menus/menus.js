@@ -84,7 +84,7 @@ Page({
         })
         .catch(error => {
           console.error('加载菜单失败', error)
-          utils.showtoast({
+          utils.showToast({
             title: '加载失败',
             icon: 'none'
           })

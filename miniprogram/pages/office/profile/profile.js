@@ -93,7 +93,7 @@ Page({
         })
       })
       .catch((error) => {
-        utils.showtoast({
+        utils.showToast({
           title: error.message || '加载失败',
           icon: 'none'
         })
@@ -102,7 +102,7 @@ Page({
 
   handleLogout() {
     app.logout()
-    utils.showtoast({
+    utils.showToast({
       title: '已退出',
       icon: 'success'
     })
@@ -114,7 +114,7 @@ Page({
   },
 
   showComingSoon() {
-    utils.showtoast({
+    utils.showToast({
       title: '功能开发中，敬请期待',
       icon: 'none'
     })
@@ -131,7 +131,7 @@ Page({
         url: '/pages/office/notifications/notifications'
       })
     } else {
-      utils.showtoast({
+      utils.showToast({
         title: '功能开发中，敬请期待',
         icon: 'none'
       })
