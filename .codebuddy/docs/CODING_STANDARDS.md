@@ -389,6 +389,7 @@ mcp_call_tool({
 | 集合名 | 索引列表 |
 |--------|----------|
 | notifications | `idx_openid_createdAt` (openid 升序 + createdAt 降序) - 优化消息列表查询 |
+| menus | `idx_createdAt` (createdAt 降序) - 优化菜单列表查询 |
 | menu_comments | `idx_menuId_createdAt` (menuId 升序 + createdAt 升序) - 优化菜单评论查询 |
 | office_registration_requests | `status_updatedAt_idx`, `openid_idx` |
 | work_orders | `idx_applicantId`, `idx_orderType`, `idx_status`, `idx_createTime`, `idx_updateTime` |

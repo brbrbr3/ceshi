@@ -17,7 +17,7 @@
       </view>
 
       <view class="menu-detail-actions" wx:if="{{canEdit || canDelete}}">
-        <view wx:if="{{canEdit}}" class="office-btn-secondary menu-action-btn" bindtap="goEdit">编辑</view>
+        <view wx:if="{{canEdit}}" class="office-btn-secondary menu-action-btn" bindtap="goEdit">修改</view>
         <view wx:if="{{canDelete}}" class="office-btn-secondary menu-action-btn is-delete" bindtap="handleDelete">删除</view>
       </view>
     </view>

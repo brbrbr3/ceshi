@@ -1,6 +1,6 @@
 <view class="office-page menu-edit-page">
   <view class="office-gradient-header menu-edit-header">
-    <view class="menu-edit-title">{{isEdit ? '编辑菜单' : '新增菜单'}}</view>
+    <view class="menu-edit-title">{{isEdit ? '修改菜单' : '新增菜单'}}</view>
   </view>
 
   <view class="office-content menu-edit-content">

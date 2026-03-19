@@ -30,6 +30,14 @@ Page({
     }
   },
 
+  onShow() {
+    // 每次显示页面时刷新数据（从编辑页返回时自动更新）
+    if (this.data.menuId) {
+      this.loadMenu()
+      this.loadComments()
+    }
+  },
+
   checkPermission() {
     app.checkUserRegistration()
       .then((result) => {

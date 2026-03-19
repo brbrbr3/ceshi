@@ -96,7 +96,10 @@ const REQUIRED_COLLECTIONS = [
     name: 'menus',
     description: '每周菜单',
     aclTag: 'ADMINWRITE', // 所有用户可读，仅管理员可写
-    indexes: [],
+    indexes: [
+      // 用于菜单列表按创建时间倒序查询
+      { name: 'idx_createdAt', keys: [{ name: 'createdAt', direction: '-1' }] }
+    ],
     initialData: null
   },
   {

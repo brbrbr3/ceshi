@@ -28,10 +28,8 @@ Page({
   },
 
   onShow() {
-    // 如果列表为空，加载数据
-    if (this.data.list.length === 0) {
-      this.loadMenus()
-    }
+    // 每次显示页面时刷新数据（从编辑页返回时自动更新）
+    this.refreshList()
     this.checkPermission()
   },
 

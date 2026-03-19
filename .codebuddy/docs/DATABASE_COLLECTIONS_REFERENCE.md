@@ -99,6 +99,7 @@
 **索引**：
 
 - `_id` - 记录 ID（云开发自动创建）
+- `idx_menuId_createdAt` - 组合索引：menuId（升序）+ createdAt（升序）- 优化菜单评论查询
 
 **字段结构**：
 ```javascript
@@ -125,6 +126,7 @@
 **索引**：
 
 - `_id` - 记录 ID（云开发自动创建）
+- `idx_createdAt` - 创建时间索引（降序）- 优化菜单列表查询
 
 **字段结构**：
 ```javascript
@@ -154,7 +156,7 @@
 **索引**：
 
 - `_id` - 记录 ID（云开发自动创建）
-- `openid_createdAt_idx` - 组合索引：openid（升序）+ createdAt（降序）
+- `idx_openid_createdAt` - 组合索引：openid（升序）+ createdAt（降序）- 优化消息列表查询
 
 **字段结构**：
 ```javascript
