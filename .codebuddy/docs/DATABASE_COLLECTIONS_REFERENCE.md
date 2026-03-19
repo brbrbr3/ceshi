@@ -145,7 +145,9 @@
 
 **用途**：存储用户个人通知（如审批通知、系统通知等）
 
-**安全规则**：`PRIVATE` - 仅创建者可读写（用户只能看到自己的通知）
+**安全规则**：`READONLY` - 所有用户可读，仅创建者可写
+
+> **重要说明**：通知记录由云函数创建（而非用户），`PRIVATE` 规则会导致用户无法查看自己的通知。使用 `READONLY` 规则，用户可读取所有通知，云函数以管理员权限写入。前端通过 `openid` 字段过滤只显示当前用户的通知。
 
 **记录数**：4
 
@@ -317,7 +319,9 @@
 
 **用途**：存储工作流工单记录
 
-**安全规则**：`PRIVATE` - 仅创建者可读写
+**安全规则**：`ADMINWRITE` - 所有用户可读，仅管理员可写
+
+> **重要说明**：工单由云函数创建，`PRIVATE` 规则会导致申请人无法查看自己的工单。使用 `ADMINWRITE` 规则，用户可读取所有工单，云函数以管理员权限写入。前端通过 `initiatorId` 过滤只显示当前用户的工单。
 
 **记录数**：4
 
@@ -361,7 +365,9 @@
 
 **用途**：记录工作流操作日志
 
-**安全规则**：`PRIVATE` - 仅创建者可读写
+**安全规则**：`ADMINWRITE` - 所有用户可读，仅管理员可写
+
+> **重要说明**：日志由云函数创建，`PRIVATE` 规则会导致用户无法查看工单操作历史。使用 `ADMINWRITE` 规则，用户可读取日志查看审批流程。
 
 **记录数**：7
 
@@ -392,42 +398,13 @@
 
 ---
 
-### 11. workflow_subscriptions - 工作流订阅配置
-
-**用途**：存储订阅消息模板配置
-
-**安全规则**：`PRIVATE` - 仅创建者可读写
-
-**记录数**：4
-
-**索引**：
-
-- `_id` - 记录 ID（云开发自动创建）
-- `idx_templateId` - 模板 ID 索引
-- `idx_eventType` - 事件类型索引
-
-**字段结构**：
-```javascript
-{
-  _id: String,                    // 记录 ID（自动生成）
-  templateId: String,              // 订阅消息模板 ID（如 'y1bXHAg_oDuvrQ3pHgcODcMPl-2hZHenWugsqdB2CXY'）
-  notifyType: String,              // 通知类型：'process_submitted'（流程提交）| 'process_approved'（流程通过）| 'process_returned'（流程退回）
-  orderType: String,               // 工单类型（可选）
-  pagePath: String,                // 跳转页面路径
-  dataMapping: Object,             // 消息数据映射
-  status: String,                 // 状态：'active'（启用）| 'disabled'（禁用）
-  createdAt: Number,               // 创建时间戳
-  updatedAt: Number                // 更新时间戳
-}
-```
-
----
-
-### 12. workflow_tasks - 工作流任务
+### 11. workflow_tasks - 工作流任务
 
 **用途**：存储工作流任务（审批任务）
 
-**安全规则**：`PRIVATE` - 仅创建者可读写
+**安全规则**：`ADMINWRITE` - 所有用户可读，仅管理员可写
+
+> **重要说明**：任务由云函数创建，`PRIVATE` 规则会导致审批人无法查看分配给自己的任务。使用 `ADMINWRITE` 规则，用户可读取所有任务，前端通过 `approverId` 过滤只显示当前用户的待办。
 
 **记录数**：18
 
@@ -462,11 +439,13 @@
 
 ---
 
-### 13. workflow_templates - 工作流模板
+### 12. workflow_templates - 工作流模板
 
 **用途**：存储工作流模板配置
 
-**安全规则**：`PRIVATE` - 仅创建者可读写
+**安全规则**：`ADMINWRITE` - 所有用户可读，仅管理员可写
+
+> **重要说明**：模板用于提交工单时查询，`PRIVATE` 规则会导致用户无法提交工单。使用 `ADMINWRITE` 规则，用户可读取模板列表。
 
 **记录数**：3
 
@@ -670,6 +649,9 @@ const notificationsCollection = db.collection('notifications')  // ✅
 | 2026-03-18 | 添加索引管理说明，更新各集合索引信息 | AI |
 | 2026-03-18 | 修正 announcements、menus、notifications 安全规则 | AI |
 | 2026-03-18 | 添加 workflow_templates 的 displayConfig 字段说明 | AI |
+| 2026-03-19 | 移除 workflow_subscriptions 集合（订阅消息功能已删除） | AI |
+| 2026-03-19 | 修正工作流相关集合安全规则：PRIVATE → ADMINWRITE | AI |
+| 2026-03-19 | 添加安全规则重要说明（云函数创建数据的权限问题） | AI |
 
 ---
 
@@ -691,6 +673,5 @@ https://tcb.cloud.tencent.com/dev?envId=cloud1-8gdftlggae64d5d0#/db/doc
 - [sys_config](https://tcb.cloud.tencent.com/dev?envId=cloud1-8gdftlggae64d5d0#/db/doc/collection/sys_config)
 - [work_orders](https://tcb.cloud.tencent.com/dev?envId=cloud1-8gdftlggae64d5d0#/db/doc/collection/work_orders)
 - [workflow_logs](https://tcb.cloud.tencent.com/dev?envId=cloud1-8gdftlggae64d5d0#/db/doc/collection/workflow_logs)
-- [workflow_subscriptions](https://tcb.cloud.tencent.com/dev?envId=cloud1-8gdftlggae64d5d0#/db/doc/collection/workflow_subscriptions)
 - [workflow_tasks](https://tcb.cloud.tencent.com/dev?envId=cloud1-8gdftlggae64d5d0#/db/doc/collection/workflow_tasks)
 - [workflow_templates](https://tcb.cloud.tencent.com/dev?envId=cloud1-8gdftlggae64d5d0#/db/doc/collection/workflow_templates)

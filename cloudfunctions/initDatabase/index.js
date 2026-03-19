@@ -83,7 +83,7 @@ const REQUIRED_COLLECTIONS = [
   {
     name: 'notifications',
     description: '用户通知',
-    aclTag: 'PRIVATE', // 仅创建者可读写（用户只能看到自己的通知）
+    aclTag: 'READONLY', // 所有用户可读，仅创建者可写（云函数创建，前端按 openid 过滤）
     indexes: [
       // 用于查询用户通知列表（按创建时间倒序）
       { name: 'openid_createdAt_idx', keys: [{ name: 'openid', direction: '1' }, { name: 'createdAt', direction: '-1' }] }
@@ -111,7 +111,7 @@ const REQUIRED_COLLECTIONS = [
   {
     name: 'workflow_templates',
     description: '工作流模板',
-    aclTag: 'PRIVATE', // 仅创建者可读写
+    aclTag: 'ADMINWRITE', // 所有用户可读，仅管理员可写（用户需查询模板提交工单）
     indexes: [
       // 名称+版本唯一索引
       { name: 'idx_name_version', keys: [{ name: 'name', direction: '1' }, { name: 'version', direction: '-1' }], unique: true },
@@ -123,7 +123,7 @@ const REQUIRED_COLLECTIONS = [
   {
     name: 'work_orders',
     description: '工作订单（注意：不是 workflow_orders）',
-    aclTag: 'PRIVATE', // 仅创建者可读写
+    aclTag: 'ADMINWRITE', // 所有用户可读，仅管理员可写（云函数创建，前端按 initiatorId 过滤）
     indexes: [
       { name: 'idx_applicantId', keys: [{ name: 'businessData.applicantId', direction: '1' }] },
       { name: 'idx_orderType', keys: [{ name: 'orderType', direction: '1' }] },
@@ -136,7 +136,7 @@ const REQUIRED_COLLECTIONS = [
   {
     name: 'workflow_tasks',
     description: '工作流任务',
-    aclTag: 'PRIVATE', // 仅创建者可读写
+    aclTag: 'ADMINWRITE', // 所有用户可读，仅管理员可写（云函数创建，前端按 approverId 过滤）
     indexes: [
       { name: 'idx_approverId', keys: [{ name: 'approverId', direction: '1' }] },
       { name: 'idx_orderId', keys: [{ name: 'orderId', direction: '1' }] },
@@ -148,7 +148,7 @@ const REQUIRED_COLLECTIONS = [
   {
     name: 'workflow_logs',
     description: '工作流日志',
-    aclTag: 'PRIVATE', // 仅创建者可读写
+    aclTag: 'ADMINWRITE', // 所有用户可读，仅管理员可写（用户需查看审批历史）
     indexes: [
       { name: 'idx_orderId', keys: [{ name: 'orderId', direction: '1' }] },
       { name: 'idx_action', keys: [{ name: 'action', direction: '1' }] },
@@ -156,14 +156,8 @@ const REQUIRED_COLLECTIONS = [
       { name: 'idx_operateTime', keys: [{ name: 'operateTime', direction: '-1' }] }
     ],
     initialData: null
-  },
-  {
-    name: 'workflow_subscriptions',
-    description: '工作流订阅配置',
-    aclTag: 'PRIVATE', // 仅创建者可读写
-    indexes: [],
-    initialData: null
   }
+  // 注意：workflow_subscriptions 集合已移除，订阅消息功能已删除
 ]
 
 /**

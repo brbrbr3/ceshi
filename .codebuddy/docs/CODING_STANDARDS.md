@@ -261,14 +261,51 @@ mcp_call_tool({
 | permissions | ADMINWRITE | 所有用户可读，仅管理员可写 |
 | sys_config | READONLY | 所有用户可读，仅创建者可写 |
 | announcements | ADMINWRITE | 所有用户可读，仅管理员可写（公告需全员可见） |
-| notifications | PRIVATE | 仅创建者可读写（用户只能看到自己的通知） |
+| notifications | READONLY | 所有用户可读，仅创建者可写（云函数创建，前端按 openid 过滤） |
 | menus | ADMINWRITE | 所有用户可读，仅管理员可写（菜单需全员可见） |
 | menu_comments | ADMINWRITE | 所有用户可读，仅管理员可写 |
-| workflow_templates | PRIVATE | 仅创建者可读写 |
-| work_orders | PRIVATE | 仅创建者可读写 |
-| workflow_tasks | PRIVATE | 仅创建者可读写 |
-| workflow_logs | PRIVATE | 仅创建者可读写 |
-| workflow_subscriptions | PRIVATE | 仅创建者可读写 |
+| workflow_templates | ADMINWRITE | 所有用户可读，仅管理员可写（用户需查询模板提交工单） |
+| work_orders | ADMINWRITE | 所有用户可读，仅管理员可写（云函数创建，前端按 initiatorId 过滤） |
+| workflow_tasks | ADMINWRITE | 所有用户可读，仅管理员可写（云函数创建，前端按 approverId 过滤） |
+| workflow_logs | ADMINWRITE | 所有用户可读，仅管理员可写（用户需查看审批历史） |
+
+### 1.5.1.1 安全规则配置重要经验
+
+**核心原则：`PRIVATE` 规则检查的是 `_openid` 字段（创建者），而非业务字段**
+
+**常见错误场景**：
+
+当集合数据由**云函数**创建时，记录的 `_openid` 是云函数的标识，而不是实际用户。此时使用 `PRIVATE` 规则会导致：
+
+1. **notifications 集合**：云函数创建通知，`openid` 字段存储接收者
+   - ❌ `PRIVATE`：用户无法看到自己的通知（`_openid` 是云函数）
+   - ✅ `READONLY`：用户可读所有，前端按 `openid` 字段过滤
+
+2. **workflow_tasks 集合**：云函数创建任务，`approverId` 存储审批人
+   - ❌ `PRIVATE`：审批人无法看到分配给自己的任务
+   - ✅ `ADMINWRITE`：用户可读所有，前端按 `approverId` 过滤
+
+3. **work_orders 集合**：云函数创建工单，`initiatorId` 存储申请人
+   - ❌ `PRIVATE`：申请人无法看到自己的工单
+   - ✅ `ADMINWRITE`：用户可读所有，前端按 `initiatorId` 过滤
+
+4. **workflow_templates 集合**：用户提交工单时需查询模板
+   - ❌ `PRIVATE`：用户无法查询模板，提交工单失败
+   - ✅ `ADMINWRITE`：用户可读取模板列表
+
+**正确配置流程**：
+
+```
+1. 确定数据创建者：用户直接创建 → PRIVATE；云函数创建 → ADMINWRITE/READONLY
+2. 确定读取需求：全员可见 → ADMINWRITE；仅相关人可见 → 前端过滤
+3. 敏感数据：如用户个人信息 → ADMINONLY
+```
+
+**配置检查清单**：
+- [ ] 集合数据是由用户创建还是云函数创建？
+- [ ] 如果是云函数创建，是否有业务字段标识相关用户？
+- [ ] 前端是否正确过滤了数据？
+- [ ] 敏感数据是否使用了 ADMINONLY 规则？
 
 ### 1.5.2 数据库索引配置规范
 
