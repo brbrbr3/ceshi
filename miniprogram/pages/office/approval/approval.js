@@ -390,6 +390,17 @@ Page({
   },
 
   onShow() {
+    // 检查是否有跳转目标（从消息中心或申请提交跳转过来）
+    const targetTab = app.globalData.targetApprovalTab
+    if (targetTab) {
+      // 清除全局变量
+      app.globalData.targetApprovalTab = null
+      // 设置目标tab
+      this.setData({
+        activeTab: targetTab
+      })
+    }
+
     // 每次进入页面都刷新数据
     wx.showLoading({
       title: '加载中',

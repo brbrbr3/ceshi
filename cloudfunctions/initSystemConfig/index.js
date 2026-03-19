@@ -247,6 +247,38 @@ const SYSTEM_CONFIGS = [
     description: '就医申请-与申请人关系选项',
     sort: 80
   },
+
+  // ==================== 通知消息类型 ====================
+  {
+    type: 'notification',
+    key: 'NOTIFICATION_TYPES',
+    value: {
+      MENU: 'menu',                         // 菜单通知
+      NEW_REGISTRATION: 'new_registration', // 新注册申请
+      TASK_ASSIGNED: 'task_assigned',       // 任务分配（审批人收到）
+      TASK_COMPLETED: 'task_completed',     // 审批完成（申请人收到）
+      PROCESS_RETURNED: 'process_returned', // 流程退回（申请人收到）
+      WORKFLOW_COMPLETED: 'workflow_completed', // 工作流完成（申请人收到）
+      ORDER_TERMINATED: 'order_terminated'  // 工单中止（申请人收到）
+    },
+    description: '通知消息类型枚举',
+    sort: 90
+  },
+  {
+    type: 'notification',
+    key: 'NOTIFICATION_TARGET_TAB',
+    value: {
+      menu: 'none',              // 菜单通知跳转到详情页，不需要tab
+      new_registration: 'pending', // 新注册申请 → 待审批
+      task_assigned: 'pending',    // 任务分配 → 待审批
+      task_completed: 'mine',      // 审批完成 → 我的发起
+      process_returned: 'mine',    // 流程退回 → 我的发起
+      workflow_completed: 'mine',  // 工作流完成 → 我的发起
+      order_terminated: 'mine'     // 工单中止 → 我的发起
+    },
+    description: '通知消息类型与跳转tab映射（pending=待审批, mine=我的发起）',
+    sort: 91
+  },
   {
     type: 'medical',
     key: 'MEDICAL_INSTITUTIONS',

@@ -388,7 +388,8 @@ mcp_call_tool({
 
 | 集合名 | 索引列表 |
 |--------|----------|
-| notifications | `openid_createdAt_idx` (openid + createdAt) |
+| notifications | `idx_openid_createdAt` (openid 升序 + createdAt 降序) - 优化消息列表查询 |
+| menu_comments | `idx_menuId_createdAt` (menuId 升序 + createdAt 升序) - 优化菜单评论查询 |
 | office_registration_requests | `status_updatedAt_idx`, `openid_idx` |
 | work_orders | `idx_applicantId`, `idx_orderType`, `idx_status`, `idx_createTime`, `idx_updateTime` |
 | workflow_tasks | `idx_approverId`, `idx_orderId`, `idx_status`, `idx_assignTime` |
@@ -3148,6 +3149,178 @@ Page({
   ]
 }
 ```
+
+---
+
+## 19. 消息中心运作机制
+
+### 19.1 消息类型常量
+
+**规则**：消息类型必须在 `initSystemConfig` 云函数中定义常量，禁止硬编码。
+
+**常量定义位置**：
+```javascript
+// cloudfunctions/initSystemConfig/index.js
+
+{
+  type: 'notification',
+  key: 'NOTIFICATION_TYPES',
+  value: {
+    MENU: 'menu',                         // 菜单通知
+    NEW_REGISTRATION: 'new_registration', // 新注册申请
+    TASK_ASSIGNED: 'task_assigned',       // 任务分配（审批人收到）
+    TASK_COMPLETED: 'task_completed',     // 审批完成（申请人收到）
+    PROCESS_RETURNED: 'process_returned', // 流程退回（申请人收到）
+    WORKFLOW_COMPLETED: 'workflow_completed', // 工作流完成（申请人收到）
+    ORDER_TERMINATED: 'order_terminated'  // 工单中止（申请人收到）
+  },
+  description: '通知消息类型枚举',
+  sort: 90
+}
+```
+
+### 19.2 消息跳转映射配置
+
+**规则**：消息跳转目标 tab 必须在 `NOTIFICATION_TARGET_TAB` 常量中配置。
+
+**跳转映射定义**：
+```javascript
+// cloudfunctions/initSystemConfig/index.js
+
+{
+  type: 'notification',
+  key: 'NOTIFICATION_TARGET_TAB',
+  value: {
+    menu: 'none',              // 菜单通知跳转到详情页，不需要tab
+    new_registration: 'pending', // 新注册申请 → 待审批
+    task_assigned: 'pending',    // 任务分配 → 待审批
+    task_completed: 'mine',      // 审批完成 → 我的发起
+    process_returned: 'mine',    // 流程退回 → 我的发起
+    workflow_completed: 'mine',  // 工作流完成 → 我的发起
+    order_terminated: 'mine'     // 工单中止 → 我的发起
+  },
+  description: '通知消息类型与跳转tab映射（pending=待审批, mine=我的发起）',
+  sort: 91
+}
+```
+
+### 19.3 消息跳转实现
+
+**跳转机制**：通过全局变量 `app.globalData.targetApprovalTab` 传递目标 tab。
+
+**消息点击处理**：
+```javascript
+// miniprogram/pages/office/notifications/notifications.js
+
+const constants = require('../../../common/constants.js')
+
+Page({
+  handleNotificationTap(e) {
+    const id = e.currentTarget.dataset.id
+    const notification = this.data.notifications.find(n => n._id === id)
+
+    // 标记为已读
+    app.markNotificationAsRead(id, function(success) {
+      if (success) {
+        this.loadNotifications()
+      }
+    }.bind(this))
+
+    // 根据通知类型跳转到对应页面
+    if (notification) {
+      // 从常量获取消息类型和跳转映射
+      const NOTIFICATION_TYPES = constants.getConstantSync('NOTIFICATION_TYPES')
+      const NOTIFICATION_TARGET_TAB = constants.getConstantSync('NOTIFICATION_TARGET_TAB')
+
+      if (notification.type === NOTIFICATION_TYPES.MENU && notification.menuId) {
+        // 菜单通知，跳转到菜单详情页
+        wx.navigateTo({
+          url: `/pages/office/menu-detail/menu-detail?id=${notification.menuId}`
+        })
+      } else {
+        // 其他通知类型，根据映射跳转到审批中心的对应tab
+        const targetTab = NOTIFICATION_TARGET_TAB[notification.type]
+        if (targetTab && targetTab !== 'none') {
+          // 设置全局变量，通知审批中心切换到指定tab
+          app.globalData.targetApprovalTab = targetTab
+          wx.switchTab({
+            url: '/pages/office/approval/approval'
+          })
+        }
+      }
+    }
+  }
+})
+```
+
+### 19.4 审批中心跳转处理
+
+**规则**：审批中心页面 `onShow` 时必须检查 `targetApprovalTab` 并自动切换。
+
+**实现示例**：
+```javascript
+// miniprogram/pages/office/approval/approval.js
+
+Page({
+  onShow() {
+    // 检查是否有跳转目标（从消息中心或申请提交跳转过来）
+    const targetTab = app.globalData.targetApprovalTab
+    if (targetTab) {
+      // 清除全局变量
+      app.globalData.targetApprovalTab = null
+      // 设置目标tab
+      this.setData({
+        activeTab: targetTab
+      })
+    }
+
+    // 刷新数据...
+  }
+})
+```
+
+### 19.5 申请提交成功跳转
+
+**规则**：申请提交成功后，应跳转到"我的发起"tab。
+
+**实现示例**：
+```javascript
+// miniprogram/pages/office/medical-application/medical-application.js
+
+wx.showModal({
+  title: '提交成功',
+  content: '就医申请已提交，请等待审批。',
+  showCancel: false,
+  success: () => {
+    // 设置跳转目标为"我的发起"tab
+    app.globalData.targetApprovalTab = 'mine'
+    wx.switchTab({
+      url: '/pages/office/approval/approval'
+    })
+  }
+})
+```
+
+### 19.6 消息跳转规则表
+
+| 消息类型 | 值 | 接收者 | 跳转目标 | 说明 |
+|---------|-----|--------|---------|------|
+| `menu` | 菜单通知 | 全员 | 菜单详情页 | 点击查看菜单详情 |
+| `new_registration` | 新注册申请 | 管理员 | 待审批 tab | 新用户注册待审批 |
+| `task_assigned` | 任务分配 | 审批人 | 待审批 tab | 有新的审批任务 |
+| `task_completed` | 审批完成 | 申请人 | 我的发起 tab | 申请已审批完成 |
+| `process_returned` | 流程退回 | 申请人 | 我的发起 tab | 申请被退回修改 |
+| `workflow_completed` | 工作流完成 | 申请人 | 我的发起 tab | 整个流程已完成 |
+| `order_terminated` | 工单中止 | 申请人 | 我的发起 tab | 工单被中止 |
+
+### 19.7 检查清单
+
+- [ ] 消息类型是否在 `initSystemConfig` 云函数中定义
+- [ ] 跳转映射是否在 `NOTIFICATION_TARGET_TAB` 中配置
+- [ ] 前端是否使用 `constants.getConstantSync()` 获取常量
+- [ ] 是否使用 `app.globalData.targetApprovalTab` 传递跳转目标
+- [ ] 审批中心 `onShow` 是否检查并切换 tab
+- [ ] 申请提交成功是否跳转到"我的发起"
 
 ---
 

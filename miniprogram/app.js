@@ -109,6 +109,7 @@ App({
   globalData: Object.assign({
     theme: wx.getSystemInfoSync().theme,
     iconTabbar: '/page/weui/example/images/icon_tabbar.png',
+    targetApprovalTab: null, // 目标审批tab（用于消息跳转：'pending'=待审批, 'mine'=我的发起）
   }, getDefaultAuthState()),
 
   restoreAuthState() {

@@ -1,5 +1,6 @@
 const app = getApp()
 const utils = require('../../../common/utils.js')
+const constants = require('../../../common/constants.js')
 const paginationBehavior = require('../../../behaviors/pagination.js')
 
 // 使用统一的时间格式化函数
@@ -93,41 +94,25 @@ Page({
 
     // 根据通知类型跳转到对应页面
     if (notification) {
-      if (notification.type === 'menu' && notification.menuId) {
+      // 从常量获取消息类型和跳转映射
+      const NOTIFICATION_TYPES = constants.getConstantSync('NOTIFICATION_TYPES')
+      const NOTIFICATION_TARGET_TAB = constants.getConstantSync('NOTIFICATION_TARGET_TAB')
+
+      if (notification.type === NOTIFICATION_TYPES.MENU && notification.menuId) {
         // 菜单通知，跳转到菜单详情页
         wx.navigateTo({
           url: `/pages/office/menu-detail/menu-detail?id=${notification.menuId}`
         })
-      } else if (notification.type === 'new_registration') {
-        // 新注册申请，跳转到审批中心
-        wx.switchTab({
-          url: '/pages/office/approval/approval'
-        })
-      } else if (notification.type === 'task_assigned') {
-        // 任务分配通知，跳转到审批中心
-        wx.switchTab({
-          url: '/pages/office/approval/approval'
-        })
-      } else if (notification.type === 'task_completed' && notification.orderId) {
-        // 审批完成通知，跳转到审批中心
-        wx.switchTab({
-          url: '/pages/office/approval/approval'
-        })
-      } else if (notification.type === 'process_returned' && notification.orderId) {
-        // 流程退回通知，跳转到审批中心
-        wx.switchTab({
-          url: '/pages/office/approval/approval'
-        })
-      } else if (notification.type === 'workflow_completed' && notification.orderId) {
-        // 工作流完成通知，跳转到审批中心
-        wx.switchTab({
-          url: '/pages/office/approval/approval'
-        })
-      } else if (notification.type === 'order_terminated') {
-        // 工单中止通知，跳转到审批中心
-        wx.switchTab({
-          url: '/pages/office/approval/approval'
-        })
+      } else {
+        // 其他通知类型，根据映射跳转到审批中心的对应tab
+        const targetTab = NOTIFICATION_TARGET_TAB[notification.type]
+        if (targetTab && targetTab !== 'none') {
+          // 设置全局变量，通知审批中心切换到指定tab
+          app.globalData.targetApprovalTab = targetTab
+          wx.switchTab({
+            url: '/pages/office/approval/approval'
+          })
+        }
       }
     }
   },

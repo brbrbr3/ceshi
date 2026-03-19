@@ -296,6 +296,8 @@ Page({
           content: '就医申请已提交，请等待审批。',
           showCancel: false,
           success: () => {
+            // 设置跳转目标为"我的发起"tab
+            app.globalData.targetApprovalTab = 'mine'
             wx.switchTab({
               url: '/pages/office/approval/approval'
             })

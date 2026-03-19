@@ -103,7 +103,10 @@ const REQUIRED_COLLECTIONS = [
     name: 'menu_comments',
     description: '菜单评论',
     aclTag: 'ADMINWRITE', // 所有用户可读，仅管理员可写
-    indexes: [],
+    indexes: [
+      // 用于查询某菜单的评论列表（按创建时间正序）
+      { name: 'idx_menuId_createdAt', keys: [{ name: 'menuId', direction: '1' }, { name: 'createdAt', direction: '1' }] }
+    ],
     initialData: null
   },
 

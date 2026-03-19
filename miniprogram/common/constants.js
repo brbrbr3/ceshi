@@ -213,7 +213,29 @@ function getDefaultConstants() {
       'Consultório Natasha Ferraroni（过敏）',
       'Hospital Materno Infantil de Brasília（妇幼专科）',
       '其他'
-    ]
+    ],
+
+    // 通知消息类型
+    NOTIFICATION_TYPES: {
+      MENU: 'menu',
+      NEW_REGISTRATION: 'new_registration',
+      TASK_ASSIGNED: 'task_assigned',
+      TASK_COMPLETED: 'task_completed',
+      PROCESS_RETURNED: 'process_returned',
+      WORKFLOW_COMPLETED: 'workflow_completed',
+      ORDER_TERMINATED: 'order_terminated'
+    },
+
+    // 通知消息类型与跳转tab映射
+    NOTIFICATION_TARGET_TAB: {
+      menu: 'none',
+      new_registration: 'pending',
+      task_assigned: 'pending',
+      task_completed: 'mine',
+      process_returned: 'mine',
+      workflow_completed: 'mine',
+      order_terminated: 'mine'
+    }
   }
 }
 
