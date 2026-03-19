@@ -912,19 +912,7 @@ async function sendBatchAppNotifications(notifications) {
   }
 }
 
-// 发送通知（集成工作流通知服务）
-async function sendNotification(event) {
-  try {
-    const result = await cloud.callFunction({
-      name: 'workflowNotify',
-      data: event
-    })
-    return result.result
-  } catch (error) {
-    // 通知失败不影响主流程
-    return { code: -1, message: '通知发送失败' }
-  }
-}
+
 
 // 发送任务分配通知
 async function sendTaskAssignedNotification(tasks, order) {
@@ -994,37 +982,10 @@ async function sendTaskAssignedNotification(tasks, order) {
   if (notifications.length > 0) {
     await sendBatchAppNotifications(notifications)
   }
-
-  // 可选：同时发送微信订阅消息（只发送给具体用户，不发送给角色）
-  const tasksForSubMessage = tasks.filter(task => task.approverType !== 'role')
-  if (tasksForSubMessage.length > 0) {
-    const subMessages = tasksForSubMessage.map(task => ({
-      action: 'sendTaskAssigned',
-      task: task,
-      order: order
-    }))
-
-    if (subMessages.length === 1) {
-      await sendNotification(subMessages[0])
-    } else {
-      await sendNotification({
-        action: 'sendBatchMessages',
-        messages: subMessages
-      })
-    }
-  }
 }
 
 // 发送审批完成通知
 async function sendTaskCompletedNotification(order, approvalResult, comment) {
-  // 发送微信订阅消息
-  await sendNotification({
-    action: 'sendTaskCompleted',
-    order: order,
-    approvalResult: approvalResult,
-    comment: comment
-  })
-
   // 发送小程序内通知给申请人
   await sendAppNotification(order.businessData.applicantId, {
     type: 'task_completed',
@@ -1040,13 +1001,6 @@ async function sendTaskCompletedNotification(order, approvalResult, comment) {
 
 // 发送流程退回通知
 async function sendProcessReturnedNotification(order, returnReason) {
-  // 发送微信订阅消息
-  await sendNotification({
-    action: 'sendProcessReturned',
-    order: order,
-    returnReason: returnReason
-  })
-
   // 发送小程序内通知给申请人
   await sendAppNotification(order.businessData.applicantId, {
     type: 'process_returned',
@@ -1061,13 +1015,6 @@ async function sendProcessReturnedNotification(order, returnReason) {
 
 // 发送工作流完成通知
 async function sendWorkflowCompletedNotification(order, finalStatus) {
-  // 发送微信订阅消息
-  await sendNotification({
-    action: 'sendWorkflowCompleted',
-    order: order,
-    finalStatus: finalStatus
-  })
-
   // 发送小程序内通知给申请人
   await sendAppNotification(order.businessData.applicantId, {
     type: 'workflow_completed',
