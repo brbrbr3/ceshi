@@ -16,20 +16,13 @@ Page({
     currentUser: null,
     canAccessTripDashboard: false,
     stats: [
-      { label: '待审批', value: '0', color: '#F44336', bg: '#FFEBEE' },
-      { label: '待办事项（占位）', value: '12', color: '#FF9800', bg: '#FFF3E0' },
-      { label: '本月出勤（占位）', value: '7天', color: '#4CAF50', bg: '#E8F5E9' },
-      { label: '绩效得分（占位）', value: '92', color: '#2563EB', bg: '#EFF6FF' }
+      { label: '待审批', value: '0', color: '#F44336', bg: '#FFEBEE' }
     ],
     quickActions: [
       { icon: '🍽️', label: '每周菜单', color: '#16A34A', bg: '#DCFCE7', implemented: true },
       { icon: '🏥', label: '就医申请', color: '#EF4444', bg: '#FEE2E2', implemented: true },
       { icon: '🚗', label: '外出报备', color: '#2563EB', bg: '#EFF6FF', implemented: true },
-      { icon: '📊', label: '出行管理', color: '#7C3AED', bg: '#F3E8FF', implemented: true, adminOnly: true },
-      { icon: '📅', label: '打卡签到（占位）', color: '#94A3B8', bg: '#F1F5F9', implemented: false },
-      { icon: '📊', label: '工作报告（占位）', color: '#94A3B8', bg: '#F1F5F9', implemented: false },
-      { icon: '💬', label: '企业通讯（占位）', color: '#94A3B8', bg: '#F1F5F9', implemented: false },
-      { icon: '📁', label: '云端文档（占位）', color: '#94A3B8', bg: '#F1F5F9', implemented: false }
+      { icon: '📊', label: '出行管理', color: '#7C3AED', bg: '#F3E8FF', implemented: true, adminOnly: true }
     ],
     announcements: [],
     schedules: [

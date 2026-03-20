@@ -383,7 +383,7 @@ Page({
   },
 
   handleDestinationFocus() {
-    if (this.data.form.destination === '' && this.data.destinationHistory.length > 0) {
+    if (this.data.destinationHistory.length > 0) {
       this.setData({ showDestinationHistory: true })
     }
   },
@@ -396,7 +396,7 @@ Page({
   },
 
   handleCompanionsFocus() {
-    if (this.data.form.companions === '' && this.data.companionsHistory.length > 0) {
+    if (this.data.companionsHistory.length > 0) {
       this.setData({ showCompanionsHistory: true })
     }
   },

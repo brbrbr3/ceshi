@@ -175,8 +175,8 @@ page {
 }
 
 .home-grid {
-  display: grid;
-  grid-template-columns: repeat(4, 1fr);
+  display: flex;
+  flex-wrap: wrap;
   gap: 26rpx 12rpx;
 }
 
@@ -184,16 +184,18 @@ page {
   display: flex;
   flex-direction: column;
   align-items: center;
+  width: 23.6%;
+  box-sizing: border-box;
 }
 
 .home-grid-icon {
-  width: 92rpx;
-  height: 92rpx;
+  width: 100rpx;
+  height: 100rpx;
   border-radius: 28rpx;
   display: flex;
   align-items: center;
   justify-content: center;
-  font-size: 38rpx;
+  font-size: 48rpx;
 }
 
 .home-grid-icon.is-implemented {

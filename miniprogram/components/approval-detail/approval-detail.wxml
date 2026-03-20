@@ -1,5 +1,5 @@
-<view wx:if="{{visible && request}}" class="approval-modal-mask" bindtap="handleClose">
-  <view class="approval-modal-card" catchtap="noop">
+<view wx:if="{{visible || animating}}" class="approval-modal-mask {{animVisible ? 'is-visible' : ''}}" catchtouchmove="noop" bindtap="handleClose">
+  <view class="approval-modal-card {{animVisible ? 'is-visible' : ''}}" catchtap="noop">
     <!-- 标题栏 -->
     <view class="approval-modal-head">
       <view>

@@ -90,7 +90,7 @@
   </view>
 
   <!-- 底部弹出表单 -->
-  <view class="trip-popup-mask {{showFormPopup ? 'is-visible' : ''}}" bindtap="hideFormPopup">
+  <view class="trip-popup-mask {{showFormPopup ? 'is-visible' : ''}}" catchtouchmove="stopPropagation" bindtap="hideFormPopup">
     <view class="trip-popup-container" catchtap="stopPropagation">
       <view class="trip-popup-header">
         <view class="trip-popup-title">外出报备</view>
@@ -106,7 +106,9 @@
               value="{{form.destination}}" 
               placeholder="请输入目的地" 
               placeholder-class="trip-input-placeholder"
-              bindinput="handleDestinationInput" 
+              bindinput="handleDestinationInput"
+              bindfocus="handleDestinationFocus"
+              bindblur="handleDestinationBlur"
             />
           </view>
           <!-- 历史记录快捷选择 -->
@@ -128,7 +130,9 @@
               value="{{form.companions}}" 
               placeholder="请输入同行人（选填）" 
               placeholder-class="trip-input-placeholder"
-              bindinput="handleCompanionsInput" 
+              bindinput="handleCompanionsInput"
+              bindfocus="handleCompanionsFocus"
+              bindblur="handleCompanionsBlur"
             />
           </view>
           <!-- 历史记录快捷选择 -->

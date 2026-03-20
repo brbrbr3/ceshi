@@ -41,6 +41,10 @@ Component({
   },
 
   data: {
+    // 动画状态
+    animVisible: false,
+    animating: false,
+
     // 动态计算的字段列表
     detailFields: [],
     
@@ -86,6 +90,18 @@ Component({
   },
 
   observers: {
+    'visible': function(visible) {
+      if (visible) {
+        // 打开：先渲染元素，再触发动画
+        this.setData({ animating: true, animVisible: true })
+      } else {
+        // 关闭：先触发关闭动画，动画结束后移除元素
+        this.setData({ animVisible: false })
+        setTimeout(() => {
+          this.setData({ animating: false })
+        }, 300)
+      }
+    },
     'request': function(request) {
       if (!request) {
         this.setData({ detailFields: [] })
@@ -147,7 +163,7 @@ Component({
     },
 
     /**
-     * 关闭弹窗
+     * 关闭弹窗（带动画）
      */
     handleClose() {
       this.triggerEvent('close')

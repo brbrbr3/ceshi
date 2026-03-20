@@ -30,14 +30,14 @@
 .trip-status-card {
   margin: 28rpx;
   padding: 24rpx;
-  border-radius: 60rpx;
+  border-radius: 90rpx;
   transition: all 0.3s ease;
 }
 
 .trip-status-card.is-active {
   /* 外出中 - 黄色 */
   background: #FEF3C7;
-  border: 1rpx solid #ffcc24;
+  border: 1rpx solid #92400E;
 }
 
 .trip-status-card.is-active .trip-status-label {
@@ -58,13 +58,13 @@
 }
 
 .trip-status-card.is-active .trip-status-detail {
-  border-top-color: #ffcc24;
+  border-top-color: #92400E;
 }
 
 .trip-status-card.is-idle {
   /* 未外出 - 绿色 */
   background: #DCFCE7;
-  border: 1rpx solid #4ADE80;
+  border: 1rpx solid #166534;
 }
 
 .trip-status-card.is-idle .trip-status-label {
