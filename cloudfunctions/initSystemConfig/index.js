@@ -308,6 +308,62 @@ const SYSTEM_CONFIGS = [
     ],
     description: '就医申请-医疗机构选项列表',
     sort: 81
+  },
+
+  // ==================== 外出报备相关 ====================
+  {
+    type: 'trip',
+    key: 'TRAVEL_MODES',
+    value: ['自驾', '搭车', '打车', '步行'],
+    description: '出行方式选项列表',
+    sort: 100
+  },
+  {
+    type: 'trip',
+    key: 'TRIP_STATUS',
+    value: {
+      OUT: 'out',           // 外出中
+      RETURNED: 'returned', // 已返回
+      OVERTIME: 'overtime'  // 超时
+    },
+    description: '出行状态枚举',
+    sort: 101
+  },
+  {
+    type: 'trip',
+    key: 'TRIP_STATUS_TEXT',
+    value: {
+      out: '外出中',
+      returned: '已返回',
+      overtime: '超时未归'
+    },
+    description: '出行状态文本映射',
+    sort: 102
+  },
+  {
+    type: 'trip',
+    key: 'TRIP_STATUS_STYLE',
+    value: {
+      out: { color: '#2563EB', bg: '#EFF6FF', icon: '🚗' },
+      returned: { color: '#16A34A', bg: '#DCFCE7', icon: '✓' },
+      overtime: { color: '#DC2626', bg: '#FEE2E2', icon: '⚠' }
+    },
+    description: '出行状态样式配置',
+    sort: 103
+  },
+  {
+    type: 'trip',
+    key: 'TRIP_OVERTIME_HOURS',
+    value: 1,
+    description: '超时提醒阈值（小时）',
+    sort: 104
+  },
+  {
+    type: 'trip',
+    key: 'TRIP_DASHBOARD_ROLES',
+    value: ['馆领导', '部门负责人', 'admin'],
+    description: '可访问出行管理Dashboard的角色列表',
+    sort: 105
   }
 ]
 

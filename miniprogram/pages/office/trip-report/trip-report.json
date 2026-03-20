@@ -1,0 +1,6 @@
+{
+  "usingComponents": {},
+  "navigationBarTitleText": "外出报备",
+  "enablePullDownRefresh": true,
+  "onReachBottomDistance": 50
+}

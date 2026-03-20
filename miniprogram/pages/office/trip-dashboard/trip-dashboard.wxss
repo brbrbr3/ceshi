@@ -1,0 +1,377 @@
+/* 出行管理 Dashboard 页面样式 */
+
+.dashboard-page {
+  min-height: 100vh;
+  background: #EEF2FF;
+}
+
+/* 头部 - 使用圆角渐变 */
+.dashboard-header {
+  padding-bottom: 32rpx;
+}
+
+.dashboard-header-content {
+  color: #FFFFFF;
+}
+
+.dashboard-title {
+  font-size: 44rpx;
+  font-weight: 600;
+  margin-bottom: 8rpx;
+}
+
+.dashboard-subtitle {
+  font-size: 28rpx;
+  opacity: 0.9;
+}
+
+/* 内容区 */
+.dashboard-content {
+  padding: 24rpx;
+  padding-bottom: 100rpx;
+  margin-top: -8rpx;
+}
+
+/* 部门筛选 */
+.dashboard-filter {
+  margin-bottom: 20rpx;
+}
+
+.dashboard-filter-picker {
+  display: inline-flex;
+  align-items: center;
+  gap: 8rpx;
+  background: #FFFFFF;
+  padding: 16rpx 24rpx;
+  border-radius: 12rpx;
+  font-size: 28rpx;
+  color: #1E293B;
+  box-shadow: 0 2rpx 8rpx rgba(0, 0, 0, 0.04);
+}
+
+.dashboard-filter-arrow {
+  font-size: 20rpx;
+  color: #64748B;
+}
+
+/* Tab 切换 */
+.dashboard-tabs {
+  display: flex;
+  background: #FFFFFF;
+  border-radius: 16rpx;
+  padding: 8rpx;
+  margin-bottom: 24rpx;
+  box-shadow: 0 2rpx 8rpx rgba(0, 0, 0, 0.04);
+}
+
+.dashboard-tab {
+  flex: 1;
+  text-align: center;
+  padding: 20rpx 0;
+  font-size: 28rpx;
+  color: #64748B;
+  border-radius: 12rpx;
+  transition: all 0.3s ease;
+}
+
+.dashboard-tab.is-active {
+  background: linear-gradient(135deg, #2563EB 0%, #4F46E5 100%);
+  color: #FFFFFF;
+  font-weight: 500;
+}
+
+/* 统计卡片网格 */
+.dashboard-stats-grid {
+  display: grid;
+  grid-template-columns: repeat(2, 1fr);
+  gap: 16rpx;
+  margin-bottom: 24rpx;
+}
+
+.dashboard-stat-card {
+  background: #FFFFFF;
+  border-radius: 20rpx;
+  padding: 32rpx;
+  text-align: center;
+  box-shadow: 0 2rpx 12rpx rgba(0, 0, 0, 0.04);
+}
+
+.dashboard-stat-value {
+  font-size: 56rpx;
+  font-weight: 700;
+  color: #2563EB;
+  margin-bottom: 8rpx;
+}
+
+.dashboard-stat-label {
+  font-size: 26rpx;
+  color: #64748B;
+}
+
+/* 章节标题 */
+.dashboard-section {
+  margin-bottom: 24rpx;
+}
+
+.dashboard-section-title {
+  font-size: 30rpx;
+  font-weight: 600;
+  color: #1E293B;
+  margin-bottom: 16rpx;
+  padding-left: 8rpx;
+}
+
+/* 当前外出人员列表 */
+.dashboard-active-list {
+  background: #FFFFFF;
+  border-radius: 20rpx;
+  overflow: hidden;
+  box-shadow: 0 2rpx 12rpx rgba(0, 0, 0, 0.04);
+}
+
+.dashboard-active-item {
+  display: flex;
+  align-items: center;
+  padding: 24rpx;
+  border-bottom: 1rpx solid #F1F5F9;
+}
+
+.dashboard-active-item:last-child {
+  border-bottom: none;
+}
+
+.dashboard-active-avatar {
+  width: 80rpx;
+  height: 80rpx;
+  border-radius: 50%;
+  background: linear-gradient(135deg, #2563EB 0%, #4F46E5 100%);
+  color: #FFFFFF;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 32rpx;
+  font-weight: 600;
+  margin-right: 20rpx;
+}
+
+.dashboard-active-info {
+  flex: 1;
+}
+
+.dashboard-active-name {
+  font-size: 30rpx;
+  font-weight: 500;
+  color: #1E293B;
+  margin-bottom: 4rpx;
+}
+
+.dashboard-active-dest {
+  font-size: 26rpx;
+  color: #64748B;
+}
+
+.dashboard-active-meta {
+  text-align: right;
+}
+
+.dashboard-active-mode {
+  font-size: 24rpx;
+  color: #64748B;
+  margin-bottom: 4rpx;
+}
+
+.dashboard-active-time {
+  font-size: 24rpx;
+  color: #94A3B8;
+}
+
+/* 出行记录列表 */
+.dashboard-list {
+  display: flex;
+  flex-direction: column;
+  gap: 16rpx;
+}
+
+.dashboard-item {
+  background: #FFFFFF;
+  border-radius: 20rpx;
+  padding: 24rpx;
+  box-shadow: 0 2rpx 12rpx rgba(0, 0, 0, 0.04);
+}
+
+.dashboard-item-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 16rpx;
+}
+
+.dashboard-item-user {
+  display: flex;
+  align-items: center;
+}
+
+.dashboard-item-avatar {
+  width: 64rpx;
+  height: 64rpx;
+  border-radius: 50%;
+  background: linear-gradient(135deg, #2563EB 0%, #4F46E5 100%);
+  color: #FFFFFF;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 28rpx;
+  font-weight: 600;
+  margin-right: 16rpx;
+}
+
+.dashboard-item-name {
+  font-size: 30rpx;
+  font-weight: 500;
+  color: #1E293B;
+}
+
+.dashboard-item-dept {
+  font-size: 24rpx;
+  color: #94A3B8;
+}
+
+.dashboard-item-status {
+  font-size: 22rpx;
+  padding: 6rpx 16rpx;
+  border-radius: 8rpx;
+  font-weight: 500;
+}
+
+.dashboard-item-body {
+  display: flex;
+  flex-direction: column;
+  gap: 12rpx;
+  padding-top: 16rpx;
+  border-top: 1rpx solid #F1F5F9;
+}
+
+.dashboard-item-row {
+  display: flex;
+  justify-content: space-between;
+}
+
+.dashboard-item-label {
+  font-size: 26rpx;
+  color: #64748B;
+}
+
+.dashboard-item-value {
+  font-size: 26rpx;
+  color: #1E293B;
+}
+
+/* 状态统计网格 */
+.dashboard-status-grid {
+  display: grid;
+  grid-template-columns: repeat(3, 1fr);
+  gap: 16rpx;
+}
+
+.dashboard-status-item {
+  background: #FFFFFF;
+  border-radius: 16rpx;
+  padding: 24rpx;
+  text-align: center;
+  box-shadow: 0 2rpx 8rpx rgba(0, 0, 0, 0.04);
+}
+
+.dashboard-status-value {
+  font-size: 48rpx;
+  font-weight: 700;
+  margin-bottom: 8rpx;
+}
+
+.dashboard-status-label {
+  font-size: 24rpx;
+  color: #64748B;
+}
+
+/* 图表条形图 */
+.dashboard-chart-bars {
+  background: #FFFFFF;
+  border-radius: 20rpx;
+  padding: 24rpx;
+  box-shadow: 0 2rpx 12rpx rgba(0, 0, 0, 0.04);
+}
+
+.dashboard-chart-bar-item {
+  display: flex;
+  align-items: center;
+  margin-bottom: 20rpx;
+}
+
+.dashboard-chart-bar-item:last-child {
+  margin-bottom: 0;
+}
+
+.dashboard-chart-bar-label {
+  width: 120rpx;
+  font-size: 26rpx;
+  color: #64748B;
+  flex-shrink: 0;
+}
+
+.dashboard-chart-bar-wrapper {
+  flex: 1;
+  display: flex;
+  align-items: center;
+  gap: 12rpx;
+}
+
+.dashboard-chart-bar {
+  height: 24rpx;
+  background: linear-gradient(90deg, #2563EB 0%, #4F46E5 100%);
+  border-radius: 12rpx;
+  min-width: 20rpx;
+  transition: width 0.5s ease;
+}
+
+.dashboard-chart-bar--dept {
+  background: linear-gradient(90deg, #16A34A 0%, #059669 100%);
+}
+
+.dashboard-chart-bar-value {
+  font-size: 24rpx;
+  color: #1E293B;
+  font-weight: 500;
+  min-width: 40rpx;
+}
+
+/* 空状态 */
+.dashboard-empty {
+  padding: 40rpx;
+  text-align: center;
+}
+
+.dashboard-empty-text {
+  font-size: 28rpx;
+  color: #94A3B8;
+}
+
+.dashboard-empty-state {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  padding: 80rpx 0;
+}
+
+.dashboard-empty-icon {
+  font-size: 80rpx;
+  margin-bottom: 20rpx;
+}
+
+/* 加载状态 */
+.dashboard-loading {
+  display: flex;
+  justify-content: center;
+  padding: 32rpx 0;
+  font-size: 26rpx;
+  color: #94A3B8;
+}

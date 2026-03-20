@@ -13,6 +13,8 @@ Page({
     pendingApprovalCount: 0,
     unreadNotificationCount: 0,
     loading: false,
+    currentUser: null,
+    canAccessTripDashboard: false,
     stats: [
       { label: '待审批', value: '0', color: '#F44336', bg: '#FFEBEE' },
       { label: '待办事项（占位）', value: '12', color: '#FF9800', bg: '#FFF3E0' },
@@ -22,11 +24,12 @@ Page({
     quickActions: [
       { icon: '🍽️', label: '每周菜单', color: '#16A34A', bg: '#DCFCE7', implemented: true },
       { icon: '🏥', label: '就医申请', color: '#EF4444', bg: '#FEE2E2', implemented: true },
+      { icon: '🚗', label: '外出报备', color: '#2563EB', bg: '#EFF6FF', implemented: true },
+      { icon: '📊', label: '出行管理', color: '#7C3AED', bg: '#F3E8FF', implemented: true, adminOnly: true },
       { icon: '📅', label: '打卡签到（占位）', color: '#94A3B8', bg: '#F1F5F9', implemented: false },
       { icon: '📊', label: '工作报告（占位）', color: '#94A3B8', bg: '#F1F5F9', implemented: false },
       { icon: '💬', label: '企业通讯（占位）', color: '#94A3B8', bg: '#F1F5F9', implemented: false },
-      { icon: '📁', label: '云端文档（占位）', color: '#94A3B8', bg: '#F1F5F9', implemented: false },
-      { icon: '🎯', label: '任务中心（占位）', color: '#94A3B8', bg: '#F1F5F9', implemented: false }
+      { icon: '📁', label: '云端文档（占位）', color: '#94A3B8', bg: '#F1F5F9', implemented: false }
     ],
     announcements: [],
     schedules: [
@@ -67,11 +70,21 @@ Page({
           return
         }
 
-        const roleLabel = result.user.isAdmin ? `${result.user.role} · 管理员` : result.user.role
+        const user = result.user
+        const roleLabel = user.isAdmin ? `${user.role} · 管理员` : user.role
+        
+        // 判断是否可以访问出行管理
+        const isAdmin = user.isAdmin || user.role === 'admin'
+        const isLeader = user.role === '馆领导'
+        const isDeptHead = user.role === '部门负责人'
+        const canAccessTripDashboard = isAdmin || isLeader || isDeptHead
+
         this.setData({
-          displayName: result.user.name,
-          greetingText: this.getGreeting(result.user.name),
-          roleLabel
+          displayName: user.name,
+          greetingText: this.getGreeting(user.name),
+          roleLabel,
+          currentUser: user,
+          canAccessTripDashboard
         })
 
         // 获取待审批数量
@@ -235,6 +248,32 @@ Page({
           wx.navigateTo({
             url: '/pages/office/medical-application/medical-application'
           })
+        })
+    } else if (label === '外出报备') {
+      wx.navigateTo({
+        url: '/pages/office/trip-report/trip-report'
+      })
+    } else if (label === '出行管理') {
+      // 权限检查：仅馆领导、部门负责人、管理员可访问
+      app.checkUserRegistration()
+        .then((result) => {
+          if (!result.registered || !result.user) {
+            wx.showToast({ title: '请先登录', icon: 'none' })
+            return
+          }
+
+          const user = result.user
+          const isAdmin = user.isAdmin || user.role === 'admin'
+          const isLeader = user.role === '馆领导'
+          const isDeptHead = user.role === '部门负责人'
+
+          if (isAdmin || isLeader || isDeptHead) {
+            wx.navigateTo({
+              url: '/pages/office/trip-dashboard/trip-dashboard'
+            })
+          } else {
+            wx.showToast({ title: '无权限访问', icon: 'none' })
+          }
         })
     } else {
       utils.showToast({

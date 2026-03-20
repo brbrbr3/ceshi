@@ -532,6 +532,45 @@
 
 ---
 
+### 13. trip_reports - 外出报备记录
+
+**用途**：存储用户外出报备记录
+
+**安全规则**：`READONLY` - 所有用户可读，仅创建者可写
+
+> **重要说明**：使用 READONLY 规则，用户可以提交自己的报备（前端创建），所有人可读以便 Dashboard 权限过滤。前端按角色过滤显示数据。
+
+**记录数**：动态
+
+**索引**：
+
+- `_id` - 记录 ID（云开发自动创建）
+- `idx_openid_status` - openid + status 组合索引 - 优化用户出行记录查询
+- `idx_departAt` - departAt 降序索引 - 优化时间排序查询
+- `idx_department` - department 索引 - 优化 Dashboard 部门筛选
+
+**字段结构**：
+```javascript
+{
+  _id: String,                    // 记录 ID（自动生成）
+  _openid: String,                // 创建者 openid（READONLY 规则检查此字段）
+  userName: String,               // 用户姓名
+  department: String,             // 所属部门（用于 Dashboard 过滤）
+  destination: String,            // 目的地
+  companions: String,             // 同行人
+  plannedReturnAt: Number,        // 计划返回时间戳
+  travelMode: String,             // 出行方式：'自驾' | '搭车' | '打车' | '步行'
+  departAt: Number,               // 外出时间戳
+  returnAt: Number,               // 实际返回时间戳（null 表示未返回）
+  status: String,                 // 状态：'out'（外出中）| 'returned'（已返回）| 'overtime'（超时）
+  overtimeNotified: Boolean,      // 是否已发送超时通知
+  createdAt: Number,              // 创建时间戳
+  updatedAt: Number               // 更新时间戳
+}
+```
+
+---
+
 ## 命名规范
 
 ### 集合命名规则

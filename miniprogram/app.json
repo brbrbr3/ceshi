@@ -5,6 +5,8 @@
     "pages/office/home/home",
     "pages/office/approval/approval",
     "pages/office/medical-application/medical-application",
+    "pages/office/trip-report/trip-report",
+    "pages/office/trip-dashboard/trip-dashboard",
     "pages/office/task/task",
     "pages/office/contacts/contacts",
     "pages/office/profile/profile",

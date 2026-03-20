@@ -162,6 +162,22 @@ const REQUIRED_COLLECTIONS = [
       { name: 'idx_operateTime', keys: [{ name: 'operateTime', direction: '-1' }] }
     ],
     initialData: null
+  },
+
+  // ==================== 外出报备相关 ====================
+  {
+    name: 'trip_reports',
+    description: '外出报备记录',
+    aclTag: 'READONLY', // 所有用户可读，仅创建者可写（用于Dashboard权限过滤）
+    indexes: [
+      // 用于查询用户的外出记录（按状态和时间）
+      { name: 'idx_openid_status', keys: [{ name: '_openid', direction: '1' }, { name: 'status', direction: '1' }] },
+      // 用于按时间倒序查询所有记录
+      { name: 'idx_departAt', keys: [{ name: 'departAt', direction: '-1' }] },
+      // 用于Dashboard按部门筛选
+      { name: 'idx_department', keys: [{ name: 'department', direction: '1' }] }
+    ],
+    initialData: null
   }
   // 注意：workflow_subscriptions 集合已移除，订阅消息功能已删除
 ]
