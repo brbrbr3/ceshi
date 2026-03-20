@@ -48,8 +48,7 @@
   display: flex;
   align-items: center;
   justify-content: space-between;
-  padding: 0rpx;
-  padding-bottom: 0;
+  padding: 0 15rpx;
 }
 
 /* 可滚动内容区 */
@@ -92,6 +91,7 @@
   display: flex;
   align-items: center;
   justify-content: space-between;
+  padding: 0 20rpx ;
 }
 
 .approval-modal-row + .approval-modal-row {
