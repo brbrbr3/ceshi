@@ -677,8 +677,17 @@ Page({
             reason: request.reason || ''
           }
 
+          // 显示加载提示
+          wx.showLoading({
+            title: '正在跳转...',
+            mask: true
+          })
+
           wx.navigateTo({
-            url: `/pages/office/medical-application/medical-application?mode=copy&data=${encodeURIComponent(JSON.stringify(copyData))}`
+            url: `/pages/office/medical-application/medical-application?mode=copy&data=${encodeURIComponent(JSON.stringify(copyData))}`,
+            complete: () => {
+              wx.hideLoading()
+            }
           })
 
           this.closeDetail()

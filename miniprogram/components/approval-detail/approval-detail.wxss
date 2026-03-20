@@ -13,15 +13,17 @@
   z-index: 20;
   opacity: 0;
   visibility: hidden;
+  pointer-events: none;
   transition: opacity 0.3s ease, visibility 0.3s ease;
 }
 
 .approval-modal-mask.is-visible {
   opacity: 1;
   visibility: visible;
+  pointer-events: auto;
 }
 
-/* 弹窗卡片 - 使用嵌套选择器，与遮罩联动 */
+/* 弹窗卡片 - 只保留打开动画，关闭时直接隐藏 */
 .approval-modal-card {
   width: 100%;
   border-radius: 32rpx;
@@ -29,13 +31,11 @@
   padding: 28rpx;
   box-sizing: border-box;
   max-height: 85vh;
-  overflow-y: auto;
   transform: translateY(100%);
   transition: transform 0.3s cubic-bezier(0.4, 0, 0.2, 1);
-  will-change: transform;
 }
 
-/* 关键：使用嵌套选择器，遮罩可见时卡片动画 */
+/* 打开动画：遮罩可见时卡片从底部滑入 */
 .approval-modal-mask.is-visible .approval-modal-card {
   transform: translateY(0);
 }
