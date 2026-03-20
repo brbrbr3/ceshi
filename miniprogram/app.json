@@ -246,15 +246,7 @@
       },
       {
         "pagePath": "pages/office/approval/approval",
-        "text": "审批"
-      },
-      {
-        "pagePath": "pages/office/task/task",
-        "text": "工作台"
-      },
-      {
-        "pagePath": "pages/office/contacts/contacts",
-        "text": "通讯录"
+        "text": "审批中心"
       },
       {
         "pagePath": "pages/office/profile/profile",
