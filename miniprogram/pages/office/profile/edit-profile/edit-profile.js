@@ -11,8 +11,8 @@ Page({
     departmentOptions: [],
     allDepartmentOptions: [], // 保存完整的部门列表，用于切换角色时恢复
     roleIndex: -1,
-    positionIndex: 0,
-    departmentIndex: 0,
+    positionIndex: -1,
+    departmentIndex: -1,
     showRelativeField: false,
     showDepartmentField: false,
     showPositionField: true,
@@ -124,17 +124,17 @@ Page({
 
         // 根据角色设置岗位选项和显示状态
         let rolePositionOptions = positionOptions
-        let positionIndex = 0
+        let positionIndex = -1
 
         if (rolePositionMap[role]) {
           rolePositionOptions = rolePositionMap[role]
           positionIndex = user.position ? rolePositionOptions.indexOf(user.position) : -1
         } else {
-          positionIndex = user.position ? positionOptions.indexOf(user.position) : 0
+          positionIndex = user.position ? positionOptions.indexOf(user.position) : -1
         }
 
         let department = user.department || ''
-        let departmentIndex = 0
+        let departmentIndex = -1
         let roleDepartmentOptions = departmentOptions
 
         // 使用配置中的固定部门
@@ -145,7 +145,7 @@ Page({
         } else if (department) {
           departmentIndex = departmentOptions.indexOf(department)
           if (departmentIndex === -1) {
-            departmentIndex = 0
+            departmentIndex = -1
             department = ''
           }
         }
@@ -218,12 +218,12 @@ Page({
     const showPositionField = roleConfig.showPosition
 
     let department = ''
-    let departmentIndex = 0
+    let departmentIndex = -1
     let roleDepartmentOptions = allDepartmentOptions // 使用完整部门列表
 
     // 根据角色设置岗位选项和显示状态
     let rolePositionOptions = rolePositionMap[role] || positionOptions
-    let positionIndex = 0
+    let positionIndex = -1
 
     // 使用配置中的固定部门
     if (roleConfig.fixedDepartment) {
@@ -234,7 +234,7 @@ Page({
 
     // 根据角色设置岗位选项
     if (rolePositionMap[role]) {
-      positionIndex = role === '工勤' ? -1 : 0 // 工勤默认不选择
+      positionIndex = role === '工勤' ? -1 : -1 // 默认都不选择
     }
 
     this.setData({

@@ -47,9 +47,9 @@
 
       <view class="auth-field">
         <view class="auth-field-label">角色</view>
-        <picker mode="selector" range="{{roleOptions}}" value="{{roleIndex >= 0 ? roleIndex : 0}}" bindchange="handleRoleChange">
-          <view class="auth-picker-shell {{form.role ? '' : 'is-placeholder'}}">
-            <view class="auth-picker-value">{{form.role || '请选择角色'}}</view>
+        <picker mode="selector" range="{{roleOptions}}" value="{{roleIndex}}" bindchange="handleRoleChange">
+          <view class="auth-picker-shell {{roleIndex < 0 ? 'is-placeholder' : ''}}">
+            <view class="auth-picker-value">{{roleIndex >= 0 ? form.role : '请选择角色'}}</view>
             <view class="auth-picker-arrow">›</view>
           </view>
         </picker>
@@ -57,9 +57,9 @@
 
       <view wx:if="{{showDepartmentField}}" class="auth-field">
         <view class="auth-field-label">部门</view>
-        <picker mode="selector" range="{{departmentOptions}}" value="{{departmentIndex}}" bindchange="handleDepartmentChange">
-          <view class="auth-picker-shell {{form.department ? '' : 'is-placeholder'}}">
-            <view class="auth-picker-value">{{form.department || '请选择部门'}}</view>
+        <picker mode="selector" range="{{departmentOptions}}" value="{{departmentIndex >= 0 ? departmentIndex : 0}}" bindchange="handleDepartmentChange">
+          <view class="auth-picker-shell {{departmentIndex < 0 ? 'is-placeholder' : ''}}">
+            <view class="auth-picker-value">{{departmentIndex >= 0 ? form.department : '请选择部门'}}</view>
             <view class="auth-picker-arrow">›</view>
           </view>
         </picker>
@@ -92,6 +92,6 @@
     </view>
 
     <button class="auth-submit-btn" loading="{{loading}}" bindtap="submitUpdate">提交修改申请</button>
-    <view class="auth-note">提交后若暂未通过，请等待管理员在审批中心处理；被退回后可再次进入本页修改并重新提交。</view>
+    <view class="auth-note">提交后请等待管理员处理；若未通过，可进入本页修改并重新提交。</view>
   </view>
 </view>

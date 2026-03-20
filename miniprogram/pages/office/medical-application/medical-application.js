@@ -26,6 +26,15 @@ Page({
   },
 
   async onLoad(options) {
+    // 如果是复制模式，先显示加载中
+    const isCopyMode = options.mode === 'copy'
+    if (isCopyMode) {
+      wx.showLoading({
+        title: '加载中',
+        mask: true
+      })
+    }
+
     // 先加载常量配置
     await this.loadConstants()
 
@@ -64,11 +73,11 @@ Page({
             // 有权限，设置用户信息
             this.setData({
               currentUser: user,
-              mode: options.mode === 'copy' ? 'copy' : 'create'
+              mode: isCopyMode ? 'copy' : 'create'
             })
 
             // 如果是复制模式，从 options 中加载数据
-            if (options.mode === 'copy') {
+            if (isCopyMode) {
               this.loadCopyData(options)
             }
           })
@@ -79,6 +88,12 @@ Page({
           title: error.message || '获取用户信息失败',
           icon: 'none'
         })
+      })
+      .finally(() => {
+        // 隐藏加载中
+        if (isCopyMode) {
+          wx.hideLoading()
+        }
       })
   },
 

@@ -335,6 +335,7 @@
   transition: transform 0.3s ease;
   max-height: 80vh;
   overflow-y: auto;
+  margin: 0 28rpx 0;
 }
 
 .trip-popup-mask.is-visible .trip-popup-container {

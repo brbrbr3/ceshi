@@ -585,6 +585,7 @@ input {
   font-size: 22rpx;
   line-height: 1.7;
   color: #64748B;
+  margin-bottom: 60rpx;
 }
 
 .auth-status-card {
