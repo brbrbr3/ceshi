@@ -31,14 +31,26 @@ Page({
   },
 
   async onLoad(options) {
-    // 加载常量
-    await this.loadConstants()
+    // 显示加载中
+    wx.showLoading({
+      title: '加载中',
+      mask: true
+    })
 
-    // 设置今天的日期作为最大可选日期
-    const today = await utils.getTodayDate()
-    this.setData({ today })
+    try {
+      // 加载常量
+      await this.loadConstants()
 
-    this.loadUserProfile()
+      // 设置今天的日期作为最大可选日期
+      const today = await utils.getTodayDate()
+      this.setData({ today })
+
+      // 加载用户信息
+      await this.loadUserProfile()
+    } finally {
+      // 隐藏加载中
+      wx.hideLoading()
+    }
   },
 
   async onShow() {
@@ -92,7 +104,7 @@ Page({
   },
 
   loadUserProfile() {
-    app.checkUserRegistration()
+    return app.checkUserRegistration()
       .then((result) => {
         if (!result.registered || !result.user) {
           utils.showToast({
