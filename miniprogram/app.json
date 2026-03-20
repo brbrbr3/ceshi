@@ -16,8 +16,8 @@
     "pages/office/menu-detail/menu-detail",
     "pages/office/menu-edit/menu-edit",
     "pages/office/announcement-list/announcement-list",
-"pages/office/announcement-detail/announcement-detail",
-"pages/office/announcement-create/announcement-create",
+    "pages/office/announcement-detail/announcement-detail",
+    "pages/office/announcement-create/announcement-create",
     "page/component/index",
     "page/API/index",
     "page/cloud/index",
@@ -242,15 +242,21 @@
     "list": [
       {
         "pagePath": "pages/office/home/home",
-        "text": "首页"
+        "text": "首页",
+        "iconPath": "image/home.png",
+        "selectedIconPath": "image/home-selected.png"
       },
       {
         "pagePath": "pages/office/approval/approval",
-        "text": "审批中心"
+        "text": "审批中心",
+        "iconPath": "image/approvalcenter.png",
+        "selectedIconPath": "image/approvalcenter-selected.png"
       },
       {
         "pagePath": "pages/office/profile/profile",
-        "text": "我的"
+        "text": "我的",
+        "iconPath": "image/profile.png",
+        "selectedIconPath": "image/profile-selected.png"
       }
     ]
   },

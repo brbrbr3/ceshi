@@ -99,8 +99,7 @@ page {
   display: flex;
   align-items: center;
   justify-content: center;
-  background: rgba(255, 255, 255, 0.16);
-  font-size: 28rpx;
+  font-size: 70rpx;
 }
 
 .home-attendance-title {
