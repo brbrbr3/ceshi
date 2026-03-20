@@ -235,6 +235,18 @@ function getDefaultConstants() {
       process_returned: 'mine',
       workflow_completed: 'mine',
       order_terminated: 'mine'
+    },
+
+    // 审批中心配置
+    APPROVAL_REVIEWER_ROLES: ['馆领导', '部门负责人'],
+    APPROVAL_TABS: [
+      { key: 'pending', label: '待审批' },
+      { key: 'mine', label: '我发起的' },
+      { key: 'done', label: '已处理' }
+    ],
+    APPROVAL_TAB_PERMISSION: {
+      withReview: ['pending', 'mine', 'done'],
+      withoutReview: ['mine']
     }
   }
 }

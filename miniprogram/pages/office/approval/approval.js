@@ -254,13 +254,19 @@ Page({
     loading: true,
     actionLoading: false,
     canReview: false,
-    activeTab: 'pending',
+    activeTab: '', // 将在 loadApprovalData 中根据权限动态设置
     approvalTypes,
-    tabs: [
-      { key: 'pending', label: '待审批', count: 0 },
-      { key: 'mine', label: '我发起的', count: 0 },
-      { key: 'done', label: '已处理', count: 0 }
+    tabs: [], // 将在 loadApprovalData 中动态生成
+    // 审批tab配置常量（从云函数加载）
+    approvalTabs: [
+      { key: 'pending', label: '待审批' },
+      { key: 'mine', label: '我发起的' },
+      { key: 'done', label: '已处理' }
     ],
+    approvalTabPermission: {
+      withReview: ['pending', 'mine', 'done'],
+      withoutReview: ['mine']
+    },
     summary: {
       pendingCount: 0,
       approvedCount: 0,
@@ -330,10 +336,23 @@ Page({
         ]
       }
       
+      // 获取审批中心tab配置
+      const approvalTabs = allConstants.APPROVAL_TABS || [
+        { key: 'pending', label: '待审批' },
+        { key: 'mine', label: '我发起的' },
+        { key: 'done', label: '已处理' }
+      ]
+      const approvalTabPermission = allConstants.APPROVAL_TAB_PERMISSION || {
+        withReview: ['pending', 'mine', 'done'],
+        withoutReview: ['mine']
+      }
+      
       // 保存常量到 data
       this.setData({
         approvalTypes,
-        roleOptions: roleOptions
+        roleOptions: roleOptions,
+        approvalTabs,
+        approvalTabPermission
       })
       
     } catch (error) {
@@ -342,7 +361,30 @@ Page({
       formatRelativeTime = (timestamp) => utils.formatRelativeTime(timestamp, -3)
       formatDateTime = (timestamp) => utils.formatDateTime(timestamp, -3)
       this.filters.formatDateTime = formatDateTime
+      this.setData({
+        approvalTabs: [
+          { key: 'pending', label: '待审批' },
+          { key: 'mine', label: '我发起的' },
+          { key: 'done', label: '已处理' }
+        ],
+        approvalTabPermission: {
+          withReview: ['pending', 'mine', 'done'],
+          withoutReview: ['mine']
+        }
+      })
     }
+  },
+
+  /**
+   * 根据权限动态生成tabs
+   * @param {boolean} canReview - 是否有审批权限
+   * @returns {Array} tab列表
+   */
+  generateTabs(canReview) {
+    const { approvalTabs, approvalTabPermission } = this.data
+    const permissionKey = canReview ? 'withReview' : 'withoutReview'
+    const allowedKeys = approvalTabPermission[permissionKey] || ['mine']
+    return approvalTabs.filter(tab => allowedKeys.includes(tab.key))
   },
 
   onShow() {
@@ -391,9 +433,6 @@ Page({
   },
 
   getEmptyText(tab, canReview) {
-    if (!canReview && tab !== 'mine') {
-      return '仅管理员可查看当前分组'
-    }
     if (tab === 'mine') {
       return '暂无我发起的申请'
     }
@@ -404,14 +443,14 @@ Page({
   },
 
   loadApprovalData(loadMore = false) {
-    const activeTab = this.data.activeTab
-    const { page, loading } = this.data.pagination[activeTab]
+    const activeTab = this.data.activeTab || 'mine'
+    const { page, loading } = this.data.pagination[activeTab] || { page: 1, loading: false }
 
     if (loading && loadMore) {
       return Promise.resolve()
     }
 
-    if (loadMore && !this.data.pagination[activeTab].hasMore) {
+    if (loadMore && !this.data.pagination[activeTab]?.hasMore) {
       return Promise.resolve()
     }
 
@@ -434,9 +473,20 @@ Page({
         const doneList = (data.doneList || []).map(r => mapRequestItem(r))
         const canReview = !!data.canReview
         
+        // 动态生成tabs
+        const tabs = this.generateTabs(canReview).map(tab => ({
+          ...tab,
+          count: tab.key === 'pending' ? pendingList.length : (tab.key === 'mine' ? mineList.length : doneList.length)
+        }))
+        
+        // 确定当前激活的tab
         let finalActiveTab = this.data.activeTab
         if (!loadMore) {
-          finalActiveTab = canReview ? this.data.activeTab : (mineList.length ? 'mine' : 'pending')
+          // 无权限用户或当前tab不在允许列表中时，默认显示第一个允许的tab
+          const allowedTabs = tabs.map(t => t.key)
+          if (!finalActiveTab || !allowedTabs.includes(finalActiveTab)) {
+            finalActiveTab = allowedTabs[0] || 'mine'
+          }
         }
 
         const paginationInfo = data.pagination || {}
@@ -460,17 +510,13 @@ Page({
           summary: data.summary || this.data.summary,
           ...newLists,
           activeTab: finalActiveTab,
-          tabs: [
-            { key: 'pending', label: '待审批', count: pendingList.length },
-            { key: 'mine', label: '我发起的', count: mineList.length },
-            { key: 'done', label: '已处理', count: doneList.length }
-          ],
-          currentList: this.getListByTab(activeTab, newLists),
-          emptyText: this.getEmptyText(activeTab, canReview),
+          tabs,
+          currentList: this.getListByTab(finalActiveTab, newLists),
+          emptyText: this.getEmptyText(finalActiveTab, canReview),
           loading: false,
-          [`pagination.${activeTab}.page`]: currentPage,
-          [`pagination.${activeTab}.hasMore`]: hasMoreInfo[activeTab + 'List'] || (activeTab === 'pending' ? pendingList.length >= pageSize : (activeTab === 'mine' ? mineList.length >= pageSize : doneList.length >= pageSize)),
-          [`pagination.${activeTab}.loading`]: false
+          [`pagination.${finalActiveTab}.page`]: currentPage,
+          [`pagination.${finalActiveTab}.hasMore`]: hasMoreInfo[finalActiveTab + 'List'] || (finalActiveTab === 'pending' ? pendingList.length >= pageSize : (finalActiveTab === 'mine' ? mineList.length >= pageSize : doneList.length >= pageSize)),
+          [`pagination.${finalActiveTab}.loading`]: false
         })
       })
       .catch((error) => {
@@ -487,15 +533,6 @@ Page({
 
   switchTab(e) {
     const tab = e.currentTarget.dataset.tab
-
-    // 无审批权限的用户只能停留在"我发起的"tab
-    if (!this.data.canReview && tab !== 'mine') {
-      wx.showToast({
-        title: '无审批权限，只能查看自己的申请',
-        icon: 'none'
-      })
-      return
-    }
 
     this.setData({
       activeTab: tab,

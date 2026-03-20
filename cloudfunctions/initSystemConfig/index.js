@@ -239,6 +239,36 @@ const SYSTEM_CONFIGS = [
     sort: 61
   },
 
+  // ==================== 审批中心配置 ====================
+  {
+    type: 'approval',
+    key: 'APPROVAL_REVIEWER_ROLES',
+    value: ['馆领导', '部门负责人'],
+    description: '具有审批权限的角色列表（管理员默认有审批权限）',
+    sort: 70
+  },
+  {
+    type: 'approval',
+    key: 'APPROVAL_TABS',
+    value: [
+      { key: 'pending', label: '待审批' },
+      { key: 'mine', label: '我发起的' },
+      { key: 'done', label: '已处理' }
+    ],
+    description: '审批中心tab列表配置',
+    sort: 71
+  },
+  {
+    type: 'approval',
+    key: 'APPROVAL_TAB_PERMISSION',
+    value: {
+      withReview: ['pending', 'mine', 'done'],
+      withoutReview: ['mine']
+    },
+    description: '审批中心tab权限映射（前端根据canReview选择对应tab列表）',
+    sort: 72
+  },
+
   // ==================== 就医申请相关 ====================
   {
     type: 'medical',

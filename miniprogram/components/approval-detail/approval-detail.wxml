@@ -1,6 +1,6 @@
 <view class="approval-modal-mask {{animVisible ? 'is-visible' : ''}}" bindtap="handleClose">
-  <scroll-view scroll-y class="approval-modal-card" catchtap="noop">
-    <!-- 标题栏 -->
+  <view class="approval-modal-card" catchtap="noop">
+    <!-- 标题栏 - 固定在顶部 -->
     <view class="approval-modal-head">
       <view>
         <view class="approval-modal-title">{{request.name}}的{{request.requestType}}详情</view>
@@ -9,6 +9,8 @@
       <view class="approval-modal-close" bindtap="handleClose">×</view>
     </view>
 
+    <!-- 可滚动内容区 -->
+    <scroll-view scroll-y class="approval-modal-scroll">
     <!-- 详情内容 -->
     <view class="approval-modal-body">
       <!-- 动态字段列表 -->
@@ -87,5 +89,6 @@
       <view class="approval-modal-copy-text">该申请已被驳回，是否依据此申请信息重新创建？</view>
       <view class="office-btn-primary approval-copy-btn" bindtap="handleCopyMedical">重新创建申请</view>
     </view>
-  </scroll-view>
+    </scroll-view>
+  </view>
 </view>

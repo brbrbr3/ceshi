@@ -23,16 +23,18 @@
   pointer-events: auto;
 }
 
-/* 弹窗卡片 - 只保留打开动画，关闭时直接隐藏 */
+/* 弹窗卡片 - flex布局，标题栏固定 */
 .approval-modal-card {
+  display: flex;
+  flex-direction: column;
   width: 100%;
   border-radius: 32rpx;
   background: #FFFFFF;
-  padding: 28rpx;
   box-sizing: border-box;
   height: 85vh;
   transform: translateY(100%);
   transition: transform 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+  overflow: hidden;
 }
 
 /* 打开动画：遮罩可见时卡片从底部滑入 */
@@ -40,11 +42,22 @@
   transform: translateY(0);
 }
 
-/* 标题栏 */
+/* 标题栏 - 固定不滚动 */
 .approval-modal-head {
+  flex-shrink: 0;
   display: flex;
   align-items: center;
   justify-content: space-between;
+  padding: 0rpx;
+  padding-bottom: 0;
+}
+
+/* 可滚动内容区 */
+.approval-modal-scroll {
+  flex: 1;
+  overflow: hidden;
+  padding: 0rpx;
+  padding-top: 24rpx;
 }
 
 .approval-modal-title {

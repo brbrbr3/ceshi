@@ -96,11 +96,6 @@ page {
   font-weight: 600;
 }
 
-.approval-tab.is-disabled {
-  opacity: 0.5;
-  pointer-events: none;
-}
-
 .approval-tab-count {
   font-size: 20rpx;
 }

@@ -14,7 +14,7 @@
       <view
         wx:for="{{tabs}}"
         wx:key="key"
-        class="approval-tab {{activeTab == item.key ? 'is-active' : ''}} {{!canReview && item.key != 'mine' ? 'is-disabled' : ''}}"
+        class="approval-tab {{activeTab == item.key ? 'is-active' : ''}}"
         data-tab="{{item.key}}"
         bindtap="switchTab"
       >
