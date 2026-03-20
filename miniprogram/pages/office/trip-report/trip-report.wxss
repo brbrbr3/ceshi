@@ -26,22 +26,66 @@
   opacity: 0.9;
 }
 
-/* 状态卡片 - 半透明玻璃效果 */
+/* 状态卡片 - 参照 approval-modal-copy 风格 */
 .trip-status-card {
-  background: rgba(255, 255, 255, 0.16);
-  border: 1rpx solid rgba(255, 255, 255, 0.22);
-  box-shadow: inset 0 1rpx 0 rgba(255, 255, 255, 0.18);
-  border-radius: 28rpx;
-  padding: 28rpx;
-  margin-top: 24rpx;
+  margin: 28rpx;
+  padding: 24rpx;
+  border-radius: 60rpx;
+  transition: all 0.3s ease;
 }
 
 .trip-status-card.is-active {
-  background: rgba(255, 255, 255, 0.18);
+  /* 外出中 - 黄色 */
+  background: #FEF3C7;
+  border: 1rpx solid #ffcc24;
+}
+
+.trip-status-card.is-active .trip-status-label {
+  color: #92400E;
+}
+
+.trip-status-card.is-active .trip-status-dest {
+  color: #B45309;
+}
+
+.trip-status-card.is-active .trip-status-item-label {
+  color: #92400E;
+  opacity: 0.8;
+}
+
+.trip-status-card.is-active .trip-status-item-value {
+  color: #92400E;
+}
+
+.trip-status-card.is-active .trip-status-detail {
+  border-top-color: #ffcc24;
 }
 
 .trip-status-card.is-idle {
-  background: rgba(255, 255, 255, 0.12);
+  /* 未外出 - 绿色 */
+  background: #DCFCE7;
+  border: 1rpx solid #4ADE80;
+}
+
+.trip-status-card.is-idle .trip-status-label {
+  color: #166534;
+}
+
+.trip-status-card.is-idle .trip-status-dest {
+  color: #15803D;
+}
+
+.trip-status-card.is-idle .trip-status-item-label {
+  color: #166534;
+  opacity: 0.8;
+}
+
+.trip-status-card.is-idle .trip-status-item-value {
+  color: #166534;
+}
+
+.trip-status-card.is-idle .trip-status-detail {
+  border-top-color: rgba(74, 222, 128, 0.6);
 }
 
 .trip-status-header {
@@ -50,14 +94,14 @@
 }
 
 .trip-status-icon {
-  width: 64rpx;
-  height: 64rpx;
+  width: 100rpx;
+  height: 100rpx;
   border-radius: 20rpx;
   display: flex;
   align-items: center;
   justify-content: center;
-  background: rgba(255, 255, 255, 0.16);
-  font-size: 32rpx;
+  background: rgba(255, 255, 255,0);
+  font-size: 72rpx;
   margin-right: 16rpx;
 }
 
@@ -66,14 +110,14 @@
 }
 
 .trip-status-label {
-  font-size: 24rpx;
-  opacity: 0.8;
+  font-size: 32rpx;
+  font-weight: 600;
   margin-bottom: 4rpx;
 }
 
 .trip-status-dest {
-  font-size: 32rpx;
-  font-weight: 600;
+  font-size: 24rpx;
+  font-weight: 500;
 }
 
 .trip-status-detail {
@@ -81,7 +125,7 @@
   gap: 32rpx;
   padding-top: 20rpx;
   margin-top: 20rpx;
-  border-top: 1rpx solid rgba(255, 255, 255, 0.15);
+  border-top: 1rpx solid;
 }
 
 .trip-status-item {
@@ -92,7 +136,6 @@
 
 .trip-status-item-label {
   font-size: 22rpx;
-  opacity: 0.7;
 }
 
 .trip-status-item-value {

@@ -6,8 +6,10 @@
       <view class="trip-subtitle">记录您的出行信息</view>
     </view>
 
-    <!-- 状态卡片（半透明玻璃效果，始终显示） -->
-    <view class="trip-status-card {{activeTrip ? 'is-active' : 'is-idle'}}">
+    
+  </view>
+<!-- 状态卡片（半透明玻璃效果，始终显示） -->
+<view class="trip-status-card {{activeTrip ? 'is-active' : 'is-idle'}}">
       <view class="trip-status-header">
         <view class="trip-status-icon">
           <text wx:if="{{activeTrip}}">🚗</text>
@@ -35,9 +37,8 @@
         </view>
       </view>
     </view>
-  </view>
-
   <view class="trip-content">
+  
     <!-- 主操作按钮 -->
     <view class="trip-action-section">
       <button class="trip-action-btn {{activeTrip ? 'trip-action-btn-return' : 'trip-action-btn-depart'}}" bindtap="handleMainButton">

@@ -1,6 +1,6 @@
 <view class="auth-page login-page">
   <view class="auth-hero">
-    <view class="auth-brand">CHN</view>
+    <view class="auth-brand">登录</view>
     <view class="auth-title">Embaixada da China</view>
     <view class="auth-subtitle">欢迎使用Embaixada da China办公小程序！</view>
     <view class="auth-tip-row">

@@ -83,18 +83,47 @@ Page({
   },
 
   /**
-   * 加载历史记录
+   * 加载历史记录（数据库优先 + 本地缓存）
    */
-  loadHistory() {
+  async loadHistory() {
+    // 先加载本地缓存，快速显示
+    const localDestHistory = wx.getStorageSync(STORAGE_KEY_DESTINATION) || []
+    const localCompHistory = wx.getStorageSync(STORAGE_KEY_COMPANIONS) || []
+
+    this.setData({
+      destinationHistory: localDestHistory,
+      companionsHistory: localCompHistory
+    })
+
+    // 然后从数据库获取最新历史记录
     try {
-      const destinationHistory = wx.getStorageSync(STORAGE_KEY_DESTINATION) || []
-      const companionsHistory = wx.getStorageSync(STORAGE_KEY_COMPANIONS) || []
-      this.setData({
-        destinationHistory,
-        companionsHistory
+      const res = await wx.cloud.callFunction({
+        name: 'tripReport',
+        data: { action: 'getHistory' }
       })
+
+      if (res.result.code === 0) {
+        const { destinations, companions } = res.result.data
+
+        // 如果数据库有数据，优先使用
+        if (destinations.length > 0 || companions.length > 0) {
+          this.setData({
+            destinationHistory: destinations.length > 0 ? destinations : localDestHistory,
+            companionsHistory: companions.length > 0 ? companions : localCompHistory
+          })
+
+          // 同步更新本地缓存
+          if (destinations.length > 0) {
+            wx.setStorageSync(STORAGE_KEY_DESTINATION, destinations)
+          }
+          if (companions.length > 0) {
+            wx.setStorageSync(STORAGE_KEY_COMPANIONS, companions)
+          }
+        }
+      }
     } catch (error) {
-      console.error('加载历史记录失败:', error)
+      console.error('从数据库加载历史记录失败，使用本地缓存:', error)
+      // 失败时保持本地缓存数据
     }
   },
 

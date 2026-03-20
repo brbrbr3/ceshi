@@ -33,6 +33,7 @@ function fail(message, code) {
  * - getAllTrips: 获取所有出行记录（Dashboard用）
  * - getStatistics: 获取统计数据（Dashboard用）
  * - checkOvertime: 检查超时并发送通知
+ * - getHistory: 获取历史记录（目的地和同行人）
  */
 exports.main = async (event, context) => {
   const { action, params } = event
@@ -55,6 +56,8 @@ exports.main = async (event, context) => {
         return await getStatistics(params)
       case 'checkOvertime':
         return await checkOvertime()
+      case 'getHistory':
+        return await getHistory(openid)
       default:
         return fail('未知的操作类型', 400)
     }
@@ -399,4 +402,32 @@ async function checkOvertime() {
     checked: overtimeTrips.length,
     notified: notifiedCount
   }, `检查完成，发送了 ${notifiedCount} 条超时通知`)
+}
+
+/**
+ * 获取历史记录（目的地和同行人）
+ * 从数据库获取该用户最近的出行记录
+ */
+async function getHistory(openid) {
+  // 查询该用户最近的出行记录（最多10条）
+  const result = await tripReportsCollection
+    .where({ _openid: openid })
+    .orderBy('departAt', 'desc')
+    .limit(10)
+    .field({ destination: true, companions: true })
+    .get()
+
+  const trips = result.data || []
+
+  // 提取目的地并去重（最多3条）
+  const destinations = [...new Set(
+    trips.map(t => t.destination).filter(Boolean)
+  )].slice(0, 3)
+
+  // 提取同行人并去重（最多3条）
+  const companions = [...new Set(
+    trips.map(t => t.companions).filter(Boolean)
+  )].slice(0, 3)
+
+  return success({ destinations, companions })
 }
