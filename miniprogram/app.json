@@ -243,20 +243,20 @@
       {
         "pagePath": "pages/office/home/home",
         "text": "首页",
-        "iconPath": "image/home.png",
-        "selectedIconPath": "image/home-selected.png"
+        "iconPath": "image/1.png",
+        "selectedIconPath": "image/1-s.png"
       },
       {
         "pagePath": "pages/office/approval/approval",
         "text": "审批中心",
-        "iconPath": "image/approvalcenter.png",
-        "selectedIconPath": "image/approvalcenter-selected.png"
+        "iconPath": "image/2.png",
+        "selectedIconPath": "image/2-s.png"
       },
       {
         "pagePath": "pages/office/profile/profile",
         "text": "我的",
-        "iconPath": "image/profile.png",
-        "selectedIconPath": "image/profile-selected.png"
+        "iconPath": "image/3.png",
+        "selectedIconPath": "image/3-s.png"
       }
     ]
   },

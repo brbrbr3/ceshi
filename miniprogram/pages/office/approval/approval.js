@@ -488,6 +488,15 @@ Page({
   switchTab(e) {
     const tab = e.currentTarget.dataset.tab
 
+    // 无审批权限的用户只能停留在"我发起的"tab
+    if (!this.data.canReview && tab !== 'mine') {
+      wx.showToast({
+        title: '无审批权限，只能查看自己的申请',
+        icon: 'none'
+      })
+      return
+    }
+
     this.setData({
       activeTab: tab,
       currentList: [],

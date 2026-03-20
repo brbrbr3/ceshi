@@ -43,7 +43,6 @@ Component({
   data: {
     // 动画状态
     animVisible: false,
-    animating: false,
 
     // 动态计算的字段列表
     detailFields: [],
@@ -92,14 +91,14 @@ Component({
   observers: {
     'visible': function(visible) {
       if (visible) {
-        // 打开：先渲染元素，再触发动画
-        this.setData({ animating: true, animVisible: true })
-      } else {
-        // 关闭：先触发关闭动画，动画结束后移除元素
+        // 打开：先渲染元素，等待一帧后触发动画
         this.setData({ animVisible: false })
-        setTimeout(() => {
-          this.setData({ animating: false })
-        }, 300)
+        wx.nextTick(() => {
+          this.setData({ animVisible: true })
+        })
+      } else {
+        // 关闭：直接触发关闭动画
+        this.setData({ animVisible: false })
       }
     },
     'request': function(request) {

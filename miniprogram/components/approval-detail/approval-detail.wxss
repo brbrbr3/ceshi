@@ -21,7 +21,7 @@
   visibility: visible;
 }
 
-/* 弹窗卡片 */
+/* 弹窗卡片 - 使用嵌套选择器，与遮罩联动 */
 .approval-modal-card {
   width: 100%;
   border-radius: 32rpx;
@@ -31,10 +31,12 @@
   max-height: 85vh;
   overflow-y: auto;
   transform: translateY(100%);
-  transition: transform 0.3s ease;
+  transition: transform 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+  will-change: transform;
 }
 
-.approval-modal-card.is-visible {
+/* 关键：使用嵌套选择器，遮罩可见时卡片动画 */
+.approval-modal-mask.is-visible .approval-modal-card {
   transform: translateY(0);
 }
 
