@@ -25,15 +25,33 @@
     <!-- <view class="home-date">{{currentDateText}}</view> -->
 
     <!--日历模块-->
-    <view class="office-glass-card home-calendar">
+    <view class="office-glass-card home-calendar" bindtap="handleCalendarTap">
       <view class="home-calendar-main">
         <view class="home-calendar-icon">📅</view>
         <view>
           <view class="home-calendar-title">{{currentDateText}}</view>
-          <view class="home-calendar-desc">今天是工作日</view>
+          <view class="home-calendar-desc">{{lunarDateText}}</view>
         </view>
       </view>
       <view class="home-calendar-tag">查看日历</view>
+    </view>
+  </view>
+
+  <!--日历弹窗-->
+  <view wx:if="{{showCalendarModal}}" class="calendar-modal" bindtap="hideCalendarModal">
+    <view class="calendar-modal-content" catchtap>
+      <view class="calendar-modal-header">
+        <view class="calendar-modal-title">日历</view>
+        <view class="calendar-modal-close" bindtap="hideCalendarModal">✕</view>
+      </view>
+      <calendar 
+        mode="{{calendarMode}}"
+        selected-date="{{selectedCalendarDate}}"
+        show-lunar="{{true}}"
+        show-brazil-holidays="{{true}}"
+        bind:dateSelect="handleCalendarDateSelect"
+        bind:modeChange="handleCalendarModeChange"
+      />
     </view>
   </view>
 

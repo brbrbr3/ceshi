@@ -1,4 +1,7 @@
 {
   "navigationStyle": "custom",
-  "backgroundColor": "#EEF2FF"
+  "backgroundColor": "#EEF2FF",
+  "usingComponents": {
+    "calendar": "/components/calendar/calendar"
+  }
 }

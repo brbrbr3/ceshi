@@ -1,5 +1,6 @@
 const app = getApp()
 const utils = require('../../../common/utils.js')
+const lunar = require('../../../components/calendar/lunar.js')
 
 // 权限缓存 key
 const PERMISSION_CACHE_KEY = 'office-permission-cache'
@@ -13,6 +14,7 @@ Page({
     displayName: '访客',
     greetingText: '欢迎使用Embaixada办公系统',
     currentDateText: '',
+    lunarDateText: '',
     roleLabel: '待认证用户',
     pendingApprovalCount: 0,
     unreadNotificationCount: 0,
@@ -21,6 +23,10 @@ Page({
     canAccessTripDashboard: false,
     // 权限缓存
     permissionCache: {},
+    // 日历相关
+    showCalendarModal: false,
+    calendarMode: 'month',
+    selectedCalendarDate: Date.now(),
     stats: [
       { label: '待审批', value: '0', color: '#F44336', bg: '#FFEBEE' }
     ],
@@ -39,8 +45,12 @@ Page({
   },
 
   onShow() {
+    const now = new Date()
+    const lunarInfo = lunar.getDateInfoCached(now.getTime())
+    
     this.setData({
-      currentDateText: this.getCurrentDateText()
+      currentDateText: this.getCurrentDateText(),
+      lunarDateText: lunarInfo.displayText
     })
     this.syncUserProfile()
     this.syncNotifications()
@@ -327,5 +337,41 @@ Page({
       title: '功能开发中，敬请期待',
       icon: 'none'
     })
+  },
+
+  // ========== 日历相关方法 ==========
+
+  /**
+   * 打开日历弹窗
+   */
+  handleCalendarTap() {
+    this.setData({
+      showCalendarModal: true,
+      selectedCalendarDate: Date.now()
+    })
+  },
+
+  /**
+   * 关闭日历弹窗
+   */
+  hideCalendarModal() {
+    this.setData({ showCalendarModal: false })
+  },
+
+  /**
+   * 日历日期选中
+   */
+  handleCalendarDateSelect(e) {
+    const { date, lunar, holiday } = e.detail
+    console.log('选中日期:', date, lunar, holiday)
+    // 可以在这里处理日期选择后的逻辑
+  },
+
+  /**
+   * 日历模式变化
+   */
+  handleCalendarModeChange(e) {
+    const { mode } = e.detail
+    this.setData({ calendarMode: mode })
   }
 })

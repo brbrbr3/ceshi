@@ -1,0 +1,156 @@
+<!--日历组件 - 月视图模板-->
+<view class="calendar-container">
+  <!-- 标题栏 -->
+  <view class="calendar-header">
+    <view class="calendar-title-row">
+      <view class="calendar-nav" bindtap="handleMonthSwiperChange" data-direction="prev">
+        <text class="calendar-nav-arrow">‹</text>
+      </view>
+      <view class="calendar-title" bindtap="handleTitleTap">
+        {{swiperMonths[1].title}}
+      </view>
+      <view class="calendar-nav" bindtap="handleMonthSwiperChange" data-direction="next">
+        <text class="calendar-nav-arrow">›</text>
+      </view>
+    </view>
+    
+    <!-- 模式切换 -->
+    <view class="calendar-mode-tabs">
+      <view class="calendar-mode-tab {{mode === 'month' ? 'is-active' : ''}}" bindtap="handleModeTap" data-mode="month">月</view>
+      <view class="calendar-mode-tab {{mode === 'week' ? 'is-active' : ''}}" bindtap="handleModeTap" data-mode="week">周</view>
+      <view class="calendar-mode-tab {{mode === 'year' ? 'is-active' : ''}}" bindtap="handleModeTap" data-mode="year">年</view>
+    </view>
+  </view>
+
+  <!-- 月视图内容 -->
+  <view class="calendar-body" wx:if="{{mode === 'month'}}">
+    <!-- 星期标题 -->
+    <view class="calendar-weekdays">
+      <view wx:for="{{WEEKDAY_NAMES}}" wx:key="index" class="calendar-weekday {{index === 0 || index === 6 ? 'is-weekend' : ''}}">
+        {{item}}
+      </view>
+    </view>
+
+    <!-- 日期网格 - Swiper -->
+    <swiper 
+      class="calendar-swiper"
+      current="{{swiperIndex}}"
+      bindchange="handleMonthSwiperChange"
+      duration="{{200}}"
+      circular="{{false}}"
+    >
+      <swiper-item wx:for="{{swiperMonths}}" wx:key="title" wx:for-index="pageIndex" wx:for-item="monthData">
+        <view class="calendar-grid">
+          <view 
+            wx:for="{{monthData.days}}" 
+            wx:key="timestamp"
+            class="calendar-day {{item.isCurrentMonth ? '' : 'is-other-month'}} {{item.isToday ? 'is-today' : ''}} {{item.isSelected ? 'is-selected' : ''}} {{item.isWeekend ? 'is-weekend' : ''}} {{item.inRange ? 'in-range' : ''}} {{item.isRangeStart ? 'is-range-start' : ''}} {{item.isRangeEnd ? 'is-range-end' : ''}}"
+            bindtap="handleDayTap"
+            data-day="{{item}}"
+          >
+            <!-- 日期内容 -->
+            <view class="calendar-day-content">
+              <!-- 日期行：日期数字 + 右上角标注 -->
+              <view class="calendar-day-row">
+                <text class="calendar-day-num">{{item.day}}</text>
+                <text wx:if="{{item.marking}}" class="calendar-day-mark calendar-day-mark--{{item.marking.type}}">
+                  {{item.marking.label}}
+                </text>
+              </view>
+              
+              <!-- 农历/节气 -->
+              <text wx:if="{{showLunar}}" class="calendar-day-lunar">
+                {{item.displayText}}
+              </text>
+              
+              <!-- 巴西节假日 -->
+              <text wx:if="{{showBrazilHolidays && item.holidayText}}" class="calendar-day-holiday">
+                {{item.holidayText}}
+              </text>
+            </view>
+          </view>
+        </view>
+      </swiper-item>
+    </swiper>
+
+    <!-- 今天按钮 -->
+    <view class="calendar-today-btn" bindtap="handleTodayTap">今天</view>
+  </view>
+
+  <!-- 周视图内容 -->
+  <view class="calendar-body" wx:if="{{mode === 'week'}}">
+    <!-- 星期标题 -->
+    <view class="calendar-weekdays">
+      <view wx:for="{{WEEKDAY_NAMES}}" wx:key="index" class="calendar-weekday {{index === 0 || index === 6 ? 'is-weekend' : ''}}">
+        {{item}}
+      </view>
+    </view>
+
+    <!-- 周视图 Swiper -->
+    <swiper 
+      class="calendar-swiper calendar-swiper--week"
+      current="{{swiperIndex}}"
+      bindchange="handleWeekSwiperChange"
+      duration="{{200}}"
+      circular="{{false}}"
+    >
+      <swiper-item wx:for="{{swiperWeeks}}" wx:key="startDate" wx:for-index="pageIndex" wx:for-item="weekData">
+        <view class="calendar-week-row">
+          <view 
+            wx:for="{{weekData.days}}" 
+            wx:key="timestamp"
+            class="calendar-day calendar-day--week {{item.isToday ? 'is-today' : ''}} {{item.isSelected ? 'is-selected' : ''}} {{item.isWeekend ? 'is-weekend' : ''}}"
+            bindtap="handleDayTap"
+            data-day="{{item}}"
+          >
+            <view class="calendar-day-content">
+              <view class="calendar-day-row">
+                <text class="calendar-day-num">{{item.day}}</text>
+                <text wx:if="{{item.marking}}" class="calendar-day-mark calendar-day-mark--{{item.marking.type}}">
+                  {{item.marking.label}}
+                </text>
+              </view>
+              <text wx:if="{{showLunar}}" class="calendar-day-lunar">{{item.displayText}}</text>
+              <text wx:if="{{showBrazilHolidays && item.holidayText}}" class="calendar-day-holiday">{{item.holidayText}}</text>
+            </view>
+          </view>
+        </view>
+      </swiper-item>
+    </swiper>
+
+    <!-- 日程区域 -->
+    <view class="calendar-schedules" wx:if="{{currentSchedules.length > 0}}">
+      <view class="calendar-schedules-title">日程安排</view>
+      <view class="calendar-schedules-list">
+        <view wx:for="{{currentSchedules}}" wx:key="id" class="calendar-schedule-item">
+          <view class="calendar-schedule-time">{{item.time}}</view>
+          <view class="calendar-schedule-title">{{item.title}}</view>
+        </view>
+      </view>
+    </view>
+    <view class="calendar-schedules calendar-schedules--empty" wx:else>
+      <text class="calendar-schedules-empty-text">暂无日程安排</text>
+    </view>
+  </view>
+
+  <!-- 年视图内容 -->
+  <view class="calendar-body calendar-body--year" wx:if="{{mode === 'year'}}">
+    <view class="calendar-year-grid">
+      <view wx:for="{{yearMonths}}" wx:key="month" class="calendar-year-month">
+        <view class="calendar-year-month-title">{{item.title}}</view>
+        <view class="calendar-year-weekdays">
+          <view wx:for="{{WEEKDAY_NAMES}}" wx:key="index" class="calendar-year-weekday">{{item}}</view>
+        </view>
+        <view class="calendar-year-days">
+          <view 
+            wx:for="{{item.days}}" 
+            wx:key="timestamp"
+            class="calendar-year-day {{item.isToday ? 'is-today' : ''}} {{item.isWeekend ? 'is-weekend' : ''}}"
+          >
+            <text wx:if="{{item.isCurrentMonth}}">{{item.day}}</text>
+          </view>
+        </view>
+      </view>
+    </view>
+  </view>
+</view>
