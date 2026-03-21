@@ -19,14 +19,14 @@
     </view>
 
     <view class="home-greeting">{{greetingText}}</view>
-    <view class="home-date">{{currentDateText}}</view>
+    <!-- <view class="home-date">{{currentDateText}}</view> -->
 
     <view class="office-glass-card home-attendance">
       <view class="home-attendance-main">
         <view class="home-attendance-icon">📅</view>
         <view>
-          <view class="home-attendance-title">今天是工作日</view>
-          <view class="home-attendance-desc">在岗中</view>
+          <view class="home-attendance-title">{{currentDateText}}</view>
+          <view class="home-attendance-desc">今天是工作日</view>
         </view>
       </view>
       <view class="home-attendance-tag">正常</view>

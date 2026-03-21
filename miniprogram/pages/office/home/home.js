@@ -44,7 +44,7 @@ Page({
   getCurrentDateText() {
     const weekMap = ['星期日', '星期一', '星期二', '星期三', '星期四', '星期五', '星期六']
     const date = new Date()
-    return `今天是 ${date.getFullYear()} 年 ${date.getMonth() + 1} 月 ${date.getDate()} 日 · ${weekMap[date.getDay()]}`
+    return ` ${date.getFullYear()} 年 ${date.getMonth() + 1} 月 ${date.getDate()} 日　${weekMap[date.getDay()]}`
   },
 
   getGreeting(name) {
