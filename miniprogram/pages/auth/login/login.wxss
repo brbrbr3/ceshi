@@ -1,3 +1,193 @@
 page {
   background: #EEF2FF;
 }
+
+/* 调试模式入口 */
+.auth-debug-entry {
+  margin: 40rpx auto;
+  padding: 20rpx 40rpx;
+  font-size: 24rpx;
+  color: #999;
+  text-align: center;
+  text-decoration: underline;
+}
+
+/* 调试密码弹窗 */
+.auth-modal-overlay {
+  position: fixed;
+  top: 0;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  background: rgba(0, 0, 0, 0.5);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  z-index: 1000;
+}
+
+.auth-modal {
+  width: 80%;
+  max-width: 600rpx;
+  background: #fff;
+  border-radius: 16rpx;
+  padding: 40rpx;
+}
+
+.auth-modal-title {
+  font-size: 32rpx;
+  font-weight: 600;
+  text-align: center;
+  margin-bottom: 30rpx;
+  color: #333;
+}
+
+.auth-modal-input {
+  width: 100%;
+  height: 80rpx;
+  padding: 0 20rpx;
+  border: 1rpx solid #ddd;
+  border-radius: 8rpx;
+  font-size: 28rpx;
+  box-sizing: border-box;
+}
+
+.auth-modal-actions {
+  display: flex;
+  margin-top: 30rpx;
+  gap: 20rpx;
+}
+
+.auth-modal-btn {
+  flex: 1;
+  height: 80rpx;
+  line-height: 80rpx;
+  text-align: center;
+  border-radius: 8rpx;
+  font-size: 28rpx;
+}
+
+.auth-modal-btn-cancel {
+  background: #f5f5f5;
+  color: #666;
+}
+
+.auth-modal-btn-confirm {
+  background: #1890ff;
+  color: #fff;
+}
+
+/* 调试面板 */
+.auth-debug-panel {
+  margin: 40rpx 30rpx;
+  padding: 30rpx;
+  background: #fff;
+  border-radius: 16rpx;
+  box-shadow: 0 2rpx 12rpx rgba(0, 0, 0, 0.08);
+}
+
+.auth-debug-panel-title {
+  font-size: 32rpx;
+  font-weight: 600;
+  color: #333;
+  margin-bottom: 10rpx;
+}
+
+.auth-debug-panel-desc {
+  font-size: 24rpx;
+  color: #999;
+  margin-bottom: 30rpx;
+}
+
+.auth-debug-buttons {
+  display: flex;
+  flex-direction: column;
+  gap: 20rpx;
+}
+
+.auth-debug-btn {
+  height: 80rpx;
+  line-height: 80rpx;
+  text-align: center;
+  background: #f0f5ff;
+  color: #1890ff;
+  border-radius: 8rpx;
+  font-size: 28rpx;
+}
+
+.auth-debug-btn:active {
+  background: #d6e4ff;
+}
+
+.auth-debug-close {
+  margin-top: 30rpx;
+  text-align: center;
+  font-size: 26rpx;
+  color: #999;
+  text-decoration: underline;
+}
+
+/* 调试结果 */
+.auth-debug-results {
+  margin-top: 30rpx;
+  padding-top: 30rpx;
+  border-top: 1rpx solid #eee;
+}
+
+.auth-debug-results-title {
+  font-size: 28rpx;
+  font-weight: 600;
+  color: #333;
+  margin-bottom: 20rpx;
+}
+
+.auth-debug-result-item {
+  padding: 20rpx;
+  background: #f9f9f9;
+  border-radius: 8rpx;
+  margin-bottom: 20rpx;
+}
+
+.auth-debug-result-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+}
+
+.auth-debug-result-name {
+  font-size: 28rpx;
+  font-weight: 500;
+  color: #333;
+}
+
+.auth-debug-result-status {
+  font-size: 24rpx;
+  padding: 4rpx 12rpx;
+  border-radius: 4rpx;
+}
+
+.auth-debug-result-status.is-success {
+  background: #e6fffb;
+  color: #52c41a;
+}
+
+.auth-debug-result-status.is-fail {
+  background: #fff1f0;
+  color: #ff4d4f;
+}
+
+.auth-debug-result-message {
+  margin-top: 10rpx;
+  font-size: 24rpx;
+  color: #666;
+}
+
+.auth-debug-result-data {
+  margin-top: 10rpx;
+  font-size: 22rpx;
+  color: #999;
+  word-break: break-all;
+  white-space: pre-wrap;
+  max-height: 300rpx;
+  overflow-y: auto;
+}

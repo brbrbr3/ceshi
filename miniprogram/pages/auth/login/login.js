@@ -53,7 +53,13 @@ Page({
     statusCard: null,
     showRegisterLink: true,
     avatarUrl: '',
-    tempAvatarUrl: ''
+    tempAvatarUrl: '',
+    // 调试模式相关
+    isAdmin: false,
+    showPasswordModal: false,
+    debugPassword: '',
+    showDebugPanel: false,
+    debugResults: []
   },
 
   onShow() {
@@ -119,9 +125,13 @@ Page({
 
         // 已注册用户不显示注册链接
         // 未注册用户：没有申请或申请被驳回时显示注册链接，申请审核中不显示
+        // 检查是否为管理员
+        const isAdmin = result.registered && result.user && result.user.isAdmin === true
+
         this.setData({
           statusCard,
-          showRegisterLink: !result.registered && (!result.request || result.request.status === 'rejected')
+          showRegisterLink: !result.registered && (!result.request || result.request.status === 'rejected'),
+          isAdmin
         })
       })
       .catch((error) => {
@@ -199,6 +209,128 @@ Page({
   goRegister() {
     wx.navigateTo({
       url: '/pages/auth/register/register'
+    })
+  },
+
+  // ========== 调试模式相关方法 ==========
+
+  showDebugPassword() {
+    this.setData({
+      showPasswordModal: true,
+      debugPassword: ''
+    })
+  },
+
+  hideDebugPassword() {
+    this.setData({
+      showPasswordModal: false,
+      debugPassword: ''
+    })
+  },
+
+  onDebugPasswordInput(e) {
+    this.setData({
+      debugPassword: e.detail.value
+    })
+  },
+
+  verifyDebugPassword() {
+    if (this.data.debugPassword === '0802') {
+      this.setData({
+        showPasswordModal: false,
+        debugPassword: '',
+        showDebugPanel: true,
+        debugResults: []
+      })
+    } else {
+      utils.showToast({
+        title: '密码错误',
+        icon: 'none'
+      })
+    }
+  },
+
+  hideDebugPanel() {
+    this.setData({
+      showDebugPanel: false,
+      debugResults: []
+    })
+  },
+
+  // 添加调试结果
+  addDebugResult(name, success, message, data) {
+    const result = {
+      id: Date.now(),
+      name,
+      success,
+      message,
+      data: data ? JSON.stringify(data, null, 2) : null
+    }
+    this.setData({
+      debugResults: [result, ...this.data.debugResults]
+    })
+  },
+
+  // 调用初始化数据库
+  callInitDatabase() {
+    wx.showLoading({ title: '执行中...', mask: true })
+    wx.cloud.callFunction({
+      name: 'initDatabase',
+      data: {}
+    }).then(res => {
+      wx.hideLoading()
+      const result = res.result || {}
+      this.addDebugResult(
+        '初始化数据库',
+        result.code === 0,
+        result.message || (result.code === 0 ? '执行成功' : '执行失败'),
+        result.data
+      )
+    }).catch(error => {
+      wx.hideLoading()
+      this.addDebugResult('初始化数据库', false, error.message || '执行失败')
+    })
+  },
+
+  // 调用初始化系统配置
+  callInitSystemConfig() {
+    wx.showLoading({ title: '执行中...', mask: true })
+    wx.cloud.callFunction({
+      name: 'initSystemConfig',
+      data: {}
+    }).then(res => {
+      wx.hideLoading()
+      const result = res.result || {}
+      this.addDebugResult(
+        '初始化系统配置',
+        result.code === 0,
+        result.message || (result.code === 0 ? '执行成功' : '执行失败'),
+        result.data
+      )
+    }).catch(error => {
+      wx.hideLoading()
+      this.addDebugResult('初始化系统配置', false, error.message || '执行失败')
+    })
+  },
+
+  // 调用初始化工作流
+  callInitWorkflowDB() {
+    wx.showLoading({ title: '执行中...', mask: true })
+    wx.cloud.callFunction({
+      name: 'initWorkflowDB',
+      data: {}
+    }).then(res => {
+      wx.hideLoading()
+      const result = res.result || {}
+      this.addDebugResult(
+        '初始化工作流',
+        result.code === 0,
+        result.message || (result.code === 0 ? '执行成功' : '执行失败'),
+        result.data
+      )
+    }).catch(error => {
+      wx.hideLoading()
+      this.addDebugResult('初始化工作流', false, error.message || '执行失败')
     })
   }
 })

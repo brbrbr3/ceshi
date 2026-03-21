@@ -136,7 +136,7 @@ const REQUIRED_COLLECTIONS = [
   // ==================== 外出报备相关 ====================
   {
     name: 'trip_reports',
-    description: '外出报备记录',
+    description: '外出报备记录（含同行人代报备功能）',
     aclTag: 'READONLY',
     indexes: [
       { name: 'idx_openid_status', keys: [{ name: '_openid', direction: '1' }, { name: 'status', direction: '1' }] },

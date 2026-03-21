@@ -74,8 +74,7 @@ App({
       })
     }
     this.restoreAuthState()
-    // 初始化顺序：1.数据库集合 -> 2.系统配置 -> 3.工作流模板
-    this.initDatabase()
+    // 初始化函数改为手动调用（通过 login 页面的调试模式）
   },
 
   onShow(opts) {

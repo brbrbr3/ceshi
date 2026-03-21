@@ -36,4 +36,44 @@
   </view>
 
   <view wx:if="{{showRegisterLink}}" class="auth-bottom-link" bindtap="goRegister">还没有登记资料？去填写注册申请</view>
+
+  <!-- 调试模式入口（仅管理员可见） -->
+  <view wx:if="{{isAdmin}}" class="auth-debug-entry" bindtap="showDebugPassword">调试模式</view>
+
+  <!-- 调试密码输入弹窗 -->
+  <view wx:if="{{showPasswordModal}}" class="auth-modal-overlay" bindtap="hideDebugPassword">
+    <view class="auth-modal" catchtap>
+      <view class="auth-modal-title">输入调试密码</view>
+      <input class="auth-modal-input" type="password" password="{{true}}" placeholder="请输入密码" value="{{debugPassword}}" bindinput="onDebugPasswordInput" />
+      <view class="auth-modal-actions">
+        <view class="auth-modal-btn auth-modal-btn-cancel" bindtap="hideDebugPassword">取消</view>
+        <view class="auth-modal-btn auth-modal-btn-confirm" bindtap="verifyDebugPassword">确认</view>
+      </view>
+    </view>
+  </view>
+
+  <!-- 调试面板 -->
+  <view wx:if="{{showDebugPanel}}" class="auth-debug-panel">
+    <view class="auth-debug-panel-title">调试面板</view>
+    <view class="auth-debug-panel-desc">点击执行对应的初始化函数</view>
+    <view class="auth-debug-buttons">
+      <view class="auth-debug-btn" bindtap="callInitDatabase">初始化数据库</view>
+      <view class="auth-debug-btn" bindtap="callInitSystemConfig">初始化系统配置</view>
+      <view class="auth-debug-btn" bindtap="callInitWorkflowDB">初始化工作流</view>
+    </view>
+    <view class="auth-debug-close" bindtap="hideDebugPanel">关闭调试面板</view>
+
+    <!-- 调试结果输出区域 -->
+    <view wx:if="{{debugResults.length > 0}}" class="auth-debug-results">
+      <view class="auth-debug-results-title">执行结果</view>
+      <view wx:for="{{debugResults}}" wx:key="id" class="auth-debug-result-item">
+        <view class="auth-debug-result-header">
+          <text class="auth-debug-result-name">{{item.name}}</text>
+          <text class="auth-debug-result-status {{item.success ? 'is-success' : 'is-fail'}}">{{item.success ? '成功' : '失败'}}</text>
+        </view>
+        <view wx:if="{{item.message}}" class="auth-debug-result-message">{{item.message}}</view>
+        <view wx:if="{{item.data}}" class="auth-debug-result-data">{{item.data}}</view>
+      </view>
+    </view>
+  </view>
 </view>

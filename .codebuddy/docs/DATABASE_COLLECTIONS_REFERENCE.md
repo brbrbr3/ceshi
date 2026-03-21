@@ -534,7 +534,7 @@
 
 ### 13. trip_reports - 外出报备记录
 
-**用途**：存储用户外出报备记录
+**用途**：存储用户外出报备记录，支持同行人代报备功能
 
 **安全规则**：`READONLY` - 所有用户可读，仅创建者可写
 
@@ -557,17 +557,25 @@
   userName: String,               // 用户姓名
   department: String,             // 所属部门（用于 Dashboard 过滤）
   destination: String,            // 目的地
-  companions: String,             // 同行人
+  companions: String,             // 同行人（多个用空格分隔）
   plannedReturnAt: Number,        // 计划返回时间戳
   travelMode: String,             // 出行方式：'自驾' | '搭车' | '打车' | '步行'
   departAt: Number,               // 外出时间戳
   returnAt: Number,               // 实际返回时间戳（null 表示未返回）
   status: String,                 // 状态：'out'（外出中）| 'returned'（已返回）| 'overtime'（超时）
   overtimeNotified: Boolean,      // 是否已发送超时通知
+  createdByOpenid: String,        // 代报备人 openid（为 null 表示自己报备）
+  createdByName: String,          // 代报备人姓名（为 null 表示自己报备）
   createdAt: Number,              // 创建时间戳
   updatedAt: Number               // 更新时间戳
 }
 ```
+
+**代报备说明**：
+- 当用户A报备外出时，输入同行人B（为系统注册用户）
+- 系统会自动为B创建一条报备记录，设置 `createdByOpenid` 和 `createdByName` 字段
+- B的 `companions` 字段会包含本次出行的其他所有人（A + 其他同行人）
+- 返回报备时只更新当前用户自己的记录，同行人需自行报备返回
 
 ---
 
