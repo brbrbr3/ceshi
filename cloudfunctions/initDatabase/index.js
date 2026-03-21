@@ -143,6 +143,16 @@ const REQUIRED_COLLECTIONS = [
       { name: 'idx_departAt', keys: [{ name: 'departAt', direction: '-1' }] },
       { name: 'idx_department', keys: [{ name: 'department', direction: '1' }] }
     ]
+  },
+
+  // ==================== 日历相关 ====================
+  {
+    name: 'holiday_configs',
+    description: '节假日配置',
+    aclTag: 'ADMINWRITE',
+    indexes: [
+      { name: 'idx_year', keys: [{ name: 'year', direction: '1' }] }
+    ]
   }
 ]
 

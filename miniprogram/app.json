@@ -18,6 +18,7 @@
     "pages/office/announcement-list/announcement-list",
     "pages/office/announcement-detail/announcement-detail",
     "pages/office/announcement-create/announcement-create",
+    "pages/office/calendar/calendar",
     "page/component/index",
     "page/API/index",
     "page/cloud/index",

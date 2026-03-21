@@ -327,5 +327,14 @@ Page({
       title: '功能开发中，敬请期待',
       icon: 'none'
     })
+  },
+
+  /**
+   * 跳转到日历页面
+   */
+  goCalendar() {
+    wx.navigateTo({
+      url: '/pages/office/calendar/calendar'
+    })
   }
 })

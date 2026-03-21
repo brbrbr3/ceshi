@@ -1,0 +1,79 @@
+<!--本馆日历页面-->
+<view class="calendar-page">
+  <!-- 自定义导航栏 -->
+  <view class="custom-nav" style="padding-top: {{statusBarHeight}}px;">
+    <view class="nav-bar">
+      <view class="nav-left" bindtap="handleBack">
+        <text class="nav-back-icon">◀</text>
+      </view>
+      <view class="nav-title">本馆日历</view>
+      <view class="nav-right" bindtap="handleConfigTap">
+        <text class="nav-config-text">配置</text>
+      </view>
+    </view>
+  </view>
+
+  <!-- 日历区域 -->
+  <view class="calendar-container">
+    <calendar
+      id="calendar"
+      view="month"
+      weekstart="{{0}}"
+      marks="{{marks}}"
+      custom-nav-bar="{{true}}"
+      bindload="handleCalendarLoad"
+      bindclick="handleCalendarClick"
+      bindchange="handleCalendarChange"
+      style="--wc-primary: #2563EB; --wc-bg-light: #FFFFFF;"
+    />
+  </view>
+
+  <!-- 配置弹窗 -->
+  <view class="config-popup-mask {{showConfigPopup ? 'is-visible' : ''}}" catchtouchmove="stopPropagation" bindtap="hideConfigPopup">
+    <view class="config-popup-container" catchtap="stopPropagation">
+      <view class="config-popup-header">
+        <view class="config-popup-title">配置节假日</view>
+        <view class="config-popup-close" bindtap="hideConfigPopup">×</view>
+      </view>
+
+      <view class="config-popup-form">
+        <!-- 年份选择 -->
+        <view class="config-field">
+          <view class="config-field-label">配置</view>
+          <picker mode="selector" range="{{yearOptions}}" value="{{yearOptions.indexOf(configYear)}}" bindchange="handleYearChange">
+            <view class="config-year-picker">
+              <text>{{configYear}}</text>
+              <text class="config-picker-arrow">▼</text>
+            </view>
+          </picker>
+          <view class="config-field-label-inline">年节假日</view>
+        </view>
+
+        <!-- 节假日列表 -->
+        <view class="config-holidays-list">
+          <view class="config-holiday-item" wx:for="{{holidays}}" wx:key="index">
+            <view class="config-holiday-label">第{{index + 1}}个节假日</view>
+            <picker mode="date" value="{{item.date}}" start="{{configYear}}-01-01" end="{{configYear}}-12-31" bindchange="handleDateChange" data-index="{{index}}">
+              <view class="config-date-picker">
+                <text>{{item.date}}</text>
+                <text class="config-picker-arrow">▼</text>
+              </view>
+            </picker>
+            <view class="config-delete-btn" bindtap="handleDeleteHoliday" data-index="{{index}}">×</view>
+          </view>
+        </view>
+
+        <!-- 添加按钮 -->
+        <view class="config-add-btn" bindtap="handleAddHoliday">
+          <text class="config-add-icon">+</text>
+          <text>添加节假日</text>
+        </view>
+
+        <!-- 提交按钮 -->
+        <button class="config-submit-btn" loading="{{submitting}}" disabled="{{submitting}}" bindtap="handleSubmitConfig">
+          提交配置
+        </button>
+      </view>
+    </view>
+  </view>
+</view>

@@ -82,18 +82,57 @@ module.exports =
 /******/
 /******/
 /******/ 	// Load entry module and return exports
-/******/ 	return __webpack_require__(__webpack_require__.s = 8);
+/******/ 	return __webpack_require__(__webpack_require__.s = 9);
 /******/ })
 /************************************************************************/
 /******/ ({
 
-/***/ 8:
+/***/ 10:
 /***/ (function(module, exports, __webpack_require__) {
 
 "use strict";
 
 
-var selectQuery = __webpack_require__(9);
+module.exports = Behavior({
+  methods: {
+    getRect: function getRect(selector) {
+      var _this = this;
+
+      return new Promise(function (resolve, reject) {
+        _this.createSelectorQuery().select(selector).boundingClientRect(function (rect) {
+          if (rect) {
+            resolve(rect);
+          } else {
+            reject(new Error("can not find selector: " + selector));
+          }
+        }).exec();
+      });
+    },
+    getAllRects: function getAllRects(selector) {
+      var _this2 = this;
+
+      return new Promise(function (resolve, reject) {
+        _this2.createSelectorQuery().selectAll(selector).boundingClientRect(function (rects) {
+          if (rects && rects.lenght > 0) {
+            resolve(rects);
+          } else {
+            reject(new Error("can not find selector: " + selector));
+          }
+        }).exec();
+      });
+    }
+  }
+});
+
+/***/ }),
+
+/***/ 9:
+/***/ (function(module, exports, __webpack_require__) {
+
+"use strict";
+
+
+var selectQuery = __webpack_require__(10);
 var target = '.weui-sticky';
 Component({
     options: {
@@ -127,12 +166,16 @@ Component({
     },
     observers: {
         disabled: function disabled(newVal) {
-            if (!this._attached) return;
+            if (!this.data._attached) return;
             newVal ? this.disconnectObserver() : this.initObserver();
         },
         container: function container(newVal) {
             if (typeof newVal !== 'function' || !this.data.height) return;
             this.observerContainer();
+        },
+        offsetTop: function offsetTop(newVal) {
+            if (typeof newVal !== 'number' || !this.data._attached) return;
+            this.initObserver();
         }
     },
     lifetimes: {
@@ -240,45 +283,6 @@ Component({
             this.setData({ fixed: fixed });
         }
     }
-});
-
-/***/ }),
-
-/***/ 9:
-/***/ (function(module, exports, __webpack_require__) {
-
-"use strict";
-
-
-module.exports = Behavior({
-  methods: {
-    getRect: function getRect(selector) {
-      var _this = this;
-
-      return new Promise(function (resolve, reject) {
-        _this.createSelectorQuery().select(selector).boundingClientRect(function (rect) {
-          if (rect) {
-            resolve(rect);
-          } else {
-            reject(new Error("can not find selector: " + selector));
-          }
-        }).exec();
-      });
-    },
-    getAllRects: function getAllRects(selector) {
-      var _this2 = this;
-
-      return new Promise(function (resolve, reject) {
-        _this2.createSelectorQuery().selectAll(selector).boundingClientRect(function (rects) {
-          if (rects && rects.lenght > 0) {
-            resolve(rects);
-          } else {
-            reject(new Error("can not find selector: " + selector));
-          }
-        }).exec();
-      });
-    }
-  }
 });
 
 /***/ })

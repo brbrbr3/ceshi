@@ -579,6 +579,39 @@
 
 ---
 
+### 14. holiday_configs - 节假日配置
+
+**用途**：存储节假日日期配置，用于日历组件显示"休"角标
+
+**安全规则**：`ADMINWRITE` - 所有用户可读，仅管理员可写
+
+**记录数**：动态
+
+**索引**：
+
+- `_id` - 记录 ID（云开发自动创建）
+- `idx_year` - 年份索引 - 优化按年份查询
+
+**字段结构**：
+```javascript
+{
+  _id: String,                    // 记录 ID（自动生成）
+  year: Number,                   // 配置年份（如 2026）
+  dates: Array[String],           // 节假日日期数组 ['2026-01-01', '2026-01-02', ...]
+  createdBy: String,              // 创建者 openid
+  createdByName: String,          // 创建者姓名
+  createdAt: Number,              // 创建时间戳
+  updatedAt: Number               // 更新时间戳
+}
+```
+
+**使用说明**：
+- 每年一条记录，包含该年所有节假日日期
+- 日期格式为 `YYYY-MM-DD`
+- 日历组件根据此数据显示"休"角标
+
+---
+
 ## 命名规范
 
 ### 集合命名规则
@@ -701,6 +734,7 @@ const notificationsCollection = db.collection('notifications')  // ✅
 | 2026-03-19 | 移除 workflow_subscriptions 集合（订阅消息功能已删除） | AI |
 | 2026-03-19 | 修正工作流相关集合安全规则：PRIVATE → ADMINWRITE | AI |
 | 2026-03-19 | 添加安全规则重要说明（云函数创建数据的权限问题） | AI |
+| 2026-03-21 | 添加 holiday_configs 节假日配置集合 | AI |
 
 ---
 
