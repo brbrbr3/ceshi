@@ -72,7 +72,9 @@
           <text class="auth-debug-result-status {{item.success ? 'is-success' : 'is-fail'}}">{{item.success ? '成功' : '失败'}}</text>
         </view>
         <view wx:if="{{item.message}}" class="auth-debug-result-message">{{item.message}}</view>
-        <view wx:if="{{item.data}}" class="auth-debug-result-data">{{item.data}}</view>
+        <view wx:if="{{item.data}}" class="auth-debug-result-data">
+          <text selectable="true" user-select="true">{{item.data}}</text>
+        </view>
       </view>
     </view>
   </view>
