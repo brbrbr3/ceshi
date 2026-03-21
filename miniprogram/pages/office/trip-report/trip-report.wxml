@@ -111,7 +111,6 @@
               placeholder="请输入目的地" 
               placeholder-class="trip-input-placeholder"
               bindinput="handleDestinationInput"
-              bindfocus="handleDestinationFocus"
               bindblur="handleDestinationBlur"
             />
           </view>
@@ -135,11 +134,10 @@
               placeholder="请输入同行人（选填）" 
               placeholder-class="trip-input-placeholder"
               bindinput="handleCompanionsInput"
-              bindfocus="handleCompanionsFocus"
               bindblur="handleCompanionsBlur"
             />
           </view>
-          <view class="trip-field-hint">多个同行人用空格分隔，系统用户将自动代报备</view>
+          <view class="trip-field-hint">多个同行人用空格分隔，系统将自动为同行人代报备</view>
           <!-- 历史记录快捷选择 -->
           <view wx:if="{{showCompanionsHistory && companionsHistory.length > 0}}" class="trip-history-list">
             <view class="trip-history-title">最近使用</view>

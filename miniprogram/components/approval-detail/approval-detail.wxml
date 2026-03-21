@@ -1,4 +1,4 @@
-<view class="approval-modal-mask {{animVisible ? 'is-visible' : ''}}" bindtap="handleClose">
+<view class="approval-modal-mask {{animVisible ? 'is-visible' : ''}}" bindtap="handleClose" catchtouchmove="stopPropagation">
   <view class="approval-modal-card" catchtap="noop">
     <!-- 标题栏 - 固定在顶部 -->
     <view class="approval-modal-head">

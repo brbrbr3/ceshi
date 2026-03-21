@@ -10,42 +10,42 @@
         <text>＋ 发布</text>
       </view>
     </view>
-  </view>
 
-  <!-- 筛选标签 -->
-  <view class="announcements-content">
-    <view class="office-card filter-card">
-      <view class="filter-tabs">
-        <view
-          class="filter-tab {{filterType === 'all' ? 'active' : ''}}"
-          bindtap="handleFilterChange"
-          data-type="all"
-        >
-          全部
-        </view>
-        <view
-          class="filter-tab {{filterType === 'urgent' ? 'active' : ''}}"
-          bindtap="handleFilterChange"
-          data-type="urgent"
-        >
-          紧急
-        </view>
-        <view
-          class="filter-tab {{filterType === 'important' ? 'active' : ''}}"
-          bindtap="handleFilterChange"
-          data-type="important"
-        >
-          重要
-        </view>
-        <view
-          class="filter-tab {{filterType === 'normal' ? 'active' : ''}}"
-          bindtap="handleFilterChange"
-          data-type="normal"
-        >
-          普通
-        </view>
+    <!-- 筛选标签（透明样式） -->
+    <view class="announcements-tabs-shell">
+      <view
+        class="announcements-tab {{filterType === 'all' ? 'is-active' : ''}}"
+        bindtap="handleFilterChange"
+        data-type="all"
+      >
+        全部
+      </view>
+      <view
+        class="announcements-tab {{filterType === 'urgent' ? 'is-active' : ''}}"
+        bindtap="handleFilterChange"
+        data-type="urgent"
+      >
+        紧急
+      </view>
+      <view
+        class="announcements-tab {{filterType === 'important' ? 'is-active' : ''}}"
+        bindtap="handleFilterChange"
+        data-type="important"
+      >
+        重要
+      </view>
+      <view
+        class="announcements-tab {{filterType === 'normal' ? 'is-active' : ''}}"
+        bindtap="handleFilterChange"
+        data-type="normal"
+      >
+        普通
       </view>
     </view>
+  </view>
+
+  <!-- 列表内容 -->
+  <view class="announcements-content">
 
     <!-- 列表内容 -->
     <view class="office-card announcements-list" wx:if="{{list.length > 0}}">

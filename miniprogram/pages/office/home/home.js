@@ -1,6 +1,10 @@
 const app = getApp()
 const utils = require('../../../common/utils.js')
 
+// 权限缓存 key
+const PERMISSION_CACHE_KEY = 'office-permission-cache'
+const PERMISSION_CACHE_EXPIRE = 5 * 60 * 1000 // 5分钟缓存
+
 // 使用统一的时间格式化函数
 const formatTime = (timestamp) => utils.formatRelativeTime(timestamp)
 
@@ -15,14 +19,16 @@ Page({
     loading: false,
     currentUser: null,
     canAccessTripDashboard: false,
+    // 权限缓存
+    permissionCache: {},
     stats: [
       { label: '待审批', value: '0', color: '#F44336', bg: '#FFEBEE' }
     ],
     quickActions: [
-      { icon: '🍽️', label: '每周菜单', color: '#16A34A', bg: '#DCFCE7', implemented: true },
-      { icon: '🏥', label: '就医申请', color: '#EF4444', bg: '#FEE2E2', implemented: true },
-      { icon: '🚗', label: '外出报备', color: '#2563EB', bg: '#EFF6FF', implemented: true },
-      { icon: '📊', label: '出行管理', color: '#7C3AED', bg: '#F3E8FF', implemented: true, adminOnly: true }
+      { icon: '🍽️', label: '每周菜单', color: '#16A34A', bg: '#DCFCE7', implemented: true, featureKey: null },
+      { icon: '🏥', label: '就医申请', color: '#EF4444', bg: '#FEE2E2', implemented: true, featureKey: 'medical_application' },
+      { icon: '🚗', label: '外出报备', color: '#2563EB', bg: '#EFF6FF', implemented: true, featureKey: null },
+      { icon: '📊', label: '出行管理', color: '#7C3AED', bg: '#F3E8FF', implemented: true, featureKey: 'trip_dashboard' }
     ],
     announcements: [],
     schedules: [
@@ -39,6 +45,51 @@ Page({
     this.syncUserProfile()
     this.syncNotifications()
     this.loadAnnouncements()
+    this.loadPermissionCache()
+  },
+
+  /**
+   * 加载权限缓存
+   * 批量检查功能权限并存入缓存，提升后续访问性能
+   */
+  loadPermissionCache() {
+    // 从本地存储读取缓存
+    try {
+      const cached = wx.getStorageSync(PERMISSION_CACHE_KEY)
+      if (cached && cached.timestamp && (Date.now() - cached.timestamp < PERMISSION_CACHE_EXPIRE)) {
+        this.setData({ permissionCache: cached.permissions || {} })
+        console.log('使用缓存的权限信息')
+        return
+      }
+    } catch (e) {
+      console.warn('读取权限缓存失败:', e)
+    }
+
+    // 批量检查权限
+    const featureKeys = ['medical_application', 'trip_dashboard']
+    app.batchCheckPermissions(featureKeys)
+      .then((result) => {
+        const permissions = {}
+        featureKeys.forEach(key => {
+          permissions[key] = result[key] ? result[key].allowed : false
+        })
+
+        this.setData({ permissionCache: permissions })
+
+        // 存入本地缓存
+        try {
+          wx.setStorageSync(PERMISSION_CACHE_KEY, {
+            timestamp: Date.now(),
+            permissions
+          })
+          console.log('权限信息已缓存')
+        } catch (e) {
+          console.warn('缓存权限信息失败:', e)
+        }
+      })
+      .catch((error) => {
+        console.error('批量检查权限失败:', error)
+      })
   },
 
   getCurrentDateText() {
@@ -203,77 +254,72 @@ Page({
 
   handleQuickAction(e) {
     const label = e.currentTarget.dataset.label
+    const featureKey = e.currentTarget.dataset.feature
+
     if (label === '每周菜单') {
       wx.navigateTo({
         url: '/pages/office/menus/menus'
       })
     } else if (label === '就医申请') {
-      // 使用统一的权限检查
-      app.checkPermission('medical_application')
-        .then((hasPermission) => {
-          if (hasPermission) {
+      // 优先使用缓存权限
+      const hasPermission = this.data.permissionCache['medical_application']
+      if (hasPermission === true) {
+        wx.navigateTo({
+          url: '/pages/office/medical-application/medical-application'
+        })
+      } else if (hasPermission === false) {
+        this.showPermissionDenied('就医申请')
+      } else {
+        // 缓存未命中，实时检查
+        app.checkPermission('medical_application')
+          .then((allowed) => {
+            if (allowed) {
+              wx.navigateTo({
+                url: '/pages/office/medical-application/medical-application'
+              })
+            } else {
+              this.showPermissionDenied('就医申请')
+            }
+          })
+          .catch(() => {
+            // 检查失败，允许访问（向后兼容）
             wx.navigateTo({
               url: '/pages/office/medical-application/medical-application'
             })
-          } else {
-            // 获取详细的权限信息
-            app.getPermissionInfo('medical_application')
-              .then((permInfo) => {
-                const message = permInfo.feature ? permInfo.feature.message : '您没有权限使用此功能'
-                wx.showModal({
-                  title: '权限提示',
-                  content: message,
-                  showCancel: false,
-                  confirmText: '我知道了'
-                })
-              })
-              .catch(() => {
-                wx.showToast({
-                  title: '您没有权限使用此功能',
-                  icon: 'none'
-                })
-              })
-          }
-        })
-        .catch((error) => {
-          console.error('权限检查失败:', error)
-          // 权限检查失败时，允许访问（向后兼容）
-          wx.navigateTo({
-            url: '/pages/office/medical-application/medical-application'
           })
-        })
+      }
     } else if (label === '外出报备') {
       wx.navigateTo({
         url: '/pages/office/trip-report/trip-report'
       })
     } else if (label === '出行管理') {
-      // 权限检查：仅馆领导、部门负责人、管理员可访问
-      app.checkUserRegistration()
-        .then((result) => {
-          if (!result.registered || !result.user) {
-            wx.showToast({ title: '请先登录', icon: 'none' })
-            return
-          }
-
-          const user = result.user
-          const isAdmin = user.isAdmin || user.role === 'admin'
-          const isLeader = user.role === '馆领导'
-          const isDeptHead = user.role === '部门负责人'
-
-          if (isAdmin || isLeader || isDeptHead) {
-            wx.navigateTo({
-              url: '/pages/office/trip-dashboard/trip-dashboard'
-            })
-          } else {
-            wx.showToast({ title: '无权限访问', icon: 'none' })
-          }
+      // 使用缓存的权限判断
+      const canAccess = this.data.canAccessTripDashboard || this.data.permissionCache['trip_dashboard']
+      if (canAccess) {
+        wx.navigateTo({
+          url: '/pages/office/trip-dashboard/trip-dashboard'
         })
+      } else {
+        this.showPermissionDenied('出行管理')
+      }
     } else {
       utils.showToast({
         title: '功能开发中，敬请期待',
         icon: 'none'
       })
     }
+  },
+
+  /**
+   * 显示无权限提示
+   */
+  showPermissionDenied(featureName) {
+    wx.showModal({
+      title: '权限提示',
+      content: `您没有权限使用「${featureName}」功能`,
+      showCancel: false,
+      confirmText: '我知道了'
+    })
   },
 
   showComingSoon() {

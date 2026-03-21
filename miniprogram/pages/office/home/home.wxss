@@ -38,6 +38,14 @@ page {
 .home-actions {
   display: flex;
   gap: 16rpx;
+  flex-shrink: 0;
+}
+
+.home-greeting-row {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  margin-top: 32rpx;
 }
 
 .office-icon-btn-wrapper {
@@ -66,9 +74,15 @@ page {
 }
 
 .home-greeting {
-  margin-top: 32rpx;
   font-size: 40rpx;
   font-weight: 600;
+}
+
+.home-greeting-row {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  margin-top: 32rpx;
 }
 
 .home-date {
@@ -77,7 +91,7 @@ page {
   opacity: 0.78;
 }
 
-.home-attendance {
+.home-calendar {
   margin-top: 28rpx;
   border-radius: 28rpx;
   padding: 24rpx 28rpx;
@@ -86,13 +100,13 @@ page {
   justify-content: space-between;
 }
 
-.home-attendance-main {
+.home-calendar-main {
   display: flex;
   align-items: center;
   gap: 18rpx;
 }
 
-.home-attendance-icon {
+.home-calendar-icon {
   width: 64rpx;
   height: 64rpx;
   border-radius: 20rpx;
@@ -102,20 +116,20 @@ page {
   font-size: 70rpx;
 }
 
-.home-attendance-title {
+.home-calendar-title {
   font-size: 28rpx;
   font-weight: 600;
 }
 
-.home-attendance-desc {
+.home-calendar-desc {
   margin-top: 6rpx;
   font-size: 22rpx;
   opacity: 0.74;
 }
 
-.home-attendance-tag {
+.home-calendar-tag {
   min-width: 96rpx;
-  padding: 8rpx 12rpx;
+  padding: 14rpx 26rpx;
   border-radius: 999rpx;
   text-align: center;
   background: rgba(255, 255, 255, 0.16);

@@ -338,10 +338,17 @@ Page({
       form,
       travelModeIndex: travelModeIndex >= 0 ? travelModeIndex : 0,
       minReturnDate: minDate,
-      minReturnTime: minTime,
-      showDestinationHistory: false,
-      showCompanionsHistory: false
+      minReturnTime: minTime
     })
+
+    //显示历史记录项
+    if (this.data.destinationHistory.length > 0) {
+      this.setData({ showDestinationHistory: true })
+    }
+
+    if (this.data.companionsHistory.length > 0) {
+      this.setData({ showCompanionsHistory: true })
+    }
 
     // 如果有出行方式，设置默认值
     if (travelModeIndex >= 0) {
@@ -382,23 +389,13 @@ Page({
     })
   },
 
-  handleDestinationFocus() {
-    if (this.data.destinationHistory.length > 0) {
-      this.setData({ showDestinationHistory: true })
-    }
-  },
+  
 
   handleDestinationBlur() {
     // 延迟隐藏，以便点击历史记录项
     setTimeout(() => {
       this.setData({ showDestinationHistory: false })
     }, 200)
-  },
-
-  handleCompanionsFocus() {
-    if (this.data.companionsHistory.length > 0) {
-      this.setData({ showCompanionsHistory: true })
-    }
   },
 
   handleCompanionsBlur() {

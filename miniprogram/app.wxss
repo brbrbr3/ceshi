@@ -261,7 +261,7 @@ input {
 }
 
 .office-gradient-header {
-  padding: calc(170rpx + env(safe-area-inset-top)) 32rpx 148rpx;
+  padding: calc(120rpx + env(safe-area-inset-top)) 32rpx 148rpx;
   background: linear-gradient(135deg, #1D4ED8 0%, #3B82F6 100%);
   color: #FFFFFF;
   border-bottom-left-radius: 40rpx;

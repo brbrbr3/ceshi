@@ -333,7 +333,7 @@
   border-radius: 32rpx 32rpx 0 0;
   transform: translateY(100%);
   transition: transform 0.3s ease;
-  max-height: 80vh;
+  max-height: 90vh;
   overflow-y: auto;
   margin: 0 28rpx 0;
 }

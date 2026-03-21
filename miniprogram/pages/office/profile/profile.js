@@ -21,8 +21,9 @@ Page({
     ],
     menuGroups: [
       {
-        title: '工作记录（占位）',
+        title: '工作记录',
         items: [
+          { icon: '🔔', label: '消息通知' },
           { icon: '📅', label: '考勤记录（占位）' },
           { icon: '📊', label: '工作报告（占位）', badge: '3 条未读' },
           { icon: '💰', label: '薪酬明细（占位）' },
@@ -33,7 +34,6 @@ Page({
         title: '个人设置',
         items: [
           { icon: '👤', label: '修改个人信息' },
-          { icon: '🔔', label: '消息通知' },
           { icon: '🔒', label: '账号安全（占位）' },
           { icon: '❓', label: '帮助中心（占位）' },
           { icon: '⭐', label: '意见反馈（占位）' }
