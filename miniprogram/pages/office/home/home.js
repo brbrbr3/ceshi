@@ -1,5 +1,6 @@
 const app = getApp()
 const utils = require('../../../common/utils.js')
+const lunar = require('../../../components/calendar/lunar.js')
 
 // 权限缓存 key
 const PERMISSION_CACHE_KEY = 'office-permission-cache'
@@ -13,6 +14,7 @@ Page({
     displayName: '访客',
     greetingText: '欢迎使用Embaixada办公系统',
     currentDateText: '',
+    lunarDateText: '',
     roleLabel: '待认证用户',
     pendingApprovalCount: 0,
     unreadNotificationCount: 0,
@@ -21,6 +23,10 @@ Page({
     canAccessTripDashboard: false,
     // 权限缓存
     permissionCache: {},
+    // 日历相关
+    showCalendarModal: false,
+    calendarMode: 'month',
+    selectedCalendarDate: Date.now(),
     stats: [
       { label: '待审批', value: '0', color: '#F44336', bg: '#FFEBEE' }
     ],
@@ -39,8 +45,12 @@ Page({
   },
 
   onShow() {
+    const now = new Date()
+    const lunarInfo = lunar.getDateInfoCached(now.getTime())
+    
     this.setData({
-      currentDateText: this.getCurrentDateText()
+      currentDateText: this.getCurrentDateText(),
+      lunarDateText: lunarInfo.displayText
     })
     this.syncUserProfile()
     this.syncNotifications()
