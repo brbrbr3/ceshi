@@ -162,7 +162,7 @@ page {
 
 .home-stat-label {
   margin-top: 14rpx;
-  font-size: 22rpx;
+  font-size: 26rpx;
   color: #94A3B8;
 }
 
@@ -194,7 +194,7 @@ page {
   display: flex;
   align-items: center;
   justify-content: center;
-  font-size: 48rpx;
+  font-size: 66rpx;
 }
 
 .home-grid-icon.is-implemented {
@@ -204,7 +204,7 @@ page {
 
 .home-grid-label {
   margin-top: 14rpx;
-  font-size: 22rpx;
+  font-size: 26rpx;
   color: #4B6080;
   text-align: center;
   line-height: 1.4;

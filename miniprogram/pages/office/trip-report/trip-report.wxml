@@ -17,11 +17,11 @@
         </view>
         <view class="trip-status-info">
           <view class="trip-status-label">
-            <text wx:if="{{activeTrip}}">当前外出中</text>
+            <text wx:if="{{activeTrip}}">当前外出中：{{activeTrip.destination}}</text>
             <text wx:else>当前未外出</text>
           </view>
-          <view class="trip-status-dest">
-            <text wx:if="{{activeTrip}}">{{activeTrip.destination}}</text>
+          <view class="trip-status-companion">
+            <text wx:if="{{activeTrip}}">同行人：{{activeTrip.companions}}</text>
             <text wx:else>点击下方按钮开始报备</text>
           </view>
         </view>
@@ -34,6 +34,10 @@
         <view class="trip-status-item">
           <text class="trip-status-item-label">出行方式</text>
           <text class="trip-status-item-value">{{activeTrip.travelMode}}</text>
+        </view>
+        <view wx:if="{{activeTrip.createdByName}}" class="trip-status-item">
+          <text class="trip-status-item-label">代报备人</text>
+          <text class="trip-status-item-value">{{activeTrip.createdByName}}</text>
         </view>
       </view>
     </view>
@@ -135,6 +139,7 @@
               bindblur="handleCompanionsBlur"
             />
           </view>
+          <view class="trip-field-hint">多个同行人用空格分隔，系统用户将自动代报备</view>
           <!-- 历史记录快捷选择 -->
           <view wx:if="{{showCompanionsHistory && companionsHistory.length > 0}}" class="trip-history-list">
             <view class="trip-history-title">最近使用</view>

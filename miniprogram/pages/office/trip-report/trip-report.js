@@ -511,7 +511,14 @@ Page({
           this.saveToHistory('companions', form.companions.trim())
         }
 
-        utils.showToast({ title: '报备成功', icon: 'success' })
+        // 处理同行人匹配结果提示
+        const companionResults = res.result.data.companionResults
+        let toastMessage = '报备成功'
+        if (companionResults && companionResults.matched.length > 0) {
+          toastMessage = `报备成功，已为 ${companionResults.matched.join('、')} 代报备`
+        }
+        
+        utils.showToast({ title: toastMessage, icon: 'success' })
         this.setData({ showFormPopup: false })
         // 刷新数据
         this.loadActiveTrip()

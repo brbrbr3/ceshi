@@ -44,7 +44,7 @@
   color: #92400E;
 }
 
-.trip-status-card.is-active .trip-status-dest {
+.trip-status-card.is-active .trip-status-companion {
   color: #B45309;
 }
 
@@ -71,7 +71,7 @@
   color: #166534;
 }
 
-.trip-status-card.is-idle .trip-status-dest {
+.trip-status-card.is-idle .trip-status-companion {
   color: #15803D;
 }
 
@@ -115,7 +115,7 @@
   margin-bottom: 4rpx;
 }
 
-.trip-status-dest {
+.trip-status-companion {
   font-size: 24rpx;
   font-weight: 500;
 }

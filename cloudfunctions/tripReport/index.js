@@ -69,6 +69,10 @@ exports.main = async (event, context) => {
 
 /**
  * 外出报备
+ * 支持同行人代报备功能：
+ * - 解析同行人姓名（空格分隔）
+ * - 查询匹配的注册用户
+ * - 为匹配的同行人创建代报备记录
  */
 async function handleDepart(openid, params) {
   const { destination, companions, plannedReturnAt, travelMode } = params
@@ -91,20 +95,25 @@ async function handleDepart(openid, params) {
     return fail('您有未返回的出行记录，请先报备返回', 400)
   }
 
-  // 获取用户信息
+  // 获取当前用户信息
   const userRes = await usersCollection
     .where({ openid })
     .limit(1)
     .get()
 
-  const user = userRes.data && userRes.data[0]
+  const currentUser = userRes.data && userRes.data[0]
+  const currentUserName = currentUser ? currentUser.name : '未知用户'
+  const currentUserDepartment = currentUser ? currentUser.department : ''
   const now = Date.now()
 
-  // 创建外出记录
+  // 解析同行人姓名（空格分隔）
+  const companionNames = companions ? companions.split(/\s+/).filter(Boolean) : []
+
+  // 为当前用户创建外出记录
   const tripData = {
     _openid: openid,
-    userName: user ? user.name : '未知用户',
-    department: user ? user.department : '',
+    userName: currentUserName,
+    department: currentUserDepartment,
     destination,
     companions: companions || '',
     plannedReturnAt,
@@ -113,15 +122,97 @@ async function handleDepart(openid, params) {
     returnAt: null,
     status: 'out',
     overtimeNotified: false,
+    createdByOpenid: null,  // 自己报备，无代报备来源
+    createdByName: null,
     createdAt: now,
     updatedAt: now
   }
 
   const result = await tripReportsCollection.add({ data: tripData })
 
+  // 处理同行人代报备
+  const companionResults = {
+    matched: [],      // 匹配成功的同行人
+    notMatched: [],   // 未匹配的同行人
+    alreadyOut: []    // 已有未返回记录的同行人
+  }
+
+  if (companionNames.length > 0) {
+    try {
+      // 查询匹配的注册用户（精确匹配姓名）
+      const matchedUsersRes = await usersCollection
+        .where({
+          name: _.in(companionNames),
+          status: 'approved'
+        })
+        .field({ openid: true, name: true, department: true })
+        .get()
+
+      const matchedUsers = matchedUsersRes.data || []
+
+      for (const matchedUser of matchedUsers) {
+        // 排除自己
+        if (matchedUser.openid === openid) {
+          continue
+        }
+
+        // 检查该用户是否已有未返回的报备
+        const existingTrip = await tripReportsCollection
+          .where({
+            _openid: matchedUser.openid,
+            status: 'out'
+          })
+          .limit(1)
+          .get()
+
+        if (existingTrip.data && existingTrip.data.length > 0) {
+          // 已有未返回记录，跳过
+          companionResults.alreadyOut.push(matchedUser.name)
+          continue
+        }
+
+        // 构建同行人字段：包含本次出行其他所有人（报备人 + 其他同行人）
+        const otherCompanions = [currentUserName, ...companionNames.filter(n => n !== matchedUser.name)].join(' ')
+
+        // 为同行人创建代报备记录
+        const companionTripData = {
+          _openid: matchedUser.openid,
+          userName: matchedUser.name,
+          department: matchedUser.department || '',
+          destination,
+          companions: otherCompanions,
+          plannedReturnAt,
+          travelMode,
+          departAt: now,
+          returnAt: null,
+          status: 'out',
+          overtimeNotified: false,
+          createdByOpenid: openid,       // 代报备来源
+          createdByName: currentUserName, // 代报备人姓名
+          createdAt: now,
+          updatedAt: now
+        }
+
+        await tripReportsCollection.add({ data: companionTripData })
+        companionResults.matched.push(matchedUser.name)
+      }
+
+      // 记录未匹配的同行人
+      const matchedNames = matchedUsers.map(u => u.name)
+      companionResults.notMatched = companionNames.filter(name => 
+        name !== currentUserName && !matchedNames.includes(name)
+      )
+
+    } catch (error) {
+      console.error('处理同行人代报备失败:', error)
+      // 代报备失败不影响主流程，静默处理
+    }
+  }
+
   return success({
     _id: result._id,
-    ...tripData
+    ...tripData,
+    companionResults
   }, '外出报备成功')
 }
 
