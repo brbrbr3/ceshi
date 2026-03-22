@@ -13,18 +13,17 @@
             <text class="auth-field-required">*</text>
           </view>
           <picker
-            class="auth-picker-shell"
             mode="selector"
             range="{{typeOptions}}"
             range-key="label"
             value="{{typeIndex}}"
             bindchange="handleTypeChange"
           >
-            <view class="auth-picker-content">
-              <view class="auth-picker-value {{typeIndex === -1 ? 'is-placeholder' : ''}}">
+            <view class="auth-picker-shell {{typeIndex === -1 ? 'is-placeholder' : ''}}">
+              <view class="auth-picker-value">
                 {{typeIndex === -1 ? '请选择通知类型' : typeOptions[typeIndex].label}}
               </view>
-              <text class="auth-picker-arrow">›</text>
+              <view class="auth-picker-arrow">›</view>
             </view>
           </picker>
         </view>

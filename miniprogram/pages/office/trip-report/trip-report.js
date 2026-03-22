@@ -277,16 +277,16 @@ Page({
 
   /**
    * 格式化日期时间（用于状态卡片显示）
-   * 使用 utils.js 的 formatDate 和 formatTime 组合
+   * 不显示秒数，只显示到分钟
    */
   formatDateTime(timestamp) {
     if (!timestamp) return ''
     const date = new Date(timestamp)
     const month = date.getMonth() + 1
     const day = date.getDate()
-    // 使用 utils.js 的 formatTime 获取时间部分
-    const timeStr = utils.formatTime(timestamp)
-    return `${month}月${day}日 ${timeStr}`
+    const hour = String(date.getHours()).padStart(2, '0')
+    const minute = String(date.getMinutes()).padStart(2, '0')
+    return `${month}月${day}日 ${hour}:${minute}`
   },
 
   /**
@@ -397,21 +397,6 @@ Page({
       'form.companions': value,
       showCompanionsHistory: value === '' && this.data.companionsHistory.length > 0
     })
-  },
-
-  
-
-  handleDestinationBlur() {
-    // 延迟隐藏，以便点击历史记录项
-    setTimeout(() => {
-      this.setData({ showDestinationHistory: false })
-    }, 200)
-  },
-
-  handleCompanionsBlur() {
-    setTimeout(() => {
-      this.setData({ showCompanionsHistory: false })
-    }, 200)
   },
 
   // 选择历史记录

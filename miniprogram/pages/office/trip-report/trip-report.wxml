@@ -111,7 +111,6 @@
               placeholder="请输入目的地" 
               placeholder-class="trip-input-placeholder"
               bindinput="handleDestinationInput"
-              bindblur="handleDestinationBlur"
             />
           </view>
           <!-- 历史记录快捷选择 -->
@@ -134,7 +133,6 @@
               placeholder="请输入同行人（选填）" 
               placeholder-class="trip-input-placeholder"
               bindinput="handleCompanionsInput"
-              bindblur="handleCompanionsBlur"
             />
           </view>
           <view class="trip-field-hint">多个同行人用空格分隔，系统将自动为同行人代报备</view>

@@ -47,14 +47,14 @@
             <text class="dashboard-empty-text">暂无外出人员</text>
           </view>
           <view wx:for="{{todayOverview.activeTrips}}" wx:key="_id" class="dashboard-active-item">
-            <view class="dashboard-active-avatar">{{item.userName.slice(0, 1)}}</view>
+            <view class="office-avatar dashboard-active-avatar" style="background: {{item.avatarColor}};">{{item.avatarText}}</view>
             <view class="dashboard-active-info">
               <view class="dashboard-active-name">{{item.userName}}</view>
               <view class="dashboard-active-dest">{{item.destination}}</view>
             </view>
             <view class="dashboard-active-meta">
               <view class="dashboard-active-mode">🚗 {{item.travelMode}}</view>
-              <view class="dashboard-active-time">预计 {{item.plannedReturnAt ? '返回' : '--'}}</view>
+              <view class="dashboard-active-time">预计 {{item.plannedReturnText || '--'}}</view>
             </view>
           </view>
         </view>
@@ -67,7 +67,7 @@
         <view wx:for="{{tripList}}" wx:key="_id" class="dashboard-item">
           <view class="dashboard-item-header">
             <view class="dashboard-item-user">
-              <view class="dashboard-item-avatar">{{item.userName.slice(0, 1)}}</view>
+              <view class="office-avatar dashboard-item-avatar" style="background: {{item.avatarColor}};">{{item.avatarText}}</view>
               <view>
                 <view class="dashboard-item-name">{{item.userName}}</view>
                 <view class="dashboard-item-dept">{{item.department || '未知部门'}}</view>

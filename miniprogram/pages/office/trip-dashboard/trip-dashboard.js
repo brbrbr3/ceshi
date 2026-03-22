@@ -320,6 +320,18 @@ Page({
     // 使用 utils.js 的格式化函数（遵循编码规范：前端使用 utils 格式化时间）
     const departTimeStr = utils.formatTime(item.departAt)
     const returnTimeStr = item.returnAt ? utils.formatTime(item.returnAt) : '--:--'
+    
+    // 格式化预计返回时间（不显示秒）
+    let plannedReturnText = ''
+    if (item.plannedReturnAt) {
+      const plannedDate = new Date(item.plannedReturnAt)
+      const plannedHour = String(plannedDate.getHours()).padStart(2, '0')
+      const plannedMinute = String(plannedDate.getMinutes()).padStart(2, '0')
+      plannedReturnText = `${plannedHour}:${plannedMinute}返回`
+    }
+
+    // 提取用户姓氏作为 avatar 文字
+    const avatarText = item.userName ? item.userName.slice(0, 1) : '?'
 
     return {
       ...item,
@@ -330,7 +342,11 @@ Page({
       statusText: style.text,
       statusIcon: style.icon,
       statusColor: style.color,
-      statusBg: style.bg
+      statusBg: style.bg,
+      plannedReturnText,
+      // avatar 相关
+      avatarText,
+      avatarColor: utils.getAvatarColor(item.userName)
     }
   },
 

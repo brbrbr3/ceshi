@@ -140,17 +140,8 @@
   border-bottom: none;
 }
 
+/* 使用全局 office-avatar 样式 */
 .dashboard-active-avatar {
-  width: 80rpx;
-  height: 80rpx;
-  border-radius: 50%;
-  background: linear-gradient(135deg, #2563EB 0%, #4F46E5 100%);
-  color: #FFFFFF;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  font-size: 32rpx;
-  font-weight: 600;
   margin-right: 20rpx;
 }
 
@@ -211,17 +202,8 @@
   align-items: center;
 }
 
+/* 使用全局 office-avatar 样式 */
 .dashboard-item-avatar {
-  width: 64rpx;
-  height: 64rpx;
-  border-radius: 50%;
-  background: linear-gradient(135deg, #2563EB 0%, #4F46E5 100%);
-  color: #FFFFFF;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  font-size: 28rpx;
-  font-weight: 600;
   margin-right: 16rpx;
 }
 
