@@ -43,7 +43,7 @@ Page({
   async onLoad() {
     // 初始化分页配置
     this.initPagination({
-      initialPageSize: 15,
+      initialPageSize: 10,
       loadMorePageSize: 10
     })
 

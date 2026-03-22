@@ -16,7 +16,7 @@ Page({
 
   onLoad() {
     this.initPagination({
-      initialPageSize: 20,
+      initialPageSize: 10,
       loadMorePageSize: 10
     })
     this.loadAnnouncements()

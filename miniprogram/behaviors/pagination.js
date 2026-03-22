@@ -114,7 +114,7 @@ module.exports = Behavior({
 
         this.setData({
           list: loadMore ? [...this.data.list, ...newData] : newData,
-          page: loadMore ? page + 1 : page,
+          page: page + 1,
           hasMore,
           loading: false
         })

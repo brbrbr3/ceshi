@@ -296,7 +296,7 @@ Page({
   async onLoad() {
     // 初始化每个 tab 的分页配置
     this.initPagination({
-      initialPageSize: 20,
+      initialPageSize: 10,
       loadMorePageSize: 10
     })
     
