@@ -303,9 +303,8 @@ Page({
     // 计算最小返回日期（今天）
     const minReturnDate = this.formatDateForPicker(now)
     
-    // 计算最大返回日期（明天）
-    const tomorrow = new Date(now)
-    tomorrow.setDate(tomorrow.getDate() + 1)
+    // 计算最大返回日期（明天）- 使用 Date 对象自动处理跨月跨年
+    const tomorrow = new Date(now.getFullYear(), now.getMonth(), now.getDate() + 1)
     const maxReturnDate = this.formatDateForPicker(tomorrow)
 
     // 获取最后一次成功报备的数据作为默认值

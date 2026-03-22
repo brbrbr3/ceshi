@@ -20,12 +20,14 @@ Component({
     // 最小日期 YYYY-MM-DD
     startDate: {
       type: String,
-      value: '1900-01-01'
+      value: '1900-01-01',
+      observer: 'onDateRangeChange'
     },
     // 最大日期 YYYY-MM-DD
     endDate: {
       type: String,
-      value: '2100-12-31'
+      value: '2100-12-31',
+      observer: 'onDateRangeChange'
     },
     // 占位符文本
     placeholder: {
@@ -104,6 +106,15 @@ Component({
 
   methods: {
     /**
+     * 日期范围变化回调
+     * 当父页面动态设置 startDate 或 endDate 时触发
+     */
+    onDateRangeChange() {
+      // 重新初始化数据
+      this.initPickerData()
+    },
+
+    /**
      * 初始化picker数据
      */
     initPickerData() {
@@ -117,11 +128,40 @@ Component({
         years.push(y)
       }
       
-      // 生成月份列表
-      const months = []
-      for (let m = 1; m <= 12; m++) {
-        months.push(m)
-      }
+      // 是否在日期列旁显示星期
+      const showWeekday = fields.includes('weekday')
+      
+      // 计算日期列在 pickerValue 中的索引
+      let dayColumnIndex = 0
+      if (fields.includes('year')) dayColumnIndex++
+      if (fields.includes('month')) dayColumnIndex++
+      // dayColumnIndex 现在指向日期列的索引
+      
+      // 当不含年份时，使用当前年份作为隐式年份
+      const implicitYear = fields.includes('year') ? null : new Date().getFullYear()
+      
+      // 设置字段显示状态
+      this.setData({ 
+        years,
+        implicitYear,
+        // 设置字段显示状态
+        showYear: fields.includes('year'),
+        showMonth: fields.includes('month'),
+        showDay: fields.includes('day'),
+        showWeekday: showWeekday,  // 是否显示星期（在日期列旁边）
+        showHour: fields.includes('hour'),
+        showMinute: fields.includes('minute'),
+        showSecond: fields.includes('second'),
+        dayColumnIndex
+      })
+      
+      // 根据日期范围初始化月份和日期
+      // 使用 startDate 的年月作为基准
+      const baseYear = startYear
+      const baseMonth = parseInt(startDate.split('-')[1], 10)
+      
+      const months = this.getAvailableMonths(baseYear)
+      const days = this.getAvailableDays(baseYear, baseMonth)
       
       // 生成小时列表
       const hours = []
@@ -137,38 +177,8 @@ Component({
         seconds.push(i)
       }
       
-      // 当不含年份时，使用当前年份作为隐式年份
-      const implicitYear = fields.includes('year') ? null : new Date().getFullYear()
-      
-      // 初始化日期列表（使用隐式年份或起始年份）
-      const baseYear = implicitYear || startYear
-      const days = []
-      const weekdays = ['周日', '周一', '周二', '周三', '周四', '周五', '周六']
-      for (let d = 1; d <= 31; d++) {
-        days.push({ day: d, weekday: weekdays[new Date(baseYear, 0, d).getDay()] })
-      }
-      
-      // 是否在日期列旁显示星期
-      const showWeekday = fields.includes('weekday')
-      
-      // 计算日期列在 pickerValue 中的索引
-      let dayColumnIndex = 0
-      if (fields.includes('year')) dayColumnIndex++
-      if (fields.includes('month')) dayColumnIndex++
-      // dayColumnIndex 现在指向日期列的索引
-      
       this.setData({ 
-        years, months, days, hours, minutes, seconds,
-        implicitYear,
-        // 设置字段显示状态
-        showYear: fields.includes('year'),
-        showMonth: fields.includes('month'),
-        showDay: fields.includes('day'),
-        showWeekday: showWeekday,  // 是否显示星期（在日期列旁边）
-        showHour: fields.includes('hour'),
-        showMinute: fields.includes('minute'),
-        showSecond: fields.includes('second'),
-        dayColumnIndex
+        months, days, hours, minutes, seconds
       })
       
       // 设置初始值
@@ -244,7 +254,8 @@ Component({
         }
       })
       
-      // 获取当前年月对应的天数列表
+      // 获取当前年月对应的月份和天数列表
+      const months = this.getAvailableMonths(year)
       const days = this.getAvailableDays(year, month)
       
       // 计算当前选中日期的星期文本
@@ -253,6 +264,7 @@ Component({
       
       this.setData({
         pickerValue,
+        months,
         days,
         currentWeekdayText,
         selectedYear: year,
@@ -271,7 +283,7 @@ Component({
      * 获取可用月份列表
      */
     getAvailableMonths(year) {
-      const { startDate, endDate } = this.data
+      const { startDate, endDate, years } = this.data
       const startY = parseInt(startDate.split('-')[0], 10)
       const startM = parseInt(startDate.split('-')[1], 10)
       const endY = parseInt(endDate.split('-')[0], 10)
@@ -280,8 +292,15 @@ Component({
       let startMonth = 1
       let endMonth = 12
       
-      if (year === startY) startMonth = startM
-      if (year === endY) endMonth = endM
+      // 只有在年列表中的年份才应用月份限制
+      if (years && years.includes(year)) {
+        if (year === startY) startMonth = startM
+        if (year === endY) endMonth = endM
+        // 如果是同一年，确保 endMonth >= startMonth
+        if (year === startY && year === endY && endMonth < startMonth) {
+          endMonth = startMonth
+        }
+      }
       
       const months = []
       for (let m = startMonth; m <= endMonth; m++) {
@@ -294,7 +313,7 @@ Component({
      * 获取可用日期列表
      */
     getAvailableDays(year, month) {
-      const { startDate, endDate, implicitYear, showYear } = this.data
+      const { startDate, endDate, implicitYear, showYear, years } = this.data
       
       // 当不含年份时，使用隐式年份（当前年份）
       const actualYear = showYear ? year : (implicitYear || new Date().getFullYear())
@@ -311,10 +330,21 @@ Component({
       let startDay = 1
       let endDay = daysInMonth
       
-      // 只有显示年份时才应用日期范围限制
-      if (showYear) {
-        if (actualYear === startY && month === startM) startDay = startD
-        if (actualYear === endY && month === endM) endDay = endD
+      // 应用日期范围限制（无论是否显示年份，只要年份在范围内就应用限制）
+      if (years && years.includes(actualYear)) {
+        // 检查是否是开始日期所在月份
+        if (actualYear === startY && month === startM) {
+          startDay = Math.max(startDay, startD)
+        }
+        // 检查是否是结束日期所在月份
+        if (actualYear === endY && month === endM) {
+          endDay = Math.min(endDay, endD)
+        }
+      }
+      
+      // 确保 startDay <= endDay
+      if (startDay > endDay) {
+        startDay = endDay
       }
       
       const days = []

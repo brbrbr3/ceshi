@@ -49,29 +49,36 @@ Page({
   },
 
   async onLoad() {
-    // 检查权限
-    const hasAccess = await this.checkPermission()
-    if (!hasAccess) {
-      return
-    }
-
-    // 初始化分页配置
-    this.initPagination({
-      initialPageSize: 15,
-      loadMorePageSize: 10
-    })
-
-    // 加载常量配置
-    await this.loadConstants()
+    // 显示加载中提示
+    wx.showLoading({ title: '加载中...', mask: true })
     
-    // 加载数据
-    this.loadAllData()
+    try {
+      // 检查权限
+      const hasAccess = await this.checkPermission()
+      if (!hasAccess) {
+        wx.hideLoading()
+        return
+      }
+
+      // 初始化分页配置
+      this.initPagination({
+        initialPageSize: 15,
+        loadMorePageSize: 10
+      })
+
+      // 加载常量配置
+      await this.loadConstants()
+      
+      // 加载数据
+      await this.loadAllData()
+    } finally {
+      wx.hideLoading()
+    }
   },
 
   onShow() {
-    if (this.data.canViewAll) {
-      this.loadAllData()
-    }
+    // onShow 不再重复加载数据，避免重复请求
+    // 数据已在 onLoad 中加载
   },
 
   /**

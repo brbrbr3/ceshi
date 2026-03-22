@@ -153,7 +153,7 @@
           <view class="trip-field-label">计划返回时间 <text class="trip-required">*</text></view>
           <datetime-picker 
             value="{{form.plannedReturnAt}}"
-            fields="{{['month', 'day', 'hour', 'minute']}}"
+            fields="{{['year', 'month', 'day', 'hour', 'minute']}}"
             start-date="{{minReturnDate}}"
             end-date="{{maxReturnDate}}"
             placeholder="请选择计划返回时间"
