@@ -26,86 +26,8 @@ function fail(message, code, data) {
 }
 
 /**
- * 初始化权限配置
- * 创建默认的权限规则
- */
-async function initPermissions() {
-  const now = Date.now()
-  
-  // 定义权限配置
-  const permissions = [
-    {
-      featureKey: 'medical_application',
-      featureName: '就医申请',
-      description: '提交就医申请',
-      enabledRoles: ['馆领导', '部门负责人', '馆员', '工勤'],
-      requireAdmin: false,
-      createdAt: now,
-      updatedAt: now
-    },
-    {
-      featureKey: 'weekly_menu',
-      featureName: '每周菜单',
-      description: '查看每周菜单',
-      enabledRoles: ['馆领导', '部门负责人', '馆员', '工勤', '物业', '配偶', '家属'],
-      requireAdmin: false,
-      createdAt: now,
-      updatedAt: now
-    },
-    {
-      featureKey: 'user_management',
-      featureName: '用户管理',
-      description: '管理系统用户',
-      enabledRoles: ['馆领导', '部门负责人'],
-      requireAdmin: true,
-      createdAt: now,
-      updatedAt: now
-    },
-    {
-      featureKey: 'approval_management',
-      featureName: '审批管理',
-      description: '审批工作流任务',
-      enabledRoles: ['馆领导', '部门负责人'],
-      requireAdmin: false,
-      createdAt: now,
-      updatedAt: now
-    }
-  ]
-
-  // 批量插入权限配置
-  const results = []
-  for (const perm of permissions) {
-    try {
-      // 检查是否已存在
-      const existing = await permissionsCollection
-        .where({ featureKey: perm.featureKey })
-        .limit(1)
-        .get()
-
-      if (existing.data && existing.data.length > 0) {
-        // 更新现有权限
-        await permissionsCollection
-          .doc(existing.data[0]._id)
-          .update({
-            data: { ...perm, updatedAt: now }
-          })
-        results.push({ action: 'updated', featureKey: perm.featureKey })
-      } else {
-        // 插入新权限
-        await permissionsCollection.add({ data: perm })
-        results.push({ action: 'created', featureKey: perm.featureKey })
-      }
-    } catch (error) {
-      console.error(`Failed to init permission ${perm.featureKey}:`, error)
-      results.push({ action: 'failed', featureKey: perm.featureKey, error: error.message })
-    }
-  }
-
-  return success({ results, count: permissions.length }, '权限初始化完成')
-}
-
-/**
  * 检查用户是否有权限访问指定功能
+ * 注：权限初始化已移至 initSystemConfig 云函数统一管理
  */
 async function checkPermission(openid, featureKey) {
   try {
@@ -452,15 +374,6 @@ exports.main = async (event) => {
   }
 
   try {
-    if (action === 'initPermissions') {
-      // 初始化权限（仅管理员可调用）
-      const userResult = await usersCollection.where({ openid }).limit(1).get()
-      if (!userResult.data || userResult.data.length === 0 || !userResult.data[0].isAdmin) {
-        return fail('只有管理员才能初始化权限配置', 403)
-      }
-      return await initPermissions()
-    }
-
     if (action === 'checkPermission') {
       const featureKey = event.featureKey
       if (!featureKey) {
