@@ -13,29 +13,18 @@
 
   <!-- 日历区域 -->
   <view class="calendar-container">
-    <calendar
-      id="calendar"
-      view="month"
-      weekstart="{{0}}"
-      marks="{{marks}}"
-      custom-nav-bar="{{true}}"
-      bindload="handleCalendarLoad"
-      bindclick="handleCalendarClick"
-      bindchange="handleCalendarChange"
-      style="--wc-primary: #2563EB; --wc-bg-light: #FFFFFF;"
-    />
+    <calendar id="calendar" view="month" weekstart="{{0}}" marks="{{marks}}" custom-nav-bar="{{true}}" bindload="handleCalendarLoad" bindclick="handleCalendarClick" bindchange="handleCalendarChange" style="--wc-primary: #2563EB; --wc-bg-light: #FFFFFF;" />
   </view>
 
   <!-- 配置弹窗 -->
   <view class="config-popup-mask {{showConfigPopup ? 'is-visible' : ''}}" catchtouchmove="stopPropagation" bindtap="hideConfigPopup">
     <view class="config-popup-container" catchtap="stopPropagation">
-      <view class="config-popup-header">
-        <view class="config-popup-title">配置法定节假日</view>
-        <view class="config-popup-close" bindtap="hideConfigPopup">×</view>
-      </view>
-
-      <view class="config-popup-form">
-        <!-- 年份选择 -->
+      <!-- 固定头部：标题 + 年份选择 -->
+      <view class="config-popup-fixed-header">
+        <view class="config-popup-header">
+          <view class="config-popup-title">配置法定节假日</view>
+          <view class="config-popup-close" bindtap="hideConfigPopup">×</view>
+        </view>
         <view class="config-field">
           <view class="config-field-label">配置</view>
           <picker mode="selector" range="{{yearOptions}}" value="{{yearOptions.indexOf(configYear)}}" bindchange="handleYearChange">
@@ -46,30 +35,27 @@
           </picker>
           <view class="config-field-label-inline">年节假日</view>
         </view>
+      </view>
 
-        <!-- 节假日列表 -->
-        <view class="config-holidays-list">
-          <view class="config-holiday-item" wx:for="{{holidays}}" wx:key="index">
-            <view class="config-holiday-label">第{{index + 1}}个节假日</view>
-            <datetime-picker 
-              value="{{item.date}}" 
-              fields="{{['year', 'month', 'day']}}"
-              start-date="{{configYear}}-01-01" 
-              end-date="{{configYear}}-12-31" 
-              bind:change="handleDateChange" 
-              data-index="{{index}}"
-            />
-            <view class="config-delete-btn" bindtap="handleDeleteHoliday" data-index="{{index}}">×</view>
+      <!-- 可滚动区域：节假日列表 -->
+      <scroll-view class="config-popup-scroll" scroll-y="true" enhanced="true" show-scrollbar="false">
+        <view class="config-popup-form">
+          <view class="config-holidays-list">
+            <view class="config-holiday-item" wx:for="{{holidays}}" wx:key="index">
+              <view class="config-holiday-label">第{{index + 1}}个节假日</view>
+              <datetime-picker value="{{item.date}}" fields="{{['year', 'month', 'day']}}" start-date="{{configYear}}-01-01" end-date="{{configYear}}-12-31" bind:change="handleDateChange" data-index="{{index}}" />
+              <view class="config-delete-btn" bindtap="handleDeleteHoliday" data-index="{{index}}">×</view>
+            </view>
           </view>
         </view>
+      </scroll-view>
 
-        <!-- 添加按钮 -->
+      <!-- 固定底部：添加 + 提交按钮 -->
+      <view class="config-popup-footer">
         <view class="config-add-btn" bindtap="handleAddHoliday">
           <text class="config-add-icon">+</text>
           <text>添加节假日</text>
         </view>
-
-        <!-- 提交按钮 -->
         <button class="config-submit-btn" loading="{{submitting}}" disabled="{{submitting}}" bindtap="handleSubmitConfig">
           提交配置
         </button>

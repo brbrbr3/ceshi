@@ -280,7 +280,7 @@
   "sitemapLocation": "sitemap.json",
   "themeLocation": "demo.theme.json",
   "darkmode": true,
-  "resizable": true,
+  "resizable": false,
   "useExtendedLib": {
     "weui": true
   },

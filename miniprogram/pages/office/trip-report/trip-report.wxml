@@ -154,8 +154,8 @@
           <datetime-picker 
             value="{{form.plannedReturnAt}}"
             fields="{{['year', 'month', 'day', 'hour', 'minute']}}"
-            start-date="{{minReturnDate}}"
-            end-date="{{maxReturnDate}}"
+            start-datetime="{{minReturnDatetime}}"
+            end-datetime="{{maxReturnDatetime}}"
             placeholder="请选择计划返回时间"
             bind:change="handleReturnDateTimeChange"
           />

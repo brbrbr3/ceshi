@@ -293,19 +293,20 @@ Page({
    * 显示外出报备表单
    */
   showDepartForm() {
-    // 计算最小返回时间
+    // 计算最小返回时间（当前时间 + 30分钟）
     const now = new Date()
     const futureTime = new Date(now.getTime() + 30 * 60 * 1000)
     
     // 格式化为 YYYY-MM-DD HH:mm 格式
     const defaultReturnAt = this.formatDateTimeForPicker(futureTime)
     
-    // 计算最小返回日期（今天）
-    const minReturnDate = this.formatDateForPicker(now)
+    // 计算精确时间范围
+    // minReturnDatetime = 当前时间
+    const minReturnDatetime = this.formatDateTimeForPicker(now)
     
-    // 计算最大返回日期（明天）- 使用 Date 对象自动处理跨月跨年
-    const tomorrow = new Date(now.getFullYear(), now.getMonth(), now.getDate() + 1)
-    const maxReturnDate = this.formatDateForPicker(tomorrow)
+    // maxReturnDatetime = 明天 23:59:59
+    const tomorrow = new Date(now.getFullYear(), now.getMonth(), now.getDate() + 1, 23, 59, 59)
+    const maxReturnDatetime = this.formatDateTimeForPicker(tomorrow)
 
     // 获取最后一次成功报备的数据作为默认值
     const lastTrip = this.data.tripList.find(trip => trip.status === 'returned')
@@ -323,8 +324,8 @@ Page({
     this.setData({
       showFormPopup: true,
       form,
-      minReturnDate,
-      maxReturnDate,
+      minReturnDatetime,
+      maxReturnDatetime,
       travelModeIndex: travelModeIndex >= 0 ? travelModeIndex : 0
     })
 

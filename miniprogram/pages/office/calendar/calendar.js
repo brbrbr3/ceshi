@@ -32,19 +32,25 @@ Page({
     submitting: false
   },
 
-  onLoad() {
-    // 生成年份选项（今年和明年）
-    const currentYear = new Date().getFullYear()
-    this.setData({
-      yearOptions: [currentYear, currentYear + 1],
-      configYear: currentYear
-    })
+  async onLoad() {
+    wx.showLoading({ title: '加载中...', mask: true })
+    
+    try {
+      // 生成年份选项（今年和明年）
+      const currentYear = new Date().getFullYear()
+      this.setData({
+        yearOptions: [currentYear, currentYear + 1],
+        configYear: currentYear
+      })
 
-    // 检查权限
-    this.checkPermission()
+      // 检查权限
+      await this.checkPermission()
 
-    // 加载节假日配置
-    this.loadHolidays()
+      // 加载节假日配置
+      await this.loadHolidays()
+    } finally {
+      wx.hideLoading()
+    }
   },
 
   onShow() {
@@ -56,7 +62,7 @@ Page({
    * 检查用户权限
    */
   checkPermission() {
-    app.checkUserRegistration().then((result) => {
+    return app.checkUserRegistration().then((result) => {
       if (result.registered && result.user) {
         const user = result.user
         const isAdmin = user.isAdmin || user.role === 'admin'

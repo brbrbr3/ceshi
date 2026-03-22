@@ -1,7 +1,7 @@
 /**
  * 自定义日期时间选择器组件
  * 功能：支持年、月、日、星期、时、分、秒的自定义显示
- * 特点：本地时间处理，漂亮动画效果
+ * 特点：本地时间处理，漂亮动画效果，支持精确到秒的时间范围限制
  */
 Component({
   properties: {
@@ -17,17 +17,29 @@ Component({
       value: ['year', 'month', 'day', 'weekday'],
       observer: 'onFieldsChange'
     },
-    // 最小日期 YYYY-MM-DD
+    // 最小日期 YYYY-MM-DD（兼容旧版）
     startDate: {
       type: String,
       value: '1900-01-01',
       observer: 'onDateRangeChange'
     },
-    // 最大日期 YYYY-MM-DD
+    // 最大日期 YYYY-MM-DD（兼容旧版）
     endDate: {
       type: String,
       value: '2100-12-31',
       observer: 'onDateRangeChange'
+    },
+    // 最小日期时间 YYYY-MM-DD HH:mm:ss（精确时间范围，优先于 startDate）
+    startDatetime: {
+      type: String,
+      value: '',
+      observer: 'onDatetimeRangeChange'
+    },
+    // 最大日期时间 YYYY-MM-DD HH:mm:ss（精确时间范围，优先于 endDate）
+    endDatetime: {
+      type: String,
+      value: '',
+      observer: 'onDatetimeRangeChange'
     },
     // 占位符文本
     placeholder: {
@@ -95,7 +107,10 @@ Component({
       second: { key: 'second', label: '秒' }
     },
     // 隐式年份（当 fields 不含 year 时使用当前年份）
-    implicitYear: new Date().getFullYear()
+    implicitYear: new Date().getFullYear(),
+    // 解析后的时间范围（用于精确限制）
+    parsedStartDatetime: null,
+    parsedEndDatetime: null
   },
 
   lifetimes: {
@@ -115,14 +130,88 @@ Component({
     },
 
     /**
+     * 精确时间范围变化回调
+     * 当父页面动态设置 startDatetime 或 endDatetime 时触发
+     */
+    onDatetimeRangeChange() {
+      this.parseDatetimeRange()
+      this.initPickerData()
+    },
+
+    /**
+     * 解析精确时间范围
+     */
+    parseDatetimeRange() {
+      const { startDatetime, endDatetime } = this.data
+      
+      let parsedStart = null
+      let parsedEnd = null
+      
+      if (startDatetime) {
+        parsedStart = this.parseDateTime(startDatetime)
+      }
+      
+      if (endDatetime) {
+        parsedEnd = this.parseDateTime(endDatetime)
+      }
+      
+      this.setData({
+        parsedStartDatetime: parsedStart,
+        parsedEndDatetime: parsedEnd
+      })
+    },
+
+    /**
+     * 获取有效的时间范围
+     * 优先使用 startDatetime/endDatetime，否则回退到 startDate/endDate
+     */
+    getEffectiveRange() {
+      const { startDate, endDate, startDatetime, endDatetime, parsedStartDatetime, parsedEndDatetime } = this.data
+      
+      let minDate, maxDate
+      let minTime = null, maxTime = null
+      
+      if (startDatetime && parsedStartDatetime) {
+        minDate = `${parsedStartDatetime.year}-${String(parsedStartDatetime.month).padStart(2, '0')}-${String(parsedStartDatetime.day).padStart(2, '0')}`
+        minTime = {
+          year: parsedStartDatetime.year,
+          month: parsedStartDatetime.month,
+          day: parsedStartDatetime.day,
+          hour: parsedStartDatetime.hour,
+          minute: parsedStartDatetime.minute,
+          second: parsedStartDatetime.second
+        }
+      } else {
+        minDate = startDate
+      }
+      
+      if (endDatetime && parsedEndDatetime) {
+        maxDate = `${parsedEndDatetime.year}-${String(parsedEndDatetime.month).padStart(2, '0')}-${String(parsedEndDatetime.day).padStart(2, '0')}`
+        maxTime = {
+          year: parsedEndDatetime.year,
+          month: parsedEndDatetime.month,
+          day: parsedEndDatetime.day,
+          hour: parsedEndDatetime.hour,
+          minute: parsedEndDatetime.minute,
+          second: parsedEndDatetime.second
+        }
+      } else {
+        maxDate = endDate
+      }
+      
+      return { minDate, maxDate, minTime, maxTime }
+    },
+
+    /**
      * 初始化picker数据
      */
     initPickerData() {
-      const { startDate, endDate, fields } = this.data
+      const { fields } = this.data
+      const { minDate, maxDate } = this.getEffectiveRange()
       
       // 生成年份列表
-      const startYear = parseInt(startDate.split('-')[0], 10)
-      const endYear = parseInt(endDate.split('-')[0], 10)
+      const startYear = parseInt(minDate.split('-')[0], 10)
+      const endYear = parseInt(maxDate.split('-')[0], 10)
       const years = []
       for (let y = startYear; y <= endYear; y++) {
         years.push(y)
@@ -156,26 +245,16 @@ Component({
       })
       
       // 根据日期范围初始化月份和日期
-      // 使用 startDate 的年月作为基准
+      // 使用 minDate 的年月日作为基准
       const baseYear = startYear
-      const baseMonth = parseInt(startDate.split('-')[1], 10)
+      const baseMonth = parseInt(minDate.split('-')[1], 10)
+      const baseDay = parseInt(minDate.split('-')[2], 10)
       
       const months = this.getAvailableMonths(baseYear)
       const days = this.getAvailableDays(baseYear, baseMonth)
-      
-      // 生成小时列表
-      const hours = []
-      for (let h = 0; h < 24; h++) {
-        hours.push(h)
-      }
-      
-      // 生成分钟和秒列表
-      const minutes = []
-      const seconds = []
-      for (let i = 0; i < 60; i++) {
-        minutes.push(i)
-        seconds.push(i)
-      }
+      const hours = this.getAvailableHours(baseYear, baseMonth, baseDay)
+      const minutes = this.getAvailableMinutes(baseYear, baseMonth, baseDay, 0)
+      const seconds = this.getAvailableSeconds(baseYear, baseMonth, baseDay, 0, 0)
       
       this.setData({ 
         months, days, hours, minutes, seconds
@@ -209,19 +288,18 @@ Component({
      * 设置选中的日期时间
      */
     setSelectedDateTime(year, month, day, weekday, hour, minute, second) {
-      const { fields, years, startDate, endDate } = this.data
-      
-      // 根据日期范围调整月份和日期
-      const startY = parseInt(startDate.split('-')[0], 10)
-      const startM = parseInt(startDate.split('-')[1], 10)
-      const startD = parseInt(startDate.split('-')[2], 10)
-      const endY = parseInt(endDate.split('-')[0], 10)
-      const endM = parseInt(endDate.split('-')[1], 10)
-      const endD = parseInt(endDate.split('-')[2], 10)
+      const { fields, years } = this.data
       
       // 计算各列索引
       const pickerValue = []
       const fieldConfigs = this.getFieldConfigs()
+      
+      // 获取可用的小时、分钟、秒列表
+      const months = this.getAvailableMonths(year)
+      const days = this.getAvailableDays(year, month)
+      const hours = this.getAvailableHours(year, month, day)
+      const minutes = this.getAvailableMinutes(year, month, day, hour)
+      const seconds = this.getAvailableSeconds(year, month, day, hour, minute)
       
       fieldConfigs.forEach(config => {
         switch (config.key) {
@@ -230,33 +308,30 @@ Component({
             pickerValue.push(yearIdx >= 0 ? yearIdx : 0)
             break
           case 'month':
-            const availableMonths = this.getAvailableMonths(year)
-            const monthIdx = availableMonths.indexOf(month)
+            const monthIdx = months.indexOf(month)
             pickerValue.push(monthIdx >= 0 ? monthIdx : 0)
             break
           case 'day':
-            const availableDays = this.getAvailableDays(year, month)
-            const dayIdx = availableDays.findIndex(d => d.day === day)
+            const dayIdx = days.findIndex(d => d.day === day)
             pickerValue.push(dayIdx >= 0 ? dayIdx : 0)
             break
           case 'weekday':
             pickerValue.push(weekday || 0)
             break
           case 'hour':
-            pickerValue.push(hour)
+            const hourIdx = hours.indexOf(hour)
+            pickerValue.push(hourIdx >= 0 ? hourIdx : 0)
             break
           case 'minute':
-            pickerValue.push(minute)
+            const minuteIdx = minutes.indexOf(minute)
+            pickerValue.push(minuteIdx >= 0 ? minuteIdx : 0)
             break
           case 'second':
-            pickerValue.push(second)
+            const secondIdx = seconds.indexOf(second)
+            pickerValue.push(secondIdx >= 0 ? secondIdx : 0)
             break
         }
       })
-      
-      // 获取当前年月对应的月份和天数列表
-      const months = this.getAvailableMonths(year)
-      const days = this.getAvailableDays(year, month)
       
       // 计算当前选中日期的星期文本
       const weekdays = ['周日', '周一', '周二', '周三', '周四', '周五', '周六']
@@ -266,6 +341,9 @@ Component({
         pickerValue,
         months,
         days,
+        hours,
+        minutes,
+        seconds,
         currentWeekdayText,
         selectedYear: year,
         selectedMonth: month,
@@ -283,11 +361,13 @@ Component({
      * 获取可用月份列表
      */
     getAvailableMonths(year) {
-      const { startDate, endDate, years } = this.data
-      const startY = parseInt(startDate.split('-')[0], 10)
-      const startM = parseInt(startDate.split('-')[1], 10)
-      const endY = parseInt(endDate.split('-')[0], 10)
-      const endM = parseInt(endDate.split('-')[1], 10)
+      const { years } = this.data
+      const { minDate, maxDate } = this.getEffectiveRange()
+      
+      const startY = parseInt(minDate.split('-')[0], 10)
+      const startM = parseInt(minDate.split('-')[1], 10)
+      const endY = parseInt(maxDate.split('-')[0], 10)
+      const endM = parseInt(maxDate.split('-')[1], 10)
       
       let startMonth = 1
       let endMonth = 12
@@ -313,17 +393,18 @@ Component({
      * 获取可用日期列表
      */
     getAvailableDays(year, month) {
-      const { startDate, endDate, implicitYear, showYear, years } = this.data
+      const { implicitYear, showYear, years } = this.data
+      const { minDate, maxDate } = this.getEffectiveRange()
       
       // 当不含年份时，使用隐式年份（当前年份）
       const actualYear = showYear ? year : (implicitYear || new Date().getFullYear())
       
-      const startY = parseInt(startDate.split('-')[0], 10)
-      const startM = parseInt(startDate.split('-')[1], 10)
-      const startD = parseInt(startDate.split('-')[2], 10)
-      const endY = parseInt(endDate.split('-')[0], 10)
-      const endM = parseInt(endDate.split('-')[1], 10)
-      const endD = parseInt(endDate.split('-')[2], 10)
+      const startY = parseInt(minDate.split('-')[0], 10)
+      const startM = parseInt(minDate.split('-')[1], 10)
+      const startD = parseInt(minDate.split('-')[2], 10)
+      const endY = parseInt(maxDate.split('-')[0], 10)
+      const endM = parseInt(maxDate.split('-')[1], 10)
+      const endD = parseInt(maxDate.split('-')[2], 10)
       
       // 获取该月的天数
       const daysInMonth = new Date(actualYear, month, 0).getDate()
@@ -358,6 +439,92 @@ Component({
         })
       }
       return days
+    },
+
+    /**
+     * 判断是否是同一天
+     */
+    isSameDay(year, month, day, timeObj) {
+      if (!timeObj) return false
+      return year === timeObj.year && month === timeObj.month && day === timeObj.day
+    },
+
+    /**
+     * 获取可用小时列表
+     */
+    getAvailableHours(year, month, day) {
+      const { minTime, maxTime } = this.getEffectiveRange()
+      
+      let startHour = 0
+      let endHour = 23
+      
+      // 如果是开始时间的当天，限制最小小时
+      if (minTime && this.isSameDay(year, month, day, minTime)) {
+        startHour = minTime.hour
+      }
+      
+      // 如果是结束时间的当天，限制最大小时
+      if (maxTime && this.isSameDay(year, month, day, maxTime)) {
+        endHour = maxTime.hour
+      }
+      
+      const hours = []
+      for (let h = startHour; h <= endHour; h++) {
+        hours.push(h)
+      }
+      return hours
+    },
+
+    /**
+     * 获取可用分钟列表
+     */
+    getAvailableMinutes(year, month, day, hour) {
+      const { minTime, maxTime } = this.getEffectiveRange()
+      
+      let startMinute = 0
+      let endMinute = 59
+      
+      // 如果是开始时间的当天且小时相同，限制最小分钟
+      if (minTime && this.isSameDay(year, month, day, minTime) && hour === minTime.hour) {
+        startMinute = minTime.minute
+      }
+      
+      // 如果是结束时间的当天且小时相同，限制最大分钟
+      if (maxTime && this.isSameDay(year, month, day, maxTime) && hour === maxTime.hour) {
+        endMinute = maxTime.minute
+      }
+      
+      const minutes = []
+      for (let m = startMinute; m <= endMinute; m++) {
+        minutes.push(m)
+      }
+      return minutes
+    },
+
+    /**
+     * 获取可用秒列表
+     */
+    getAvailableSeconds(year, month, day, hour, minute) {
+      const { minTime, maxTime } = this.getEffectiveRange()
+      
+      let startSecond = 0
+      let endSecond = 59
+      
+      // 如果是开始时间的当天且小时分钟相同，限制最小秒
+      if (minTime && this.isSameDay(year, month, day, minTime) && hour === minTime.hour && minute === minTime.minute) {
+        startSecond = minTime.second
+      }
+      
+      // 如果是结束时间的当天且小时分钟相同，限制最大秒
+      if (maxTime && this.isSameDay(year, month, day, maxTime) && hour === maxTime.hour && minute === maxTime.minute) {
+        endSecond = maxTime.second
+      }
+      
+      const seconds = []
+      for (let s = startSecond; s <= endSecond; s++) {
+        seconds.push(s)
+      }
+      return seconds
     },
 
     /**
@@ -561,6 +728,9 @@ Component({
       let newYear = this.data.selectedYear
       let newMonth = this.data.selectedMonth
       let newDay = this.data.selectedDay
+      let newHour = this.data.selectedHour
+      let newMinute = this.data.selectedMinute
+      let newSecond = this.data.selectedSecond
       
       if (fields.includes('year')) {
         const yearIdx = values.year
@@ -577,20 +747,39 @@ Component({
         newDay = availableDays[values.day] ? availableDays[values.day].day : availableDays[0].day
       }
       
+      // 获取可用的小时列表
+      const availableHours = this.getAvailableHours(newYear, newMonth, newDay)
+      
+      if (fields.includes('hour')) {
+        newHour = availableHours[values.hour] !== undefined ? availableHours[values.hour] : availableHours[0]
+      }
+      
+      // 获取可用的分钟列表
+      const availableMinutes = this.getAvailableMinutes(newYear, newMonth, newDay, newHour)
+      
+      if (fields.includes('minute')) {
+        newMinute = availableMinutes[values.minute] !== undefined ? availableMinutes[values.minute] : availableMinutes[0]
+      }
+      
+      // 获取可用的秒列表
+      const availableSeconds = this.getAvailableSeconds(newYear, newMonth, newDay, newHour, newMinute)
+      
+      if (fields.includes('second')) {
+        newSecond = availableSeconds[values.second] !== undefined ? availableSeconds[values.second] : availableSeconds[0]
+      }
+      
       // 计算星期几
       const newWeekday = new Date(newYear, newMonth - 1, newDay).getDay()
       const weekdays = ['周日', '周一', '周二', '周三', '周四', '周五', '周六']
       const currentWeekdayText = weekdays[newWeekday]
       
-      // 更新时间值
-      const newHour = fields.includes('hour') ? values.hour : this.data.selectedHour
-      const newMinute = fields.includes('minute') ? values.minute : this.data.selectedMinute
-      const newSecond = fields.includes('second') ? values.second : this.data.selectedSecond
-      
-      // 检查是否需要重新计算pickerValue（年月联动）
+      // 检查是否需要重新计算pickerValue（年月日时分秒联动）
       const needRecalculate = 
         newYear !== this.data.selectedYear || 
-        newMonth !== this.data.selectedMonth
+        newMonth !== this.data.selectedMonth ||
+        newDay !== this.data.selectedDay ||
+        newHour !== this.data.selectedHour ||
+        newMinute !== this.data.selectedMinute
       
       this.setData({
         currentWeekdayText,
@@ -604,16 +793,19 @@ Component({
       })
       
       if (needRecalculate) {
-        // 更新天数列表
+        // 更新列表
         const days = this.getAvailableDays(newYear, newMonth)
-        this.setData({ days })
+        const hours = availableHours
+        const minutes = availableMinutes
+        const seconds = availableSeconds
+        this.setData({ days, hours, minutes, seconds })
         // 重新计算索引
         this.recalculatePickerValue()
       }
     },
 
     /**
-     * 重新计算pickerValue（处理年月联动）
+     * 重新计算pickerValue（处理年月日时分秒联动）
      */
     recalculatePickerValue() {
       const { fields, years, selectedYear, selectedMonth, selectedDay,
@@ -622,28 +814,33 @@ Component({
       const pickerValue = []
       const fieldConfigs = this.getFieldConfigs()
       
+      // 获取可用列表
+      const availableMonths = this.getAvailableMonths(selectedYear)
+      const availableDays = this.getAvailableDays(selectedYear, selectedMonth)
+      const availableHours = this.getAvailableHours(selectedYear, selectedMonth, selectedDay)
+      const availableMinutes = this.getAvailableMinutes(selectedYear, selectedMonth, selectedDay, selectedHour)
+      const availableSeconds = this.getAvailableSeconds(selectedYear, selectedMonth, selectedDay, selectedHour, selectedMinute)
+      
       fieldConfigs.forEach(config => {
         switch (config.key) {
           case 'year':
             pickerValue.push(years.indexOf(selectedYear))
             break
           case 'month':
-            const availableMonths = this.getAvailableMonths(selectedYear)
             pickerValue.push(availableMonths.indexOf(selectedMonth))
             break
           case 'day':
-            const availableDays = this.getAvailableDays(selectedYear, selectedMonth)
             const dayIdx = availableDays.findIndex(d => d.day === selectedDay)
             pickerValue.push(dayIdx >= 0 ? dayIdx : 0)
             break
           case 'hour':
-            pickerValue.push(selectedHour)
+            pickerValue.push(availableHours.indexOf(selectedHour))
             break
           case 'minute':
-            pickerValue.push(selectedMinute)
+            pickerValue.push(availableMinutes.indexOf(selectedMinute))
             break
           case 'second':
-            pickerValue.push(selectedSecond)
+            pickerValue.push(availableSeconds.indexOf(selectedSecond))
             break
         }
       })

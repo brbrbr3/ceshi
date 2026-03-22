@@ -66,13 +66,19 @@
   border-radius: 32rpx 32rpx 0 0;
   transform: translateY(100%);
   transition: transform 0.3s ease;
-  max-height: 80vh;
-  overflow-y: auto;
+  height: 80vh;
+  display: flex;
+  flex-direction: column;
   margin: 0 20rpx 0;
 }
 
 .config-popup-mask.is-visible .config-popup-container {
   transform: translateY(0);
+}
+
+/* 固定头部区域（标题 + 年份选择） */
+.config-popup-fixed-header {
+  flex-shrink: 0;
 }
 
 /* 配置弹窗头部 */
@@ -82,12 +88,9 @@
   justify-content: space-between;
   padding: 32rpx;
   border-bottom: 1rpx solid #F1F5F9;
-  position: sticky;
-  top: 0;
-  background: #FFFFFF;
-  z-index: 1;
 }
 
+/* 弹窗标题 */
 .config-popup-title {
   font-size: 34rpx;
   font-weight: 600;
@@ -101,17 +104,24 @@
   padding: 0 8rpx;
 }
 
-/* 配置表单 */
-.config-popup-form {
-  padding: 32rpx;
-  padding-bottom: calc(32rpx + env(safe-area-inset-bottom));
-}
-
 /* 年份选择 */
 .config-field {
   display: flex;
   align-items: center;
-  margin-bottom: 32rpx;
+  padding: 16rpx 32rpx;
+  border-bottom: 1rpx solid #F1F5F9;
+}
+
+/* 可滚动区域 */
+.config-popup-scroll {
+  flex: 1;
+  height: 0;
+  overflow: hidden;
+}
+
+/* 配置表单（scroll-view 内部） */
+.config-popup-form {
+  padding: 24rpx 32rpx;
 }
 
 .config-field-label {
@@ -153,9 +163,6 @@
   flex-direction: column;
   gap: 20rpx;
   margin-bottom: 24rpx;
-  max-height: 60vh;
-  overflow-y: auto;
-  -webkit-overflow-scrolling: touch;
 }
 
 .config-holiday-item {
@@ -202,23 +209,29 @@
 
 /* 添加按钮 */
 .config-add-btn {
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  gap: 8rpx;
+  height: 96rpx;
+  font-size: 32rpx;
+  text-align: center;
+  font-weight: 600;
+  border-radius: 16rpx;
+  border: none;
   background: #EFF6FF;
   border: 2rpx dashed #2563EB;
-  border-radius: 16rpx;
-  padding: 24rpx;
   color: #2563EB;
-  font-size: 28rpx;
-  font-weight: 500;
-  margin-bottom: 32rpx;
 }
 
 .config-add-icon {
   font-size: 36rpx;
   font-weight: 600;
+}
+
+/* 弹窗底部（固定提交按钮） */
+.config-popup-footer {
+  padding: 24rpx 32rpx;
+  padding-bottom: calc(24rpx + env(safe-area-inset-bottom));
+  border-top: 1rpx solid #F1F5F9;
+  flex-shrink: 0;
+  z-index: 100;
 }
 
 /* 提交按钮 */
