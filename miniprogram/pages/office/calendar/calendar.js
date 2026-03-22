@@ -217,7 +217,7 @@ Page({
    */
   handleDateChange(e) {
     const index = e.currentTarget.dataset.index
-    const date = e.detail.value
+    const date = e.detail.value  // datetime-picker 返回的是日期时间字符串
     const holidays = [...this.data.holidays]
     holidays[index].date = date
     this.setData({ holidays })

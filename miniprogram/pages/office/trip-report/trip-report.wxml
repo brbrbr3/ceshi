@@ -151,14 +151,13 @@
 
         <view class="trip-field">
           <view class="trip-field-label">计划返回时间 <text class="trip-required">*</text></view>
-          <view class="trip-datetime-picker">
-            <picker mode="date" value="{{form.plannedReturnDate}}" start="{{minReturnDate}}" end="2030-12-31" bindchange="handleReturnDateChange">
-              <view class="trip-picker-value">{{form.plannedReturnDate || '选择日期'}}</view>
-            </picker>
-            <picker mode="time" value="{{form.plannedReturnTime}}" start="{{minReturnTime}}" bindchange="handleReturnTimeChange">
-              <view class="trip-picker-value">{{form.plannedReturnTime || '选择时间'}}</view>
-            </picker>
-          </view>
+          <datetime-picker 
+            value="{{form.plannedReturnAt}}"
+            fields="{{['month', 'day', 'hour', 'minute']}}"
+            start-date="{{minReturnDate}}"
+            placeholder="请选择计划返回时间"
+            bind:change="handleReturnDateTimeChange"
+          />
           <view class="trip-field-hint">计划返回时间需晚于当前时间</view>
         </view>
 

@@ -203,32 +203,47 @@
 /* 选择器视图 */
 .picker-view {
   height: 450rpx;
-  padding: 0 20rpx;
+  padding: 0 8rpx;
 }
 
 /* 列项 */
 .picker-column-item {
   display: flex;
+  flex-direction: row;
   align-items: center;
   justify-content: center;
   font-size: 32rpx;
   color: #1E293B;
   font-weight: 500;
+  white-space: nowrap;
+  flex-wrap: nowrap;
+}
+
+/* 年份列特殊样式 - 增加右边距避免与"年"字重叠 */
+.picker-column-item--year {
+  padding-right: 1rpx;
 }
 
 .picker-column-num {
   font-size: 36rpx;
   font-weight: 600;
   color: #2563EB;
-  min-width: 48rpx;
   text-align: center;
 }
 
 .picker-column-unit {
-  font-size: 24rpx;
+  font-size: 22rpx;
   color: #64748B;
-  margin-left: 4rpx;
   font-weight: 400;
+  margin-left: 2rpx;
+}
+
+/* 星期文本样式 */
+.picker-column-weekday {
+  font-size: 20rpx;
+  color:  #64748B;
+  font-weight: 400;
+  margin-left: 4rpx;
 }
 
 .picker-column-item--weekday {

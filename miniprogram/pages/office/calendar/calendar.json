@@ -1,6 +1,7 @@
 {
   "usingComponents": {
-    "calendar": "@lspriv/wx-calendar"
+    "calendar": "@lspriv/wx-calendar",
+    "datetime-picker": "/components/datetime-picker/datetime-picker"
   },
   "navigationBarTitleText": "本馆日历"
 }

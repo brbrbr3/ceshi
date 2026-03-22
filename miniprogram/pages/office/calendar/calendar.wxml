@@ -51,12 +51,14 @@
         <view class="config-holidays-list">
           <view class="config-holiday-item" wx:for="{{holidays}}" wx:key="index">
             <view class="config-holiday-label">第{{index + 1}}个节假日</view>
-            <picker mode="date" value="{{item.date}}" start="{{configYear}}-01-01" end="{{configYear}}-12-31" bindchange="handleDateChange" data-index="{{index}}">
-              <view class="config-date-picker">
-                <text>{{item.date}}</text>
-                <text class="config-picker-arrow">▼</text>
-              </view>
-            </picker>
+            <datetime-picker 
+              value="{{item.date}}" 
+              fields="{{['year', 'month', 'day']}}"
+              start-date="{{configYear}}-01-01" 
+              end-date="{{configYear}}-12-31" 
+              bind:change="handleDateChange" 
+              data-index="{{index}}"
+            />
             <view class="config-delete-btn" bindtap="handleDeleteHoliday" data-index="{{index}}">×</view>
           </view>
         </view>

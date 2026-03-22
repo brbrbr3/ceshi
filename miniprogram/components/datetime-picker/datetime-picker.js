@@ -58,13 +58,20 @@ Component({
     // 当前选中索引
     pickerValue: [],
     // 字段显示状态（用于 wxml 条件渲染）
+    // 注意：weekday 不作为单独列，而是显示在日期列旁边
     showYear: true,
     showMonth: true,
     showDay: true,
-    showWeekday: true,
+    showWeekday: false,  // 是否在日期列旁显示星期（不是单独列）
     showHour: false,
     showMinute: false,
     showSecond: false,
+    // 当前选中日期对应的星期文本（用于日期列显示）
+    currentWeekdayText: '',
+    // 日期列在 pickerValue 中的索引（用于 wxml 判断当前选中项）
+    dayColumnIndex: 0,
+    // 带星期的日期显示列表
+    daysWithWeekday: [],
     // 内部状态
     selectedYear: 0,
     selectedMonth: 0,
@@ -76,12 +83,11 @@ Component({
     // 动画相关
     animationData: null,
     maskAnimation: null,
-    // 字段配置映射
+    // 字段配置映射（weekday 不再作为单独字段）
     fieldMap: {
       year: { key: 'year', label: '年' },
       month: { key: 'month', label: '月' },
       day: { key: 'day', label: '日' },
-      weekday: { key: 'weekday', label: '星期' },
       hour: { key: 'hour', label: '时' },
       minute: { key: 'minute', label: '分' },
       second: { key: 'second', label: '秒' }
@@ -131,9 +137,19 @@ Component({
       
       // 初始化日期列表（默认31天，后续根据年月动态调整）
       const days = []
+      const weekdays = ['周日', '周一', '周二', '周三', '周四', '周五', '周六']
       for (let d = 1; d <= 31; d++) {
-        days.push(d)
+        days.push({ day: d, weekday: weekdays[new Date(startYear, 0, d).getDay()] })
       }
+      
+      // 是否在日期列旁显示星期
+      const showWeekday = fields.includes('weekday')
+      
+      // 计算日期列在 pickerValue 中的索引
+      let dayColumnIndex = 0
+      if (fields.includes('year')) dayColumnIndex++
+      if (fields.includes('month')) dayColumnIndex++
+      // dayColumnIndex 现在指向日期列的索引
       
       this.setData({ 
         years, months, days, hours, minutes, seconds,
@@ -141,10 +157,11 @@ Component({
         showYear: fields.includes('year'),
         showMonth: fields.includes('month'),
         showDay: fields.includes('day'),
-        showWeekday: fields.includes('weekday'),
+        showWeekday: showWeekday,  // 是否显示星期（在日期列旁边）
         showHour: fields.includes('hour'),
         showMinute: fields.includes('minute'),
-        showSecond: fields.includes('second')
+        showSecond: fields.includes('second'),
+        dayColumnIndex
       })
       
       // 设置初始值
@@ -202,7 +219,7 @@ Component({
             break
           case 'day':
             const availableDays = this.getAvailableDays(year, month)
-            const dayIdx = availableDays.indexOf(day)
+            const dayIdx = availableDays.findIndex(d => d.day === day)
             pickerValue.push(dayIdx >= 0 ? dayIdx : 0)
             break
           case 'weekday':
@@ -223,9 +240,14 @@ Component({
       // 获取当前年月对应的天数列表
       const days = this.getAvailableDays(year, month)
       
+      // 计算当前选中日期的星期文本
+      const weekdays = ['周日', '周一', '周二', '周三', '周四', '周五', '周六']
+      const currentWeekdayText = weekdays[weekday] || ''
+      
       this.setData({
         pickerValue,
         days,
+        currentWeekdayText,
         selectedYear: year,
         selectedMonth: month,
         selectedDay: day,
@@ -282,18 +304,26 @@ Component({
       if (year === endY && month === endM) endDay = endD
       
       const days = []
+      const weekdays = ['周日', '周一', '周二', '周三', '周四', '周五', '周六']
       for (let d = startDay; d <= endDay; d++) {
-        days.push(d)
+        // 计算每个日期对应的星期
+        const weekday = new Date(year, month - 1, d).getDay()
+        days.push({
+          day: d,
+          weekday: weekdays[weekday]
+        })
       }
       return days
     },
 
     /**
      * 获取字段配置列表
+     * 注意：weekday 不作为单独列，只是标记是否在日期列旁显示
      */
     getFieldConfigs() {
       const { fields, fieldMap } = this.data
-      return fields.map(f => fieldMap[f]).filter(Boolean)
+      // 过滤掉 weekday，因为它不是单独的列
+      return fields.filter(f => f !== 'weekday').map(f => fieldMap[f]).filter(Boolean)
     },
 
     /**
@@ -379,9 +409,15 @@ Component({
       const parts = []
       
       if (fields.includes('year')) parts.push(`${selectedYear}年`)
-      if (fields.includes('month')) parts.push(`${String(selectedMonth).padStart(2, '0')}月`)
-      if (fields.includes('day')) parts.push(`${String(selectedDay).padStart(2, '0')}日`)
-      if (fields.includes('weekday')) parts.push(weekdays[selectedWeekday])
+      if (fields.includes('month')) parts.push(`${selectedMonth}月`)  // 不补零
+      if (fields.includes('day')) {
+        let dayText = `${selectedDay}日`
+        // 如果包含星期字段，在日期后显示星期
+        if (fields.includes('weekday')) {
+          dayText += ` ${weekdays[selectedWeekday]}`
+        }
+        parts.push(dayText)
+      }
       
       const timeParts = []
       if (fields.includes('hour')) timeParts.push(String(selectedHour).padStart(2, '0'))
@@ -494,11 +530,13 @@ Component({
       
       if (fields.includes('day')) {
         const availableDays = this.getAvailableDays(newYear, newMonth)
-        newDay = availableDays[values.day] || availableDays[0]
+        newDay = availableDays[values.day] ? availableDays[values.day].day : availableDays[0].day
       }
       
       // 计算星期几
       const newWeekday = new Date(newYear, newMonth - 1, newDay).getDay()
+      const weekdays = ['周日', '周一', '周二', '周三', '周四', '周五', '周六']
+      const currentWeekdayText = weekdays[newWeekday]
       
       // 更新时间值
       const newHour = fields.includes('hour') ? values.hour : this.data.selectedHour
@@ -511,6 +549,7 @@ Component({
         newMonth !== this.data.selectedMonth
       
       this.setData({
+        currentWeekdayText,
         selectedYear: newYear,
         selectedMonth: newMonth,
         selectedDay: newDay,
@@ -534,7 +573,7 @@ Component({
      */
     recalculatePickerValue() {
       const { fields, years, selectedYear, selectedMonth, selectedDay,
-              selectedWeekday, selectedHour, selectedMinute, selectedSecond } = this.data
+              selectedHour, selectedMinute, selectedSecond } = this.data
       
       const pickerValue = []
       const fieldConfigs = this.getFieldConfigs()
@@ -550,10 +589,8 @@ Component({
             break
           case 'day':
             const availableDays = this.getAvailableDays(selectedYear, selectedMonth)
-            pickerValue.push(availableDays.indexOf(selectedDay))
-            break
-          case 'weekday':
-            pickerValue.push(selectedWeekday)
+            const dayIdx = availableDays.findIndex(d => d.day === selectedDay)
+            pickerValue.push(dayIdx >= 0 ? dayIdx : 0)
             break
           case 'hour':
             pickerValue.push(selectedHour)

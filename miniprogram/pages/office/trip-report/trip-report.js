@@ -27,16 +27,12 @@ Page({
     form: {
       destination: '',
       companions: '',
-      plannedReturnDate: '',
-      plannedReturnTime: '',
+      plannedReturnAt: '',  // 改为统一的日期时间字符串
       travelMode: ''
     },
     travelModeIndex: -1,
     tripList: [],              // 出行记录列表
     groupedTrips: [],          // 按月分组的出行记录
-    // 时间限制
-    minReturnDate: '',
-    minReturnTime: '',
     // 历史记录
     destinationHistory: [],
     companionsHistory: [],
@@ -285,39 +281,18 @@ Page({
   },
 
   /**
-   * 计算最小返回时间限制
-   */
-  calculateMinReturnTime() {
-    const now = new Date()
-    // 最小日期为今天
-    const minDate = `${now.getFullYear()}-${String(now.getMonth() + 1).padStart(2, '0')}-${String(now.getDate()).padStart(2, '0')}`
-    
-    // 最小时间为当前时间 +30分钟（四舍五入到整5分钟）
-    const futureTime = new Date(now.getTime() + 30 * 60 * 1000)
-    let hour = futureTime.getHours()
-    let minute = Math.ceil(futureTime.getMinutes() / 5) * 5
-    
-    if (minute >= 60) {
-      hour += 1
-      minute = 0
-    }
-    
-    if (hour >= 24) {
-      hour = 23
-      minute = 55
-    }
-    
-    const minTime = `${String(hour).padStart(2, '0')}:${String(minute).padStart(2, '0')}`
-    
-    return { minDate, minTime }
-  },
-
-  /**
    * 显示外出报备表单
    */
   showDepartForm() {
     // 计算最小返回时间
-    const { minDate, minTime } = this.calculateMinReturnTime()
+    const now = new Date()
+    const futureTime = new Date(now.getTime() + 30 * 60 * 1000)
+    
+    // 格式化为 YYYY-MM-DD HH:mm 格式
+    const defaultReturnAt = this.formatDateTimeForPicker(futureTime)
+    
+    // 计算最小返回日期（今天）
+    const minReturnDate = this.formatDateForPicker(now)
 
     // 获取最后一次成功报备的数据作为默认值
     const lastTrip = this.data.tripList.find(trip => trip.status === 'returned')
@@ -326,8 +301,7 @@ Page({
     const form = {
       destination: '',
       companions: '',
-      plannedReturnDate: minDate,
-      plannedReturnTime: minTime,
+      plannedReturnAt: defaultReturnAt,
       travelMode: lastTrip ? lastTrip.travelMode : ''
     }
 
@@ -336,12 +310,11 @@ Page({
     this.setData({
       showFormPopup: true,
       form,
-      travelModeIndex: travelModeIndex >= 0 ? travelModeIndex : 0,
-      minReturnDate: minDate,
-      minReturnTime: minTime
+      minReturnDate,
+      travelModeIndex: travelModeIndex >= 0 ? travelModeIndex : 0
     })
 
-    //显示历史记录项
+    // 显示历史记录项
     if (this.data.destinationHistory.length > 0) {
       this.setData({ showDestinationHistory: true })
     }
@@ -354,6 +327,28 @@ Page({
     if (travelModeIndex >= 0) {
       this.setData({ 'form.travelMode': this.data.travelModes[travelModeIndex] })
     }
+  },
+
+  /**
+   * 格式化日期为picker所需格式（YYYY-MM-DD）
+   */
+  formatDateForPicker(date) {
+    const year = date.getFullYear()
+    const month = String(date.getMonth() + 1).padStart(2, '0')
+    const day = String(date.getDate()).padStart(2, '0')
+    return `${year}-${month}-${day}`
+  },
+
+  /**
+   * 格式化日期时间为picker所需格式（YYYY-MM-DD HH:mm）
+   */
+  formatDateTimeForPicker(date) {
+    const year = date.getFullYear()
+    const month = String(date.getMonth() + 1).padStart(2, '0')
+    const day = String(date.getDate()).padStart(2, '0')
+    const hour = String(date.getHours()).padStart(2, '0')
+    const minute = String(date.getMinutes()).padStart(2, '0')
+    return `${year}-${month}-${day} ${hour}:${minute}`
   },
 
   /**
@@ -421,19 +416,11 @@ Page({
     })
   },
 
-  handleReturnDateChange(e) {
-    const selectedDate = e.detail.value
-    const { minDate, minTime } = this.calculateMinReturnTime()
-    
-    // 如果选择的是今天，需要检查时间是否有效
-    this.setData({ 
-      'form.plannedReturnDate': selectedDate,
-      minReturnTime: selectedDate === minDate ? minTime : '00:00'
-    })
-  },
-
-  handleReturnTimeChange(e) {
-    this.setData({ 'form.plannedReturnTime': e.detail.value })
+  /**
+   * 处理计划返回时间选择变化
+   */
+  handleReturnDateTimeChange(e) {
+    this.setData({ 'form.plannedReturnAt': e.detail.value })
   },
 
   handleTravelModeChange(e) {
@@ -456,7 +443,7 @@ Page({
       return false
     }
 
-    if (!form.plannedReturnDate || !form.plannedReturnTime) {
+    if (!form.plannedReturnAt) {
       utils.showToast({ title: '请选择计划返回时间', icon: 'none' })
       return false
     }
@@ -467,7 +454,7 @@ Page({
     }
 
     // 检查返回时间是否在未来
-    const returnTimestamp = new Date(`${form.plannedReturnDate}T${form.plannedReturnTime}`).getTime()
+    const returnTimestamp = new Date(form.plannedReturnAt.replace(' ', 'T')).getTime()
     if (returnTimestamp <= Date.now()) {
       utils.showToast({ title: '计划返回时间必须在当前时间之后', icon: 'none' })
       return false
@@ -485,7 +472,8 @@ Page({
     if (!this.validateForm()) return
 
     const form = this.data.form
-    const plannedReturnAt = new Date(`${form.plannedReturnDate}T${form.plannedReturnTime}`).getTime()
+    // 解析日期时间字符串为时间戳
+    const plannedReturnAt = new Date(form.plannedReturnAt.replace(' ', 'T')).getTime()
 
     this.setData({ submitting: true })
 

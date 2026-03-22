@@ -46,7 +46,7 @@
     >
       <!-- 年份列 -->
       <picker-view-column wx:if="{{showYear}}">
-        <view wx:for="{{years}}" wx:key="*this" class="picker-column-item">
+        <view wx:for="{{years}}" wx:key="*this" class="picker-column-item ">
           <text class="picker-column-num">{{item}}</text>
           <text class="picker-column-unit">年</text>
         </view>
@@ -55,23 +55,17 @@
       <!-- 月份列 -->
       <picker-view-column wx:if="{{showMonth}}">
         <view wx:for="{{months}}" wx:key="*this" class="picker-column-item">
-          <text class="picker-column-num">{{item < 10 ? '0' + item : item}}</text>
+          <text class="picker-column-num">{{item}}</text>
           <text class="picker-column-unit">月</text>
         </view>
       </picker-view-column>
 
-      <!-- 日期列 -->
+      <!-- 日期列（旁边显示当前选中日期的星期） -->
       <picker-view-column wx:if="{{showDay}}">
-        <view wx:for="{{days}}" wx:key="*this" class="picker-column-item">
-          <text class="picker-column-num">{{item < 10 ? '0' + item : item}}</text>
+        <view wx:for="{{days}}" wx:key="day" class="picker-column-item">
+          <text class="picker-column-num">{{item.day}}</text>
           <text class="picker-column-unit">日</text>
-        </view>
-      </picker-view-column>
-
-      <!-- 星期列 -->
-      <picker-view-column wx:if="{{showWeekday}}">
-        <view wx:for="{{weekdays}}" wx:key="*this" class="picker-column-item picker-column-item--weekday">
-          <text>{{item}}</text>
+          <text wx:if="{{showWeekday}}" class="picker-column-weekday">{{item.weekday}}</text>
         </view>
       </picker-view-column>
 

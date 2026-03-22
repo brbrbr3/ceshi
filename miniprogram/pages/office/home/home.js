@@ -296,14 +296,37 @@ Page({
         url: '/pages/office/trip-report/trip-report'
       })
     } else if (label === '出行管理') {
-      // 使用缓存的权限判断
-      const canAccess = this.data.canAccessTripDashboard || this.data.permissionCache['trip_dashboard']
-      if (canAccess) {
+      // 先检查本地缓存的权限
+      const cachedPermission = this.data.permissionCache['trip_dashboard']
+      if (cachedPermission === true) {
         wx.navigateTo({
           url: '/pages/office/trip-dashboard/trip-dashboard'
         })
-      } else {
+      } else if (cachedPermission === false) {
+        // 明确无权限
         this.showPermissionDenied('出行管理')
+      } else {
+        // 权限未加载，同步检查权限
+        wx.showLoading({ title: '检查权限...', mask: true })
+        app.checkPermission('trip_dashboard')
+          .then((allowed) => {
+            wx.hideLoading()
+            // 更新缓存
+            const permissionCache = { ...this.data.permissionCache, trip_dashboard: allowed }
+            this.setData({ permissionCache })
+            if (allowed) {
+              wx.navigateTo({
+                url: '/pages/office/trip-dashboard/trip-dashboard'
+              })
+            } else {
+              this.showPermissionDenied('出行管理')
+            }
+          })
+          .catch((error) => {
+            wx.hideLoading()
+            console.error('权限检查失败:', error)
+            utils.showToast({ title: '权限检查失败', icon: 'none' })
+          })
       }
     } else {
       utils.showToast({
