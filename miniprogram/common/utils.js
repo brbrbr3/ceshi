@@ -190,6 +190,19 @@ function getTodayDate(offset) {
 }
 
 /**
+ * 获取设备本地日期字符串（YYYY-MM-DD）
+ * 用于日期选择器的默认值，避免时区转换问题
+ * @returns {string} 本地日期字符串
+ */
+function getLocalDateString() {
+  const now = new Date()
+  const year = now.getFullYear()
+  const month = String(now.getMonth() + 1).padStart(2, '0')
+  const day = String(now.getDate()).padStart(2, '0')
+  return `${year}-${month}-${day}`
+}
+
+/**
  * 获取当前时间戳（GMT）
  * @returns {number} 当前 GMT 时间戳（毫秒）
  */
@@ -438,6 +451,7 @@ module.exports = {
   formatShortDateTime,
   formatDuration,
   getTodayDate,
+  getLocalDateString,
   now,
   
   // 通用工具

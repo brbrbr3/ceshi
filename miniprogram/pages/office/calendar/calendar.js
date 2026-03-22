@@ -18,8 +18,6 @@ const CONFIG_ALLOWED_ROLES = ['admin', '会计', '会计主管']
 
 Page({
   data: {
-    statusBarHeight: 0,           // 状态栏高度
-    navBarHeight: 44,             // 导航栏高度
     calendarLoaded: false,        // 日历是否加载完成
     marks: [],                    // 日历标记数据
     currentYear: new Date().getFullYear(),
@@ -35,12 +33,6 @@ Page({
   },
 
   onLoad() {
-    // 获取状态栏高度
-    const systemInfo = wx.getSystemInfoSync()
-    this.setData({
-      statusBarHeight: systemInfo.statusBarHeight
-    })
-
     // 生成年份选项（今年和明年）
     const currentYear = new Date().getFullYear()
     this.setData({
@@ -114,10 +106,12 @@ Page({
       return
     }
 
+    // 使用 corner 类型显示角标（日历组件只支持 schedule/corner/festival/solar）
     const marks = dates.map(date => ({
       date: date,
-      type: 'rest',
-      text: '休'
+      type: 'corner',
+      text: '休',
+      style: { color: '#16A34A' }  // 绿色字体
     }))
 
     this.setData({ marks })
@@ -182,23 +176,16 @@ Page({
         holidays = res.result.data.config.dates.map(date => ({ date }))
       }
 
-      // 如果没有数据，添加一个默认的空条目
-      if (holidays.length === 0) {
-        const today = utils.formatDate(Date.now())
-        holidays = [{ date: today }]
-      }
-
+      // 不添加默认条目，让用户自己添加
       this.setData({
         showConfigPopup: true,
         holidays
       })
     } catch (error) {
       console.error('加载节假日配置失败:', error)
-      // 显示一个默认条目
-      const today = utils.formatDate(Date.now())
       this.setData({
         showConfigPopup: true,
-        holidays: [{ date: today }]
+        holidays: []
       })
     }
   },
@@ -241,22 +228,34 @@ Page({
    */
   handleAddHoliday() {
     const holidays = [...this.data.holidays]
-    const lastDate = holidays.length > 0 ? holidays[holidays.length - 1].date : utils.formatDate(Date.now())
+    // 使用本地日期作为默认值，避免时区问题
+    const defaultDate = holidays.length > 0 ? holidays[holidays.length - 1].date : utils.getLocalDateString()
 
     // 计算下一天
-    const nextDate = this.getNextDate(lastDate)
+    const nextDate = holidays.length > 0 ? this.getNextDate(defaultDate) : defaultDate
 
     holidays.push({ date: nextDate })
     this.setData({ holidays })
   },
 
   /**
-   * 获取下一天的日期
+   * 获取下一天的日期（本地日期格式，不进行时区转换）
+   * @param {string} dateStr - 日期字符串 YYYY-MM-DD
+   * @returns {string} 下一天的日期字符串
    */
   getNextDate(dateStr) {
-    const date = new Date(dateStr)
+    // 解析日期字符串，使用本地时区
+    const parts = dateStr.split('-')
+    const year = parseInt(parts[0])
+    const month = parseInt(parts[1]) - 1
+    const day = parseInt(parts[2])
+    const date = new Date(year, month, day)
     date.setDate(date.getDate() + 1)
-    return utils.formatDate(date.getTime())
+    // 使用本地日期格式化，不进行时区转换
+    const y = date.getFullYear()
+    const m = String(date.getMonth() + 1).padStart(2, '0')
+    const d = String(date.getDate()).padStart(2, '0')
+    return `${y}-${m}-${d}`
   },
 
   /**
@@ -266,11 +265,7 @@ Page({
     const index = e.currentTarget.dataset.index
     const holidays = [...this.data.holidays]
 
-    if (holidays.length <= 1) {
-      utils.showToast({ title: '至少保留一个节假日', icon: 'none' })
-      return
-    }
-
+    // 允许删除所有节假日，提交时会自动添加一个默认值
     holidays.splice(index, 1)
     this.setData({ holidays })
   },
@@ -285,14 +280,11 @@ Page({
       .map(h => h.date)
       .filter(d => d) // 过滤空值
 
-    if (dates.length === 0) {
-      utils.showToast({ title: '请至少添加一个节假日', icon: 'none' })
-      return
-    }
-
     this.setData({ submitting: true })
 
     try {
+      // 传递用户名给云函数
+      const currentUser = this.data.currentUser || app.globalData.userProfile
       const res = await wx.cloud.callFunction({
         name: 'holidayManager',
         data: {
@@ -300,6 +292,9 @@ Page({
           params: {
             year: this.data.configYear,
             dates
+          },
+          userInfo: {
+            name: currentUser ? currentUser.name : '未知用户'
           }
         }
       })
@@ -319,12 +314,5 @@ Page({
     } finally {
       this.setData({ submitting: false })
     }
-  },
-
-  /**
-   * 返回上一页
-   */
-  handleBack() {
-    wx.navigateBack()
   }
 })

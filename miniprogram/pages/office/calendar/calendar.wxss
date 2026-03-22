@@ -5,60 +5,36 @@
   background: #EEF2FF;
 }
 
-/* 自定义导航栏 */
-.custom-nav {
-  position: fixed;
-  top: 0;
-  left: 0;
-  right: 0;
-  z-index: 100;
-  background: linear-gradient(135deg, #2563EB 0%, #4F46E5 100%);
+.calendar-header-top{
+  margin-bottom: -100rpx;
 }
 
-.nav-bar {
-  height: 88rpx;
-  display: flex;
-  align-items: center;
-  justify-content: space-between;
-  padding: 0 32rpx;
-}
-
-.nav-left {
-  width: 80rpx;
-  display: flex;
-  align-items: center;
-}
-
-.nav-back-icon {
-  font-size: 32rpx;
+/* 头部标题 */
+.calendar-title {
+  font-size: 36rpx;
+  font-weight: 700;
   color: #FFFFFF;
 }
 
-.nav-title {
-  flex: 1;
-  text-align: center;
-  font-size: 34rpx;
-  font-weight: 600;
-  color: #FFFFFF;
+.calendar-subtitle {
+  font-size: 24rpx;
+  color: rgba(255, 255, 255, 0.8);
+  margin-top: 4rpx;
 }
 
-.nav-right {
-  width: 80rpx;
-  display: flex;
-  align-items: center;
-  justify-content: flex-end;
-}
-
-.nav-config-text {
-  font-size: 28rpx;
+/* 配置按钮 */
+.calendar-config-btn {
+  background: rgba(255, 255, 255, 0.2);
+  border-radius: 12rpx;
+  padding: 12rpx 24rpx;
+  font-size: 26rpx;
   color: #FFFFFF;
   font-weight: 500;
 }
 
 /* 日历容器 */
 .calendar-container {
-  padding-top: 88rpx;
-  min-height: 100vh;
+  padding: 24rpx 0 0;
 }
 
 /* 配置弹窗遮罩 */
@@ -69,7 +45,7 @@
   right: 0;
   bottom: 0;
   background: rgba(0, 0, 0, 0.5);
-  z-index: 200;
+  z-index: 9999;
   opacity: 0;
   visibility: hidden;
   transition: all 0.3s ease;
@@ -92,6 +68,7 @@
   transition: transform 0.3s ease;
   max-height: 80vh;
   overflow-y: auto;
+  margin: 0 20rpx 0;
 }
 
 .config-popup-mask.is-visible .config-popup-container {

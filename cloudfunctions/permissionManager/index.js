@@ -164,6 +164,25 @@ async function checkPermission(openid, featureKey) {
       })
     }
 
+    // 管理员自动拥有所有权限
+    if (user.isAdmin) {
+      return success({
+        allowed: true,
+        user: {
+          openid: user.openid,
+          name: user.name,
+          role: user.role,
+          isAdmin: true
+        },
+        feature: {
+          featureKey: permission.featureKey,
+          featureName: permission.featureName,
+          enabledRoles: permission.enabledRoles,
+          message: '管理员拥有所有权限'
+        }
+      })
+    }
+
     // 检查管理员权限
     if (permission.requireAdmin && !user.isAdmin) {
       return fail('需要管理员权限才能访问该功能', 403, {
@@ -263,6 +282,18 @@ async function batchCheckPermissions(openid, featureKeys) {
           allowed: true,
           featureKey,
           message: '未配置权限规则，默认允许访问'
+        }
+        continue
+      }
+
+      // 管理员自动拥有所有权限
+      if (user.isAdmin) {
+        results[featureKey] = {
+          allowed: true,
+          featureKey: permission.featureKey,
+          featureName: permission.featureName,
+          enabledRoles: permission.enabledRoles,
+          message: '管理员拥有所有权限'
         }
         continue
       }

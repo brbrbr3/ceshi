@@ -74,6 +74,7 @@ page {
 
 .approval-tabs-shell {
   margin-top: 30rpx;
+  margin-bottom: -10rpx;
   padding: 6rpx;
   border-radius: 28rpx;
   background: rgba(255, 255, 255, 0.15);

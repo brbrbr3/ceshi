@@ -13,6 +13,7 @@ Page({
     displayName: '访客',
     greetingText: '欢迎使用Embaixada办公系统',
     currentDateText: '',
+    todayTypeText: '今天是工作日',  // 动态显示日期类型
     roleLabel: '待认证用户',
     pendingApprovalCount: 0,
     unreadNotificationCount: 0,
@@ -46,6 +47,7 @@ Page({
     this.syncNotifications()
     this.loadAnnouncements()
     this.loadPermissionCache()
+    this.loadHolidayConfig()  // 加载节假日配置
   },
 
   /**
@@ -70,8 +72,9 @@ Page({
     app.batchCheckPermissions(featureKeys)
       .then((result) => {
         const permissions = {}
+        const perms = result.permissions || {}
         featureKeys.forEach(key => {
-          permissions[key] = result[key] ? result[key].allowed : false
+          permissions[key] = perms[key] ? perms[key].allowed : false
         })
 
         this.setData({ permissionCache: permissions })
@@ -82,7 +85,7 @@ Page({
             timestamp: Date.now(),
             permissions
           })
-          console.log('权限信息已缓存')
+          console.log('权限信息已缓存', permissions)
         } catch (e) {
           console.warn('缓存权限信息失败:', e)
         }
@@ -336,5 +339,60 @@ Page({
     wx.navigateTo({
       url: '/pages/office/calendar/calendar'
     })
+  },
+
+  /**
+   * 加载节假日配置并判断今天类型
+   */
+  async loadHolidayConfig() {
+    try {
+      const currentYear = new Date().getFullYear()
+      const res = await wx.cloud.callFunction({
+        name: 'holidayManager',
+        data: {
+          action: 'getByYear',
+          params: { year: currentYear }
+        }
+      })
+
+      let holidayDates = []
+      if (res.result.code === 0 && res.result.data.exists) {
+        holidayDates = res.result.data.config.dates || []
+      }
+
+      // 判断今天类型
+      const todayType = this.getTodayType(holidayDates)
+      this.setData({ todayTypeText: todayType })
+    } catch (error) {
+      console.error('加载节假日配置失败:', error)
+      // 使用默认判断（只判断周末）
+      const todayType = this.getTodayType([])
+      this.setData({ todayTypeText: todayType })
+    }
+  },
+
+  /**
+   * 判断今天的类型
+   * @param {Array} holidayDates 节假日日期数组 ['2026-01-01', ...]
+   * @returns {String} 今天类型描述
+   */
+  getTodayType(holidayDates) {
+    const today = new Date()
+    const dayOfWeek = today.getDay() // 0=周日, 6=周六
+    // 使用本地日期字符串，与picker保持一致（避免时区转换问题）
+    const todayStr = utils.getLocalDateString()
+
+    // 先检查是否是法定节假日
+    if (holidayDates.includes(todayStr)) {
+      return '今天是法定节假日'
+    }
+
+    // 再检查是否是周末
+    if (dayOfWeek === 0 || dayOfWeek === 6) {
+      return '今天是公休日'
+    }
+
+    // 工作日
+    return '今天是工作日'
   }
 })

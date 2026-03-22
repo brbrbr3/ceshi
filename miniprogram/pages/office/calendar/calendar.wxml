@@ -1,15 +1,13 @@
 <!--本馆日历页面-->
 <view class="calendar-page">
-  <!-- 自定义导航栏 -->
-  <view class="custom-nav" style="padding-top: {{statusBarHeight}}px;">
-    <view class="nav-bar">
-      <view class="nav-left" bindtap="handleBack">
-        <text class="nav-back-icon">◀</text>
+  <!-- 标准头部设计 -->
+  <view class="office-gradient-header">
+    <view class="office-header-top calendar-header-top">
+      <view>
+        <view class="calendar-title">本馆日历</view>
+        <view class="calendar-subtitle">查看日历与节假日安排</view>
       </view>
-      <view class="nav-title">本馆日历</view>
-      <view class="nav-right" bindtap="handleConfigTap">
-        <text class="nav-config-text">配置</text>
-      </view>
+      <view class="calendar-config-btn" bindtap="handleConfigTap">配置节假日</view>
     </view>
   </view>
 
@@ -32,7 +30,7 @@
   <view class="config-popup-mask {{showConfigPopup ? 'is-visible' : ''}}" catchtouchmove="stopPropagation" bindtap="hideConfigPopup">
     <view class="config-popup-container" catchtap="stopPropagation">
       <view class="config-popup-header">
-        <view class="config-popup-title">配置节假日</view>
+        <view class="config-popup-title">配置法定节假日</view>
         <view class="config-popup-close" bindtap="hideConfigPopup">×</view>
       </view>
 

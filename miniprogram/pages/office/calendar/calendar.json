@@ -2,6 +2,5 @@
   "usingComponents": {
     "calendar": "@lspriv/wx-calendar"
   },
-  "navigationStyle": "custom",
   "navigationBarTitleText": "本馆日历"
 }

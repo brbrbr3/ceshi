@@ -30,7 +30,7 @@
         <view class="home-calendar-icon">📅</view>
         <view>
           <view class="home-calendar-title">{{currentDateText}}</view>
-          <view class="home-calendar-desc">今天是工作日</view>
+          <view class="home-calendar-desc">{{todayTypeText}}</view>
         </view>
       </view>
       <view class="home-calendar-tag">查看日历</view>
