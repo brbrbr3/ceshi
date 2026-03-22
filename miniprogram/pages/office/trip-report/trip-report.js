@@ -5,9 +5,24 @@ const paginationBehavior = require('../../../behaviors/pagination.js')
 
 // 状态样式映射
 const STATUS_STYLE = {
-  out: { color: '#2563EB', bg: '#EFF6FF', icon: '🚗', text: '外出中' },
-  returned: { color: '#16A34A', bg: '#DCFCE7', icon: '✓', text: '已返回' },
-  overtime: { color: '#DC2626', bg: '#FEE2E2', icon: '⚠', text: '超时' }
+  out: {
+    color: '#2563EB',
+    bg: '#EFF6FF',
+    icon: '🚗',
+    text: '外出中'
+  },
+  returned: {
+    color: '#16A34A',
+    bg: '#DCFCE7',
+    icon: '✓',
+    text: '已返回'
+  },
+  overtime: {
+    color: '#DC2626',
+    bg: '#FEE2E2',
+    icon: '⚠',
+    text: '超时'
+  }
 }
 
 // 历史记录存储key
@@ -21,18 +36,18 @@ Page({
   data: {
     loading: false,
     submitting: false,
-    activeTrip: null,          // 当前未返回的出行
-    showFormPopup: false,      // 是否显示表单弹窗
-    travelModes: [],           // 出行方式选项
+    activeTrip: null, // 当前未返回的出行
+    showFormPopup: false, // 是否显示表单弹窗
+    travelModes: [], // 出行方式选项
     form: {
       destination: '',
       companions: '',
-      plannedReturnAt: '',  // 改为统一的日期时间字符串
+      plannedReturnAt: '', // 改为统一的日期时间字符串
       travelMode: ''
     },
     travelModeIndex: -1,
-    tripList: [],              // 出行记录列表
-    groupedTrips: [],          // 按月分组的出行记录
+    tripList: [], // 出行记录列表
+    groupedTrips: [], // 按月分组的出行记录
     // 历史记录
     destinationHistory: [],
     companionsHistory: [],
@@ -56,8 +71,11 @@ Page({
 
   async onShow() {
     // 显示加载中提示
-    wx.showLoading({ title: '加载中...', mask: true })
-    
+    wx.showLoading({
+      title: '加载中...',
+      mask: true
+    })
+
     try {
       // 等待所有数据加载完成
       await Promise.all([
@@ -104,11 +122,16 @@ Page({
     try {
       const res = await wx.cloud.callFunction({
         name: 'tripReport',
-        data: { action: 'getHistory' }
+        data: {
+          action: 'getHistory'
+        }
       })
 
       if (res.result.code === 0) {
-        const { destinations, companions } = res.result.data
+        const {
+          destinations,
+          companions
+        } = res.result.data
 
         // 如果数据库有数据，优先使用
         if (destinations.length > 0 || companions.length > 0) {
@@ -137,28 +160,30 @@ Page({
    */
   saveToHistory(key, value) {
     if (!value || !value.trim()) return
-    
+
     const storageKey = key === 'destination' ? STORAGE_KEY_DESTINATION : STORAGE_KEY_COMPANIONS
     const historyKey = key === 'destination' ? 'destinationHistory' : 'companionsHistory'
-    
+
     let history = this.data[historyKey] || []
-    
+
     // 移除已存在的相同值
     history = history.filter(item => item !== value)
-    
+
     // 添加到最前面
     history.unshift(value)
-    
+
     // 最多保留 MAX_HISTORY_COUNT 条
     if (history.length > MAX_HISTORY_COUNT) {
       history = history.slice(0, MAX_HISTORY_COUNT)
     }
-    
+
     // 保存到本地存储
     wx.setStorageSync(storageKey, history)
-    
+
     // 更新页面数据
-    this.setData({ [historyKey]: history })
+    this.setData({
+      [historyKey]: history
+    })
   },
 
   /**
@@ -168,7 +193,9 @@ Page({
     try {
       const res = await wx.cloud.callFunction({
         name: 'tripReport',
-        data: { action: 'getActiveTrip' }
+        data: {
+          action: 'getActiveTrip'
+        }
       })
 
       if (res.result.code === 0) {
@@ -177,7 +204,9 @@ Page({
           // 格式化时间
           activeTrip.plannedReturnText = this.formatDateTime(activeTrip.plannedReturnAt)
         }
-        this.setData({ activeTrip })
+        this.setData({
+          activeTrip
+        })
       }
     } catch (error) {
       console.error('获取当前出行失败:', error)
@@ -188,14 +217,20 @@ Page({
    * 重写 loadData 方法，实现分页加载逻辑
    */
   async loadData(params) {
-    const { page, pageSize } = params
+    const {
+      page,
+      pageSize
+    } = params
 
     return new Promise((resolve, reject) => {
       wx.cloud.callFunction({
         name: 'tripReport',
         data: {
           action: 'getMyTrips',
-          params: { page, pageSize }
+          params: {
+            page,
+            pageSize
+          }
         }
       }).then(res => {
         if (res.result.code === 0) {
@@ -219,7 +254,10 @@ Page({
         }
       }).catch(error => {
         console.error('加载出行记录失败:', error)
-        utils.showToast({ title: '加载失败', icon: 'none' })
+        utils.showToast({
+          title: '加载失败',
+          icon: 'none'
+        })
         reject(error)
       })
     })
@@ -272,7 +310,9 @@ Page({
     // 转换为数组并按月份倒序排列
     const groupedTrips = Object.values(groupedMap).sort((a, b) => b.monthKey.localeCompare(a.monthKey))
 
-    this.setData({ groupedTrips })
+    this.setData({
+      groupedTrips
+    })
   },
 
   /**
@@ -296,21 +336,21 @@ Page({
     // 计算最小返回时间（当前时间 + 30分钟）
     const now = new Date()
     const futureTime = new Date(now.getTime() + 30 * 60 * 1000)
-    
+
     // 格式化为 YYYY-MM-DD HH:mm 格式
     const defaultReturnAt = this.formatDateTimeForPicker(futureTime)
-    
+
     // 计算精确时间范围
     // minReturnDatetime = 当前时间
     const minReturnDatetime = this.formatDateTimeForPicker(now)
-    
+
     // maxReturnDatetime = 明天 23:59:59
     const tomorrow = new Date(now.getFullYear(), now.getMonth(), now.getDate() + 1, 23, 59, 59)
     const maxReturnDatetime = this.formatDateTimeForPicker(tomorrow)
 
     // 获取最后一次成功报备的数据作为默认值
     const lastTrip = this.data.tripList.find(trip => trip.status === 'returned')
-    
+
     // 设置默认值
     const form = {
       destination: '',
@@ -331,16 +371,22 @@ Page({
 
     // 显示历史记录项
     if (this.data.destinationHistory.length > 0) {
-      this.setData({ showDestinationHistory: true })
+      this.setData({
+        showDestinationHistory: true
+      })
     }
 
     if (this.data.companionsHistory.length > 0) {
-      this.setData({ showCompanionsHistory: true })
+      this.setData({
+        showCompanionsHistory: true
+      })
     }
 
     // 如果有出行方式，设置默认值
     if (travelModeIndex >= 0) {
-      this.setData({ 'form.travelMode': this.data.travelModes[travelModeIndex] })
+      this.setData({
+        'form.travelMode': this.data.travelModes[travelModeIndex]
+      })
     }
   },
 
@@ -370,7 +416,7 @@ Page({
    * 隐藏表单弹窗
    */
   hideFormPopup() {
-    this.setData({ 
+    this.setData({
       showFormPopup: false,
       showDestinationHistory: false,
       showCompanionsHistory: false
@@ -385,7 +431,7 @@ Page({
   // 表单输入处理
   handleDestinationInput(e) {
     const value = e.detail.value
-    this.setData({ 
+    this.setData({
       'form.destination': value,
       showDestinationHistory: value === '' && this.data.destinationHistory.length > 0
     })
@@ -393,7 +439,7 @@ Page({
 
   handleCompanionsInput(e) {
     const value = e.detail.value
-    this.setData({ 
+    this.setData({
       'form.companions': value,
       showCompanionsHistory: value === '' && this.data.companionsHistory.length > 0
     })
@@ -402,7 +448,7 @@ Page({
   // 选择历史记录
   selectDestinationHistory(e) {
     const value = e.currentTarget.dataset.value
-    this.setData({ 
+    this.setData({
       'form.destination': value,
       showDestinationHistory: false
     })
@@ -410,7 +456,7 @@ Page({
 
   selectCompanionsHistory(e) {
     const value = e.currentTarget.dataset.value
-    this.setData({ 
+    this.setData({
       'form.companions': value,
       showCompanionsHistory: false
     })
@@ -420,7 +466,9 @@ Page({
    * 处理计划返回时间选择变化
    */
   handleReturnDateTimeChange(e) {
-    this.setData({ 'form.plannedReturnAt': e.detail.value })
+    this.setData({
+      'form.plannedReturnAt': e.detail.value
+    })
   },
 
   handleTravelModeChange(e) {
@@ -439,24 +487,36 @@ Page({
     const form = this.data.form
 
     if (!String(form.destination || '').trim()) {
-      utils.showToast({ title: '请填写目的地', icon: 'none' })
+      utils.showToast({
+        title: '请填写目的地',
+        icon: 'none'
+      })
       return false
     }
 
     if (!form.plannedReturnAt) {
-      utils.showToast({ title: '请选择计划返回时间', icon: 'none' })
+      utils.showToast({
+        title: '请选择计划返回时间',
+        icon: 'none'
+      })
       return false
     }
 
     if (!form.travelMode) {
-      utils.showToast({ title: '请选择出行方式', icon: 'none' })
+      utils.showToast({
+        title: '请选择出行方式',
+        icon: 'none'
+      })
       return false
     }
 
     // 检查返回时间是否在未来
     const returnTimestamp = new Date(form.plannedReturnAt.replace(' ', 'T')).getTime()
     if (returnTimestamp <= Date.now()) {
-      utils.showToast({ title: '计划返回时间必须在当前时间之后', icon: 'none' })
+      utils.showToast({
+        title: '计划返回时间必须在当前时间之后',
+        icon: 'none'
+      })
       return false
     }
 
@@ -475,7 +535,9 @@ Page({
     // 解析日期时间字符串为时间戳
     const plannedReturnAt = new Date(form.plannedReturnAt.replace(' ', 'T')).getTime()
 
-    this.setData({ submitting: true })
+    this.setData({
+      submitting: true
+    })
 
     wx.cloud.callFunction({
       name: 'tripReport',
@@ -500,22 +562,40 @@ Page({
         const companionResults = res.result.data.companionResults
         let toastMessage = '报备成功'
         if (companionResults && companionResults.matched.length > 0) {
-          toastMessage = `报备成功，已为 ${companionResults.matched.join('、')} 代报备`
+          wx.showModal({
+            title: toastMessage,
+            content: `报备成功，并已为 ${companionResults.matched.join('、')} 代报备。`,
+            showCancel: false,
+            confirmText: '好的'
+          })
+        } else {
+          utils.showToast({
+            title: toastMessage,
+            icon: 'success'
+          })
         }
-        
-        utils.showToast({ title: toastMessage, icon: 'success' })
-        this.setData({ showFormPopup: false })
+        this.setData({
+          showFormPopup: false
+        })
         // 刷新数据
         this.loadActiveTrip()
         this.refreshList()
       } else {
-        utils.showToast({ title: res.result.message || '报备失败', icon: 'none' })
+        utils.showToast({
+          title: res.result.message || '报备失败',
+          icon: 'none'
+        })
       }
     }).catch(error => {
       console.error('外出报备失败:', error)
-      utils.showToast({ title: '报备失败，请重试', icon: 'none' })
+      utils.showToast({
+        title: '报备失败，请重试',
+        icon: 'none'
+      })
     }).finally(() => {
-      this.setData({ submitting: false })
+      this.setData({
+        submitting: false
+      })
     })
   },
 
@@ -543,30 +623,45 @@ Page({
   confirmReturn(tripId) {
     if (this.data.submitting) return
 
-    this.setData({ submitting: true })
+    this.setData({
+      submitting: true
+    })
 
     wx.cloud.callFunction({
       name: 'tripReport',
       data: {
         action: 'return',
-        params: { tripId }
+        params: {
+          tripId
+        }
       }
     }).then(res => {
       if (res.result.code === 0) {
         const status = res.result.data.status
         const message = status === 'overtime' ? '返回报备成功（超时）' : '返回报备成功'
-        utils.showToast({ title: message, icon: 'success' })
+        utils.showToast({
+          title: message,
+          icon: 'success'
+        })
         // 刷新数据
         this.loadActiveTrip()
         this.refreshList()
       } else {
-        utils.showToast({ title: res.result.message || '报备失败', icon: 'none' })
+        utils.showToast({
+          title: res.result.message || '报备失败',
+          icon: 'none'
+        })
       }
     }).catch(error => {
       console.error('返回报备失败:', error)
-      utils.showToast({ title: '报备失败，请重试', icon: 'none' })
+      utils.showToast({
+        title: '报备失败，请重试',
+        icon: 'none'
+      })
     }).finally(() => {
-      this.setData({ submitting: false })
+      this.setData({
+        submitting: false
+      })
     })
   },
 

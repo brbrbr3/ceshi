@@ -68,7 +68,7 @@ Page({
 
     // 显示加载提示
     wx.showToast({
-      title: '拉取用户权限至缓存',
+      title: '缓存用户权限中',
       icon: 'loading',
       duration: 2000
     })

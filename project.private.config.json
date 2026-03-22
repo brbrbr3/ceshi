@@ -23,11 +23,32 @@
     "miniprogram": {
       "list": [
         {
-          "name": "pages/test/datetime-picker-test/datetime-picker-test",
-          "pathName": "pages/test/datetime-picker-test/datetime-picker-test",
+          "name": "page/extend/index",
+          "pathName": "page/extend/index",
           "query": "",
           "scene": null,
           "launchMode": "default"
+        },
+        {
+          "name": "page/cloud/index",
+          "pathName": "page/cloud/index",
+          "query": "",
+          "launchMode": "default",
+          "scene": null
+        },
+        {
+          "name": "page/API/index",
+          "pathName": "page/API/index",
+          "query": "",
+          "launchMode": "default",
+          "scene": null
+        },
+        {
+          "name": "page/component/index",
+          "pathName": "page/component/index",
+          "query": "",
+          "launchMode": "default",
+          "scene": null
         }
       ]
     }

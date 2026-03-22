@@ -221,7 +221,7 @@ App({
 
     // 显示加载提示
     wx.showToast({
-      title: '拉取用户信息至缓存',
+      title: '缓存用户信息中',
       icon: 'loading',
       duration: 2000
     })
