@@ -155,10 +155,11 @@
             value="{{form.plannedReturnAt}}"
             fields="{{['month', 'day', 'hour', 'minute']}}"
             start-date="{{minReturnDate}}"
+            end-date="{{maxReturnDate}}"
             placeholder="请选择计划返回时间"
             bind:change="handleReturnDateTimeChange"
           />
-          <view class="trip-field-hint">计划返回时间需晚于当前时间</view>
+          <view class="trip-field-hint">仅可选择今日或明日返回</view>
         </view>
 
         <view class="trip-field">

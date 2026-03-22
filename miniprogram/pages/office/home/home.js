@@ -19,7 +19,6 @@ Page({
     unreadNotificationCount: 0,
     loading: false,
     currentUser: null,
-    canAccessTripDashboard: false,
     // 权限缓存
     permissionCache: {},
     stats: [
@@ -28,7 +27,7 @@ Page({
     quickActions: [
       { icon: '🍽️', label: '每周菜单', color: '#16A34A', bg: '#DCFCE7', implemented: true, featureKey: null },
       { icon: '🏥', label: '就医申请', color: '#EF4444', bg: '#FEE2E2', implemented: true, featureKey: 'medical_application' },
-      { icon: '🚗', label: '外出报备', color: '#2563EB', bg: '#EFF6FF', implemented: true, featureKey: null },
+      { icon: '🚗', label: '外出报备', color: '#2563EB', bg: '#EFF6FF', implemented: true, featureKey: 'trip_report' },
       { icon: '📊', label: '出行管理', color: '#7C3AED', bg: '#F3E8FF', implemented: true, featureKey: 'trip_dashboard' }
     ],
     announcements: [],
@@ -68,7 +67,7 @@ Page({
     }
 
     // 批量检查权限
-    const featureKeys = ['medical_application', 'trip_dashboard']
+    const featureKeys = ['medical_application', 'trip_report', 'trip_dashboard']
     app.batchCheckPermissions(featureKeys)
       .then((result) => {
         const permissions = {}
@@ -119,19 +118,12 @@ Page({
 
         const user = result.user
         const roleLabel = user.isAdmin ? `${user.role} · 管理员` : user.role
-        
-        // 判断是否可以访问出行管理
-        const isAdmin = user.isAdmin || user.role === 'admin'
-        const isLeader = user.role === '馆领导'
-        const isDeptHead = user.role === '部门负责人'
-        const canAccessTripDashboard = isAdmin || isLeader || isDeptHead
 
         this.setData({
           displayName: user.name,
           greetingText: this.getGreeting(user.name),
           roleLabel,
-          currentUser: user,
-          canAccessTripDashboard
+          currentUser: user
         })
 
         // 获取待审批数量
@@ -264,76 +256,61 @@ Page({
         url: '/pages/office/menus/menus'
       })
     } else if (label === '就医申请') {
-      // 优先使用缓存权限
-      const hasPermission = this.data.permissionCache['medical_application']
-      if (hasPermission === true) {
-        wx.navigateTo({
-          url: '/pages/office/medical-application/medical-application'
-        })
-      } else if (hasPermission === false) {
-        this.showPermissionDenied('就医申请')
-      } else {
-        // 缓存未命中，实时检查
-        app.checkPermission('medical_application')
-          .then((allowed) => {
-            if (allowed) {
-              wx.navigateTo({
-                url: '/pages/office/medical-application/medical-application'
-              })
-            } else {
-              this.showPermissionDenied('就医申请')
-            }
-          })
-          .catch(() => {
-            // 检查失败，允许访问（向后兼容）
-            wx.navigateTo({
-              url: '/pages/office/medical-application/medical-application'
-            })
-          })
-      }
+      // 统一权限检查
+      this.checkAndNavigate('medical_application', '/pages/office/medical-application/medical-application', '就医申请')
     } else if (label === '外出报备') {
-      wx.navigateTo({
-        url: '/pages/office/trip-report/trip-report'
-      })
+      // 统一权限检查
+      this.checkAndNavigate('trip_report', '/pages/office/trip-report/trip-report', '外出报备')
     } else if (label === '出行管理') {
-      // 先检查本地缓存的权限
-      const cachedPermission = this.data.permissionCache['trip_dashboard']
-      if (cachedPermission === true) {
-        wx.navigateTo({
-          url: '/pages/office/trip-dashboard/trip-dashboard'
-        })
-      } else if (cachedPermission === false) {
-        // 明确无权限
-        this.showPermissionDenied('出行管理')
-      } else {
-        // 权限未加载，同步检查权限
-        wx.showLoading({ title: '检查权限...', mask: true })
-        app.checkPermission('trip_dashboard')
-          .then((allowed) => {
-            wx.hideLoading()
-            // 更新缓存
-            const permissionCache = { ...this.data.permissionCache, trip_dashboard: allowed }
-            this.setData({ permissionCache })
-            if (allowed) {
-              wx.navigateTo({
-                url: '/pages/office/trip-dashboard/trip-dashboard'
-              })
-            } else {
-              this.showPermissionDenied('出行管理')
-            }
-          })
-          .catch((error) => {
-            wx.hideLoading()
-            console.error('权限检查失败:', error)
-            utils.showToast({ title: '权限检查失败', icon: 'none' })
-          })
-      }
+      // 统一权限检查
+      this.checkAndNavigate('trip_dashboard', '/pages/office/trip-dashboard/trip-dashboard', '出行管理')
     } else {
       utils.showToast({
         title: '功能开发中，敬请期待',
         icon: 'none'
       })
     }
+  },
+
+  /**
+   * 统一的权限检查和页面跳转方法
+   * @param {string} featureKey 功能权限key
+   * @param {string} url 目标页面路径
+   * @param {string} featureName 功能名称（用于提示）
+   */
+  checkAndNavigate(featureKey, url, featureName) {
+    // 优先使用缓存权限
+    const cachedPermission = this.data.permissionCache[featureKey]
+    if (cachedPermission === true) {
+      wx.navigateTo({ url })
+      return
+    }
+    
+    if (cachedPermission === false) {
+      this.showPermissionDenied(featureName)
+      return
+    }
+    
+    // 缓存未命中，实时检查权限
+    wx.showLoading({ title: '检查权限...', mask: true })
+    app.checkPermission(featureKey)
+      .then((allowed) => {
+        wx.hideLoading()
+        // 更新缓存
+        const permissionCache = { ...this.data.permissionCache, [featureKey]: allowed }
+        this.setData({ permissionCache })
+        
+        if (allowed) {
+          wx.navigateTo({ url })
+        } else {
+          this.showPermissionDenied(featureName)
+        }
+      })
+      .catch((error) => {
+        wx.hideLoading()
+        console.error('权限检查失败:', error)
+        utils.showToast({ title: '权限检查失败', icon: 'none' })
+      })
   },
 
   /**

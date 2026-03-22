@@ -91,7 +91,9 @@ Component({
       hour: { key: 'hour', label: '时' },
       minute: { key: 'minute', label: '分' },
       second: { key: 'second', label: '秒' }
-    }
+    },
+    // 隐式年份（当 fields 不含 year 时使用当前年份）
+    implicitYear: new Date().getFullYear()
   },
 
   lifetimes: {
@@ -135,11 +137,15 @@ Component({
         seconds.push(i)
       }
       
-      // 初始化日期列表（默认31天，后续根据年月动态调整）
+      // 当不含年份时，使用当前年份作为隐式年份
+      const implicitYear = fields.includes('year') ? null : new Date().getFullYear()
+      
+      // 初始化日期列表（使用隐式年份或起始年份）
+      const baseYear = implicitYear || startYear
       const days = []
       const weekdays = ['周日', '周一', '周二', '周三', '周四', '周五', '周六']
       for (let d = 1; d <= 31; d++) {
-        days.push({ day: d, weekday: weekdays[new Date(startYear, 0, d).getDay()] })
+        days.push({ day: d, weekday: weekdays[new Date(baseYear, 0, d).getDay()] })
       }
       
       // 是否在日期列旁显示星期
@@ -153,6 +159,7 @@ Component({
       
       this.setData({ 
         years, months, days, hours, minutes, seconds,
+        implicitYear,
         // 设置字段显示状态
         showYear: fields.includes('year'),
         showMonth: fields.includes('month'),
@@ -287,7 +294,11 @@ Component({
      * 获取可用日期列表
      */
     getAvailableDays(year, month) {
-      const { startDate, endDate } = this.data
+      const { startDate, endDate, implicitYear, showYear } = this.data
+      
+      // 当不含年份时，使用隐式年份（当前年份）
+      const actualYear = showYear ? year : (implicitYear || new Date().getFullYear())
+      
       const startY = parseInt(startDate.split('-')[0], 10)
       const startM = parseInt(startDate.split('-')[1], 10)
       const startD = parseInt(startDate.split('-')[2], 10)
@@ -296,18 +307,21 @@ Component({
       const endD = parseInt(endDate.split('-')[2], 10)
       
       // 获取该月的天数
-      const daysInMonth = new Date(year, month, 0).getDate()
+      const daysInMonth = new Date(actualYear, month, 0).getDate()
       let startDay = 1
       let endDay = daysInMonth
       
-      if (year === startY && month === startM) startDay = startD
-      if (year === endY && month === endM) endDay = endD
+      // 只有显示年份时才应用日期范围限制
+      if (showYear) {
+        if (actualYear === startY && month === startM) startDay = startD
+        if (actualYear === endY && month === endM) endDay = endD
+      }
       
       const days = []
       const weekdays = ['周日', '周一', '周二', '周三', '周四', '周五', '周六']
       for (let d = startDay; d <= endDay; d++) {
         // 计算每个日期对应的星期
-        const weekday = new Date(year, month - 1, d).getDay()
+        const weekday = new Date(actualYear, month - 1, d).getDay()
         days.push({
           day: d,
           weekday: weekdays[weekday]

@@ -54,11 +54,20 @@ Page({
     this.loadHistory()
   },
 
-  onShow() {
-    // 获取当前未返回的出行
-    this.loadActiveTrip()
-    // 刷新列表
-    this.refreshList()
+  async onShow() {
+    // 显示加载中提示
+    wx.showLoading({ title: '加载中...', mask: true })
+    
+    try {
+      // 等待所有数据加载完成
+      await Promise.all([
+        this.loadActiveTrip(),
+        this.refreshList()
+      ])
+    } finally {
+      // 无论成功失败都隐藏 loading
+      wx.hideLoading()
+    }
   },
 
   /**
@@ -293,6 +302,11 @@ Page({
     
     // 计算最小返回日期（今天）
     const minReturnDate = this.formatDateForPicker(now)
+    
+    // 计算最大返回日期（明天）
+    const tomorrow = new Date(now)
+    tomorrow.setDate(tomorrow.getDate() + 1)
+    const maxReturnDate = this.formatDateForPicker(tomorrow)
 
     // 获取最后一次成功报备的数据作为默认值
     const lastTrip = this.data.tripList.find(trip => trip.status === 'returned')
@@ -311,6 +325,7 @@ Page({
       showFormPopup: true,
       form,
       minReturnDate,
+      maxReturnDate,
       travelModeIndex: travelModeIndex >= 0 ? travelModeIndex : 0
     })
 

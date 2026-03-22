@@ -397,22 +397,47 @@ const SYSTEM_CONFIGS = [
   }
 ]
 
+// 权限配置数据
+const PERMISSION_CONFIGS = [
+  {
+    featureKey: 'medical_application',
+    featureName: '就医申请',
+    description: '提交就医申请',
+    enabledRoles: ['馆领导', '部门负责人', '馆员', '工勤'],
+    requireAdmin: false
+  },
+  {
+    featureKey: 'trip_report',
+    featureName: '外出报备',
+    description: '提交外出报备',
+    enabledRoles: ['馆领导', '部门负责人', '馆员', '工勤', '物业', '配偶', '家属'],
+    requireAdmin: false
+  },
+  {
+    featureKey: 'trip_dashboard',
+    featureName: '出行管理',
+    description: '查看和管理出行记录',
+    enabledRoles: ['馆领导', '部门负责人'],
+    requireAdmin: false
+  }
+]
+
 // 初始化系统配置
 exports.main = async (event, context) => {
   const startTime = Date.now()
   const results = {
-    success: 0,
-    skipped: 0,
-    failed: 0,
-    errors: []
+    sysConfig: { success: 0, skipped: 0, failed: 0, errors: [] },
+    permissions: { success: 0, skipped: 0, failed: 0, errors: [] }
   }
 
   try {
     console.log('=== 开始初始化系统配置 ===')
-    console.log(`共 ${SYSTEM_CONFIGS.length} 项配置`)
+    console.log(`共 ${SYSTEM_CONFIGS.length} 项配置, ${PERMISSION_CONFIGS.length} 项权限`)
 
     const now = Date.now()
 
+    // ==================== 初始化系统配置 ====================
+    console.log('\n--- 初始化系统配置 ---')
     for (const config of SYSTEM_CONFIGS) {
       try {
         // 检查配置是否已存在
@@ -437,7 +462,7 @@ exports.main = async (event, context) => {
               }
             })
           console.log(`  ✓ 更新配置: ${config.key}`)
-          results.success++
+          results.sysConfig.success++
         } else {
           // 不存在，创建
           await db.collection('sys_config').add({
@@ -448,13 +473,62 @@ exports.main = async (event, context) => {
             }
           })
           console.log(`  ✓ 创建配置: ${config.key}`)
-          results.success++
+          results.sysConfig.success++
         }
       } catch (error) {
         console.error(`  ✗ 配置 ${config.key} 处理失败:`, error.message)
-        results.failed++
-        results.errors.push({
+        results.sysConfig.failed++
+        results.sysConfig.errors.push({
           key: config.key,
+          error: error.message
+        })
+      }
+    }
+
+    // ==================== 初始化权限配置 ====================
+    console.log('\n--- 初始化权限配置 ---')
+    for (const perm of PERMISSION_CONFIGS) {
+      try {
+        // 检查权限是否已存在
+        const existingRes = await db.collection('permissions')
+          .where({
+            featureKey: perm.featureKey
+          })
+          .limit(1)
+          .get()
+
+        if (existingRes.data && existingRes.data.length > 0) {
+          // 已存在，更新
+          await db.collection('permissions')
+            .doc(existingRes.data[0]._id)
+            .update({
+              data: {
+                featureName: perm.featureName,
+                description: perm.description,
+                enabledRoles: perm.enabledRoles,
+                requireAdmin: perm.requireAdmin,
+                updatedAt: now
+              }
+            })
+          console.log(`  ✓ 更新权限: ${perm.featureKey}`)
+          results.permissions.success++
+        } else {
+          // 不存在，创建
+          await db.collection('permissions').add({
+            data: {
+              ...perm,
+              createdAt: now,
+              updatedAt: now
+            }
+          })
+          console.log(`  ✓ 创建权限: ${perm.featureKey}`)
+          results.permissions.success++
+        }
+      } catch (error) {
+        console.error(`  ✗ 权限 ${perm.featureKey} 处理失败:`, error.message)
+        results.permissions.failed++
+        results.permissions.errors.push({
+          key: perm.featureKey,
           error: error.message
         })
       }
@@ -462,7 +536,8 @@ exports.main = async (event, context) => {
 
     const duration = Date.now() - startTime
     console.log(`\n=== 初始化完成 ===`)
-    console.log(`成功: ${results.success}, 跳过: ${results.skipped}, 失败: ${results.failed}`)
+    console.log(`系统配置 - 成功: ${results.sysConfig.success}, 失败: ${results.sysConfig.failed}`)
+    console.log(`权限配置 - 成功: ${results.permissions.success}, 失败: ${results.permissions.failed}`)
     console.log(`耗时: ${duration}ms`)
 
     return {
@@ -470,8 +545,14 @@ exports.main = async (event, context) => {
       message: '系统配置初始化完成',
       data: {
         duration,
-        total: SYSTEM_CONFIGS.length,
-        ...results
+        sysConfig: {
+          total: SYSTEM_CONFIGS.length,
+          ...results.sysConfig
+        },
+        permissions: {
+          total: PERMISSION_CONFIGS.length,
+          ...results.permissions
+        }
       }
     }
 
