@@ -19,6 +19,7 @@
     "pages/office/announcement-detail/announcement-detail",
     "pages/office/announcement-create/announcement-create",
     "pages/office/calendar/calendar",
+    "pages/test/datetime-picker-test/datetime-picker-test",
     "page/component/index",
     "page/API/index",
     "page/cloud/index",

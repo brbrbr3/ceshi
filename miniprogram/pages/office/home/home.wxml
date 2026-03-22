@@ -19,7 +19,7 @@
           <view class="office-icon-btn">🔔</view>
           <view wx:if="{{unreadNotificationCount > 0}}" class="office-badge">{{unreadNotificationCount}}</view>
         </view>
-        <view class="office-icon-btn" bindtap="showComingSoon">⌕</view>
+        <view class="office-icon-btn" bindtap="showComingSoon">🔎</view>
       </view>
     </view>
     <!-- <view class="home-date">{{currentDateText}}</view> -->

@@ -131,7 +131,12 @@ Page({
       wx.navigateTo({
         url: '/pages/office/notifications/notifications'
       })
-    } else {
+    } else if (label === '账号安全（占位）') {
+      wx.navigateTo({
+        url: '/pages/test/datetime-picker-test/datetime-picker-test'
+      })
+    }
+    else {
       utils.showToast({
         title: '功能开发中，敬请期待',
         icon: 'none'

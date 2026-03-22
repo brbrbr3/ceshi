@@ -19,5 +19,17 @@
     "ignoreDevUnusedFiles": true
   },
   "libVersion": "3.14.2",
-  "condition": {}
+  "condition": {
+    "miniprogram": {
+      "list": [
+        {
+          "name": "pages/test/datetime-picker-test/datetime-picker-test",
+          "pathName": "pages/test/datetime-picker-test/datetime-picker-test",
+          "query": "",
+          "scene": null,
+          "launchMode": "default"
+        }
+      ]
+    }
+  }
 }

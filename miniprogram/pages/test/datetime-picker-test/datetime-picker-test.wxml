@@ -1,0 +1,226 @@
+<view class="test-page">
+  <!-- 页面说明 -->
+  <view class="page-header">
+    <view class="header-title">📅 日期时间选择器</view>
+    <view class="header-desc">支持自定义显示字段，本地时间处理，漂亮动画效果</view>
+  </view>
+
+  <!-- 功能测试区域 -->
+  <view class="section">
+    <view class="section-title">
+      <text class="title-icon">🎯</text>
+      <text>功能测试</text>
+    </view>
+    
+    <view class="test-card" wx:for="{{testCases}}" wx:key="title">
+      <view class="card-header">
+        <view class="card-title">{{item.title}}</view>
+        <view class="card-desc">{{item.desc}}</view>
+      </view>
+      <view class="card-content">
+        <datetime-picker 
+          value="{{item.value}}"
+          fields="{{item.fields}}"
+          placeholder="{{item.placeholder}}"
+          bind:change="handlePickerChange"
+          data-index="{{index}}"
+          data-type="testCases"
+        />
+      </view>
+      <view class="card-actions">
+        <view class="action-btn action-btn--small" bindtap="setCurrentTime" data-index="{{index}}" data-type="testCases">
+          设为当前时间
+        </view>
+        <view class="action-btn action-btn--small action-btn--ghost" bindtap="clearValue" data-index="{{index}}" data-type="testCases">
+          清空
+        </view>
+      </view>
+    </view>
+  </view>
+
+  <!-- 样式类型测试 -->
+  <view class="section">
+    <view class="section-title">
+      <text class="title-icon">🎨</text>
+      <text>样式类型</text>
+    </view>
+    
+    <view class="test-card" wx:for="{{styleTypes}}" wx:key="title">
+      <view class="card-header">
+        <view class="card-title">{{item.title}}</view>
+      </view>
+      <view class="card-content">
+        <datetime-picker 
+          value="{{item.value}}"
+          type="{{item.type}}"
+          fields="{{['year', 'month', 'day']}}"
+          placeholder="请选择日期"
+          bind:change="handlePickerChange"
+          data-index="{{index}}"
+          data-type="styleTypes"
+        />
+      </view>
+    </view>
+  </view>
+
+  <!-- 日期范围限制测试 -->
+  <view class="section">
+    <view class="section-title">
+      <text class="title-icon">📏</text>
+      <text>日期范围限制</text>
+    </view>
+    
+    <view class="test-card">
+      <view class="card-header">
+        <view class="card-title">{{rangeTest.title}}</view>
+        <view class="card-desc">{{rangeTest.desc}}</view>
+      </view>
+      <view class="card-content">
+        <datetime-picker 
+          value="{{rangeTest.value}}"
+          fields="{{rangeTest.fields}}"
+          start-date="{{rangeTest.startDate}}"
+          end-date="{{rangeTest.endDate}}"
+          placeholder="{{rangeTest.placeholder}}"
+          bind:change="handlePickerChange"
+          data-type="rangeTest"
+        />
+      </view>
+    </view>
+  </view>
+
+  <!-- 预设值测试 -->
+  <view class="section">
+    <view class="section-title">
+      <text class="title-icon">⚙️</text>
+      <text>预设值测试</text>
+    </view>
+    
+    <view class="test-card">
+      <view class="card-header">
+        <view class="card-title">{{presetTest.title}}</view>
+        <view class="card-desc">{{presetTest.desc}}</view>
+      </view>
+      <view class="card-content">
+        <datetime-picker 
+          value="{{presetTest.value}}"
+          fields="{{presetTest.fields}}"
+          placeholder="{{presetTest.placeholder}}"
+          bind:change="handlePickerChange"
+          data-type="presetTest"
+        />
+      </view>
+      <view class="card-actions">
+        <view class="action-btn action-btn--small" bindtap="resetPresetValue">
+          重置预设值
+        </view>
+      </view>
+    </view>
+  </view>
+
+  <!-- 选择结果 -->
+  <view class="section">
+    <view class="section-title">
+      <text class="title-icon">📝</text>
+      <text>选择结果</text>
+      <view class="clear-btn" bindtap="clearResults" wx:if="{{results.length > 0}}">清空</view>
+    </view>
+    
+    <view class="results-list" wx:if="{{results.length > 0}}">
+      <view class="result-item" wx:for="{{results}}" wx:key="time">
+        <view class="result-header">
+          <text class="result-title">{{item.title}}</text>
+          <text class="result-time">{{item.time}}</text>
+        </view>
+        <view class="result-value">{{item.value}}</view>
+        <view class="result-detail">
+          <text>星期{{item.detail.weekday === 0 ? '日' : item.detail.weekday}}</text>
+          <text class="separator">|</text>
+          <text>{{item.detail.year}}年{{item.detail.month}}月{{item.detail.day}}日</text>
+          <text class="separator">|</text>
+          <text>{{item.detail.hour}}:{{item.detail.minute}}:{{item.detail.second}}</text>
+        </view>
+      </view>
+    </view>
+    
+    <view class="empty-state" wx:else>
+      <view class="empty-icon">📭</view>
+      <view class="empty-text">暂无选择记录</view>
+    </view>
+  </view>
+
+  <!-- 使用说明 -->
+  <view class="section">
+    <view class="section-title">
+      <text class="title-icon">📖</text>
+      <text>使用说明</text>
+    </view>
+    
+    <view class="doc-card">
+      <view class="doc-section">
+        <view class="doc-title">属性说明</view>
+        <view class="doc-table">
+          <view class="doc-row">
+            <text class="doc-prop">value</text>
+            <text class="doc-desc">当前选中的日期时间值</text>
+          </view>
+          <view class="doc-row">
+            <text class="doc-prop">fields</text>
+            <text class="doc-desc">显示字段数组：year, month, day, weekday, hour, minute, second</text>
+          </view>
+          <view class="doc-row">
+            <text class="doc-prop">start-date</text>
+            <text class="doc-desc">最小日期，格式 YYYY-MM-DD</text>
+          </view>
+          <view class="doc-row">
+            <text class="doc-prop">end-date</text>
+            <text class="doc-desc">最大日期，格式 YYYY-MM-DD</text>
+          </view>
+          <view class="doc-row">
+            <text class="doc-prop">placeholder</text>
+            <text class="doc-desc">占位符文本</text>
+          </view>
+          <view class="doc-row">
+            <text class="doc-prop">type</text>
+            <text class="doc-desc">样式类型：default / card / border</text>
+          </view>
+          <view class="doc-row">
+            <text class="doc-prop">disabled</text>
+            <text class="doc-desc">是否禁用</text>
+          </view>
+        </view>
+      </view>
+      
+      <view class="doc-section">
+        <view class="doc-title">事件说明</view>
+        <view class="doc-table">
+          <view class="doc-row">
+            <text class="doc-prop">bind:change</text>
+            <text class="doc-desc">选择确认时触发，返回完整日期时间信息</text>
+          </view>
+          <view class="doc-row">
+            <text class="doc-prop">bind:cancel</text>
+            <text class="doc-desc">取消选择时触发</text>
+          </view>
+        </view>
+      </view>
+      
+      <view class="doc-section">
+        <view class="doc-title">代码示例</view>
+        <view class="code-block">
+          <text>&lt;datetime-picker</text>
+          <text>  value="{{dateValue}}"</text>
+          <text>  fields="{{['year','month','day','weekday']}}"</text>
+          <text>  start-date="2020-01-01"</text>
+          <text>  end-date="2030-12-31"</text>
+          <text>  placeholder="请选择日期"</text>
+          <text>  bind:change="onDateChange"</text>
+          <text>/&gt;</text>
+        </view>
+      </view>
+    </view>
+  </view>
+
+  <!-- 底部间距 -->
+  <view class="bottom-spacing"></view>
+</view>

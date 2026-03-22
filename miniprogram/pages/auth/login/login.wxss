@@ -1,5 +1,8 @@
 page {
-  background: #EEF2FF;
+}
+
+.login-page{
+
 }
 
 /* 调试模式入口 */
@@ -79,10 +82,9 @@ page {
 
 /* 调试面板 */
 .auth-debug-panel {
-  margin: 40rpx 30rpx;
   padding: 30rpx;
   background: #fff;
-  border-radius: 16rpx;
+  border-radius: 26rpx;
   box-shadow: 0 2rpx 12rpx rgba(0, 0, 0, 0.08);
 }
 
@@ -121,6 +123,7 @@ page {
 
 .auth-debug-close {
   margin-top: 30rpx;
+  margin-bottom: 70rpx;
   text-align: center;
   font-size: 26rpx;
   color: #999;
@@ -130,6 +133,7 @@ page {
 /* 调试结果 */
 .auth-debug-results {
   margin-top: 30rpx;
+  margin-bottom: 100rpx;
   padding-top: 30rpx;
   border-top: 1rpx solid #eee;
 }
