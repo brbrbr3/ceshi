@@ -332,6 +332,14 @@ Page({
 
     app.submitProfileUpdate(form)
       .then(() => {
+        // 清除缓存，让返回后的页面重新拉取最新状态
+        try {
+          wx.removeStorageSync('office-auth-cache')
+          wx.removeStorageSync('office-permission-cache')
+        } catch (e) {
+          // 忽略清除失败
+        }
+
         wx.showModal({
           title: '提交成功',
           content: '修改申请已提交，请等待管理员审批。审批通过后信息将自动更新。',

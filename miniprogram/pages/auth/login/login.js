@@ -157,8 +157,8 @@ Page({
 
     this.setData({ loading: true })
 
-    // 直接检查用户注册状态，不再需要 wx.login
-    app.checkUserRegistration()
+    // 直接检查用户注册状态，不再需要 wx.login（强制刷新获取最新状态）
+    app.checkUserRegistration({ forceRefresh: true })
       .then((result) => {
         if (result.registered === true) {
           // 已注册用户，跳转主页

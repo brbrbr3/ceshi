@@ -1,6 +1,7 @@
 const config = require('./config')
 const themeListeners = []
 const AUTH_STORAGE_KEY = 'office-auth-cache'
+const USER_CACHE_EXPIRE = 30 * 60 * 1000 // 用户信息缓存30分钟
 const SUBSCRIBE_REQUEST_KEY = 'office-subscribe-requested'
 const DATABASE_INIT_KEY = 'office-database-initialized'
 const SYS_CONFIG_INIT_KEY = 'office-sys-config-initialized'
@@ -131,6 +132,7 @@ App({
       userProfile: this.globalData.userProfile,
       registrationRequest: this.globalData.registrationRequest,
       authStatus: this.globalData.authStatus,
+      timestamp: Date.now() // 添加时间戳用于缓存过期判断
     })
   },
 
@@ -191,7 +193,40 @@ App({
     })
   },
 
-  checkUserRegistration() {
+  /**
+   * 检查用户注册状态
+   * @param {Object} options - 配置选项
+   * @param {boolean} options.forceRefresh - 是否强制刷新（跳过缓存），默认 false
+   * @returns {Promise<Object>} 用户注册信息
+   */
+  checkUserRegistration(options = {}) {
+    const { forceRefresh = false } = options
+
+    // 非强制刷新时，先检查缓存
+    if (!forceRefresh) {
+      const cached = readStorage(AUTH_STORAGE_KEY)
+      if (cached && cached.timestamp && (Date.now() - cached.timestamp < USER_CACHE_EXPIRE)) {
+        // 缓存有效，直接返回
+        console.log('使用缓存的用户信息')
+        return Promise.resolve({
+          registered: cached.hasLogin,
+          openid: cached.openid,
+          user: cached.userProfile,
+          request: cached.registrationRequest,
+          authStatus: cached.authStatus,
+          _fromCache: true
+        })
+      }
+    }
+
+    // 显示加载提示
+    wx.showToast({
+      title: '拉取用户信息至缓存',
+      icon: 'loading',
+      duration: 2000
+    })
+
+    // 调用云函数获取最新数据
     return this.callOfficeAuth('checkRegistration').then((data) => {
       this.setAuthState({
         hasLogin: !!data.registered,
@@ -200,7 +235,11 @@ App({
         registrationRequest: data.request || null,
         authStatus: data.authStatus || 'anonymous'
       })
+      wx.hideToast()
       return data
+    }).catch((error) => {
+      wx.hideToast()
+      throw error
     })
   },
 

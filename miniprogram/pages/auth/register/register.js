@@ -369,6 +369,14 @@ Page({
   doSubmit(form) {
     app.submitRegistration(form)
       .then(() => {
+        // 清除缓存，让 login 页面重新拉取最新状态
+        try {
+          wx.removeStorageSync('office-auth-cache')
+          wx.removeStorageSync('office-permission-cache')
+        } catch (e) {
+          // 忽略清除失败
+        }
+
         wx.showModal({
           title: '提交成功',
           content: '注册申请已提交，请等待管理员审批。审批通过后即可成为正式用户。',

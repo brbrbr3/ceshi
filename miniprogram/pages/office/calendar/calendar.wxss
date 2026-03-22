@@ -210,9 +210,11 @@
 
 /* 添加按钮 */
 .config-add-btn {
+  display: flex;
+  align-items: center;
+  justify-content: center;
   height: 96rpx;
   font-size: 32rpx;
-  text-align: center;
   font-weight: 600;
   border-radius: 16rpx;
   border: none;

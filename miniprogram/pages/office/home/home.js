@@ -3,7 +3,7 @@ const utils = require('../../../common/utils.js')
 
 // 权限缓存 key
 const PERMISSION_CACHE_KEY = 'office-permission-cache'
-const PERMISSION_CACHE_EXPIRE = 5 * 60 * 1000 // 5分钟缓存
+const PERMISSION_CACHE_EXPIRE = 30 * 60 * 1000 // 权限缓存30分钟
 
 // 使用统一的时间格式化函数
 const formatTime = (timestamp) => utils.formatRelativeTime(timestamp)
@@ -66,6 +66,13 @@ Page({
       console.warn('读取权限缓存失败:', e)
     }
 
+    // 显示加载提示
+    wx.showToast({
+      title: '拉取用户权限至缓存',
+      icon: 'loading',
+      duration: 2000
+    })
+
     // 批量检查权限
     const featureKeys = ['medical_application', 'trip_report', 'trip_dashboard']
     app.batchCheckPermissions(featureKeys)
@@ -88,9 +95,11 @@ Page({
         } catch (e) {
           console.warn('缓存权限信息失败:', e)
         }
+        wx.hideToast()
       })
       .catch((error) => {
         console.error('批量检查权限失败:', error)
+        wx.hideToast()
       })
   },
 

@@ -8,7 +8,8 @@ Page({
   data: {
     announcementId: '',
     announcement: null,
-    loading: true
+    loading: true,
+    currentUser: null
   },
 
   onLoad(options) {
@@ -25,7 +26,23 @@ Page({
     }
 
     this.setData({ announcementId: id })
+    this.loadCurrentUser()
     this.loadAnnouncement()
+  },
+
+  /**
+   * 加载当前用户信息
+   */
+  loadCurrentUser() {
+    app.checkUserRegistration()
+      .then((result) => {
+        if (result.registered && result.user) {
+          this.setData({ currentUser: result.user })
+        }
+      })
+      .catch((error) => {
+        console.error('获取用户信息失败:', error)
+      })
   },
 
   /**
@@ -44,6 +61,13 @@ Page({
       const result = res.result
       if (result && result.code === 0) {
         const announcement = result.data
+        const currentUser = this.data.currentUser
+        const currentOpenid = app.globalData.openid
+
+        // 判断是否可以撤回：发布者本人或管理员
+        const isPublisher = announcement.publisherId === currentOpenid
+        const isAdmin = currentUser && (currentUser.isAdmin || currentUser.role === 'admin')
+        const canRevoke = announcement.status !== 'revoked' && (isPublisher || isAdmin)
 
         this.setData({
           announcement: {
@@ -51,7 +75,7 @@ Page({
             timeText: formatDateTime(announcement.publishedAt),
             typeText: this.getTypeText(announcement.type),
             typeClass: this.getTypeClass(announcement.type),
-            canRevoke: announcement.status !== 'revoked'
+            canRevoke
           },
           loading: false
         })
