@@ -612,37 +612,40 @@ Page({
    * 返回 { startDatetime, endDatetime } 格式为 YYYY-MM-DD HH:mm
    */
   getDefaultDatetime(date, dateStr) {
-    const hours = date.getHours()
-    const minutes = date.getMinutes()
+    // 解析基准日期
     const baseDate = dateStr || this.getDateString(date)
+    const [year, month, day] = baseDate.split('-').map(Number)
+
+    // 创建开始时间的 Date 对象
+    const startDate = new Date(year, month - 1, day, date.getHours(), date.getMinutes(), 0)
 
     // 向上取整到最近的30分钟
-    let roundedHours = hours
-    let roundedMinutes = 0
-
-    if (minutes === 0) {
-      roundedMinutes = 0
-    } else if (minutes <= 30) {
-      roundedMinutes = 30
-    } else {
-      roundedMinutes = 0
-      roundedHours = (hours + 1) % 24
+    const minutes = startDate.getMinutes()
+    if (minutes > 0 && minutes <= 30) {
+      startDate.setMinutes(30, 0, 0)
+    } else if (minutes > 30) {
+      startDate.setMinutes(0, 0, 0)
+      startDate.setHours(startDate.getHours() + 1)
     }
-
-    const startTime = `${String(roundedHours).padStart(2, '0')}:${String(roundedMinutes).padStart(2, '0')}`
-    const startDatetime = `${baseDate} ${startTime}`
+    // minutes === 0 时不需要调整
 
     // 结束时间 = 开始时间 + 30分钟
-    let endHours = roundedHours
-    let endMinutes = roundedMinutes + 30
-    if (endMinutes >= 60) {
-      endMinutes = 0
-      endHours = (endHours + 1) % 24
-    }
-    const endTime = `${String(endHours).padStart(2, '0')}:${String(endMinutes).padStart(2, '0')}`
-    const endDatetime = `${baseDate} ${endTime}`
+    const endDate = new Date(startDate.getTime() + 30 * 60 * 1000)
 
-    return { startDatetime, endDatetime }
+    // 格式化输出
+    const formatDate = (d) => {
+      const y = d.getFullYear()
+      const m = String(d.getMonth() + 1).padStart(2, '0')
+      const day = String(d.getDate()).padStart(2, '0')
+      const h = String(d.getHours()).padStart(2, '0')
+      const min = String(d.getMinutes()).padStart(2, '0')
+      return `${y}-${m}-${day} ${h}:${min}`
+    }
+
+    return {
+      startDatetime: formatDate(startDate),
+      endDatetime: formatDate(endDate)
+    }
   },
 
   /**
@@ -740,14 +743,10 @@ Page({
     } else {
       startDatetime = `${dateStr} ${String(hour || 0).padStart(2, '0')}:${String(minute || 0).padStart(2, '0')}`
       
-      // 自动调整结束时间 = 开始时间 + 30分钟
-      let endHour = (hour || 0)
-      let endMinute = (minute || 0) + 30
-      if (endMinute >= 60) {
-        endMinute -= 60
-        endHour = (endHour + 1) % 24
-      }
-      const endDatetime = `${dateStr} ${String(endHour).padStart(2, '0')}:${String(endMinute).padStart(2, '0')}`
+      // 自动调整结束时间 = 开始时间 + 30分钟（使用 Date 对象处理跨日）
+      const startDate = new Date(year, month - 1, day, hour || 0, minute || 0, 0)
+      const endDate = new Date(startDate.getTime() + 30 * 60 * 1000)
+      const endDatetime = `${endDate.getFullYear()}-${String(endDate.getMonth() + 1).padStart(2, '0')}-${String(endDate.getDate()).padStart(2, '0')} ${String(endDate.getHours()).padStart(2, '0')}:${String(endDate.getMinutes()).padStart(2, '0')}`
       this.setData({
         'scheduleForm.startDatetime': startDatetime,
         'scheduleForm.endDatetime': endDatetime

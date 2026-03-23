@@ -3,5 +3,5 @@
     "calendar": "@lspriv/wx-calendar",
     "datetime-picker": "/components/datetime-picker/datetime-picker"
   },
-  "navigationBarTitleText": "本馆日历"
+  "navigationBarTitleText": "全馆日程"
 }

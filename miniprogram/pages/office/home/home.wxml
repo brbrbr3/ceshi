@@ -24,7 +24,7 @@
     </view>
     <!-- <view class="home-date">{{currentDateText}}</view> -->
 
-    <!--日历模块-->
+    <!--全馆日程模块-->
     <view class="office-glass-card home-calendar" bindtap="goCalendar">
       <view class="home-calendar-main">
         <view class="home-calendar-icon">📅</view>
@@ -33,7 +33,7 @@
           <view class="home-calendar-desc">{{todayTypeText}}</view>
         </view>
       </view>
-      <view class="home-calendar-tag">查看日历</view>
+      <view class="home-calendar-tag">全馆日程</view>
     </view>
   </view>
 
