@@ -52,6 +52,8 @@ exports.main = async (event, context) => {
         return await handleGetByDate(params, wxContext)
       case 'getByDateRange':
         return await handleGetByDateRange(params, wxContext)
+      case 'getScheduleDates':
+        return await handleGetScheduleDates(params, wxContext)
       case 'getTypes':
         return success({ types: SCHEDULE_TYPES, repeats: REPEAT_TYPES })
       default:
@@ -221,5 +223,58 @@ async function handleGetByDateRange(params, wxContext) {
   return success({
     list: result.data,
     total: result.data.length
+  })
+}
+
+/**
+ * 获取指定月份范围内有日程的日期列表
+ * 用于日历标记
+ */
+async function handleGetScheduleDates(params, wxContext) {
+  const { year, month } = params
+
+  if (!year || !month) {
+    return fail('年份和月份不能为空', 400)
+  }
+
+  // 计算月份范围
+  const startDate = `${year}-${String(month).padStart(2, '0')}-01`
+  const nextMonth = month === 12 ? 1 : month + 1
+  const nextYear = month === 12 ? year + 1 : year
+  const endDate = `${nextYear}-${String(nextMonth).padStart(2, '0')}-01`
+
+  // 查询该月份内的所有日程
+  const result = await schedulesCollection
+    .where({
+      startDate: _.lt(endDate),
+      endDate: _.gte(startDate)
+    })
+    .field({
+      startDate: true,
+      endDate: true
+    })
+    .get()
+
+  // 提取所有有日程的日期
+  const dateSet = new Set()
+  
+  result.data.forEach(schedule => {
+    const start = new Date(schedule.startDate)
+    const end = new Date(schedule.endDate)
+    
+    // 遍历日程覆盖的所有日期
+    const current = new Date(start)
+    while (current <= end) {
+      const dateStr = `${current.getFullYear()}-${String(current.getMonth() + 1).padStart(2, '0')}-${String(current.getDate()).padStart(2, '0')}`
+      // 只添加在查询月份内的日期
+      if (dateStr >= startDate && dateStr < endDate) {
+        dateSet.add(dateStr)
+      }
+      current.setDate(current.getDate() + 1)
+    }
+  })
+
+  return success({
+    dates: Array.from(dateSet).sort()
   })
 }
