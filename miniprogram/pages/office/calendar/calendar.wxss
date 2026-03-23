@@ -356,12 +356,12 @@
   flex-shrink: 0;
 }
 
-.hour-line {
+/* .hour-line {
   flex: 1;
   height: 1rpx;
   background: #E2E8F0;
   margin-top: 16rpx;
-}
+} */
 
 /* 日程条容器 */
 .schedule-bars {
@@ -376,8 +376,6 @@
 /* 日程条 */
 .schedule-bar {
   position: absolute;
-  left: 0;
-  right: 0;
   border-radius: 12rpx;
   padding: 12rpx 16rpx;
   box-sizing: border-box;
@@ -630,6 +628,18 @@
   display: flex;
   gap: 16rpx;
   margin-top: 12rpx;
+}
+
+/* datetime-picker 包装器样式 */
+.schedule-picker-wrapper {
+  flex: 1;
+  background: #F8FAFC;
+  border-radius: 16rpx;
+  overflow: hidden;
+}
+
+.schedule-picker-wrapper.schedule-picker-time {
+  flex: 0 0 180rpx;
 }
 
 /* 选择器样式 */

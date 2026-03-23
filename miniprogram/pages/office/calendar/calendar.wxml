@@ -70,7 +70,8 @@
             id="hour-{{item}}"
           >
             <view class="hour-label">{{item < 10 ? '0' + item : item}}:00</view>
-            <!-- <view class="hour-line"></view> -->
+            <!-- Hour-line似乎没有必要，因为已经有了timeline-grid，注释掉
+            <view class="hour-line"></view> -->
           </view>
         </view>
 
@@ -80,7 +81,7 @@
             class="schedule-bar" 
             wx:for="{{schedules.timed}}" 
             wx:key="_id"
-            style="top: {{item.top}}rpx; height: {{item.height}}rpx; background: {{item.color}};"
+            style="top: {{item.top}}rpx; height: {{item.height}}rpx; left: {{item.left}}rpx; width: {{item.width}}rpx; background: {{item.color}};"
             bindtap="handleScheduleTap"
             data-schedule="{{item}}"
           >
@@ -153,29 +154,22 @@
             <view class="schedule-field">
               <view class="schedule-field-label">开始</view>
               <view class="schedule-time-row">
-                <picker 
-                  mode="date" 
-                  value="{{scheduleForm.startDate}}" 
-                  start="2020-01-01" 
-                  end="2030-12-31"
-                  bindchange="handleStartDateChange"
-                >
-                  <view class="schedule-picker">
-                    <text>{{scheduleForm.startDate}}</text>
-                    <text class="schedule-picker-arrow">›</text>
-                  </view>
-                </picker>
-                <picker 
-                  wx:if="{{!scheduleForm.isAllDay}}"
-                  mode="time" 
-                  value="{{scheduleForm.startTime}}" 
-                  bindchange="handleStartTimeChange"
-                >
-                  <view class="schedule-picker schedule-picker-time">
-                    <text>{{scheduleForm.startTime}}</text>
-                    <text class="schedule-picker-arrow">›</text>
-                  </view>
-                </picker>
+                <view class="schedule-picker-wrapper">
+                  <datetime-picker 
+                    value="{{scheduleForm.startDate}}"
+                    fields="{{['year', 'month', 'day']}}"
+                    start-date="2020-01-01"
+                    end-date="2030-12-31"
+                    bind:change="handleStartDateChange"
+                  />
+                </view>
+                <view class="schedule-picker-wrapper schedule-picker-time" wx:if="{{!scheduleForm.isAllDay}}">
+                  <datetime-picker 
+                    value="{{scheduleForm.startTime}}"
+                    fields="{{['hour', 'minute']}}"
+                    bind:change="handleStartTimeChange"
+                  />
+                </view>
               </view>
             </view>
 
@@ -183,29 +177,22 @@
             <view class="schedule-field">
               <view class="schedule-field-label">结束</view>
               <view class="schedule-time-row">
-                <picker 
-                  mode="date" 
-                  value="{{scheduleForm.endDate}}" 
-                  start="2020-01-01" 
-                  end="2030-12-31"
-                  bindchange="handleEndDateChange"
-                >
-                  <view class="schedule-picker">
-                    <text>{{scheduleForm.endDate}}</text>
-                    <text class="schedule-picker-arrow">›</text>
-                  </view>
-                </picker>
-                <picker 
-                  wx:if="{{!scheduleForm.isAllDay}}"
-                  mode="time" 
-                  value="{{scheduleForm.endTime}}" 
-                  bindchange="handleEndTimeChange"
-                >
-                  <view class="schedule-picker schedule-picker-time">
-                    <text>{{scheduleForm.endTime}}</text>
-                    <text class="schedule-picker-arrow">›</text>
-                  </view>
-                </picker>
+                <view class="schedule-picker-wrapper">
+                  <datetime-picker 
+                    value="{{scheduleForm.endDate}}"
+                    fields="{{['year', 'month', 'day']}}"
+                    start-date="2020-01-01"
+                    end-date="2030-12-31"
+                    bind:change="handleEndDateChange"
+                  />
+                </view>
+                <view class="schedule-picker-wrapper schedule-picker-time" wx:if="{{!scheduleForm.isAllDay}}">
+                  <datetime-picker 
+                    value="{{scheduleForm.endTime}}"
+                    fields="{{['hour', 'minute']}}"
+                    bind:change="handleEndTimeChange"
+                  />
+                </view>
               </view>
             </view>
           </view>

@@ -341,11 +341,8 @@ Page({
       if (res.result.code === 0) {
         const { all, allDay, timed } = res.result.data
 
-        // 计算时间轴位置
-        const timedWithPosition = timed.map(schedule => ({
-          ...schedule,
-          ...this.calculateSchedulePosition(schedule)
-        }))
+        // 计算时间轴位置（包含重叠并排算法）
+        const timedWithPosition = this.calculateScheduleLayout(timed)
 
         this.setData({
           'schedules.all': all,
@@ -359,6 +356,171 @@ Page({
   },
 
   /**
+   * 计算日程布局（包含重叠并排算法）
+   * 参考 Apple/Google Calendar 的设计
+   */
+  calculateScheduleLayout(schedules) {
+    if (!schedules || schedules.length === 0) return []
+
+    // 按 startTime 排序
+    const sorted = [...schedules].sort((a, b) => {
+      const timeA = a.startTime || '00:00'
+      const timeB = b.startTime || '00:00'
+      return timeA.localeCompare(timeB)
+    })
+
+    // 为每个日程计算基础位置
+    const withPosition = sorted.map(schedule => ({
+      ...schedule,
+      ...this.calculateSchedulePosition(schedule),
+      columnIndex: 0,
+      totalColumns: 1,
+      left: 0,
+      width: 0
+    }))
+
+    // 分组：将时间重叠的日程归入同一组
+    const groups = this.groupOverlappingSchedules(withPosition)
+
+    // 为每个组计算列分配
+    groups.forEach(group => {
+      this.assignColumns(group)
+      this.calculateWidthAndLeft(group)
+    })
+
+    return withPosition
+  },
+
+  /**
+   * 分组：将时间重叠的日程归入同一组
+   */
+  groupOverlappingSchedules(schedules) {
+    const groups = []
+    const used = new Set()
+
+    schedules.forEach((schedule, index) => {
+      if (used.has(index)) return
+
+      const group = [schedule]
+      used.add(index)
+
+      // 找到所有与此日程重叠的日程
+      schedules.forEach((other, otherIndex) => {
+        if (used.has(otherIndex)) return
+        if (this.isOverlapping(schedule, other)) {
+          group.push(other)
+          used.add(otherIndex)
+        }
+      })
+
+      // 递归查找组内成员的重叠日程
+      let changed = true
+      while (changed) {
+        changed = false
+        schedules.forEach((other, otherIndex) => {
+          if (used.has(otherIndex)) return
+          const hasOverlap = group.some(member => this.isOverlapping(member, other))
+          if (hasOverlap) {
+            group.push(other)
+            used.add(otherIndex)
+            changed = true
+          }
+        })
+      }
+
+      groups.push(group)
+    })
+
+    return groups
+  },
+
+  /**
+   * 判断两个日程是否时间重叠
+   */
+  isOverlapping(a, b) {
+    if (a.isAllDay || b.isAllDay) return false
+    if (!a.startTime || !b.startTime || !a.endTime || !b.endTime) return false
+
+    const startA = this.timeToMinutes(a.startTime)
+    const endA = this.timeToMinutes(a.endTime)
+    const startB = this.timeToMinutes(b.startTime)
+    const endB = this.timeToMinutes(b.endTime)
+
+    // 重叠条件：A 的结束时间 > B 的开始时间 且 A 的开始时间 < B 的结束时间
+    return startA < endB && startB < endA
+  },
+
+  /**
+   * 时间字符串转分钟数
+   */
+  timeToMinutes(timeStr) {
+    if (!timeStr) return 0
+    const [hour, minute] = timeStr.split(':').map(Number)
+    return hour * 60 + minute
+  },
+
+  /**
+   * 为组内日程分配列（贪心算法）
+   */
+  assignColumns(group) {
+    // 按开始时间排序
+    group.sort((a, b) => {
+      const timeA = a.startTime || '00:00'
+      const timeB = b.startTime || '00:00'
+      return timeA.localeCompare(timeB)
+    })
+
+    // 记录每列的结束时间
+    const columns = []
+
+    group.forEach(schedule => {
+      const endMinutes = this.timeToMinutes(schedule.endTime)
+
+      // 找到第一个可以放入的列
+      let foundColumn = -1
+      for (let i = 0; i < columns.length; i++) {
+        if (columns[i] <= this.timeToMinutes(schedule.startTime)) {
+          foundColumn = i
+          break
+        }
+      }
+
+      if (foundColumn === -1) {
+        // 需要新列
+        columns.push(endMinutes)
+        schedule.columnIndex = columns.length - 1
+      } else {
+        // 放入已有列
+        columns[foundColumn] = endMinutes
+        schedule.columnIndex = foundColumn
+      }
+    })
+
+    // 更新总列数
+    const totalColumns = columns.length
+    group.forEach(schedule => {
+      schedule.totalColumns = totalColumns
+    })
+  },
+
+  /**
+   * 计算每个日程的宽度和左边距
+   */
+  calculateWidthAndLeft(group) {
+    const containerWidth = 638 // 日程条容器宽度（750 - 80左标签 - 16右间距 - 16rpx padding）
+    const gap = 4 // 日程条之间的间距 rpx
+
+    group.forEach(schedule => {
+      const totalColumns = schedule.totalColumns
+      const columnIndex = schedule.columnIndex
+      const singleWidth = (containerWidth - gap * (totalColumns - 1)) / totalColumns
+
+      schedule.width = singleWidth
+      schedule.left = columnIndex * (singleWidth + gap)
+    })
+  },
+
+  /**
    * 计算日程在时间轴上的位置
    */
   calculateSchedulePosition(schedule) {
@@ -366,8 +528,8 @@ Page({
       return { top: 0, height: 0 }
     }
 
-    const [startHour, startMin] = schedule.startTime.split(':').map(Number)
-    const [endHour, endMin] = schedule.endTime.split(':').map(Number)
+    const [startHour, startMin] = (schedule.startTime || '00:00').split(':').map(Number)
+    const [endHour, endMin] = (schedule.endTime || '01:00').split(':').map(Number)
 
     // 计算相对于 0:00 的偏移
     const startOffset = startHour + startMin / 60
@@ -488,31 +650,43 @@ Page({
   },
 
   /**
-   * 开始日期变化
+   * 开始日期变化（datetime-picker）
    */
   handleStartDateChange(e) {
-    this.setData({ 'scheduleForm.startDate': e.detail.value })
+    const { year, month, day } = e.detail
+    const monthStr = String(month).padStart(2, '0')
+    const dayStr = String(day).padStart(2, '0')
+    const dateStr = `${year}-${monthStr}-${dayStr}`
+    this.setData({ 'scheduleForm.startDate': dateStr })
   },
 
   /**
-   * 结束日期变化
+   * 结束日期变化（datetime-picker）
    */
   handleEndDateChange(e) {
-    this.setData({ 'scheduleForm.endDate': e.detail.value })
+    const { year, month, day } = e.detail
+    const monthStr = String(month).padStart(2, '0')
+    const dayStr = String(day).padStart(2, '0')
+    const dateStr = `${year}-${monthStr}-${dayStr}`
+    this.setData({ 'scheduleForm.endDate': dateStr })
   },
 
   /**
-   * 开始时间变化
+   * 开始时间变化（datetime-picker）
    */
   handleStartTimeChange(e) {
-    this.setData({ 'scheduleForm.startTime': e.detail.value })
+    const { hour, minute } = e.detail
+    const timeStr = `${String(hour).padStart(2, '0')}:${String(minute).padStart(2, '0')}`
+    this.setData({ 'scheduleForm.startTime': timeStr })
   },
 
   /**
-   * 结束时间变化
+   * 结束时间变化（datetime-picker）
    */
   handleEndTimeChange(e) {
-    this.setData({ 'scheduleForm.endTime': e.detail.value })
+    const { hour, minute } = e.detail
+    const timeStr = `${String(hour).padStart(2, '0')}:${String(minute).padStart(2, '0')}`
+    this.setData({ 'scheduleForm.endTime': timeStr })
   },
 
   /**
