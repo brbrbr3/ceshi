@@ -14,8 +14,11 @@ const { LunarPlugin } = require('@lspriv/wc-plugin-lunar')
 // 启用农历插件
 WxCalendar.use(LunarPlugin)
 
-// 权限角色列表
-const CONFIG_ALLOWED_ROLES = ['admin', '会计', '会计主管']
+// 配置节假日权限角色列表
+const CONFIG_HOLIDAY_ALLOWED_ROLES = ['admin', '会计', '会计主管']
+
+// 日程操作权限岗位列表
+const SCHEDULE_ALLOWED_POSITIONS = ['礼宾']
 
 // 日程类型配置
 const SCHEDULE_TYPES = [
@@ -60,12 +63,13 @@ Page({
     // scheduleDatesSet 改为页面实例属性（Set 无法被小程序序列化）
     holidayDates: [], // 节假日日期列表缓存
 
-    // 权限控制
-    canConfig: false,
+    // 配置节假日权限控制
+    canConfigHoliday: false,
+    canManageSchedule: false,  // 日程管理权限
     currentUser: null,
 
     // 配置弹窗
-    showConfigPopup: false,
+    showConfigHolidayPopup: false,
     configYear: new Date().getFullYear(),
     yearOptions: [],
     holidays: [],
@@ -138,7 +142,8 @@ Page({
       })
 
       // 检查权限
-      await this.checkPermission()
+      await this.checkConfigHolidayPermission()
+      await this.checkManageSchedulePermission()
 
       // 加载节假日配置
       await this.loadHolidays()
@@ -216,18 +221,38 @@ Page({
   },
 
   /**
-   * 检查用户权限
+   * 检查用户配置节假日权限
    */
-  checkPermission() {
+  checkConfigHolidayPermission() {
     return app.checkUserRegistration().then((result) => {
       if (result.registered && result.user) {
         const user = result.user
         const isAdmin = user.isAdmin || user.role === 'admin'
-        const isAllowed = isAdmin || CONFIG_ALLOWED_ROLES.includes(user.role)
+        const canConfigHoliday = isAdmin || CONFIG_HOLIDAY_ALLOWED_ROLES.includes(user.role)
 
         this.setData({
           currentUser: user,
-          canConfig: isAllowed
+          canConfigHoliday
+        })
+      }
+    }).catch(() => {
+      // 静默失败
+    })
+  },
+
+  /**
+   * 检查用户日程管理权限
+   */
+  checkManageSchedulePermission() {
+    return app.checkUserRegistration().then((result) => {
+      if (result.registered && result.user) {
+        const user = result.user
+        const isAdmin = user.isAdmin || user.role === 'admin'
+        const canManageSchedule = isAdmin || SCHEDULE_ALLOWED_POSITIONS.includes(user.position)
+
+        this.setData({
+          currentUser: user,
+          canManageSchedule
         })
       }
     }).catch(() => {
@@ -896,11 +921,25 @@ Page({
    * 显示添加日程弹窗
    */
   handleAddSchedule() {
-    const today = this.getDateString(new Date())
+    // 权限检查
+    if (!this.data.canManageSchedule) {
+      wx.showModal({
+        title: '权限提示',
+        content: '您没有权限执行此操作',
+        showCancel: false,
+        confirmText: '我知道了'
+      })
+      return
+    }
+
+    // 使用日历上选中的日期，如果没有则使用当前日期
+    const selectedDateStr = this.data.selectedDate 
+      ? this.getDateString(this.data.selectedDate) 
+      : this.getDateString(new Date())
 
     // 计算默认时间：当前时间向上取整到最近的30分钟
     const now = new Date()
-    const { startDatetime, endDatetime } = this.getDefaultDatetime(now, today)
+    const { startDatetime, endDatetime } = this.getDefaultDatetime(now, selectedDateStr)
 
     this.setData({
       showSchedulePopup: true,
@@ -987,6 +1026,17 @@ Page({
    * 从详情进入编辑
    */
   handleEditFromDetail() {
+    // 权限检查
+    if (!this.data.canManageSchedule) {
+      wx.showModal({
+        title: '权限提示',
+        content: '您没有权限执行此操作',
+        showCancel: false,
+        confirmText: '我知道了'
+      })
+      return
+    }
+
     const schedule = this.data.detailSchedule
 
     // 调试：检查日程数据
@@ -1341,6 +1391,17 @@ Page({
    * 删除日程
    */
   async handleDeleteSchedule() {
+    // 权限检查
+    if (!this.data.canManageSchedule) {
+      wx.showModal({
+        title: '权限提示',
+        content: '您没有权限执行此操作',
+        showCancel: false,
+        confirmText: '我知道了'
+      })
+      return
+    }
+
     const { editingSchedule } = this.data
 
     if (!editingSchedule) return
@@ -1394,8 +1455,8 @@ Page({
   /**
    * 点击配置按钮
    */
-  handleConfigTap() {
-    if (!this.data.canConfig) {
+  handleConfigHolidayTap() {
+    if (!this.data.canConfigHoliday) {
       wx.showModal({
         title: '权限提示',
         content: '您没有权限配置节假日',
@@ -1405,13 +1466,13 @@ Page({
       return
     }
 
-    this.showConfigPopup()
+    this.showConfigHolidayPopup()
   },
 
   /**
    * 显示配置弹窗
    */
-  async showConfigPopup() {
+  async showConfigHolidayPopup() {
     const year = this.data.configYear
 
     try {
@@ -1429,13 +1490,13 @@ Page({
       }
 
       this.setData({
-        showConfigPopup: true,
+        showConfigHolidayPopup: true,
         holidays
       })
     } catch (error) {
       console.error('加载节假日配置失败:', error)
       this.setData({
-        showConfigPopup: true,
+        showConfigHolidayPopup: true,
         holidays: []
       })
     }
@@ -1444,8 +1505,8 @@ Page({
   /**
    * 隐藏配置弹窗
    */
-  hideConfigPopup() {
-    this.setData({ showConfigPopup: false })
+  hideConfigHolidayPopup() {
+    this.setData({ showConfigHolidayPopup: false })
   },
 
   /**
@@ -1460,7 +1521,7 @@ Page({
     const index = e.detail.value
     const year = this.data.yearOptions[index]
     this.setData({ configYear: year })
-    this.showConfigPopup()
+    this.showConfigHolidayPopup()
   },
 
   /**
@@ -1513,9 +1574,9 @@ Page({
   },
 
   /**
-   * 提交配置
+   * 提交节假日配置
    */
-  async handleSubmitConfig() {
+  async handleSubmitHolidayConfig() {
     if (this.data.submitting) return
 
     const dates = this.data.holidays
@@ -1542,7 +1603,7 @@ Page({
 
       if (res.result.code === 0) {
         utils.showToast({ title: '配置成功', icon: 'success' })
-        this.setData({ showConfigPopup: false, holidayDates: dates })
+        this.setData({ showConfigHolidayPopup: false, holidayDates: dates })
         this.updateMarks()
       } else {
         utils.showToast({ title: res.result.message || '配置失败', icon: 'none' })

@@ -267,6 +267,78 @@ app.checkPermission('medical_application').then(hasPermission => {
 })
 ```
 
+### 6.2 用户信息获取规范
+
+获取用户信息（包括权限判断）**必须使用 `app.checkUserRegistration()`**，禁止直接查询数据库。
+
+**原因**：
+- `app.checkUserRegistration()` 内置缓存机制，缓存有效期内不查询数据库
+- 避免重复请求，提升性能
+
+**使用示例**：
+```javascript
+// ✅ 正确：使用 app.checkUserRegistration()
+checkSomePermission() {
+  return app.checkUserRegistration().then((result) => {
+    if (result.registered && result.user) {
+      const user = result.user
+      const isAdmin = user.isAdmin || user.role === 'admin'
+      // 权限判断...
+    }
+  }).catch(() => {
+    // 静默失败
+  })
+}
+
+// ❌ 错误：直接查询数据库
+const userRes = await db.collection('users').where({ openid }).get()
+```
+
+**缓存机制说明**：
+- 缓存有效期：见 `app.js` 中 `USER_CACHE_EXPIRE` 配置
+- 强制刷新：`app.checkUserRegistration({ forceRefresh: true })`
+
+**完整示例**（参考 `calendar.js`）：
+```javascript
+// 1. 定义权限角色常量
+const CONFIG_HOLIDAY_ALLOWED_ROLES = ['admin', '会计', '会计主管']
+const SCHEDULE_ALLOWED_POSITIONS = ['礼宾']
+
+// 2. 在 data 中定义权限状态
+data: {
+  currentUser: null,
+  canConfigHoliday: false,
+  canManageSchedule: false
+}
+
+// 3. 页面加载时检查权限（利用缓存）
+async onLoad() {
+  await this.checkConfigHolidayPermission()
+  await this.checkManageSchedulePermission()
+}
+
+// 4. 权限检查方法
+checkManageSchedulePermission() {
+  return app.checkUserRegistration().then((result) => {
+    if (result.registered && result.user) {
+      const user = result.user
+      const isAdmin = user.isAdmin || user.role === 'admin'
+      const canManageSchedule = isAdmin || SCHEDULE_ALLOWED_POSITIONS.includes(user.position)
+      this.setData({ currentUser: user, canManageSchedule })
+    }
+  }).catch(() => {})
+}
+
+// 5. 操作前检查权限
+handleAddSchedule() {
+  if (!this.data.canManageSchedule) {
+    wx.showModal({ title: '权限提示', content: '您没有权限执行此操作' })
+    return
+  }
+  // 业务逻辑...
+}
+```
+
 ---
 
 ## 7. 工作流规范

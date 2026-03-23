@@ -7,7 +7,7 @@
         <view class="calendar-title">全馆日程</view>
         <view class="calendar-subtitle">查看全馆日程（周视图）与节假日安排</view>
       </view>
-      <view class="calendar-config-btn" bindtap="handleConfigTap">配置节假日</view>
+      <view class="calendar-config-btn" bindtap="handleConfigHolidayTap">配置节假日</view>
     </view>
   </view>
 
@@ -367,13 +367,13 @@
   </view>
 
   <!-- 配置弹窗 -->
-  <view class="config-popup-mask {{showConfigPopup ? 'is-visible' : ''}}" catchtouchmove="stopPropagation" bindtap="hideConfigPopup">
+  <view class="config-popup-mask {{showConfigHolidayPopup ? 'is-visible' : ''}}" catchtouchmove="stopPropagation" bindtap="hideConfigHolidayPopup">
     <view class="config-popup-container" catchtap="stopPropagation">
       <!-- 固定头部：标题 + 年份选择 -->
       <view class="config-popup-fixed-header">
         <view class="config-popup-header">
           <view class="config-popup-title">配置法定节假日</view>
-          <view class="config-popup-close" bindtap="hideConfigPopup">×</view>
+          <view class="config-popup-close" bindtap="hideConfigHolidayPopup">×</view>
         </view>
         <view class="config-field">
           <view class="config-field-label">配置</view>
@@ -406,7 +406,7 @@
           <text class="config-add-icon">+</text>
           <text>添加节假日</text>
         </view>
-        <button class="config-submit-btn" loading="{{submitting}}" disabled="{{submitting}}" bindtap="handleSubmitConfig">
+        <button class="config-submit-btn" loading="{{submitting}}" disabled="{{submitting}}" bindtap="handleSubmitHolidayConfig">
           提交配置
         </button>
       </view>

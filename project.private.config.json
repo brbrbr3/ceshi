@@ -23,20 +23,6 @@
     "miniprogram": {
       "list": [
         {
-          "name": "pages/office/trip-report/trip-report",
-          "pathName": "pages/office/trip-report/trip-report",
-          "query": "",
-          "scene": null,
-          "launchMode": "default"
-        },
-        {
-          "name": "pages/office/calendar/calendar",
-          "pathName": "pages/office/calendar/calendar",
-          "query": "",
-          "launchMode": "default",
-          "scene": null
-        },
-        {
           "name": "page/extend/index",
           "pathName": "page/extend/index",
           "query": "",
