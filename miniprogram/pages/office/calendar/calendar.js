@@ -344,8 +344,8 @@ Page({
       if (res.result.code === 0) {
         const { all, allDay, timed } = res.result.data
 
-        // 计算时间轴位置（包含重叠并排算法）
-        const timedWithPosition = this.calculateScheduleLayout(timed)
+        // 计算时间轴位置（包含重叠并排算法），传入当前日期处理跨日日程
+        const timedWithPosition = this.calculateScheduleLayout(timed, dateStr)
 
         this.setData({
           'schedules.all': all,
@@ -361,21 +361,23 @@ Page({
   /**
    * 计算日程布局（包含重叠并排算法）
    * 参考 Apple/Google Calendar 的设计
+   * @param {Array} schedules 日程列表
+   * @param {string} currentDate 当前日期 YYYY-MM-DD
    */
-  calculateScheduleLayout(schedules) {
+  calculateScheduleLayout(schedules, currentDate) {
     if (!schedules || schedules.length === 0) return []
 
-    // 按 startTime 排序
+    // 按当日显示的开始时间排序（考虑跨日日程）
     const sorted = [...schedules].sort((a, b) => {
-      const timeA = a.startTime || '00:00'
-      const timeB = b.startTime || '00:00'
-      return timeA.localeCompare(timeB)
+      const rangeA = this.getDayDisplayRange(a, currentDate)
+      const rangeB = this.getDayDisplayRange(b, currentDate)
+      return rangeA.start - rangeB.start
     })
 
     // 为每个日程计算基础位置
     const withPosition = sorted.map(schedule => ({
       ...schedule,
-      ...this.calculateSchedulePosition(schedule),
+      ...this.calculateSchedulePosition(schedule, currentDate),
       columnIndex: 0,
       totalColumns: 1,
       left: 0,
@@ -383,11 +385,11 @@ Page({
     }))
 
     // 分组：将时间重叠的日程归入同一组
-    const groups = this.groupOverlappingSchedules(withPosition)
+    const groups = this.groupOverlappingSchedules(withPosition, currentDate)
 
     // 为每个组计算列分配
     groups.forEach(group => {
-      this.assignColumns(group)
+      this.assignColumns(group, currentDate)
       this.calculateWidthAndLeft(group)
     })
 
@@ -396,8 +398,10 @@ Page({
 
   /**
    * 分组：将时间重叠的日程归入同一组
+   * @param {Array} schedules 日程列表
+   * @param {string} currentDate 当前日期 YYYY-MM-DD
    */
-  groupOverlappingSchedules(schedules) {
+  groupOverlappingSchedules(schedules, currentDate) {
     const groups = []
     const used = new Set()
 
@@ -410,7 +414,7 @@ Page({
       // 找到所有与此日程重叠的日程
       schedules.forEach((other, otherIndex) => {
         if (used.has(otherIndex)) return
-        if (this.isOverlapping(schedule, other)) {
+        if (this.isOverlapping(schedule, other, currentDate)) {
           group.push(other)
           used.add(otherIndex)
         }
@@ -422,7 +426,7 @@ Page({
         changed = false
         schedules.forEach((other, otherIndex) => {
           if (used.has(otherIndex)) return
-          const hasOverlap = group.some(member => this.isOverlapping(member, other))
+          const hasOverlap = group.some(member => this.isOverlapping(member, other, currentDate))
           if (hasOverlap) {
             group.push(other)
             used.add(otherIndex)
@@ -438,19 +442,42 @@ Page({
   },
 
   /**
-   * 判断两个日程是否时间重叠
+   * 判断两个日程是否时间重叠（在同一天内）
+   * @param {Object} a 日程A
+   * @param {Object} b 日程B
+   * @param {string} currentDate 当前日期 YYYY-MM-DD
    */
-  isOverlapping(a, b) {
+  isOverlapping(a, b, currentDate) {
     if (a.isAllDay || b.isAllDay) return false
     if (!a.startTime || !b.startTime || !a.endTime || !b.endTime) return false
 
-    const startA = this.timeToMinutes(a.startTime)
-    const endA = this.timeToMinutes(a.endTime)
-    const startB = this.timeToMinutes(b.startTime)
-    const endB = this.timeToMinutes(b.endTime)
+    // 获取当日显示的时间范围
+    const rangeA = this.getDayDisplayRange(a, currentDate)
+    const rangeB = this.getDayDisplayRange(b, currentDate)
 
     // 重叠条件：A 的结束时间 > B 的开始时间 且 A 的开始时间 < B 的结束时间
-    return startA < endB && startB < endA
+    return rangeA.end > rangeB.start && rangeB.end > rangeA.start
+  },
+
+  /**
+   * 获取日程在当日显示的时间范围（分钟数）
+   * 处理跨日日程：当日只显示当日部分
+   */
+  getDayDisplayRange(schedule, currentDate) {
+    let startMinutes = this.timeToMinutes(schedule.startTime)
+    let endMinutes = this.timeToMinutes(schedule.endTime)
+
+    // 如果开始日期早于当前日期，则从 00:00 开始显示
+    if (schedule.startDate < currentDate) {
+      startMinutes = 0
+    }
+
+    // 如果结束日期晚于当前日期，则显示到 24:00
+    if (schedule.endDate > currentDate) {
+      endMinutes = 24 * 60
+    }
+
+    return { start: startMinutes, end: endMinutes }
   },
 
   /**
@@ -464,25 +491,27 @@ Page({
 
   /**
    * 为组内日程分配列（贪心算法）
+   * @param {Array} group 日程组
+   * @param {string} currentDate 当前日期 YYYY-MM-DD
    */
-  assignColumns(group) {
-    // 按开始时间排序
+  assignColumns(group, currentDate) {
+    // 按当日显示的开始时间排序
     group.sort((a, b) => {
-      const timeA = a.startTime || '00:00'
-      const timeB = b.startTime || '00:00'
-      return timeA.localeCompare(timeB)
+      const rangeA = this.getDayDisplayRange(a, currentDate)
+      const rangeB = this.getDayDisplayRange(b, currentDate)
+      return rangeA.start - rangeB.start
     })
 
-    // 记录每列的结束时间
+    // 记录每列的结束时间（当日显示的结束时间）
     const columns = []
 
     group.forEach(schedule => {
-      const endMinutes = this.timeToMinutes(schedule.endTime)
+      const range = this.getDayDisplayRange(schedule, currentDate)
 
       // 找到第一个可以放入的列
       let foundColumn = -1
       for (let i = 0; i < columns.length; i++) {
-        if (columns[i] <= this.timeToMinutes(schedule.startTime)) {
+        if (columns[i] <= range.start) {
           foundColumn = i
           break
         }
@@ -490,11 +519,11 @@ Page({
 
       if (foundColumn === -1) {
         // 需要新列
-        columns.push(endMinutes)
+        columns.push(range.end)
         schedule.columnIndex = columns.length - 1
       } else {
         // 放入已有列
-        columns[foundColumn] = endMinutes
+        columns[foundColumn] = range.end
         schedule.columnIndex = foundColumn
       }
     })
@@ -525,18 +554,20 @@ Page({
 
   /**
    * 计算日程在时间轴上的位置
+   * @param {Object} schedule 日程对象
+   * @param {string} currentDate 当前日期 YYYY-MM-DD
    */
-  calculateSchedulePosition(schedule) {
+  calculateSchedulePosition(schedule, currentDate) {
     if (schedule.isAllDay) {
       return { top: 0, height: 0 }
     }
 
-    const [startHour, startMin] = (schedule.startTime || '00:00').split(':').map(Number)
-    const [endHour, endMin] = (schedule.endTime || '01:00').split(':').map(Number)
-
-    // 计算相对于 0:00 的偏移
-    const startOffset = startHour + startMin / 60
-    const endOffset = endHour + endMin / 60
+    // 获取当日显示的时间范围（处理跨日日程）
+    const range = this.getDayDisplayRange(schedule, currentDate)
+    
+    // 计算相对于 0:00 的偏移（小时）
+    const startOffset = range.start / 60
+    const endOffset = range.end / 60
 
     const top = startOffset * HOUR_HEIGHT
     const height = Math.max((endOffset - startOffset) * HOUR_HEIGHT, 50) // 最小高度 50rpx
