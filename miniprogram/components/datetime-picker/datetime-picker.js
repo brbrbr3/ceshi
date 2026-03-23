@@ -574,6 +574,19 @@ Component({
           date = new Date(dateStr)
         } else if (dateStr.includes(' ')) {
           date = new Date(dateStr.replace(' ', 'T'))
+        } else if (/^\d{4}-\d{2}-\d{2}$/.test(dateStr)) {
+          // 纯日期格式 YYYY-MM-DD，手动解析避免时区问题
+          // new Date('YYYY-MM-DD') 会被解析为 UTC 时间，导致 getDate() 返回本地时区偏移后的日期
+          const [y, m, d] = dateStr.split('-').map(Number)
+          return {
+            year: y,
+            month: m,
+            day: d,
+            weekday: new Date(y, m - 1, d).getDay(),
+            hour: 0,
+            minute: 0,
+            second: 0
+          }
         } else {
           date = new Date(dateStr)
         }

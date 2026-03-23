@@ -337,6 +337,168 @@ utils.formatDateTime(timestamp)      // YYYY-MM-DD HH:mm:ss
 utils.formatDate(timestamp)          // YYYY-MM-DD
 utils.formatRelativeTime(timestamp)  // "5分钟前"
 utils.getTodayDate()                 // YYYY-MM-DD
+utils.getLocalDateString()           // 本地日期字符串（用于日期选择器默认值）
+
+// ⚠️ 纯日期字符串解析（重要！）
+utils.parseLocalDate(dateStr)        // 手动解析纯日期字符串，避免时区陷阱
+utils.formatDateObj(date)            // 将 Date 对象格式化为 YYYY-MM-DD
+```
+
+### 8.3 JavaScript 时区陷阱（必读）
+
+**问题根源**：
+
+```javascript
+// ❌ 错误：纯日期字符串会被解析为 UTC 午夜
+const date = new Date('2026-03-23')
+// 在 UTC-3（圣保罗）时区：
+// - UTC 时间：2026-03-23 00:00:00
+// - 本地时间：2026-03-22 21:00:00（前一天晚上！）
+console.log(date.getDate())  // 返回 22，而非 23！
+```
+
+**问题场景复现**：
+
+```
+用户选择: 2026-03-23（节假日配置）
+      ↓
+存储为: "2026-03-23"
+      ↓
+错误解析: new Date('2026-03-23') → UTC 00:00
+      ↓
+UTC-3 时区转换: 2026-03-22 21:00
+      ↓
+日历显示: 3月22日 ← 错误！应该是3月23日
+```
+
+### 8.4 纯日期字符串解析规范
+
+**强制使用 `parseLocalDate` 函数**：
+
+```javascript
+// ✅ 正确：使用工具函数解析纯日期字符串
+const date = utils.parseLocalDate('2026-03-23')
+console.log(date.getDate())  // 总是返回 23，不受时区影响
+
+// ✅ 正确：日期遍历循环
+const start = utils.parseLocalDate(startDate)
+const end = utils.parseLocalDate(endDate)
+const current = new Date(start)
+while (current <= end) {
+  const dateStr = utils.formatDateObj(current)  // 格式化为 YYYY-MM-DD
+  // 处理逻辑...
+  current.setDate(current.getDate() + 1)
+}
+
+// ❌ 错误：直接解析纯日期字符串
+const wrongDate = new Date('2026-03-23')  // 会导致时区偏移
+```
+
+### 8.5 各场景规范速查表
+
+| 场景 | 正确做法 | 错误做法 |
+|------|---------|---------|
+| 获取今日日期字符串 | `utils.getLocalDateString()` | `new Date().toISOString().split('T')[0]` |
+| 解析纯日期字符串 | `utils.parseLocalDate(dateStr)` | `new Date('YYYY-MM-DD')` |
+| Date 对象转日期字符串 | `utils.formatDateObj(date)` | 手动拼接 `${year}-${month}-${day}` |
+| 日期选择器默认值 | `utils.getLocalDateString()` | 直接使用时间戳转换 |
+| 遍历日期范围 | `utils.parseLocalDate()` + 循环 | `new Date(startDate)` |
+| 获取当前时间戳 | `utils.now()` 或 `Date.now()` | `new Date().getTime()` |
+
+### 8.6 工具函数详解
+
+**`parseLocalDate(dateStr)`** - 纯日期字符串解析
+
+- 支持格式：`YYYY-MM-DD`、`YYYY/MM/DD`、`YYYY.MM.DD`
+- 返回值：本地时间 Date 对象
+- 特点：在任何时区都能正确解析日期
+
+```javascript
+// 使用示例
+const date1 = utils.parseLocalDate('2026-03-23')
+const date2 = utils.parseLocalDate('2026/03/23')
+const date3 = utils.parseLocalDate('2026.03.23')
+// 三种格式返回相同的本地日期
+```
+
+**`formatDateObj(date)`** - Date 对象格式化
+
+- 输入：Date 对象
+- 输出：`YYYY-MM-DD` 格式字符串
+- 用途：日期遍历循环中生成日期字符串
+
+```javascript
+// 使用示例
+const date = new Date(2026, 2, 23)  // 3月23日
+const dateStr = utils.formatDateObj(date)  // '2026-03-23'
+```
+
+**`parseDateParts(dateStr)`** - 解析日期为数字对象
+
+- 输入：日期字符串 `YYYY-MM-DD`
+- 输出：`{ year, month, day }` 数字对象
+- 用途：传递给第三方日历组件
+
+---
+
+## 8.7 第三方日历组件时间处理范式（@lspriv/wx-calendar）
+
+### 问题根源
+
+第三方库 `@lspriv/wx-calendar` 在解析 `marks` 中的 `date` 字段时，使用了 `new Date(dateString)`，导致时区偏移：
+
+```javascript
+// ❌ 错误：使用 date 字符串字段
+marks: [{
+  date: '2026-03-23',  // 组件内部: new Date('2026-03-23') → UTC 午夜 → 时区偏移
+  type: 'corner',
+  text: '休'
+}]
+
+// 在 UTC-3 时区：
+// - UTC 时间：2026-03-23 00:00:00
+// - 本地时间：2026-03-22 21:00:00（前一天晚上！）
+// - 日历显示：3月22日 ← 错误！
+```
+
+### 正确做法
+
+使用 `year/month/day` 数字字段，绕过字符串解析问题：
+
+```javascript
+// ✅ 正确：使用 year/month/day 数字字段
+const { year, month, day } = utils.parseDateParts('2026-03-23')
+
+marks: [{
+  year: 2026,    // 数字
+  month: 3,      // 数字（1-12）
+  day: 23,       // 数字
+  type: 'corner',
+  text: '休'
+}]
+// 组件内部: new Date(2026, 2, 23) → 本地时间构造 → 无时区问题
+```
+
+### 速查表
+
+| 传递方式 | 第三方库处理 | 结果 |
+|---------|-------------|------|
+| `{date: '2026-03-23'}` | `new Date('2026-03-23')` → UTC 午夜 | ❌ 时区偏移 |
+| `{year: 2026, month: 3, day: 23}` | `new Date(2026, 2, 23)` → 本地时间 | ✅ 正确日期 |
+
+### 工具函数
+
+```javascript
+// 使用 parseDateParts 解析日期字符串
+const { year, month, day } = utils.parseDateParts('2026-03-23')
+
+// 构建标记对象
+marks.push({
+  year, month, day,  // 使用数字字段
+  type: 'corner',
+  text: '休',
+  style: { color: '#16A34A' }
+})
 ```
 
 ---

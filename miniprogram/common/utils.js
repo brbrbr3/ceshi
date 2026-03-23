@@ -203,6 +203,94 @@ function getLocalDateString() {
 }
 
 /**
+ * 手动解析纯日期字符串为本地时间 Date 对象
+ * 
+ * ⚠️ 重要：JavaScript 时区陷阱
+ * - `new Date('YYYY-MM-DD')` 会将纯日期解析为 UTC 午夜 00:00
+ * - 在 UTC-3 时区，UTC 午夜会转换为前一天的 21:00，导致日期错误！
+ * - 此函数使用本地时间构造，确保在任何时区都能正确解析日期
+ * 
+ * @param {string} dateStr - 纯日期字符串，支持格式：
+ *   - 'YYYY-MM-DD'（推荐）
+ *   - 'YYYY/MM/DD'
+ *   - 'YYYY.MM.DD'
+ * @returns {Date} 本地时间 Date 对象
+ * @example
+ * // ✅ 正确用法
+ * const date = parseLocalDate('2026-03-23')
+ * console.log(date.getDate())  // 总是返回 23
+ * 
+ * // ❌ 错误用法（时区陷阱）
+ * const date = new Date('2026-03-23')
+ * // 在 UTC-3 时区，getDate() 可能返回 22！
+ */
+function parseLocalDate(dateStr) {
+  if (!dateStr || typeof dateStr !== 'string') {
+    return new Date()
+  }
+  
+  // 支持多种分隔符：- / .
+  const parts = dateStr.split(/[-\/.]/).map(Number)
+  
+  if (parts.length !== 3 || parts.some(isNaN)) {
+    console.warn('parseLocalDate: 无效的日期格式', dateStr)
+    return new Date()
+  }
+  
+  const [year, month, day] = parts
+  
+  // 使用本地时间构造 Date，避免时区问题
+  // 注意：Date 构造函数的月份从 0 开始
+  return new Date(year, month - 1, day)
+}
+
+/**
+ * 格式化 Date 对象为日期字符串（YYYY-MM-DD）
+ * 用于日期遍历循环中生成日期字符串
+ * @param {Date} date - Date 对象
+ * @returns {string} 日期字符串
+ */
+function formatDateObj(date) {
+  if (!(date instanceof Date) || isNaN(date.getTime())) {
+    return ''
+  }
+  const year = date.getFullYear()
+  const month = String(date.getMonth() + 1).padStart(2, '0')
+  const day = String(date.getDate()).padStart(2, '0')
+  return `${year}-${month}-${day}`
+}
+
+/**
+ * 解析日期字符串为年月日数字对象
+ * 用于传递给第三方日历组件（如 @lspriv/wx-calendar）
+ * 避免组件内部使用 new Date(string) 导致时区偏移问题
+ * 
+ * ⚠️ 第三方组件时间处理范式（重要！）
+ * - @lspriv/wx-calendar 的 marks 字段：
+ *   - ❌ 错误：使用 { date: 'YYYY-MM-DD' } → 组件内部 new Date(string) → 时区偏移
+ *   - ✅ 正确：使用 { year: 2026, month: 3, day: 23 } → 组件内部 new Date(year, month-1, day) → 无时区问题
+ * 
+ * @param {string} dateStr - 纯日期字符串（YYYY-MM-DD）
+ * @returns {{year: number, month: number, day: number}} 年月日对象
+ */
+function parseDateParts(dateStr) {
+  if (!dateStr || typeof dateStr !== 'string') {
+    const now = new Date()
+    return { year: now.getFullYear(), month: now.getMonth() + 1, day: now.getDate() }
+  }
+  
+  const parts = dateStr.split(/[-\/.]/).map(Number)
+  
+  if (parts.length !== 3 || parts.some(isNaN)) {
+    console.warn('parseDateParts: 无效的日期格式', dateStr)
+    const now = new Date()
+    return { year: now.getFullYear(), month: now.getMonth() + 1, day: now.getDate() }
+  }
+  
+  return { year: parts[0], month: parts[1], day: parts[2] }
+}
+
+/**
  * 获取当前时间戳（GMT）
  * @returns {number} 当前 GMT 时间戳（毫秒）
  */
@@ -442,6 +530,11 @@ module.exports = {
   // 核心时间函数
   getTimezoneOffset,
   toLocalTime,
+  
+  // 日期解析函数（时区安全）
+  parseLocalDate,
+  parseDateParts,
+  formatDateObj,
   
   // 时间格式化函数（全部同步）
   formatDateTime,

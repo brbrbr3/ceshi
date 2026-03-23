@@ -313,17 +313,23 @@ Page({
 
   /**
    * 更新日历标记（合并节假日和日程）
+   * 使用 year/month/day 数字字段，避免第三方库的 new Date(string) 时区问题
+   * 
+   * ⚠️ 第三方组件时间处理范式：
+   * @lspriv/wx-calendar 的 marks 字段必须使用 { year, month, day } 数字格式
+   * 不能使用 { date: 'YYYY-MM-DD' } 字符串格式，否则会导致时区偏移
    */
   updateMarks() {
     const marks = []
     const { holidayDates } = this.data
     const scheduleDatesSet = this.scheduleDatesSet
 
-    // 添加节假日角标
+    // 添加节假日角标（使用 year/month/day 避免 new Date(string) 时区问题）
     if (holidayDates && holidayDates.length > 0) {
       holidayDates.forEach(date => {
+        const { year, month, day } = utils.parseDateParts(date)
         marks.push({
-          date: date,
+          year, month, day,  // 使用数字字段，不使用 date 字符串
           type: 'corner',
           text: '休',
           style: { color: '#16A34A' }
@@ -334,8 +340,9 @@ Page({
     // 添加日程圆点标记（遍历 Set 中所有已加载的日期）
     if (scheduleDatesSet && scheduleDatesSet.size > 0) {
       scheduleDatesSet.forEach(date => {
+        const { year, month, day } = utils.parseDateParts(date)
         marks.push({
-          date: date,
+          year, month, day,  // 使用数字字段，不使用 date 字符串
           type: 'schedule',
           text: '',
           style: { color: '#EF4444' }
@@ -344,6 +351,38 @@ Page({
     }
 
     this.setData({ marks })
+  },
+
+  /**
+   * 强制刷新日程标记（从服务器重新获取）
+   * 添加/编辑/删除日程后调用，确保日历显示最新状态
+   */
+  async refreshScheduleMarks() {
+    try {
+      const { currentYear, currentMonth } = this.data
+      
+      // 清空现有日程标记
+      this.scheduleDatesSet = new Set()
+      
+      // 重新获取当前月份的日程日期
+      const res = await wx.cloud.callFunction({
+        name: 'scheduleManager',
+        data: {
+          action: 'getScheduleDates',
+          params: { year: currentYear, month: currentMonth }
+        }
+      })
+
+      if (res.result.code === 0) {
+        const newDates = res.result.data.dates
+        newDates.forEach(date => this.scheduleDatesSet.add(date))
+        
+        // 更新标记
+        this.updateMarks()
+      }
+    } catch (error) {
+      console.error('刷新日程标记失败:', error)
+    }
   },
 
   /**
@@ -1135,26 +1174,8 @@ Page({
           this.loadSchedules(this.data.selectedDate)
         }
 
-        // 直接更新日程标记（添加新日程日期到 Set）
-        const form = this.data.scheduleForm
-        if (form.startDate) {
-          // 解析日程的日期范围
-          const startDate = form.startDate
-          const endDate = form.endDate || startDate
-          
-          // 将日期范围添加到 Set
-          const start = new Date(startDate)
-          const end = new Date(endDate)
-          const current = new Date(start)
-          while (current <= end) {
-            const dateStr = `${current.getFullYear()}-${String(current.getMonth() + 1).padStart(2, '0')}-${String(current.getDate()).padStart(2, '0')}`
-            this.scheduleDatesSet.add(dateStr)
-            current.setDate(current.getDate() + 1)
-          }
-
-          // 更新标记
-          this.updateMarks()
-        }
+        // 强制刷新日程标记（从服务器重新获取）
+        this.refreshScheduleMarks()
       } else {
         utils.showToast({ title: res.result.message || '操作失败', icon: 'none' })
       }
@@ -1205,26 +1226,8 @@ Page({
           this.loadSchedules(this.data.selectedDate)
         }
 
-        // 直接更新日程标记（从 Set 中移除已删除日程的日期）
-        const schedule = this.data.editingSchedule
-        if (schedule && schedule.startDate && schedule.endDate) {
-          const start = new Date(schedule.startDate)
-          const end = new Date(schedule.endDate)
-          const current = new Date(start)
-          
-          // 检查日程覆盖的每个日期是否还有其他日程
-          while (current <= end) {
-            const dateStr = `${current.getFullYear()}-${String(current.getMonth() + 1).padStart(2, '0')}-${String(current.getDate()).padStart(2, '0')}`
-            
-            // 暂时移除，实际应该重新查询确认该日期是否还有其他日程
-            // 简化处理：直接从 Set 中移除
-            this.scheduleDatesSet.delete(dateStr)
-            current.setDate(current.getDate() + 1)
-          }
-          
-          // 更新标记
-          this.updateMarks()
-        }
+        // 强制刷新日程标记（从服务器重新获取）
+        this.refreshScheduleMarks()
       } else {
         utils.showToast({ title: res.result.message || '删除失败', icon: 'none' })
       }
@@ -1388,8 +1391,8 @@ Page({
 
       if (res.result.code === 0) {
         utils.showToast({ title: '配置成功', icon: 'success' })
-        this.setData({ showConfigPopup: false })
-        this.setCalendarMarks(dates)
+        this.setData({ showConfigPopup: false, holidayDates: dates })
+        this.updateMarks()
       } else {
         utils.showToast({ title: res.result.message || '配置失败', icon: 'none' })
       }
