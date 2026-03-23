@@ -88,19 +88,86 @@
     <!--今日日程-->
     <view class="office-section">
       <view class="office-section-header">
-        <view class="office-section-title">今日日程（占位）</view>
-        <view class="office-link" bindtap="showComingSoon">日历</view>
+        <view class="office-section-title">今日日程</view>
+        <view class="office-link" bindtap="goCalendar">日历</view>
       </view>
       <view class="office-card home-schedule-card">
-        <view class="home-schedule-item" wx:for="{{schedules}}" wx:key="title">
-          <view class="home-schedule-time">{{item.time}}</view>
+        <view class="home-schedule-item" wx:for="{{todaySchedules}}" wx:key="_id" bindtap="handleScheduleTap" data-schedule="{{item}}">
+          <view class="home-schedule-time">{{item.startTime || '全天'}}</view>
           <view class="home-schedule-line" style="background: {{item.color}};"></view>
           <view class="home-schedule-main">
             <view class="home-schedule-title">{{item.title}}</view>
-            <view class="office-pill home-schedule-type" style="background: {{item.bg}}; color: {{item.color}};">{{item.type}}</view>
+            <view class="office-pill home-schedule-type" style="background: {{item.typeBg}}; color: {{item.color}};">{{item.typeName}}</view>
           </view>
         </view>
+        <view wx:if="{{!loadingSchedules && todaySchedules.length === 0}}" class="empty-schedule">
+          <text class="empty-text">暂无订阅的日程</text>
+        </view>
+        <view wx:if="{{loadingSchedules}}" class="loading-schedule">
+          <text class="empty-text">加载中...</text>
+        </view>
       </view>
+    </view>
+  </view>
+
+  <!-- 日程详情弹窗 -->
+  <view class="detail-popup-mask {{showScheduleDetail ? 'is-visible' : ''}}" catchtouchmove="stopPropagation" bindtap="hideScheduleDetail">
+    <view class="detail-popup-container" catchtap="stopPropagation">
+      <!-- 弹窗头部 -->
+      <view class="detail-popup-header">
+        <view class="detail-popup-close" bindtap="hideScheduleDetail">×</view>
+        <view class="detail-popup-title">日程详情</view>
+        <view class="detail-popup-unsubscribe" bindtap="handleUnsubscribe">取消订阅</view>
+      </view>
+
+      <!-- 详情内容 -->
+      <scroll-view class="detail-popup-scroll" scroll-y="true" enhanced="true" show-scrollbar="false">
+        <view class="detail-popup-content" wx:if="{{detailSchedule}}">
+          <!-- 标题区域 -->
+          <view class="detail-header">
+            <view class="detail-type-dot" style="background: {{detailSchedule.color}};"></view>
+            <text class="detail-title">{{detailSchedule.title}}</text>
+            <text class="detail-type-name">{{detailSchedule.typeName}}</text>
+          </view>
+
+          <!-- 时间信息 -->
+          <view class="detail-section">
+            <view class="detail-section-title">时间</view>
+            <view class="detail-time-info">
+              <view class="detail-time-row" wx:if="{{detailSchedule.isAllDay}}">
+                <text class="detail-time-label">全天</text>
+                <text class="detail-time-value">{{detailSchedule.startDate}}</text>
+              </view>
+              <view class="detail-time-row" wx:else>
+                <text class="detail-time-label">开始</text>
+                <text class="detail-time-value">{{detailSchedule.startDate}} {{detailSchedule.startTime}}</text>
+              </view>
+              <view class="detail-time-row" wx:if="{{!detailSchedule.isAllDay}}">
+                <text class="detail-time-label">结束</text>
+                <text class="detail-time-value">{{detailSchedule.endDate}} {{detailSchedule.endTime}}</text>
+              </view>
+            </view>
+          </view>
+
+          <!-- 地点 -->
+          <view class="detail-section" wx:if="{{detailSchedule.location}}">
+            <view class="detail-section-title">地点</view>
+            <text class="detail-section-value">{{detailSchedule.location}}</text>
+          </view>
+
+          <!-- 备注 -->
+          <view class="detail-section" wx:if="{{detailSchedule.description}}">
+            <view class="detail-section-title">备注</view>
+            <text class="detail-section-value">{{detailSchedule.description}}</text>
+          </view>
+
+          <!-- 创建者 -->
+          <view class="detail-section" wx:if="{{detailSchedule.creatorName}}">
+            <view class="detail-section-title">创建者</view>
+            <text class="detail-section-value">{{detailSchedule.creatorName}}</text>
+          </view>
+        </view>
+      </scroll-view>
     </view>
   </view>
 </view>

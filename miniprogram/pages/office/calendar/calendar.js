@@ -115,6 +115,7 @@ Page({
     // 日程详情弹窗
     showDetailPopup: false,
     detailSchedule: null,
+    isSubscribed: false,  // 订阅状态
 
     // 类型和重复选项
     typeOptions: SCHEDULE_TYPES,
@@ -1012,6 +1013,63 @@ Page({
     this.setData({
       showDetailPopup: true,
       detailSchedule: schedule
+    })
+
+    // 检查订阅状态
+    this.checkSubscriptionStatus(schedule._id)
+  },
+
+  /**
+   * 检查订阅状态
+   */
+  checkSubscriptionStatus(scheduleId) {
+    wx.cloud.callFunction({
+      name: 'scheduleManager',
+      data: {
+        action: 'checkSubscription',
+        params: { scheduleId }
+      }
+    }).then(res => {
+      if (res.result.code === 0) {
+        this.setData({ isSubscribed: res.result.data.isSubscribed })
+      }
+    }).catch(err => {
+      console.error('检查订阅状态失败:', err)
+    })
+  },
+
+  /**
+   * 订阅/取消订阅日程
+   */
+  handleSubscribe() {
+    const schedule = this.data.detailSchedule
+    if (!schedule) return
+
+    const action = this.data.isSubscribed ? 'unsubscribe' : 'subscribe'
+
+    wx.showLoading({ title: this.data.isSubscribed ? '取消订阅...' : '订阅中...', mask: true })
+
+    wx.cloud.callFunction({
+      name: 'scheduleManager',
+      data: {
+        action,
+        params: { scheduleId: schedule._id }
+      }
+    }).then(res => {
+      wx.hideLoading()
+      if (res.result.code === 0) {
+        this.setData({ isSubscribed: !this.data.isSubscribed })
+        wx.showToast({
+          title: this.data.isSubscribed ? '订阅成功' : '已取消订阅',
+          icon: 'success'
+        })
+      } else {
+        wx.showToast({ title: res.result.message, icon: 'none' })
+      }
+    }).catch(err => {
+      wx.hideLoading()
+      console.error('订阅操作失败:', err)
+      wx.showToast({ title: '操作失败', icon: 'none' })
     })
   },
 

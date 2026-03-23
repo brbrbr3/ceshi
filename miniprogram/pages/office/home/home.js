@@ -31,11 +31,11 @@ Page({
       { icon: '📊', label: '出行管理', color: '#7C3AED', bg: '#F3E8FF', implemented: true, featureKey: 'trip_dashboard' }
     ],
     announcements: [],
-    schedules: [
-      { time: '10:00', title: '产品周会', type: '会议', color: '#7C3AED', bg: '#F3E8FF' },
-      { time: '14:00', title: 'Q1 季度总结汇报', type: '汇报', color: '#0891B2', bg: '#E0F2FE' },
-      { time: '16:30', title: '新项目启动会', type: '会议', color: '#059669', bg: '#D1FAE5' }
-    ]
+    todaySchedules: [],
+    loadingSchedules: false,
+    // 日程详情弹窗
+    showScheduleDetail: false,
+    detailSchedule: null
   },
 
   onShow() {
@@ -46,7 +46,8 @@ Page({
     this.syncNotifications()
     this.loadAnnouncements()
     this.loadPermissionCache()
-    this.loadHolidayConfig()  // 加载节假日配置
+    this.loadHolidayConfig()
+    this.loadTodaySchedules()  // 加载今日日程
   },
 
   /**
@@ -403,5 +404,105 @@ Page({
 
     // 工作日
     return '今天是工作日'
+  },
+
+  /**
+   * 加载今日订阅日程
+   */
+  loadTodaySchedules() {
+    this.setData({ loadingSchedules: true })
+
+    wx.cloud.callFunction({
+      name: 'scheduleManager',
+      data: {
+        action: 'getTodaySubscriptions'
+      }
+    }).then(res => {
+      if (res.result.code === 0) {
+        this.setData({
+          todaySchedules: res.result.data.list,
+          loadingSchedules: false
+        })
+      } else {
+        throw new Error(res.result.message)
+      }
+    }).catch(err => {
+      console.error('加载今日日程失败:', err)
+      this.setData({
+        loadingSchedules: false,
+        todaySchedules: []
+      })
+    })
+  },
+
+  /**
+   * 点击日程条目
+   */
+  handleScheduleTap(e) {
+    const schedule = e.currentTarget.dataset.schedule
+    if (!schedule) return
+
+    this.setData({
+      showScheduleDetail: true,
+      detailSchedule: schedule
+    })
+  },
+
+  /**
+   * 隐藏日程详情弹窗
+   */
+  hideScheduleDetail() {
+    this.setData({ showScheduleDetail: false })
+  },
+
+  /**
+   * 阻止事件冒泡
+   */
+  stopPropagation() {},
+
+  /**
+   * 取消订阅
+   */
+  handleUnsubscribe() {
+    const schedule = this.data.detailSchedule
+    if (!schedule) return
+
+    wx.showModal({
+      title: '确认取消订阅',
+      content: `确定要取消订阅「${schedule.title}」吗？`,
+      success: (res) => {
+        if (res.confirm) {
+          wx.showLoading({ title: '取消订阅...', mask: true })
+
+          wx.cloud.callFunction({
+            name: 'scheduleManager',
+            data: {
+              action: 'unsubscribe',
+              params: { scheduleId: schedule.scheduleId || schedule._id }
+            }
+          }).then(res => {
+            wx.hideLoading()
+            if (res.result.code === 0) {
+              // 从列表中移除
+              const todaySchedules = this.data.todaySchedules.filter(
+                s => (s.scheduleId || s._id) !== (schedule.scheduleId || schedule._id)
+              )
+              this.setData({
+                todaySchedules,
+                showScheduleDetail: false,
+                detailSchedule: null
+              })
+              wx.showToast({ title: '已取消订阅', icon: 'success' })
+            } else {
+              wx.showToast({ title: res.result.message, icon: 'none' })
+            }
+          }).catch(err => {
+            wx.hideLoading()
+            console.error('取消订阅失败:', err)
+            wx.showToast({ title: '操作失败', icon: 'none' })
+          })
+        }
+      }
+    })
   }
 })

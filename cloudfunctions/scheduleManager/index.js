@@ -10,6 +10,7 @@ const _ = db.command
 
 // 集合引用
 const schedulesCollection = db.collection('calendar_schedules')
+const subscriptionsCollection = db.collection('schedule_subscriptions')
 
 // 统一返回格式
 function success(data, message) {
@@ -180,6 +181,15 @@ exports.main = async (event, context) => {
         return await handleGetScheduleDates(params, wxContext)
       case 'getTypes':
         return success({ types: SCHEDULE_TYPES, repeats: REPEAT_TYPES })
+      // 订阅相关
+      case 'subscribe':
+        return await handleSubscribe(params, wxContext)
+      case 'unsubscribe':
+        return await handleUnsubscribe(params, wxContext)
+      case 'checkSubscription':
+        return await handleCheckSubscription(params, wxContext)
+      case 'getTodaySubscriptions':
+        return await handleGetTodaySubscriptions(params, wxContext)
       default:
         return fail('未知的操作类型', 400)
     }
@@ -501,4 +511,163 @@ async function handleGetScheduleDates(params, wxContext) {
   return success({
     dates: Array.from(dateSet).sort()
   })
+}
+
+/**
+ * 订阅日程
+ */
+async function handleSubscribe(params, wxContext) {
+  const { scheduleId } = params
+
+  if (!scheduleId) {
+    return fail('日程ID不能为空', 400)
+  }
+
+  // 检查日程是否存在
+  const scheduleDoc = await schedulesCollection.doc(scheduleId).get()
+  if (!scheduleDoc.data) {
+    return fail('日程不存在', 404)
+  }
+
+  // 检查是否已订阅
+  const existingSubscription = await subscriptionsCollection
+    .where({
+      scheduleId,
+      userId: wxContext.OPENID
+    })
+    .get()
+
+  if (existingSubscription.data.length > 0) {
+    return fail('已订阅该日程', 400)
+  }
+
+  // 创建订阅记录
+  await subscriptionsCollection.add({
+    data: {
+      scheduleId,
+      userId: wxContext.OPENID,
+      createdAt: Date.now()
+    }
+  })
+
+  return success(null, '订阅成功')
+}
+
+/**
+ * 取消订阅
+ */
+async function handleUnsubscribe(params, wxContext) {
+  const { scheduleId } = params
+
+  if (!scheduleId) {
+    return fail('日程ID不能为空', 400)
+  }
+
+  // 删除订阅记录
+  const result = await subscriptionsCollection
+    .where({
+      scheduleId,
+      userId: wxContext.OPENID
+    })
+    .remove()
+
+  if (result.stats.removed === 0) {
+    return fail('未订阅该日程', 400)
+  }
+
+  return success(null, '取消订阅成功')
+}
+
+/**
+ * 检查订阅状态
+ */
+async function handleCheckSubscription(params, wxContext) {
+  const { scheduleId } = params
+
+  if (!scheduleId) {
+    return fail('日程ID不能为空', 400)
+  }
+
+  const subscription = await subscriptionsCollection
+    .where({
+      scheduleId,
+      userId: wxContext.OPENID
+    })
+    .get()
+
+  return success({
+    isSubscribed: subscription.data.length > 0
+  })
+}
+
+/**
+ * 获取今日订阅日程列表
+ */
+async function handleGetTodaySubscriptions(params, wxContext) {
+  // 获取今日日期
+  const today = new Date()
+  const todayStr = formatDateObj(today)
+
+  // 获取当年节假日配置
+  const year = today.getFullYear()
+  const holidayDates = await getHolidayConfig(year)
+
+  // 查询用户的所有订阅
+  const subscriptions = await subscriptionsCollection
+    .where({
+      userId: wxContext.OPENID
+    })
+    .get()
+
+  if (subscriptions.data.length === 0) {
+    return success({ list: [] })
+  }
+
+  // 获取订阅的日程ID列表
+  const scheduleIds = subscriptions.data.map(s => s.scheduleId)
+
+  // 批量查询日程详情
+  const schedulesResult = await schedulesCollection
+    .where({
+      _id: _.in(scheduleIds),
+      startDate: _.lte(todayStr)
+    })
+    .get()
+
+  // 过滤今日日程
+  const todaySchedules = []
+  for (const schedule of schedulesResult.data) {
+    if (shouldAppearOnDate(schedule, todayStr, holidayDates)) {
+      // 计算类别背景色（颜色20%透明度）
+      const typeBg = schedule.color + '20'
+      todaySchedules.push({
+        _id: schedule._id,
+        scheduleId: schedule._id,
+        title: schedule.title,
+        type: schedule.type,
+        typeName: schedule.typeName,
+        color: schedule.color,
+        typeBg,
+        isAllDay: schedule.isAllDay,
+        startTime: schedule.startTime,
+        endTime: schedule.endTime,
+        startDate: schedule.startDate,
+        endDate: schedule.endDate,
+        location: schedule.location,
+        description: schedule.description,
+        creatorName: schedule.creatorName
+      })
+    }
+  }
+
+  // 按时间排序（全天日程在前，然后按开始时间排序）
+  todaySchedules.sort((a, b) => {
+    if (a.isAllDay && !b.isAllDay) return -1
+    if (!a.isAllDay && b.isAllDay) return 1
+    if (!a.startTime) return 1
+    if (!b.startTime) return -1
+    return a.startTime.localeCompare(b.startTime)
+  })
+
+  return success({ list: todaySchedules })
 }

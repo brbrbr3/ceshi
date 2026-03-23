@@ -13,18 +13,7 @@
 
   <!-- 日历区域 -->
   <view class="calendar-container">
-    <calendar 
-      id="calendar" 
-      view="{{calendarView}}" 
-      weekstart="{{0}}" 
-      marks="{{marks}}" 
-      custom-nav-bar="{{true}}" 
-      bindload="handleCalendarLoad" 
-      bindclick="handleCalendarClick" 
-      bindchange="handleCalendarChange"
-      bindviewchange="handleViewChange"
-      style="--wc-primary: #2563EB; --wc-bg-light: #FFFFFF;" 
-    />
+    <calendar id="calendar" view="{{calendarView}}" weekstart="{{0}}" marks="{{marks}}" custom-nav-bar="{{true}}" bindload="handleCalendarLoad" bindclick="handleCalendarClick" bindchange="handleCalendarChange" bindviewchange="handleViewChange" style="--wc-primary: #2563EB; --wc-bg-light: #FFFFFF;" />
   </view>
 
   <!-- 时间轴日程列表（仅周视图显示） -->
@@ -39,36 +28,18 @@
     <view class="all-day-section" wx:if="{{schedules.allDay.length > 0}}">
       <view class="all-day-label">全天</view>
       <view class="all-day-events">
-        <view 
-          class="all-day-event" 
-          wx:for="{{schedules.allDay}}" 
-          wx:key="_id"
-          style="background: {{item.color}}20; border-left-color: {{item.color}};"
-          bindtap="handleScheduleTap"
-          data-schedule="{{item}}"
-        >
+        <view class="all-day-event" wx:for="{{schedules.allDay}}" wx:key="_id" style="background: {{item.color}}20; border-left-color: {{item.color}};" bindtap="handleScheduleTap" data-schedule="{{item}}">
           <text class="all-day-event-title">{{item.title}}</text>
         </view>
       </view>
     </view>
 
     <!-- 时间轴主体 -->
-    <scroll-view 
-      class="timeline-scroll" 
-      scroll-y="true"
-      scroll-into-view="{{currentTimeView}}"
-      enhanced="true"
-      show-scrollbar="false"
-    >
+    <scroll-view class="timeline-scroll" scroll-y="true" scroll-into-view="{{currentTimeView}}" enhanced="true" show-scrollbar="false">
       <view class="timeline-container">
         <!-- 小时网格 -->
         <view class="timeline-grid">
-          <view 
-            class="hour-row" 
-            wx:for="{{hours}}" 
-            wx:key="*this"
-            id="hour-{{item}}"
-          >
+          <view class="hour-row" wx:for="{{hours}}" wx:key="*this" id="hour-{{item}}">
             <view class="hour-label">{{item < 10 ? '0' + item : item}}:00</view>
             <!-- Hour-line似乎没有必要，因为已经有了timeline-grid，注释掉
             <view class="hour-line"></view> -->
@@ -77,25 +48,14 @@
 
         <!-- 日程条（绝对定位） -->
         <view class="schedule-bars">
-          <view 
-            class="schedule-bar" 
-            wx:for="{{schedules.timed}}" 
-            wx:key="_id"
-            style="top: {{item.top}}rpx; height: {{item.height}}rpx; left: {{item.left}}rpx; width: {{item.width}}rpx; background: {{item.color}};"
-            bindtap="handleScheduleTap"
-            data-schedule="{{item}}"
-          >
+          <view class="schedule-bar" wx:for="{{schedules.timed}}" wx:key="_id" style="top: {{item.top}}rpx; height: {{item.height}}rpx; left: {{item.left}}rpx; width: {{item.width}}rpx; background: {{item.color}};" bindtap="handleScheduleTap" data-schedule="{{item}}">
             <text class="schedule-bar-title">{{item.title}}</text>
             <text class="schedule-bar-time" wx:if="{{item.height > 60}}">{{item.startTime}} - {{item.endTime}}</text>
           </view>
         </view>
 
         <!-- 当前时间红线 -->
-        <view 
-          class="current-time-line" 
-          wx:if="{{showCurrentTime}}"
-          style="top: {{currentTimeTop}}rpx;"
-        >
+        <view class="current-time-line" wx:if="{{showCurrentTime}}" style="top: {{currentTimeTop}}rpx;">
           <text class="current-time-label">{{currentTimeText}}</text>
           <view class="current-time-dot"></view>
           <view class="current-time-bar"></view>
@@ -176,6 +136,13 @@
           </view>
         </view>
       </scroll-view>
+
+      <!-- 订阅按钮 -->
+      <view class="detail-popup-footer">
+        <button class="detail-subscribe-btn {{isSubscribed ? 'is-subscribed' : ''}}" bindtap="handleSubscribe">
+          <text class='detail-subscribe-btn-text'>{{isSubscribed ? '已订阅' : '订阅此日程'}}</text>
+        </button>
+      </view>
     </view>
   </view>
 
@@ -196,13 +163,7 @@
           <view class="schedule-form-card">
             <view class="schedule-field">
               <view class="schedule-field-label">标题</view>
-              <input 
-                class="schedule-input" 
-                placeholder="请输入日程标题" 
-                value="{{scheduleForm.title}}"
-                bindinput="handleTitleInput"
-                maxlength="50"
-              />
+              <input class="schedule-input" placeholder="请输入日程标题" value="{{scheduleForm.title}}" bindinput="handleTitleInput" maxlength="50" />
             </view>
           </view>
 
@@ -210,11 +171,7 @@
           <view class="schedule-form-card">
             <view class="schedule-field schedule-field-row">
               <view class="schedule-field-label">全天</view>
-              <switch 
-                checked="{{scheduleForm.isAllDay}}" 
-                color="#2563EB"
-                bindchange="handleAllDayChange"
-              />
+              <switch checked="{{scheduleForm.isAllDay}}" color="#2563EB" bindchange="handleAllDayChange" />
             </view>
           </view>
 
@@ -224,13 +181,7 @@
             <view class="schedule-field">
               <view class="schedule-field-label">开始</view>
               <view class="schedule-picker-full">
-                <datetime-picker 
-                  value="{{scheduleForm.startDatetime}}"
-                  fields="{{scheduleForm.isAllDay ? ['year', 'month', 'day'] : ['year', 'month', 'day', 'hour', 'minute']}}"
-                  start-date="2020-01-01"
-                  end-date="2030-12-31"
-                  bind:change="handleStartDatetimeChange"
-                />
+                <datetime-picker value="{{scheduleForm.startDatetime}}" fields="{{scheduleForm.isAllDay ? ['year', 'month', 'day'] : ['year', 'month', 'day', 'hour', 'minute']}}" start-date="2020-01-01" end-date="2030-12-31" bind:change="handleStartDatetimeChange" />
               </view>
             </view>
 
@@ -238,13 +189,7 @@
             <view class="schedule-field">
               <view class="schedule-field-label">结束</view>
               <view class="schedule-picker-full">
-                <datetime-picker 
-                  value="{{scheduleForm.endDatetime}}"
-                  fields="{{scheduleForm.isAllDay ? ['year', 'month', 'day'] : ['year', 'month', 'day', 'hour', 'minute']}}"
-                  start-date="2020-01-01"
-                  end-date="2030-12-31"
-                  bind:change="handleEndDatetimeChange"
-                />
+                <datetime-picker value="{{scheduleForm.endDatetime}}" fields="{{scheduleForm.isAllDay ? ['year', 'month', 'day'] : ['year', 'month', 'day', 'hour', 'minute']}}" start-date="2020-01-01" end-date="2030-12-31" bind:change="handleEndDatetimeChange" />
               </view>
             </view>
           </view>
@@ -276,13 +221,7 @@
             <view class="schedule-field" wx:if="{{scheduleForm.repeat !== 'none'}}">
               <view class="schedule-field-label">截止日期</view>
               <view class="schedule-picker-full">
-                <datetime-picker 
-                  value="{{scheduleForm.repeatEndDate || scheduleForm.startDatetime}}"
-                  fields="{{['year', 'month', 'day']}}"
-                  start-date="{{scheduleForm.startDatetime ? scheduleForm.startDatetime.split(' ')[0] : ''}}"
-                  end-date="{{maxRepeatEndDate}}"
-                  bind:change="handleRepeatEndDateChange"
-                />
+                <datetime-picker value="{{scheduleForm.repeatEndDate || scheduleForm.startDatetime}}" fields="{{['year', 'month', 'day']}}" start-date="{{scheduleForm.startDatetime ? scheduleForm.startDatetime.split(' ')[0] : ''}}" end-date="{{maxRepeatEndDate}}" bind:change="handleRepeatEndDateChange" />
               </view>
             </view>
           </view>
@@ -291,24 +230,11 @@
           <view class="schedule-form-card">
             <view class="schedule-field">
               <view class="schedule-field-label">地点</view>
-              <input 
-                class="schedule-input" 
-                placeholder="选填" 
-                value="{{scheduleForm.location}}"
-                bindinput="handleLocationInput"
-                maxlength="50"
-              />
+              <input class="schedule-input" placeholder="选填" value="{{scheduleForm.location}}" bindinput="handleLocationInput" maxlength="50" />
             </view>
             <view class="schedule-field">
               <view class="schedule-field-label">备注</view>
-              <textarea 
-                class="schedule-textarea" 
-                placeholder="选填" 
-                value="{{scheduleForm.description}}"
-                bindinput="handleDescriptionInput"
-                maxlength="200"
-                auto-height
-              />
+              <textarea class="schedule-textarea" placeholder="选填" value="{{scheduleForm.description}}" bindinput="handleDescriptionInput" maxlength="200" auto-height />
             </view>
           </view>
 
@@ -329,13 +255,7 @@
         <view class="type-popup-close" bindtap="hideTypePopup">×</view>
       </view>
       <view class="type-list">
-        <view 
-          class="type-item {{scheduleForm.type === item.type ? 'is-active' : ''}}" 
-          wx:for="{{typeOptions}}" 
-          wx:key="type"
-          bindtap="handleSelectType"
-          data-type="{{item.type}}"
-        >
+        <view class="type-item {{scheduleForm.type === item.type ? 'is-active' : ''}}" wx:for="{{typeOptions}}" wx:key="type" bindtap="handleSelectType" data-type="{{item.type}}">
           <view class="type-item-dot" style="background: {{item.color}};"></view>
           <text class="type-item-name">{{item.name}}</text>
           <view class="type-item-check" wx:if="{{scheduleForm.type === item.type}}">✓</view>
@@ -352,13 +272,7 @@
         <view class="type-popup-close" bindtap="hideRepeatPopup">×</view>
       </view>
       <view class="type-list">
-        <view 
-          class="type-item {{scheduleForm.repeat === item.value ? 'is-active' : ''}}" 
-          wx:for="{{repeatOptions}}" 
-          wx:key="value"
-          bindtap="handleSelectRepeat"
-          data-value="{{item.value}}"
-        >
+        <view class="type-item {{scheduleForm.repeat === item.value ? 'is-active' : ''}}" wx:for="{{repeatOptions}}" wx:key="value" bindtap="handleSelectRepeat" data-value="{{item.value}}">
           <text class="type-item-name">{{item.label}}</text>
           <view class="type-item-check" wx:if="{{scheduleForm.repeat === item.value}}">✓</view>
         </view>
