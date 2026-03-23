@@ -635,7 +635,8 @@
   type: String,             // 类型：'meeting'|'training'|'visit'|'banquet'|'other'
   typeName: String,         // 类型显示名
   color: String,            // 颜色值
-  repeat: String,           // 重复：'none'|'daily'|'weekly'|'monthly'
+  repeat: String,           // 重复：'none'|'daily'|'weekly'|'monthly'|'workdayDaily'|'workdayWeekly'
+  repeatEndDate: String,    // 重复截止日期 YYYY-MM-DD（仅当 repeat !== 'none' 时有效）
   location: String,         // 地点（可选）
   description: String,      // 备注（可选）
   creatorId: String,        // 创建者 openid
@@ -653,6 +654,21 @@
 | visit | 会见 | #8B5CF6 |
 | banquet | 宴请 | #F59E0B |
 | other | 其他 | #6B7280 |
+
+**重复类型说明**：
+| repeat | 说明 |
+|--------|------|
+| none | 不重复（默认） |
+| daily | 每天重复 |
+| weekly | 每周同星期几重复 |
+| monthly | 每月同日期重复 |
+| workdayDaily | 工作日每天重复（排除节假日和周末） |
+| workdayWeekly | 工作日每周重复（仅工作日） |
+
+**重复截止日期规则**：
+- 当 `repeat !== 'none'` 时，`repeatEndDate` 必填
+- 有效范围：`startDate` 至当年最后一天（如 2026-12-31）
+- 工作日类型依赖 `holiday_configs` 集合的节假日配置
 
 ---
 

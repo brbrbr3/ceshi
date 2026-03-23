@@ -148,6 +148,15 @@
             </view>
           </view>
 
+          <!-- 重复信息 -->
+          <view class="detail-section" wx:if="{{detailSchedule.repeat && detailSchedule.repeat !== 'none'}}">
+            <view class="detail-section-title">重复</view>
+            <view class="detail-repeat-info">
+              <text class="detail-repeat-label">{{detailSchedule.repeatLabel || (detailSchedule.repeat === 'daily' ? '每天' : detailSchedule.repeat === 'weekly' ? '每周' : detailSchedule.repeat === 'monthly' ? '每月' : detailSchedule.repeat === 'workdayDaily' ? '工作日每天' : detailSchedule.repeat === 'workdayWeekly' ? '工作日每周' : '不重复')}}</text>
+              <text class="detail-repeat-end" wx:if="{{detailSchedule.repeatEndDate}}">至 {{detailSchedule.repeatEndDate}}</text>
+            </view>
+          </view>
+
           <!-- 地点 -->
           <view class="detail-section" wx:if="{{detailSchedule.location}}">
             <view class="detail-section-title">地点</view>
@@ -262,6 +271,17 @@
                 <text class="schedule-picker-arrow">›</text>
               </view>
             </view>
+
+            <!-- 重复截止日期（仅当选择了重复类型时显示） -->
+            <view class="schedule-field schedule-field-clickable" wx:if="{{scheduleForm.repeat !== 'none'}}" bindtap="handleRepeatEndDateTap">
+              <view class="schedule-field-label">截止日期</view>
+              <view class="schedule-field-value">
+                <text class="schedule-field-value-content {{scheduleForm.repeatEndDate ? '' : 'is-placeholder'}} schedule-field-value-content-repeatEndDate">
+                  {{scheduleForm.repeatEndDate || '请选择截止日期'}}
+                </text>
+                <text class="schedule-picker-arrow">›</text>
+              </view>
+            </view>
           </view>
 
           <!-- 地点和备注 -->
@@ -339,6 +359,25 @@
           <text class="type-item-name">{{item.label}}</text>
           <view class="type-item-check" wx:if="{{scheduleForm.repeat === item.value}}">✓</view>
         </view>
+      </view>
+    </view>
+  </view>
+
+  <!-- 重复截止日期选择弹窗 -->
+  <view class="type-popup-mask {{showRepeatEndDatePicker ? 'is-visible' : ''}}" catchtouchmove="stopPropagation" bindtap="hideRepeatEndDatePicker">
+    <view class="type-popup-container" catchtap="stopPropagation">
+      <view class="type-popup-header">
+        <view class="type-popup-title">选择截止日期</view>
+        <view class="type-popup-close" bindtap="hideRepeatEndDatePicker">×</view>
+      </view>
+      <view class="date-picker-container">
+        <datetime-picker 
+          value="{{scheduleForm.repeatEndDate || scheduleForm.startDatetime}}"
+          fields="{{['year', 'month', 'day']}}"
+          start-date="{{scheduleForm.startDatetime ? scheduleForm.startDatetime.split(' ')[0] : ''}}"
+          end-date="{{maxRepeatEndDate}}"
+          bind:change="handleRepeatEndDateChange"
+        />
       </view>
     </view>
   </view>

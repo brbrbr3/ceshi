@@ -31,8 +31,17 @@ const REPEAT_OPTIONS = [
   { value: 'none', label: '不重复' },
   { value: 'daily', label: '每天' },
   { value: 'weekly', label: '每周' },
-  { value: 'monthly', label: '每月' }
+  { value: 'monthly', label: '每月' },
+  { value: 'workdayDaily', label: '工作日每天' },
+  { value: 'workdayWeekly', label: '工作日每周' }
 ]
+
+// 计算当年最后一天
+function getMaxRepeatEndDate() {
+  const now = new Date()
+  const year = now.getFullYear()
+  return `${year}-12-31`
+}
 
 // 时间轴配置
 const HOUR_HEIGHT = 100 // 每小时高度 rpx
@@ -91,9 +100,14 @@ Page({
       color: '#3B82F6',
       repeat: 'none',
       repeatLabel: '不重复',  // 重复标签
+      repeatEndDate: '',      // 重复截止日期
       location: '',
       description: ''
     },
+    
+    // 重复截止日期相关
+    maxRepeatEndDate: getMaxRepeatEndDate(),  // 当年最后一天
+    showRepeatEndDatePicker: false,           // 是否显示截止日期选择器
 
     // 日程详情弹窗
     showDetailPopup: false,
@@ -825,6 +839,7 @@ Page({
         color: '#3B82F6',
         repeat: 'none',
         repeatLabel: '不重复',
+        repeatEndDate: '',
         location: '',
         description: ''
       }
@@ -926,6 +941,7 @@ Page({
         color: schedule.color,
         repeat: schedule.repeat || 'none',
         repeatLabel,
+        repeatEndDate: schedule.repeatEndDate || '',
         location: schedule.location || '',
         description: schedule.description || ''
       }
@@ -1063,10 +1079,84 @@ Page({
   handleSelectRepeat(e) {
     const value = e.currentTarget.dataset.value
     const repeatLabel = this.getRepeatLabel(value)
+    
+    // 如果选择了重复类型，设置默认截止日期为开始日期后30天（不超过当年最后一天）
+    let repeatEndDate = this.data.scheduleForm.repeatEndDate
+    if (value !== 'none' && !repeatEndDate) {
+      // 解析开始日期
+      const startDatetime = this.data.scheduleForm.startDatetime
+      if (startDatetime) {
+        const startDate = startDatetime.split(' ')[0]
+        const start = utils.parseLocalDate(startDate)
+        start.setDate(start.getDate() + 30)  // 默认30天
+        
+        const defaultEndDate = utils.formatDateObj(start)
+        const maxEndDate = this.data.maxRepeatEndDate
+        
+        repeatEndDate = defaultEndDate <= maxEndDate ? defaultEndDate : maxEndDate
+      }
+    }
+    
+    // 如果选择了不重复，清空截止日期
+    if (value === 'none') {
+      repeatEndDate = ''
+    }
+    
     this.setData({
       'scheduleForm.repeat': value,
       'scheduleForm.repeatLabel': repeatLabel,
+      'scheduleForm.repeatEndDate': repeatEndDate,
       showRepeatPopup: false
+    })
+    
+    // 如果选择了重复类型且未设置截止日期，弹出日期选择器
+    if (value !== 'none' && !this.data.scheduleForm.repeatEndDate) {
+      this.setData({ showRepeatEndDatePicker: true })
+    }
+  },
+  
+  /**
+   * 显示重复截止日期选择器
+   */
+  handleRepeatEndDateTap() {
+    if (this.data.scheduleForm.repeat !== 'none') {
+      this.setData({ showRepeatEndDatePicker: true })
+    }
+  },
+  
+  /**
+   * 隐藏重复截止日期选择器
+   */
+  hideRepeatEndDatePicker() {
+    this.setData({ showRepeatEndDatePicker: false })
+  },
+  
+  /**
+   * 选择重复截止日期
+   */
+  handleRepeatEndDateChange(e) {
+    const dateStr = e.detail.value  // datetime-picker 返回 YYYY-MM-DD 或 YYYY-MM-DD HH:mm
+    const date = dateStr.split(' ')[0]  // 只取日期部分
+    
+    // 验证截止日期不能早于开始日期
+    const startDatetime = this.data.scheduleForm.startDatetime
+    if (startDatetime) {
+      const startDate = startDatetime.split(' ')[0]
+      if (date < startDate) {
+        utils.showToast({ title: '截止日期不能早于开始日期', icon: 'none' })
+        return
+      }
+    }
+    
+    // 验证截止日期不能超过当年最后一天
+    if (date > this.data.maxRepeatEndDate) {
+      utils.showToast({ title: `截止日期不能超过${this.data.maxRepeatEndDate}`, icon: 'none' })
+      return
+    }
+    
+    this.setData({
+      'scheduleForm.repeatEndDate': date,
+      showRepeatEndDatePicker: false
     })
   },
 
@@ -1092,6 +1182,12 @@ Page({
 
     if (!scheduleForm.startDatetime) {
       utils.showToast({ title: '请选择开始时间', icon: 'none' })
+      return
+    }
+
+    // 重复日程必须设置截止日期
+    if (scheduleForm.repeat !== 'none' && !scheduleForm.repeatEndDate) {
+      utils.showToast({ title: '请设置重复截止日期', icon: 'none' })
       return
     }
 
@@ -1134,6 +1230,7 @@ Page({
         typeName: scheduleForm.typeName,
         color: scheduleForm.color,
         repeat: scheduleForm.repeat,
+        repeatEndDate: scheduleForm.repeat !== 'none' ? scheduleForm.repeatEndDate : null,
         location: scheduleForm.location,
         description: scheduleForm.description,
         creatorName: currentUser ? currentUser.name : '未知用户'

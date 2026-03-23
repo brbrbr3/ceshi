@@ -593,6 +593,10 @@
   color: #64748B;
 }
 
+.schedule-field-value-content-repeatEndDate{
+  margin-top: -40rpx;
+}
+
 .schedule-field-value-content{
   padding-right: 20rpx;
 }
@@ -941,6 +945,44 @@
 
 .detail-time-label {
   font-size: 26rpx;
+  color: #64748B;
+  width: 80rpx;
+  flex-shrink: 0;
+}
+
+.detail-time-value {
+  font-size: 26rpx;
+  color: #1E293B;
+}
+
+/* 重复信息 */
+.detail-repeat-info {
+  display: flex;
+  align-items: center;
+  gap: 16rpx;
+}
+
+.detail-repeat-label {
+  font-size: 26rpx;
+  color: #1E293B;
+}
+
+.detail-repeat-end {
+  font-size: 24rpx;
+  color: #64748B;
+}
+
+/* 日期选择器容器 */
+.date-picker-container {
+  padding: 32rpx;
+  background: #F8FAFC;
+  border-radius: 16rpx;
+  margin: 16rpx;
+}
+
+/* 占位符样式 */
+.is-placeholder {
+  color: #94A3B8 !important;
   color: #64748B;
   width: 60rpx;
   flex-shrink: 0;
