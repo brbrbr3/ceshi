@@ -13,7 +13,304 @@
 
   <!-- 日历区域 -->
   <view class="calendar-container">
-    <calendar id="calendar" view="month" weekstart="{{0}}" marks="{{marks}}" custom-nav-bar="{{true}}" bindload="handleCalendarLoad" bindclick="handleCalendarClick" bindchange="handleCalendarChange" style="--wc-primary: #2563EB; --wc-bg-light: #FFFFFF;" />
+    <calendar 
+      id="calendar" 
+      view="{{calendarView}}" 
+      weekstart="{{0}}" 
+      marks="{{marks}}" 
+      custom-nav-bar="{{true}}" 
+      bindload="handleCalendarLoad" 
+      bindclick="handleCalendarClick" 
+      bindchange="handleCalendarChange"
+      bindviewchange="handleViewChange"
+      style="--wc-primary: #2563EB; --wc-bg-light: #FFFFFF;" 
+    />
+  </view>
+
+  <!-- 时间轴日程列表（仅周视图显示） -->
+  <view class="schedule-section" wx:if="{{isWeekView}}">
+    <!-- 日期标题 -->
+    <view class="schedule-date-header">
+      <view class="schedule-date-title">{{selectedDateText}}</view>
+      <view class="schedule-date-count">{{schedules.all.length}} 项日程</view>
+    </view>
+
+    <!-- 全天日程区域 -->
+    <view class="all-day-section" wx:if="{{schedules.allDay.length > 0}}">
+      <view class="all-day-label">全天</view>
+      <view class="all-day-events">
+        <view 
+          class="all-day-event" 
+          wx:for="{{schedules.allDay}}" 
+          wx:key="_id"
+          style="background: {{item.color}}20; border-left-color: {{item.color}};"
+          bindtap="handleScheduleTap"
+          data-schedule="{{item}}"
+        >
+          <text class="all-day-event-title">{{item.title}}</text>
+        </view>
+      </view>
+    </view>
+
+    <!-- 时间轴主体 -->
+    <scroll-view 
+      class="timeline-scroll" 
+      scroll-y="true"
+      scroll-into-view="{{currentTimeView}}"
+      enhanced="true"
+      show-scrollbar="false"
+    >
+      <view class="timeline-container">
+        <!-- 小时网格 -->
+        <view class="timeline-grid">
+          <view 
+            class="hour-row" 
+            wx:for="{{hours}}" 
+            wx:key="*this"
+            id="hour-{{item}}"
+          >
+            <view class="hour-label">{{item < 10 ? '0' + item : item}}:00</view>
+            <!-- <view class="hour-line"></view> -->
+          </view>
+        </view>
+
+        <!-- 日程条（绝对定位） -->
+        <view class="schedule-bars">
+          <view 
+            class="schedule-bar" 
+            wx:for="{{schedules.timed}}" 
+            wx:key="_id"
+            style="top: {{item.top}}rpx; height: {{item.height}}rpx; background: {{item.color}};"
+            bindtap="handleScheduleTap"
+            data-schedule="{{item}}"
+          >
+            <text class="schedule-bar-title">{{item.title}}</text>
+            <text class="schedule-bar-time" wx:if="{{item.height > 60}}">{{item.startTime}} - {{item.endTime}}</text>
+          </view>
+        </view>
+
+        <!-- 当前时间红线 -->
+        <view 
+          class="current-time-line" 
+          wx:if="{{showCurrentTime}}"
+          style="top: {{currentTimeTop}}rpx;"
+        >
+          <text class="current-time-label">{{currentTimeText}}</text>
+          <view class="current-time-dot"></view>
+          <view class="current-time-bar"></view>
+        </view>
+      </view>
+    </scroll-view>
+
+    <!-- 添加日程按钮 -->
+    <view class="add-schedule-btn" bindtap="handleAddSchedule">
+      <text class="add-schedule-icon">+</text>
+    </view>
+  </view>
+
+  <!-- 日程编辑弹窗 -->
+  <view class="schedule-popup-mask {{showSchedulePopup ? 'is-visible' : ''}}" catchtouchmove="stopPropagation" bindtap="hideSchedulePopup">
+    <view class="schedule-popup-container" catchtap="stopPropagation">
+      <!-- 弹窗头部 -->
+      <view class="schedule-popup-header">
+        <view class="schedule-popup-cancel" bindtap="hideSchedulePopup">取消</view>
+        <view class="schedule-popup-title">{{editingSchedule ? '编辑日程' : '新建日程'}}</view>
+        <view class="schedule-popup-save" bindtap="handleSaveSchedule">完成</view>
+      </view>
+
+      <!-- 表单内容 -->
+      <scroll-view class="schedule-popup-scroll" scroll-y="true" enhanced="true" show-scrollbar="false">
+        <view class="schedule-popup-form">
+          <!-- 标题输入 -->
+          <view class="schedule-form-card">
+            <view class="schedule-field">
+              <view class="schedule-field-label">标题</view>
+              <input 
+                class="schedule-input" 
+                placeholder="请输入日程标题" 
+                value="{{scheduleForm.title}}"
+                bindinput="handleTitleInput"
+                maxlength="50"
+              />
+            </view>
+          </view>
+
+          <!-- 全天开关 -->
+          <view class="schedule-form-card">
+            <view class="schedule-field schedule-field-row">
+              <view class="schedule-field-label">全天</view>
+              <switch 
+                checked="{{scheduleForm.isAllDay}}" 
+                color="#2563EB"
+                bindchange="handleAllDayChange"
+              />
+            </view>
+          </view>
+
+          <!-- 时间选择 -->
+          <view class="schedule-form-card">
+            <!-- 开始时间 -->
+            <view class="schedule-field">
+              <view class="schedule-field-label">开始</view>
+              <view class="schedule-time-row">
+                <picker 
+                  mode="date" 
+                  value="{{scheduleForm.startDate}}" 
+                  start="2020-01-01" 
+                  end="2030-12-31"
+                  bindchange="handleStartDateChange"
+                >
+                  <view class="schedule-picker">
+                    <text>{{scheduleForm.startDate}}</text>
+                    <text class="schedule-picker-arrow">›</text>
+                  </view>
+                </picker>
+                <picker 
+                  wx:if="{{!scheduleForm.isAllDay}}"
+                  mode="time" 
+                  value="{{scheduleForm.startTime}}" 
+                  bindchange="handleStartTimeChange"
+                >
+                  <view class="schedule-picker schedule-picker-time">
+                    <text>{{scheduleForm.startTime}}</text>
+                    <text class="schedule-picker-arrow">›</text>
+                  </view>
+                </picker>
+              </view>
+            </view>
+
+            <!-- 结束时间 -->
+            <view class="schedule-field">
+              <view class="schedule-field-label">结束</view>
+              <view class="schedule-time-row">
+                <picker 
+                  mode="date" 
+                  value="{{scheduleForm.endDate}}" 
+                  start="2020-01-01" 
+                  end="2030-12-31"
+                  bindchange="handleEndDateChange"
+                >
+                  <view class="schedule-picker">
+                    <text>{{scheduleForm.endDate}}</text>
+                    <text class="schedule-picker-arrow">›</text>
+                  </view>
+                </picker>
+                <picker 
+                  wx:if="{{!scheduleForm.isAllDay}}"
+                  mode="time" 
+                  value="{{scheduleForm.endTime}}" 
+                  bindchange="handleEndTimeChange"
+                >
+                  <view class="schedule-picker schedule-picker-time">
+                    <text>{{scheduleForm.endTime}}</text>
+                    <text class="schedule-picker-arrow">›</text>
+                  </view>
+                </picker>
+              </view>
+            </view>
+          </view>
+
+          <!-- 类型和重复 -->
+          <view class="schedule-form-card">
+            <!-- 类型选择 -->
+            <view class="schedule-field schedule-field-clickable" bindtap="handleTypeTap">
+              <view class="schedule-field-label">
+                <view class="schedule-type-dot" style="background: {{scheduleForm.color}};"></view>
+                <text>类型</text>
+              </view>
+              <view class="schedule-field-value">
+                <text>{{scheduleForm.typeName}}</text>
+                <text class="schedule-picker-arrow">›</text>
+              </view>
+            </view>
+
+            <!-- 重复设置 -->
+            <view class="schedule-field schedule-field-clickable" bindtap="handleRepeatTap">
+              <view class="schedule-field-label">重复</view>
+              <view class="schedule-field-value">
+                <text>{{repeatLabel}}</text>
+                <text class="schedule-picker-arrow">›</text>
+              </view>
+            </view>
+          </view>
+
+          <!-- 地点和备注 -->
+          <view class="schedule-form-card">
+            <view class="schedule-field">
+              <view class="schedule-field-label">地点</view>
+              <input 
+                class="schedule-input" 
+                placeholder="选填" 
+                value="{{scheduleForm.location}}"
+                bindinput="handleLocationInput"
+                maxlength="50"
+              />
+            </view>
+            <view class="schedule-field">
+              <view class="schedule-field-label">备注</view>
+              <textarea 
+                class="schedule-textarea" 
+                placeholder="选填" 
+                value="{{scheduleForm.description}}"
+                bindinput="handleDescriptionInput"
+                maxlength="200"
+                auto-height
+              />
+            </view>
+          </view>
+
+          <!-- 删除按钮（编辑模式） -->
+          <view class="schedule-delete-btn" wx:if="{{editingSchedule}}" bindtap="handleDeleteSchedule">
+            删除日程
+          </view>
+        </view>
+      </scroll-view>
+    </view>
+  </view>
+
+  <!-- 类型选择弹窗 -->
+  <view class="type-popup-mask {{showTypePopup ? 'is-visible' : ''}}" catchtouchmove="stopPropagation" bindtap="hideTypePopup">
+    <view class="type-popup-container" catchtap="stopPropagation">
+      <view class="type-popup-header">
+        <view class="type-popup-title">选择类型</view>
+        <view class="type-popup-close" bindtap="hideTypePopup">×</view>
+      </view>
+      <view class="type-list">
+        <view 
+          class="type-item {{scheduleForm.type === item.type ? 'is-active' : ''}}" 
+          wx:for="{{typeOptions}}" 
+          wx:key="type"
+          bindtap="handleSelectType"
+          data-type="{{item.type}}"
+        >
+          <view class="type-item-dot" style="background: {{item.color}};"></view>
+          <text class="type-item-name">{{item.name}}</text>
+          <view class="type-item-check" wx:if="{{scheduleForm.type === item.type}}">✓</view>
+        </view>
+      </view>
+    </view>
+  </view>
+
+  <!-- 重复选择弹窗 -->
+  <view class="type-popup-mask {{showRepeatPopup ? 'is-visible' : ''}}" catchtouchmove="stopPropagation" bindtap="hideRepeatPopup">
+    <view class="type-popup-container" catchtap="stopPropagation">
+      <view class="type-popup-header">
+        <view class="type-popup-title">重复设置</view>
+        <view class="type-popup-close" bindtap="hideRepeatPopup">×</view>
+      </view>
+      <view class="type-list">
+        <view 
+          class="type-item {{scheduleForm.repeat === item.value ? 'is-active' : ''}}" 
+          wx:for="{{repeatOptions}}" 
+          wx:key="value"
+          bindtap="handleSelectRepeat"
+          data-value="{{item.value}}"
+        >
+          <text class="type-item-name">{{item.label}}</text>
+          <view class="type-item-check" wx:if="{{scheduleForm.repeat === item.value}}">✓</view>
+        </view>
+      </view>
+    </view>
   </view>
 
   <!-- 配置弹窗 -->

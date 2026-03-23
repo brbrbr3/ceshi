@@ -612,6 +612,54 @@
 
 ---
 
+### 15. calendar_schedules - 日程记录
+
+**用途**：存储用户日程数据
+
+**安全规则**：`READONLY` - 所有用户可读，仅创建者可写
+
+**记录数**：动态
+
+**索引**：
+
+- `_id` - 记录 ID（云开发自动创建）
+- `idx_creatorId_startDate` - 创建者 + 开始日期组合索引
+- `idx_startDate` - 开始日期索引
+
+**字段结构**：
+```javascript
+{
+  _id: String,              // 记录 ID（自动生成）
+  title: String,            // 日程标题
+  isAllDay: Boolean,        // 是否全天
+  startDate: String,        // 开始日期 YYYY-MM-DD
+  endDate: String,          // 结束日期 YYYY-MM-DD
+  startTime: String,        // 开始时间 HH:mm（非全天）
+  endTime: String,          // 结束时间 HH:mm（非全天）
+  type: String,             // 类型：'meeting'|'training'|'visit'|'banquet'|'other'
+  typeName: String,         // 类型显示名
+  color: String,            // 颜色值
+  repeat: String,           // 重复：'none'|'daily'|'weekly'|'monthly'
+  location: String,         // 地点（可选）
+  description: String,      // 备注（可选）
+  creatorId: String,        // 创建者 openid
+  creatorName: String,      // 创建者姓名
+  createdAt: Number,        // 创建时间戳
+  updatedAt: Number         // 更新时间戳
+}
+```
+
+**类型配置**：
+| type | typeName | color |
+|------|----------|-------|
+| meeting | 会议 | #3B82F6 |
+| training | 培训 | #10B981 |
+| visit | 会见 | #8B5CF6 |
+| banquet | 宴请 | #F59E0B |
+| other | 其他 | #6B7280 |
+
+---
+
 ## 命名规范
 
 ### 集合命名规则

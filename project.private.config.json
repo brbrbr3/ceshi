@@ -23,11 +23,18 @@
     "miniprogram": {
       "list": [
         {
-          "name": "page/extend/index",
-          "pathName": "page/extend/index",
+          "name": "pages/office/calendar/calendar",
+          "pathName": "pages/office/calendar/calendar",
           "query": "",
           "scene": null,
           "launchMode": "default"
+        },
+        {
+          "name": "page/extend/index",
+          "pathName": "page/extend/index",
+          "query": "",
+          "launchMode": "default",
+          "scene": null
         },
         {
           "name": "page/cloud/index",

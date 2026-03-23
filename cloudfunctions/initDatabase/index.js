@@ -153,6 +153,15 @@ const REQUIRED_COLLECTIONS = [
     indexes: [
       { name: 'idx_year', keys: [{ name: 'year', direction: '1' }] }
     ]
+  },
+  {
+    name: 'calendar_schedules',
+    description: '日程记录',
+    aclTag: 'READONLY',
+    indexes: [
+      { name: 'idx_creatorId_startDate', keys: [{ name: 'creatorId', direction: '1' }, { name: 'startDate', direction: '1' }] },
+      { name: 'idx_startDate', keys: [{ name: 'startDate', direction: '1' }] }
+    ]
   }
 ]
 

@@ -1,0 +1,13 @@
+{
+  "permissions": {
+    "openapi": []
+  },
+  "envVariables": {},
+  "vpc": {
+    "vpcId": "",
+    "subnetId": ""
+  },
+  "timeout": 10,
+  "runtime": "Nodejs18.15",
+  "handler": "index.main"
+}
