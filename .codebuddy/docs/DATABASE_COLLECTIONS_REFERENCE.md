@@ -22,9 +22,7 @@
 
 ### 权限配置要求
 
-**重要**：所有新增数据库集合必须在以下两处配置安全规则：
-1. 本文档的集合定义中添加 `aclTag` 字段
-2. `cloudfunctions/initDatabase/index.js` 的 `REQUIRED_COLLECTIONS` 数组中添加 `aclTag`
+**重要**：所有新增数据库集合必须在本文档的集合定义中添加 `aclTag` 字段，并通过 CloudBase 控制台或 MCP 工具配置安全规则。
 
 ---
 
@@ -40,9 +38,7 @@
 
 ### 索引配置要求
 
-**重要**：所有新增数据库集合必须在以下两处配置索引：
-1. 本文档的集合定义中添加索引说明
-2. `cloudfunctions/initDatabase/index.js` 的 `REQUIRED_COLLECTIONS` 数组中添加 `indexes` 字段
+**重要**：所有新增数据库集合必须在本文档的集合定义中添加索引说明，并通过 CloudBase 控制台或 MCP 工具创建索引。
 
 ### 索引设计原则
 

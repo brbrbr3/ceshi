@@ -23,24 +23,12 @@
 ### 1.3 新增集合流程
 
 1. 查阅 `DATABASE_COLLECTIONS_REFERENCE.md` 确认是否需要新集合
-2. 在 `cloudfunctions/initDatabase/index.js` 的 `REQUIRED_COLLECTIONS` 数组中添加定义
-3. 配置安全规则（aclTag）和索引
-4. 更新 `DATABASE_COLLECTIONS_REFERENCE.md` 文档
+2. 在 `DATABASE_COLLECTIONS_REFERENCE.md` 中添加集合定义（包含安全规则和索引说明）
+3. 通过 CloudBase 控制台或 MCP 工具创建集合、配置安全规则和索引
 
-**集合定义示例**：
-```javascript
-const REQUIRED_COLLECTIONS = [
-  {
-    name: 'my_collection',
-    description: '集合描述',
-    aclTag: 'PRIVATE',  // ADMINONLY | ADMINWRITE | READONLY | PRIVATE
-    indexes: [
-      { name: 'idx_createdAt', keys: [{ name: 'createdAt', direction: '-1' }] }
-    ],
-    initialData: null
-  }
-]
-```
+**安全规则和索引配置方式**：
+- CloudBase 控制台：https://tcb.cloud.tencent.com
+- MCP 工具：`writeSecurityRule`、`writeNoSqlDatabaseStructure`
 
 ### 1.4 安全规则配置
 
@@ -694,5 +682,4 @@ await mcp_call_tool({
 ## 参考文档
 
 1. `DATABASE_COLLECTIONS_REFERENCE.md` - 数据库集合参考
-2. `cloudfunctions/initDatabase/index.js` - 集合定义
-3. `cloudfunctions/initSystemConfig/index.js` - 常量定义
+2. `cloudfunctions/initSystemConfig/index.js` - 常量定义

@@ -57,7 +57,6 @@
     <view class="auth-debug-panel-title">调试面板</view>
     <view class="auth-debug-panel-desc">点击执行对应的初始化函数</view>
     <view class="auth-debug-buttons">
-      <view class="auth-debug-btn" bindtap="callInitDatabase">初始化数据库</view>
       <view class="auth-debug-btn" bindtap="callInitSystemConfig">初始化系统配置</view>
       <view class="auth-debug-btn" bindtap="callInitWorkflowDB">初始化工作流</view>
     </view>

@@ -271,27 +271,6 @@ Page({
     })
   },
 
-  // 调用初始化数据库
-  callInitDatabase() {
-    wx.showLoading({ title: '执行中...', mask: true })
-    wx.cloud.callFunction({
-      name: 'initDatabase',
-      data: {}
-    }).then(res => {
-      wx.hideLoading()
-      const result = res.result || {}
-      this.addDebugResult(
-        '初始化数据库',
-        result.code === 0,
-        result.message || (result.code === 0 ? '执行成功' : '执行失败'),
-        result.data
-      )
-    }).catch(error => {
-      wx.hideLoading()
-      this.addDebugResult('初始化数据库', false, error.message || '执行失败')
-    })
-  },
-
   // 调用初始化系统配置
   callInitSystemConfig() {
     wx.showLoading({ title: '执行中...', mask: true })
