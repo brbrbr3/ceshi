@@ -425,14 +425,22 @@ async function handleGetScheduleDates(params, wxContext) {
     return fail('年份和月份不能为空', 400)
   }
 
-  // 计算月份范围
+  // 计算月份范围（日历组件可能显示前后月份的日期，所以扩大查询范围）
   const monthStartDate = `${year}-${String(month).padStart(2, '0')}-01`
   const nextMonth = month === 12 ? 1 : month + 1
   const nextYear = month === 12 ? year + 1 : year
   const monthEndDate = `${nextYear}-${String(nextMonth).padStart(2, '0')}-01`
 
-  // 获取当年节假日配置
-  const holidayDates = await getHolidayConfig(year)
+  // 获取节假日配置（支持跨年：同时获取当前年和下一年）
+  const holidayDatesSet = new Set()
+  const currentYearHolidays = await getHolidayConfig(year)
+  currentYearHolidays.forEach(d => holidayDatesSet.add(d))
+  
+  // 如果跨年，也获取下一年的节假日配置
+  if (nextYear !== year) {
+    const nextYearHolidays = await getHolidayConfig(nextYear)
+    nextYearHolidays.forEach(d => holidayDatesSet.add(d))
+  }
 
   // 查询所有可能相关的日程
   // 重复日程可能从很早开始，所以只限制 startDate < monthEndDate
@@ -479,7 +487,8 @@ async function handleGetScheduleDates(params, wxContext) {
         const dateStr = formatDateObj(current)
         
         if (dateStr >= monthStartDate && dateStr < monthEndDate) {
-          if (shouldAppearOnDate(schedule, dateStr, holidayDates)) {
+          // 使用合并后的节假日集合判断
+          if (shouldAppearOnDate(schedule, dateStr, holidayDatesSet)) {
             dateSet.add(dateStr)
           }
         }

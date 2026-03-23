@@ -107,7 +107,6 @@ Page({
     
     // 重复截止日期相关
     maxRepeatEndDate: getMaxRepeatEndDate(),  // 当年最后一天
-    showRepeatEndDatePicker: false,           // 是否显示截止日期选择器
 
     // 日程详情弹窗
     showDetailPopup: false,
@@ -314,8 +313,8 @@ Page({
       if (res.result.code === 0) {
         const newDates = res.result.data.dates
 
-        // 累积添加到 Set 中（不覆盖已有数据）
-        newDates.forEach(date => this.scheduleDatesSet.add(date))
+        // 清空后重新添加（避免累积过多数据）
+        this.scheduleDatesSet = new Set(newDates)
 
         // 更新标记
         this.updateMarks()
@@ -669,11 +668,18 @@ Page({
   /**
    * 获取日程在当日显示的时间范围（分钟数）
    * 处理跨日日程：当日只显示当日部分
+   * 注意：重复日程每一日都使用原始时间，不处理跨日
    */
   getDayDisplayRange(schedule, currentDate) {
     let startMinutes = this.timeToMinutes(schedule.startTime)
     let endMinutes = this.timeToMinutes(schedule.endTime)
 
+    // 重复日程：每一日都使用原始 startTime/endTime，不处理跨日
+    if (schedule.repeat && schedule.repeat !== 'none') {
+      return { start: startMinutes, end: endMinutes }
+    }
+
+    // 非重复日程：处理跨日情况
     // 如果开始日期早于当前日期，则从 00:00 开始显示
     if (schedule.startDate < currentDate) {
       startMinutes = 0
@@ -1108,27 +1114,6 @@ Page({
       'scheduleForm.repeatEndDate': repeatEndDate,
       showRepeatPopup: false
     })
-    
-    // 如果选择了重复类型且未设置截止日期，弹出日期选择器
-    if (value !== 'none' && !this.data.scheduleForm.repeatEndDate) {
-      this.setData({ showRepeatEndDatePicker: true })
-    }
-  },
-  
-  /**
-   * 显示重复截止日期选择器
-   */
-  handleRepeatEndDateTap() {
-    if (this.data.scheduleForm.repeat !== 'none') {
-      this.setData({ showRepeatEndDatePicker: true })
-    }
-  },
-  
-  /**
-   * 隐藏重复截止日期选择器
-   */
-  hideRepeatEndDatePicker() {
-    this.setData({ showRepeatEndDatePicker: false })
   },
   
   /**
@@ -1155,8 +1140,7 @@ Page({
     }
     
     this.setData({
-      'scheduleForm.repeatEndDate': date,
-      showRepeatEndDatePicker: false
+      'scheduleForm.repeatEndDate': date
     })
   },
 

@@ -272,14 +272,17 @@
               </view>
             </view>
 
-            <!-- 重复截止日期（仅当选择了重复类型时显示） -->
-            <view class="schedule-field schedule-field-clickable" wx:if="{{scheduleForm.repeat !== 'none'}}" bindtap="handleRepeatEndDateTap">
+            <!-- 重复截止日期（仅当选择了重复类型时显示，直接内嵌 picker） -->
+            <view class="schedule-field" wx:if="{{scheduleForm.repeat !== 'none'}}">
               <view class="schedule-field-label">截止日期</view>
-              <view class="schedule-field-value">
-                <text class="schedule-field-value-content {{scheduleForm.repeatEndDate ? '' : 'is-placeholder'}} schedule-field-value-content-repeatEndDate">
-                  {{scheduleForm.repeatEndDate || '请选择截止日期'}}
-                </text>
-                <text class="schedule-picker-arrow">›</text>
+              <view class="schedule-picker-full">
+                <datetime-picker 
+                  value="{{scheduleForm.repeatEndDate || scheduleForm.startDatetime}}"
+                  fields="{{['year', 'month', 'day']}}"
+                  start-date="{{scheduleForm.startDatetime ? scheduleForm.startDatetime.split(' ')[0] : ''}}"
+                  end-date="{{maxRepeatEndDate}}"
+                  bind:change="handleRepeatEndDateChange"
+                />
               </view>
             </view>
           </view>
@@ -359,25 +362,6 @@
           <text class="type-item-name">{{item.label}}</text>
           <view class="type-item-check" wx:if="{{scheduleForm.repeat === item.value}}">✓</view>
         </view>
-      </view>
-    </view>
-  </view>
-
-  <!-- 重复截止日期选择弹窗 -->
-  <view class="type-popup-mask {{showRepeatEndDatePicker ? 'is-visible' : ''}}" catchtouchmove="stopPropagation" bindtap="hideRepeatEndDatePicker">
-    <view class="type-popup-container" catchtap="stopPropagation">
-      <view class="type-popup-header">
-        <view class="type-popup-title">选择截止日期</view>
-        <view class="type-popup-close" bindtap="hideRepeatEndDatePicker">×</view>
-      </view>
-      <view class="date-picker-container">
-        <datetime-picker 
-          value="{{scheduleForm.repeatEndDate || scheduleForm.startDatetime}}"
-          fields="{{['year', 'month', 'day']}}"
-          start-date="{{scheduleForm.startDatetime ? scheduleForm.startDatetime.split(' ')[0] : ''}}"
-          end-date="{{maxRepeatEndDate}}"
-          bind:change="handleRepeatEndDateChange"
-        />
       </view>
     </view>
   </view>
