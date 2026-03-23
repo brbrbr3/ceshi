@@ -109,6 +109,67 @@
     </view>
   </view>
 
+  <!-- 日程详情弹窗 -->
+  <view class="detail-popup-mask {{showDetailPopup ? 'is-visible' : ''}}" catchtouchmove="stopPropagation" bindtap="hideDetailPopup">
+    <view class="detail-popup-container" catchtap="stopPropagation">
+      <!-- 弹窗头部 -->
+      <view class="detail-popup-header">
+        <view class="detail-popup-close" bindtap="hideDetailPopup">×</view>
+        <view class="detail-popup-title">日程详情</view>
+        <view class="detail-popup-edit" bindtap="handleEditFromDetail">编辑</view>
+      </view>
+
+      <!-- 详情内容 -->
+      <scroll-view class="detail-popup-scroll" scroll-y="true" enhanced="true" show-scrollbar="false">
+        <view class="detail-popup-content" wx:if="{{detailSchedule}}">
+          <!-- 标题区域 -->
+          <view class="detail-header">
+            <view class="detail-type-dot" style="background: {{detailSchedule.color}};"></view>
+            <text class="detail-title">{{detailSchedule.title}}</text>
+            <text class="detail-type-name">{{detailSchedule.typeName}}</text>
+          </view>
+
+          <!-- 时间信息 -->
+          <view class="detail-section">
+            <view class="detail-section-title">时间</view>
+            <view class="detail-time-info">
+              <view class="detail-time-row" wx:if="{{detailSchedule.isAllDay}}">
+                <text class="detail-time-label">全天</text>
+                <text class="detail-time-value">{{detailSchedule.startDate}}</text>
+              </view>
+              <view class="detail-time-row" wx:else>
+                <text class="detail-time-label">开始</text>
+                <text class="detail-time-value">{{detailSchedule.startDate}} {{detailSchedule.startTime}}</text>
+              </view>
+              <view class="detail-time-row" wx:if="{{!detailSchedule.isAllDay}}">
+                <text class="detail-time-label">结束</text>
+                <text class="detail-time-value">{{detailSchedule.endDate}} {{detailSchedule.endTime}}</text>
+              </view>
+            </view>
+          </view>
+
+          <!-- 地点 -->
+          <view class="detail-section" wx:if="{{detailSchedule.location}}">
+            <view class="detail-section-title">地点</view>
+            <text class="detail-section-value">{{detailSchedule.location}}</text>
+          </view>
+
+          <!-- 备注 -->
+          <view class="detail-section" wx:if="{{detailSchedule.description}}">
+            <view class="detail-section-title">备注</view>
+            <text class="detail-section-value">{{detailSchedule.description}}</text>
+          </view>
+
+          <!-- 创建者 -->
+          <view class="detail-section" wx:if="{{detailSchedule.creatorName}}">
+            <view class="detail-section-title">创建者</view>
+            <text class="detail-section-value">{{detailSchedule.creatorName}}</text>
+          </view>
+        </view>
+      </scroll-view>
+    </view>
+  </view>
+
   <!-- 日程编辑弹窗 -->
   <view class="schedule-popup-mask {{showSchedulePopup ? 'is-visible' : ''}}" catchtouchmove="stopPropagation" bindtap="hideSchedulePopup">
     <view class="schedule-popup-container" catchtap="stopPropagation">
@@ -153,46 +214,28 @@
             <!-- 开始时间 -->
             <view class="schedule-field">
               <view class="schedule-field-label">开始</view>
-              <view class="schedule-time-row">
-                <view class="schedule-picker-wrapper">
-                  <datetime-picker 
-                    value="{{scheduleForm.startDate}}"
-                    fields="{{['year', 'month', 'day']}}"
-                    start-date="2020-01-01"
-                    end-date="2030-12-31"
-                    bind:change="handleStartDateChange"
-                  />
-                </view>
-                <view class="schedule-picker-wrapper schedule-picker-time" wx:if="{{!scheduleForm.isAllDay}}">
-                  <datetime-picker 
-                    value="{{scheduleForm.startTime}}"
-                    fields="{{['hour', 'minute']}}"
-                    bind:change="handleStartTimeChange"
-                  />
-                </view>
+              <view class="schedule-picker-full">
+                <datetime-picker 
+                  value="{{scheduleForm.startDatetime}}"
+                  fields="{{scheduleForm.isAllDay ? ['year', 'month', 'day'] : ['year', 'month', 'day', 'hour', 'minute']}}"
+                  start-date="2020-01-01"
+                  end-date="2030-12-31"
+                  bind:change="handleStartDatetimeChange"
+                />
               </view>
             </view>
 
             <!-- 结束时间 -->
             <view class="schedule-field">
               <view class="schedule-field-label">结束</view>
-              <view class="schedule-time-row">
-                <view class="schedule-picker-wrapper">
-                  <datetime-picker 
-                    value="{{scheduleForm.endDate}}"
-                    fields="{{['year', 'month', 'day']}}"
-                    start-date="2020-01-01"
-                    end-date="2030-12-31"
-                    bind:change="handleEndDateChange"
-                  />
-                </view>
-                <view class="schedule-picker-wrapper schedule-picker-time" wx:if="{{!scheduleForm.isAllDay}}">
-                  <datetime-picker 
-                    value="{{scheduleForm.endTime}}"
-                    fields="{{['hour', 'minute']}}"
-                    bind:change="handleEndTimeChange"
-                  />
-                </view>
+              <view class="schedule-picker-full">
+                <datetime-picker 
+                  value="{{scheduleForm.endDatetime}}"
+                  fields="{{scheduleForm.isAllDay ? ['year', 'month', 'day'] : ['year', 'month', 'day', 'hour', 'minute']}}"
+                  start-date="2020-01-01"
+                  end-date="2030-12-31"
+                  bind:change="handleEndDatetimeChange"
+                />
               </view>
             </view>
           </view>
@@ -206,7 +249,7 @@
                 <text>类型</text>
               </view>
               <view class="schedule-field-value">
-                <text>{{scheduleForm.typeName}}</text>
+                <text class="schedule-field-value-content">{{scheduleForm.typeName}}</text>
                 <text class="schedule-picker-arrow">›</text>
               </view>
             </view>
@@ -215,7 +258,7 @@
             <view class="schedule-field schedule-field-clickable" bindtap="handleRepeatTap">
               <view class="schedule-field-label">重复</view>
               <view class="schedule-field-value">
-                <text>{{repeatLabel}}</text>
+                <text class="schedule-field-value-content">{{scheduleForm.repeatLabel}}</text>
                 <text class="schedule-picker-arrow">›</text>
               </view>
             </view>

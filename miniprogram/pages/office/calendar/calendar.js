@@ -20,7 +20,7 @@ const CONFIG_ALLOWED_ROLES = ['admin', '会计', '会计主管']
 // 日程类型配置
 const SCHEDULE_TYPES = [
   { type: 'meeting', name: '会议', color: '#3B82F6' },
-  { type: 'training', name: '培训', color: '#10B981' },
+  { type: 'training', name: '学习', color: '#10B981' },
   { type: 'visit', name: '会见', color: '#8B5CF6' },
   { type: 'banquet', name: '宴请', color: '#F59E0B' },
   { type: 'other', name: '其他', color: '#6B7280' }
@@ -81,17 +81,20 @@ Page({
     scheduleForm: {
       title: '',
       isAllDay: false,
-      startDate: '',
-      endDate: '',
-      startTime: '09:00',
-      endTime: '10:00',
+      startDatetime: '',  // 开始日期时间 YYYY-MM-DD HH:mm
+      endDatetime: '',    // 结束日期时间 YYYY-MM-DD HH:mm
       type: 'meeting',
       typeName: '会议',
       color: '#3B82F6',
       repeat: 'none',
+      repeatLabel: '不重复',  // 重复标签
       location: '',
       description: ''
     },
+
+    // 日程详情弹窗
+    showDetailPopup: false,
+    detailSchedule: null,
 
     // 类型和重复选项
     typeOptions: SCHEDULE_TYPES,
@@ -507,7 +510,7 @@ Page({
    * 计算每个日程的宽度和左边距
    */
   calculateWidthAndLeft(group) {
-    const containerWidth = 638 // 日程条容器宽度（750 - 80左标签 - 16右间距 - 16rpx padding）
+    const containerWidth = 606 // 日程条容器宽度（750 - 48(section margin) - 80(左标签) - 16(右边距)）
     const gap = 4 // 日程条之间的间距 rpx
 
     group.forEach(schedule => {
@@ -581,20 +584,23 @@ Page({
   handleAddSchedule() {
     const today = this.getDateString(new Date())
 
+    // 计算默认时间：当前时间向上取整到最近的30分钟
+    const now = new Date()
+    const { startDatetime, endDatetime } = this.getDefaultDatetime(now, today)
+
     this.setData({
       showSchedulePopup: true,
       editingSchedule: null,
       scheduleForm: {
         title: '',
         isAllDay: false,
-        startDate: this.data.scheduleForm.startDate || today,
-        endDate: this.data.scheduleForm.endDate || today,
-        startTime: '09:00',
-        endTime: '10:00',
+        startDatetime,
+        endDatetime,
         type: 'meeting',
         typeName: '会议',
         color: '#3B82F6',
         repeat: 'none',
+        repeatLabel: '不重复',
         location: '',
         description: ''
       }
@@ -602,26 +608,97 @@ Page({
   },
 
   /**
-   * 点击日程条
+   * 获取默认的日期时间（向上取整到最近的30分钟）
+   * 返回 { startDatetime, endDatetime } 格式为 YYYY-MM-DD HH:mm
+   */
+  getDefaultDatetime(date, dateStr) {
+    const hours = date.getHours()
+    const minutes = date.getMinutes()
+    const baseDate = dateStr || this.getDateString(date)
+
+    // 向上取整到最近的30分钟
+    let roundedHours = hours
+    let roundedMinutes = 0
+
+    if (minutes === 0) {
+      roundedMinutes = 0
+    } else if (minutes <= 30) {
+      roundedMinutes = 30
+    } else {
+      roundedMinutes = 0
+      roundedHours = (hours + 1) % 24
+    }
+
+    const startTime = `${String(roundedHours).padStart(2, '0')}:${String(roundedMinutes).padStart(2, '0')}`
+    const startDatetime = `${baseDate} ${startTime}`
+
+    // 结束时间 = 开始时间 + 30分钟
+    let endHours = roundedHours
+    let endMinutes = roundedMinutes + 30
+    if (endMinutes >= 60) {
+      endMinutes = 0
+      endHours = (endHours + 1) % 24
+    }
+    const endTime = `${String(endHours).padStart(2, '0')}:${String(endMinutes).padStart(2, '0')}`
+    const endDatetime = `${baseDate} ${endTime}`
+
+    return { startDatetime, endDatetime }
+  },
+
+  /**
+   * 点击日程条 - 显示详情弹窗
    */
   handleScheduleTap(e) {
     const schedule = e.currentTarget.dataset.schedule
     console.log('点击日程:', schedule)
 
     this.setData({
+      showDetailPopup: true,
+      detailSchedule: schedule
+    })
+  },
+
+  /**
+   * 隐藏日程详情弹窗
+   */
+  hideDetailPopup() {
+    this.setData({ showDetailPopup: false })
+  },
+
+  /**
+   * 从详情进入编辑
+   */
+  handleEditFromDetail() {
+    const schedule = this.data.detailSchedule
+
+    // 调试：检查日程数据
+    console.log('handleEditFromDetail - detailSchedule:', schedule)
+
+    // 构建日期时间字符串
+    const startDatetime = schedule.isAllDay
+      ? schedule.startDate
+      : `${schedule.startDate} ${schedule.startTime || '09:00'}`
+    const endDatetime = schedule.isAllDay
+      ? schedule.endDate || schedule.startDate
+      : `${schedule.endDate || schedule.startDate} ${schedule.endTime || '10:00'}`
+
+    // 获取重复标签
+    const repeatLabel = this.getRepeatLabel(schedule.repeat || 'none')
+
+    this.setData({
+      showDetailPopup: false,
       showSchedulePopup: true,
       editingSchedule: schedule,
       scheduleForm: {
         title: schedule.title,
         isAllDay: schedule.isAllDay,
-        startDate: schedule.startDate,
-        endDate: schedule.endDate,
-        startTime: schedule.startTime || '09:00',
-        endTime: schedule.endTime || '10:00',
+        startDatetime,
+        endDatetime,
         type: schedule.type,
         typeName: schedule.typeName,
         color: schedule.color,
         repeat: schedule.repeat || 'none',
+        repeatLabel,
         location: schedule.location || '',
         description: schedule.description || ''
       }
@@ -646,47 +723,56 @@ Page({
    * 全天开关
    */
   handleAllDayChange(e) {
-    this.setData({ 'scheduleForm.isAllDay': e.detail.value })
+    const isAllDay = e.detail.value
+    this.setData({ 'scheduleForm.isAllDay': isAllDay })
   },
 
   /**
-   * 开始日期变化（datetime-picker）
+   * 开始日期时间变化
    */
-  handleStartDateChange(e) {
-    const { year, month, day } = e.detail
-    const monthStr = String(month).padStart(2, '0')
-    const dayStr = String(day).padStart(2, '0')
-    const dateStr = `${year}-${monthStr}-${dayStr}`
-    this.setData({ 'scheduleForm.startDate': dateStr })
+  handleStartDatetimeChange(e) {
+    const { year, month, day, hour, minute } = e.detail
+    const dateStr = `${year}-${String(month).padStart(2, '0')}-${String(day).padStart(2, '0')}`
+    
+    let startDatetime
+    if (this.data.scheduleForm.isAllDay) {
+      startDatetime = dateStr
+    } else {
+      startDatetime = `${dateStr} ${String(hour || 0).padStart(2, '0')}:${String(minute || 0).padStart(2, '0')}`
+      
+      // 自动调整结束时间 = 开始时间 + 30分钟
+      let endHour = (hour || 0)
+      let endMinute = (minute || 0) + 30
+      if (endMinute >= 60) {
+        endMinute -= 60
+        endHour = (endHour + 1) % 24
+      }
+      const endDatetime = `${dateStr} ${String(endHour).padStart(2, '0')}:${String(endMinute).padStart(2, '0')}`
+      this.setData({
+        'scheduleForm.startDatetime': startDatetime,
+        'scheduleForm.endDatetime': endDatetime
+      })
+      return
+    }
+    
+    this.setData({ 'scheduleForm.startDatetime': startDatetime })
   },
 
   /**
-   * 结束日期变化（datetime-picker）
+   * 结束日期时间变化
    */
-  handleEndDateChange(e) {
-    const { year, month, day } = e.detail
-    const monthStr = String(month).padStart(2, '0')
-    const dayStr = String(day).padStart(2, '0')
-    const dateStr = `${year}-${monthStr}-${dayStr}`
-    this.setData({ 'scheduleForm.endDate': dateStr })
-  },
-
-  /**
-   * 开始时间变化（datetime-picker）
-   */
-  handleStartTimeChange(e) {
-    const { hour, minute } = e.detail
-    const timeStr = `${String(hour).padStart(2, '0')}:${String(minute).padStart(2, '0')}`
-    this.setData({ 'scheduleForm.startTime': timeStr })
-  },
-
-  /**
-   * 结束时间变化（datetime-picker）
-   */
-  handleEndTimeChange(e) {
-    const { hour, minute } = e.detail
-    const timeStr = `${String(hour).padStart(2, '0')}:${String(minute).padStart(2, '0')}`
-    this.setData({ 'scheduleForm.endTime': timeStr })
+  handleEndDatetimeChange(e) {
+    const { year, month, day, hour, minute } = e.detail
+    const dateStr = `${year}-${String(month).padStart(2, '0')}-${String(day).padStart(2, '0')}`
+    
+    let endDatetime
+    if (this.data.scheduleForm.isAllDay) {
+      endDatetime = dateStr
+    } else {
+      endDatetime = `${dateStr} ${String(hour || 0).padStart(2, '0')}:${String(minute || 0).padStart(2, '0')}`
+    }
+    
+    this.setData({ 'scheduleForm.endDatetime': endDatetime })
   },
 
   /**
@@ -753,17 +839,19 @@ Page({
    */
   handleSelectRepeat(e) {
     const value = e.currentTarget.dataset.value
+    const repeatLabel = this.getRepeatLabel(value)
     this.setData({
       'scheduleForm.repeat': value,
+      'scheduleForm.repeatLabel': repeatLabel,
       showRepeatPopup: false
     })
   },
 
   /**
-   * 获取重复标签
+   * 根据重复值获取标签
    */
-  get repeatLabel() {
-    const option = REPEAT_OPTIONS.find(o => o.value === this.data.scheduleForm.repeat)
+  getRepeatLabel(value) {
+    const option = REPEAT_OPTIONS.find(o => o.value === value)
     return option ? option.label : '不重复'
   },
 
@@ -779,9 +867,33 @@ Page({
       return
     }
 
-    if (!scheduleForm.startDate) {
-      utils.showToast({ title: '请选择开始日期', icon: 'none' })
+    if (!scheduleForm.startDatetime) {
+      utils.showToast({ title: '请选择开始时间', icon: 'none' })
       return
+    }
+
+    // 解析日期时间字符串（格式：YYYY-MM-DD HH:mm 或 YYYY-MM-DD）
+    const parseDateTimeStr = (datetimeStr) => {
+      if (!datetimeStr) return { date: '', time: '' }
+      const parts = datetimeStr.split(' ')
+      const date = parts[0] || ''
+      const time = parts[1] || ''
+      return { date, time }
+    }
+
+    const { date: startDate, time: startTime } = parseDateTimeStr(scheduleForm.startDatetime)
+    const { date: endDate, time: endTime } = parseDateTimeStr(scheduleForm.endDatetime)
+
+    // 验证时间：非全天日程时，结束时间不得早于开始时间
+    if (!scheduleForm.isAllDay) {
+      const startMinutes = this.timeToMinutes(startTime)
+      const endMinutes = this.timeToMinutes(endTime)
+
+      // 同一天的情况下，结束时间必须晚于开始时间
+      if (startDate === endDate && endMinutes <= startMinutes) {
+        utils.showToast({ title: '结束时间不得早于开始时间', icon: 'none' })
+        return
+      }
     }
 
     wx.showLoading({ title: '保存中...', mask: true })
@@ -791,11 +903,13 @@ Page({
       const params = {
         title: scheduleForm.title.trim(),
         isAllDay: scheduleForm.isAllDay,
-        startDate: scheduleForm.startDate,
-        endDate: scheduleForm.endDate || scheduleForm.startDate,
-        startTime: scheduleForm.isAllDay ? null : scheduleForm.startTime,
-        endTime: scheduleForm.isAllDay ? null : scheduleForm.endTime,
+        startDate,
+        endDate: endDate || startDate,
+        startTime: scheduleForm.isAllDay ? null : startTime,
+        endTime: scheduleForm.isAllDay ? null : endTime,
         type: scheduleForm.type,
+        typeName: scheduleForm.typeName,
+        color: scheduleForm.color,
         repeat: scheduleForm.repeat,
         location: scheduleForm.location,
         description: scheduleForm.description,
