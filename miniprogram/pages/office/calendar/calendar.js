@@ -123,7 +123,9 @@ Page({
 
   async onLoad() {
     // 初始化页面实例属性（Set 无法存入 this.data）
-    this.scheduleDatesSet = new Set()
+    this.scheduleDatesSet = new Set()           // 已加载的日程日期集合
+    this.loadedMonthsSet = new Set()            // 已加载的年月集合，格式 'YYYY-MM'
+    this.loadedHolidayYearsSet = new Set()      // 已加载节假日的年份集合
 
     wx.showLoading({ title: '加载中...', mask: true })
 
@@ -157,8 +159,8 @@ Page({
   },
 
   onShow() {
-    // 每次显示时重新加载节假日和日程
-    this.loadHolidays()
+    // 每次显示时重新加载日程列表（时间轴）
+    // 注意：节假日和日程点标记已实现增量加载，不需要在 onShow 重复加载
     if (this.data.selectedDate) {
       this.loadSchedules(this.data.selectedDate)
     }
@@ -234,11 +236,18 @@ Page({
   },
 
   /**
-   * 加载节假日配置
+   * 加载节假日配置（增量加载模式）
    */
   async loadHolidays() {
+    const currentYear = new Date().getFullYear()
+    
+    // 已加载过该年份，跳过
+    if (this.loadedHolidayYearsSet.has(currentYear)) {
+      console.log(`节假日 ${currentYear} 年已加载，跳过`)
+      return
+    }
+    
     try {
-      const currentYear = new Date().getFullYear()
       const res = await wx.cloud.callFunction({
         name: 'holidayManager',
         data: {
@@ -251,9 +260,17 @@ Page({
         const config = res.result.data.config
         // 缓存节假日数据
         this.setData({ holidayDates: config.dates })
+        
+        // 记录已加载的年份
+        this.loadedHolidayYearsSet.add(currentYear)
+        
+        // 更新标记
         this.updateMarks()
+        
+        console.log(`节假日 ${currentYear} 年加载完成，共 ${config.dates.length} 天`)
       } else {
         this.setData({ holidayDates: [] })
+        this.loadedHolidayYearsSet.add(currentYear)
         this.updateMarks()
       }
     } catch (error) {
@@ -296,11 +313,26 @@ Page({
   },
 
   /**
-   * 加载日程日期标记
+   * 加载日程日期标记（增量加载模式）
    * @param {number} year 年份
    * @param {number} month 月份
    */
   async loadScheduleMarks(year, month) {
+    console.log('=== loadScheduleMarks ===')
+    console.log('请求参数 year:', year, 'month:', month)
+    
+    const monthKey = `${year}-${String(month).padStart(2, '0')}`
+    console.log('monthKey:', monthKey)
+    console.log('loadedMonthsSet:', Array.from(this.loadedMonthsSet))
+    
+    // 已加载过该月份，跳过
+    if (this.loadedMonthsSet.has(monthKey)) {
+      console.log(`月份 ${monthKey} 已加载，跳过`)
+      return
+    }
+    
+    console.log(`开始加载月份 ${monthKey} 的日程点...`)
+    
     try {
       const res = await wx.cloud.callFunction({
         name: 'scheduleManager',
@@ -310,18 +342,52 @@ Page({
         }
       })
 
+      console.log('云函数返回:', res.result)
+
       if (res.result.code === 0) {
         const newDates = res.result.data.dates
+        console.log(`获取到 ${newDates.length} 个日期:`, newDates)
 
-        // 清空后重新添加（避免累积过多数据）
-        this.scheduleDatesSet = new Set(newDates)
+        // 累加到 scheduleDatesSet
+        newDates.forEach(date => this.scheduleDatesSet.add(date))
+        
+        // 记录已加载的月份
+        this.loadedMonthsSet.add(monthKey)
 
         // 更新标记
         this.updateMarks()
+        
+        console.log(`月份 ${monthKey} 加载完成，当前 scheduleDatesSet:`, Array.from(this.scheduleDatesSet))
+      } else {
+        console.error('云函数返回错误:', res.result)
       }
     } catch (error) {
       console.error('加载日程日期失败:', error)
     }
+  },
+
+  /**
+   * 从缓存中移除指定月份的数据
+   * @param {number} year 年份
+   * @param {number} month 月份
+   */
+  removeMonthFromCache(year, month) {
+    const monthKey = `${year}-${String(month).padStart(2, '0')}`
+    const prefix = monthKey + '-'  // '2026-03-'
+    
+    // 从 scheduleDatesSet 移除该月所有日期
+    const datesToRemove = []
+    this.scheduleDatesSet.forEach(date => {
+      if (date.startsWith(prefix)) {
+        datesToRemove.push(date)
+      }
+    })
+    datesToRemove.forEach(date => this.scheduleDatesSet.delete(date))
+    
+    // 从 loadedMonthsSet 移除
+    this.loadedMonthsSet.delete(monthKey)
+    
+    console.log(`月份 ${monthKey} 已从缓存移除，移除了 ${datesToRemove.length} 个日期`)
   },
 
   /**
@@ -367,48 +433,37 @@ Page({
   },
 
   /**
-   * 强制刷新日程标记（从服务器重新获取）
+   * 刷新日程标记（局部刷新，仅刷新当前月份）
    * 添加/编辑/删除日程后调用，确保日历显示最新状态
    */
   async refreshScheduleMarks() {
-    try {
-      const { currentYear, currentMonth } = this.data
-      
-      // 清空现有日程标记
-      this.scheduleDatesSet = new Set()
-      
-      // 重新获取当前月份的日程日期
-      const res = await wx.cloud.callFunction({
-        name: 'scheduleManager',
-        data: {
-          action: 'getScheduleDates',
-          params: { year: currentYear, month: currentMonth }
-        }
-      })
-
-      if (res.result.code === 0) {
-        const newDates = res.result.data.dates
-        newDates.forEach(date => this.scheduleDatesSet.add(date))
-        
-        // 更新标记
-        this.updateMarks()
-      }
-    } catch (error) {
-      console.error('刷新日程标记失败:', error)
-    }
+    const { currentYear, currentMonth } = this.data
+    
+    // 从缓存中移除当前月份数据
+    this.removeMonthFromCache(currentYear, currentMonth)
+    
+    // 重新加载当前月份
+    await this.loadScheduleMarks(currentYear, currentMonth)
   },
 
   /**
-   * 刷新日历标记（重新获取节假日数据）
+   * 刷新日历标记（跨年时加载新年份节假日）
    */
   async refreshCalendarMarks() {
+    const year = this.data.currentYear
+    
+    // 已加载过该年份，跳过
+    if (this.loadedHolidayYearsSet.has(year)) {
+      console.log(`节假日 ${year} 年已加载，跳过`)
+      return
+    }
+    
     try {
-      const currentYear = this.data.currentYear
       const res = await wx.cloud.callFunction({
         name: 'holidayManager',
         data: {
           action: 'getByYear',
-          params: { year: currentYear }
+          params: { year: year }
         }
       })
 
@@ -419,9 +474,15 @@ Page({
       // 缓存节假日数据
       this.setData({ holidayDates })
       
+      // 记录已加载的年份
+      this.loadedHolidayYearsSet.add(year)
+      
       // 更新标记
       this.updateMarks()
+      
+      console.log(`节假日 ${year} 年加载完成`)
     } catch (error) {
+      console.error('加载节假日失败:', error)
       // 如果获取节假日失败，仍然显示日程标记
       this.updateMarks()
     }
@@ -472,8 +533,12 @@ Page({
    * 选中日期变化
    */
   handleCalendarChange(e) {
-    const { checked, range } = e.detail
-    console.log('选中日期变化:', checked, '范围:', range)
+    const { checked, range, year, month } = e.detail
+    console.log('=== handleCalendarChange ===')
+    console.log('checked:', checked)
+    console.log('range:', range)
+    console.log('year:', year, 'month:', month)
+    console.log('当前 data.currentYear:', this.data.currentYear, 'currentMonth:', this.data.currentMonth)
 
     const dateText = this.formatDateStr(checked)
     const dateStr = this.getDateString(checked)
@@ -487,28 +552,33 @@ Page({
 
     this.loadSchedules(checked)
 
-    // 检测月份变化，只有月份变化时才刷新日程标记
-    if (range && range[0]) {
-      const newYear = range[0].year
-      const newMonth = range[0].month
-      const { currentYear, currentMonth } = this.data
+    // 优先从 checked 获取月份信息（checked.month 已经是 1-12 格式）
+    let newYear = checked ? checked.year : null
+    let newMonth = checked ? checked.month : null
+    
+    console.log('计算得到 newYear:', newYear, 'newMonth:', newMonth)
+    
+    const { currentYear, currentMonth } = this.data
+    
+    // 年份或月份变化时才刷新
+    if (newYear && newMonth && (newYear !== currentYear || newMonth !== currentMonth)) {
+      console.log(`月份变化: ${currentYear}-${currentMonth} -> ${newYear}-${newMonth}`)
       
-      // 年份或月份变化时才刷新
-      if (newYear !== currentYear || newMonth !== currentMonth) {
-        // 更新当前年月
-        this.setData({ 
-          currentYear: newYear,
-          currentMonth: newMonth
-        })
-        
-        // 加载新月份的日程日期标记
-        this.loadScheduleMarks(newYear, newMonth)
-        
-        // 如果跨年，刷新节假日标记
-        if (newYear !== currentYear) {
-          this.refreshCalendarMarks()
-        }
+      // 更新当前年月
+      this.setData({ 
+        currentYear: newYear,
+        currentMonth: newMonth
+      })
+      
+      // 加载新月份的日程日期标记
+      this.loadScheduleMarks(newYear, newMonth)
+      
+      // 如果跨年，刷新节假日标记
+      if (newYear !== currentYear) {
+        this.refreshCalendarMarks()
       }
+    } else {
+      console.log('月份未变化或无法获取月份信息，跳过刷新')
     }
   },
 
