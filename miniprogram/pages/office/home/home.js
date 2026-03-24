@@ -28,7 +28,8 @@ Page({
       { icon: '🍽️', label: '每周菜单', color: '#16A34A', bg: '#DCFCE7', implemented: true, featureKey: null },
       { icon: '🏥', label: '就医申请', color: '#EF4444', bg: '#FEE2E2', implemented: true, featureKey: 'medical_application' },
       { icon: '🚗', label: '外出报备', color: '#2563EB', bg: '#EFF6FF', implemented: true, featureKey: 'trip_report' },
-      { icon: '📊', label: '出行管理', color: '#7C3AED', bg: '#F3E8FF', implemented: true, featureKey: 'trip_dashboard' }
+      { icon: '📊', label: '出行管理', color: '#7C3AED', bg: '#F3E8FF', implemented: true, featureKey: 'trip_dashboard' },
+      { icon: '🏢', label: '会议室预约', color: '#7C5CFC', bg: '#E8E4FF', implemented: true, featureKey: null }
     ],
     announcements: [],
     todaySchedules: [],
@@ -274,6 +275,10 @@ Page({
     } else if (label === '出行管理') {
       // 统一权限检查
       this.checkAndNavigate('trip_dashboard', '/pages/office/trip-dashboard/trip-dashboard', '出行管理')
+    } else if (label === '预约会议室') {
+      wx.navigateTo({
+        url: '/pages/office/meeting-room/meeting-room'
+      })
     } else {
       utils.showToast({
         title: '功能开发中，敬请期待',

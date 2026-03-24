@@ -22,9 +22,9 @@ const SCHEDULE_ALLOWED_POSITIONS = ['礼宾']
 
 // 日程类型配置
 const SCHEDULE_TYPES = [
-  { type: 'meeting', name: '会议', color: '#3B82F6' },
-  { type: 'training', name: '学习', color: '#10B981' },
-  { type: 'visit', name: '会见', color: '#8B5CF6' },
+  { type: 'meeting', name: '会议', color: '#8B5CF6' },
+  { type: 'study', name: '学习', color: '#EF4444' },
+  { type: 'visit', name: '会见', color: '#10B981' },
   { type: 'banquet', name: '宴请', color: '#F59E0B' },
   { type: 'other', name: '其他', color: '#6B7280' }
 ]
@@ -101,7 +101,7 @@ Page({
       endDatetime: '',    // 结束日期时间 YYYY-MM-DD HH:mm
       type: 'meeting',
       typeName: '会议',
-      color: '#3B82F6',
+      color: '#8B5CF6',
       repeat: 'none',
       repeatLabel: '不重复',  // 重复标签
       repeatEndDate: '',      // 重复截止日期
@@ -952,7 +952,7 @@ Page({
         endDatetime,
         type: 'meeting',
         typeName: '会议',
-        color: '#3B82F6',
+        color: '#8B5CF6',
         repeat: 'none',
         repeatLabel: '不重复',
         repeatEndDate: '',

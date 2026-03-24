@@ -23,11 +23,18 @@
     "miniprogram": {
       "list": [
         {
-          "name": "pages/office/home/home",
-          "pathName": "pages/office/home/home",
+          "name": "pages/office/meeting-room/meeting-room",
+          "pathName": "pages/office/meeting-room/meeting-room",
           "query": "",
           "scene": null,
           "launchMode": "default"
+        },
+        {
+          "name": "pages/office/home/home",
+          "pathName": "pages/office/home/home",
+          "query": "",
+          "launchMode": "default",
+          "scene": null
         },
         {
           "name": "pages/office/calendar/calendar",

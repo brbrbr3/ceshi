@@ -1,0 +1,205 @@
+<!--会议室预约页面-->
+<view class="meeting-room-page">
+  <!-- 页面头部 -->
+  <view class="meeting-header">
+    <view class="meeting-header-content">
+      <view class="meeting-title">会议室预约</view>
+      <view class="meeting-add-btn" bindtap="handleAddReservation">+</view>
+    </view>
+  </view>
+
+  <!-- 会议室选择器 -->
+  <view class="room-selector">
+    <scroll-view class="room-scroll" scroll-x="true" enhanced="true" show-scrollbar="false">
+      <view class="room-list">
+        <view
+          wx:for="{{rooms}}"
+          wx:key="id"
+          class="room-item {{selectedRoomId === item.id ? 'is-active' : ''}}"
+          bindtap="handleRoomChange"
+          data-room-id="{{item.id}}"
+        >
+          {{item.name}}
+        </view>
+      </view>
+    </scroll-view>
+  </view>
+
+  <!-- 日期选择器 -->
+  <view class="date-selector">
+    <scroll-view class="date-scroll" scroll-x="true" enhanced="true" show-scrollbar="false">
+      <view class="date-list">
+        <view
+          wx:for="{{dateList}}"
+          wx:key="dateStr"
+          class="date-item {{selectedDateIndex === index ? 'is-active' : ''}}"
+          bindtap="handleDateChange"
+          data-index="{{index}}"
+        >
+          <view class="date-weekday">{{item.weekDay}}</view>
+          <view class="date-day">{{item.day}}</view>
+          <view class="date-count">
+            <view class="date-count-dot"></view>
+            <text>{{item.reservationCount}}</text>
+          </view>
+        </view>
+      </view>
+    </scroll-view>
+  </view>
+
+  <!-- 时间轴会议列表 -->
+  <view class="timeline-section">
+    <scroll-view class="timeline-scroll" scroll-y="true" scroll-into-view="{{currentTimeView}}" enhanced="true" show-scrollbar="false">
+      <view class="timeline-container" bindlongpress="handleTimelineLongPress">
+        <!-- 小时网格 -->
+        <view class="timeline-grid">
+          <view class="hour-row" wx:for="{{hours}}" wx:key="*this" id="hour-{{item}}">
+            <view class="hour-label">{{item < 10 ? '0' + item : item}}:00</view>
+          </view>
+        </view>
+
+        <!-- 预约块 -->
+        <view class="reservation-bars">
+          <view
+            class="reservation-bar"
+            wx:for="{{reservations}}"
+            wx:key="_id"
+            style="top: {{item.top}}rpx; height: {{item.height}}rpx;"
+            bindtap="handleReservationTap"
+            data-reservation="{{item}}"
+          >
+            <text class="reservation-bar-title">{{item.title}}</text>
+            <text class="reservation-bar-time" wx:if="{{item.height > 60}}">{{item.startTime}} - {{item.endTime}}</text>
+            <text class="reservation-bar-desc" wx:if="{{item.height > 90 && item.description}}">{{item.description}}</text>
+          </view>
+        </view>
+
+        <!-- 当前时间线 -->
+        <view class="current-time-line" wx:if="{{showCurrentTime}}" style="top: {{currentTimeTop}}rpx;">
+          <text class="current-time-label">{{currentTimeText}}</text>
+          <view class="current-time-dot"></view>
+          <view class="current-time-bar"></view>
+        </view>
+      </view>
+    </scroll-view>
+  </view>
+
+  <!-- 预约详情弹窗 -->
+  <view class="detail-popup-mask {{showDetailPopup ? 'is-visible' : ''}}" catchtouchmove="stopPropagation" bindtap="hideDetailPopup">
+    <view class="detail-popup-container" catchtap="stopPropagation">
+      <!-- 弹窗头部 -->
+      <view class="detail-popup-header">
+        <view class="detail-popup-close" bindtap="hideDetailPopup">×</view>
+        <view class="detail-popup-title">预约详情</view>
+        <view class="detail-popup-edit" bindtap="handleEditFromDetail">编辑</view>
+      </view>
+
+      <!-- 详情内容 -->
+      <scroll-view class="detail-popup-scroll" scroll-y="true" enhanced="true" show-scrollbar="false">
+        <view class="detail-popup-content" wx:if="{{detailReservation}}">
+          <!-- 标题区域 -->
+          <view class="detail-header">
+            <view class="detail-type-dot"></view>
+            <text class="detail-title">{{detailReservation.title}}</text>
+          </view>
+
+          <!-- 时间信息 -->
+          <view class="detail-section">
+            <view class="detail-section-title">时间</view>
+            <view class="detail-time-info">
+              <view class="detail-time-row">
+                <text class="detail-time-label">日期</text>
+                <text class="detail-time-value">{{detailReservation.date}}</text>
+              </view>
+              <view class="detail-time-row">
+                <text class="detail-time-label">时间</text>
+                <text class="detail-time-value">{{detailReservation.startTime}} - {{detailReservation.endTime}}</text>
+              </view>
+            </view>
+          </view>
+
+          <!-- 会议室 -->
+          <view class="detail-section">
+            <view class="detail-section-title">会议室</view>
+            <text class="detail-section-value">{{detailReservation.roomName}}</text>
+          </view>
+
+          <!-- 备注 -->
+          <view class="detail-section" wx:if="{{detailReservation.description}}">
+            <view class="detail-section-title">备注</view>
+            <text class="detail-section-value">{{detailReservation.description}}</text>
+          </view>
+
+          <!-- 创建者 -->
+          <view class="detail-section" wx:if="{{detailReservation.creatorName}}">
+            <view class="detail-section-title">创建者</view>
+            <text class="detail-section-value">{{detailReservation.creatorName}}</text>
+          </view>
+        </view>
+      </scroll-view>
+
+      <!-- 删除按钮 -->
+      <view class="detail-popup-footer">
+        <button class="detail-delete-btn" bindtap="handleDeleteReservation">删除预约</button>
+      </view>
+    </view>
+  </view>
+
+  <!-- 预约编辑弹窗 -->
+  <view class="form-popup-mask {{showFormPopup ? 'is-visible' : ''}}" catchtouchmove="stopPropagation" bindtap="hideFormPopup">
+    <view class="form-popup-container" catchtap="stopPropagation">
+      <!-- 弹窗头部 -->
+      <view class="form-popup-header">
+        <view class="form-popup-cancel" bindtap="hideFormPopup">取消</view>
+        <view class="form-popup-title">{{editingReservation ? '编辑预约' : '新建预约'}}</view>
+        <view class="form-popup-save" bindtap="handleSaveReservation">完成</view>
+      </view>
+
+      <!-- 表单内容 -->
+      <scroll-view class="form-popup-scroll" scroll-y="true" enhanced="true" show-scrollbar="false">
+        <view class="form-popup-form">
+          <!-- 标题输入 -->
+          <view class="form-card">
+            <view class="form-field">
+              <view class="form-field-label">会议标题</view>
+              <input class="form-input" placeholder="请输入会议标题" value="{{reservationForm.title}}" bindinput="handleTitleInput" maxlength="50" />
+            </view>
+          </view>
+
+          <!-- 会议室显示 -->
+          <view class="form-card">
+            <view class="form-field">
+              <view class="form-field-label">会议室</view>
+              <view class="form-field-value">{{reservationForm.roomName}}</view>
+            </view>
+          </view>
+
+          <!-- 时间选择 -->
+          <view class="form-card">
+            <view class="form-field">
+              <view class="form-field-label">开始时间</view>
+              <view class="form-picker">
+                <datetime-picker value="{{reservationForm.date}} {{reservationForm.startTime}}" fields="{{['hour', 'minute']}}" bind:change="handleStartTimeChange" />
+              </view>
+            </view>
+
+            <view class="form-field">
+              <view class="form-field-label">结束时间</view>
+              <view class="form-picker">
+                <datetime-picker value="{{reservationForm.date}} {{reservationForm.endTime}}" fields="{{['hour', 'minute']}}" bind:change="handleEndTimeChange" />
+              </view>
+            </view>
+          </view>
+
+          <!-- 备注 -->
+          <view class="form-card">
+            <view class="form-field">
+              <view class="form-field-label">备注</view>
+              <textarea class="form-textarea" placeholder="选填" value="{{reservationForm.description}}" bindinput="handleDescriptionInput" maxlength="200" auto-height />
+            </view>
+          </view>
+        </view>
+      </scroll-view>
+    </view>
+  </view>
+</view>

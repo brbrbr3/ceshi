@@ -22,9 +22,9 @@ function fail(message, code) {
 
 // 日程类型配置
 const SCHEDULE_TYPES = {
-  meeting: { name: '会议', color: '#3B82F6' },
-  training: { name: '培训', color: '#10B981' },
-  visit: { name: '会见', color: '#8B5CF6' },
+  meeting: { name: '会议', color: '#8B5CF6' },
+  study: { name: '学习', color: '#EF4444' },
+  visit: { name: '会见', color: '#10B981' },
   banquet: { name: '宴请', color: '#F59E0B' },
   other: { name: '其他', color: '#6B7280' }
 }
