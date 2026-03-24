@@ -37,9 +37,8 @@
           data-index="{{index}}"
         >
           <view class="date-weekday">{{item.weekDay}}</view>
-          <view class="date-day">{{item.day}}</view>
-          <view class="date-count">
-            <view class="date-count-dot"></view>
+          <view class="date-day">{{item.monthDay}}</view>
+          <view class="date-count-badge" wx:if="{{item.reservationCount > 0}}">
             <text>{{item.reservationCount}}</text>
           </view>
         </view>
@@ -55,22 +54,31 @@
         <view class="timeline-grid">
           <view class="hour-row" wx:for="{{hours}}" wx:key="*this" id="hour-{{item}}">
             <view class="hour-label">{{item < 10 ? '0' + item : item}}:00</view>
+            <!-- 半点虚线 -->
+            <view class="half-hour-line"></view>
           </view>
         </view>
 
         <!-- 预约块 -->
         <view class="reservation-bars">
           <view
-            class="reservation-bar"
+            class="reservation-bar {{draggingReservation._id === item._id ? 'is-dragging' : ''}}"
             wx:for="{{reservations}}"
             wx:key="_id"
+            id="reservation-{{item._id}}"
             style="top: {{item.top}}rpx; height: {{item.height}}rpx;"
-            bindtap="handleReservationTap"
+            catchtap="handleReservationTap"
+            catchtouchstart="handleReservationTouchStart"
+            catchtouchmove="handleReservationTouchMove"
+            catchtouchend="handleReservationTouchEnd"
             data-reservation="{{item}}"
           >
-            <text class="reservation-bar-title">{{item.title}}</text>
-            <text class="reservation-bar-time" wx:if="{{item.height > 60}}">{{item.startTime}} - {{item.endTime}}</text>
-            <text class="reservation-bar-desc" wx:if="{{item.height > 90 && item.description}}">{{item.description}}</text>
+            <view class="reservation-bar-title">{{item.title}}</view>
+            <view class="reservation-bar-time" wx:if="{{item.height > 80}}">{{item.startTime}} - {{item.endTime}}</view>
+            <view class="reservation-bar-desc" wx:if="{{item.height > 120 && item.description}}">{{item.description}}</view>
+            <!-- 拖拽手柄 -->
+            <view class="drag-handle drag-handle-top" wx:if="{{item.height > 100}}"></view>
+            <view class="drag-handle drag-handle-bottom" wx:if="{{item.height > 100}}"></view>
           </view>
         </view>
 

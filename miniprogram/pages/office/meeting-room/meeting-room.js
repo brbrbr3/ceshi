@@ -7,7 +7,7 @@ const app = getApp()
 const utils = require('../../../common/utils.js')
 
 // 时间轴配置
-const HOUR_HEIGHT = 100 // 每小时高度 rpx
+const HOUR_HEIGHT = 200 // 每小时高度 rpx
 const START_HOUR = 0 // 起始小时 0:00
 const END_HOUR = 24 // 结束小时 24:00
 
@@ -57,7 +57,18 @@ Page({
     },
 
     // 用户信息
-    currentUser: null
+    currentUser: null,
+
+    // 拖拽状态
+    draggingReservation: null,   // 正在拖拽的预约
+    dragType: null,              // 'start' | 'end' | 'move'
+    dragStartY: 0,               // 拖拽起始Y坐标
+    originalStartTime: '',       // 原始开始时间
+    originalEndTime: '',         // 原始结束时间
+    previewStartTime: '',        // 预览开始时间
+    previewEndTime: '',          // 预览结束时间
+    previewTop: 0,               // 预览 top
+    previewHeight: 0             // 预览 height
   },
 
   onLoad() {
@@ -108,6 +119,7 @@ Page({
         dateStr: `${year}-${String(month).padStart(2, '0')}-${String(day).padStart(2, '0')}`,
         weekDay: weekDay,
         day: day,
+        monthDay: `${month}月${day}日`, // 完整月日显示
         reservationCount: 0 // 预约数（后续加载）
       })
     }
@@ -556,5 +568,256 @@ Page({
   /**
    * 阻止事件冒泡
    */
-  stopPropagation() {}
+  stopPropagation() {},
+
+  // ========================================
+  // 拖拽功能
+  // ========================================
+
+  /**
+   * 会议块触摸开始 - 判断拖拽类型
+   */
+  handleReservationTouchStart(e) {
+    const reservation = e.currentTarget.dataset.reservation
+    const touch = e.touches[0]
+    
+    // 获取会议块的高度和触摸点相对位置
+    const query = wx.createSelectorQuery()
+    query.select(`#reservation-${reservation._id}`).boundingClientRect()
+    query.exec((res) => {
+      if (!res[0]) return
+      
+      const rect = res[0]
+      const relativeY = touch.clientY - rect.top
+      const heightRatio = relativeY / rect.height
+      
+      // 根据触摸位置判断拖拽类型
+      let dragType = 'move'
+      if (heightRatio < 0.2) {
+        dragType = 'start'  // 调整开始时间
+      } else if (heightRatio > 0.8) {
+        dragType = 'end'    // 调整结束时间
+      }
+      
+      this.setData({
+        draggingReservation: reservation,
+        dragType,
+        dragStartY: touch.clientY,
+        originalStartTime: reservation.startTime,
+        originalEndTime: reservation.endTime,
+        previewStartTime: reservation.startTime,
+        previewEndTime: reservation.endTime,
+        previewTop: reservation.top,
+        previewHeight: reservation.height
+      })
+    })
+  },
+
+  /**
+   * 会议块触摸移动 - 实时预览
+   */
+  handleReservationTouchMove(e) {
+    const { draggingReservation, dragType, dragStartY, originalStartTime, originalEndTime } = this.data
+    if (!draggingReservation) return
+    
+    const touch = e.touches[0]
+    const deltaY = touch.clientY - dragStartY
+    
+    // 将像素转换为时间（rpx -> 小时）
+    // 需要获取屏幕宽度来转换 rpx
+    const systemInfo = wx.getSystemInfoSync()
+    const rpxToPx = systemInfo.windowWidth / 750
+    const deltaTime = (deltaY * rpxToPx) / (HOUR_HEIGHT * rpxToPx)  // 小时
+    
+    // 解析原始时间
+    const [startHour, startMin] = originalStartTime.split(':').map(Number)
+    const [endHour, endMin] = originalEndTime.split(':').map(Number)
+    
+    let newStartHour = startHour
+    let newStartMin = startMin
+    let newEndHour = endHour
+    let newEndMin = endMin
+    
+    if (dragType === 'start') {
+      // 调整开始时间
+      const startMinutes = startHour * 60 + startMin + Math.round(deltaTime * 60)
+      const snappedStart = this.snapToHalfHour(startMinutes)
+      newStartHour = Math.floor(snappedStart / 60)
+      newStartMin = snappedStart % 60
+    } else if (dragType === 'end') {
+      // 调整结束时间
+      const endMinutes = endHour * 60 + endMin + Math.round(deltaTime * 60)
+      const snappedEnd = this.snapToHalfHour(endMinutes)
+      newEndHour = Math.floor(snappedEnd / 60)
+      newEndMin = snappedEnd % 60
+    } else {
+      // 整体移动
+      const duration = (endHour * 60 + endMin) - (startHour * 60 + startMin)
+      const startMinutes = startHour * 60 + startMin + Math.round(deltaTime * 60)
+      const snappedStart = this.snapToHalfHour(startMinutes)
+      newStartHour = Math.floor(snappedStart / 60)
+      newStartMin = snappedStart % 60
+      const newEndMinutes = snappedStart + duration
+      const snappedEnd = this.snapToHalfHour(newEndMinutes)
+      newEndHour = Math.floor(snappedEnd / 60)
+      newEndMin = snappedEnd % 60
+    }
+    
+    // 时间范围限制
+    if (newStartHour < 0) { newStartHour = 0; newStartMin = 0 }
+    if (newStartHour >= 24) { newStartHour = 23; newStartMin = 30 }
+    if (newEndHour < 0) { newEndHour = 0; newEndMin = 30 }
+    if (newEndHour >= 24) { newEndHour = 24; newEndMin = 0 }
+    
+    // 确保开始时间 < 结束时间
+    const newStartTotal = newStartHour * 60 + newStartMin
+    const newEndTotal = newEndHour * 60 + newEndMin
+    if (newStartTotal >= newEndTotal) {
+      return  // 不允许开始时间 >= 结束时间
+    }
+    
+    // 格式化时间
+    const previewStartTime = `${String(newStartHour).padStart(2, '0')}:${String(newStartMin).padStart(2, '0')}`
+    const previewEndTime = `${String(newEndHour).padStart(2, '0')}:${String(newEndMin).padStart(2, '0')}`
+    
+    // 计算预览位置
+    const startOffset = newStartHour + newStartMin / 60
+    const endOffset = newEndHour + newEndMin / 60
+    const previewTop = startOffset * HOUR_HEIGHT
+    const previewHeight = Math.max((endOffset - startOffset) * HOUR_HEIGHT, 80)
+    
+    // 更新预览
+    this.setData({
+      previewStartTime,
+      previewEndTime,
+      previewTop,
+      previewHeight
+    })
+    
+    // 更新 reservations 数组中的位置
+    const reservations = this.data.reservations.map(r => {
+      if (r._id === draggingReservation._id) {
+        return {
+          ...r,
+          startTime: previewStartTime,
+          endTime: previewEndTime,
+          top: previewTop,
+          height: previewHeight
+        }
+      }
+      return r
+    })
+    this.setData({ reservations })
+  },
+
+  /**
+   * 会议块触摸结束 - 确认修改
+   */
+  handleReservationTouchEnd(e) {
+    const { draggingReservation, originalStartTime, originalEndTime, previewStartTime, previewEndTime } = this.data
+    
+    if (!draggingReservation) return
+    
+    // 检查时间是否有变化
+    if (previewStartTime === originalStartTime && previewEndTime === originalEndTime) {
+      // 时间未变化，只点击，显示详情
+      this.setData({
+        draggingReservation: null,
+        dragType: null
+      })
+      return
+    }
+    
+    // 弹出确认框
+    wx.showModal({
+      title: '修改会议时间',
+      content: `将时间从 ${originalStartTime}-${originalEndTime} 修改为 ${previewStartTime}-${previewEndTime}？`,
+      success: async (res) => {
+        if (res.confirm) {
+          // 确认修改，调用云函数更新
+          await this.updateReservationTime(draggingReservation._id, previewStartTime, previewEndTime)
+        } else {
+          // 取消，恢复原位置
+          this.restoreReservationPosition()
+        }
+        this.setData({
+          draggingReservation: null,
+          dragType: null
+        })
+      }
+    })
+  },
+
+  /**
+   * 吸附到整点或半点
+   */
+  snapToHalfHour(minutes) {
+    const remainder = minutes % 30
+    if (remainder < 15) {
+      return minutes - remainder
+    } else {
+      return minutes + (30 - remainder)
+    }
+  },
+
+  /**
+   * 更新预约时间到服务器
+   */
+  async updateReservationTime(reservationId, startTime, endTime) {
+    wx.showLoading({ title: '保存中...', mask: true })
+    
+    try {
+      const res = await wx.cloud.callFunction({
+        name: 'meetingRoomManager',
+        data: {
+          action: 'updateMeetingRoomReservation',
+          params: {
+            meetingRoomReservationId: reservationId,
+            startTime,
+            endTime
+          },
+          userInfo: this.data.currentUser
+        }
+      })
+      
+      wx.hideLoading()
+      
+      if (res.result.code === 0) {
+        utils.showToast({ title: '修改成功', icon: 'success' })
+        this.loadReservations()
+      } else {
+        utils.showToast({ title: res.result.message || '修改失败', icon: 'none' })
+        this.restoreReservationPosition()
+      }
+    } catch (error) {
+      wx.hideLoading()
+      console.error('更新预约时间失败:', error)
+      utils.showToast({ title: '修改失败', icon: 'none' })
+      this.restoreReservationPosition()
+    }
+  },
+
+  /**
+   * 恢复预约位置
+   */
+  restoreReservationPosition() {
+    const { draggingReservation, originalStartTime, originalEndTime } = this.data
+    if (!draggingReservation) return
+    
+    const [startHour, startMin] = originalStartTime.split(':').map(Number)
+    const [endHour, endMin] = originalEndTime.split(':').map(Number)
+    
+    const startOffset = startHour + startMin / 60
+    const endOffset = endHour + endMin / 60
+    const top = startOffset * HOUR_HEIGHT
+    const height = Math.max((endOffset - startOffset) * HOUR_HEIGHT, 80)
+    
+    const reservations = this.data.reservations.map(r => {
+      if (r._id === draggingReservation._id) {
+        return { ...r, startTime: originalStartTime, endTime: originalEndTime, top, height }
+      }
+      return r
+    })
+    this.setData({ reservations })
+  }
 })
