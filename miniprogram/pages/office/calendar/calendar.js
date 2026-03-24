@@ -1160,24 +1160,14 @@ Page({
   handleStartDatetimeChange(e) {
     const { year, month, day, hour, minute } = e.detail
     const dateStr = `${year}-${String(month).padStart(2, '0')}-${String(day).padStart(2, '0')}`
-    
+
     let startDatetime
     if (this.data.scheduleForm.isAllDay) {
       startDatetime = dateStr
     } else {
       startDatetime = `${dateStr} ${String(hour || 0).padStart(2, '0')}:${String(minute || 0).padStart(2, '0')}`
-      
-      // 自动调整结束时间 = 开始时间 + 30分钟（使用 Date 对象处理跨日）
-      const startDate = new Date(year, month - 1, day, hour || 0, minute || 0, 0)
-      const endDate = new Date(startDate.getTime() + 30 * 60 * 1000)
-      const endDatetime = `${endDate.getFullYear()}-${String(endDate.getMonth() + 1).padStart(2, '0')}-${String(endDate.getDate()).padStart(2, '0')} ${String(endDate.getHours()).padStart(2, '0')}:${String(endDate.getMinutes()).padStart(2, '0')}`
-      this.setData({
-        'scheduleForm.startDatetime': startDatetime,
-        'scheduleForm.endDatetime': endDatetime
-      })
-      return
     }
-    
+
     this.setData({ 'scheduleForm.startDatetime': startDatetime })
   },
 
@@ -1365,14 +1355,14 @@ Page({
     const { date: startDate, time: startTime } = parseDateTimeStr(scheduleForm.startDatetime)
     const { date: endDate, time: endTime } = parseDateTimeStr(scheduleForm.endDatetime)
 
-    // 验证时间：非全天日程时，结束时间不得早于开始时间
+    // 验证时间：非全天日程时，开始时间不得晚于结束时间
     if (!scheduleForm.isAllDay) {
-      const startMinutes = this.timeToMinutes(startTime)
-      const endMinutes = this.timeToMinutes(endTime)
+      // 比较整体时间（日期 + 时间）
+      const startDateTime = `${startDate} ${startTime || '00:00'}`
+      const endDateTime = `${endDate || startDate} ${endTime || '23:59'}`
 
-      // 同一天的情况下，结束时间必须晚于开始时间
-      if (startDate === endDate && endMinutes <= startMinutes) {
-        utils.showToast({ title: '结束时间不得早于开始时间', icon: 'none' })
+      if (startDateTime > endDateTime) {
+        utils.showToast({ title: '开始时间不得晚于结束时间', icon: 'none' })
         return
       }
     }

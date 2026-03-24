@@ -476,13 +476,13 @@ page {
   font-size: 32rpx;
   font-weight: 600;
   color: #1E293B;
+  padding-left: 40rpx;
 }
 
 .detail-popup-unsubscribe {
   font-size: 26rpx;
   color: #EF4444;
   font-weight: 500;
-  padding: 8rpx 16rpx;
 }
 
 /* 详情滚动区域 */
