@@ -269,6 +269,11 @@ async function hasPermission(task, operatorId) {
     return true
   }
 
+  // 【新增】角色审批：检查是否在审批人列表中
+  if (task.approverType === 'role' && task.approverList && task.approverList.length > 0) {
+    return task.approverList.some(approver => approver.id === operatorId)
+  }
+
   // 具体用户审批：直接匹配 openid
   if (task.approverType === 'user' && task.approverId === operatorId) {
     return true
@@ -279,8 +284,8 @@ async function hasPermission(task, operatorId) {
     return true
   }
 
-  // 角色审批：检查用户是否具有该角色或岗位
-  if (task.approverType === 'role') {
+  // 【兼容旧格式】角色审批：检查用户是否具有该角色或岗位
+  if (task.approverType === 'role' && !task.approverList) {
     try {
       // 解析角色ID
       const roleId = task.approverId.replace('role_', '')
@@ -433,6 +438,17 @@ async function startWorkflow(orderType, businessData) {
   }
 }
 
+// 获取角色显示名称
+function getRoleDisplayName(roleId) {
+  const roleNames = {
+    'admin': '管理员',
+    'department_head': '部门负责人',
+    'accountant_supervisor': '会计主管',
+    'library_leader': '馆领导'
+  }
+  return roleNames[roleId] || roleId
+}
+
 // 创建任务节点
 async function createTasks(orderId, step, businessData) {
   try {
@@ -444,47 +460,116 @@ async function createTasks(orderId, step, businessData) {
     const approvers = await resolveApprovers(step.approverType, step.approverConfig, businessData)
     
     if (!approvers || approvers.length === 0) {
-      // 不再抛出错误，而是记录日志并返回空数组
       console.warn(`步骤"${step.stepName}"未找到审批人，工单将停留在当前步骤`)
       return []
     }
     
-    // 判断是否找到具体用户
-    const foundSpecificUsers = approvers.some(approver => !approver.id.startsWith('role_') && !approver.id.startsWith('dept_'))
-    
     const now = Date.now()
-    const timeoutHours = step.timeout || 72 // 默认72小时
+    const timeoutHours = step.timeout || 72
     const timeoutAt = now + (timeoutHours * 60 * 60 * 1000)
     
-    // 创建任务
-    const tasks = approvers.map(approver => ({
-      orderId,
-      stepNo: step.stepNo,
-      stepName: step.stepName,
-      stepType: step.stepType,
-      approverType: foundSpecificUsers ? 'user' : step.approverType, // 如果找到具体用户，设为 user 类型
-      approverId: approver.id,
-      approverName: approver.name,
-      taskStatus: TASK_STATUS.PENDING,
-      createdAt: now,
-      assignedAt: now,
-      timeoutAt,
-      timeoutAction: step.timeoutAction || TIMEOUT_ACTION.REMIND,
-      isTimeout: false,
-      parallelGroupId,
-      comment: '',
-      attachments: []
-    }))
+    // 判断是否为串行步骤 + 角色审批
+    const isSequential = step.approvalStrategy === 'sequential' || step.stepType === 'serial'
+    const isRoleApproval = step.approverType === 'role'
     
-    // 批量创建任务
-    for (const task of tasks) {
+    if (isSequential && isRoleApproval) {
+      // 【串行 + 角色】：创建单个共享任务，所有审批人共享
+      console.log('创建共享任务（串行角色审批），审批人列表:', approvers.map(a => a.name).join(', '))
+      
+      const roleId = step.approverConfig.roleIds[0]
+      const task = {
+        orderId,
+        stepNo: step.stepNo,
+        stepName: step.stepName,
+        stepType: step.stepType,
+        // 角色级别信息
+        approverType: 'role',
+        approverId: roleId,
+        approverName: getRoleDisplayName(roleId),
+        // 所有有权限的审批人列表
+        approverList: approvers,
+        // 实际审批人（审批后填充）
+        actualApproverId: null,
+        actualApproverName: null,
+        // 状态
+        taskStatus: TASK_STATUS.PENDING,
+        createdAt: now,
+        assignedAt: now,
+        timeoutAt,
+        timeoutAction: step.timeoutAction || TIMEOUT_ACTION.REMIND,
+        isTimeout: false,
+        parallelGroupId: null,
+        comment: '',
+        attachments: []
+      }
+      
       await tasksCollection.add({ data: task })
+      return [task]
+      
+    } else if (step.stepType === STEP_TYPE.PARALLEL) {
+      // 【并行步骤】：为每个审批人创建独立任务
+      console.log('创建并行任务，审批人数量:', approvers.length)
+      
+      const tasks = approvers.map(approver => ({
+        orderId,
+        stepNo: step.stepNo,
+        stepName: step.stepName,
+        stepType: step.stepType,
+        approverType: 'user',
+        approverId: approver.id,
+        approverName: approver.name,
+        approverList: [approver],  // 兼容格式
+        actualApproverId: null,
+        actualApproverName: null,
+        taskStatus: TASK_STATUS.PENDING,
+        createdAt: now,
+        assignedAt: now,
+        timeoutAt,
+        timeoutAction: step.timeoutAction || TIMEOUT_ACTION.REMIND,
+        isTimeout: false,
+        parallelGroupId,
+        comment: '',
+        attachments: []
+      }))
+      
+      for (const task of tasks) {
+        await tasksCollection.add({ data: task })
+      }
+      return tasks
+      
+    } else {
+      // 【其他情况（具体用户）】：为每个用户创建独立任务
+      console.log('创建用户任务，用户数量:', approvers.length)
+      
+      const tasks = approvers.map(approver => ({
+        orderId,
+        stepNo: step.stepNo,
+        stepName: step.stepName,
+        stepType: step.stepType,
+        approverType: 'user',
+        approverId: approver.id,
+        approverName: approver.name,
+        approverList: [approver],  // 兼容格式
+        actualApproverId: null,
+        actualApproverName: null,
+        taskStatus: TASK_STATUS.PENDING,
+        createdAt: now,
+        assignedAt: now,
+        timeoutAt,
+        timeoutAction: step.timeoutAction || TIMEOUT_ACTION.REMIND,
+        isTimeout: false,
+        parallelGroupId: null,
+        comment: '',
+        attachments: []
+      }))
+      
+      for (const task of tasks) {
+        await tasksCollection.add({ data: task })
+      }
+      return tasks
     }
 
-    return tasks
-
   } catch (error) {
-    // 不再抛出错误，而是记录日志并返回空数组
     console.error('创建任务失败:', error)
     return []
   }
@@ -513,7 +598,19 @@ async function approveTask(taskId, action, comment, operatorId, operatorName, at
       throw new Error('无权审批此任务')
     }
 
-    // 3. 检查任务状态，如果不是 pending，给出更详细的错误信息
+    // 3. 【并发控制】检查工单状态
+    if (order.workflowStatus !== ORDER_STATUS.PENDING) {
+      const statusText = {
+        'completed': '已完成',
+        'rejected': '已驳回',
+        'cancelled': '已取消',
+        'terminated': '已中止',
+        'supplement': '待补充'
+      }[order.workflowStatus] || order.workflowStatus
+      throw new Error(`工单已${statusText}，请刷新页面`)
+    }
+
+    // 4. 检查任务状态，如果不是 pending，给出更详细的错误信息
     if (task.taskStatus !== TASK_STATUS.PENDING) {
       const statusText = {
         'approved': '已通过',
@@ -521,25 +618,41 @@ async function approveTask(taskId, action, comment, operatorId, operatorName, at
         'cancelled': '已取消',
         'returned': '已退回'
       }[task.taskStatus] || task.taskStatus
+      
+      // 如果已有实际审批人，显示谁审批的
+      if (task.actualApproverName) {
+        throw new Error(`任务已被${task.actualApproverName}${statusText}，请刷新页面`)
+      }
       throw new Error(`任务${statusText}，请刷新页面后重试`)
     }
 
     const now = Date.now()
 
-    // 4. 更新任务状态
+    // 5. 【并发控制】再次获取任务状态（乐观锁检查）
+    const freshTaskRes = await tasksCollection.doc(taskId).get()
+    if (freshTaskRes.data.taskStatus !== TASK_STATUS.PENDING) {
+      if (freshTaskRes.data.actualApproverName) {
+        throw new Error(`任务已被${freshTaskRes.data.actualApproverName}处理，请刷新页面`)
+      }
+      throw new Error('任务已被处理，请刷新页面后重试')
+    }
+
+    // 6. 更新任务状态（记录实际审批人）
     await tasksCollection.doc(taskId).update({
       data: {
         taskStatus: action === 'approve' ? TASK_STATUS.APPROVED : (action === 'return' ? TASK_STATUS.RETURNED : TASK_STATUS.REJECTED),
         action,
         comment,
         attachments: attachments || [],
+        actualApproverId: operatorId,        // 记录实际审批人ID
+        actualApproverName: operatorName,    // 记录实际审批人姓名
         startedAt: task.startedAt || now,
         completedAt: now,
         updatedAt: now
       }
     })
 
-    // 5. 记录日志
+    // 7. 记录日志
     const actionText = {
       'approve': '通过',
       'reject': '驳回',
@@ -554,11 +667,11 @@ async function approveTask(taskId, action, comment, operatorId, operatorName, at
       `审批操作: ${actionText}`,
       taskId,
       { taskStatus: task.taskStatus },
-      { taskStatus: action === 'approve' ? TASK_STATUS.APPROVED : (action === 'return' ? TASK_STATUS.RETURNED : TASK_STATUS.REJECTED), comment },
+      { taskStatus: action === 'approve' ? TASK_STATUS.APPROVED : (action === 'return' ? TASK_STATUS.RETURNED : TASK_STATUS.REJECTED), actualApprover: operatorName, comment },
       null
     )
 
-    // 6. 根据操作类型处理流程
+    // 8. 根据操作类型处理流程
     let warningMessage = null
     if (action === 'approve') {
       const handleResult = await handleApproval(task, order, operatorId, operatorName, comment)
@@ -1239,16 +1352,37 @@ async function getMyOrders(openid, status, page = 1, pageSize = 20) {
 // 查询我的待办任务
 async function getMyTasks(openid, page = 1, pageSize = 20) {
   try {
-    const countRes = await tasksCollection.where({
-      approverId: openid,
-      taskStatus: TASK_STATUS.PENDING
-    }).count()
+    // 使用 _.or 查询两种格式的任务
+    // 1. 新格式：approverList 数组中包含当前用户
+    // 2. 旧格式：approverId 直接匹配当前用户
+    const countRes = await tasksCollection.where(
+      _.or([
+        // 新格式：共享任务，检查 approverList
+        {
+          approverList: _.elemMatch({ id: openid }),
+          taskStatus: TASK_STATUS.PENDING
+        },
+        // 旧格式：具体用户任务，检查 approverId
+        {
+          approverId: openid,
+          taskStatus: TASK_STATUS.PENDING
+        }
+      ])
+    ).count()
     
     const dataRes = await tasksCollection
-      .where({
-        approverId: openid,
-        taskStatus: TASK_STATUS.PENDING
-      })
+      .where(
+        _.or([
+          {
+            approverList: _.elemMatch({ id: openid }),
+            taskStatus: TASK_STATUS.PENDING
+          },
+          {
+            approverId: openid,
+            taskStatus: TASK_STATUS.PENDING
+          }
+        ])
+      )
       .orderBy('createdAt', 'desc')
       .skip((page - 1) * pageSize)
       .limit(pageSize)
