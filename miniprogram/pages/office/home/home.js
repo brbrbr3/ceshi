@@ -61,7 +61,6 @@ Page({
       const cached = wx.getStorageSync(PERMISSION_CACHE_KEY)
       if (cached && cached.timestamp && (Date.now() - cached.timestamp < PERMISSION_CACHE_EXPIRE)) {
         this.setData({ permissionCache: cached.permissions || {} })
-        console.log('使用缓存的权限信息')
         return
       }
     } catch (e) {
@@ -93,7 +92,6 @@ Page({
             timestamp: Date.now(),
             permissions
           })
-          console.log('权限信息已缓存', permissions)
         } catch (e) {
           console.warn('缓存权限信息失败:', e)
         }

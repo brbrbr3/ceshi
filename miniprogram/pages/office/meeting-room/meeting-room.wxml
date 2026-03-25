@@ -48,7 +48,7 @@
 
   <!-- 时间轴会议列表 -->
   <view class="timeline-section">
-    <scroll-view class="timeline-scroll" scroll-y="true" scroll-into-view="{{currentTimeView}}" enhanced="true" show-scrollbar="false">
+    <scroll-view class="timeline-scroll" scroll-y="{{!isCreatingReservation}}" scroll-into-view="{{currentTimeView}}" enhanced="true" show-scrollbar="false">
       <view class="timeline-container"
             bindtouchstart="handleTimelineTouchStart"
             bindtouchmove="handleTimelineTouchMove"
@@ -86,7 +86,7 @@
 
           <!-- 临时会议块（长按创建时显示） -->
           <view
-            class="reservation-bar temp-reservation {{isCreatingReservation ? 'is-visible' : ''}}"
+            class="reservation-bar temp-reservation {{isCreatingReservation && !isTempReservationFadingOut ? 'is-visible' : ''}} {{isTempReservationFadingOut ? 'is-fading-out' : ''}} {{tempReservation.isCancelling ? 'is-cancelling' : ''}}"
             style="top: {{tempReservation.top}}rpx; height: {{tempReservation.height}}rpx;"
             wx:if="{{isCreatingReservation && tempReservation}}"
           >

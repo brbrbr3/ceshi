@@ -17,13 +17,13 @@ Component({
       value: ['year', 'month', 'day', 'weekday'],
       observer: 'onFieldsChange'
     },
-    // 最小日期 YYYY-MM-DD（兼容旧版）
+    // 最小日期 YYYY-MM-DD
     startDate: {
       type: String,
       value: '1900-01-01',
       observer: 'onDateRangeChange'
     },
-    // 最大日期 YYYY-MM-DD（兼容旧版）
+    // 最大日期 YYYY-MM-DD
     endDate: {
       type: String,
       value: '2100-12-31',

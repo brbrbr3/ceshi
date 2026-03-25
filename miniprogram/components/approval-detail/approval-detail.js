@@ -46,16 +46,16 @@ Component({
 
     // 动态计算的字段列表
     detailFields: [],
-    
-    // 不同申请类型的字段配置（兼容旧数据）
+
+    // 不同申请类型的字段配置
     fieldConfigs: {
       medical_application: [
         { key: 'patientName', label: '就医人姓名' },
         { key: 'relation', label: '与申请人关系' },
         { key: 'medicalDate', label: '就医时间' },
         { key: 'institution', label: '就医机构' },
-        { key: 'otherInstitution', label: '机构名称', condition: 'institution === "其他"' },
-        { key: 'reasonForSelection', label: '选择此机构的原因', condition: 'institution === "其他"' },
+        { key: 'otherInstitution', label: '机构名称', condition: { field: 'institution', op: '==', value: '其他' } },
+        { key: 'reasonForSelection', label: '选择此机构的原因', condition: { field: 'institution', op: '==', value: '其他' } },
         { key: 'reason', label: '就医原因' }
       ],
       user_registration: [
@@ -63,8 +63,8 @@ Component({
         { key: 'gender', label: '性别' },
         { key: 'birthday', label: '出生日期' },
         { key: 'role', label: '角色' },
-        { key: 'department', label: '部门', condition: 'department' },
-        { key: 'relativeName', label: '亲属姓名', condition: 'relativeName' },
+        { key: 'department', label: '部门', condition: { field: 'department', op: '!=', value: '' } },
+        { key: 'relativeName', label: '亲属姓名', condition: { field: 'relativeName', op: '!=', value: '' } },
         { key: 'position', label: '岗位' },
         { key: 'isAdmin', label: '管理员', type: 'boolean' }
       ],
@@ -73,9 +73,9 @@ Component({
         { key: 'gender', label: '性别' },
         { key: 'birthday', label: '出生日期' },
         { key: 'role', label: '角色' },
-        { key: 'department', label: '部门', condition: 'department' },
+        { key: 'department', label: '部门', condition: { field: 'department', op: '!=', value: '' } },
         { key: 'position', label: '岗位' },
-        { key: 'updateReason', label: '修改原因', condition: 'updateReason' }
+        { key: 'updateReason', label: '修改原因', condition: { field: 'updateReason', op: '!=', value: '' } }
       ]
     },
 
@@ -226,25 +226,11 @@ Component({
         }
         return false
       }
-      
-      // 兼容旧格式
-      if (condition === 'department') {
-        return !!request.department
-      }
-      if (condition === 'relativeName') {
-        return !!request.relativeName
-      }
-      if (condition === 'updateReason') {
-        return !!request.updateReason
-      }
-      if (condition === 'institution === "其他"') {
-        return request.institution === '其他'
-      }
       return true
     },
 
     /**
-     * 格式化字段值（旧格式）
+     * 格式化字段值
      */
     formatFieldValue(field, request) {
       const value = request[field.key]

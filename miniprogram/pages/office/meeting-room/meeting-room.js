@@ -86,12 +86,15 @@ Page({
     isCreatingReservation: false,      // 是否正在创建临时会议块
     tempReservation: null,             // 临时会议块数据
     tempReservationTimer: null,        // 长按创建的定时器
-    tempTouchStartPos: null            // 时间轴触摸起始位置
+    tempTouchStartPos: null,           // 时间轴触摸起始位置
+    isTempReservationFadingOut: false  // 临时会议块是否正在消失动画
   },
 
   // 实际测量的值（运行时获取）
   actualHourHeightPx: 0,  // 实际每小时的像素高度
   rpxToPxRatio: 0,        // rpx 到 px 的转换比例
+  timelineContainerTop: 0, // 时间轴容器顶部位置
+  scrollViewScrollTop: 0,  // scroll-view 滚动位置
 
   onLoad() {
     // 获取屏幕信息，计算 rpx 转 px 比例
@@ -116,19 +119,27 @@ Page({
   measureActualHourHeight() {
     const query = this.createSelectorQuery()
     query.select('.hour-row').boundingClientRect()
+    query.select('.timeline-container').boundingClientRect()
+    query.select('.timeline-scroll').scrollOffset()
     query.exec((res) => {
       if (res[0]) {
         this.actualHourHeightPx = res[0].height
-
-        // 测量完成后，初始化当前时间线和加载预约
-        this.updateCurrentTime()
-        this.loadReservations()
-
-        // 启动定时器
-        this.timeInterval = setInterval(() => {
-          this.updateCurrentTime()
-        }, 60000)
       }
+      if (res[1]) {
+        this.timelineContainerTop = res[1].top
+      }
+      if (res[2]) {
+        this.scrollViewScrollTop = res[2].scrollTop
+      }
+
+      // 初始化当前时间线和加载预约
+      this.updateCurrentTime()
+      this.loadReservations()
+
+      // 启动定时器
+      this.timeInterval = setInterval(() => {
+        this.updateCurrentTime()
+      }, 60000)
     })
   },
 
@@ -481,16 +492,24 @@ Page({
       clearTimeout(this.data.tempReservationTimer)
     }
 
-    // 启动300ms长按定时器
-    const tempReservationTimer = setTimeout(() => {
-      // 长按触发，创建临时会议块
-      this.createTempReservation(touchStartPos)
-    }, 300)
+    // 只获取滚动位置，容器位置使用初始测量值（滚动后boundingClientRect会返回错误的值）
+    const query = this.createSelectorQuery()
+    query.select('.timeline-scroll').scrollOffset()
+    query.exec((res) => {
+      if (res[0]) {
+        this.scrollViewScrollTop = res[0].scrollTop
+      }
 
-    this.setData({
-      tempReservationTimer,
-      tempTouchStartPos: touchStartPos,
-      isCreatingReservation: false
+      // 位置信息获取后，再启动300ms长按定时器
+      const tempReservationTimer = setTimeout(() => {
+        this.createTempReservation(touchStartPos)
+      }, 300)
+
+      this.setData({
+        tempReservationTimer,
+        tempTouchStartPos: touchStartPos,
+        isCreatingReservation: false
+      })
     })
   },
 
@@ -535,23 +554,10 @@ Page({
    * 根据触摸Y坐标计算时间（吸附到整点或半点，默认一小时）
    */
   getTimeFromTouchPosition(touchY) {
-    // 使用存储的时间轴容器位置信息
-    // 这里我们使用实际测量的高度来计算
     const hourHeight = this.actualHourHeightPx
 
-    // 获取时间轴容器相对于屏幕的位置（需要减去滚动偏移）
-    // 由于scroll-view的存在，我们需要获取容器的绝对位置
-    // 这里简化处理：假设触摸Y坐标已经相对于时间轴容器
-    // 实际上我们需要减去时间轴容器的顶部偏移
-
-    // 更简单的方法：使用scroll-view的scrollTop和容器的位置
-    // 但这里我们使用一个近似方法：
-    // 假设时间轴从屏幕顶部开始，减去顶部日期选择器和会议室选择器的高度
-
-    // 实际项目中应该在onReady时测量这些高度
-    // 这里使用一个简化版本
-    const estimatedTopOffset = 200 // 估算的顶部偏移（px）
-    const relativeY = touchY - estimatedTopOffset
+    // 计算触摸点相对于时间轴网格的位置
+    const relativeY = touchY - this.timelineContainerTop + this.scrollViewScrollTop
 
     // 计算小时和分钟
     const totalMinutes = Math.floor((relativeY / hourHeight) * 60)
@@ -635,6 +641,15 @@ Page({
     const screenWidth = windowInfo.screenWidth
     const edgeThreshold = 50 // 边缘检测阈值（px）
 
+    // 实时更新滚动位置
+    const query = this.createSelectorQuery()
+    query.select('.timeline-scroll').scrollOffset()
+    query.exec((res) => {
+      if (res[0]) {
+        this.scrollViewScrollTop = res[0].scrollTop
+      }
+    })
+
     // 检测是否在屏幕左右边缘
     const isAtLeftEdge = touch.clientX <= edgeThreshold
     const isAtRightEdge = touch.clientX >= screenWidth - edgeThreshold
@@ -679,6 +694,7 @@ Page({
       clearTimeout(tempReservationTimer)
     }
 
+
     // 如果未创建临时会议块，不做任何操作
     if (!isCreatingReservation || !tempReservation) {
       this.setData({
@@ -692,24 +708,37 @@ Page({
 
     // 检查是否在边缘取消
     if (tempReservation.isCancelling) {
-      // 取消创建
-      wx.showToast({
-        title: '已取消创建',
-        icon: 'none',
-        duration: 1500
-      })
-
-      this.setData({
-        tempReservationTimer: null,
-        tempTouchStartPos: null,
-        isCreatingReservation: false,
-        tempReservation: null
+      // 触发 fadeout 动画后清除
+      this.fadeOutTempReservation(() => {
+        wx.showToast({
+          title: '已取消创建',
+          icon: 'none',
+          duration: 1500
+        })
       })
       return
     }
 
     // 确认创建，保存会议预约
     this.saveTempReservation()
+  },
+
+  /**
+   * 临时会议块消失动画
+   */
+  fadeOutTempReservation(callback) {
+    this.setData({ isTempReservationFadingOut: true })
+
+    setTimeout(() => {
+      this.setData({
+        tempReservationTimer: null,
+        tempTouchStartPos: null,
+        isCreatingReservation: false,
+        tempReservation: null,
+        isTempReservationFadingOut: false
+      })
+      if (callback) callback()
+    }, 250) // 动画时长
   },
 
   /**
@@ -743,35 +772,24 @@ Page({
       wx.hideLoading()
 
       if (res.result.code === 0) {
-        wx.showToast({
-          title: '创建成功',
-          icon: 'success',
-          duration: 1500
+        // 触发 fadeout 动画后刷新列表
+        this.fadeOutTempReservation(() => {
+          wx.showToast({
+            title: '创建成功',
+            icon: 'success',
+            duration: 1500
+          })
         })
-
-        // 清除临时状态
-        this.setData({
-          tempReservationTimer: null,
-          tempTouchStartPos: null,
-          isCreatingReservation: false,
-          tempReservation: null
-        })
-
         // 刷新预约列表
         this.loadReservations()
       } else {
-        wx.showToast({
-          title: res.result.message || '创建失败',
-          icon: 'none',
-          duration: 2000
-        })
-
-        // 清除临时状态
-        this.setData({
-          tempReservationTimer: null,
-          tempTouchStartPos: null,
-          isCreatingReservation: false,
-          tempReservation: null
+        // 失败也触发 fadeout
+        this.fadeOutTempReservation(() => {
+          wx.showToast({
+            title: res.result.message || '创建失败',
+            icon: 'none',
+            duration: 2000
+          })
         })
       }
     } catch (error) {

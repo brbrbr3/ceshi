@@ -247,15 +247,31 @@ page {
   opacity: 0;
   pointer-events: none;
   border: 2rpx dashed #7C5CFC;
-  background: rgba(124, 92, 252, 0.05);
-  transition: opacity 0.2s ease;
+  background: rgba(124, 92, 252, 0.08);
+  transform: scale(0.95);
+  transition: all 0.25s cubic-bezier(0.4, 0, 0.2, 1);
 }
 
 .temp-reservation.is-visible {
-  opacity: 1;
+  opacity: 0.65;
   pointer-events: auto;
+  transform: scale(1);
   box-shadow: 0 4rpx 16rpx rgba(124, 92, 252, 0.2);
-  animation: pulse 1.5s ease-in-out infinite;
+  animation: pulse 1.5s ease-in-out infinite, fadeIn 0.3s ease-out;
+}
+
+.temp-reservation.is-cancelling {
+  opacity: 0.3;
+  transform: scale(0.9);
+  border-color: #EF4444;
+  background: rgba(239, 68, 68, 0.15);
+  box-shadow: 0 4rpx 16rpx rgba(239, 68, 68, 0.2);
+}
+
+.temp-reservation.is-fading-out {
+  opacity: 0;
+  transform: scale(0.9);
+  pointer-events: none;
 }
 
 .temp-reservation .reservation-bar-title {
@@ -268,6 +284,17 @@ page {
   }
   50% {
     box-shadow: 0 6rpx 20rpx rgba(124, 92, 252, 0.35);
+  }
+}
+
+@keyframes fadeIn {
+  from {
+    opacity: 0;
+    transform: scale(0.95);
+  }
+  to {
+    opacity: 0.65;
+    transform: scale(1);
   }
 }
 

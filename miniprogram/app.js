@@ -207,7 +207,6 @@ App({
       const cached = readStorage(AUTH_STORAGE_KEY)
       if (cached && cached.timestamp && (Date.now() - cached.timestamp < USER_CACHE_EXPIRE)) {
         // 缓存有效，直接返回
-        console.log('使用缓存的用户信息')
         return Promise.resolve({
           registered: cached.hasLogin,
           openid: cached.openid,

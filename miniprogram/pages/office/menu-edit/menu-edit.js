@@ -159,12 +159,6 @@ Page({
           const notificationTitle = '新菜单通知'
           const notificationContent = `${userName}提交了新的工作餐菜单「${menuTitle}」，点击查看`
 
-          console.log('=== 开始广播通知 ===')
-          console.log('云函数返回:', res)
-          console.log('菜单ID:', menuId)
-          console.log('菜单标题:', menuTitle)
-          console.log('用户名:', userName)
-
           if (menuId) {
             wx.cloud.callFunction({
               name: 'broadcastNotification',
@@ -174,9 +168,6 @@ Page({
                 type: 'menu',
                 menuId: menuId
               }
-            }).then(res => {
-              console.log('广播通知返回:', res)
-              console.log('=== 广播通知成功 ===')
             }).catch(err => {
               console.error('广播通知失败', err)
             })

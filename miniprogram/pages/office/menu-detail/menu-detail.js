@@ -99,18 +99,14 @@ Page({
           .get()
           .then(res => {
             const comments = (res.data || []).map(item => {
-              // 兼容新旧字段名
-              const authorName = item.authorName || item.userName || '用户'
-              const authorOpenid = item.authorOpenid || item.openid || ''
-
               return {
                 ...item,
-                authorName: authorName,
-                authorOpenid: authorOpenid,
+                authorName: item.authorName || '用户',
+                authorOpenid: item.authorOpenid || '',
                 timeText: formatTime(item.createdAt),
-                avatar: authorName.slice(0, 1),
-                avatarBg: utils.getAvatarColor(authorName),
-                canDelete: isAdmin || authorOpenid === currentOpenid
+                avatar: (item.authorName || '用户').slice(0, 1),
+                avatarBg: utils.getAvatarColor(item.authorName || '用户'),
+                canDelete: isAdmin || item.authorOpenid === currentOpenid
               }
             })
 
@@ -131,17 +127,13 @@ Page({
           .get()
           .then(res => {
             const comments = (res.data || []).map(item => {
-              // 兼容新旧字段名
-              const authorName = item.authorName || item.userName || '用户'
-              const authorOpenid = item.authorOpenid || item.openid || ''
-
               return {
                 ...item,
-                authorName: authorName,
-                authorOpenid: authorOpenid,
+                authorName: item.authorName || '用户',
+                authorOpenid: item.authorOpenid || '',
                 timeText: formatTime(item.createdAt),
-                avatar: authorName.slice(0, 1),
-                avatarBg: utils.getAvatarColor(authorName),
+                avatar: (item.authorName || '用户').slice(0, 1),
+                avatarBg: utils.getAvatarColor(item.authorName || '用户'),
                 canDelete: false
               }
             })
