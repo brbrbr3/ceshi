@@ -275,7 +275,7 @@ Page({
     } else if (label === '出行管理') {
       // 统一权限检查
       this.checkAndNavigate('trip_dashboard', '/pages/office/trip-dashboard/trip-dashboard', '出行管理')
-    } else if (label === '预约会议室') {
+    } else if (label === '会议室预约') {
       wx.navigateTo({
         url: '/pages/office/meeting-room/meeting-room'
       })

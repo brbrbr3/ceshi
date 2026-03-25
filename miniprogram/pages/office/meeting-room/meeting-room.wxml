@@ -74,7 +74,7 @@
             data-reservation="{{item}}"
           >
             <view class="reservation-bar-title">{{item.title}}</view>
-            <view class="reservation-bar-time" wx:if="{{item.height > 80}}">{{item.startTime}} - {{item.endTime}}</view>
+            <view class="reservation-bar-time" wx:if="{{item.height > 80}}">⏰️{{item.startTime}} - {{item.endTime}}</view>
             <view class="reservation-bar-desc" wx:if="{{item.height > 120 && item.description}}">{{item.description}}</view>
             <!-- 拖拽手柄 -->
             <view class="drag-handle drag-handle-top" wx:if="{{item.height > 100}}"></view>
@@ -210,4 +210,5 @@
       </scroll-view>
     </view>
   </view>
+
 </view>

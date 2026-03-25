@@ -1,6 +1,5 @@
 {
   "navigationBarTitleText": "会议室预约",
-  "navigationBarBackgroundColor": "#E8E4FF",
   "navigationBarTextStyle": "black",
   "backgroundColor": "#F8FAFC",
   "usingComponents": {

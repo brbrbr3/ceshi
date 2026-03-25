@@ -407,9 +407,10 @@
 
 /* 当前时间红线 */
 .current-time-line {
+  margin-top: -10rpx;
   position: absolute;
-  left: 80rpx;
-  right: 16rpx;
+  left: 70rpx;
+  right: 0rpx;
   display: flex;
   align-items: center;
   pointer-events: none;
@@ -418,12 +419,15 @@
 
 .current-time-label {
   position: absolute;
-  left: -76rpx;
-  font-size: 20rpx;
+  left: -66rpx;
+  font-size: 22rpx;
   color: #EF4444;
   font-weight: 600;
   width: 72rpx;
-  text-align: right;
+  text-align: center;
+  background: rgba(255, 255, 255, 0.8);
+  border: 1rpx solid  #EF4444;
+  border-radius: 255rpx;
 }
 
 .current-time-dot {
@@ -432,7 +436,8 @@
   background: #EF4444;
   border-radius: 50%;
   flex-shrink: 0;
-  box-shadow: 0 0 8rpx rgba(239, 68, 68, 0.5);
+  box-shadow: 0 0 8rpx rgba(239, 68, 68, 0.7);
+  margin-left: 14rpx;
 }
 
 .current-time-bar {

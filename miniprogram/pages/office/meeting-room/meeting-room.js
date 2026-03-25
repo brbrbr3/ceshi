@@ -7,7 +7,6 @@ const app = getApp()
 const utils = require('../../../common/utils.js')
 
 // 时间轴配置
-const HOUR_HEIGHT = 200 // 每小时高度 rpx
 const START_HOUR = 0 // 起始小时 0:00
 const END_HOUR = 24 // 结束小时 24:00
 
@@ -71,25 +70,54 @@ Page({
     previewHeight: 0             // 预览 height
   },
 
+  // 实际测量的值（运行时获取）
+  actualHourHeightPx: 0,  // 实际每小时的像素高度
+  rpxToPxRatio: 0,        // rpx 到 px 的转换比例
+
   onLoad() {
+    // 获取屏幕信息，计算 rpx 转 px 比例
+    const systemInfo = wx.getSystemInfoSync()
+    this.rpxToPxRatio = systemInfo.screenWidth / 750
+
     // 初始化日期列表
     this.initDateList()
-
-    // 初始化当前时间线
-    this.updateCurrentTime()
-
-    // 每分钟更新时间线
-    this.timeInterval = setInterval(() => {
-      this.updateCurrentTime()
-    }, 60000)
 
     // 获取用户信息
     this.getCurrentUser()
   },
 
+  onReady() {
+    // 页面渲染完成后，测量实际的小时高度
+    this.measureActualHourHeight()
+  },
+
+  /**
+   * 测量实际的小时高度（动态获取，解决 rpx 精度问题）
+   */
+  measureActualHourHeight() {
+    const query = this.createSelectorQuery()
+    query.select('.hour-row').boundingClientRect()
+    query.exec((res) => {
+      if (res[0]) {
+        this.actualHourHeightPx = res[0].height
+
+        // 测量完成后，初始化当前时间线和加载预约
+        this.updateCurrentTime()
+        this.loadReservations()
+
+        // 启动定时器
+        this.timeInterval = setInterval(() => {
+          this.updateCurrentTime()
+        }, 60000)
+      }
+    })
+  },
+
   onShow() {
-    // 每次显示时重新加载预约列表
-    this.loadReservations()
+    // 每次显示时重新加载预约列表（如果已完成测量）
+    if (this.actualHourHeightPx > 0) {
+      this.loadReservations()
+    }
   },
 
   onUnload() {
@@ -148,9 +176,10 @@ Page({
       return
     }
 
-    // 计算位置
+    // 计算位置（使用实际测量的像素高度）
     const timeOffset = hour + minute / 60
-    const currentTimeTop = timeOffset * HOUR_HEIGHT
+    const actualTopPx = timeOffset * this.actualHourHeightPx
+    const currentTimeTop = actualTopPx / this.rpxToPxRatio  // 转换为 rpx
 
     // 格式化时间文本
     const currentTimeText = `${String(hour).padStart(2, '0')}:${String(minute).padStart(2, '0')}`
@@ -296,21 +325,28 @@ Page({
    * 计算预约在时间轴上的位置（简化版，单列显示）
    */
   calculateReservationPosition(reservations) {
-    return reservations.map(reservation => {
+    // 预约块的 margin-top（需要补偿）
+    const MARGIN_TOP_RPX = 1
+
+    return reservations.map((reservation) => {
       // 解析时间
       const [startHour, startMin] = reservation.startTime.split(':').map(Number)
       const [endHour, endMin] = reservation.endTime.split(':').map(Number)
 
-      // 计算位置
+      // 计算位置（使用实际测量的像素高度）
       const startOffset = startHour + startMin / 60
       const endOffset = endHour + endMin / 60
 
-      const top = startOffset * HOUR_HEIGHT
-      const height = Math.max((endOffset - startOffset) * HOUR_HEIGHT, 50) // 最小高度 50rpx
+      const actualTopPx = startOffset * this.actualHourHeightPx
+      const actualHeightPx = (endOffset - startOffset) * this.actualHourHeightPx
+
+      // 转换为 rpx，并减去 margin-top 补偿
+      const calculatedTop = (actualTopPx / this.rpxToPxRatio) - MARGIN_TOP_RPX
+      const height = Math.max(actualHeightPx / this.rpxToPxRatio, 50)
 
       return {
         ...reservation,
-        top,
+        top: calculatedTop,
         height
       }
     })
@@ -619,15 +655,12 @@ Page({
   handleReservationTouchMove(e) {
     const { draggingReservation, dragType, dragStartY, originalStartTime, originalEndTime } = this.data
     if (!draggingReservation) return
-    
+
     const touch = e.touches[0]
     const deltaY = touch.clientY - dragStartY
-    
-    // 将像素转换为时间（rpx -> 小时）
-    // 需要获取屏幕宽度来转换 rpx
-    const systemInfo = wx.getSystemInfoSync()
-    const rpxToPx = systemInfo.windowWidth / 750
-    const deltaTime = (deltaY * rpxToPx) / (HOUR_HEIGHT * rpxToPx)  // 小时
+
+    // 将像素转换为时间（使用实际测量的高度）
+    const deltaTime = deltaY / this.actualHourHeightPx  // 小时
     
     // 解析原始时间
     const [startHour, startMin] = originalStartTime.split(':').map(Number)
@@ -679,12 +712,15 @@ Page({
     // 格式化时间
     const previewStartTime = `${String(newStartHour).padStart(2, '0')}:${String(newStartMin).padStart(2, '0')}`
     const previewEndTime = `${String(newEndHour).padStart(2, '0')}:${String(newEndMin).padStart(2, '0')}`
-    
-    // 计算预览位置
+
+    // 计算预览位置（使用实际测量的高度，减去 margin 补偿）
+    const MARGIN_TOP_RPX = 1
     const startOffset = newStartHour + newStartMin / 60
     const endOffset = newEndHour + newEndMin / 60
-    const previewTop = startOffset * HOUR_HEIGHT
-    const previewHeight = Math.max((endOffset - startOffset) * HOUR_HEIGHT, 80)
+    const previewTopPx = startOffset * this.actualHourHeightPx
+    const previewHeightPx = (endOffset - startOffset) * this.actualHourHeightPx
+    const previewTop = (previewTopPx / this.rpxToPxRatio) - MARGIN_TOP_RPX
+    const previewHeight = Math.max(previewHeightPx / this.rpxToPxRatio, 50)
     
     // 更新预览
     this.setData({
@@ -715,15 +751,17 @@ Page({
    */
   handleReservationTouchEnd(e) {
     const { draggingReservation, originalStartTime, originalEndTime, previewStartTime, previewEndTime } = this.data
-    
+
     if (!draggingReservation) return
-    
+
     // 检查时间是否有变化
     if (previewStartTime === originalStartTime && previewEndTime === originalEndTime) {
-      // 时间未变化，只点击，显示详情
+      // 时间未变化，是点击操作，显示详情弹窗
       this.setData({
         draggingReservation: null,
-        dragType: null
+        dragType: null,
+        showDetailPopup: true,
+        detailReservation: draggingReservation
       })
       return
     }
@@ -803,14 +841,18 @@ Page({
   restoreReservationPosition() {
     const { draggingReservation, originalStartTime, originalEndTime } = this.data
     if (!draggingReservation) return
-    
+
     const [startHour, startMin] = originalStartTime.split(':').map(Number)
     const [endHour, endMin] = originalEndTime.split(':').map(Number)
-    
+
+    // 使用实际测量的高度计算位置，减去 margin 补偿
+    const MARGIN_TOP_RPX = 1
     const startOffset = startHour + startMin / 60
     const endOffset = endHour + endMin / 60
-    const top = startOffset * HOUR_HEIGHT
-    const height = Math.max((endOffset - startOffset) * HOUR_HEIGHT, 80)
+    const topPx = startOffset * this.actualHourHeightPx
+    const heightPx = (endOffset - startOffset) * this.actualHourHeightPx
+    const top = (topPx / this.rpxToPxRatio) - MARGIN_TOP_RPX
+    const height = Math.max(heightPx / this.rpxToPxRatio, 50)
     
     const reservations = this.data.reservations.map(r => {
       if (r._id === draggingReservation._id) {
