@@ -82,8 +82,8 @@ Page({
 
   onLoad() {
     // 获取屏幕信息，计算 rpx 转 px 比例
-    const systemInfo = wx.getSystemInfoSync()
-    this.rpxToPxRatio = systemInfo.screenWidth / 750
+    const windowInfo = wx.getWindowInfo()
+    this.rpxToPxRatio = windowInfo.screenWidth / 750
 
     // 初始化日期列表
     this.initDateList()
