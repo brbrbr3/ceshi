@@ -63,13 +63,14 @@
 
   <!-- 底部输入区域 -->
   <view class="feedback-input-bar">
-    <input 
+    <textarea 
       class="feedback-input" 
       type="text" 
       placeholder="请输入您的意见..." 
       value="{{inputContent}}" 
       bindinput="handleInputChange"
-      maxlength="500"
+      maxlength="1000"
+      auto-height
     />
     <view class="feedback-send-btn {{inputContent ? 'active' : ''}}" bindtap="handleSend">
       发送
@@ -85,7 +86,7 @@
         placeholder="请输入回复内容..." 
         value="{{replyContent}}" 
         bindinput="handleReplyInput"
-        maxlength="500"
+        maxlength="1000"
         auto-height
       ></textarea>
       <view class="reply-modal-actions">
