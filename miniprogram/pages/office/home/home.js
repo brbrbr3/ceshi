@@ -29,7 +29,7 @@ Page({
       { icon: '🏥', label: '就医申请', color: '#EF4444', bg: '#FEE2E2', implemented: true, featureKey: 'medical_application' },
       { icon: '🚗', label: '外出报备', color: '#2563EB', bg: '#EFF6FF', implemented: true, featureKey: 'trip_report' },
       { icon: '📊', label: '出行管理', color: '#7C3AED', bg: '#F3E8FF', implemented: true, featureKey: 'trip_dashboard' },
-      { icon: '🏢', label: '会议室预约', color: '#7C5CFC', bg: '#E8E4FF', implemented: true, featureKey: null }
+      { icon: '🏢', label: '会议室预约', color: '#7C5CFC', bg: '#E8E4FF', implemented: true, featureKey: 'meeting_room' }
     ],
     announcements: [],
     todaySchedules: [],
@@ -76,7 +76,7 @@ Page({
     })
 
     // 批量检查权限
-    const featureKeys = ['medical_application', 'trip_report', 'trip_dashboard']
+    const featureKeys = ['medical_application', 'trip_report', 'trip_dashboard', 'meeting_room']
     app.batchCheckPermissions(featureKeys)
       .then((result) => {
         const permissions = {}
@@ -276,9 +276,8 @@ Page({
       // 统一权限检查
       this.checkAndNavigate('trip_dashboard', '/pages/office/trip-dashboard/trip-dashboard', '出行管理')
     } else if (label === '会议室预约') {
-      wx.navigateTo({
-        url: '/pages/office/meeting-room/meeting-room'
-      })
+      // 统一权限检查
+      this.checkAndNavigate('meeting_room', '/pages/office/meeting-room/meeting-room', '会议室预约')
     } else {
       utils.showToast({
         title: '功能开发中，敬请期待',

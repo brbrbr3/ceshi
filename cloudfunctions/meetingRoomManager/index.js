@@ -115,6 +115,7 @@ async function createMeetingRoomReservation(params, userInfo) {
 
     // 创建预约
     const now = Date.now()
+    const wxContext = cloud.getWXContext()
     const meetingRoomReservation = {
       title,
       roomId,
@@ -123,7 +124,9 @@ async function createMeetingRoomReservation(params, userInfo) {
       startTime,
       endTime,
       description: description || '',
+      creatorId: wxContext.OPENID,       // 创建者openid
       creatorName: userInfo.name || '未知用户',
+      creatorRole: userInfo.role || '',  // 创建者角色
       createdAt: now,
       updatedAt: now
     }

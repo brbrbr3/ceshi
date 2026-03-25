@@ -16,6 +16,10 @@ const MEETING_ROOMS = [
   { id: 'room_3f', name: '3楼会议室' }
 ]
 
+// 权限角色常量
+const CAN_RESERVE_ROLES = ['馆领导', '部门负责人', '馆员', '工勤']
+const CAN_VIEW_3F_ROLES = ['馆领导', '部门负责人', '馆员', '工勤']
+
 Page({
   data: {
     // 会议室选择
@@ -57,6 +61,9 @@ Page({
 
     // 用户信息
     currentUser: null,
+    userRole: '',
+    canReserve: false,      // 是否可添加预约
+    canView3FRoom: false,   // 是否可查看3楼会议室
 
     // 拖拽状态
     draggingReservation: null,   // 正在拖拽的预约
@@ -202,13 +209,25 @@ Page({
   },
 
   /**
-   * 获取当前用户信息
+   * 获取当前用户信息（参考 calendar.js 权限检查方案）
    */
   getCurrentUser() {
     app.checkUserRegistration()
       .then((result) => {
         if (result.registered && result.user) {
-          this.setData({ currentUser: result.user })
+          const user = result.user
+          const isAdmin = user.isAdmin || user.role === 'admin'
+          
+          // 管理员拥有所有权限
+          const canReserve = isAdmin || CAN_RESERVE_ROLES.includes(user.role)
+          const canView3FRoom = isAdmin || CAN_VIEW_3F_ROLES.includes(user.role)
+          
+          this.setData({
+            currentUser: user,
+            userRole: user.role,
+            canReserve,
+            canView3FRoom
+          })
         }
       })
       .catch(() => {
@@ -222,6 +241,17 @@ Page({
   handleRoomChange(e) {
     const roomId = e.currentTarget.dataset.roomId
     const room = this.data.rooms.find(r => r.id === roomId)
+
+    // 物业角色访问3楼会议室权限检查
+    if (roomId === 'room_3f' && !this.data.canView3FRoom) {
+      wx.showModal({
+        title: '权限提示',
+        content: '无权限',
+        showCancel: false,
+        confirmText: '我知道了'
+      })
+      return
+    }
 
     if (room) {
       this.setData({
@@ -362,6 +392,17 @@ Page({
    * 显示添加预约弹窗
    */
   handleAddReservation() {
+    // 权限检查
+    if (!this.data.canReserve) {
+      wx.showModal({
+        title: '权限提示',
+        content: '无权限',
+        showCancel: false,
+        confirmText: '我知道了'
+      })
+      return
+    }
+
     const { selectedRoomId, selectedRoomName, selectedDate } = this.data
 
     // 计算默认时间：当前时间向上取整到最近的30分钟
@@ -438,7 +479,30 @@ Page({
    * 从详情进入编辑
    */
   handleEditFromDetail() {
+    // 权限检查
+    if (!this.data.canReserve) {
+      wx.showModal({
+        title: '权限提示',
+        content: '无权限',
+        showCancel: false,
+        confirmText: '我知道了'
+      })
+      return
+    }
+
     const reservation = this.data.detailReservation
+    const currentUser = this.data.currentUser
+
+    // 检查是否是自己的预约
+    if (currentUser && reservation.creatorId && reservation.creatorId !== currentUser.openid) {
+      wx.showModal({
+        title: '权限提示',
+        content: '只能修改自己的预约',
+        showCancel: false,
+        confirmText: '我知道了'
+      })
+      return
+    }
 
     this.setData({
       showDetailPopup: false,
@@ -462,6 +526,29 @@ Page({
   async handleDeleteReservation() {
     const reservation = this.data.detailReservation
     if (!reservation) return
+
+    // 权限检查
+    if (!this.data.canReserve) {
+      wx.showModal({
+        title: '权限提示',
+        content: '无权限',
+        showCancel: false,
+        confirmText: '我知道了'
+      })
+      return
+    }
+
+    // 检查是否是自己的预约
+    const currentUser = this.data.currentUser
+    if (currentUser && reservation.creatorId && reservation.creatorId !== currentUser.openid) {
+      wx.showModal({
+        title: '权限提示',
+        content: '只能删除自己的预约',
+        showCancel: false,
+        confirmText: '我知道了'
+      })
+      return
+    }
 
     const result = await new Promise((resolve) => {
       wx.showModal({
@@ -622,6 +709,17 @@ Page({
   handleReservationTouchStart(e) {
     const reservation = e.currentTarget.dataset.reservation
     const touch = e.touches[0]
+    
+    // 权限检查：只有有添加权限的用户才能拖拽
+    if (!this.data.canReserve) {
+      return
+    }
+    
+    // 检查是否是自己的预约
+    const currentUser = this.data.currentUser
+    if (currentUser && reservation.creatorId && reservation.creatorId !== currentUser.openid) {
+      return
+    }
     
     // 记录触摸起始位置
     const touchStartPos = { x: touch.clientX, y: touch.clientY }

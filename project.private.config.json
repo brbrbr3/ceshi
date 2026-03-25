@@ -26,26 +26,12 @@
           "name": "pages/office/menu-detail/menu-detail",
           "pathName": "pages/office/menus/menus",
           "query": "",
-          "scene": null,
-          "launchMode": "default"
-        },
-        {
-          "name": "pages/office/feedback/feedback",
-          "pathName": "pages/office/feedback/feedback",
-          "query": "",
           "launchMode": "default",
           "scene": null
         },
         {
           "name": "pages/office/meeting-room/meeting-room",
           "pathName": "pages/office/meeting-room/meeting-room",
-          "query": "",
-          "launchMode": "default",
-          "scene": null
-        },
-        {
-          "name": "pages/office/home/home",
-          "pathName": "pages/office/home/home",
           "query": "",
           "launchMode": "default",
           "scene": null

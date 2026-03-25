@@ -99,7 +99,10 @@
       <view class="detail-popup-header">
         <view class="detail-popup-close" bindtap="hideDetailPopup">×</view>
         <view class="detail-popup-title">预约详情</view>
-        <view class="detail-popup-edit" bindtap="handleEditFromDetail">编辑</view>
+        <!-- 编辑按钮：有添加权限 且 是自己的预约 -->
+        <view class="detail-popup-edit" 
+              wx:if="{{canReserve && detailReservation.creatorId === currentUser.openid}}"
+              bindtap="handleEditFromDetail">编辑</view>
       </view>
 
       <!-- 详情内容 -->
@@ -146,8 +149,9 @@
         </view>
       </scroll-view>
 
-      <!-- 删除按钮 -->
-      <view class="detail-popup-footer">
+      <!-- 删除按钮：有添加权限 且 是自己的预约 -->
+      <view class="detail-popup-footer" 
+            wx:if="{{canReserve && detailReservation.creatorId === currentUser.openid}}">
         <button class="detail-delete-btn" bindtap="handleDeleteReservation">删除预约</button>
       </view>
     </view>

@@ -419,6 +419,13 @@ const PERMISSION_CONFIGS = [
     description: '查看和管理出行记录',
     enabledRoles: ['馆领导', '部门负责人'],
     requireAdmin: false
+  },
+  {
+    featureKey: 'meeting_room',
+    featureName: '会议室预约',
+    description: '会议室预约功能入口权限',
+    enabledRoles: ['馆领导', '部门负责人', '馆员', '工勤', '物业'],
+    requireAdmin: false
   }
 ]
 
