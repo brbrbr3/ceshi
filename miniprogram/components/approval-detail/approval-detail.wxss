@@ -109,6 +109,10 @@
   font-weight: 600;
 }
 
+.approval-detail-status-value{
+  margin-top: -35rpx;
+}
+
 .approval-modal-remark {
   margin-top: 24rpx;
   padding: 20rpx;

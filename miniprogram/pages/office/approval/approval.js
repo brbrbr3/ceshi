@@ -101,11 +101,12 @@ function mapRequestItem(request) {
       if (fieldConfig.condition) {
         const cond = fieldConfig.condition
         const fieldValue = request[cond.field]
+        const op = cond.op || '==' // 向后兼容：op 缺失时默认为 ==
         let shouldShow = false
 
-        if (cond.op === '==' && fieldValue === cond.value) {
+        if (op === '==' && fieldValue === cond.value) {
           shouldShow = true
-        } else if (cond.op === '!=' && fieldValue !== cond.value) {
+        } else if (op === '!=' && fieldValue !== cond.value) {
           shouldShow = true
         }
 
@@ -226,6 +227,7 @@ function mapRequestItem(request) {
     _id: request._id,
     taskId: request.taskId,
     isCurrentApprover: request.isCurrentApprover,
+    displayConfig: displayConfig,
     patientName: request.patientName || '',
     relation: request.relation || '',
     medicalDate: request.medicalDate || '',

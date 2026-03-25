@@ -54,7 +54,7 @@ const EXAMPLE_TEMPLATES = [
         { field: 'role', label: '角色' },
         { field: 'position', label: '职位' },
         { field: 'department', label: '部门' },
-        { field: 'relativeName', label: '关系人姓名' }
+        { field: 'relativeName', label: '关系人姓名', condition: { field: 'relativeName', op: '!=', value: '' } }
       ]
     },
     defaultTimeout: 72,
@@ -89,13 +89,18 @@ const EXAMPLE_TEMPLATES = [
     }],
     displayConfig: {
       cardFields: [
-        { field: 'userName', label: '申请人' },
-        { field: 'modifyFields', label: '修改字段' }
+        { field: 'name', label: '申请人' },
+        { field: 'role', label: '角色' }
       ],
       detailFields: [
-        { field: 'userName', label: '申请人姓名' },
-        { field: 'modifyFields', label: '修改字段' },
-        { field: 'modifyContent', label: '修改内容' }
+        { field: 'name', label: '申请人姓名' },
+        { field: 'gender', label: '性别' },
+        { field: 'birthday', label: '生日' },
+        { field: 'role', label: '角色' },
+        { field: 'position', label: '职位' },
+        { field: 'department', label: '部门' },
+        { field: 'relativeName', label: '关系人姓名', condition: { field: 'relativeName', op: '!=', value: '' } },
+        { field: 'updateReason', label: '修改原因' }
       ]
     },
     defaultTimeout: 72,
@@ -168,8 +173,11 @@ const EXAMPLE_TEMPLATES = [
       detailFields: [
         { field: 'patientName', label: '就医人姓名' },
         { field: 'relation', label: '与申请人关系' },
+        { field: 'medicalDate', label: '就医时间' },
         { field: 'institution', label: '就医机构' },
-        { field: 'otherInstitution', label: '机构名称', condition: { field: 'institution', value: '其他' } }
+        { field: 'otherInstitution', label: '机构名称', condition: { field: 'institution', op: '==', value: '其他' } },
+        { field: 'reasonForSelection', label: '选择此机构的原因', condition: { field: 'institution', op: '==', value: '其他' } },
+        { field: 'reason', label: '就医原因' }
       ]
     },
     defaultTimeout: 72,

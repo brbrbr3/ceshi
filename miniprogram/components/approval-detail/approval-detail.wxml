@@ -24,7 +24,7 @@
       <!-- 当前状态 -->
       <view class="approval-modal-row">
         <text class="approval-modal-label">当前状态</text>
-        <text class="approval-modal-value" style="color: {{request.status === 'approved' ? '#16A34A' : request.status === 'rejected' ? '#DC2626' : request.status === 'terminated' ? '#DC2626' : '#D97706'}};">
+        <text class="approval-modal-value  approval-detail-status-value" style="color: {{request.status === 'approved' ? '#16A34A' : request.status === 'rejected' ? '#DC2626' : request.status === 'terminated' ? '#DC2626' : '#D97706'}};">
           {{request.status === 'approved' ? '已通过' : request.status === 'rejected' ? '已驳回' : request.status === 'terminated' ? '已中止' : '待审批'}}
         </text>
       </view>

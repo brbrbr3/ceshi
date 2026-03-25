@@ -848,51 +848,18 @@ async function getApprovalData(openid, pagination = {}) {
           })
         }
 
-        // 过滤：根据角色和岗位显示相应的审批任务
+        // 过滤：基于工作流模板驱动的权限判断（无硬编码）
         pendingList = pendingTasksResult.data.filter(task => {
-          // 获取对应的工单信息
-          const order = ordersMap[task.orderId]
-          if (!order) {
-            return false
-          }
-
-          // 直接分配的任务总是显示
+          // 1. 直接分配的任务（approverType === 'user'）
           if (task.approverId === openid) {
             return true
           }
 
-          // 角色审批任务：根据任务步骤名称、订单类型和用户的角色/岗位判断
-          if (task.approverType === 'role' && currentUser) {
-            // 注册申请：只有管理员可以审批
-            if (order.orderType === 'user_registration') {
-              return currentUser.isAdmin === true
-            }
-
-            // 用户信息修改申请：只有管理员可以审批
-            if (order.orderType === 'user_profile_update') {
-              return currentUser.isAdmin === true
-            }
-
-            // 就医申请：根据步骤名称和角色/岗位判断
-            if (order.orderType === 'medical_application') {
-              // 部门负责人审批
-              if (task.stepName === '部门负责人审批' && currentUser.role === '部门负责人') {
-                return true
-              }
-              // 会计主管审批（按岗位）
-              if (task.stepName === '会计主管审批' && currentUser.position === '会计主管') {
-                return true
-              }
-              // 馆领导审批
-              if (task.stepName === '馆领导审批' && currentUser.role === '馆领导') {
-                return true
-              }
-              // 管理员审批（管理员可以看到所有就医申请的任务）
-              if (currentUser.isAdmin) {
-                return true
-              }
-            }
+          // 2. 角色审批任务：检查是否在审批人列表中
+          if (task.approverType === 'role' && task.approverList) {
+            return task.approverList.some(approver => approver.id === openid)
           }
+
           return false
         }).map(task => {
           const order = ordersMap[task.orderId]
@@ -993,11 +960,15 @@ async function getApprovalData(openid, pagination = {}) {
     }
 
     // 查询当前用户处理过的任务（包括已批准和已驳回的任务）
+    // 需要同时检查 approverId（直接分配给用户）和 actualApproverId（角色任务，用户实际审批）
     processedTasksResult = await workflowTasksCollection
-      .where({
-        approverId: openid,
-        taskStatus: db.command.in(['approved', 'rejected'])
-      })
+      .where(
+        _.or([
+          { approverId: openid },
+          { actualApproverId: openid }
+        ])
+      )
+      .where({ taskStatus: db.command.in(['approved', 'rejected']) })
       .orderBy('updatedAt', 'desc')
       .limit(Math.min(pageSize, 100))
       .get()

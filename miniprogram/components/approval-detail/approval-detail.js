@@ -47,38 +47,6 @@ Component({
     // 动态计算的字段列表
     detailFields: [],
 
-    // 不同申请类型的字段配置
-    fieldConfigs: {
-      medical_application: [
-        { key: 'patientName', label: '就医人姓名' },
-        { key: 'relation', label: '与申请人关系' },
-        { key: 'medicalDate', label: '就医时间' },
-        { key: 'institution', label: '就医机构' },
-        { key: 'otherInstitution', label: '机构名称', condition: { field: 'institution', op: '==', value: '其他' } },
-        { key: 'reasonForSelection', label: '选择此机构的原因', condition: { field: 'institution', op: '==', value: '其他' } },
-        { key: 'reason', label: '就医原因' }
-      ],
-      user_registration: [
-        { key: 'name', label: '姓名' },
-        { key: 'gender', label: '性别' },
-        { key: 'birthday', label: '出生日期' },
-        { key: 'role', label: '角色' },
-        { key: 'department', label: '部门', condition: { field: 'department', op: '!=', value: '' } },
-        { key: 'relativeName', label: '亲属姓名', condition: { field: 'relativeName', op: '!=', value: '' } },
-        { key: 'position', label: '岗位' },
-        { key: 'isAdmin', label: '管理员', type: 'boolean' }
-      ],
-      user_profile_update: [
-        { key: 'name', label: '姓名' },
-        { key: 'gender', label: '性别' },
-        { key: 'birthday', label: '出生日期' },
-        { key: 'role', label: '角色' },
-        { key: 'department', label: '部门', condition: { field: 'department', op: '!=', value: '' } },
-        { key: 'position', label: '岗位' },
-        { key: 'updateReason', label: '修改原因', condition: { field: 'updateReason', op: '!=', value: '' } }
-      ]
-    },
-
     // 状态配置
     statusConfig: {
       approved: { label: '已通过', color: '#16A34A' },
@@ -107,29 +75,17 @@ Component({
         return
       }
       
-      // 优先使用 displayConfig，否则回退到硬编码配置
+      // 使用 displayConfig（来自工作流模板快照）
       const displayConfig = request.displayConfig || request.workflowSnapshot?.displayConfig || null
       let fields = []
       
       if (displayConfig && displayConfig.detailFields && displayConfig.detailFields.length > 0) {
-        // 使用动态配置
         fields = displayConfig.detailFields.map(f => ({
           field: f.field,
           label: f.label,
           condition: f.condition,
           type: f.type || 'text',
           value: this.formatFieldValueByConfig(f, request)
-        }))
-      } else {
-        // 回退到硬编码配置
-        const orderType = request.orderType
-        const config = this.data.fieldConfigs[orderType] || []
-        fields = config.map(f => ({
-          field: f.key,
-          label: f.label,
-          condition: this.convertOldCondition(f.condition),
-          type: f.type || 'text',
-          value: this.formatFieldValue(f, request)
         }))
       }
       
@@ -141,26 +97,6 @@ Component({
   },
 
   methods: {
-    /**
-     * 转换旧的条件格式
-     */
-    convertOldCondition(oldCondition) {
-      if (!oldCondition) return null
-      if (oldCondition === 'department') {
-        return { field: 'department', op: '!=', value: '' }
-      }
-      if (oldCondition === 'relativeName') {
-        return { field: 'relativeName', op: '!=', value: '' }
-      }
-      if (oldCondition === 'updateReason') {
-        return { field: 'updateReason', op: '!=', value: '' }
-      }
-      if (oldCondition === 'institution === "其他"') {
-        return { field: 'institution', op: '==', value: '其他' }
-      }
-      return null
-    },
-
     /**
      * 关闭弹窗（带动画）
      */
@@ -215,31 +151,20 @@ Component({
       const condition = field.condition
       if (!condition) return true
       
-      // 新格式条件：{ field, op, value }
+      // 新格式条件：{ field, op, value } - op 默认为 '=='
       if (typeof condition === 'object') {
         const fieldValue = request[condition.field]
-        if (condition.op === '==' && fieldValue === condition.value) {
+        const op = condition.op || '==' // 向后兼容：op 缺失时默认为 ==
+        
+        if (op === '==' && fieldValue === condition.value) {
           return true
         }
-        if (condition.op === '!=' && fieldValue !== condition.value) {
+        if (op === '!=' && fieldValue !== condition.value) {
           return true
         }
         return false
       }
       return true
-    },
-
-    /**
-     * 格式化字段值
-     */
-    formatFieldValue(field, request) {
-      const value = request[field.key]
-      
-      if (field.type === 'boolean') {
-        return value ? '是' : '否'
-      }
-      
-      return value || ''
     },
 
     /**
