@@ -38,7 +38,7 @@
         >
           <view class="date-weekday">{{item.weekDay}}</view>
           <view class="date-day">{{item.monthDay}}</view>
-          <view class="date-count-badge" wx:if="{{item.reservationCount > 0}}">
+          <view class="date-count-badge">
             <text>{{item.reservationCount}}</text>
           </view>
         </view>
@@ -49,7 +49,10 @@
   <!-- 时间轴会议列表 -->
   <view class="timeline-section">
     <scroll-view class="timeline-scroll" scroll-y="true" scroll-into-view="{{currentTimeView}}" enhanced="true" show-scrollbar="false">
-      <view class="timeline-container" bindlongpress="handleTimelineLongPress">
+      <view class="timeline-container"
+            bindtouchstart="handleTimelineTouchStart"
+            bindtouchmove="handleTimelineTouchMove"
+            bindtouchend="handleTimelineTouchEnd">
         <!-- 小时网格 -->
         <view class="timeline-grid">
           <view class="hour-row" wx:for="{{hours}}" wx:key="*this" id="hour-{{item}}">
@@ -79,6 +82,16 @@
             <!-- 拖拽手柄 -->
             <view class="drag-handle drag-handle-top" wx:if="{{item.height > 100}}"></view>
             <view class="drag-handle drag-handle-bottom" wx:if="{{item.height > 100}}"></view>
+          </view>
+
+          <!-- 临时会议块（长按创建时显示） -->
+          <view
+            class="reservation-bar temp-reservation {{isCreatingReservation ? 'is-visible' : ''}}"
+            style="top: {{tempReservation.top}}rpx; height: {{tempReservation.height}}rpx;"
+            wx:if="{{isCreatingReservation && tempReservation}}"
+          >
+            <view class="reservation-bar-title">{{tempReservation.title}}</view>
+            <view class="reservation-bar-time" wx:if="{{tempReservation.height > 120}}">⏰️{{tempReservation.startTime}} - {{tempReservation.endTime}}</view>
           </view>
         </view>
 

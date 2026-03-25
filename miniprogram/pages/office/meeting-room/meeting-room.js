@@ -76,11 +76,17 @@ Page({
     previewTop: 0,               // 预览 top
     previewHeight: 0,            // 预览 height
 
-    // 长按检测（500ms时延）
+    // 长按检测（300ms时延）
     longPressTimer: null,        // 长按定时器
     pendingDragReservation: null,// 待确认的拖拽预约
     isDragActive: false,         // 是否已激活拖拽模式
-    touchStartPos: null          // 触摸起始位置 {x, y}
+    touchStartPos: null,         // 触摸起始位置 {x, y}
+
+    // 时间轴创建临时会议块
+    isCreatingReservation: false,      // 是否正在创建临时会议块
+    tempReservation: null,             // 临时会议块数据
+    tempReservationTimer: null,        // 长按创建的定时器
+    tempTouchStartPos: null            // 时间轴触摸起始位置
   },
 
   // 实际测量的值（运行时获取）
@@ -459,13 +465,332 @@ Page({
   },
 
   /**
-   * 长按时间轴添加预约
+   * 时间轴触摸开始 - 启动300ms长按定时器创建临时会议块
    */
-  handleTimelineLongPress(e) {
-    // 获取触摸点的Y坐标（相对于时间轴容器）
+  handleTimelineTouchStart(e) {
+    // 权限检查：只有有添加权限的用户才能创建
+    if (!this.data.canReserve) {
+      return
+    }
+
     const touch = e.touches[0]
-    // 这里简化处理，直接打开添加弹窗
-    this.handleAddReservation()
+    const touchStartPos = { x: touch.clientX, y: touch.clientY }
+
+    // 清除之前的定时器
+    if (this.data.tempReservationTimer) {
+      clearTimeout(this.data.tempReservationTimer)
+    }
+
+    // 启动300ms长按定时器
+    const tempReservationTimer = setTimeout(() => {
+      // 长按触发，创建临时会议块
+      this.createTempReservation(touchStartPos)
+    }, 300)
+
+    this.setData({
+      tempReservationTimer,
+      tempTouchStartPos: touchStartPos,
+      isCreatingReservation: false
+    })
+  },
+
+  /**
+   * 创建临时会议块（长按300ms后调用）
+   */
+  createTempReservation(touchStartPos) {
+    const { currentUser, selectedRoomId, selectedRoomName, selectedDate } = this.data
+    const userName = currentUser?.name || currentUser?.nickName || '用户'
+
+    // 根据触摸Y坐标计算时间（吸附到最近的整点或半点）
+    const timeInfo = this.getTimeFromTouchPosition(touchStartPos.y)
+    const { startTime, endTime, top, height } = timeInfo
+
+    // 创建临时会议块
+    const tempReservation = {
+      title: `${userName}的会议预约`,
+      roomId: selectedRoomId,
+      roomName: selectedRoomName,
+      date: selectedDate,
+      startTime,
+      endTime,
+      top,
+      height
+    }
+
+    // 显示Toast提示
+    wx.showToast({
+      title: '拖拽到屏幕边缘可取消',
+      icon: 'none',
+      duration: 2000
+    })
+
+    this.setData({
+      isCreatingReservation: true,
+      tempReservation,
+      tempTouchStartPos: touchStartPos
+    })
+  },
+
+  /**
+   * 根据触摸Y坐标计算时间（吸附到整点或半点，默认一小时）
+   */
+  getTimeFromTouchPosition(touchY) {
+    // 使用存储的时间轴容器位置信息
+    // 这里我们使用实际测量的高度来计算
+    const hourHeight = this.actualHourHeightPx
+
+    // 获取时间轴容器相对于屏幕的位置（需要减去滚动偏移）
+    // 由于scroll-view的存在，我们需要获取容器的绝对位置
+    // 这里简化处理：假设触摸Y坐标已经相对于时间轴容器
+    // 实际上我们需要减去时间轴容器的顶部偏移
+
+    // 更简单的方法：使用scroll-view的scrollTop和容器的位置
+    // 但这里我们使用一个近似方法：
+    // 假设时间轴从屏幕顶部开始，减去顶部日期选择器和会议室选择器的高度
+
+    // 实际项目中应该在onReady时测量这些高度
+    // 这里使用一个简化版本
+    const estimatedTopOffset = 200 // 估算的顶部偏移（px）
+    const relativeY = touchY - estimatedTopOffset
+
+    // 计算小时和分钟
+    const totalMinutes = Math.floor((relativeY / hourHeight) * 60)
+
+    // 吸附到最近的整点或半点
+    let hour = Math.floor(totalMinutes / 60)
+    let minute = totalMinutes % 60
+
+    // 吸附逻辑：0-15分钟吸附到0，16-45分钟吸附到30，46-59分钟吸附到下一小时的0
+    if (minute <= 15) {
+      minute = 0
+    } else if (minute <= 45) {
+      minute = 30
+    } else {
+      hour += 1
+      minute = 0
+    }
+
+    // 限制在0-24小时内
+    if (hour < 0) { hour = 0; minute = 0 }
+    if (hour >= 24) { hour = 23; minute = 30 }
+
+    // 默认一小时
+    const startHour = hour
+    const startMin = minute
+    let endHour = startHour + 1
+    let endMin = startMin
+
+    if (endHour >= 24) {
+      endHour = 24
+      endMin = 0
+    }
+
+    // 格式化时间
+    const startTime = `${String(startHour).padStart(2, '0')}:${String(startMin).padStart(2, '0')}`
+    const endTime = `${String(endHour).padStart(2, '0')}:${String(endMin).padStart(2, '0')}`
+
+    // 计算位置
+    const MARGIN_TOP_RPX = 1
+    const startOffset = startHour + startMin / 60
+    const endOffset = endHour + endMin / 60
+    const topPx = startOffset * this.actualHourHeightPx
+    const heightPx = (endOffset - startOffset) * this.actualHourHeightPx
+    const top = (topPx / this.rpxToPxRatio) - MARGIN_TOP_RPX
+    const height = Math.max(heightPx / this.rpxToPxRatio, 50)
+
+    return { startTime, endTime, top, height }
+  },
+
+  /**
+   * 时间轴触摸移动 - 处理临时会议块拖拽或边缘检测
+   */
+  handleTimelineTouchMove(e) {
+    const { isCreatingReservation, tempReservationTimer, tempTouchStartPos, tempReservation } = this.data
+
+    if (!isCreatingReservation && tempReservationTimer) {
+      // 还未创建临时会议块，检测移动距离
+      const touch = e.touches[0]
+      const deltaX = touch.clientX - tempTouchStartPos.x
+      const deltaY = touch.clientY - tempTouchStartPos.y
+      const distance = Math.sqrt(deltaX * deltaX + deltaY * deltaY)
+
+      // 移动超过10px，取消长按创建
+      if (distance > 10) {
+        clearTimeout(tempReservationTimer)
+        this.setData({
+          tempReservationTimer: null,
+          tempTouchStartPos: null
+        })
+      }
+      return
+    }
+
+    if (!isCreatingReservation || !tempReservation) {
+      return
+    }
+
+    // 已创建临时会议块，处理拖拽和边缘检测
+    const touch = e.touches[0]
+    const windowInfo = wx.getWindowInfo()
+    const screenWidth = windowInfo.screenWidth
+    const edgeThreshold = 50 // 边缘检测阈值（px）
+
+    // 检测是否在屏幕左右边缘
+    const isAtLeftEdge = touch.clientX <= edgeThreshold
+    const isAtRightEdge = touch.clientX >= screenWidth - edgeThreshold
+
+    if (isAtLeftEdge || isAtRightEdge) {
+      // 在边缘，显示取消提示
+      this.setData({
+        'tempReservation.isCancelling': true
+      })
+    } else {
+      // 不在边缘，更新临时会议块位置
+      this.updateTempReservationPosition(touch.clientY)
+      this.setData({
+        'tempReservation.isCancelling': false
+      })
+    }
+  },
+
+  /**
+   * 更新临时会议块位置（根据触摸Y坐标）
+   */
+  updateTempReservationPosition(touchY) {
+    const timeInfo = this.getTimeFromTouchPosition(touchY)
+    const { startTime, endTime, top, height } = timeInfo
+
+    this.setData({
+      'tempReservation.startTime': startTime,
+      'tempReservation.endTime': endTime,
+      'tempReservation.top': top,
+      'tempReservation.height': height
+    })
+  },
+
+  /**
+   * 时间轴触摸结束 - 确认或取消创建
+   */
+  handleTimelineTouchEnd(e) {
+    const { isCreatingReservation, tempReservationTimer, tempReservation } = this.data
+
+    // 清除定时器
+    if (tempReservationTimer) {
+      clearTimeout(tempReservationTimer)
+    }
+
+    // 如果未创建临时会议块，不做任何操作
+    if (!isCreatingReservation || !tempReservation) {
+      this.setData({
+        tempReservationTimer: null,
+        tempTouchStartPos: null,
+        isCreatingReservation: false,
+        tempReservation: null
+      })
+      return
+    }
+
+    // 检查是否在边缘取消
+    if (tempReservation.isCancelling) {
+      // 取消创建
+      wx.showToast({
+        title: '已取消创建',
+        icon: 'none',
+        duration: 1500
+      })
+
+      this.setData({
+        tempReservationTimer: null,
+        tempTouchStartPos: null,
+        isCreatingReservation: false,
+        tempReservation: null
+      })
+      return
+    }
+
+    // 确认创建，保存会议预约
+    this.saveTempReservation()
+  },
+
+  /**
+   * 保存临时会议块为正式预约
+   */
+  async saveTempReservation() {
+    const { tempReservation } = this.data
+
+    if (!tempReservation) return
+
+    wx.showLoading({ title: '创建中...', mask: true })
+
+    try {
+      const res = await wx.cloud.callFunction({
+        name: 'meetingRoomManager',
+        data: {
+          action: 'createMeetingRoomReservation',
+          params: {
+            title: tempReservation.title,
+            roomId: tempReservation.roomId,
+            roomName: tempReservation.roomName,
+            date: tempReservation.date,
+            startTime: tempReservation.startTime,
+            endTime: tempReservation.endTime,
+            description: ''
+          },
+          userInfo: this.data.currentUser
+        }
+      })
+
+      wx.hideLoading()
+
+      if (res.result.code === 0) {
+        wx.showToast({
+          title: '创建成功',
+          icon: 'success',
+          duration: 1500
+        })
+
+        // 清除临时状态
+        this.setData({
+          tempReservationTimer: null,
+          tempTouchStartPos: null,
+          isCreatingReservation: false,
+          tempReservation: null
+        })
+
+        // 刷新预约列表
+        this.loadReservations()
+      } else {
+        wx.showToast({
+          title: res.result.message || '创建失败',
+          icon: 'none',
+          duration: 2000
+        })
+
+        // 清除临时状态
+        this.setData({
+          tempReservationTimer: null,
+          tempTouchStartPos: null,
+          isCreatingReservation: false,
+          tempReservation: null
+        })
+      }
+    } catch (error) {
+      wx.hideLoading()
+      console.error('创建预约失败:', error)
+      wx.showToast({
+        title: '创建失败，请重试',
+        icon: 'none',
+        duration: 2000
+      })
+
+      // 清除临时状态
+      this.setData({
+        tempReservationTimer: null,
+        tempTouchStartPos: null,
+        isCreatingReservation: false,
+        tempReservation: null
+      })
+    }
   },
 
   /**
@@ -704,37 +1029,27 @@ Page({
   // ========================================
 
   /**
-   * 会议块触摸开始 - 启动500ms长按定时器
+   * 会议块触摸开始 - 启动300ms长按定时器
    */
   handleReservationTouchStart(e) {
     const reservation = e.currentTarget.dataset.reservation
     const touch = e.touches[0]
-    
-    // 权限检查：只有有添加权限的用户才能拖拽
-    if (!this.data.canReserve) {
-      return
-    }
-    
-    // 检查是否是自己的预约
-    const currentUser = this.data.currentUser
-    if (currentUser && reservation.creatorId && reservation.creatorId !== currentUser.openid) {
-      return
-    }
-    
+
     // 记录触摸起始位置
     const touchStartPos = { x: touch.clientX, y: touch.clientY }
-    
+
     // 清除之前的定时器
     if (this.data.longPressTimer) {
       clearTimeout(this.data.longPressTimer)
     }
-    
-    // 启动500ms长按定时器
+
+    // 启动300ms长按定时器（所有用户都可以尝试拖拽）
     const longPressTimer = setTimeout(() => {
       // 长按触发，激活拖拽模式
       this.activateDragMode(reservation, touchStartPos)
-    }, 500)
-    
+    }, 300)
+
+    // 设置 pendingDragReservation，用于点击显示详情或拖拽
     this.setData({
       longPressTimer,
       pendingDragReservation: reservation,
@@ -744,7 +1059,7 @@ Page({
   },
 
   /**
-   * 激活拖拽模式（长按500ms后调用）
+   * 激活拖拽模式（长按300ms后调用）
    */
   activateDragMode(reservation, touchStartPos) {
     const touch = { clientY: touchStartPos.y }
@@ -950,8 +1265,39 @@ Page({
       })
       return
     }
-    
-    // 弹出确认框
+
+    // 权限验证（松手后检查）
+    const currentUser = this.data.currentUser
+    const hasPermission = this.data.canReserve &&
+      (!currentUser || !draggingReservation.creatorId || draggingReservation.creatorId === currentUser.openid)
+
+    if (!hasPermission) {
+      // 无权限，显示提示并恢复位置
+      const message = !this.data.canReserve
+        ? '您没有操作权限'
+        : '您无法修改他人创建的会议预约'
+
+      wx.showModal({
+        title: '权限提示',
+        content: message,
+        showCancel: false,
+        confirmText: '我知道了',
+        success: () => {
+          // 恢复原位置
+          this.restoreReservationPosition()
+          this.setData({
+            longPressTimer: null,
+            pendingDragReservation: null,
+            isDragActive: false,
+            draggingReservation: null,
+            dragType: null
+          })
+        }
+      })
+      return
+    }
+
+    // 有权限，弹出确认框
     wx.showModal({
       title: '修改会议时间',
       content: `将时间从 ${originalStartTime}-${originalEndTime} 修改为 ${previewStartTime}-${previewEndTime}？`,

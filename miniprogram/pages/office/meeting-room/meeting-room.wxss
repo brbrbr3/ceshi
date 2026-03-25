@@ -242,6 +242,35 @@ page {
   z-index: 100;
 }
 
+/* 临时会议块（长按创建时显示） */
+.temp-reservation {
+  opacity: 0;
+  pointer-events: none;
+  border: 2rpx dashed #7C5CFC;
+  background: rgba(124, 92, 252, 0.05);
+  transition: opacity 0.2s ease;
+}
+
+.temp-reservation.is-visible {
+  opacity: 1;
+  pointer-events: auto;
+  box-shadow: 0 4rpx 16rpx rgba(124, 92, 252, 0.2);
+  animation: pulse 1.5s ease-in-out infinite;
+}
+
+.temp-reservation .reservation-bar-title {
+  color: #7C5CFC;
+}
+
+@keyframes pulse {
+  0%, 100% {
+    box-shadow: 0 4rpx 16rpx rgba(124, 92, 252, 0.2);
+  }
+  50% {
+    box-shadow: 0 6rpx 20rpx rgba(124, 92, 252, 0.35);
+  }
+}
+
 .reservation-bar-title {
   font-size: 36rpx;
   font-weight: 600;
@@ -379,7 +408,8 @@ page {
 .detail-popup-header {
   display: flex;
   align-items: center;
-  justify-content: space-between;
+  justify-content: center;
+  position: relative;
   padding: 28rpx 32rpx;
   background: #FFFFFF;
   border-bottom: 1rpx solid #E2E8F0;
@@ -388,6 +418,8 @@ page {
 }
 
 .detail-popup-close {
+  position: absolute;
+  left: 32rpx;
   font-size: 48rpx;
   color: #64748B;
   width: 48rpx;
@@ -401,10 +433,11 @@ page {
   font-size: 32rpx;
   font-weight: 600;
   color: #1E293B;
-  padding-left: 40rpx;
 }
 
 .detail-popup-edit {
+  position: absolute;
+  right: 32rpx;
   font-size: 28rpx;
   color: #7C5CFC;
   font-weight: 500;

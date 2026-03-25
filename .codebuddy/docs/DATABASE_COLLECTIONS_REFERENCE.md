@@ -672,6 +672,121 @@
 
 ---
 
+### 16. feedback_posts - 意见反馈帖子
+
+**用途**：存储用户提交的意见反馈
+
+**安全规则**：`ADMINWRITE` - 所有用户可读，仅管理员可写
+
+**记录数**：动态
+
+**索引**：
+
+- `_id` - 记录 ID（云开发自动创建）
+- `idx_createdAt` - 创建时间索引（降序）- 优化意见列表查询
+
+**字段结构**：
+```javascript
+{
+  _id: String,              // 记录 ID（自动生成）
+  openid: String,           // 提交者 openid
+  authorName: String,       // 提交者姓名
+  content: String,          // 意见内容
+  createdAt: Number         // 创建时间戳
+}
+```
+
+---
+
+### 17. feedback_replies - 意见反馈回复
+
+**用途**：存储管理员对意见反馈的回复
+
+**安全规则**：`ADMINWRITE` - 所有用户可读，仅管理员可写
+
+**记录数**：动态
+
+**索引**：
+
+- `_id` - 记录 ID（云开发自动创建）
+- `idx_postId_createdAt` - 组合索引：postId（升序）+ createdAt（升序）- 优化回复列表查询
+
+**字段结构**：
+```javascript
+{
+  _id: String,              // 记录 ID（自动生成）
+  postId: String,           // 关联的意见帖子 ID
+  openid: String,           // 回复者 openid
+  authorName: String,       // 回复者姓名
+  isAdmin: Boolean,         // 是否为管理员回复
+  content: String,          // 回复内容
+  createdAt: Number         // 创建时间戳
+}
+```
+
+---
+
+### 18. meeting_room_reservations - 会议室预约
+
+**用途**：存储会议室预约记录
+
+**安全规则**：`READONLY` - 所有用户可读，仅创建者可写
+
+**记录数**：动态
+
+**索引**：
+
+- `_id` - 记录 ID（云开发自动创建）
+- `idx_roomId_date` - 组合索引：roomId + date - 优化会议室预约查询
+- `idx_creatorId` - 创建者索引
+
+**字段结构**：
+```javascript
+{
+  _id: String,              // 记录 ID（自动生成）
+  title: String,            // 预约标题/会议名称
+  roomId: String,           // 会议室 ID
+  roomName: String,         // 会议室名称
+  date: String,             // 预约日期 YYYY-MM-DD
+  startTime: String,        // 开始时间 HH:mm
+  endTime: String,          // 结束时间 HH:mm
+  description: String,      // 备注（可选）
+  creatorId: String,        // 创建者 openid
+  creatorName: String,      // 创建者姓名
+  creatorRole: String,      // 创建者角色
+  createdAt: Number,        // 创建时间戳
+  updatedAt: Number         // 更新时间戳
+}
+```
+
+---
+
+### 19. schedule_subscriptions - 日程订阅
+
+**用途**：存储用户对日程的订阅关系
+
+**安全规则**：`READONLY` - 所有用户可读，仅创建者可写
+
+**记录数**：动态
+
+**索引**：
+
+- `_id` - 记录 ID（云开发自动创建）
+- `idx_userId` - 用户索引 - 查询用户订阅列表
+- `idx_scheduleId` - 日程索引 - 查询日程订阅者
+
+**字段结构**：
+```javascript
+{
+  _id: String,              // 记录 ID（自动生成）
+  scheduleId: String,       // 订阅的日程 ID
+  userId: String,           // 订阅者 openid
+  createdAt: Number         // 创建时间戳
+}
+```
+
+---
+
 ## 命名规范
 
 ### 集合命名规则
@@ -795,6 +910,7 @@ const notificationsCollection = db.collection('notifications')  // ✅
 | 2026-03-19 | 修正工作流相关集合安全规则：PRIVATE → ADMINWRITE | AI |
 | 2026-03-19 | 添加安全规则重要说明（云函数创建数据的权限问题） | AI |
 | 2026-03-21 | 添加 holiday_configs 节假日配置集合 | AI |
+| 2026-03-25 | 添加 feedback_posts、feedback_replies、meeting_room_reservations、schedule_subscriptions 集合 | AI |
 
 ---
 
@@ -807,13 +923,20 @@ https://tcb.cloud.tencent.com/dev?envId=cloud1-8gdftlggae64d5d0#/db/doc
 
 **集合列表**：
 - [announcements](https://tcb.cloud.tencent.com/dev?envId=cloud1-8gdftlggae64d5d0#/db/doc/collection/announcements)
+- [calendar_schedules](https://tcb.cloud.tencent.com/dev?envId=cloud1-8gdftlggae64d5d0#/db/doc/collection/calendar_schedules)
+- [feedback_posts](https://tcb.cloud.tencent.com/dev?envId=cloud1-8gdftlggae64d5d0#/db/doc/collection/feedback_posts)
+- [feedback_replies](https://tcb.cloud.tencent.com/dev?envId=cloud1-8gdftlggae64d5d0#/db/doc/collection/feedback_replies)
+- [holiday_configs](https://tcb.cloud.tencent.com/dev?envId=cloud1-8gdftlggae64d5d0#/db/doc/collection/holiday_configs)
+- [meeting_room_reservations](https://tcb.cloud.tencent.com/dev?envId=cloud1-8gdftlggae64d5d0#/db/doc/collection/meeting_room_reservations)
 - [menu_comments](https://tcb.cloud.tencent.com/dev?envId=cloud1-8gdftlggae64d5d0#/db/doc/collection/menu_comments)
 - [menus](https://tcb.cloud.tencent.com/dev?envId=cloud1-8gdftlggae64d5d0#/db/doc/collection/menus)
 - [notifications](https://tcb.cloud.tencent.com/dev?envId=cloud1-8gdftlggae64d5d0#/db/doc/collection/notifications)
 - [office_registration_requests](https://tcb.cloud.tencent.com/dev?envId=cloud1-8gdftlggae64d5d0#/db/doc/collection/office_registration_requests)
 - [office_users](https://tcb.cloud.tencent.com/dev?envId=cloud1-8gdftlggae64d5d0#/db/doc/collection/office_users)
 - [permissions](https://tcb.cloud.tencent.com/dev?envId=cloud1-8gdftlggae64d5d0#/db/doc/collection/permissions)
+- [schedule_subscriptions](https://tcb.cloud.tencent.com/dev?envId=cloud1-8gdftlggae64d5d0#/db/doc/collection/schedule_subscriptions)
 - [sys_config](https://tcb.cloud.tencent.com/dev?envId=cloud1-8gdftlggae64d5d0#/db/doc/collection/sys_config)
+- [trip_reports](https://tcb.cloud.tencent.com/dev?envId=cloud1-8gdftlggae64d5d0#/db/doc/collection/trip_reports)
 - [work_orders](https://tcb.cloud.tencent.com/dev?envId=cloud1-8gdftlggae64d5d0#/db/doc/collection/work_orders)
 - [workflow_logs](https://tcb.cloud.tencent.com/dev?envId=cloud1-8gdftlggae64d5d0#/db/doc/collection/workflow_logs)
 - [workflow_tasks](https://tcb.cloud.tencent.com/dev?envId=cloud1-8gdftlggae64d5d0#/db/doc/collection/workflow_tasks)
