@@ -24,19 +24,15 @@ Page({
         title: '工作记录',
         items: [
           { icon: '🔔', label: '消息通知' },
-          { icon: '📅', label: '考勤记录（占位）' },
-          { icon: '📊', label: '工作报告（占位）', badge: '3 条未读' },
-          { icon: '💰', label: '薪酬明细（占位）' },
-          { icon: '🎯', label: '绩效评估（占位）' }
+          { icon: '📊', label: '工作报告（占位）', badge: '3 条未读' }
         ]
       },
       {
         title: '个人设置',
         items: [
           { icon: '👤', label: '修改个人信息' },
-          { icon: '🔒', label: '账号安全（占位）' },
-          { icon: '❓', label: '帮助中心（占位）' },
-          { icon: '⭐', label: '意见反馈（占位）' }
+          { icon: '❓', label: '帮助中心' },
+          { icon: '⭐', label: '意见反馈' }
         ]
       }
     ],
@@ -131,12 +127,7 @@ Page({
       wx.navigateTo({
         url: '/pages/office/notifications/notifications'
       })
-    } else if (label === '账号安全（占位）') {
-      wx.navigateTo({
-        url: '/pages/test/datetime-picker-test/datetime-picker-test'
-      })
-    }
-    else {
+    } else {
       utils.showToast({
         title: '功能开发中，敬请期待',
         icon: 'none'

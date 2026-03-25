@@ -67,7 +67,13 @@ Page({
     previewStartTime: '',        // 预览开始时间
     previewEndTime: '',          // 预览结束时间
     previewTop: 0,               // 预览 top
-    previewHeight: 0             // 预览 height
+    previewHeight: 0,            // 预览 height
+
+    // 长按检测（500ms时延）
+    longPressTimer: null,        // 长按定时器
+    pendingDragReservation: null,// 待确认的拖拽预约
+    isDragActive: false,         // 是否已激活拖拽模式
+    touchStartPos: null          // 触摸起始位置 {x, y}
   },
 
   // 实际测量的值（运行时获取）
@@ -611,11 +617,39 @@ Page({
   // ========================================
 
   /**
-   * 会议块触摸开始 - 判断拖拽类型
+   * 会议块触摸开始 - 启动500ms长按定时器
    */
   handleReservationTouchStart(e) {
     const reservation = e.currentTarget.dataset.reservation
     const touch = e.touches[0]
+    
+    // 记录触摸起始位置
+    const touchStartPos = { x: touch.clientX, y: touch.clientY }
+    
+    // 清除之前的定时器
+    if (this.data.longPressTimer) {
+      clearTimeout(this.data.longPressTimer)
+    }
+    
+    // 启动500ms长按定时器
+    const longPressTimer = setTimeout(() => {
+      // 长按触发，激活拖拽模式
+      this.activateDragMode(reservation, touchStartPos)
+    }, 500)
+    
+    this.setData({
+      longPressTimer,
+      pendingDragReservation: reservation,
+      isDragActive: false,
+      touchStartPos
+    })
+  },
+
+  /**
+   * 激活拖拽模式（长按500ms后调用）
+   */
+  activateDragMode(reservation, touchStartPos) {
+    const touch = { clientY: touchStartPos.y }
     
     // 获取会议块的高度和触摸点相对位置
     const query = wx.createSelectorQuery()
@@ -624,7 +658,7 @@ Page({
       if (!res[0]) return
       
       const rect = res[0]
-      const relativeY = touch.clientY - rect.top
+      const relativeY = touchStartPos.y - rect.top
       const heightRatio = relativeY / rect.height
       
       // 根据触摸位置判断拖拽类型
@@ -636,9 +670,10 @@ Page({
       }
       
       this.setData({
+        isDragActive: true,
         draggingReservation: reservation,
         dragType,
-        dragStartY: touch.clientY,
+        dragStartY: touchStartPos.y,
         originalStartTime: reservation.startTime,
         originalEndTime: reservation.endTime,
         previewStartTime: reservation.startTime,
@@ -646,13 +681,37 @@ Page({
         previewTop: reservation.top,
         previewHeight: reservation.height
       })
+      
+      // 触觉反馈
+      wx.vibrateShort({ type: 'medium' })
     })
   },
 
   /**
-   * 会议块触摸移动 - 实时预览
+   * 会议块触摸移动 - 检测移动距离或执行拖拽
    */
   handleReservationTouchMove(e) {
+    const { isDragActive, longPressTimer, touchStartPos, pendingDragReservation } = this.data
+    
+    // 如果还未激活拖拽模式，检测移动距离
+    if (!isDragActive) {
+      const touch = e.touches[0]
+      const deltaX = touch.clientX - touchStartPos.x
+      const deltaY = touch.clientY - touchStartPos.y
+      const distance = Math.sqrt(deltaX * deltaX + deltaY * deltaY)
+      
+      // 移动超过10px，取消长按定时器，不进入拖拽
+      if (distance > 10 && longPressTimer) {
+        clearTimeout(longPressTimer)
+        this.setData({
+          longPressTimer: null,
+          pendingDragReservation: null
+        })
+      }
+      return
+    }
+    
+    // 已激活拖拽模式，执行拖拽逻辑
     const { draggingReservation, dragType, dragStartY, originalStartTime, originalEndTime } = this.data
     if (!draggingReservation) return
 
@@ -747,21 +806,49 @@ Page({
   },
 
   /**
-   * 会议块触摸结束 - 确认修改
+   * 会议块触摸结束 - 判断点击还是拖拽
    */
   handleReservationTouchEnd(e) {
-    const { draggingReservation, originalStartTime, originalEndTime, previewStartTime, previewEndTime } = this.data
+    const { isDragActive, longPressTimer, pendingDragReservation, draggingReservation, originalStartTime, originalEndTime, previewStartTime, previewEndTime } = this.data
 
-    if (!draggingReservation) return
+    // 清除定时器
+    if (longPressTimer) {
+      clearTimeout(longPressTimer)
+    }
+
+    // 如果未激活拖拽模式，则是点击操作，显示详情弹窗
+    if (!isDragActive && pendingDragReservation) {
+      this.setData({
+        longPressTimer: null,
+        pendingDragReservation: null,
+        isDragActive: false,
+        showDetailPopup: true,
+        detailReservation: pendingDragReservation
+      })
+      return
+    }
+
+    // 已激活拖拽模式但 draggingReservation 为空
+    if (!draggingReservation) {
+      this.setData({
+        longPressTimer: null,
+        pendingDragReservation: null,
+        isDragActive: false,
+        draggingReservation: null,
+        dragType: null
+      })
+      return
+    }
 
     // 检查时间是否有变化
     if (previewStartTime === originalStartTime && previewEndTime === originalEndTime) {
-      // 时间未变化，是点击操作，显示详情弹窗
+      // 时间未变化，恢复状态
       this.setData({
+        longPressTimer: null,
+        pendingDragReservation: null,
+        isDragActive: false,
         draggingReservation: null,
-        dragType: null,
-        showDetailPopup: true,
-        detailReservation: draggingReservation
+        dragType: null
       })
       return
     }
@@ -779,6 +866,9 @@ Page({
           this.restoreReservationPosition()
         }
         this.setData({
+          longPressTimer: null,
+          pendingDragReservation: null,
+          isDragActive: false,
           draggingReservation: null,
           dragType: null
         })
