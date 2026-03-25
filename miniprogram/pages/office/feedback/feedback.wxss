@@ -1,0 +1,337 @@
+/* 意见反馈页面样式 */
+
+.feedback-page {
+  background: #F7F8FA;
+  min-height: 100vh;
+  padding-bottom: 120rpx;
+}
+
+/* 渐变头部 */
+.office-gradient-header {
+  padding: calc(100rpx + env(safe-area-inset-top)) 32rpx 148rpx;
+  background: linear-gradient(135deg, #1D4ED8 0%, #3B82F6 100%);
+  color: #FFFFFF;
+  border-bottom-left-radius: 40rpx;
+  border-bottom-right-radius: 40rpx;
+  box-sizing: border-box;
+}
+
+.office-header-top {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+}
+
+.header-back {
+  width: 60rpx;
+  height: 60rpx;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.back-icon {
+  font-size: 40rpx;
+  color: #FFFFFF;
+}
+
+.header-title {
+  font-size: 48rpx;
+  font-weight: 700;
+}
+
+.header-placeholder {
+  width: 60rpx;
+}
+
+.header-desc {
+  font-size: 26rpx;
+  text-align: left;
+  margin: 10rpx 0 28rpx;
+}
+
+/* 内容区域 */
+.feedback-content {
+  position: relative;
+  z-index: 2;
+  margin-top: -140rpx;
+  padding: 0 24rpx 40rpx;
+  box-sizing: border-box;
+}
+
+/* 空状态 */
+.empty-state {
+  background: #FFFFFF;
+  border-radius: 24rpx;
+  padding: 80rpx 40rpx;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  box-shadow: 0 4rpx 20rpx rgba(0, 0, 0, 0.05);
+}
+
+.empty-icon {
+  font-size: 120rpx;
+  margin-bottom: 24rpx;
+}
+
+.empty-text {
+  font-size: 32rpx;
+  color: #6B7280;
+  margin-bottom: 12rpx;
+}
+
+.empty-hint {
+  font-size: 26rpx;
+  color: #9CA3AF;
+}
+
+/* 意见列表 */
+.feedback-list {
+  display: flex;
+  flex-direction: column;
+  gap: 24rpx;
+}
+
+.feedback-item {
+  background: #FFFFFF;
+  border-radius: 24rpx;
+  overflow: hidden;
+  box-shadow: 0 4rpx 20rpx rgba(0, 0, 0, 0.05);
+}
+
+.feedback-main {
+  padding: 28rpx;
+}
+
+.feedback-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 20rpx;
+}
+
+.feedback-author {
+  display: flex;
+  align-items: center;
+  gap: 16rpx;
+}
+
+.author-avatar {
+  width: 56rpx;
+  height: 56rpx;
+  border-radius: 50%;
+  background: linear-gradient(135deg, #3B82F6 0%, #1D4ED8 100%);
+  color: #FFFFFF;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 24rpx;
+  font-weight: 500;
+}
+
+.author-name {
+  font-size: 28rpx;
+  font-weight: 500;
+  color: #1F2937;
+}
+
+.feedback-time {
+  font-size: 24rpx;
+  color: #9CA3AF;
+}
+
+.feedback-content-text {
+  font-size: 28rpx;
+  color: #374151;
+  line-height: 1.6;
+  word-break: break-all;
+}
+
+/* 管理员回复区域 */
+.feedback-replies {
+  margin-top: 24rpx;
+  padding-top: 20rpx;
+  border-top: 1rpx solid #F3F4F6;
+}
+
+.reply-item {
+  background: #EFF6FF;
+  border-radius: 16rpx;
+  padding: 20rpx;
+  margin-bottom: 16rpx;
+}
+
+.reply-item:last-child {
+  margin-bottom: 0;
+}
+
+.reply-badge {
+  display: inline-block;
+  background: linear-gradient(135deg, #2563EB 0%, #1D4ED8 100%);
+  color: #FFFFFF;
+  font-size: 22rpx;
+  padding: 4rpx 16rpx;
+  border-radius: 20rpx;
+  margin-bottom: 12rpx;
+}
+
+.reply-content {
+  font-size: 26rpx;
+  color: #1F2937;
+  line-height: 1.6;
+  margin-bottom: 8rpx;
+}
+
+.reply-time {
+  font-size: 22rpx;
+  color: #9CA3AF;
+}
+
+/* 操作按钮 */
+.feedback-actions {
+  margin-top: 20rpx;
+  display: flex;
+  justify-content: flex-end;
+}
+
+.reply-btn {
+  display: flex;
+  align-items: center;
+  gap: 8rpx;
+  padding: 12rpx 24rpx;
+  background: #F3F4F6;
+  border-radius: 32rpx;
+  font-size: 24rpx;
+  color: #6B7280;
+}
+
+.reply-btn:active {
+  background: #E5E7EB;
+}
+
+.reply-icon {
+  font-size: 28rpx;
+}
+
+/* 加载状态 */
+.loading-more,
+.no-more {
+  text-align: center;
+  padding: 32rpx 0;
+  font-size: 26rpx;
+  color: #9CA3AF;
+}
+
+/* 底部输入区域 */
+.feedback-input-bar {
+  position: fixed;
+  bottom: 0;
+  left: 0;
+  right: 0;
+  background: #FFFFFF;
+  padding: 20rpx 24rpx;
+  padding-bottom: calc(20rpx + env(safe-area-inset-bottom));
+  display: flex;
+  align-items: center;
+  gap: 20rpx;
+  box-shadow: 0 -4rpx 20rpx rgba(0, 0, 0, 0.05);
+  z-index: 100;
+}
+
+.feedback-input {
+  flex: 1;
+  height: 72rpx;
+  background: #F3F4F6;
+  border-radius: 36rpx;
+  padding: 0 28rpx;
+  font-size: 28rpx;
+}
+
+.feedback-send-btn {
+  width: 140rpx;
+  height: 72rpx;
+  background: #E5E7EB;
+  border-radius: 36rpx;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 28rpx;
+  color: #9CA3AF;
+  transition: all 0.3s;
+}
+
+.feedback-send-btn.active {
+  background: linear-gradient(135deg, #2563EB 0%, #1D4ED8 100%);
+  color: #FFFFFF;
+}
+
+/* 回复弹窗 */
+.reply-modal-overlay {
+  position: fixed;
+  top: 0;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  background: rgba(0, 0, 0, 0.5);
+  display: flex;
+  align-items: flex-end;
+  z-index: 200;
+}
+
+.reply-modal {
+  width: 100%;
+  background: #FFFFFF;
+  border-radius: 32rpx 32rpx 0 0;
+  padding: 32rpx;
+  padding-bottom: calc(32rpx + env(safe-area-inset-bottom));
+}
+
+.reply-modal-title {
+  font-size: 32rpx;
+  font-weight: 600;
+  color: #1F2937;
+  text-align: center;
+  margin-bottom: 32rpx;
+}
+
+.reply-modal-input {
+  width: 100%;
+  min-height: 200rpx;
+  background: #F3F4F6;
+  border-radius: 16rpx;
+  padding: 20rpx;
+  font-size: 28rpx;
+  box-sizing: border-box;
+}
+
+.reply-modal-actions {
+  display: flex;
+  gap: 24rpx;
+  margin-top: 32rpx;
+}
+
+.reply-modal-btn {
+  flex: 1;
+  height: 88rpx;
+  border-radius: 44rpx;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 30rpx;
+}
+
+.reply-modal-btn.cancel {
+  background: #F3F4F6;
+  color: #6B7280;
+}
+
+.reply-modal-btn.confirm {
+  background: #E5E7EB;
+  color: #9CA3AF;
+}
+
+.reply-modal-btn.confirm.active {
+  background: linear-gradient(135deg, #2563EB 0%, #1D4ED8 100%);
+  color: #FFFFFF;
+}

@@ -1,0 +1,97 @@
+<!-- 意见反馈页面 -->
+<view class="feedback-page">
+  <!-- 渐变头部 -->
+  <view class="office-gradient-header">
+    <view class="office-header-top">
+      <view class="header-title">意见反馈</view>
+      <view class="header-placeholder"></view>
+    </view>
+    <view class="header-desc">您的意见是我们改进的动力</view>
+  </view>
+
+  <!-- 内容区域 -->
+  <view class="feedback-content">
+    <!-- 空状态 -->
+    <view wx:if="{{!loading && list.length === 0}}" class="empty-state">
+      <view class="empty-icon">💬</view>
+      <view class="empty-text">暂无意见反馈</view>
+      <view class="empty-hint">成为第一个发表意见的用户吧</view>
+    </view>
+
+    <!-- 意见列表 -->
+    <view wx:else class="feedback-list">
+      <view wx:for="{{list}}" wx:key="_id" class="feedback-item">
+        <!-- 意见主体 -->
+        <view class="feedback-main">
+          <view class="feedback-header">
+            <view class="feedback-author">
+              <text class="author-avatar">{{item.authorName[0] || '匿'}}</text>
+              <text class="author-name">{{item.authorName || '匿名用户'}}</text>
+            </view>
+            <view class="feedback-time">{{item.timeText}}</view>
+          </view>
+          <view class="feedback-content-text">{{item.content}}</view>
+          
+          <!-- 管理员回复区域 -->
+          <view wx:if="{{item.replies && item.replies.length > 0}}" class="feedback-replies">
+            <view wx:for="{{item.replies}}" wx:for-item="reply" wx:key="_id" class="reply-item">
+              <view class="reply-badge">管理员回复</view>
+              <view class="reply-content">{{reply.content}}</view>
+              <view class="reply-time">{{reply.timeText}}</view>
+            </view>
+          </view>
+          
+          <!-- 管理员回复按钮 -->
+          <view wx:if="{{isAdmin}}" class="feedback-actions">
+            <view class="reply-btn" bindtap="handleShowReplyInput" data-id="{{item._id}}">
+              <text class="reply-icon">💬</text>
+              <text>回复</text>
+            </view>
+          </view>
+        </view>
+      </view>
+    </view>
+
+    <!-- 加载更多 -->
+    <view wx:if="{{loading}}" class="loading-more">
+      <text>加载中...</text>
+    </view>
+    <view wx:elif="{{!hasMore && list.length > 0}}" class="no-more">
+      <text>没有更多了</text>
+    </view>
+  </view>
+
+  <!-- 底部输入区域 -->
+  <view class="feedback-input-bar">
+    <input 
+      class="feedback-input" 
+      type="text" 
+      placeholder="请输入您的意见..." 
+      value="{{inputContent}}" 
+      bindinput="handleInputChange"
+      maxlength="500"
+    />
+    <view class="feedback-send-btn {{inputContent ? 'active' : ''}}" bindtap="handleSend">
+      发送
+    </view>
+  </view>
+
+  <!-- 回复弹窗 -->
+  <view wx:if="{{showReplyModal}}" class="reply-modal-overlay" bindtap="hideReplyModal">
+    <view class="reply-modal" catchtap>
+      <view class="reply-modal-title">回复意见</view>
+      <textarea 
+        class="reply-modal-input" 
+        placeholder="请输入回复内容..." 
+        value="{{replyContent}}" 
+        bindinput="handleReplyInput"
+        maxlength="500"
+        auto-height
+      ></textarea>
+      <view class="reply-modal-actions">
+        <view class="reply-modal-btn cancel" bindtap="hideReplyModal">取消</view>
+        <view class="reply-modal-btn confirm {{replyContent ? 'active' : ''}}" bindtap="handleSendReply">发送</view>
+      </view>
+    </view>
+  </view>
+</view>

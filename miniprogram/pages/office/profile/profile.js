@@ -127,6 +127,10 @@ Page({
       wx.navigateTo({
         url: '/pages/office/notifications/notifications'
       })
+    } else if (label === '意见反馈') {
+      wx.navigateTo({
+        url: '/pages/office/feedback/feedback'
+      })
     } else {
       utils.showToast({
         title: '功能开发中，敬请期待',
