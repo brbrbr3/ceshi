@@ -1,0 +1,9 @@
+{
+  "name": "dbManager",
+  "version": "1.0.0",
+  "description": "数据库管理云函数（获取集合列表、清空集合数据）",
+  "main": "index.js",
+  "dependencies": {
+    "wx-server-sdk": "~2.6.3"
+  }
+}

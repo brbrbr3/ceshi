@@ -64,7 +64,13 @@ Page({
     authBrandTapCount: 0,
     showSuperAdminModal: false,
     superAdminUsername: '',
-    superAdminPassword: ''
+    superAdminPassword: '',
+    // 清除数据库相关
+    showClearDbPanel: false,
+    dbCollections: [],
+    selectedCollections: [],
+    clearDbLoading: false,
+    clearDbAuthMode: false  // 标记超级管理员验证是否用于清除数据库
   },
 
   onShow() {
@@ -318,6 +324,180 @@ Page({
     })
   },
 
+  // ========== 清除数据库相关方法 ==========
+
+  /**
+   * 显示清除数据库面板
+   */
+  async showClearDbPanel() {
+    this.setData({
+      showClearDbPanel: true,
+      dbCollections: [],
+      selectedCollections: []
+    })
+
+    wx.showLoading({ title: '获取集合列表...', mask: true })
+    try {
+      const res = await wx.cloud.callFunction({
+        name: 'dbManager',
+        data: { action: 'listCollections' }
+      })
+      wx.hideLoading()
+
+      if (res.result.code === 0) {
+        // 为每个集合添加 checked 属性
+        const collections = res.result.data.collections.map(name => ({
+          name,
+          checked: false
+        }))
+        this.setData({ dbCollections: collections })
+      } else {
+        utils.showToast({ title: res.result.message || '获取失败', icon: 'none' })
+        this.hideClearDbPanel()
+      }
+    } catch (error) {
+      wx.hideLoading()
+      utils.showToast({ title: error.message || '获取集合列表失败', icon: 'none' })
+      this.hideClearDbPanel()
+    }
+  },
+
+  /**
+   * 隐藏清除数据库面板
+   */
+  hideClearDbPanel() {
+    this.setData({
+      showClearDbPanel: false,
+      dbCollections: [],
+      selectedCollections: []
+    })
+  },
+
+  /**
+   * 集合选择变化
+   */
+  onCollectionChange(e) {
+    const selectedValues = e.detail.value || []
+    const collections = this.data.dbCollections.map(item => ({
+      ...item,
+      checked: selectedValues.includes(item.name)
+    }))
+    this.setData({
+      dbCollections: collections,
+      selectedCollections: selectedValues
+    })
+  },
+
+  /**
+   * 全选/取消全选
+   */
+  toggleSelectAll() {
+    const allSelected = this.data.selectedCollections.length === this.data.dbCollections.length
+    if (allSelected) {
+      // 取消全选
+      const collections = this.data.dbCollections.map(item => ({ ...item, checked: false }))
+      this.setData({ dbCollections: collections, selectedCollections: [] })
+    } else {
+      // 全选
+      const collections = this.data.dbCollections.map(item => ({ ...item, checked: true }))
+      const allNames = collections.map(item => item.name)
+      this.setData({ dbCollections: collections, selectedCollections: allNames })
+    }
+  },
+
+  /**
+   * 执行清理（两次确认 + 超级管理员验证）
+   */
+  doClearDb() {
+    const { selectedCollections } = this.data
+
+    if (selectedCollections.length === 0) {
+      utils.showToast({ title: '请先选择要清理的集合', icon: 'none' })
+      return
+    }
+
+    // 第一次确认
+    wx.showModal({
+      title: '确认清理',
+      content: `将清理 ${selectedCollections.length} 个集合的所有数据，此操作不可恢复，是否继续？`,
+      confirmText: '继续',
+      confirmColor: '#ff4d4f',
+      success: (res) => {
+        if (res.confirm) {
+          // 第二次确认
+          wx.showModal({
+            title: '最终确认',
+            content: `确定要清空以下集合的所有数据吗？\n\n${selectedCollections.join('\n')}`,
+            confirmText: '确认清理',
+            confirmColor: '#ff4d4f',
+            success: (res2) => {
+              if (res2.confirm) {
+                // 显示超级管理员验证弹窗
+                this.setData({
+                  showSuperAdminModal: true,
+                  clearDbAuthMode: true,
+                  superAdminUsername: '',
+                  superAdminPassword: ''
+                })
+              }
+            }
+          })
+        }
+      }
+    })
+  },
+
+  /**
+   * 执行清理操作
+   */
+  async executeClearDb() {
+    const { selectedCollections } = this.data
+
+    this.setData({ clearDbLoading: true })
+    wx.showLoading({ title: '清理中...', mask: true })
+
+    try {
+      const res = await wx.cloud.callFunction({
+        name: 'dbManager',
+        data: {
+          action: 'clearCollections',
+          collections: selectedCollections
+        }
+      })
+
+      wx.hideLoading()
+      this.setData({ clearDbLoading: false })
+
+      if (res.result.code === 0) {
+        const { summary, results } = res.result.data
+        this.addDebugResult(
+          '清除数据库',
+          summary.failed === 0,
+          `成功清理 ${summary.success} 个集合，失败 ${summary.failed} 个`,
+          results
+        )
+
+        // 显示结果
+        wx.showModal({
+          title: summary.failed === 0 ? '清理完成' : '部分清理完成',
+          content: `成功: ${summary.success} 个\n失败: ${summary.failed} 个`,
+          showCancel: false,
+          success: () => {
+            this.hideClearDbPanel()
+          }
+        })
+      } else {
+        this.addDebugResult('清除数据库', false, res.result.message)
+        utils.showToast({ title: res.result.message || '清理失败', icon: 'none' })
+      }
+    } catch (error) {
+      wx.hideLoading()
+      this.setData({ clearDbLoading: false })
+      this.addDebugResult('清除数据库', false, error.message || '清理失败')
+      utils.showToast({ title: error.message || '清理失败', icon: 'none' })
+    }
+  },
+
   // ========== 超级管理员相关方法 ==========
 
   /**
@@ -351,7 +531,8 @@ Page({
     this.setData({
       showSuperAdminModal: false,
       superAdminUsername: '',
-      superAdminPassword: ''
+      superAdminPassword: '',
+      clearDbAuthMode: false
     })
   },
 
@@ -380,24 +561,37 @@ Page({
    * 验证超级管理员登录
    */
   verifySuperAdmin() {
-    const { superAdminUsername, superAdminPassword } = this.data
-    
+    const { superAdminUsername, superAdminPassword, clearDbAuthMode } = this.data
+
     // 验证用户名
     if (superAdminUsername !== '999') {
       utils.showToast({ title: '用户名错误', icon: 'none' })
       return
     }
-    
+
     // 验证密码
     const correctPassword = this.generateSuperPassword()
     if (superAdminPassword !== correctPassword) {
       utils.showToast({ title: '密码错误', icon: 'none' })
       return
     }
-    
-    // 验证通过，隐藏弹窗，开始审批流程
-    this.setData({ showSuperAdminModal: false })
-    this.processPendingRegistrations()
+
+    // 验证通过，隐藏弹窗
+    this.setData({
+      showSuperAdminModal: false,
+      superAdminUsername: '',
+      superAdminPassword: ''
+    })
+
+    // 根据模式执行不同操作
+    if (clearDbAuthMode) {
+      // 清除数据库模式：执行清理
+      this.setData({ clearDbAuthMode: false })
+      this.executeClearDb()
+    } else {
+      // 默认模式：开始审批流程
+      this.processPendingRegistrations()
+    }
   },
 
   /**

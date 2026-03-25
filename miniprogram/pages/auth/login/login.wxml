@@ -59,6 +59,7 @@
     <view class="auth-debug-buttons">
       <view class="auth-debug-btn" bindtap="callInitSystemConfig">初始化系统配置</view>
       <view class="auth-debug-btn" bindtap="callInitWorkflowDB">初始化工作流</view>
+      <view class="auth-debug-btn auth-debug-btn-danger" bindtap="showClearDbPanel">清除数据库数据</view>
     </view>
     <view class="auth-debug-close" bindtap="hideDebugPanel">关闭调试面板</view>
 
@@ -76,12 +77,37 @@
         </view>
       </view>
     </view>
+
+    <!-- 清除数据库面板 -->
+    <view wx:if="{{showClearDbPanel}}" class="auth-clear-db-panel">
+      <view class="auth-clear-db-header">
+        <view class="auth-clear-db-title">选择要清理的集合</view>
+        <view class="auth-clear-db-select-all" bindtap="toggleSelectAll">
+          {{selectedCollections.length === dbCollections.length ? '取消全选' : '全选'}}
+        </view>
+      </view>
+      
+      <checkbox-group class="auth-clear-db-list" bindchange="onCollectionChange">
+        <label class="auth-clear-db-item" wx:for="{{dbCollections}}" wx:key="name">
+          <checkbox value="{{item.name}}" checked="{{item.checked}}" color="#1890ff" />
+          <text class="auth-clear-db-item-name">{{item.name}}</text>
+        </label>
+      </checkbox-group>
+
+      <view class="auth-clear-db-actions">
+        <view class="auth-clear-db-btn auth-clear-db-btn-cancel" bindtap="hideClearDbPanel">取消</view>
+        <view class="auth-clear-db-btn auth-clear-db-btn-confirm {{selectedCollections.length === 0 ? 'is-disabled' : ''}}" bindtap="doClearDb">
+          清理{{selectedCollections.length > 0 ? ' (' + selectedCollections.length + ')' : ''}}
+        </view>
+      </view>
+    </view>
   </view>
 
   <!-- 超级管理员登录弹窗 -->
   <view wx:if="{{showSuperAdminModal}}" class="auth-modal-overlay" bindtap="hideSuperAdminModal">
     <view class="auth-modal" catchtap>
-      <view class="auth-modal-title">超级管理员登录</view>
+      <view class="auth-modal-title">{{clearDbAuthMode ? '超级管理员验证' : '超级管理员登录'}}</view>
+      <view wx:if="{{clearDbAuthMode}}" class="auth-modal-desc">清理数据库需要超级管理员授权</view>
       <input class="auth-modal-input" type="text" placeholder="用户名" value="{{superAdminUsername}}" bindinput="onSuperAdminUsernameInput" />
       <input class="auth-modal-input" type="password" password="{{true}}" placeholder="密码" value="{{superAdminPassword}}" bindinput="onSuperAdminPasswordInput" />
       <view class="auth-modal-actions">
