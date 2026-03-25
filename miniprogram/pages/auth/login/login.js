@@ -59,7 +59,12 @@ Page({
     showPasswordModal: false,
     debugPassword: '',
     showDebugPanel: false,
-    debugResults: []
+    debugResults: [],
+    // 超级管理员相关
+    authBrandTapCount: 0,
+    showSuperAdminModal: false,
+    superAdminUsername: '',
+    superAdminPassword: ''
   },
 
   onShow() {
@@ -310,6 +315,181 @@ Page({
     }).catch(error => {
       wx.hideLoading()
       this.addDebugResult('初始化工作流', false, error.message || '执行失败')
+    })
+  },
+
+  // ========== 超级管理员相关方法 ==========
+
+  /**
+   * auth-brand 点击计数（10次触发超级管理员弹窗）
+   */
+  handleAuthBrandTap() {
+    let count = this.data.authBrandTapCount + 1
+    this.setData({ authBrandTapCount: count })
+    
+    // 达到10次，触发超级管理员弹窗
+    if (count >= 10) {
+      this.setData({
+        showSuperAdminModal: true,
+        authBrandTapCount: 0,
+        superAdminUsername: '',
+        superAdminPassword: ''
+      })
+      return
+    }
+    
+    // 3秒内未继续点击，重置计数
+    if (this._tapResetTimer) {
+      clearTimeout(this._tapResetTimer)
+    }
+    this._tapResetTimer = setTimeout(() => {
+      this.setData({ authBrandTapCount: 0 })
+    }, 3000)
+  },
+
+  hideSuperAdminModal() {
+    this.setData({
+      showSuperAdminModal: false,
+      superAdminUsername: '',
+      superAdminPassword: ''
+    })
+  },
+
+  onSuperAdminUsernameInput(e) {
+    this.setData({ superAdminUsername: e.detail.value })
+  },
+
+  onSuperAdminPasswordInput(e) {
+    this.setData({ superAdminPassword: e.detail.value })
+  },
+
+  /**
+   * 生成今日密码（今天日期 + 倒序之和）
+   */
+  generateSuperPassword() {
+    const today = new Date()
+    const year = today.getFullYear()
+    const month = String(today.getMonth() + 1).padStart(2, '0')
+    const day = String(today.getDate()).padStart(2, '0')
+    const dateStr = `${year}${month}${day}`
+    const reversedDateStr = dateStr.split('').reverse().join('')
+    return String(Number(dateStr) + Number(reversedDateStr))
+  },
+
+  /**
+   * 验证超级管理员登录
+   */
+  verifySuperAdmin() {
+    const { superAdminUsername, superAdminPassword } = this.data
+    
+    // 验证用户名
+    if (superAdminUsername !== '999') {
+      utils.showToast({ title: '用户名错误', icon: 'none' })
+      return
+    }
+    
+    // 验证密码
+    const correctPassword = this.generateSuperPassword()
+    if (superAdminPassword !== correctPassword) {
+      utils.showToast({ title: '密码错误', icon: 'none' })
+      return
+    }
+    
+    // 验证通过，隐藏弹窗，开始审批流程
+    this.setData({ showSuperAdminModal: false })
+    this.processPendingRegistrations()
+  },
+
+  /**
+   * 获取待审批的用户注册申请
+   */
+  async getPendingRegistrations() {
+    try {
+      const res = await wx.cloud.callFunction({
+        name: 'officeAuth',
+        data: {
+          action: 'getPendingRegistrations'
+        }
+      })
+      if (res.result.code === 0) {
+        return res.result.data || []
+      }
+      return []
+    } catch (error) {
+      console.error('获取待审批注册申请失败:', error)
+      return []
+    }
+  },
+
+  /**
+   * 处理待审批的用户注册申请
+   */
+  async processPendingRegistrations() {
+    wx.showLoading({ title: '获取待审批列表...', mask: true })
+    
+    // 获取待审批列表
+    const pendingList = await this.getPendingRegistrations()
+    wx.hideLoading()
+    
+    if (pendingList.length === 0) {
+      utils.showToast({ title: '没有待审批的注册申请', icon: 'none' })
+      return
+    }
+    
+    // 逐条处理
+    this.showApprovalModal(pendingList, 0)
+  },
+
+  /**
+   * 显示审批确认弹窗
+   */
+  showApprovalModal(list, index) {
+    if (index >= list.length) {
+      utils.showToast({ title: '全部申请已处理完毕', icon: 'success' })
+      return
+    }
+    
+    const item = list[index]
+    const name = item.applicantName || item.name || '未知用户'
+    
+    wx.showModal({
+      title: '用户注册审批',
+      content: `是否批准「${name}」的用户注册申请？`,
+      confirmText: '批准',
+      cancelText: '跳过',
+      success: async (res) => {
+        if (res.confirm) {
+          // 确认批准
+          wx.showLoading({ title: '审批中...', mask: true })
+          try {
+            const result = await wx.cloud.callFunction({
+              name: 'workflowEngine',
+              data: {
+                action: 'approveTask',
+                taskId: item.taskId,
+                approveAction: 'approve',
+                comment: '超级管理员审批通过',
+                operatorId: 'system',
+                operatorName: '超级管理员'
+              }
+            })
+            wx.hideLoading()
+            
+            if (result.result.code === 0) {
+              utils.showToast({ title: '已批准', icon: 'success' })
+            } else {
+              utils.showToast({ title: result.result.message || '审批失败', icon: 'none' })
+            }
+          } catch (error) {
+            wx.hideLoading()
+            utils.showToast({ title: '审批失败', icon: 'none' })
+          }
+        }
+        // 继续下一条
+        setTimeout(() => {
+          this.showApprovalModal(list, index + 1)
+        }, 300)
+      }
     })
   }
 })

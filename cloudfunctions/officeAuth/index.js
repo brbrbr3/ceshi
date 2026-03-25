@@ -1206,6 +1206,69 @@ async function getApprovalData(openid, pagination = {}) {
   })
 }
 
+/**
+ * 获取待审批的用户注册申请列表（超级管理员用）
+ */
+async function getPendingRegistrations() {
+  try {
+    // 查询用户注册类型的进行中工单
+    const ordersResult = await workflowOrdersCollection
+      .where({
+        orderType: 'user_registration',
+        workflowStatus: 'in_progress'
+      })
+      .orderBy('createdAt', 'asc')
+      .get()
+
+    if (!ordersResult.data || ordersResult.data.length === 0) {
+      return success([])
+    }
+
+    // 获取所有工单 ID
+    const orderIds = ordersResult.data.map(order => order._id)
+
+    // 查询这些工单对应的待处理任务
+    const tasksResult = await workflowTasksCollection
+      .where({
+        orderId: db.command.in(orderIds),
+        taskStatus: 'pending'
+      })
+      .get()
+
+    // 建立 orderId -> taskId 的映射
+    const taskMap = {}
+    if (tasksResult.data) {
+      tasksResult.data.forEach(task => {
+        if (!taskMap[task.orderId]) {
+          taskMap[task.orderId] = task._id
+        }
+      })
+    }
+
+    // 组装返回数据
+    const list = ordersResult.data.map(order => {
+      const businessData = order.businessData || {}
+      return {
+        orderId: order._id,
+        orderNo: order.orderNo,
+        taskId: taskMap[order._id] || null,
+        applicantId: businessData.applicantId || '',
+        applicantName: businessData.applicantName || '',
+        gender: businessData.gender || '',
+        role: businessData.role || '',
+        department: businessData.department || '',
+        position: businessData.position || '',
+        createdAt: order.createdAt
+      }
+    })
+
+    return success(list)
+  } catch (error) {
+    console.error('获取待审批注册申请失败:', error)
+    return fail(error.message || '获取失败', 500)
+  }
+}
+
 async function reviewRegistration(openid, payload) {
   const adminUser = await ensureAdminUser(openid)
   const taskId = String((payload && payload.taskId) || '').trim()
@@ -1393,6 +1456,11 @@ exports.main = async (event) => {
 
     if (action === 'getWorkflowLogs') {
       return await getWorkflowLogs(event.orderId)
+    }
+
+    // 超级管理员：获取待审批的用户注册申请列表（无需 openid 验证）
+    if (action === 'getPendingRegistrations') {
+      return await getPendingRegistrations()
     }
 
     return fail('不支持的操作类型', 400)

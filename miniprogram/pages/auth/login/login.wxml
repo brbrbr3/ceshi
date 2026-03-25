@@ -1,6 +1,6 @@
 <view class="auth-page login-page">
   <view class="auth-hero">
-    <view class="auth-brand">登录</view>
+    <view class="auth-brand" bindtap="handleAuthBrandTap">登录</view>
     <view class="auth-title">Embaixada da China</view>
     <view class="auth-subtitle">欢迎使用Embaixada da China办公小程序！</view>
     <view class="auth-tip-row">
@@ -74,6 +74,19 @@
         <view wx:if="{{item.data}}" class="auth-debug-result-data">
           <text selectable="true" user-select="true">{{item.data}}</text>
         </view>
+      </view>
+    </view>
+  </view>
+
+  <!-- 超级管理员登录弹窗 -->
+  <view wx:if="{{showSuperAdminModal}}" class="auth-modal-overlay" bindtap="hideSuperAdminModal">
+    <view class="auth-modal" catchtap>
+      <view class="auth-modal-title">超级管理员登录</view>
+      <input class="auth-modal-input" type="text" placeholder="用户名" value="{{superAdminUsername}}" bindinput="onSuperAdminUsernameInput" />
+      <input class="auth-modal-input" type="password" password="{{true}}" placeholder="密码" value="{{superAdminPassword}}" bindinput="onSuperAdminPasswordInput" />
+      <view class="auth-modal-actions">
+        <view class="auth-modal-btn auth-modal-btn-cancel" bindtap="hideSuperAdminModal">取消</view>
+        <view class="auth-modal-btn auth-modal-btn-confirm" bindtap="verifySuperAdmin">确认</view>
       </view>
     </view>
   </view>
