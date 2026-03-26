@@ -11,7 +11,18 @@
         </view>
       </view>
     </view> -->
- <!--全馆日程模块-->
+ 
+   
+
+    <!-- 背景装饰图片 -->
+    <view class="home-bg-image-wrapper">
+      <image class="home-bg-image" src="/image/br1.jpg" mode="widthFix" />
+    </view>
+  </view>
+
+
+  <view class="office-content">
+  <!--全馆日程模块-->
  <view class="office-glass-card home-calendar" bindtap="goCalendar">
       <view class="home-calendar-main">
         <view class="home-calendar-icon">📅</view>
@@ -22,25 +33,16 @@
       </view>
       <view class="home-calendar-tag">全馆日程</view>
     </view>
-    <!--欢迎词 + 通知、搜索图标-->
-    <view class="home-greeting-row">
+   <!--欢迎词 + 通知、搜索图标-->
+   <view class="home-greeting-row">
       <view class="home-greeting">{{greetingText}}</view>
       <view class="home-actions">
         <view class="office-icon-btn-wrapper" bindtap="goNotifications">
-          <view class="office-icon-btn">🔔</view>
+          <view class="office-icon-btn home-icon-btn-ntf">🔔</view>
           <view wx:if="{{unreadNotificationCount > 0}}" class="office-badge">{{unreadNotificationCount}}</view>
         </view>
       </view>
     </view>
-
-    <!-- 背景装饰图片 -->
-    <view class="home-bg-image-wrapper">
-      <image class="home-bg-image" src="/image/br1.jpg" mode="widthFix" />
-    </view>
-  </view>
-
-
-  <view class="office-content">
     <!--常用功能（所有图标对所有人可见）-->
     <view class="office-section">
       <view class="office-section-header">

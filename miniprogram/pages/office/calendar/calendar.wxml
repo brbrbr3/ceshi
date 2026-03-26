@@ -1,7 +1,7 @@
 <!--全馆日程页面-->
 <view class="calendar-page">
   <!-- 标准头部设计 -->
-  <view class="office-gradient-header">
+  <view class="office-gradient-header calendar-gradient-header">
     <view class="office-header-top calendar-header-top">
       <view>
         <view class="calendar-title">全馆日程</view>

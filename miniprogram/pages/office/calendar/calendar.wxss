@@ -4,20 +4,21 @@
   min-height: 100vh;
   background: #EEF2FF;
 }
-
+.calendar-gradient-header{
+  padding-bottom: 50rpx;
+}
 .calendar-header-top{
-  margin-bottom: -100rpx;
 }
 
 /* 头部标题 */
 .calendar-title {
-  font-size: 36rpx;
-  font-weight: 700;
+  font-size: 48rpx;
+  font-weight: 600;
   color: #FFFFFF;
 }
 
 .calendar-subtitle {
-  font-size: 24rpx;
+  font-size: 26rpx;
   color: rgba(255, 255, 255, 0.8);
   margin-top: 4rpx;
 }
