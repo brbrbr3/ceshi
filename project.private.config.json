@@ -23,6 +23,13 @@
     "miniprogram": {
       "list": [
         {
+          "name": "pages/office/home/home",
+          "pathName": "pages/office/home/home",
+          "query": "",
+          "scene": null,
+          "launchMode": "default"
+        },
+        {
           "name": "pages/office/approval/approval",
           "pathName": "pages/office/approval/approval",
           "query": "",

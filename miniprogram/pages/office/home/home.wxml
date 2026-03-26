@@ -1,15 +1,5 @@
 <view class="office-page home-page">
   <view class="office-gradient-header home-header">
-    <view class="office-header-top">
-      <view class="home-brand">
-        <image wx:if="{{avatarUrl}}" class="home-user-avatar" src="{{avatarUrl}}" mode="aspectFill" />
-        <view wx:else class="home-user-avatar home-user-avatar-placeholder">{{avatarText || displayName.slice(0, 1)}}</view>
-        <view>
-          <view class="home-brand-name">{{displayName}}</view>
-          <view class="home-brand-sub">{{roleLabel}}</view>
-        </view>
-      </view>
-    </view>
 
     <!--欢迎词 + 通知、搜索图标-->
     <view class="home-greeting-row">
@@ -19,10 +9,8 @@
           <view class="office-icon-btn">🔔</view>
           <view wx:if="{{unreadNotificationCount > 0}}" class="office-badge">{{unreadNotificationCount}}</view>
         </view>
-        <view class="office-icon-btn" bindtap="showComingSoon">🔎</view>
       </view>
     </view>
-    <!-- <view class="home-date">{{currentDateText}}</view> -->
 
     <!--全馆日程模块-->
     <view class="office-glass-card home-calendar" bindtap="goCalendar">
@@ -34,6 +22,12 @@
         </view>
       </view>
       <view class="home-calendar-tag">全馆日程</view>
+    </view>
+
+    <!-- 背景装饰图片 -->
+    <view class="home-bg-image-wrapper">
+      <image class="home-bg-image" src="/image/br1.jpg" mode="widthFix" />
+      <view class="home-bg-gradient"></view>
     </view>
   </view>
 
