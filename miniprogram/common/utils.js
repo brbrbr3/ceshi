@@ -12,8 +12,6 @@
  * const formattedTime = utils.formatDateTime(timestamp)
  */
 
-const constants = require('./constants.js')
-
 // ==================== 核心时间处理函数 ====================
 
 /**
@@ -21,9 +19,14 @@ const constants = require('./constants.js')
  * @returns {number} 时区偏移量（小时），默认 -3（圣保罗时区）
  */
 function getTimezoneOffset() {
-  // 从 constants 模块的缓存中获取
-  const offset = constants.getConstantSync('TIMEZONE_OFFSET')
-  return offset !== undefined && offset !== null ? offset : -3
+  // 从 app 的缓存中获取
+  try {
+    const app = getApp()
+    const offset = app.getConstantSync('TIMEZONE_OFFSET')
+    return offset !== undefined && offset !== null ? offset : -3
+  } catch (e) {
+    return -3
+  }
 }
 
 /**
@@ -494,10 +497,13 @@ function sleep(ms) {
  * @returns {boolean}
  */
 function needDepartmentField(role) {
-  const visibilityMap = constants.getConstantSync('ROLE_FIELD_VISIBILITY')
-  if (visibilityMap && visibilityMap[role]) {
-    return visibilityMap[role].showDepartment === true
-  }
+  try {
+    const app = getApp()
+    const visibilityMap = app.getConstantSync('ROLE_FIELD_VISIBILITY')
+    if (visibilityMap && visibilityMap[role]) {
+      return visibilityMap[role].showDepartment === true
+    }
+  } catch (e) {}
   return false
 }
 
@@ -507,8 +513,13 @@ function needDepartmentField(role) {
  * @returns {boolean}
  */
 function needRelativeField(role) {
-  const roles = constants.getConstantSync('NEED_RELATIVE_ROLES')
-  return roles ? roles.includes(role) : false
+  try {
+    const app = getApp()
+    const roles = app.getConstantSync('NEED_RELATIVE_ROLES')
+    return roles ? roles.includes(role) : false
+  } catch (e) {
+    return false
+  }
 }
 
 /**
@@ -517,14 +528,19 @@ function needRelativeField(role) {
  * @returns {string[]}
  */
 function getPositionOptionsByRole(role) {
-  const map = constants.getConstantSync('ROLE_POSITION_MAP')
-  const defaultPositions = constants.getConstantSync('POSITION_OPTIONS')
-  
-  if (map && map[role]) {
-    return map[role]
+  try {
+    const app = getApp()
+    const map = app.getConstantSync('ROLE_POSITION_MAP')
+    const defaultPositions = app.getConstantSync('POSITION_OPTIONS')
+    
+    if (map && map[role]) {
+      return map[role]
+    }
+    
+    return defaultPositions || []
+  } catch (e) {
+    return []
   }
-  
-  return defaultPositions || []
 }
 
 // ==================== 导出模块 ====================

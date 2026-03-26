@@ -1,6 +1,5 @@
 const app = getApp()
 const utils = require('../../../common/utils.js')
-const constants = require('../../../common/constants.js')
 const paginationBehavior = require('../../../behaviors/pagination.js')
 
 // 状态样式映射
@@ -93,7 +92,7 @@ Page({
    */
   async loadConstants() {
     try {
-      const travelModes = await constants.getConstant('TRAVEL_MODES')
+      const travelModes = await app.getConstant('TRAVEL_MODES')
       this.setData({
         travelModes: travelModes || ['自驾', '搭车', '打车', '步行']
       })

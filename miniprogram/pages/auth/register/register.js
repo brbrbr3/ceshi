@@ -1,5 +1,4 @@
 const app = getApp()
-const constants = require('../../../common/constants.js')
 const utils = require('../../../common/utils.js')
 
 Page({
@@ -53,7 +52,7 @@ Page({
   // 加载常量
   async loadConstants() {
     try {
-      const allConstants = await constants.getAllConstants()
+      const allConstants = await app.getAllConstants()
 
       this.setData({
         constants: allConstants,
@@ -369,8 +368,8 @@ Page({
       .then(() => {
         // 清除缓存，让 login 页面重新拉取最新状态
         try {
-          wx.removeStorageSync('office-auth-cache')
-          wx.removeStorageSync('office-permission-cache')
+          wx.removeStorageSync('app-user-info-cache')
+          wx.removeStorageSync('app-permission-cache')
         } catch (e) {
           // 忽略清除失败
         }

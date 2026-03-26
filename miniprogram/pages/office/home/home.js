@@ -1,10 +1,6 @@
 const app = getApp()
 const utils = require('../../../common/utils.js')
 
-// 权限缓存 key
-const PERMISSION_CACHE_KEY = 'office-permission-cache'
-const PERMISSION_CACHE_EXPIRE = 30 * 60 * 1000 // 权限缓存30分钟
-
 // 使用统一的时间格式化函数
 const formatTime = (timestamp) => utils.formatRelativeTime(timestamp)
 
@@ -56,15 +52,11 @@ Page({
    * 批量检查功能权限并存入缓存，提升后续访问性能
    */
   loadPermissionCache() {
-    // 从本地存储读取缓存
-    try {
-      const cached = wx.getStorageSync(PERMISSION_CACHE_KEY)
-      if (cached && cached.timestamp && (Date.now() - cached.timestamp < PERMISSION_CACHE_EXPIRE)) {
-        this.setData({ permissionCache: cached.permissions || {} })
-        return
-      }
-    } catch (e) {
-      console.warn('读取权限缓存失败:', e)
+    // 先检查是否已有有效缓存
+    const cached = app.getPermissionCache()
+    if (cached) {
+      this.setData({ permissionCache: cached })
+      return
     }
 
     // 显示加载提示
@@ -76,25 +68,9 @@ Page({
 
     // 批量检查权限
     const featureKeys = ['medical_application', 'trip_report', 'trip_dashboard', 'meeting_room']
-    app.batchCheckPermissions(featureKeys)
-      .then((result) => {
-        const permissions = {}
-        const perms = result.permissions || {}
-        featureKeys.forEach(key => {
-          permissions[key] = perms[key] ? perms[key].allowed : false
-        })
-
+    app.loadPermissionCache(featureKeys)
+      .then((permissions) => {
         this.setData({ permissionCache: permissions })
-
-        // 存入本地缓存
-        try {
-          wx.setStorageSync(PERMISSION_CACHE_KEY, {
-            timestamp: Date.now(),
-            permissions
-          })
-        } catch (e) {
-          console.warn('缓存权限信息失败:', e)
-        }
         wx.hideToast()
       })
       .catch((error) => {

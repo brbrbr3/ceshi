@@ -9,6 +9,9 @@ const config = {
   requestUrl: 'https://mp.weixin.qq.com',
   host,
 
+  // 缓存版本号（修改此值可强制刷新用户端缓存）
+  CACHE_VERSION: '0.24',
+
   // 云开发环境 ID
   envId: 'cloud1-8gdftlggae64d5d0',
   // envId: 'test-f0b102',

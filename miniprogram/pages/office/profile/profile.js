@@ -1,8 +1,10 @@
 const app = getApp()
 const utils = require('../../../common/utils.js')
+const config = require('../../../config.js')
 
 Page({
   data: {
+    version: config.CACHE_VERSION,
     userName: '未登录用户',
     roleLabel: '点击登录后查看资料',
     primaryTag: '微信身份',

@@ -52,8 +52,8 @@ const EXAMPLE_TEMPLATES = [
         { field: 'gender', label: '性别' },
         { field: 'birthday', label: '生日' },
         { field: 'role', label: '角色' },
-        { field: 'position', label: '职位' },
-        { field: 'department', label: '部门' },
+        { field: 'department', label: '部门', condition: { field: 'department', op: '!=', value: '' } },
+        { field: 'position', label: '岗位', condition: { field: 'position', op: '!=', value: '' } },
         { field: 'relativeName', label: '关系人姓名', condition: { field: 'relativeName', op: '!=', value: '' } }
       ]
     },
@@ -97,8 +97,8 @@ const EXAMPLE_TEMPLATES = [
         { field: 'gender', label: '性别' },
         { field: 'birthday', label: '生日' },
         { field: 'role', label: '角色' },
-        { field: 'position', label: '职位' },
-        { field: 'department', label: '部门' },
+        { field: 'department', label: '部门', condition: { field: 'department', op: '!=', value: '' } },
+        { field: 'position', label: '岗位', condition: { field: 'position', op: '!=', value: '' } },
         { field: 'relativeName', label: '关系人姓名', condition: { field: 'relativeName', op: '!=', value: '' } },
         { field: 'updateReason', label: '修改原因' }
       ]
@@ -175,8 +175,8 @@ const EXAMPLE_TEMPLATES = [
         { field: 'relation', label: '与申请人关系' },
         { field: 'medicalDate', label: '就医时间' },
         { field: 'institution', label: '就医机构' },
-        { field: 'otherInstitution', label: '机构名称', condition: { field: 'institution', op: '==', value: '其他' } },
-        { field: 'reasonForSelection', label: '选择此机构的原因', condition: { field: 'institution', op: '==', value: '其他' } },
+        { field: 'otherInstitution', label: '机构名称', condition: { field: 'otherInstitution', op: '!=', value: '' } },
+        { field: 'reasonForSelection', label: '选择此机构的原因', condition: { field: 'reasonForSelection', op: '!=', value: '' } },
         { field: 'reason', label: '就医原因' }
       ]
     },

@@ -1,10 +1,12 @@
 const config = require('./config')
 const themeListeners = []
-const AUTH_STORAGE_KEY = 'office-auth-cache'
-const USER_CACHE_EXPIRE = 30 * 60 * 1000 // 用户信息缓存30分钟
+const USER_INFO_CACHE_KEY = 'app-user-info-cache'
+const CONSTANTS_CACHE_KEY = 'app-constants-cache'
+const PERMISSION_CACHE_KEY = 'app-permission-cache'
 const SUBSCRIBE_REQUEST_KEY = 'office-subscribe-requested'
 const SYS_CONFIG_INIT_KEY = 'office-sys-config-initialized'
 const WORKFLOW_INIT_KEY = 'office-workflow-initialized'
+const CACHE_VERSION_KEY = 'app-cache-version'
 
 global.isDemo = true
 
@@ -73,8 +75,26 @@ App({
         traceUser: true,
       })
     }
+
+    // 检查缓存版本号，版本变化时清除用户信息和权限缓存
+    this.checkCacheVersion()
+
     this.restoreAuthState()
     // 初始化函数改为手动调用（通过 login 页面的调试模式）
+  },
+
+  /**
+   * 检查缓存版本号，版本变化时清除相关缓存
+   */
+  checkCacheVersion() {
+    const storedVersion = readStorage(CACHE_VERSION_KEY)
+    if (storedVersion !== config.CACHE_VERSION) {
+      // 版本变化，清除用户信息和权限缓存
+      removeStorage(USER_INFO_CACHE_KEY)
+      removeStorage(PERMISSION_CACHE_KEY)
+      writeStorage(CACHE_VERSION_KEY, config.CACHE_VERSION)
+      console.log('缓存版本已更新，已清除旧缓存')
+    }
   },
 
   onShow(opts) {
@@ -110,10 +130,12 @@ App({
     platform: wx.getDeviceInfo().platform || 'unknown',
     iconTabbar: '/page/weui/example/images/icon_tabbar.png',
     targetApprovalTab: null, // 目标审批tab（用于消息跳转：'pending'=待审批, 'mine'=我的发起）
+    constantsCache: null, // 常量缓存
+    permissionCache: null, // 权限缓存
   }, getDefaultAuthState()),
 
   restoreAuthState() {
-    const cached = readStorage(AUTH_STORAGE_KEY)
+    const cached = readStorage(USER_INFO_CACHE_KEY)
     if (!cached) {
       return
     }
@@ -126,13 +148,12 @@ App({
   },
 
   persistAuthState() {
-    writeStorage(AUTH_STORAGE_KEY, {
+    writeStorage(USER_INFO_CACHE_KEY, {
       hasLogin: this.globalData.hasLogin,
       openid: this.globalData.openid,
       userProfile: this.globalData.userProfile,
       registrationRequest: this.globalData.registrationRequest,
-      authStatus: this.globalData.authStatus,
-      timestamp: Date.now() // 添加时间戳用于缓存过期判断
+      authStatus: this.globalData.authStatus
     })
   },
 
@@ -149,7 +170,7 @@ App({
     this.globalData.userProfile = defaults.userProfile
     this.globalData.registrationRequest = defaults.registrationRequest
     this.globalData.authStatus = defaults.authStatus
-    removeStorage(AUTH_STORAGE_KEY)
+    removeStorage(USER_INFO_CACHE_KEY)
   },
 
   getUserOpenId(callback) {
@@ -204,8 +225,8 @@ App({
 
     // 非强制刷新时，先检查缓存
     if (!forceRefresh) {
-      const cached = readStorage(AUTH_STORAGE_KEY)
-      if (cached && cached.timestamp && (Date.now() - cached.timestamp < USER_CACHE_EXPIRE)) {
+      const cached = readStorage(USER_INFO_CACHE_KEY)
+      if (cached && cached.hasLogin) {
         // 缓存有效，直接返回
         return Promise.resolve({
           registered: cached.hasLogin,
@@ -662,5 +683,403 @@ App({
         throw new Error(result.message || '重新初始化失败')
       }
     })
+  },
+
+  // ========== 常量缓存相关方法 ==========
+
+  /**
+   * 从本地存储恢复常量缓存
+   */
+  restoreConstantsCache() {
+    const cached = readStorage(CONSTANTS_CACHE_KEY)
+    if (!cached || !cached.version) {
+      return null
+    }
+
+    // 检查版本号是否匹配
+    if (cached.version !== config.CACHE_VERSION) {
+      removeStorage(CONSTANTS_CACHE_KEY)
+      return null
+    }
+
+    this.globalData.constantsCache = cached.data
+    return cached.data
+  },
+
+  /**
+   * 持久化常量缓存到本地存储
+   */
+  persistConstantsCache(data) {
+    this.globalData.constantsCache = data
+    writeStorage(CONSTANTS_CACHE_KEY, {
+      data: data,
+      version: config.CACHE_VERSION
+    })
+  },
+
+  /**
+   * 获取常量缓存（同步）
+   * @returns {Object|null} 常量缓存数据
+   */
+  getConstantsCache() {
+    // 优先从内存获取
+    if (this.globalData.constantsCache) {
+      return this.globalData.constantsCache
+    }
+    // 尝试从本地存储恢复
+    return this.restoreConstantsCache()
+  },
+
+  /**
+   * 预加载常量到缓存
+   * 在登录成功后调用，提前加载常量避免后续页面重复请求
+   * @returns {Promise<Object>} 常量数据
+   */
+  loadConstants() {
+    // 先检查是否已有有效缓存
+    const cached = this.getConstantsCache()
+    if (cached) {
+      console.log('常量缓存已存在，跳过加载')
+      return Promise.resolve(cached)
+    }
+
+    // 调用云函数获取配置
+    return wx.cloud.callFunction({
+      name: 'getSystemConfig'
+    }).then(res => {
+      if (res.result.code !== 0) {
+        throw new Error(res.result.message || '获取配置失败')
+      }
+
+      const configs = res.result.data || {}
+
+      // 将按类型分组的配置转换为键值对
+      const constants = {}
+      for (const type in configs) {
+        for (const key in configs[type]) {
+          constants[key] = configs[type][key]
+        }
+      }
+
+      // 持久化缓存
+      this.persistConstantsCache(constants)
+      console.log('常量缓存加载成功')
+      return constants
+    }).catch(error => {
+      console.error('加载常量缓存失败:', error)
+      throw error
+    })
+  },
+
+  /**
+   * 清除常量缓存
+   */
+  clearConstantsCache() {
+    this.globalData.constantsCache = null
+    removeStorage(CONSTANTS_CACHE_KEY)
+  },
+
+  /**
+   * 获取默认常量（降级方案）
+   * 当云函数不可用时使用硬编码默认值
+   * @returns {Object} 默认常量
+   */
+  getDefaultConstants() {
+    return {
+      // 角色相关
+      ROLE_OPTIONS: ['馆领导', '部门负责人', '馆员', '工勤', '物业', '配偶', '家属'],
+      ROLE_POSITION_MAP: {
+        '馆领导': ['无', '会计主管', '会计', '俱乐部', '阳光课堂'],
+        '部门负责人': ['无', '会计主管', '会计', '俱乐部', '阳光课堂'],
+        '馆员': ['无', '礼宾', '会计主管', '会计', '俱乐部', '阳光课堂'],
+        '工勤': ['招待员', '厨师'],
+        '配偶': ['无', '内聘']
+      },
+      NEED_RELATIVE_ROLES: ['配偶', '家属'],
+      DEFAULT_ROLE: '馆员',
+
+      // 岗位相关
+      POSITION_OPTIONS: ['无', '礼宾', '会计主管', '会计', '俱乐部', '阳光课堂', '招待员', '厨师', '内聘'],
+      DEFAULT_POSITION: '无',
+
+      // 部门相关
+      DEPARTMENT_OPTIONS: ['政治处', '新公处', '经商处', '科技处', '武官处', '领侨处', '文化处', '办公室', 'DW办'],
+      DEFAULT_DEPARTMENT: '',
+
+      // 角色-字段显示映射关系
+      ROLE_FIELD_VISIBILITY: {
+        '馆领导': { showPosition: true, showDepartment: false, fixedDepartment: null },
+        '部门负责人': { showPosition: true, showDepartment: true, fixedDepartment: null },
+        '馆员': { showPosition: true, showDepartment: true, fixedDepartment: null },
+        '工勤': { showPosition: true, showDepartment: true, fixedDepartment: '办公室' },
+        '物业': { showPosition: false, showDepartment: true, fixedDepartment: '办公室' },
+        '配偶': { showPosition: true, showDepartment: false, fixedDepartment: null },
+        '家属': { showPosition: false, showDepartment: false, fixedDepartment: null }
+      },
+
+      // 性别相关
+      GENDER_OPTIONS: ['男', '女'],
+      DEFAULT_GENDER: '男',
+
+      // 请求状态
+      REQUEST_STATUS: {
+        PENDING: 'pending',
+        APPROVED: 'approved',
+        REJECTED: 'rejected',
+        TERMINATED: 'terminated'
+      },
+      REQUEST_STATUS_TEXT: {
+        pending: '待审批',
+        approved: '已通过',
+        rejected: '已驳回',
+        terminated: '已中止'
+      },
+      REQUEST_STATUS_STYLE: {
+        pending: { color: '#D97706', bg: '#FEF3C7' },
+        approved: { color: '#16A34A', bg: '#DCFCE7' },
+        rejected: { color: '#DC2626', bg: '#FEE2E2' },
+        terminated: { color: '#DC2626', bg: '#FEE2E2' }
+      },
+
+      // 工作流状态
+      TASK_STATUS: {
+        PENDING: 'pending',
+        APPROVED: 'approved',
+        REJECTED: 'rejected',
+        CANCELLED: 'cancelled',
+        RETURNED: 'returned'
+      },
+      ORDER_STATUS: {
+        PENDING: 'pending',
+        SUPPLEMENT: 'supplement',
+        COMPLETED: 'completed',
+        REJECTED: 'rejected',
+        CANCELLED: 'cancelled',
+        TERMINATED: 'terminated'
+      },
+
+      // 工作流步骤类型
+      STEP_TYPE: {
+        SERIAL: 'serial',
+        PARALLEL: 'parallel',
+        CONDITION: 'condition'
+      },
+
+      // 审批人类型
+      APPROVER_TYPE: {
+        USER: 'user',
+        ROLE: 'role',
+        DEPT: 'dept',
+        EXPRESSION: 'expression'
+      },
+
+      // 超时处理动作
+      TIMEOUT_ACTION: {
+        AUTO_APPROVE: 'auto_approve',
+        AUTO_REJECT: 'auto_reject',
+        ESCALATE: 'escalate',
+        REMIND: 'remind'
+      },
+
+      // 时区配置
+      TIMEZONE_OFFSET: -3,
+      TIMEZONE_NAME: 'America/Sao_Paulo',
+
+      // 就医申请相关
+      RELATION_OPTIONS: ['本人', '配偶', '子女', '父母', '其他'],
+      MEDICAL_INSTITUTIONS: [
+        'Hospital Sírio-Libanês（私立综合性医院）',
+        'DF Star-Rede D\'OR（私立综合性医院）',
+        'Hospital Brasília（私立综合性医院）',
+        'Hospital Daher（私立综合性医院）',
+        'Hospital Santa Lúcia（私立综合性医院）',
+        'Hospital Santa Luzia（私立综合性医院）',
+        'Hospital Home（私立综合性医院，骨科专长）',
+        'Sarah Kubitschek（公立医院 – 残障人士友好）',
+        'Hospital das Forças Armadas （公立综合性医院）',
+        'Rita Trindade（牙科）',
+        'Clínica Implanto Odontologia Especializada（牙科）',
+        'CBV（眼科）',
+        'Laboratório Sabin（巴西临床医学典范）',
+        'Cote Brasília（骨科）',
+        'Aluma Dermatologia e Laser（皮肤科）',
+        'Rheos. Reumatologia e Clínica Médica（风湿科）',
+        'Prodigest（消化科）',
+        'CEOL ENT-Otorhinolaryngology Clinic（耳鼻喉科）',
+        'Centro de Acupuntura Shen（针灸、艾灸）',
+        'Consultório Natasha Ferraroni（过敏）',
+        'Hospital Materno Infantil de Brasília（妇幼专科）',
+        '其他'
+      ],
+
+      // 通知消息类型
+      NOTIFICATION_TYPES: {
+        MENU: 'menu',
+        NEW_REGISTRATION: 'new_registration',
+        TASK_ASSIGNED: 'task_assigned',
+        TASK_COMPLETED: 'task_completed',
+        PROCESS_RETURNED: 'process_returned',
+        WORKFLOW_COMPLETED: 'workflow_completed',
+        ORDER_TERMINATED: 'order_terminated'
+      },
+
+      // 通知消息类型与跳转tab映射
+      NOTIFICATION_TARGET_TAB: {
+        menu: 'none',
+        new_registration: 'pending',
+        task_assigned: 'pending',
+        task_completed: 'mine',
+        process_returned: 'mine',
+        workflow_completed: 'mine',
+        order_terminated: 'mine'
+      },
+
+      // 审批中心配置
+      APPROVAL_REVIEWER_ROLES: ['馆领导', '部门负责人'],
+      APPROVAL_TABS: [
+        { key: 'pending', label: '待审批' },
+        { key: 'mine', label: '我发起的' },
+        { key: 'done', label: '已处理' }
+      ],
+      APPROVAL_TAB_PERMISSION: {
+        withReview: ['pending', 'mine', 'done'],
+        withoutReview: ['mine']
+      },
+
+      // 外出报备相关
+      TRAVEL_MODES: ['自驾', '搭车', '打车', '步行'],
+      TRIP_STATUS: {
+        OUT: 'out',
+        RETURNED: 'returned',
+        OVERTIME: 'overtime'
+      },
+      TRIP_STATUS_TEXT: {
+        out: '外出中',
+        returned: '已返回',
+        overtime: '超时未归'
+      },
+      TRIP_STATUS_STYLE: {
+        out: { color: '#2563EB', bg: '#EFF6FF', icon: '🚗' },
+        returned: { color: '#16A34A', bg: '#DCFCE7', icon: '✓' },
+        overtime: { color: '#DC2626', bg: '#FEE2E2', icon: '⚠' }
+      },
+      TRIP_OVERTIME_HOURS: 1,
+      TRIP_DASHBOARD_ROLES: ['馆领导', '部门负责人', 'admin']
+    }
+  },
+
+  /**
+   * 获取单个常量值（异步）
+   * @param {string} key - 常量键名
+   * @returns {Promise<any>} 常量值
+   */
+  getConstant(key) {
+    return this.getAllConstants().then(constants => constants[key])
+  },
+
+  /**
+   * 同步获取单个常量值（从缓存或默认值）
+   * @param {string} key - 常量键名
+   * @returns {any} 常量值
+   */
+  getConstantSync(key) {
+    // 优先从缓存获取
+    const cached = this.getConstantsCache()
+    if (cached && cached[key] !== undefined) {
+      return cached[key]
+    }
+    // 返回默认值
+    const defaults = this.getDefaultConstants()
+    return defaults[key]
+  },
+
+  /**
+   * 获取所有常量（异步，带缓存）
+   * @returns {Promise<Object>} 所有常量的键值对
+   */
+  getAllConstants() {
+    // 检查缓存
+    const cached = this.getConstantsCache()
+    if (cached) {
+      return Promise.resolve(cached)
+    }
+    // 加载常量
+    return this.loadConstants()
+  },
+
+  // ========== 权限缓存相关方法 ==========
+
+  /**
+   * 从本地存储恢复权限缓存
+   */
+  restorePermissionCache() {
+    const cached = readStorage(PERMISSION_CACHE_KEY)
+    if (!cached || !cached.permissions) {
+      return null
+    }
+
+    this.globalData.permissionCache = cached.permissions
+    return cached.permissions
+  },
+
+  /**
+   * 持久化权限缓存到本地存储
+   */
+  persistPermissionCache(permissions) {
+    this.globalData.permissionCache = permissions
+    writeStorage(PERMISSION_CACHE_KEY, {
+      permissions: permissions
+    })
+  },
+
+  /**
+   * 获取权限缓存（同步）
+   * @returns {Object|null} 权限缓存数据
+   */
+  getPermissionCache() {
+    // 优先从内存获取
+    if (this.globalData.permissionCache) {
+      return this.globalData.permissionCache
+    }
+    // 尝试从本地存储恢复
+    return this.restorePermissionCache()
+  },
+
+  /**
+   * 批量加载权限并缓存
+   * @param {string[]} featureKeys - 功能标识数组
+   * @returns {Promise<Object>} 权限数据
+   */
+  loadPermissionCache(featureKeys) {
+    // 先检查是否已有有效缓存
+    const cached = this.getPermissionCache()
+    if (cached) {
+      console.log('权限缓存已存在，跳过加载')
+      return Promise.resolve(cached)
+    }
+
+    return this.batchCheckPermissions(featureKeys).then(result => {
+      const permissions = {}
+      const perms = result.permissions || {}
+      featureKeys.forEach(key => {
+        permissions[key] = perms[key] ? perms[key].allowed : false
+      })
+
+      // 持久化缓存
+      this.persistPermissionCache(permissions)
+      console.log('权限缓存加载成功')
+      return permissions
+    }).catch(error => {
+      console.error('加载权限缓存失败:', error)
+      throw error
+    })
+  },
+
+  /**
+   * 清除权限缓存
+   */
+  clearPermissionCache() {
+    this.globalData.permissionCache = null
+    removeStorage(PERMISSION_CACHE_KEY)
   }
 })

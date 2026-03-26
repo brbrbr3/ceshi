@@ -1,6 +1,5 @@
 const app = getApp()
 const paginationBehavior = require('../../../behaviors/pagination.js')
-const constants = require('../../../common/constants.js')
 const utils = require('../../../common/utils.js')
 
 // 审批类型图标配置（静态配置）
@@ -312,7 +311,7 @@ Page({
   async loadConstants() {
     try {
       // 获取常量
-      const allConstants = await constants.getAllConstants()
+      const allConstants = await app.getAllConstants()
       systemConstants = allConstants
       
       // 设置时间格式化函数（使用新的同步函数）

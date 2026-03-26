@@ -1,6 +1,5 @@
 const app = getApp()
 const utils = require('../../../common/utils.js')
-const constants = require('../../../common/constants.js')
 const paginationBehavior = require('../../../behaviors/pagination.js')
 
 // 状态样式映射
@@ -93,7 +92,7 @@ Page({
       }
 
       const user = result.user
-      const dashboardRoles = await constants.getConstant('TRIP_DASHBOARD_ROLES')
+      const dashboardRoles = await app.getConstant('TRIP_DASHBOARD_ROLES')
       const allowedRoles = dashboardRoles || ['馆领导', '部门负责人', 'admin']
       
       // 检查是否有权限
@@ -134,7 +133,7 @@ Page({
    */
   async loadConstants() {
     try {
-      const departmentOptions = await constants.getConstant('DEPARTMENT_OPTIONS')
+      const departmentOptions = await app.getConstant('DEPARTMENT_OPTIONS')
       this.setData({
         departmentOptions: ['全部', ...(departmentOptions || [])]
       })

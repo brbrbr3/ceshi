@@ -1,6 +1,5 @@
 const app = getApp()
 const utils = require('../../../common/utils.js')
-const constants = require('../../../common/constants.js')
 
 Page({
   data: {
@@ -103,56 +102,28 @@ Page({
   async loadConstants() {
     try {
       const [roleOptions, relationOptions, medicalInstitutions] = await Promise.all([
-        constants.getConstant('ROLE_OPTIONS'),
-        constants.getConstant('RELATION_OPTIONS'),
-        constants.getConstant('MEDICAL_INSTITUTIONS')
+        app.getConstant('ROLE_OPTIONS'),
+        app.getConstant('RELATION_OPTIONS'),
+        app.getConstant('MEDICAL_INSTITUTIONS')
       ])
-
-      // 加载工作流模板步骤
-      const workflowSteps = await this.loadWorkflowTemplateSteps()
 
       this.setData({
         roleOptions: roleOptions || [],
         relationOptions: relationOptions || [],
         medicalInstitutions: medicalInstitutions || [],
-        workflowSteps: workflowSteps
+        // 使用默认审批流程文案，避免不必要的云函数调用
+        workflowSteps: ['部门负责人审批', '会计主管审批', '馆领导审批']
       })
     } catch (error) {
       console.error('加载常量配置失败:', error)
       // 使用默认值
-      const defaults = constants.getDefaultConstants()
+      const defaults = app.getDefaultConstants()
       this.setData({
         roleOptions: defaults.ROLE_OPTIONS || [],
         relationOptions: defaults.RELATION_OPTIONS || [],
         medicalInstitutions: defaults.MEDICAL_INSTITUTIONS || [],
-        workflowSteps: [] // 默认空数组，后续会显示默认文案
+        workflowSteps: ['部门负责人审批', '会计主管审批', '馆领导审批']
       })
-    }
-  },
-
-  /**
-   * 加载工作流模板步骤
-   */
-  async loadWorkflowTemplateSteps() {
-    try {
-      const res = await wx.cloud.callFunction({
-        name: 'workflowEngine',
-        data: {
-          action: 'getWorkflowTemplate',
-          templateType: 'medical_application'
-        }
-      })
-
-      if (res.result.code === 0 && res.result.data) {
-        const template = res.result.data
-        const steps = template.steps || []
-        // 提取步骤名称用于显示
-        return steps.map(step => step.stepName)
-      }
-      return []
-    } catch (error) {
-      console.error('加载工作流模板失败:', error)
-      return []
     }
   },
 

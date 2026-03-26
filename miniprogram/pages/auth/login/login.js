@@ -76,6 +76,10 @@ Page({
   onShow() {
     this.refreshStatus()
     this.loadUserAvatar()
+    // 页面显示时预加载常量（并行执行，不阻塞UI）
+    app.loadConstants().catch(err => {
+      console.warn('预加载常量失败:', err)
+    })
   },
 
   // 处理头像选择
@@ -172,7 +176,7 @@ Page({
     app.checkUserRegistration({ forceRefresh: true })
       .then((result) => {
         if (result.registered === true) {
-          // 已注册用户，跳转主页
+          // 跳转主页
           utils.showToast({
             title: '登录成功',
             icon: 'success'

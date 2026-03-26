@@ -1,6 +1,5 @@
 const app = getApp()
 const utils = require('../../../common/utils.js')
-const constants = require('../../../common/constants.js')
 const paginationBehavior = require('../../../behaviors/pagination.js')
 
 // 使用统一的时间格式化函数
@@ -95,8 +94,8 @@ Page({
     // 根据通知类型跳转到对应页面
     if (notification) {
       // 从常量获取消息类型和跳转映射
-      const NOTIFICATION_TYPES = constants.getConstantSync('NOTIFICATION_TYPES')
-      const NOTIFICATION_TARGET_TAB = constants.getConstantSync('NOTIFICATION_TARGET_TAB')
+      const NOTIFICATION_TYPES = app.getConstantSync('NOTIFICATION_TYPES')
+      const NOTIFICATION_TARGET_TAB = app.getConstantSync('NOTIFICATION_TARGET_TAB')
 
       if (notification.type === NOTIFICATION_TYPES.MENU && notification.menuId) {
         // 菜单通知，跳转到菜单详情页
