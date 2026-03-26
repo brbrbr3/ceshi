@@ -143,6 +143,10 @@ Page({
       wx.navigateTo({
         url: '/pages/office/feedback/feedback'
       })
+    } else if (label === '帮助中心') {
+      wx.navigateTo({
+        url: '/pages/office/help/help'
+      })
     } else {
       utils.showToast({
         title: '功能开发中，敬请期待',

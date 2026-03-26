@@ -21,6 +21,7 @@
     "pages/office/calendar/calendar",
     "pages/office/meeting-room/meeting-room",
     "pages/office/feedback/feedback",
+    "pages/office/help/help",
     "pages/test/datetime-picker-test/datetime-picker-test",
     "page/component/index",
     "page/API/index",

@@ -1,0 +1,202 @@
+<view class="feedback-container">
+  <!-- 头部区域 -->
+  <view class="feedback-header office-gradient-header">
+    <view class="feedback-header-content">
+      <view class="feedback-title">帮助中心</view>
+      <view class="feedback-subtitle">了解小程序各功能模块的使用说明</view>
+    </view>
+  </view>
+
+  <!-- 内容区域 -->
+  <view class="feedback-content">
+    <!-- 核心功能 -->
+    <view class="help-section">
+      <view class="section-title">核心功能</view>
+      
+      <view class="help-card">
+        <view class="card-header">
+          <view class="card-icon">🍽️</view>
+          <view class="card-title">每周菜单</view>
+        </view>
+        <view class="card-content">
+          <view class="card-desc">查看每周工作日工作餐菜单安排。</view>
+          <view class="card-permission">
+            <view class="permission-label">权限要求：</view>
+            <view class="permission-value">无限制，所有用户可查看</view>
+          </view>
+        </view>
+      </view>
+
+      <view class="help-card">
+        <view class="card-header">
+          <view class="card-icon">🏥</view>
+          <view class="card-title">就医申请</view>
+        </view>
+        <view class="card-content">
+          <view class="card-desc">在线提交就医申请，填写就诊时间、医院、科室等信息，提交后进入审批流程，可查看实时审批进度。</view>
+          <view class="card-permission">
+            <view class="permission-label">权限要求：</view>
+            <view class="permission-value">配偶、家属请馆员代为申请。</view>
+          </view>
+        </view>
+      </view>
+
+      <view class="help-card">
+        <view class="card-header">
+          <view class="card-icon">🚗</view>
+          <view class="card-title">外出报备</view>
+        </view>
+        <view class="card-content">
+          <view class="card-desc">报备外出和返回，可自动为同行人代报备，可查看当前个人是否外出。</view>
+          <view class="card-permission">
+            <view class="permission-label">权限要求：</view>
+            <view class="permission-value">无限制，所有用户可使用</view>
+          </view>
+        </view>
+      </view>
+
+      <view class="help-card">
+        <view class="card-header">
+          <view class="card-icon">📊</view>
+          <view class="card-title">出行管理</view>
+        </view>
+        <view class="card-content">
+          <view class="card-desc">可查看外出报备的历史记录和当前外出人员状态，支持统计分析功能。</view>
+          <view class="card-permission">
+            <view class="permission-label">权限要求：</view>
+            <view class="permission-value">仅馆领导、部门负责人可用</view>
+          </view>
+        </view>
+      </view>
+
+      <view class="help-card">
+        <view class="card-header">
+          <view class="card-icon">🏢</view>
+          <view class="card-title">会议室预约</view>
+        </view>
+        <view class="card-content">
+          <view class="card-desc">查看会议室空闲状态，在线预约会议室。</view>
+          <view class="card-permission">
+            <view class="permission-label">权限要求：</view>
+            <view class="permission-value">在编馆员可预约，物业可查看。</view>
+          </view>
+        </view>
+      </view>
+    </view>
+
+    <!-- 协作功能 -->
+    <view class="help-section">
+      <view class="section-title">协作功能</view>
+      
+      <view class="help-card">
+        <view class="card-header">
+          <view class="card-icon">📋</view>
+          <view class="card-title">审批中心</view>
+        </view>
+        <view class="card-content">
+          <view class="card-desc">处理审批任务和查看已提交申请。分为"待审批"、"我的发起"、"已处理"三个模块，根据用户角色显示相应的内容。</view>
+          <view class="card-permission">
+            <view class="permission-label">权限要求：</view>
+            <view class="permission-value">无特定权限要求，根据角色显示不同内容</view>
+          </view>
+        </view>
+      </view>
+
+      <view class="help-card">
+        <view class="card-header">
+          <view class="card-icon">📢</view>
+          <view class="card-title">通知公告</view>
+        </view>
+        <view class="card-content">
+          <view class="card-desc">查看重要通知和公告信息，支持紧急/重要/普通三级分类，未读消息会有明显标记提醒。</view>
+          <view class="card-permission">
+            <view class="permission-label">权限要求：</view>
+            <view class="permission-value">无限制，所有用户可查看</view>
+          </view>
+        </view>
+      </view>
+
+      <view class="help-card">
+        <view class="card-header">
+          <view class="card-icon">📅</view>
+          <view class="card-title">全馆日程</view>
+        </view>
+        <view class="card-content">
+          <view class="card-desc">以日历视图展示馆内日程及节假日安排，方便规划工作和活动。支持订阅感兴趣的日程，已订阅的今日日程会显示在首页“今日日程”模块。</view>
+          <view class="card-permission">
+            <view class="permission-label">权限要求：</view>
+            <view class="permission-value">所有用户可查看日历及订阅日程。仅礼宾可添加修改删除日程。</view>
+          </view>
+        </view>
+      </view>
+
+      <view class="help-card">
+        <view class="card-header">
+          <view class="card-icon">🔔</view>
+          <view class="card-title">消息通知</view>
+        </view>
+        <view class="card-content">
+          <view class="card-desc">接收系统消息提醒，包括审批状态变更通知、菜单更新通知等。支持标记已读和清除功能。</view>
+          <view class="card-permission">
+            <view class="permission-label">权限要求：</view>
+            <view class="permission-value">无限制，所有用户可查看</view>
+          </view>
+        </view>
+      </view>
+    </view>
+
+    <!-- 个人功能 -->
+    <view class="help-section">
+      <view class="section-title">个人功能</view>
+      
+      <view class="help-card">
+        <view class="card-header">
+          <view class="card-icon">👤</view>
+          <view class="card-title">个人中心</view>
+        </view>
+        <view class="card-content">
+          <view class="card-desc">查看和管理个人信息，包括修改个人资料等。个人资料修改后需管理员审批后生效。</view>
+          <view class="card-permission">
+            <view class="permission-label">权限要求：</view>
+            <view class="permission-value">无限制，所有用户可访问自己的信息</view>
+          </view>
+        </view>
+      </view>
+
+      <view class="help-card">
+        <view class="card-header">
+          <view class="card-icon">💬</view>
+          <view class="card-title">意见反馈</view>
+        </view>
+        <view class="card-content">
+          <view class="card-desc">提交使用小程序的意见和问题反馈，支持查看管理员的回复。管理员会对反馈进行处理并回复。</view>
+          <view class="card-permission">
+            <view class="permission-label">权限要求：</view>
+            <view class="permission-value">无限制，所有用户可提交反馈</view>
+          </view>
+        </view>
+      </view>
+    </view>
+
+    <!-- 权限说明 -->
+    <view class="help-section">
+      <view class="section-title">权限说明</view>
+      
+      <view class="permission-tips">
+        <view class="tips-item">
+          <view class="tips-icon">ℹ️</view>
+          <view class="tips-content">
+            <view class="tips-title">如何获取权限？</view>
+            <view class="tips-desc">部分功能需要特定角色或岗位才有权使用。</view>
+          </view>
+        </view>
+      
+      </view>
+    </view>
+
+    <!-- 底部提示 -->
+    <view class="help-footer">
+      <view class="footer-text">如有疑问，请联系管理员或通过"意见反馈"提交问题</view>
+    </view>
+  </view>
+</view>
