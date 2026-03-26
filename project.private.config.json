@@ -24,10 +24,10 @@
       "list": [
         {
           "name": "pages/office/home/home",
-          "pathName": "pages/office/home/home",
+          "pathName": "pages/office/feedback/feedback",
           "query": "",
-          "scene": null,
-          "launchMode": "default"
+          "launchMode": "default",
+          "scene": null
         },
         {
           "name": "pages/office/approval/approval",

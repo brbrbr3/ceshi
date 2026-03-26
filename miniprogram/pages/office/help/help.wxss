@@ -23,7 +23,7 @@
 
 .feedback-subtitle {
   padding-top: 5rpx;
-  font-size: 28rpx;
+  font-size: 26rpx;
   color: rgba(255, 255, 255);
   text-align: left;
 }

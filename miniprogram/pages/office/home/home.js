@@ -18,7 +18,7 @@ Page({
     // 权限缓存
     permissionCache: {},
     stats: [
-      { label: '待审批', value: '0', color: '#F44336', bg: '#FFEBEE' }
+      { label: '待审批', value: '0'}
     ],
     quickActions: [
       { icon: '🍽️', label: '每周菜单', color: '#16A34A', bg: '#DCFCE7', implemented: true, featureKey: null },

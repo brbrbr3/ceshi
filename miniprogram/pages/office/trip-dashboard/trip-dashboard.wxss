@@ -15,14 +15,13 @@
 }
 
 .dashboard-title {
-  font-size: 44rpx;
-  font-weight: 600;
-  margin-bottom: 8rpx;
+  font-size: 48rpx;
+  font-weight: 700;
 }
 
 .dashboard-subtitle {
-  font-size: 28rpx;
-  opacity: 0.9;
+  font-size: 26rpx;
+  padding-top: 5rpx;
 }
 
 /* 内容区 */

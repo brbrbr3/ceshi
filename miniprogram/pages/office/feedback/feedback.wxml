@@ -1,8 +1,8 @@
 <!-- 意见反馈页面 -->
 <view class="feedback-page">
   <!-- 渐变头部 -->
-  <view class="office-gradient-header">
-    <view class="office-header-top">
+  <view class="feedback-gradient-header">
+    <view class="feedback-header-top">
       <view class="header-title">意见反馈</view>
       <view class="header-placeholder"></view>
     </view>

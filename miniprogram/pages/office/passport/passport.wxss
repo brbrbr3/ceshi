@@ -19,14 +19,13 @@
 }
 
 .passport-title {
-  font-size: 44rpx;
+  font-size: 48rpx;
   font-weight: 600;
-  margin-bottom: 8rpx;
 }
 
 .passport-subtitle {
-  font-size: 28rpx;
-  opacity: 0.9;
+  font-size: 26rpx;
+  padding-top: 5rpx;
 }
 
 .passport-header-action {

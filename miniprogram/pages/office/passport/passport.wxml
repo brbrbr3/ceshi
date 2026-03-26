@@ -20,7 +20,7 @@
       <view class="passport-status-info">
         <view class="passport-status-label">
           <text wx:if="{{borrowedRecords.length > 0}}">当前有护照在借</text>
-          <text wx:else>当前无在借护照</text>
+          <text wx:else>护照未借出</text>
         </view>
         <view class="passport-status-detail">
           <text wx:if="{{borrowedRecords.length > 0}}">共 {{borrowedRecords.length}} 条在借记录</text>
@@ -51,7 +51,7 @@
   <view class="passport-content">
     <!-- 申请记录标题 -->
     <view class="passport-section">
-      <view class="passport-section-title">申请记录</view>
+      <view class="passport-section-title">护照领用记录</view>
 
       <!-- 按月分组列表 -->
       <block wx:for="{{groupedRecords}}" wx:key="monthKey">
@@ -79,7 +79,7 @@
       <!-- 空状态 -->
       <view wx:if="{{!loading && recordList.length === 0}}" class="passport-empty">
         <view class="passport-empty-icon">📋</view>
-        <view class="passport-empty-text">暂无申请记录</view>
+        <view class="passport-empty-text">暂无记录</view>
       </view>
 
       <!-- 加载中 -->

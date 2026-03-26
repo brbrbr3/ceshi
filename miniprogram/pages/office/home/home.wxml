@@ -1,5 +1,16 @@
 <view class="office-page home-page">
   <view class="office-gradient-header home-header">
+   
+
+   <!--  数据板
+    <view class="home-stats-card">
+      <view class=" home-stats-grid">
+        <view class="office-glass-card home-stat-item" wx:for="{{stats}}" wx:key="label">
+          <view class="home-stat-badge">{{item.value}}</view>
+          <view class="home-stat-label">{{item.label}}</view>
+        </view>
+      </view>
+    </view> -->
  <!--全馆日程模块-->
  <view class="office-glass-card home-calendar" bindtap="goCalendar">
       <view class="home-calendar-main">
@@ -22,26 +33,14 @@
       </view>
     </view>
 
-   
-
     <!-- 背景装饰图片 -->
     <view class="home-bg-image-wrapper">
       <image class="home-bg-image" src="/image/br1.jpg" mode="widthFix" />
-      <view class="home-bg-gradient"></view>
     </view>
   </view>
 
-  <!--数据板-->
-  <view class="office-content">
-    <view class="office-card home-stats-card">
-      <view class="home-stats-grid">
-        <view class="home-stat-item" wx:for="{{stats}}" wx:key="label">
-          <view class="home-stat-badge" style="background: {{item.bg}}; color: {{item.color}};">{{item.value}}</view>
-          <view class="home-stat-label">{{item.label}}</view>
-        </view>
-      </view>
-    </view>
 
+  <view class="office-content">
     <!--常用功能（所有图标对所有人可见）-->
     <view class="office-section">
       <view class="office-section-header">

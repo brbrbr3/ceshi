@@ -54,8 +54,8 @@
 }
 
 .menus-subtitle {
-  margin-top: 12rpx;
-  font-size: 24rpx;
+  margin-top: 5rpx;
+  font-size: 26rpx;
   color: rgba(255, 255, 255);
 }
 

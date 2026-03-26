@@ -3,8 +3,7 @@ page {
 }
 
 .profile-header {
-  padding-top: 120rpx;
-  padding-bottom: 162rpx;
+  padding-bottom: 44rpx;
 }
 
 .profile-theme-switch {

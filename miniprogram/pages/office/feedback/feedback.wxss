@@ -7,7 +7,7 @@
 }
 
 /* 渐变头部 */
-.office-gradient-header {
+.feedback-gradient-header {
   padding: calc(100rpx + env(safe-area-inset-top)) 32rpx 148rpx;
   background: linear-gradient(135deg, #1D4ED8 0%, #3B82F6 100%);
   color: #FFFFFF;
@@ -16,7 +16,7 @@
   box-sizing: border-box;
 }
 
-.office-header-top {
+.feedback-header-top {
   display: flex;
   align-items: center;
   justify-content: space-between;
@@ -47,7 +47,7 @@
 .header-desc {
   font-size: 26rpx;
   text-align: left;
-  margin: 10rpx 0 28rpx;
+  margin: 5rpx 0 28rpx;
 }
 
 /* 内容区域 */

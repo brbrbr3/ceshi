@@ -42,11 +42,11 @@ input {
 }
 
 .office-gradient-header {
-  padding: calc(100rpx + env(safe-area-inset-top)) 32rpx 148rpx;
+  padding: calc(100rpx + env(safe-area-inset-top)) 32rpx 0;
   background: linear-gradient(135deg, #1D4ED8 0%, #3B82F6 100%);
   color: #FFFFFF;
-  border-bottom-left-radius: 40rpx;
-  border-bottom-right-radius: 40rpx;
+  border-bottom-left-radius: 60rpx;
+  border-bottom-right-radius: 60rpx;
   box-sizing: border-box;
 }
 
@@ -59,7 +59,6 @@ input {
 .office-content {
   position: relative;
   z-index: 2;
-  margin-top: -140rpx;
   padding: 0 24rpx 40rpx;
   box-sizing: border-box;
 }
@@ -71,9 +70,10 @@ input {
 }
 
 .office-glass-card {
-  background: rgba(255, 255, 255, 0.14);
-  border: 2rpx solid rgba(255, 255, 255, 0.48);
+  background: rgba(255, 255, 255, 0.1);
+  border: 3rpx solid rgba(255, 255, 255, 0.48);
   box-shadow: 3rpx 3rpx 2rpx rgba(255, 255, 255, 0.42);
+  backdrop-filter: blur(15px);
 }
 
 .office-section {

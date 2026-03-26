@@ -16,14 +16,13 @@
 }
 
 .trip-title {
-  font-size: 44rpx;
-  font-weight: 600;
-  margin-bottom: 8rpx;
+  font-size: 48rpx;
+  font-weight: 700;
 }
 
 .trip-subtitle {
-  font-size: 28rpx;
-  opacity: 0.9;
+  font-size: 26rpx;
+  padding-top: 5rpx;
 }
 
 /* 状态卡片 - 参照 approval-modal-copy 风格 */
@@ -145,7 +144,7 @@
 
 /* 内容区 */
 .trip-content {
-  padding: 24rpx;
+  padding: 0 24rpx 12rpx;
   padding-bottom: 100rpx;
   margin-top: -8rpx;
 }

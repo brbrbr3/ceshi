@@ -47,7 +47,7 @@ page {
 
 
 .approval-header {
-  padding-bottom: 164rpx;
+  padding-bottom: 44rpx;
 }
 
 .approval-title {
