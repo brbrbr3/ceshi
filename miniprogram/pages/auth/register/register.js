@@ -114,14 +114,13 @@ Page({
 
         // 使用常量判断
         const needRelativeRoles = constants.NEED_RELATIVE_ROLES || ['配偶', '家属']
-        const needDepartmentRoles = constants.NEED_DEPARTMENT_ROLES || ['部门负责人', '馆员', '工勤']
         const rolePositionMap = constants.ROLE_POSITION_MAP || {}
 
         // 使用新的角色字段配置
         const roleConfig = this.getRoleFieldConfig(role)
 
         const showRelativeField = needRelativeRoles.includes(role)
-        const showDepartmentField = needDepartmentRoles.includes(role)
+        const showDepartmentField = roleConfig.showDepartment
         const showPositionField = roleConfig.showPosition
 
         // 根据角色设置岗位选项和显示状态
@@ -226,14 +225,13 @@ Page({
 
     // 使用常量判断
     const needRelativeRoles = constants.NEED_RELATIVE_ROLES || ['配偶', '家属']
-    const needDepartmentRoles = constants.NEED_DEPARTMENT_ROLES || ['部门负责人', '馆员', '工勤']
     const rolePositionMap = constants.ROLE_POSITION_MAP || {}
 
     // 使用新的角色字段配置
     const roleConfig = this.getRoleFieldConfig(role)
 
     const showRelativeField = needRelativeRoles.includes(role)
-    const showDepartmentField = needDepartmentRoles.includes(role)
+    const showDepartmentField = roleConfig.showDepartment
     const showPositionField = roleConfig.showPosition
 
     let department = ''
@@ -308,7 +306,7 @@ Page({
     const form = this.data.form
     const { constants, positionIndex } = this.data
     const needRelativeRoles = constants.NEED_RELATIVE_ROLES || ['配偶', '家属']
-    const needDepartmentRoles = constants.NEED_DEPARTMENT_ROLES || ['部门负责人', '馆员', '工勤']
+    const roleConfig = this.getRoleFieldConfig(form.role)
     
     if (!String(form.name || '').trim()) {
       utils.showToast({ title: '请输入姓名', icon: 'none' })
@@ -330,7 +328,7 @@ Page({
       utils.showToast({ title: '请填写亲属姓名', icon: 'none' })
       return
     }
-    if (needDepartmentRoles.includes(form.role) && !form.department) {
+    if (roleConfig.showDepartment && !form.department) {
       utils.showToast({ title: '请选择部门', icon: 'none' })
       return
     }

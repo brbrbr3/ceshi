@@ -117,28 +117,30 @@ function getDefaultConstants() {
     // 角色相关
     ROLE_OPTIONS: ['馆领导', '部门负责人', '馆员', '工勤', '物业', '配偶', '家属'],
     ROLE_POSITION_MAP: {
-      '工勤': ['会计', '招待员', '厨师'],
-      '配偶': ['无']
+      '馆领导': ['无', '会计主管', '会计', '俱乐部', '阳光课堂'],
+      '部门负责人': ['无', '会计主管', '会计', '俱乐部', '阳光课堂'],
+      '馆员': ['无', '礼宾', '会计主管', '会计', '俱乐部', '阳光课堂'],
+      '工勤': ['招待员', '厨师'],
+      '配偶': ['无', '内聘']
     },
-    NEED_DEPARTMENT_ROLES: ['部门负责人', '馆员', '工勤'],
     NEED_RELATIVE_ROLES: ['配偶', '家属'],
     DEFAULT_ROLE: '馆员',
 
     // 岗位相关
-    POSITION_OPTIONS: ['无', '会计主管', '会计', '招待员', '厨师'],
+    POSITION_OPTIONS: ['无', '礼宾', '会计主管', '会计', '俱乐部', '阳光课堂', '招待员', '厨师', '内聘'],
     DEFAULT_POSITION: '无',
 
     // 部门相关
-    DEPARTMENT_OPTIONS: ['政治处', '新公处', '经商处', '科技处', '武官处', '领侨处', '文化处', '办公室', '党委办'],
+    DEPARTMENT_OPTIONS: ['政治处', '新公处', '经商处', '科技处', '武官处', '领侨处', '文化处', '办公室', 'DW办'],
     DEFAULT_DEPARTMENT: '',
 
     // 角色-字段显示映射关系
     ROLE_FIELD_VISIBILITY: {
-      '馆领导': { showPosition: false, showDepartment: false, fixedDepartment: null },
+      '馆领导': { showPosition: true, showDepartment: false, fixedDepartment: null },
       '部门负责人': { showPosition: true, showDepartment: true, fixedDepartment: null },
       '馆员': { showPosition: true, showDepartment: true, fixedDepartment: null },
       '工勤': { showPosition: true, showDepartment: true, fixedDepartment: '办公室' },
-      '物业': { showPosition: false, showDepartment: false, fixedDepartment: null },
+      '物业': { showPosition: false, showDepartment: true, fixedDepartment: '办公室' },
       '配偶': { showPosition: true, showDepartment: false, fixedDepartment: null },
       '家属': { showPosition: false, showDepartment: false, fixedDepartment: null }
     },
@@ -182,6 +184,29 @@ function getDefaultConstants() {
       REJECTED: 'rejected',
       CANCELLED: 'cancelled',
       TERMINATED: 'terminated'
+    },
+
+    // 工作流步骤类型
+    STEP_TYPE: {
+      SERIAL: 'serial',
+      PARALLEL: 'parallel',
+      CONDITION: 'condition'
+    },
+
+    // 审批人类型
+    APPROVER_TYPE: {
+      USER: 'user',
+      ROLE: 'role',
+      DEPT: 'dept',
+      EXPRESSION: 'expression'
+    },
+
+    // 超时处理动作
+    TIMEOUT_ACTION: {
+      AUTO_APPROVE: 'auto_approve',
+      AUTO_REJECT: 'auto_reject',
+      ESCALATE: 'escalate',
+      REMIND: 'remind'
     },
 
     // 时区配置
@@ -247,7 +272,27 @@ function getDefaultConstants() {
     APPROVAL_TAB_PERMISSION: {
       withReview: ['pending', 'mine', 'done'],
       withoutReview: ['mine']
-    }
+    },
+
+    // 外出报备相关
+    TRAVEL_MODES: ['自驾', '搭车', '打车', '步行'],
+    TRIP_STATUS: {
+      OUT: 'out',
+      RETURNED: 'returned',
+      OVERTIME: 'overtime'
+    },
+    TRIP_STATUS_TEXT: {
+      out: '外出中',
+      returned: '已返回',
+      overtime: '超时未归'
+    },
+    TRIP_STATUS_STYLE: {
+      out: { color: '#2563EB', bg: '#EFF6FF', icon: '🚗' },
+      returned: { color: '#16A34A', bg: '#DCFCE7', icon: '✓' },
+      overtime: { color: '#DC2626', bg: '#FEE2E2', icon: '⚠' }
+    },
+    TRIP_OVERTIME_HOURS: 1,
+    TRIP_DASHBOARD_ROLES: ['馆领导', '部门负责人', 'admin']
   }
 }
 

@@ -494,8 +494,11 @@ function sleep(ms) {
  * @returns {boolean}
  */
 function needDepartmentField(role) {
-  const roles = constants.getConstantSync('NEED_DEPARTMENT_ROLES')
-  return roles ? roles.includes(role) : false
+  const visibilityMap = constants.getConstantSync('ROLE_FIELD_VISIBILITY')
+  if (visibilityMap && visibilityMap[role]) {
+    return visibilityMap[role].showDepartment === true
+  }
+  return false
 }
 
 /**

@@ -37,17 +37,10 @@ const SYSTEM_CONFIGS = [
   },
   {
     type: 'role',
-    key: 'NEED_DEPARTMENT_ROLES',
-    value: ['部门负责人', '馆员', '工勤'],
-    description: '需要填写部门的角色列表',
-    sort: 3
-  },
-  {
-    type: 'role',
     key: 'NEED_RELATIVE_ROLES',
     value: ['配偶', '家属'],
     description: '需要填写亲属信息的角色列表',
-    sort: 4
+    sort: 3
   },
   {
     type: 'role',
@@ -98,7 +91,7 @@ const SYSTEM_CONFIGS = [
       '部门负责人': { showPosition: true, showDepartment: true, fixedDepartment: null },
       '馆员': { showPosition: true, showDepartment: true, fixedDepartment: null },
       '工勤': { showPosition: true, showDepartment: true, fixedDepartment: '办公室' },
-      '物业': { showPosition: false, showDepartment: false, fixedDepartment: null },
+      '物业': { showPosition: false, showDepartment: true, fixedDepartment: '办公室' },
       '配偶': { showPosition: true, showDepartment: false, fixedDepartment: null },
       '家属': { showPosition: false, showDepartment: false, fixedDepartment: null }
     },
