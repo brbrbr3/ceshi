@@ -1,0 +1,6 @@
+{
+  "usingComponents": {},
+  "navigationBarTitleText": "护照领用",
+  "enablePullDownRefresh": true,
+  "backgroundTextStyle": "dark"
+}

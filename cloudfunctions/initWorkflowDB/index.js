@@ -203,6 +203,78 @@ const EXAMPLE_TEMPLATES = [
     status: 'active',
     createdAt: 1757917052000,
     updatedAt: 1757917052000
+  },
+
+  {
+    name: '护照领用审批',
+    code: 'passport_application',
+    version: 1,
+    description: '护照领用审批流程（3步：同部门负责人→馆领导→管理员借出）',
+    category: 'approval',
+    steps: [
+      {
+        stepNo: 1,
+        stepName: '部门负责人审批',
+        stepType: 'serial',
+        approverType: 'dept_head',
+        approverConfig: {},
+        approvalStrategy: 'sequential',
+        canReject: true,
+        canReturn: false,
+        returnTo: 0,
+        timeout: 72,
+        timeoutAction: 'remind'
+      },
+      {
+        stepNo: 2,
+        stepName: '馆领导审批',
+        stepType: 'serial',
+        approverType: 'role',
+        approverConfig: {
+          roleIds: ['library_leader']
+        },
+        approvalStrategy: 'sequential',
+        canReject: true,
+        canReturn: false,
+        returnTo: 0,
+        timeout: 72,
+        timeoutAction: 'remind'
+      },
+      {
+        stepNo: 3,
+        stepName: '管理员借出',
+        stepType: 'serial',
+        approverType: 'role',
+        approverConfig: {
+          roleIds: ['admin']
+        },
+        approvalStrategy: 'sequential',
+        canReject: false,
+        canReturn: false,
+        returnTo: 0,
+        timeout: 168,
+        timeoutAction: 'remind'
+      }
+    ],
+    displayConfig: {
+      cardFields: [
+        { field: 'borrowerNames', label: '领用人' },
+        { field: 'borrowDate', label: '借用日期' }
+      ],
+      detailFields: [
+        { field: 'borrowerNames', label: '领用人姓名' },
+        { field: 'borrowDate', label: '借用日期' },
+        { field: 'expectedReturnDate', label: '预计归还日期', condition: { field: 'expectedReturnDate', op: '!=', value: '' } },
+        { field: 'reason', label: '借用事由' }
+      ]
+    },
+    defaultTimeout: 72,
+    notifyOnSubmit: true,
+    notifyOnComplete: true,
+    notifyOnTimeout: true,
+    status: 'active',
+    createdAt: Date.now(),
+    updatedAt: Date.now()
   }
 ]
 

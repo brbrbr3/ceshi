@@ -3,6 +3,7 @@ page {
 }
 
 .profile-header {
+  padding-top: 120rpx;
   padding-bottom: 162rpx;
 }
 
@@ -80,10 +81,10 @@ page {
   font-size: 20rpx;
 }
 
-.profile-tag.is-light {
+/* .profile-tag.is-light {
   background: rgba(255, 255, 255, 0.1);
   opacity: 0.82;
-}
+} */
 
 .profile-arrow {
   font-size: 40rpx;

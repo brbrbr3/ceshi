@@ -1,6 +1,16 @@
 <view class="office-page home-page">
   <view class="office-gradient-header home-header">
-
+ <!--全馆日程模块-->
+ <view class="office-glass-card home-calendar" bindtap="goCalendar">
+      <view class="home-calendar-main">
+        <view class="home-calendar-icon">📅</view>
+        <view>
+          <view class="home-calendar-title">{{currentDateText}}</view>
+          <view class="home-calendar-desc">{{todayTypeText}}</view>
+        </view>
+      </view>
+      <view class="home-calendar-tag">全馆日程</view>
+    </view>
     <!--欢迎词 + 通知、搜索图标-->
     <view class="home-greeting-row">
       <view class="home-greeting">{{greetingText}}</view>
@@ -12,17 +22,7 @@
       </view>
     </view>
 
-    <!--全馆日程模块-->
-    <view class="office-glass-card home-calendar" bindtap="goCalendar">
-      <view class="home-calendar-main">
-        <view class="home-calendar-icon">📅</view>
-        <view>
-          <view class="home-calendar-title">{{currentDateText}}</view>
-          <view class="home-calendar-desc">{{todayTypeText}}</view>
-        </view>
-      </view>
-      <view class="home-calendar-tag">全馆日程</view>
-    </view>
+   
 
     <!-- 背景装饰图片 -->
     <view class="home-bg-image-wrapper">

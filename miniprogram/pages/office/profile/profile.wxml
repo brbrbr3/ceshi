@@ -1,6 +1,6 @@
 <view class="office-page profile-page">
   <view class="office-gradient-header profile-header">
-    <view class="profile-theme-switch" bindtap="showComingSoon">{{primaryTag}}</view>
+    <!-- <view class="profile-theme-switch" bindtap="showComingSoon">{{primaryTag}}</view> -->
 
     <view class="profile-user-row" bindtap="showComingSoon">
       <view class="profile-avatar-wrap">

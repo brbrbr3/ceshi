@@ -1,0 +1,197 @@
+<view class="passport-page">
+  <!-- 渐变色头部 -->
+  <view class="office-gradient-header passport-header">
+    <view class="passport-header-content">
+      <view class="passport-title">护照领用</view>
+      <view class="passport-subtitle">申请借用护照</view>
+    </view>
+    <view class="passport-header-action" bindtap="showApplicationForm">
+      <text class="passport-action-text">护照借出</text>
+    </view>
+  </view>
+
+  <!-- 领用状态卡片 -->
+  <view class="passport-status-card {{borrowedRecords.length > 0 ? 'is-borrowed' : 'is-idle'}}">
+    <view class="passport-status-header">
+      <view class="passport-status-icon">
+        <text wx:if="{{borrowedRecords.length > 0}}">📕</text>
+        <text wx:else>📖</text>
+      </view>
+      <view class="passport-status-info">
+        <view class="passport-status-label">
+          <text wx:if="{{borrowedRecords.length > 0}}">当前有护照在借</text>
+          <text wx:else>当前无在借护照</text>
+        </view>
+        <view class="passport-status-detail">
+          <text wx:if="{{borrowedRecords.length > 0}}">共 {{borrowedRecords.length}} 条在借记录</text>
+          <text wx:else>点击右上角按钮申请借出</text>
+        </view>
+      </view>
+    </view>
+    
+    <!-- 在借详情 -->
+    <view wx:if="{{borrowedRecords.length > 0}}" class="passport-borrowed-list">
+      <view class="passport-borrowed-item" wx:for="{{borrowedRecords}}" wx:key="_id">
+        <view class="passport-borrowed-row">
+          <text class="passport-borrowed-label">领用人：</text>
+          <text class="passport-borrowed-value">{{item.borrowerNames.join('、')}}</text>
+        </view>
+        <view class="passport-borrowed-row">
+          <text class="passport-borrowed-label">借出日期：</text>
+          <text class="passport-borrowed-value">{{item.borrowDateText}}</text>
+        </view>
+        <view class="passport-borrowed-row" wx:if="{{item.expectedReturnDate}}">
+          <text class="passport-borrowed-label">预计归还：</text>
+          <text class="passport-borrowed-value">{{item.expectedReturnDate}}</text>
+        </view>
+      </view>
+    </view>
+  </view>
+
+  <view class="passport-content">
+    <!-- 申请记录标题 -->
+    <view class="passport-section">
+      <view class="passport-section-title">申请记录</view>
+
+      <!-- 按月分组列表 -->
+      <block wx:for="{{groupedRecords}}" wx:key="monthKey">
+        <view class="passport-month-group">
+          <view class="passport-month-title">{{item.monthText}}</view>
+          <view class="passport-list">
+            <view class="passport-item" wx:for="{{item.records}}" wx:for-item="record" wx:key="_id" bindtap="showRecordDetail" data-record="{{record}}">
+              <view class="passport-item-header">
+                <view class="passport-item-date">{{record.borrowDateText}}</view>
+                <view class="passport-item-status" style="background: {{record.statusBg}}; color: {{record.statusColor}};">
+                  {{record.statusText}}
+                </view>
+              </view>
+              <view class="passport-item-body">
+                <view class="passport-item-borrowers">领用人：{{record.borrowerNamesText}}</view>
+                <view class="passport-item-meta" wx:if="{{record.reason}}">
+                  <text class="passport-item-reason">事由：{{record.reason}}</text>
+                </view>
+              </view>
+            </view>
+          </view>
+        </view>
+      </block>
+
+      <!-- 空状态 -->
+      <view wx:if="{{!loading && recordList.length === 0}}" class="passport-empty">
+        <view class="passport-empty-icon">📋</view>
+        <view class="passport-empty-text">暂无申请记录</view>
+      </view>
+
+      <!-- 加载中 -->
+      <view wx:if="{{loading}}" class="passport-loading">
+        <view class="passport-loading-text">加载中...</view>
+      </view>
+    </view>
+  </view>
+
+  <!-- 底部弹出表单 -->
+  <view class="passport-popup-mask {{showFormPopup ? 'is-visible' : ''}}" catchtouchmove="stopPropagation" bindtap="hideFormPopup">
+    <view class="passport-popup-container" catchtap="stopPropagation">
+      <view class="passport-popup-header">
+        <view class="passport-popup-title">护照领用申请</view>
+        <view class="passport-popup-close" bindtap="hideFormPopup">×</view>
+      </view>
+
+      <view class="passport-popup-form">
+        <view class="passport-field">
+          <view class="passport-field-label">领用人姓名 <text class="passport-required">*</text></view>
+          <view class="passport-input-wrapper">
+            <input 
+              class="passport-input" 
+              value="{{form.borrowerNames}}" 
+              placeholder="请输入领用人姓名" 
+              placeholder-class="passport-input-placeholder"
+              bindinput="handleBorrowerInput"
+            />
+          </view>
+          <view class="passport-field-hint">多个领用人用空格分隔</view>
+        </view>
+
+        <view class="passport-field">
+          <view class="passport-field-label">借用日期 <text class="passport-required">*</text></view>
+          <picker mode="date" value="{{form.borrowDate}}" start="{{minDate}}" end="{{maxDate}}" bindchange="handleDateChange">
+            <view class="passport-picker-wrapper {{form.borrowDate ? '' : 'is-placeholder'}}">
+              <view class="passport-picker-value">{{form.borrowDate || '请选择借用日期'}}</view>
+              <view class="passport-picker-arrow">›</view>
+            </view>
+          </picker>
+        </view>
+
+        <view class="passport-field">
+          <view class="passport-field-label">预计归还日期</view>
+          <picker mode="date" value="{{form.expectedReturnDate}}" start="{{minDate}}" end="{{maxReturnDate}}" bindchange="handleReturnDateChange">
+            <view class="passport-picker-wrapper {{form.expectedReturnDate ? '' : 'is-placeholder'}}">
+              <view class="passport-picker-value">{{form.expectedReturnDate || '请选择预计归还日期（可选）'}}</view>
+              <view class="passport-picker-arrow">›</view>
+            </view>
+          </picker>
+        </view>
+
+        <view class="passport-field">
+          <view class="passport-field-label">借用事由 <text class="passport-required">*</text></view>
+          <view class="passport-textarea-wrapper">
+            <textarea 
+              class="passport-textarea" 
+              value="{{form.reason}}" 
+              placeholder="请填写借用事由" 
+              placeholder-class="passport-input-placeholder"
+              bindinput="handleReasonInput"
+              maxlength="200"
+              auto-height
+            />
+          </view>
+        </view>
+
+        <button class="passport-submit-btn" loading="{{submitting}}" disabled="{{submitting}}" bindtap="submitApplication">
+          提交申请
+        </button>
+      </view>
+    </view>
+  </view>
+
+  <!-- 详情弹窗 -->
+  <view class="passport-popup-mask {{showDetailPopup ? 'is-visible' : ''}}" catchtouchmove="stopPropagation" bindtap="hideDetailPopup">
+    <view class="passport-popup-container" catchtap="stopPropagation">
+      <view class="passport-popup-header">
+        <view class="passport-popup-title">申请详情</view>
+        <view class="passport-popup-close" bindtap="hideDetailPopup">×</view>
+      </view>
+
+      <view class="passport-detail-content" wx:if="{{selectedRecord}}">
+        <view class="passport-detail-row">
+          <text class="passport-detail-label">领用人：</text>
+          <text class="passport-detail-value">{{selectedRecord.borrowerNamesText}}</text>
+        </view>
+        <view class="passport-detail-row">
+          <text class="passport-detail-label">借用日期：</text>
+          <text class="passport-detail-value">{{selectedRecord.borrowDateText}}</text>
+        </view>
+        <view class="passport-detail-row" wx:if="{{selectedRecord.expectedReturnDate}}">
+          <text class="passport-detail-label">预计归还：</text>
+          <text class="passport-detail-value">{{selectedRecord.expectedReturnDate}}</text>
+        </view>
+        <view class="passport-detail-row">
+          <text class="passport-detail-label">借用事由：</text>
+          <text class="passport-detail-value">{{selectedRecord.reason || '无'}}</text>
+        </view>
+        <view class="passport-detail-row">
+          <text class="passport-detail-label">申请状态：</text>
+          <text class="passport-detail-value" style="color: {{selectedRecord.statusColor}};">{{selectedRecord.statusText}}</text>
+        </view>
+        <view class="passport-detail-row" wx:if="{{selectedRecord.workflowStatus === 'completed' && selectedRecord.returnedAt}}">
+          <text class="passport-detail-label">归还时间：</text>
+          <text class="passport-detail-value">{{selectedRecord.returnedAtText}}</text>
+        </view>
+        <view class="passport-detail-row">
+          <text class="passport-detail-label">申请时间：</text>
+          <text class="passport-detail-value">{{selectedRecord.createdAtText}}</text>
+        </view>
+      </view>
+    </view>
+  </view>
+</view>

@@ -43,6 +43,7 @@ const APPROVER_TYPE = {
   USER: 'user',
   ROLE: 'role',
   DEPT: 'dept',
+  DEPT_HEAD: 'dept_head',
   EXPRESSION: 'expression'
 }
 
@@ -211,6 +212,47 @@ async function resolveApprovers(approverType, approverConfig, businessData) {
           name: `部门${approverConfig.deptId}` 
         }]
       
+      case APPROVER_TYPE.DEPT_HEAD:
+        // 同部门负责人审批：查找申请人同部门的部门负责人
+        if (!businessData || !businessData.applicantId) {
+          console.warn('dept_head 审批类型需要提供 applicantId')
+          return []
+        }
+        
+        // 1. 获取申请人信息
+        const applicantRes = await usersCollection.where({
+          openid: businessData.applicantId
+        }).limit(1).get()
+        
+        if (!applicantRes.data || applicantRes.data.length === 0) {
+          console.warn('未找到申请人信息')
+          return []
+        }
+        
+        const applicantDept = applicantRes.data[0].department
+        
+        if (!applicantDept) {
+          console.warn('申请人未设置部门')
+          return []
+        }
+        
+        // 2. 查找同部门的部门负责人
+        const deptHeadsRes = await usersCollection.where({
+          role: '部门负责人',
+          department: applicantDept,
+          status: 'approved'
+        }).get()
+        
+        if (!deptHeadsRes.data || deptHeadsRes.data.length === 0) {
+          console.warn(`部门"${applicantDept}"未找到部门负责人`)
+          return []
+        }
+        
+        return deptHeadsRes.data.map(user => ({
+          id: user.openid,
+          name: user.name
+        }))
+      
       case APPROVER_TYPE.EXPRESSION:
         // 动态表达式(如申请人的直属领导)
         if (!approverConfig.expression) {
@@ -271,6 +313,11 @@ async function hasPermission(task, operatorId) {
 
   // 【新增】角色审批：检查是否在审批人列表中
   if (task.approverType === 'role' && task.approverList && task.approverList.length > 0) {
+    return task.approverList.some(approver => approver.id === operatorId)
+  }
+
+  // 【新增】同部门负责人审批：检查是否在审批人列表中
+  if (task.approverType === 'dept_head' && task.approverList && task.approverList.length > 0) {
     return task.approverList.some(approver => approver.id === operatorId)
   }
 
@@ -468,24 +515,30 @@ async function createTasks(orderId, step, businessData) {
     const timeoutHours = step.timeout || 72
     const timeoutAt = now + (timeoutHours * 60 * 60 * 1000)
     
-    // 判断是否为串行步骤 + 角色审批
+    // 判断是否为串行步骤 + 角色审批（包括 dept_head 类型）
     const isSequential = step.approvalStrategy === 'sequential' || step.stepType === 'serial'
-    const isRoleApproval = step.approverType === 'role'
+    const isRoleApproval = step.approverType === 'role' || step.approverType === 'dept_head'
     
     if (isSequential && isRoleApproval) {
-      // 【串行 + 角色】：创建单个共享任务，所有审批人共享
+      // 【串行 + 角色/部门负责人】：创建单个共享任务，所有审批人共享
       console.log('创建共享任务（串行角色审批），审批人列表:', approvers.map(a => a.name).join(', '))
       
-      const roleId = step.approverConfig.roleIds[0]
+      const roleId = step.approverType === 'dept_head' 
+        ? 'dept_head' 
+        : step.approverConfig.roleIds[0]
+      const roleDisplayName = step.approverType === 'dept_head'
+        ? '同部门负责人'
+        : getRoleDisplayName(roleId)
+      
       const task = {
         orderId,
         stepNo: step.stepNo,
         stepName: step.stepName,
         stepType: step.stepType,
         // 角色级别信息
-        approverType: 'role',
+        approverType: step.approverType === 'dept_head' ? 'dept_head' : 'role',
         approverId: roleId,
-        approverName: getRoleDisplayName(roleId),
+        approverName: roleDisplayName,
         // 所有有权限的审批人列表
         approverList: approvers,
         // 实际审批人（审批后填充）
@@ -1311,6 +1364,48 @@ async function completeWorkflow(orderId, decision, approverId, approverName, com
       } catch (error) {
         // 不抛出错误，允许流程继续
       }
+    }
+  }
+
+  // 特殊处理：护照领用审批通过，创建 passport_records 记录
+  if (order.orderType === 'passport_application' && decision === 'approved') {
+    const passportRecordsCollection = db.collection('passport_records')
+    const businessData = order.businessData || {}
+
+    try {
+      await passportRecordsCollection.add({
+        data: {
+          orderId: order._id,
+          orderNo: order.orderNo,
+          // 申请人信息
+          applicantId: businessData.applicantId,
+          applicantName: businessData.applicantName,
+          // 领用人信息
+          borrowerNames: businessData.borrowerNames || [],
+          borrowerOpenids: businessData.borrowerOpenids || [],
+          borrowerInfoList: businessData.borrowerInfoList || [],
+          // 借用信息
+          borrowDate: businessData.borrowDate,
+          expectedReturnDate: businessData.expectedReturnDate || '',
+          reason: businessData.reason || '',
+          // 状态
+          status: 'borrowed',
+          borrowedAt: now,
+          borrowedBy: approverId || 'system',
+          borrowedByName: approverName || '系统',
+          // 归还信息（未归还时为空）
+          returnedAt: null,
+          returnedBy: null,
+          returnedByName: null,
+          // 时间戳
+          createdAt: now,
+          updatedAt: now
+        }
+      })
+      console.log('护照领用记录创建成功，订单号:', order.orderNo)
+    } catch (error) {
+      console.error('创建护照领用记录失败:', error)
+      // 不抛出错误，允许流程继续
     }
   }
 

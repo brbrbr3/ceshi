@@ -253,6 +253,7 @@ App({
         registrationRequest: data.request || null,
         authStatus: data.authStatus || 'anonymous'
       })
+      console.log('用户信息缓存加载成功')
       wx.hideToast()
       return data
     }).catch((error) => {
