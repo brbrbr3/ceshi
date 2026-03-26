@@ -101,7 +101,7 @@
           </view>
         </view>
         <view wx:if="{{!loadingSchedules && todaySchedules.length === 0}}" class="empty-schedule">
-          <text class="empty-text">暂无订阅的日程</text>
+          <text class="empty-text">在日历中订阅的日程会显示于此</text>
         </view>
         <view wx:if="{{loadingSchedules}}" class="loading-schedule">
           <text class="empty-text">加载中...</text>

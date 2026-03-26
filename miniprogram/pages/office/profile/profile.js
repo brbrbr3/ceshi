@@ -23,8 +23,7 @@ Page({
       {
         title: '工作记录',
         items: [
-          { icon: '🔔', label: '消息通知' },
-          { icon: '📊', label: '工作报告（占位）', badge: '3 条未读' }
+          { icon: '🔔', label: '消息通知' }
         ]
       },
       {
@@ -45,6 +44,7 @@ Page({
 
   onShow() {
     this.syncUserProfile()
+    this.syncNotifications()
   },
 
   syncUserProfile() {
@@ -115,6 +115,18 @@ Page({
       title: '功能开发中，敬请期待',
       icon: 'none'
     })
+  },
+
+  syncNotifications() {
+    app.getNotifications({ page: 1, pageSize: 20 }, function(result) {
+      const notifications = result.data || []
+      const unreadCount = notifications.filter(function(n) { return !n.read }).length
+      
+      // 更新 menuGroups 的 badge
+      const menuGroups = this.data.menuGroups
+      menuGroups[0].items[0].badge = unreadCount > 0 ? unreadCount + '条未读' : ''
+      this.setData({ menuGroups: menuGroups })
+    }.bind(this))
   },
 
   handleMenuTap(e) {
