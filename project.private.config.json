@@ -35,34 +35,6 @@
           "query": "",
           "launchMode": "default",
           "scene": null
-        },
-        {
-          "name": "page/extend/index",
-          "pathName": "page/extend/index",
-          "query": "",
-          "launchMode": "default",
-          "scene": null
-        },
-        {
-          "name": "page/cloud/index",
-          "pathName": "page/cloud/index",
-          "query": "",
-          "launchMode": "default",
-          "scene": null
-        },
-        {
-          "name": "page/API/index",
-          "pathName": "page/API/index",
-          "query": "",
-          "launchMode": "default",
-          "scene": null
-        },
-        {
-          "name": "page/component/index",
-          "pathName": "page/component/index",
-          "query": "",
-          "launchMode": "default",
-          "scene": null
         }
       ]
     }
