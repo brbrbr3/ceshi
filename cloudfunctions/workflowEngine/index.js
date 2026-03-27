@@ -1316,7 +1316,7 @@ async function completeWorkflow(orderId, decision, approverId, approverName, com
       isAdmin: !!businessData.isAdmin,
       avatarText: businessData.avatarText || '',
       relativeName: businessData.relativeName || '',
-      position: businessData.position || '无',
+      position: businessData.position || '',
       status: 'approved',
       sourceOrderId: order.orderId,
       approvedAt: now,
@@ -1354,7 +1354,7 @@ async function completeWorkflow(orderId, decision, approverId, approverName, com
         role: businessData.role || '馆员',
         isAdmin: !!businessData.isAdmin,
         relativeName: businessData.relativeName || '',
-        position: businessData.position || '无',
+        position: businessData.position || '',
         department: businessData.department || '',
         updatedAt: now
       }

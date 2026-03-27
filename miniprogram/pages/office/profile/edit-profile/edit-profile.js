@@ -14,7 +14,7 @@ Page({
     departmentIndex: -1,
     showRelativeField: false,
     showDepartmentField: false,
-    showPositionField: true,
+    showPositionField: false,
     reviewRemark: '',
     today: '',
     form: {
@@ -24,7 +24,7 @@ Page({
       role: '',
       isAdmin: false,
       relativeName: '',
-      position: '无',
+      position: '',
       department: ''
     }
   },
@@ -176,7 +176,7 @@ Page({
             role: role,
             isAdmin: !!user.isAdmin,
             relativeName: user.relativeName || '',
-            position: user.position || '无',
+            position: user.position || '',
             department: department
           }
         })
@@ -324,7 +324,7 @@ Page({
       utils.showToast({ title: '请选择岗位', icon: 'none' })
       return
     }
-
+console.log('提交的表单数据:', JSON.stringify(this.data.form))
     this.setData({ loading: true })
 
     app.submitProfileUpdate(form)

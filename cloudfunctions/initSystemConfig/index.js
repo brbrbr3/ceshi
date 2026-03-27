@@ -45,7 +45,7 @@ const SYSTEM_CONFIGS = [
   {
     type: 'role',
     key: 'DEFAULT_ROLE',
-    value: '馆员',
+    value: '',
     description: '默认角色',
     sort: 5
   },
@@ -61,7 +61,7 @@ const SYSTEM_CONFIGS = [
   {
     type: 'position',
     key: 'DEFAULT_POSITION',
-    value: '无',
+    value: '',
     description: '默认岗位',
     sort: 11
   },

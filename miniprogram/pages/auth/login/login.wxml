@@ -62,24 +62,8 @@
       <view class="auth-debug-btn auth-debug-btn-danger" bindtap="showClearDbPanel">清除数据库数据</view>
     </view>
     <view class="auth-debug-close" bindtap="hideDebugPanel">关闭调试面板</view>
-
-    <!-- 调试结果输出区域 -->
-    <view wx:if="{{debugResults.length > 0}}" class="auth-debug-results">
-      <view class="auth-debug-results-title">执行结果</view>
-      <view wx:for="{{debugResults}}" wx:key="id" class="auth-debug-result-item">
-        <view class="auth-debug-result-header">
-          <text class="auth-debug-result-name">{{item.name}}</text>
-          <text class="auth-debug-result-status {{item.success ? 'is-success' : 'is-fail'}}">{{item.success ? '成功' : '失败'}}</text>
-        </view>
-        <view wx:if="{{item.message}}" class="auth-debug-result-message">{{item.message}}</view>
-        <view wx:if="{{item.data}}" class="auth-debug-result-data">
-          <text selectable="true" user-select="true">{{item.data}}</text>
-        </view>
-      </view>
-    </view>
-
-    <!-- 清除数据库面板 -->
-    <view wx:if="{{showClearDbPanel}}" class="auth-clear-db-panel">
+<!-- 清除数据库面板 -->
+<view wx:if="{{showClearDbPanel}}" class="auth-clear-db-panel">
       <view class="auth-clear-db-header">
         <view class="auth-clear-db-title">选择要清理的集合</view>
         <view class="auth-clear-db-select-all" bindtap="toggleSelectAll">
@@ -101,6 +85,22 @@
         </view>
       </view>
     </view>
+    <!-- 调试结果输出区域 -->
+    <view wx:if="{{debugResults.length > 0}}" class="auth-debug-results">
+      <view class="auth-debug-results-title">执行结果</view>
+      <view wx:for="{{debugResults}}" wx:key="id" class="auth-debug-result-item">
+        <view class="auth-debug-result-header">
+          <text class="auth-debug-result-name">{{item.name}}</text>
+          <text class="auth-debug-result-status {{item.success ? 'is-success' : 'is-fail'}}">{{item.success ? '成功' : '失败'}}</text>
+        </view>
+        <view wx:if="{{item.message}}" class="auth-debug-result-message">{{item.message}}</view>
+        <view wx:if="{{item.data}}" class="auth-debug-result-data">
+          <text selectable="true" user-select="true">{{item.data}}</text>
+        </view>
+      </view>
+    </view>
+
+    
   </view>
 
   <!-- 超级管理员登录弹窗 -->

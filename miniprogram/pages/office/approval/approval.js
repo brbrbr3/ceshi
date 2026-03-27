@@ -239,7 +239,7 @@ function mapRequestItem(request) {
     role: request.role || '',
     isAdmin: request.isAdmin || false,
     relativeName: request.relativeName || '',
-    position: request.position || '无',
+    position: request.position || '',
     department: request.department || '',
     avatarText: request.avatarText,
     updateReason: request.updateReason || ''

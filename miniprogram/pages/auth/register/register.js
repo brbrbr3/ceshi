@@ -25,7 +25,7 @@ Page({
       role: '',
       isAdmin: false,
       relativeName: '',
-      position: '无',
+      position: '',
       department: ''
     }
   },
@@ -170,7 +170,7 @@ Page({
             role: role,
             isAdmin: !!result.request.isAdmin,
             relativeName: result.request.relativeName || '',
-            position: result.request.position || '无',
+            position: result.request.position || '',
             department: department
           }
         })

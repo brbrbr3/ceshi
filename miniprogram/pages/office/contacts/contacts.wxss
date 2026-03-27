@@ -2,6 +2,28 @@ page {
   background: #EEF2FF;
 }
 
+/* 从 app.wxss 迁移的样式 - 仅本页面使用 */
+.office-search {
+  display: flex;
+  align-items: center;
+  gap: 16rpx;
+  padding: 0 28rpx;
+  height: 88rpx;
+  border-radius: 24rpx;
+  background: #FFFFFF;
+  box-shadow: 0 12rpx 28rpx rgba(37, 99, 235, 0.06);
+}
+
+.office-search input {
+  flex: 1;
+  font-size: 26rpx;
+  color: #1E293B;
+}
+
+.office-search-placeholder {
+  color: #94A3B8;
+}
+
 .contacts-header {
   padding-bottom: 156rpx;
 }

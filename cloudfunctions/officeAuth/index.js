@@ -66,11 +66,11 @@ function getDefaultConstants() {
     ROLE_OPTIONS: ['馆领导', '部门负责人', '馆员', '工勤', '物业', '配偶', '家属'],
     NEED_DEPARTMENT_ROLES: ['部门负责人', '馆员', '工勤'],
     NEED_RELATIVE_ROLES: ['配偶', '家属'],
-    DEFAULT_ROLE: '馆员',
+    DEFAULT_ROLE: '',
     
     // 岗位相关
     POSITION_OPTIONS: ['无', '会计主管', '会计', '招待员', '厨师'],
-    DEFAULT_POSITION: '无',
+    DEFAULT_POSITION: '',
     
     // 部门相关
     DEPARTMENT_OPTIONS: ['政治处', '新公处', '经商处', '科技处', '武官处', '领侨处', '文化处', '办公室', '党委办'],
@@ -141,7 +141,7 @@ function formatUserRecord(record) {
     createdAt: record.createdAt || null,
     updatedAt: record.updatedAt || null,
     relativeName: record.relativeName || '',
-    position: record.position || '无',
+    position: record.position || '',
     department: record.department || ''
   }
 }
@@ -184,6 +184,7 @@ async function validateForm(formData) {
   const positionOptions = constants.positions || ['无', '会计主管', '会计', '招待员', '厨师']
   const needDepartmentRoles = constants.needDepartmentRoles || ['部门负责人', '馆员', '工勤']
   const relativeRoles = constants.relativeRoles || ['配偶', '家属']
+  const roleFieldVisibility = constants.ROLE_FIELD_VISIBILITY || constants.roleFieldVisibility || {}
 
   const payload = formData || {}
   const name = String(payload.name || '').trim()
@@ -192,7 +193,7 @@ async function validateForm(formData) {
   const role = String(payload.role || '').trim()
   const isAdmin = normalizeBoolean(payload.isAdmin)
   const relativeName = String(payload.relativeName || '').trim()
-  const position = String(payload.position || '无').trim()
+  const position = String(payload.position || '').trim()
   const department = String(payload.department || '').trim()
 
   if (!name) {
@@ -232,6 +233,10 @@ async function validateForm(formData) {
     throw new Error('工勤人员的部门必须为办公室')
   }
 
+  // 获取角色的字段显示配置
+  const roleConfig = roleFieldVisibility[role] || { showPosition: true, showDepartment: true }
+  const showPosition = roleConfig.showPosition !== false // 默认显示
+
   return {
     name,
     gender,
@@ -239,7 +244,7 @@ async function validateForm(formData) {
     role,
     isAdmin,
     relativeName: relativeRoles.includes(role) ? relativeName : '',
-    position: position || '无',
+    position: showPosition ? (position || '无') : '', // 只有需要岗位的角色才设置值
     department: needDepartmentRoles.includes(role) ? department : '',
     avatarText: name.slice(0, 1)
   }
@@ -316,7 +321,7 @@ async function checkRegistration(openid) {
           isAdmin: !!businessData.isAdmin,
           avatarText: businessData.avatarText || '',
           relativeName: businessData.relativeName || '',
-          position: businessData.position || '无',
+          position: businessData.position || '',
           department: businessData.department || '',
           status: requestStatus.APPROVED,
           approvedAt: now,
@@ -373,7 +378,7 @@ async function checkRegistration(openid) {
             role: businessData.role || '',
             isAdmin: !!businessData.isAdmin,
             relativeName: businessData.relativeName || '',
-            position: businessData.position || '无',
+            position: businessData.position || '',
             department: businessData.department || ''
           }
         })
@@ -461,7 +466,7 @@ async function submitRegistration(openid, formData) {
           isAdmin: form.isAdmin,
           avatarText: form.avatarText,
           relativeName: form.relativeName || '',
-          position: form.position || '无',
+          position: form.position || '',
           department: form.department || '',
           phone: formData.phone || '',
           email: formData.email || '',
@@ -486,7 +491,7 @@ async function submitRegistration(openid, formData) {
         name: form.name,
         role: form.role,
         relativeName: form.relativeName || '',
-        position: form.position || '无',
+        position: form.position || '',
         department: form.department || '',
         status: requestStatus.PENDING,
         submittedAt: now
@@ -546,7 +551,7 @@ async function submitProfileUpdate(openid, formData) {
           role: form.role,
           isAdmin: form.isAdmin,
           relativeName: form.relativeName || '',
-          position: form.position || '无',
+          position: form.position || '',
           department: form.department || '',
           userId: existingUser._id, // 关联原用户ID
           updateReason: formData.updateReason || '申请修改个人信息'
@@ -755,7 +760,7 @@ async function getApprovalData(openid, pagination = {}) {
         birthday: order.businessData.birthday,
         role: order.businessData.role,
         relativeName: order.businessData.relativeName || '',
-        position: order.businessData.position || '无',
+        position: order.businessData.position || '',
         department: order.businessData.department || '',
         isAdmin: order.businessData.isAdmin,
         avatarText: order.businessData.avatarText,
@@ -787,7 +792,7 @@ async function getApprovalData(openid, pagination = {}) {
         birthday: order.businessData.birthday,
         role: order.businessData.role,
         relativeName: order.businessData.relativeName || '',
-        position: order.businessData.position || '无',
+        position: order.businessData.position || '',
         department: order.businessData.department || '',
         isAdmin: order.businessData.isAdmin,
         avatarText: order.businessData.avatarText,
@@ -907,7 +912,7 @@ async function getApprovalData(openid, pagination = {}) {
               birthday: order ? order.businessData.birthday : '',
               role: order ? order.businessData.role : '',
               relativeName: order ? (order.businessData.relativeName || '') : '',
-              position: order ? (order.businessData.position || '无') : '无',
+              position: order ? (order.businessData.position || '') : '',
               department: order ? (order.businessData.department || '') : '',
               isAdmin: order ? order.businessData.isAdmin : false,
               avatarText: order ? order.businessData.avatarText : (name ? name.slice(0, 1) : '智'),
@@ -937,7 +942,7 @@ async function getApprovalData(openid, pagination = {}) {
               birthday: order ? order.businessData.birthday : '',
               role: order ? order.businessData.role : '',
               relativeName: order ? (order.businessData.relativeName || '') : '',
-              position: order ? (order.businessData.position || '无') : '无',
+              position: order ? (order.businessData.position || '') : '',
               department: order ? (order.businessData.department || '') : '',
               isAdmin: order ? order.businessData.isAdmin : false,
               avatarText: order ? order.businessData.avatarText : (name ? name.slice(0, 1) : '智'),
@@ -1105,7 +1110,7 @@ async function getApprovalData(openid, pagination = {}) {
           birthday: order.businessData.birthday,
           role: order.businessData.role,
           relativeName: order.businessData.relativeName || '',
-          position: order.businessData.position || '无',
+          position: order.businessData.position || '',
           department: order.businessData.department || '',
           isAdmin: order.businessData.isAdmin,
           avatarText: order.businessData.avatarText,
@@ -1133,7 +1138,7 @@ async function getApprovalData(openid, pagination = {}) {
           birthday: order.businessData.birthday,
           role: order.businessData.role,
           relativeName: order.businessData.relativeName || '',
-          position: order.businessData.position || '无',
+          position: order.businessData.position || '',
           department: order.businessData.department || '',
           isAdmin: order.businessData.isAdmin,
           avatarText: order.businessData.avatarText,

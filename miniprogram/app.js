@@ -668,11 +668,11 @@ App({
         '配偶': ['无', '内聘']
       },
       NEED_RELATIVE_ROLES: ['配偶', '家属'],
-      DEFAULT_ROLE: '馆员',
+      DEFAULT_ROLE: '',
 
       // 岗位相关
       POSITION_OPTIONS: ['无', '礼宾', '会计主管', '会计', '俱乐部', '阳光课堂', '招待员', '厨师', '内聘'],
-      DEFAULT_POSITION: '无',
+      DEFAULT_POSITION: '',
 
       // 部门相关
       DEPARTMENT_OPTIONS: ['政治处', '新公处', '经商处', '科技处', '武官处', '领侨处', '文化处', '办公室', 'DW办'],
