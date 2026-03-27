@@ -13,6 +13,78 @@ const workflowLogsCollection = db.collection('workflow_logs')
 const templatesCollection = db.collection('workflow_templates')
 const sysConfigCollection = db.collection('sys_config')
 
+/**
+ * 工作流状态到请求状态的映射
+ */
+const WORKFLOW_STATUS_MAP = {
+  'completed': 'approved',
+  'rejected': 'rejected',
+  'terminated': 'terminated',
+  'in_progress': 'pending'
+}
+
+/**
+ * 通用工单字段映射函数（消除硬编码）
+ * 将 businessData 展开到顶层，使 displayConfig 配置的字段可直接访问
+ * 
+ * @param {Object} order - 工单对象
+ * @param {Object} options - 配置选项
+ * @param {Object} options.taskInfo - 任务信息 { _id: taskId, stepName: taskName }
+ * @param {Object} options.approvalInfo - 审批信息 { reviewedBy, reviewedAt }
+ * @param {string} options.reviewRemark - 审批备注
+ * @param {Object} options.templateMap - 工单类型到名称的映射
+ * @param {boolean} options.isCurrentApprover - 是否是当前审批人
+ * @param {string} options.statusOverride - 覆盖状态（用于 pendingList 固定为 pending）
+ * @param {Object} options.requestStatus - 请求状态常量
+ * @returns {Object} 映射后的显示项
+ */
+function mapOrderToDisplayItem(order, options = {}) {
+  const {
+    taskInfo = null,
+    approvalInfo = {},
+    reviewRemark = '',
+    templateMap = {},
+    isCurrentApprover = false,
+    statusOverride = null,
+    requestStatus = { PENDING: 'pending', APPROVED: 'approved', REJECTED: 'rejected', TERMINATED: 'terminated' }
+  } = options
+
+  // 状态映射：优先使用覆盖值，否则根据 workflowStatus 映射
+  const status = statusOverride || WORKFLOW_STATUS_MAP[order.workflowStatus] || requestStatus.PENDING
+
+  // 基础字段（所有工单类型通用）
+  const baseItem = {
+    _id: taskInfo?._id || order._id,
+    orderId: order._id,
+    openid: order.businessData?.applicantId || '',
+    name: order.businessData?.applicantName || '',
+    avatarText: order.businessData?.applicantName?.slice(0, 1) || '申',
+    status,
+    submittedAt: order.createdAt,
+    updatedAt: order.updatedAt,
+    orderType: order.orderType,
+    requestType: templateMap[order.orderType]?.name || order.orderType,
+    currentStep: order.currentStep,
+    workflowSnapshot: order.workflowSnapshot,
+    displayConfig: order.workflowSnapshot?.displayConfig || null,
+    orderNo: order.orderNo,
+    // 审批相关
+    reviewRemark,
+    reviewedAt: approvalInfo?.reviewedAt || order.updatedAt,
+    reviewedBy: approvalInfo?.reviewedBy || '',
+    // 任务相关
+    taskId: taskInfo?._id || null,
+    taskName: taskInfo?.stepName || null,
+    isCurrentApprover
+  }
+
+  // 关键：展开 businessData 到顶层，使 displayConfig.detailFields 配置的字段可直接访问
+  return {
+    ...baseItem,
+    ...(order.businessData || {})
+  }
+}
+
 // 从数据库获取常量（带缓存）
 let cachedConstants = null
 let cacheTime = 0
@@ -714,104 +786,17 @@ async function getApprovalData(openid, pagination = {}) {
   const mineList = myOrderResult.data ? myOrderResult.data.map(order => {
     // 判断当前用户是否是当前步骤的审批人
     const isCurrentApprover = canReview && userTaskMap[order._id] ? true : false
+    const taskInfo = isCurrentApprover && userTaskMap[order._id] ? { _id: userTaskMap[order._id].taskId } : null
 
-    // 根据订单类型返回不同的字段
-    if (order.orderType === 'medical_application') {
-      // 就医申请
-      const orderStatus = order.workflowStatus === 'completed' ? requestStatus.APPROVED : (order.workflowStatus === 'rejected' ? requestStatus.REJECTED : (order.workflowStatus === 'terminated' ? requestStatus.TERMINATED : requestStatus.PENDING))
-      const approvalInfo = myApprovalInfo[order._id] || { reviewedBy: '', reviewedAt: order.updatedAt }
-      return {
-        _id: order._id,
-        openid: order.businessData.applicantId,
-        name: order.businessData.applicantName,
-        role: order.businessData.applicantRole,
-        patientName: order.businessData.patientName,
-        relation: order.businessData.relation,
-        medicalDate: order.businessData.medicalDate,
-        institution: order.businessData.institution,
-        otherInstitution: order.businessData.otherInstitution,
-        reasonForSelection: order.businessData.reasonForSelection,
-        reason: order.businessData.reason,
-        avatarText: order.businessData.applicantName ? order.businessData.applicantName.slice(0, 1) : '就',
-        status: orderStatus,
-        reviewRemark: myReviewRemarks[order._id] || '',
-        submittedAt: order.createdAt,
-        reviewedAt: approvalInfo.reviewedAt,
-        reviewedBy: approvalInfo.reviewedBy,
-        updatedAt: order.updatedAt,
-        orderType: 'medical_application',
-        requestType: templateMap[order.orderType]?.name || '就医申请',
-        currentStep: order.currentStep,
-        workflowSnapshot: order.workflowSnapshot,
-        displayConfig: order.workflowSnapshot?.displayConfig || null,
-        orderNo: order.orderNo,
-        taskId: isCurrentApprover ? userTaskMap[order._id].taskId : null,
-        isCurrentApprover: isCurrentApprover
-      }
-    } else if (order.orderType === 'user_profile_update') {
-      // 用户信息修改申请
-      const orderStatus = order.workflowStatus === 'completed' ? requestStatus.APPROVED : (order.workflowStatus === 'rejected' ? requestStatus.REJECTED : (order.workflowStatus === 'terminated' ? requestStatus.TERMINATED : requestStatus.PENDING))
-      const approvalInfo = myApprovalInfo[order._id] || { reviewedBy: '', reviewedAt: order.updatedAt }
-      return {
-        _id: order._id,
-        openid: order.businessData.applicantId,
-        name: order.businessData.applicantName,
-        gender: order.businessData.gender,
-        birthday: order.businessData.birthday,
-        role: order.businessData.role,
-        relativeName: order.businessData.relativeName || '',
-        position: order.businessData.position || '',
-        department: order.businessData.department || '',
-        isAdmin: order.businessData.isAdmin,
-        avatarText: order.businessData.avatarText,
-        updateReason: order.businessData.updateReason || '申请修改个人信息',
-        status: orderStatus,
-        reviewRemark: myReviewRemarks[order._id] || '',
-        submittedAt: order.createdAt,
-        reviewedAt: approvalInfo.reviewedAt,
-        reviewedBy: approvalInfo.reviewedBy,
-        updatedAt: order.updatedAt,
-        orderType: 'user_profile_update',
-        requestType: templateMap[order.orderType]?.name || '用户信息修改申请',
-        currentStep: order.currentStep,
-        workflowSnapshot: order.workflowSnapshot,
-        displayConfig: order.workflowSnapshot?.displayConfig || null,
-        orderNo: order.orderNo,
-        taskId: isCurrentApprover ? userTaskMap[order._id].taskId : null,
-        isCurrentApprover: isCurrentApprover
-      }
-    } else {
-      // 注册申请
-      const orderStatus = order.workflowStatus === 'completed' ? requestStatus.APPROVED : (order.workflowStatus === 'rejected' ? requestStatus.REJECTED : (order.workflowStatus === 'terminated' ? requestStatus.TERMINATED : requestStatus.PENDING))
-      const approvalInfo = myApprovalInfo[order._id] || { reviewedBy: '', reviewedAt: order.updatedAt }
-      return {
-        _id: order._id,
-        openid: order.businessData.applicantId,
-        name: order.businessData.applicantName,
-        gender: order.businessData.gender,
-        birthday: order.businessData.birthday,
-        role: order.businessData.role,
-        relativeName: order.businessData.relativeName || '',
-        position: order.businessData.position || '',
-        department: order.businessData.department || '',
-        isAdmin: order.businessData.isAdmin,
-        avatarText: order.businessData.avatarText,
-        status: orderStatus,
-        reviewRemark: myReviewRemarks[order._id] || '',
-        submittedAt: order.createdAt,
-        reviewedAt: approvalInfo.reviewedAt,
-        reviewedBy: approvalInfo.reviewedBy,
-        updatedAt: order.updatedAt,
-        orderType: 'user_registration',
-        requestType: templateMap[order.orderType]?.name || '用户注册申请',
-        currentStep: order.currentStep,
-        workflowSnapshot: order.workflowSnapshot,
-        displayConfig: order.workflowSnapshot?.displayConfig || null,
-        orderNo: order.orderNo,
-        taskId: isCurrentApprover ? userTaskMap[order._id].taskId : null,
-        isCurrentApprover: isCurrentApprover
-      }
-    }
+    // 使用通用映射函数（消除硬编码）
+    return mapOrderToDisplayItem(order, {
+      taskInfo,
+      approvalInfo: myApprovalInfo[order._id] || {},
+      reviewRemark: myReviewRemarks[order._id] || '',
+      templateMap,
+      isCurrentApprover,
+      requestStatus
+    })
   }) : []
 
   // 管理员/馆领导/部门负责人查询所有待审批工单
@@ -869,97 +854,14 @@ async function getApprovalData(openid, pagination = {}) {
         }).map(task => {
           const order = ordersMap[task.orderId]
 
-          // 根据订单类型返回不同的字段
-          if (order && order.orderType === 'medical_application') {
-            // 就医申请
-            const name = order.businessData.applicantName || ''
-            return {
-              _id: task._id,
-              orderId: task.orderId,
-              openid: order ? order.businessData.applicantId : '',
-              name: name,
-              role: order ? order.businessData.applicantRole : '',
-              patientName: order ? order.businessData.patientName : '',
-              relation: order ? order.businessData.relation : '',
-              medicalDate: order ? order.businessData.medicalDate : '',
-              institution: order ? order.businessData.institution : '',
-              otherInstitution: order ? order.businessData.otherInstitution : '',
-              reasonForSelection: order ? order.businessData.reasonForSelection : '',
-              reason: order ? order.businessData.reason : '',
-              avatarText: name ? name.slice(0, 1) : '就',
-              status: requestStatus.PENDING,
-              submittedAt: order ? order.createdAt : null,
-              taskId: task._id,
-              taskName: task.stepName,
-              updatedAt: order ? order.updatedAt : null,
-              orderType: 'medical_application',
-              requestType: templateMap[order.orderType]?.name || '就医申请',
-              currentStep: order ? order.currentStep : 1,
-              workflowSnapshot: order ? order.workflowSnapshot : null,
-              displayConfig: order?.workflowSnapshot?.displayConfig || null,
-              orderNo: order ? order.orderNo : '',
-              isCurrentApprover: true
-            }
-          } else if (order && order.orderType === 'user_profile_update') {
-            // 用户信息修改申请
-            const name = order.businessData.applicantName || ''
-            return {
-              _id: task._id,
-              orderId: task.orderId,
-              openid: order ? order.businessData.applicantId : '',
-              name: name,
-              gender: order ? order.businessData.gender : '',
-              birthday: order ? order.businessData.birthday : '',
-              role: order ? order.businessData.role : '',
-              relativeName: order ? (order.businessData.relativeName || '') : '',
-              position: order ? (order.businessData.position || '') : '',
-              department: order ? (order.businessData.department || '') : '',
-              isAdmin: order ? order.businessData.isAdmin : false,
-              avatarText: order ? order.businessData.avatarText : (name ? name.slice(0, 1) : '智'),
-              updateReason: order ? (order.businessData.updateReason || '申请修改个人信息') : '申请修改个人信息',
-              status: requestStatus.PENDING,
-              submittedAt: order ? order.createdAt : null,
-              taskId: task._id,
-              taskName: task.stepName,
-              updatedAt: order ? order.updatedAt : null,
-              orderType: 'user_profile_update',
-              requestType: templateMap[order.orderType]?.name || '用户信息修改申请',
-              currentStep: order ? order.currentStep : 1,
-              workflowSnapshot: order ? order.workflowSnapshot : null,
-              displayConfig: order?.workflowSnapshot?.displayConfig || null,
-              orderNo: order ? order.orderNo : '',
-              isCurrentApprover: true
-            }
-          } else {
-            // 注册申请
-            const name = order ? order.businessData.applicantName : ''
-            return {
-              _id: task._id,
-              orderId: task.orderId,
-              openid: order ? order.businessData.applicantId : '',
-              name: name,
-              gender: order ? order.businessData.gender : '',
-              birthday: order ? order.businessData.birthday : '',
-              role: order ? order.businessData.role : '',
-              relativeName: order ? (order.businessData.relativeName || '') : '',
-              position: order ? (order.businessData.position || '') : '',
-              department: order ? (order.businessData.department || '') : '',
-              isAdmin: order ? order.businessData.isAdmin : false,
-              avatarText: order ? order.businessData.avatarText : (name ? name.slice(0, 1) : '智'),
-              status: requestStatus.PENDING,
-              submittedAt: order ? order.createdAt : null,
-              taskId: task._id,
-              taskName: task.stepName,
-              updatedAt: order ? order.updatedAt : null,
-              orderType: 'user_registration',
-              requestType: templateMap[order?.orderType]?.name || '用户注册申请',
-              currentStep: order ? order.currentStep : 1,
-              workflowSnapshot: order ? order.workflowSnapshot : null,
-              displayConfig: order?.workflowSnapshot?.displayConfig || null,
-              orderNo: order ? order.orderNo : '',
-              isCurrentApprover: true
-            }
-          }
+          // 使用通用映射函数（消除硬编码）
+          return mapOrderToDisplayItem(order || {}, {
+            taskInfo: { _id: task._id, stepName: task.stepName },
+            templateMap,
+            isCurrentApprover: true,
+            statusOverride: requestStatus.PENDING,
+            requestStatus
+          })
         })
       }
     }
@@ -1068,94 +970,16 @@ async function getApprovalData(openid, pagination = {}) {
     }
 
     doneList = completedOrdersResult.data ? completedOrdersResult.data.map(order => {
-      const status = order.workflowStatus === 'completed' ? requestStatus.APPROVED : (order.workflowStatus === 'rejected' ? requestStatus.REJECTED : requestStatus.TERMINATED)
       const info = approvalInfo[order._id] || { reviewedBy: '管理员', reviewedAt: order.updatedAt }
 
-      // 根据订单类型返回不同的字段
-      if (order.orderType === 'medical_application') {
-        // 就医申请
-        return {
-          _id: order._id,
-          openid: order.businessData.applicantId,
-          name: order.businessData.applicantName,
-          role: order.businessData.applicantRole,
-          patientName: order.businessData.patientName,
-          relation: order.businessData.relation,
-          medicalDate: order.businessData.medicalDate,
-          institution: order.businessData.institution,
-          otherInstitution: order.businessData.otherInstitution,
-          reasonForSelection: order.businessData.reasonForSelection,
-          reason: order.businessData.reason,
-          avatarText: order.businessData.applicantName ? order.businessData.applicantName.slice(0, 1) : '就',
-          status: status,
-          reviewRemark: reviewRemarks[order._id] || '',
-          submittedAt: order.createdAt,
-          reviewedAt: info.reviewedAt,
-          reviewedBy: info.reviewedBy,
-          orderType: 'medical_application',
-          requestType: templateMap[order.orderType]?.name || '就医申请',
-          currentStep: order.currentStep,
-          workflowSnapshot: order.workflowSnapshot,
-          displayConfig: order.workflowSnapshot?.displayConfig || null,
-          orderNo: order.orderNo,
-          isCurrentApprover: false
-        }
-      } else if (order.orderType === 'user_profile_update') {
-        // 用户信息修改申请
-        return {
-          _id: order._id,
-          openid: order.businessData.applicantId,
-          name: order.businessData.applicantName,
-          gender: order.businessData.gender,
-          birthday: order.businessData.birthday,
-          role: order.businessData.role,
-          relativeName: order.businessData.relativeName || '',
-          position: order.businessData.position || '',
-          department: order.businessData.department || '',
-          isAdmin: order.businessData.isAdmin,
-          avatarText: order.businessData.avatarText,
-          updateReason: order.businessData.updateReason || '申请修改个人信息',
-          status: status,
-          reviewRemark: reviewRemarks[order._id] || '',
-          submittedAt: order.createdAt,
-          reviewedAt: info.reviewedAt,
-          reviewedBy: info.reviewedBy,
-          orderType: 'user_profile_update',
-          requestType: templateMap[order.orderType]?.name || '用户信息修改申请',
-          currentStep: order.currentStep,
-          workflowSnapshot: order.workflowSnapshot,
-          displayConfig: order.workflowSnapshot?.displayConfig || null,
-          orderNo: order.orderNo,
-          isCurrentApprover: false
-        }
-      } else {
-        // 注册申请
-        return {
-          _id: order._id,
-          openid: order.businessData.applicantId,
-          name: order.businessData.applicantName,
-          gender: order.businessData.gender,
-          birthday: order.businessData.birthday,
-          role: order.businessData.role,
-          relativeName: order.businessData.relativeName || '',
-          position: order.businessData.position || '',
-          department: order.businessData.department || '',
-          isAdmin: order.businessData.isAdmin,
-          avatarText: order.businessData.avatarText,
-          status: status,
-          reviewRemark: reviewRemarks[order._id] || '',
-          submittedAt: order.createdAt,
-          reviewedAt: info.reviewedAt,
-          reviewedBy: info.reviewedBy,
-          orderType: 'user_registration',
-          requestType: templateMap[order.orderType]?.name || '用户注册申请',
-          currentStep: order.currentStep,
-          workflowSnapshot: order.workflowSnapshot,
-          displayConfig: order.workflowSnapshot?.displayConfig || null,
-          orderNo: order.orderNo,
-          isCurrentApprover: false
-        }
-      }
+      // 使用通用映射函数（消除硬编码）
+      return mapOrderToDisplayItem(order, {
+        approvalInfo: info,
+        reviewRemark: reviewRemarks[order._id] || '',
+        templateMap,
+        isCurrentApprover: false,
+        requestStatus
+      })
     }) : []
   }
 
