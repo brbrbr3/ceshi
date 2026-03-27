@@ -26,7 +26,8 @@ Page({
       { icon: '🚗', label: '外出报备', color: '#2563EB', bg: '#EFF6FF', implemented: true, featureKey: 'trip_report' },
       { icon: '📊', label: '出行管理', color: '#7C3AED', bg: '#F3E8FF', implemented: true, featureKey: 'trip_dashboard' },
       { icon: '🏢', label: '会议室预约', color: '#7C5CFC', bg: '#E8E4FF', implemented: true, featureKey: 'meeting_room' },
-      { icon: '🛂', label: '护照管理', color: '#D97706', bg: '#FEF3C7', implemented: true, featureKey: 'passport_application' }
+      { icon: '🛂', label: '护照管理', color: '#D97706', bg: '#FEF3C7', implemented: true, featureKey: 'passport_application' },
+      { icon: '💇', label: '理发预约', color: '#EA580C', bg: '#FFF7ED', implemented: true, featureKey: 'haircut_appointment' }
     ],
     announcements: [],
     todaySchedules: [],
@@ -257,6 +258,11 @@ Page({
     } else if (label === '护照管理') {
       // 统一权限检查
       this.checkAndNavigate('passport_application', '/pages/office/passport/passport', '护照管理')
+    } else if (label === '理发预约') {
+      // 全体用户可用，无需权限检查
+      wx.navigateTo({
+        url: '/pages/office/haircut/haircut'
+      })
     } else {
       utils.showToast({
         title: '功能开发中，敬请期待',

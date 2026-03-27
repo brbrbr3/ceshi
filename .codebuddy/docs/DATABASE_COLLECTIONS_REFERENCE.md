@@ -884,6 +884,63 @@
 
 ---
 
+### 22. haircut_appointments - 理发预约记录
+
+**用途**：存储理发预约记录
+
+**安全规则**：`ADMINWRITE` - 所有用户可读，仅管理员可写
+
+> **重要说明**：预约记录由云函数 `haircutManager` 创建和管理，使用 `ADMINWRITE` 规则，用户可读取所有预约记录用于查看时段占用情况。
+
+**记录数**：动态
+
+**索引**：
+
+- `_id` - 记录 ID（云开发自动创建）
+- `date_timeSlot_unique` - 唯一索引：date + timeSlot - 防止同一时段重复预约
+- `bookerId_idx` - 预约人 ID 索引 - 查询用户预约记录
+- `status_idx` - 状态索引 - 筛选有效/已取消预约
+
+**字段结构**：
+```javascript
+{
+  _id: String,                    // 记录 ID（自动生成）
+  date: String,                   // 预约日期 YYYY-MM-DD
+  timeSlot: String,               // 预约时段（如 "14:30-15:00"）
+  // 预约人信息
+  bookerId: String,               // 预约人 openid
+  bookerName: String,             // 预约人姓名
+  bookerRole: String,             // 预约人角色
+  bookerDepartment: String,       // 预约人部门
+  // 预约对象
+  forSelf: Boolean,               // 是否为自己预约
+  actualUserName: String,         // 实际理发人姓名（代约时为被代约人）
+  actualUserId: String,           // 实际理发人 openid（代约时）
+  // 状态
+  status: String,                 // 状态：'booked'（已预约）| 'cancelled'（已取消）
+  // 取消信息（未取消时为 null）
+  cancelledAt: Number,            // 取消时间戳
+  cancelledBy: String,            // 取消操作人 openid
+  cancelledByName: String,        // 取消操作人姓名
+  cancelReason: String,           // 取消原因
+  // 时间戳
+  createdAt: Number,              // 创建时间戳
+  updatedAt: Number               // 更新时间戳
+}
+```
+
+**业务规则**：
+1. 服务时间：周一、三、五下午 14:30~18:00
+2. 当日 14:20 后禁止预约当日时段
+3. 周五 18:00 后自动切换显示下周日期
+4. 节假日自动排除（依赖 `holiday_configs` 集合）
+5. 代约显示格式："理发人（代约人）"
+
+**相关云函数**：
+- `haircutManager`：处理时段查询、预约创建/取消、列表查询等操作
+
+---
+
 ## 命名规范
 
 ### 集合命名规则
@@ -1010,6 +1067,7 @@ const notificationsCollection = db.collection('notifications')  // ✅
 | 2026-03-25 | 添加 feedback_posts、feedback_replies、meeting_room_reservations、schedule_subscriptions 集合 | AI |
 | 2026-03-27 | 添加 passport_records 护照借用记录集合 | AI |
 | 2026-03-27 | 添加 passport_info 护照信息集合 | AI |
+| 2026-03-27 | 添加 haircut_appointments 理发预约记录集合 | AI |
 
 ---
 
@@ -1025,6 +1083,7 @@ https://tcb.cloud.tencent.com/dev?envId=cloud1-8gdftlggae64d5d0#/db/doc
 - [calendar_schedules](https://tcb.cloud.tencent.com/dev?envId=cloud1-8gdftlggae64d5d0#/db/doc/collection/calendar_schedules)
 - [feedback_posts](https://tcb.cloud.tencent.com/dev?envId=cloud1-8gdftlggae64d5d0#/db/doc/collection/feedback_posts)
 - [feedback_replies](https://tcb.cloud.tencent.com/dev?envId=cloud1-8gdftlggae64d5d0#/db/doc/collection/feedback_replies)
+- [haircut_appointments](https://tcb.cloud.tencent.com/dev?envId=cloud1-8gdftlggae64d5d0#/db/doc/collection/haircut_appointments)
 - [holiday_configs](https://tcb.cloud.tencent.com/dev?envId=cloud1-8gdftlggae64d5d0#/db/doc/collection/holiday_configs)
 - [meeting_room_reservations](https://tcb.cloud.tencent.com/dev?envId=cloud1-8gdftlggae64d5d0#/db/doc/collection/meeting_room_reservations)
 - [menu_comments](https://tcb.cloud.tencent.com/dev?envId=cloud1-8gdftlggae64d5d0#/db/doc/collection/menu_comments)

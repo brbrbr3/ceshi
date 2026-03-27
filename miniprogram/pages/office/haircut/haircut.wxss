@@ -1,0 +1,637 @@
+/* 理发预约页面样式 */
+
+.haircut-page {
+  min-height: 100vh;
+  background: #FFF7ED;
+}
+
+/* ========== 头部 - 渐变色背景（橙色系） ========== */
+.haircut-header {
+  background: linear-gradient(135deg, #EA580C 0%, #C2410C 100%);
+  padding: 70rpx 28rpx 32rpx;
+  display: flex;
+  align-items: flex-end;
+  justify-content: space-between;
+}
+
+.haircut-header-content {
+  color: #FFFFFF;
+}
+
+.haircut-title {
+  font-size: 48rpx;
+  font-weight: 600;
+}
+
+.haircut-subtitle {
+  font-size: 26rpx;
+  padding-top: 5rpx;
+  opacity: 0.9;
+}
+
+/* ========== Tab栏 ========== */
+.haircut-tabs {
+  background: #FFFFFF;
+  display: flex;
+  padding: 0 16rpx;
+  border-bottom: 1rpx solid #F1F5F9;
+  position: sticky;
+  top: 0;
+  z-index: 50;
+}
+
+.haircut-tab {
+  flex: 1;
+  text-align: center;
+  padding: 28rpx 0;
+  font-size: 28rpx;
+  color: #64748B;
+  font-weight: 500;
+  position: relative;
+  transition: all 0.3s ease;
+}
+
+.haircut-tab.is-active {
+  color: #EA580C;
+  font-weight: 600;
+}
+
+.haircut-tab.is-active::after {
+  content: '';
+  position: absolute;
+  bottom: 0;
+  left: 50%;
+  transform: translateX(-50%);
+  width: 48rpx;
+  height: 6rpx;
+  background: linear-gradient(135deg, #EA580C 0%, #C2410C 100%);
+  border-radius: 3rpx;
+}
+
+/* ========== 内容区 ========== */
+.haircut-content {
+  padding: 24rpx;
+  padding-bottom: 100rpx;
+}
+
+/* ========== 日期选择器 ========== */
+.haircut-date-selector {
+  display: flex;
+  gap: 16rpx;
+  padding: 20rpx 0;
+  overflow-x: auto;
+  white-space: nowrap;
+}
+
+.haircut-date-item {
+  flex-shrink: 0;
+  min-width: 160rpx;
+  padding: 20rpx 24rpx;
+  background: #FFFFFF;
+  border-radius: 16rpx;
+  text-align: center;
+  transition: all 0.3s ease;
+  border: 2rpx solid transparent;
+}
+
+.haircut-date-item.is-active {
+  background: linear-gradient(135deg, #EA580C 0%, #C2410C 100%);
+  border-color: #EA580C;
+}
+
+.haircut-date-item.is-disabled {
+  opacity: 0.6;
+  background: #F1F5F9;
+}
+
+.haircut-date-weekday {
+  font-size: 24rpx;
+  color: #64748B;
+  margin-bottom: 8rpx;
+}
+
+.haircut-date-item.is-active .haircut-date-weekday {
+  color: rgba(255, 255, 255, 0.8);
+}
+
+.haircut-date-day {
+  font-size: 32rpx;
+  font-weight: 600;
+  color: #1E293B;
+}
+
+.haircut-date-item.is-active .haircut-date-day {
+  color: #FFFFFF;
+}
+
+.haircut-date-tag {
+  font-size: 20rpx;
+  margin-top: 8rpx;
+  padding: 4rpx 12rpx;
+  border-radius: 8rpx;
+  display: inline-block;
+}
+
+.haircut-date-tag.is-holiday {
+  background: #FEF3C7;
+  color: #D97706;
+}
+
+.haircut-date-tag.is-today {
+  background: #DCFCE7;
+  color: #16A34A;
+}
+
+.haircut-date-item.is-active .haircut-date-tag {
+  background: rgba(255, 255, 255, 0.2);
+  color: #FFFFFF;
+}
+
+/* ========== 日期提示 ========== */
+.haircut-date-hint {
+  padding: 20rpx 24rpx;
+  background: #FEF3C7;
+  border-radius: 12rpx;
+  margin-bottom: 20rpx;
+}
+
+.haircut-date-hint-text {
+  font-size: 26rpx;
+  color: #92400E;
+}
+
+/* ========== 时段列表 ========== */
+.haircut-slots-section {
+  margin-top: 20rpx;
+}
+
+.haircut-slots-title {
+  font-size: 30rpx;
+  font-weight: 600;
+  color: #1E293B;
+  margin-bottom: 16rpx;
+  padding-left: 8rpx;
+}
+
+.haircut-slots-list {
+  display: flex;
+  flex-direction: column;
+  gap: 12rpx;
+}
+
+.haircut-slot-item {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 24rpx;
+  background: #FFFFFF;
+  border-radius: 16rpx;
+  border: 2rpx solid transparent;
+  transition: all 0.3s ease;
+}
+
+.haircut-slot-item.is-selected {
+  border-color: #EA580C;
+  background: #FFF7ED;
+}
+
+.haircut-slot-item.is-booked {
+  opacity: 0.6;
+  background: #F1F5F9;
+}
+
+.haircut-slot-time {
+  font-size: 32rpx;
+  font-weight: 600;
+  color: #1E293B;
+}
+
+.haircut-slot-item.is-booked .haircut-slot-time {
+  color: #94A3B8;
+}
+
+.haircut-slot-status {
+  font-size: 24rpx;
+  padding: 6rpx 16rpx;
+  border-radius: 8rpx;
+}
+
+.haircut-slot-status.is-available {
+  background: #DCFCE7;
+  color: #16A34A;
+}
+
+.haircut-slot-status.is-booked {
+  background: #FEE2E2;
+  color: #DC2626;
+}
+
+.haircut-slot-item.is-selected .haircut-slot-status.is-available {
+  background: #EA580C;
+  color: #FFFFFF;
+}
+
+/* ========== 预约按钮 ========== */
+.haircut-booking-btn {
+  position: fixed;
+  left: 28rpx;
+  right: 28rpx;
+  bottom: calc(28rpx + env(safe-area-inset-bottom));
+  height: 96rpx;
+  background: linear-gradient(135deg, #EA580C 0%, #C2410C 100%);
+  color: #FFFFFF;
+  font-size: 32rpx;
+  font-weight: 600;
+  border-radius: 16rpx;
+  border: none;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.haircut-booking-btn[disabled] {
+  background: #94A3B8;
+}
+
+/* ========== 排序切换 ========== */
+.haircut-sort-bar {
+  display: flex;
+  gap: 16rpx;
+  margin-bottom: 20rpx;
+}
+
+.haircut-sort-btn {
+  padding: 12rpx 24rpx;
+  background: #FFFFFF;
+  border-radius: 24rpx;
+  font-size: 26rpx;
+  color: #64748B;
+  transition: all 0.3s ease;
+}
+
+.haircut-sort-btn.is-active {
+  background: linear-gradient(135deg, #EA580C 0%, #C2410C 100%);
+  color: #FFFFFF;
+}
+
+/* ========== 列表 ========== */
+.haircut-list {
+  display: flex;
+  flex-direction: column;
+  gap: 16rpx;
+}
+
+/* ========== 记录卡片 ========== */
+.haircut-item {
+  background: #FFFFFF;
+  border-radius: 20rpx;
+  padding: 24rpx;
+  box-shadow: 0 2rpx 12rpx rgba(0, 0, 0, 0.04);
+}
+
+.haircut-item-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  margin-bottom: 16rpx;
+}
+
+.haircut-item-datetime {
+  display: flex;
+  flex-direction: column;
+}
+
+.haircut-item-date {
+  font-size: 30rpx;
+  font-weight: 600;
+  color: #1E293B;
+}
+
+.haircut-item-time {
+  font-size: 24rpx;
+  color: #64748B;
+  margin-top: 4rpx;
+}
+
+.haircut-item-status {
+  font-size: 22rpx;
+  padding: 6rpx 16rpx;
+  border-radius: 8rpx;
+  font-weight: 500;
+}
+
+.haircut-item-status.is-booked {
+  background: #DCFCE7;
+  color: #16A34A;
+}
+
+.haircut-item-status.is-cancelled {
+  background: #FEE2E2;
+  color: #DC2626;
+}
+
+.haircut-item-status.is-completed {
+  background: #EFF6FF;
+  color: #2563EB;
+}
+
+.haircut-item-body {
+  display: flex;
+  flex-direction: column;
+  gap: 8rpx;
+}
+
+.haircut-item-name {
+  font-size: 28rpx;
+  color: #1E293B;
+  font-weight: 500;
+}
+
+.haircut-item-meta {
+  font-size: 24rpx;
+  color: #64748B;
+}
+
+.haircut-item-reason {
+  font-size: 24rpx;
+  color: #DC2626;
+  margin-top: 8rpx;
+}
+
+.haircut-item-actions {
+  display: flex;
+  gap: 24rpx;
+  padding-top: 16rpx;
+  margin-top: 16rpx;
+  border-top: 1rpx solid #F1F5F9;
+}
+
+.haircut-item-action {
+  font-size: 26rpx;
+  color: #EA580C;
+  font-weight: 500;
+}
+
+.haircut-item-action.is-danger {
+  color: #DC2626;
+}
+
+/* ========== 空状态 ========== */
+.haircut-empty {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  padding: 80rpx 0;
+}
+
+.haircut-empty-icon {
+  font-size: 80rpx;
+  margin-bottom: 20rpx;
+}
+
+.haircut-empty-text {
+  font-size: 28rpx;
+  color: #94A3B8;
+}
+
+/* ========== 加载状态 ========== */
+.haircut-loading {
+  display: flex;
+  justify-content: center;
+  padding: 32rpx 0;
+}
+
+.haircut-loading-text {
+  font-size: 26rpx;
+  color: #94A3B8;
+}
+
+/* ========== 弹窗遮罩 ========== */
+.haircut-popup-mask {
+  position: fixed;
+  top: 0;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  background: rgba(0, 0, 0, 0.5);
+  z-index: 100;
+  opacity: 0;
+  visibility: hidden;
+  transition: all 0.3s ease;
+}
+
+.haircut-popup-mask.is-visible {
+  opacity: 1;
+  visibility: visible;
+}
+
+/* ========== 弹窗容器 ========== */
+.haircut-popup-container {
+  position: absolute;
+  bottom: 0;
+  left: 0;
+  right: 0;
+  background: #FFFFFF;
+  border-radius: 32rpx 32rpx 0 0;
+  transform: translateY(100%);
+  transition: transform 0.3s ease;
+  max-height: 90vh;
+  overflow-y: auto;
+  margin: 0 28rpx 0;
+}
+
+.haircut-popup-mask.is-visible .haircut-popup-container {
+  transform: translateY(0);
+}
+
+/* ========== 弹窗头部 ========== */
+.haircut-popup-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 32rpx;
+  border-bottom: 1rpx solid #F1F5F9;
+  position: sticky;
+  top: 0;
+  background: #FFFFFF;
+  z-index: 1;
+}
+
+.haircut-popup-title {
+  font-size: 34rpx;
+  font-weight: 600;
+  color: #1E293B;
+}
+
+.haircut-popup-close {
+  font-size: 48rpx;
+  color: #94A3B8;
+  line-height: 1;
+  padding: 0 8rpx;
+}
+
+/* ========== 表单 ========== */
+.haircut-popup-form {
+  padding: 32rpx;
+  padding-bottom: calc(32rpx + env(safe-area-inset-bottom));
+}
+
+.haircut-field {
+  margin-bottom: 28rpx;
+}
+
+.haircut-field-label {
+  font-size: 28rpx;
+  color: #1E293B;
+  font-weight: 500;
+  margin-bottom: 12rpx;
+}
+
+.haircut-required {
+  color: #DC2626;
+}
+
+.haircut-field-hint {
+  font-size: 22rpx;
+  color: #94A3B8;
+  margin-top: 8rpx;
+}
+
+.haircut-input-wrapper {
+  background: #F8FAFC;
+  border-radius: 16rpx;
+  padding: 0 24rpx;
+  height: 88rpx;
+  display: flex;
+  align-items: center;
+}
+
+.haircut-input {
+  flex: 1;
+  font-size: 28rpx;
+  color: #1E293B;
+}
+
+.haircut-input-placeholder {
+  color: #94A3B8;
+}
+
+/* ========== 单选组 ========== */
+.haircut-radio-group {
+  display: flex;
+  flex-direction: column;
+  gap: 12rpx;
+}
+
+.haircut-radio-item {
+  display: flex;
+  align-items: center;
+  padding: 24rpx;
+  background: #F8FAFC;
+  border-radius: 16rpx;
+  border: 2rpx solid transparent;
+  transition: all 0.3s ease;
+}
+
+.haircut-radio-item.is-active {
+  background: #FFF7ED;
+  border-color: #EA580C;
+}
+
+.haircut-radio-dot {
+  width: 36rpx;
+  height: 36rpx;
+  border-radius: 50%;
+  border: 2rpx solid #D1D5DB;
+  margin-right: 16rpx;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  transition: all 0.3s ease;
+}
+
+.haircut-radio-item.is-active .haircut-radio-dot {
+  border-color: #EA580C;
+  background: #EA580C;
+}
+
+.haircut-radio-dot-inner {
+  width: 16rpx;
+  height: 16rpx;
+  border-radius: 50%;
+  background: #FFFFFF;
+}
+
+.haircut-radio-text {
+  font-size: 28rpx;
+  color: #1E293B;
+}
+
+/* ========== 提交按钮 ========== */
+.haircut-submit-btn {
+  width: 100%;
+  height: 96rpx;
+  background: linear-gradient(135deg, #EA580C 0%, #C2410C 100%);
+  color: #FFFFFF;
+  font-size: 32rpx;
+  font-weight: 600;
+  border-radius: 16rpx;
+  border: none;
+  margin-top: 20rpx;
+}
+
+.haircut-submit-btn[disabled] {
+  background: #94A3B8;
+}
+
+/* ========== 弹窗操作按钮 ========== */
+.haircut-popup-actions {
+  padding: 16rpx 32rpx;
+  padding-bottom: calc(16rpx + env(safe-area-inset-bottom));
+  display: flex;
+  gap: 16rpx;
+}
+
+.haircut-action-btn {
+  flex: 1;
+  height: 88rpx;
+  font-size: 30rpx;
+  font-weight: 600;
+  border-radius: 16rpx;
+  border: none;
+}
+
+.haircut-action-btn.is-primary {
+  background: linear-gradient(135deg, #EA580C 0%, #C2410C 100%);
+  color: #FFFFFF;
+}
+
+.haircut-action-btn.is-secondary {
+  background: #F1F5F9;
+  color: #64748B;
+}
+
+.haircut-action-btn.is-danger {
+  background: #DC2626;
+  color: #FFFFFF;
+}
+
+.haircut-action-btn[disabled] {
+  background: #94A3B8;
+  color: #FFFFFF;
+}
+
+/* ========== 提示信息 ========== */
+.haircut-info-card {
+  background: #EFF6FF;
+  border-radius: 12rpx;
+  padding: 20rpx 24rpx;
+  margin-bottom: 20rpx;
+}
+
+.haircut-info-text {
+  font-size: 26rpx;
+  color: #1E40AF;
+  line-height: 1.6;
+}

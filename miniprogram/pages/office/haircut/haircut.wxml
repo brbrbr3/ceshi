@@ -1,0 +1,262 @@
+<view class="haircut-page">
+  <!-- 渐变色头部 -->
+  <view class="haircut-header">
+    <view class="haircut-header-content">
+      <view class="haircut-title">理发预约</view>
+      <view class="haircut-subtitle">服务时间：每周一三五下午 14:30~18:00</view>
+    </view>
+  </view>
+
+  <!-- Tab栏 -->
+  <view class="haircut-tabs">
+    <view class="haircut-tab {{activeTab === 'book' ? 'is-active' : ''}}" bindtap="handleTabChange" data-tab="book">
+      预约理发
+    </view>
+    <view class="haircut-tab {{activeTab === 'monthly' ? 'is-active' : ''}}" wx:if="{{canView}}" bindtap="handleTabChange" data-tab="monthly">
+      本月预约
+    </view>
+    <view class="haircut-tab {{activeTab === 'mine' ? 'is-active' : ''}}" bindtap="handleTabChange" data-tab="mine">
+      我的预约
+    </view>
+  </view>
+
+  <!-- 内容区域 -->
+  <view class="haircut-content">
+    <!-- Tab 1: 预约理发 -->
+    <view wx:if="{{activeTab === 'book'}}">
+      <!-- 提示信息 -->
+      <view class="haircut-info-card">
+        <view class="haircut-info-text">
+          • 理发服务仅限周一、三、五下午 14:30~18:00\n
+          • 每时段仅限 1 人预约\n
+          • 当日 14:20 后不可预约当日时段
+        </view>
+      </view>
+
+      <!-- 日期选择器 -->
+      <view class="haircut-slots-title">选择日期</view>
+      <scroll-view class="haircut-date-selector" scroll-x enhanced show-scrollbar="{{false}}">
+        <view 
+          class="haircut-date-item {{selectedDate === item.date ? 'is-active' : ''}} {{item.isDisabled ? 'is-disabled' : ''}}" 
+          wx:for="{{displayDates}}" 
+          wx:key="date" 
+          bindtap="handleDateSelect" 
+          data-date="{{item}}"
+        >
+          <view class="haircut-date-weekday">周{{item.dayOfWeek}}</view>
+          <view class="haircut-date-day">{{item.date.substr(5)}}</view>
+          <view class="haircut-date-tag {{item.isHoliday ? 'is-holiday' : ''}} {{item.isToday && !item.isHoliday ? 'is-today' : ''}}" wx:if="{{item.isHoliday || item.isToday}}">
+            {{item.isHoliday ? '节假日' : '今日'}}
+          </view>
+        </view>
+      </scroll-view>
+
+      <!-- 日期提示 -->
+      <view class="haircut-date-hint" wx:if="{{selectedDateInfo && selectedDateInfo.isDisabled}}">
+        <view class="haircut-date-hint-text">{{selectedDateInfo.disableReason}}</view>
+      </view>
+
+      <!-- 时段列表 -->
+      <view class="haircut-slots-section" wx:if="{{selectedDate && !(selectedDateInfo && selectedDateInfo.isDisabled)}}">
+        <view class="haircut-slots-title">选择时段</view>
+        <view class="haircut-slots-list">
+          <view 
+            class="haircut-slot-item {{selectedSlot === item.start ? 'is-selected' : ''}} {{item.isBooked ? 'is-booked' : ''}}" 
+            wx:for="{{slots}}" 
+            wx:key="start" 
+            bindtap="handleSlotSelect" 
+            data-slot="{{item}}"
+          >
+            <view class="haircut-slot-time">{{item.display}}</view>
+            <view class="haircut-slot-status {{item.isBooked ? 'is-booked' : 'is-available'}}">
+              {{item.isBooked ? '已预约' : '可预约'}}
+            </view>
+          </view>
+        </view>
+
+        <!-- 空状态 -->
+        <view wx:if="{{!loadingSlots && slots.length === 0}}" class="haircut-empty">
+          <view class="haircut-empty-icon">📅</view>
+          <view class="haircut-empty-text">{{slotsMessage || '暂无可预约时段'}}</view>
+        </view>
+
+        <!-- 加载中 -->
+        <view wx:if="{{loadingSlots}}" class="haircut-loading">
+          <view class="haircut-loading-text">加载中...</view>
+        </view>
+      </view>
+
+      <!-- 预约按钮 -->
+      <button 
+        class="haircut-booking-btn" 
+        loading="{{submitting}}" 
+        disabled="{{!selectedSlot || submitting}}" 
+        bindtap="showBookingForm"
+        wx:if="{{selectedDate && selectedSlot && !(selectedDateInfo && selectedDateInfo.isDisabled)}}"
+      >
+        立即预约
+      </button>
+    </view>
+
+    <!-- Tab 2: 本月预约 -->
+    <view wx:if="{{activeTab === 'monthly' && canView}}">
+      <!-- 排序切换 -->
+      <view class="haircut-sort-bar">
+        <view class="haircut-sort-btn {{sortBy === 'time' ? 'is-active' : ''}}" bindtap="handleSortChange" data-sort="time">
+          按时间排序
+        </view>
+        <view class="haircut-sort-btn {{sortBy === 'name' ? 'is-active' : ''}}" bindtap="handleSortChange" data-sort="name">
+          按人员排序
+        </view>
+      </view>
+
+      <!-- 预约列表 -->
+      <view class="haircut-list">
+        <view class="haircut-item" wx:for="{{monthlyList}}" wx:key="_id">
+          <view class="haircut-item-header">
+            <view class="haircut-item-datetime">
+              <view class="haircut-item-date">{{item.date}}</view>
+              <view class="haircut-item-time">{{item.timeSlotDisplay}}</view>
+            </view>
+            <view class="haircut-item-status is-{{item.status}}">
+              {{item.status === 'booked' ? '已预约' : item.status === 'cancelled' ? '已取消' : '已完成'}}
+            </view>
+          </view>
+          <view class="haircut-item-body">
+            <view class="haircut-item-name">{{item.displayName}}</view>
+            <view class="haircut-item-meta" wx:if="{{item.cancelReason}}">
+              取消原因：{{item.cancelReason}}（{{item.cancelledBy}}）
+            </view>
+          </view>
+          <view class="haircut-item-actions" wx:if="{{item.status === 'booked' && isReceptionist}}">
+            <view class="haircut-item-action is-danger" bindtap="showCancelPopup" data-item="{{item}}">取消预约</view>
+          </view>
+        </view>
+      </view>
+
+      <!-- 空状态 -->
+      <view wx:if="{{!loadingMonthly && monthlyList.length === 0}}" class="haircut-empty">
+        <view class="haircut-empty-icon">📋</view>
+        <view class="haircut-empty-text">本月暂无预约记录</view>
+      </view>
+
+      <!-- 加载中 -->
+      <view wx:if="{{loadingMonthly}}" class="haircut-loading">
+        <view class="haircut-loading-text">加载中...</view>
+      </view>
+    </view>
+
+    <!-- Tab 3: 我的预约 -->
+    <view wx:if="{{activeTab === 'mine'}}">
+      <!-- 预约列表 -->
+      <view class="haircut-list">
+        <view class="haircut-item" wx:for="{{myList}}" wx:key="_id">
+          <view class="haircut-item-header">
+            <view class="haircut-item-datetime">
+              <view class="haircut-item-date">{{item.date}}</view>
+              <view class="haircut-item-time">{{item.timeSlotDisplay}}</view>
+            </view>
+            <view class="haircut-item-status is-{{item.status}}">
+              {{item.status === 'booked' ? '已预约' : item.status === 'cancelled' ? '已取消' : '已完成'}}
+            </view>
+          </view>
+          <view class="haircut-item-body">
+            <view class="haircut-item-name">{{item.displayName}}</view>
+            <view class="haircut-item-meta" wx:if="{{item.cancelReason}}">
+              取消原因：{{item.cancelReason}}
+            </view>
+          </view>
+          <view class="haircut-item-actions" wx:if="{{item.status === 'booked'}}">
+            <view class="haircut-item-action is-danger" bindtap="handleCancelMyAppointment" data-item="{{item}}">取消预约</view>
+          </view>
+        </view>
+      </view>
+
+      <!-- 空状态 -->
+      <view wx:if="{{!loadingMine && myList.length === 0}}" class="haircut-empty">
+        <view class="haircut-empty-icon">📋</view>
+        <view class="haircut-empty-text">暂无预约记录</view>
+      </view>
+
+      <!-- 加载中 -->
+      <view wx:if="{{loadingMine}}" class="haircut-loading">
+        <view class="haircut-loading-text">加载中...</view>
+      </view>
+
+      <!-- 加载更多 -->
+      <view wx:if="{{hasMoreMine}}" class="haircut-loading" bindtap="loadMoreMyAppointments">
+        <view class="haircut-loading-text">点击加载更多</view>
+      </view>
+    </view>
+  </view>
+
+  <!-- 底部弹出：预约表单 -->
+  <view class="haircut-popup-mask {{showBookingPopup ? 'is-visible' : ''}}" catchtouchmove="stopPropagation" bindtap="hideBookingPopup">
+    <view class="haircut-popup-container" catchtap="stopPropagation">
+      <view class="haircut-popup-header">
+        <view class="haircut-popup-title">预约理发</view>
+        <view class="haircut-popup-close" bindtap="hideBookingPopup">×</view>
+      </view>
+
+      <view class="haircut-popup-form">
+        <view class="haircut-field">
+          <view class="haircut-field-label">预约日期</view>
+          <view class="haircut-input-wrapper">
+            <view class="haircut-input">{{selectedDate}}</view>
+          </view>
+        </view>
+
+        <view class="haircut-field">
+          <view class="haircut-field-label">预约时段</view>
+          <view class="haircut-input-wrapper">
+            <view class="haircut-input">{{selectedSlotDisplay}}</view>
+          </view>
+        </view>
+
+        <view class="haircut-field">
+          <view class="haircut-field-label">理发人姓名 <text class="haircut-required">*</text></view>
+          <view class="haircut-input-wrapper">
+            <input class="haircut-input" value="{{bookingForm.appointeeName}}" placeholder="请输入理发人姓名" placeholder-class="haircut-input-placeholder" bindinput="handleNameInput" />
+          </view>
+          <view class="haircut-field-hint">可为他人预约，显示为"理发人（代约人）"</view>
+        </view>
+
+        <button class="haircut-submit-btn" loading="{{submitting}}" disabled="{{submitting || !bookingForm.appointeeName}}" bindtap="handleBookingSubmit">
+          确认预约
+        </button>
+      </view>
+    </view>
+  </view>
+
+  <!-- 底部弹出：取消原因选择 -->
+  <view class="haircut-popup-mask {{showCancelPopup ? 'is-visible' : ''}}" catchtouchmove="stopPropagation" bindtap="hideCancelPopup">
+    <view class="haircut-popup-container" catchtap="stopPropagation">
+      <view class="haircut-popup-header">
+        <view class="haircut-popup-title">选择取消原因</view>
+        <view class="haircut-popup-close" bindtap="hideCancelPopup">×</view>
+      </view>
+
+      <view class="haircut-popup-form">
+        <view class="haircut-radio-group">
+          <view 
+            class="haircut-radio-item {{cancelReason === item ? 'is-active' : ''}}" 
+            wx:for="{{cancelReasons}}" 
+            wx:key="*this" 
+            bindtap="handleCancelReasonSelect" 
+            data-reason="{{item}}"
+          >
+            <view class="haircut-radio-dot">
+              <view class="haircut-radio-dot-inner" wx:if="{{cancelReason === item}}"></view>
+            </view>
+            <view class="haircut-radio-text">{{item}}</view>
+          </view>
+        </view>
+
+        <view class="haircut-popup-actions">
+          <button class="haircut-action-btn is-secondary" bindtap="hideCancelPopup">取消</button>
+          <button class="haircut-action-btn is-danger" loading="{{cancelling}}" disabled="{{cancelling || !cancelReason}}" bindtap="handleConfirmCancel">确认取消</button>
+        </view>
+      </view>
+    </view>
+  </view>
+</view>

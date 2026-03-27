@@ -30,6 +30,7 @@ const DB_COLLECTIONS = [
   'calendar_schedules',
   'feedback_posts',
   'feedback_replies',
+  'haircut_appointments',
   'holiday_configs',
   'meeting_room_reservations',
   'menu_comments',
