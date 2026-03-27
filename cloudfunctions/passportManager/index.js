@@ -1,10 +1,10 @@
 /**
- * 护照领用管理云函数
+ * 护照借用管理云函数
  * 
  * 功能：
- * - submitApplication: 提交护照领用申请
- * - getMyPassportStatus: 获取当前用户的护照领用状态
- * - getHistory: 获取护照领用历史记录
+ * - submitApplication: 提交护照借用申请
+ * - getMyPassportStatus: 获取当前用户的护照借用状态
+ * - getHistory: 获取护照借用历史记录
  * - confirmReturn: 确认归还（管理员操作）
  * - getBorrowedList: 获取当前在借护照列表（管理员用）
  */
@@ -39,7 +39,7 @@ function fail(message, code, data) {
 }
 
 /**
- * 提交护照领用申请
+ * 提交护照借用申请
  */
 async function submitApplication(openid, businessData) {
   // 验证用户权限
@@ -54,25 +54,25 @@ async function submitApplication(openid, businessData) {
   // 检查权限：仅馆领导、部门负责人、馆员、工勤、物业可使用
   const allowedRoles = ['馆领导', '部门负责人', '馆员', '工勤', '物业']
   if (!allowedRoles.includes(role)) {
-    throw new Error('您当前的角色无权申请护照领用')
+    throw new Error('您当前的角色无权申请护照借用')
   }
 
   if (user.status !== 'approved') {
     throw new Error('用户状态异常，请重新登录')
   }
 
-  // 解析领用人姓名（多个空格分隔）
+  // 解析借用的护照（多个空格分隔）
   const borrowerNames = (businessData.borrowerNames || '').trim()
   if (!borrowerNames) {
-    throw new Error('请填写领用人姓名')
+    throw new Error('请填写借用的护照')
   }
 
   const nameList = borrowerNames.split(/\s+/).filter(name => name.trim())
   if (nameList.length === 0) {
-    throw new Error('请填写领用人姓名')
+    throw new Error('请填写借用的护照')
   }
 
-  // 查询领用人 openid
+  // 查询借用的护照 openid
   const borrowerOpenids = []
   const borrowerInfoList = []
   
@@ -125,15 +125,15 @@ async function submitApplication(openid, businessData) {
     return success({
       orderId: workflowResult.result.data.orderId,
       orderNo: workflowResult.result.data.orderNo,
-      message: '护照领用申请提交成功'
+      message: '护照借用申请提交成功'
     }, '提交成功')
   } catch (error) {
-    throw new Error('提交护照领用申请失败: ' + error.message)
+    throw new Error('提交护照借用申请失败: ' + error.message)
   }
 }
 
 /**
- * 获取当前用户的护照领用状态
+ * 获取当前用户的护照借用状态
  * 返回当前是否有在借护照
  */
 async function getMyPassportStatus(openid) {
@@ -173,11 +173,11 @@ async function getMyPassportStatus(openid) {
 }
 
 /**
- * 获取护照领用历史记录（分页）
+ * 获取护照借用历史记录（分页）
  */
 async function getHistory(openid, page = 1, pageSize = 20) {
   try {
-    // 查询申请人提交的护照领用工单
+    // 查询申请人提交的护照借用工单
     const countRes = await workOrdersCollection.where({
       orderType: 'passport_application',
       'businessData.applicantId': openid

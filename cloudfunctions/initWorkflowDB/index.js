@@ -206,10 +206,10 @@ const EXAMPLE_TEMPLATES = [
   },
 
   {
-    name: '护照领用审批',
+    name: '护照借用审批',
     code: 'passport_application',
     version: 1,
-    description: '护照领用审批流程（3步：同部门负责人→馆领导→管理员借出）',
+    description: '护照借用审批流程（3步：同部门负责人→馆领导→管理员借出）',
     category: 'approval',
     steps: [
       {
@@ -258,11 +258,11 @@ const EXAMPLE_TEMPLATES = [
     ],
     displayConfig: {
       cardFields: [
-        { field: 'borrowerNames', label: '领用人' },
+        { field: 'borrowerNames', label: '借用的护照' },
         { field: 'borrowDate', label: '借用日期' }
       ],
       detailFields: [
-        { field: 'borrowerNames', label: '领用人姓名' },
+        { field: 'borrowerNames', label: '借用的护照' },
         { field: 'borrowDate', label: '借用日期' },
         { field: 'expectedReturnDate', label: '预计归还日期', condition: { field: 'expectedReturnDate', op: '!=', value: '' } },
         { field: 'reason', label: '借用事由' }

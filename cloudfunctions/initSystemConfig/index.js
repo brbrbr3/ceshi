@@ -422,8 +422,8 @@ const PERMISSION_CONFIGS = [
   },
   {
     featureKey: 'passport_application',
-    featureName: '护照领用',
-    description: '提交护照领用申请',
+    featureName: '护照借用',
+    description: '提交护照借用申请',
     enabledRoles: ['馆领导', '部门负责人', '馆员', '工勤', '物业'],
     requireAdmin: false
   }

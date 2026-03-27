@@ -1,4 +1,4 @@
-/* 护照领用页面样式 */
+/* 护照借用页面样式 */
 
 .passport-page {
   min-height: 100vh;
@@ -438,7 +438,7 @@
 .passport-detail-label {
   font-size: 28rpx;
   color: #64748B;
-  width: 160rpx;
+  width: 200rpx;
   flex-shrink: 0;
 }
 

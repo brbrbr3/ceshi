@@ -1,5 +1,5 @@
 /**
- * 护照领用页面
+ * 护照借用页面
  */
 const app = getApp()
 const utils = require('../../../common/utils.js')
@@ -110,7 +110,7 @@ Page({
   },
 
   /**
-   * 加载护照领用状态
+   * 加载护照借用状态
    */
   async loadPassportStatus() {
     try {
@@ -320,7 +320,7 @@ Page({
     const form = this.data.form
 
     if (!String(form.borrowerNames || '').trim()) {
-      utils.showToast({ title: '请填写领用人姓名', icon: 'none' })
+      utils.showToast({ title: '请填写借用的护照', icon: 'none' })
       return false
     }
 

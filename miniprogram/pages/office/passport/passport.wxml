@@ -2,7 +2,7 @@
   <!-- 渐变色头部 -->
   <view class="office-gradient-header passport-header">
     <view class="passport-header-content">
-      <view class="passport-title">护照领用</view>
+      <view class="passport-title">护照借用</view>
       <view class="passport-subtitle">申请借用护照</view>
     </view>
     <view class="passport-header-action" bindtap="showApplicationForm">
@@ -10,7 +10,7 @@
     </view>
   </view>
 
-  <!-- 领用状态卡片 -->
+  <!-- 借用状态卡片 -->
   <view class="passport-status-card {{borrowedRecords.length > 0 ? 'is-borrowed' : 'is-idle'}}">
     <view class="passport-status-header">
       <view class="passport-status-icon">
@@ -33,7 +33,7 @@
     <view wx:if="{{borrowedRecords.length > 0}}" class="passport-borrowed-list">
       <view class="passport-borrowed-item" wx:for="{{borrowedRecords}}" wx:key="_id">
         <view class="passport-borrowed-row">
-          <text class="passport-borrowed-label">领用人：</text>
+          <text class="passport-borrowed-label">借用的护照：</text>
           <text class="passport-borrowed-value">{{item.borrowerNames.join('、')}}</text>
         </view>
         <view class="passport-borrowed-row">
@@ -51,7 +51,7 @@
   <view class="passport-content">
     <!-- 申请记录标题 -->
     <view class="passport-section">
-      <view class="passport-section-title">护照领用记录</view>
+      <view class="passport-section-title">护照借用记录</view>
 
       <!-- 按月分组列表 -->
       <block wx:for="{{groupedRecords}}" wx:key="monthKey">
@@ -66,7 +66,7 @@
                 </view>
               </view>
               <view class="passport-item-body">
-                <view class="passport-item-borrowers">领用人：{{record.borrowerNamesText}}</view>
+                <view class="passport-item-borrowers">借出护照：{{record.borrowerNamesText}}</view>
                 <view class="passport-item-meta" wx:if="{{record.reason}}">
                   <text class="passport-item-reason">事由：{{record.reason}}</text>
                 </view>
@@ -93,23 +93,23 @@
   <view class="passport-popup-mask {{showFormPopup ? 'is-visible' : ''}}" catchtouchmove="stopPropagation" bindtap="hideFormPopup">
     <view class="passport-popup-container" catchtap="stopPropagation">
       <view class="passport-popup-header">
-        <view class="passport-popup-title">护照领用申请</view>
+        <view class="passport-popup-title">护照借用申请</view>
         <view class="passport-popup-close" bindtap="hideFormPopup">×</view>
       </view>
 
       <view class="passport-popup-form">
         <view class="passport-field">
-          <view class="passport-field-label">领用人姓名 <text class="passport-required">*</text></view>
+          <view class="passport-field-label">借出以下护照： <text class="passport-required">*</text></view>
           <view class="passport-input-wrapper">
             <input 
               class="passport-input" 
               value="{{form.borrowerNames}}" 
-              placeholder="请输入领用人姓名" 
+              placeholder="请输入要借出护照的姓名" 
               placeholder-class="passport-input-placeholder"
               bindinput="handleBorrowerInput"
             />
           </view>
-          <view class="passport-field-hint">多个领用人用空格分隔</view>
+          <view class="passport-field-hint">多个姓名间用空格分隔</view>
         </view>
 
         <view class="passport-field">
@@ -164,7 +164,7 @@
 
       <view class="passport-detail-content" wx:if="{{selectedRecord}}">
         <view class="passport-detail-row">
-          <text class="passport-detail-label">领用人：</text>
+          <text class="passport-detail-label">借出以下护照：</text>
           <text class="passport-detail-value">{{selectedRecord.borrowerNamesText}}</text>
         </view>
         <view class="passport-detail-row">

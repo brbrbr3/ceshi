@@ -1367,7 +1367,7 @@ async function completeWorkflow(orderId, decision, approverId, approverName, com
     }
   }
 
-  // 特殊处理：护照领用审批通过，创建 passport_records 记录
+  // 特殊处理：护照借用审批通过，创建 passport_records 记录
   if (order.orderType === 'passport_application' && decision === 'approved') {
     const passportRecordsCollection = db.collection('passport_records')
     const businessData = order.businessData || {}
@@ -1380,7 +1380,7 @@ async function completeWorkflow(orderId, decision, approverId, approverName, com
           // 申请人信息
           applicantId: businessData.applicantId,
           applicantName: businessData.applicantName,
-          // 领用人信息
+          // 借用的护照信息
           borrowerNames: businessData.borrowerNames || [],
           borrowerOpenids: businessData.borrowerOpenids || [],
           borrowerInfoList: businessData.borrowerInfoList || [],
@@ -1402,9 +1402,9 @@ async function completeWorkflow(orderId, decision, approverId, approverName, com
           updatedAt: now
         }
       })
-      console.log('护照领用记录创建成功，订单号:', order.orderNo)
+      console.log('护照借用记录创建成功，订单号:', order.orderNo)
     } catch (error) {
-      console.error('创建护照领用记录失败:', error)
+      console.error('创建护照借用记录失败:', error)
       // 不抛出错误，允许流程继续
     }
   }

@@ -23,6 +23,20 @@
     "miniprogram": {
       "list": [
         {
+          "name": "pages/office/passport/passport",
+          "pathName": "pages/office/passport/passport",
+          "query": "",
+          "scene": null,
+          "launchMode": "default"
+        },
+        {
+          "name": "pages/auth/login/login",
+          "pathName": "pages/auth/login/login",
+          "query": "",
+          "launchMode": "default",
+          "scene": null
+        },
+        {
           "name": "pages/office/home/home",
           "pathName": "pages/office/feedback/feedback",
           "query": "",
