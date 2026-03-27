@@ -1104,29 +1104,12 @@ async function sendTaskAssignedNotification(tasks, order) {
   let notifications = []
 
   for (const task of tasks) {
-    // 如果审批人是角色，需要查询该角色的所有用户
-    if (task.approverType === 'role') {
-      const roleId = task.approverId.replace('role_', '')
-      
-      // 根据角色ID查询用户
-      let users = []
-      if (roleId === 'admin') {
-        // 管理员角色
-        const usersRes = await usersCollection.where({
-          isAdmin: true,
-          status: 'approved'
-        }).field({ openid: true }).get()
-        users = usersRes.data || []
-      } else {
-        // 其他角色（如果有实现的话）
-        // 目前只有管理员角色有特殊处理
-        users = []
-      }
-
-      // 为每个用户创建通知
-      for (const user of users) {
+    // 直接使用 task.approverList（包含所有有权限的审批人）
+    // 任务创建时已正确解析并设置 approverList
+    if (task.approverList && task.approverList.length > 0) {
+      for (const approver of task.approverList) {
         notifications.push({
-          openid: user.openid,
+          openid: approver.id,
           data: {
             type: 'task_assigned',
             title: '新的审批任务',
@@ -1136,27 +1119,10 @@ async function sendTaskAssignedNotification(tasks, order) {
             orderType: order.orderType,
             stepName: task.stepName,
             taskId: task._id,
-            applicantName: order.businessData.applicantName,
-            roleId: roleId
+            applicantName: order.businessData.applicantName
           }
         })
       }
-    } else {
-      // 具体用户，直接创建通知
-      notifications.push({
-        openid: task.approverId,
-        data: {
-          type: 'task_assigned',
-          title: '新的审批任务',
-          content: `您有一个来自${order.businessData.applicantName || '申请人'}的${task.stepName || '审批'}任务待处理`,
-          orderId: order._id,
-          orderNo: order.orderNo,
-          orderType: order.orderType,
-          stepName: task.stepName,
-          taskId: task._id,
-          applicantName: order.businessData.applicantName
-        }
-      })
     }
   }
 
