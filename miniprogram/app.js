@@ -87,11 +87,11 @@ App({
   checkCacheVersion() {
     const storedVersion = readStorage(CACHE_VERSION_KEY)
     if (storedVersion !== config.CACHE_VERSION) {
-      // 版本变化，清除用户信息和权限缓存
-      removeStorage(USER_INFO_CACHE_KEY)
+      // 版本变化，清除权限缓存、常量缓存
       removeStorage(PERMISSION_CACHE_KEY)
+      removeStorage(CONSTANTS_CACHE_KEY)
       writeStorage(CACHE_VERSION_KEY, config.CACHE_VERSION)
-      console.log('缓存版本已更新，已清除旧缓存')
+      console.log('缓存版本已更新，已清除旧缓存(PERMISSION_CACHE_KEY, CONSTANTS_CACHE_KEY')
     }
   },
 
@@ -226,6 +226,7 @@ App({
       const cached = readStorage(USER_INFO_CACHE_KEY)
       if (cached && cached.hasLogin) {
         // 缓存有效，直接返回
+      console.log('用户信息缓存已存在，跳过加载')
         return Promise.resolve({
           registered: cached.hasLogin,
           openid: cached.openid,

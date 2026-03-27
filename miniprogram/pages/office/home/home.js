@@ -57,6 +57,7 @@ Page({
     const cached = app.getPermissionCache()
     if (cached) {
       this.setData({ permissionCache: cached })
+      console.log('权限缓存已存在，跳过加载')
       return
     }
 

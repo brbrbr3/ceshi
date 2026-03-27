@@ -75,61 +75,13 @@ Page({
 
   onShow() {
     this.refreshStatus()
-    this.loadUserAvatar()
     // 页面显示时预加载常量（并行执行，不阻塞UI）
     app.loadConstants().catch(err => {
       console.warn('预加载常量失败:', err)
     })
   },
 
-  // 处理头像选择
-  onChooseAvatar(e) {
-    const { avatarUrl } = e.detail
-    this.setData({
-      tempAvatarUrl: avatarUrl,
-      avatarUrl: avatarUrl
-    })
-  },
 
-  // 加载用户头像
-  loadUserAvatar() {
-    app.checkUserRegistration()
-      .then((result) => {
-        if (result.registered && result.user && result.user.avatarUrl) {
-          this.setData({
-            avatarUrl: result.user.avatarUrl
-          })
-        }
-      })
-      .catch(() => {
-        // 忽略错误
-      })
-  },
-
-  // 上传头像到云存储
-  uploadAvatar(avatarPath) {
-    return new Promise((resolve, reject) => {
-      const openid = app.globalData.openid
-      if (!openid) {
-        reject(new Error('未获取到用户身份'))
-        return
-      }
-
-      // 生成唯一文件名
-      const fileName = `avatars/${openid}_${Date.now()}.jpg`
-
-      wx.cloud.uploadFile({
-        cloudPath: fileName,
-        filePath: avatarPath,
-        success: (res) => {
-          resolve(res.fileID)
-        },
-        fail: (error) => {
-          reject(error)
-        }
-      })
-    })
-  },
 
   refreshStatus() {
     app.checkUserRegistration()
