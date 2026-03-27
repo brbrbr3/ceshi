@@ -125,7 +125,9 @@ Page({
         const borrowedRecords = (res.result.data.borrowedRecords || []).map(item => ({
           ...item,
           borrowDateText: this.formatDate(new Date(item.borrowDate)),
-          expectedReturnDate: item.expectedReturnDate ? this.formatDate(new Date(item.expectedReturnDate)) : ''
+          expectedReturnDate: item.expectedReturnDate ? this.formatDate(new Date(item.expectedReturnDate)) : '',
+          // WXML 不支持数组方法，需在 JS 端转换
+          borrowerNamesText: (item.borrowerNames || []).join('、')
         }))
         
         this.setData({ borrowedRecords })
@@ -212,8 +214,8 @@ Page({
       expectedReturnDate: businessData.expectedReturnDate || '',
       reason: businessData.reason || '',
       returnedAt: businessData.returnedAt,
-      returnedAtText: businessData.returnedAt ? utils.formatTime(businessData.returnedAt) : '',
-      createdAtText: utils.formatTime(item.createdAt),
+      returnedAtText: businessData.returnedAt ? utils.formatDateTime(businessData.returnedAt) : '',
+      createdAtText: utils.formatDateTime(item.createdAt),
       statusText,
       statusColor,
       statusBg,

@@ -90,7 +90,8 @@ const EXAMPLE_TEMPLATES = [
     displayConfig: {
       cardFields: [
         { field: 'name', label: '申请人' },
-        { field: 'role', label: '角色' }
+        { field: 'role', label: '角色' },
+        { field: 'department', label: '部门' }
       ],
       detailFields: [
         { field: 'name', label: '申请人姓名' },
@@ -262,6 +263,7 @@ const EXAMPLE_TEMPLATES = [
         { field: 'borrowDate', label: '借用日期' }
       ],
       detailFields: [
+        { field: 'applicantName', label: '申请人'},
         { field: 'borrowerNames', label: '借用的护照' },
         { field: 'borrowDate', label: '借用日期' },
         { field: 'expectedReturnDate', label: '预计归还日期', condition: { field: 'expectedReturnDate', op: '!=', value: '' } },

@@ -417,6 +417,7 @@ async function startWorkflow(orderType, businessData) {
         orderNo,
         orderType,
         templateId: template._id,
+        templateName: template.name,
         templateVersion: template.version,
         businessData,
         workflowSnapshot: {
@@ -1048,12 +1049,55 @@ async function cancelPendingTasks(orderId, fromStepNo = 0) {
 
 // 发送小程序内通知
 // 获取工单类型的中文名称
-function getOrderTypeName(orderType) {
+// 从 workflow_templates 的 name 字段处理得到
+// 处理规则：先去掉末尾的"审批"，再去掉末尾的"申请"，最后加上"申请"二字
+async function getOrderTypeName(orderType, templateName = null) {
+  // 辅助函数：处理模板名称
+  const processTemplateName = (name) => {
+    if (!name) return null
+    let result = name
+    // 去掉末尾的"审批"
+    if (result.endsWith('审批')) {
+      result = result.slice(0, -2)
+    }
+    // 去掉末尾的"申请"
+    if (result.endsWith('申请')) {
+      result = result.slice(0, -2)
+    }
+    result += '申请'
+    return result || '申请'
+  }
+
+  // 1. 如果已有 templateName，直接处理返回
+  if (templateName) {
+    return processTemplateName(templateName)
+  }
+
+  // 2. 从数据库查询模板名称
+  try {
+    const templateRes = await templatesCollection
+      .where({ 
+        code: orderType,
+        status: 'active'
+      })
+      .orderBy('version', 'desc')
+      .limit(1)
+      .get()
+    
+    if (templateRes.data && templateRes.data.length > 0) {
+      return processTemplateName(templateRes.data[0].name)
+    }
+  } catch (error) {
+    console.error('查询模板名称失败:', error)
+  }
+
+  // 3. fallback: 硬编码映射（兼容旧数据）
   const typeMap = {
     'medical_application': '就医',
     'user_registration': '注册',
     'user_profile_update': '信息修改',
-    'notification_publish': '公告发布'
+    'notification_publish': '公告发布',
+    'passport_application': '护照借用'
   }
   return typeMap[orderType] || '审批'
 }
@@ -1106,6 +1150,7 @@ async function sendTaskAssignedNotification(tasks, order) {
   for (const task of tasks) {
     // 直接使用 task.approverList（包含所有有权限的审批人）
     // 任务创建时已正确解析并设置 approverList
+    const orderTypeName = await getOrderTypeName(order.orderType, order.templateName)
     if (task.approverList && task.approverList.length > 0) {
       for (const approver of task.approverList) {
         notifications.push({
@@ -1113,7 +1158,7 @@ async function sendTaskAssignedNotification(tasks, order) {
           data: {
             type: 'task_assigned',
             title: '新的审批任务',
-            content: `您有一个来自${order.businessData.applicantName || '申请人'}的${task.stepName || '审批'}任务待处理`,
+            content: `${order.businessData.applicantName || '申请人'}的${orderTypeName || '申请'}待您审批，点击查看`,
             orderId: order._id,
             orderNo: order.orderNo,
             orderType: order.orderType,
@@ -1134,14 +1179,14 @@ async function sendTaskAssignedNotification(tasks, order) {
 
 // 发送审批完成通知
 async function sendTaskCompletedNotification(order, approvalResult, comment, approverName) {
-  const orderTypeName = getOrderTypeName(order.orderType)
+  const orderTypeName = await getOrderTypeName(order.orderType, order.templateName)
   let content = ''
   
   if (approvalResult === 'rejected') {
     // 驳回时包含驳回人信息
-    content = `您的${orderTypeName}申请已被${approverName || '审批人'}驳回，请点击查看`
+    content = `您的${orderTypeName}已被${approverName || '审批人'}驳回，请点击查看`
   } else {
-    content = comment || '您的申请已通过审批'
+    content = comment || `您的${orderTypeName}已通过审批`
   }
   
   // 发送小程序内通知给申请人
@@ -1173,11 +1218,12 @@ async function sendProcessReturnedNotification(order, returnReason) {
 
 // 发送工作流完成通知
 async function sendWorkflowCompletedNotification(order, finalStatus) {
-  // 发送小程序内通知给申请人
+    const orderTypeName = await getOrderTypeName(order.orderType, order.templateName)
+// 发送小程序内通知给申请人
   await sendAppNotification(order.businessData.applicantId, {
     type: 'workflow_completed',
     title: finalStatus === 'approved' ? '审批通过' : '审批驳回',
-    content: finalStatus === 'approved' ? '您的申请已通过审批' : '您的申请已被驳回',
+    content: finalStatus === 'approved' ? `您的${orderTypeName}已通过审批，点击查看` : `您的${orderTypeName}已被驳回，点击查看`,
     orderId: order._id,
     orderNo: order.orderNo,
     orderType: order.orderType,
@@ -1187,11 +1233,11 @@ async function sendWorkflowCompletedNotification(order, finalStatus) {
 
 // 发送工单中止通知
 async function sendOrderTerminatedNotification(order, reason) {
-  const orderTypeName = getOrderTypeName(order.orderType)
+  const orderTypeName = await getOrderTypeName(order.orderType, order.templateName)
   await sendAppNotification(order.businessData.applicantId, {
     type: 'order_terminated',
     title: '申请已中止',
-    content: `您的${orderTypeName}申请意外中止，请点击查看`,
+    content: `您的${orderTypeName}意外中止，点击查看`,
     orderId: order._id,
     orderNo: order.orderNo,
     orderType: order.orderType,

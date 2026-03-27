@@ -34,7 +34,7 @@
       <view class="passport-borrowed-item" wx:for="{{borrowedRecords}}" wx:key="_id">
         <view class="passport-borrowed-row">
           <text class="passport-borrowed-label">借用的护照：</text>
-          <text class="passport-borrowed-value">{{item.borrowerNames.join('、')}}</text>
+          <text class="passport-borrowed-value">{{item.borrowerNamesText}}</text>
         </view>
         <view class="passport-borrowed-row">
           <text class="passport-borrowed-label">借出日期：</text>
@@ -158,11 +158,11 @@
     </view>
   </view>
 
-  <!-- 详情弹窗 -->
+  <!-- 护照借用详情弹窗 -->
   <view class="passport-popup-mask {{showDetailPopup ? 'is-visible' : ''}}" catchtouchmove="stopPropagation" bindtap="hideDetailPopup">
     <view class="passport-popup-container" catchtap="stopPropagation">
       <view class="passport-popup-header">
-        <view class="passport-popup-title">申请详情</view>
+        <view class="passport-popup-title">护照借用详情</view>
         <view class="passport-popup-close" bindtap="hideDetailPopup">×</view>
       </view>
 

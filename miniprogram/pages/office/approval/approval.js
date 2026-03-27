@@ -805,19 +805,13 @@ Page({
     const isMedicalApplication = request.orderType === 'medical_application'
 
     let content = ''
-    if (isMedicalApplication) {
+    
       if (decision === 'approve') {
-        content = '批准后，该就医申请将流转到下一审批环节。'
+        content = '确认批准？'
       } else {
-        content = '驳回后，申请人可重新提交就医申请。'
+        content = '确认驳回？'
       }
-    } else {
-      if (decision === 'approve') {
-        content = '批准后，该用户将自动写入用户表并可登录首页。'
-      } else {
-        content = '驳回后，用户可重新进入注册页修改资料并再次提交。'
-      }
-    }
+    
 
     wx.showModal({
       title,
