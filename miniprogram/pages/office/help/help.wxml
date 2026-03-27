@@ -82,6 +82,24 @@
           </view>
         </view>
       </view>
+
+      <view class="help-card">
+        <view class="card-header">
+          <view class="card-icon">🛂</view>
+          <view class="card-title">护照管理</view>
+        </view>
+        <view class="card-content">
+          <view class="card-desc">护照借用申请与管理，包含四个功能模块：</view>
+          <view class="card-features">
+            <view class="feature-item">• 护照借出：提交借用申请，查看借用记录</view>
+            <view class="feature-item">• 护照信息维护：填写护照信息，系统自动提醒即将在半年内过期的护照。</view>
+          </view>
+          <view class="card-permission">
+            <view class="permission-label">权限要求：</view>
+            <view class="permission-value">配偶、家属请馆员代为申请。</view>
+          </view>
+        </view>
+      </view>
     </view>
 
     <!-- 协作功能 -->

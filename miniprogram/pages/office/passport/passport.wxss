@@ -1,4 +1,4 @@
-/* 护照借用页面样式 */
+/* 护照管理页面样式 */
 
 .passport-page {
   min-height: 100vh;
