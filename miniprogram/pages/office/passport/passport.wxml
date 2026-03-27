@@ -114,22 +114,26 @@
 
         <view class="passport-field">
           <view class="passport-field-label">借用日期 <text class="passport-required">*</text></view>
-          <picker mode="date" value="{{form.borrowDate}}" start="{{minDate}}" end="{{maxDate}}" bindchange="handleDateChange">
-            <view class="passport-picker-wrapper {{form.borrowDate ? '' : 'is-placeholder'}}">
-              <view class="passport-picker-value">{{form.borrowDate || '请选择借用日期'}}</view>
-              <view class="passport-picker-arrow">›</view>
-            </view>
-          </picker>
+          <datetime-picker 
+            value="{{form.borrowDate}}" 
+            fields="{{['year', 'month', 'day']}}"
+            placeholder="请选择借用日期"
+            start-date="{{minDate}}"
+            end-date="{{maxReturnDate}}"
+            bind:change="handleDateChange"
+          />
         </view>
 
         <view class="passport-field">
           <view class="passport-field-label">预计归还日期</view>
-          <picker mode="date" value="{{form.expectedReturnDate}}" start="{{minDate}}" end="{{maxReturnDate}}" bindchange="handleReturnDateChange">
-            <view class="passport-picker-wrapper {{form.expectedReturnDate ? '' : 'is-placeholder'}}">
-              <view class="passport-picker-value">{{form.expectedReturnDate || '请选择预计归还日期（可选）'}}</view>
-              <view class="passport-picker-arrow">›</view>
-            </view>
-          </picker>
+          <datetime-picker 
+            value="{{form.expectedReturnDate}}" 
+            fields="{{['year', 'month', 'day']}}"
+            placeholder="离任无需填写"
+            start-date="{{minDate}}"
+            end-date="{{maxReturnDate}}"
+            bind:change="handleReturnDateChange"
+          />
         </view>
 
         <view class="passport-field">

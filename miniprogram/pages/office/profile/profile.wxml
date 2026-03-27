@@ -18,17 +18,17 @@
       <view class="profile-arrow">›</view>
     </view>
 
-    <view class="profile-stats-grid">
+    <!-- <view class="profile-stats-grid">
       <view class="profile-stat-item" wx:for="{{stats}}" wx:key="label">
         <view class="profile-stat-icon">{{item.icon}}</view>
         <view class="profile-stat-value">{{item.value}}</view>
         <view class="profile-stat-label">{{item.label}}</view>
       </view>
-    </view>
+    </view> -->
   </view>
 
   <view class="office-content">
-    <view class="profile-reward-card">
+    <!-- <view class="profile-reward-card">
       <view class="profile-reward-icon">🏆</view>
       <view class="profile-reward-main">
         <view class="profile-reward-title">本月全勤奖励（占位）</view>
@@ -37,7 +37,7 @@
       <view class="profile-reward-btn" bindtap="showComingSoon">领取</view>
     </view>
 
-    <view class="profile-info-grid">
+<view class="profile-info-grid">
       <view class="office-card profile-info-card" wx:for="{{quickInfo}}" wx:key="title">
         <view class="profile-info-top">
           <view class="profile-info-icon">{{item.icon}}</view>
@@ -46,7 +46,7 @@
         <view class="profile-info-value" style="color: {{item.valueColor}};">{{item.value}}</view>
         <view class="profile-info-desc">{{item.desc}}</view>
       </view>
-    </view>
+    </view> -->
 
     <view class="profile-group" wx:for="{{menuGroups}}" wx:key="title">
       <view class="profile-group-title">{{item.title}}</view>

@@ -260,11 +260,9 @@ Component({
         months, days, hours, minutes, seconds
       })
       
-      // 设置初始值
+      // 设置初始值（空值时显示 placeholder，不设置默认日期）
       if (this.data.value) {
         this.onValueChange(this.data.value)
-      } else {
-        this.setCurrentDateTime()
       }
     },
 
@@ -542,8 +540,8 @@ Component({
      */
     onValueChange(newVal) {
       if (!newVal) {
+        // 空值时只清空显示文本，显示 placeholder
         this.setData({ displayText: '' })
-        this.setCurrentDateTime()
         return
       }
       
@@ -627,6 +625,11 @@ Component({
      * 更新显示文本
      */
     updateDisplayText() {
+      // 如果 value 为空，不更新显示文本，保持 placeholder 显示
+      if (!this.data.value) {
+        return
+      }
+      
       const { fields, selectedYear, selectedMonth, selectedDay, selectedWeekday, 
               selectedHour, selectedMinute, selectedSecond, weekdays } = this.data
       
