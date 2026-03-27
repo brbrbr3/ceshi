@@ -227,22 +227,9 @@ function mapRequestItem(request) {
     taskId: request.taskId,
     isCurrentApprover: request.isCurrentApprover,
     displayConfig: displayConfig,
-    patientName: request.patientName || '',
-    relation: request.relation || '',
-    medicalDate: request.medicalDate || '',
-    institution: request.institution || '',
-    otherInstitution: request.otherInstitution || '',
-    reasonForSelection: request.reasonForSelection || '',
-    reason: request.reason || '',
-    gender: request.gender || '',
-    birthday: request.birthday || '',
-    role: request.role || '',
-    isAdmin: request.isAdmin || false,
-    relativeName: request.relativeName || '',
-    position: request.position || '',
-    department: request.department || '',
-    avatarText: request.avatarText,
-    updateReason: request.updateReason || ''
+    // 展开原始 request 的所有字段，支持动态 displayConfig 访问
+    // 这样 passport_application 的 borrowerNames、borrowDate 等字段也能被访问到
+    ...request
   }
 }
 
