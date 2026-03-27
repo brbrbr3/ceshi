@@ -196,9 +196,16 @@ async function resolveApprovers(approverType, approverConfig, businessData) {
                 name: user.name
               })
             })
+          } else if (roleId === 'admin') {
+            // 兜底机制：系统无管理员时，分配给超级管理员 system
+            console.warn('未找到管理员用户，分配给超级管理员 system')
+            approvers.push({
+              id: 'system',
+              name: '超级管理员'
+            })
           }
         }
-        
+
         return approvers
       
       case APPROVER_TYPE.DEPT:

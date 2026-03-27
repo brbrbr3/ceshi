@@ -235,9 +235,6 @@ function mapRequestItem(request) {
 
 Page({
   behaviors: [paginationBehavior],
-  filters: {
-    formatDateTime: null // 将在 onLoad 中设置
-  },
   data: {
     loading: true,
     actionLoading: false,
@@ -305,10 +302,7 @@ Page({
       const timezoneOffset = allConstants.TIMEZONE_OFFSET || -3
       formatRelativeTime = (timestamp) => utils.formatRelativeTime(timestamp, timezoneOffset)
       formatDateTime = (timestamp) => utils.formatDateTime(timestamp, timezoneOffset)
-      
-      // 设置过滤器
-      this.filters.formatDateTime = formatDateTime
-      
+
       // 更新 approvalTypes
       const roleOptions = allConstants.roles || []
       if (roleOptions.length > 0) {
@@ -348,7 +342,6 @@ Page({
       // 使用默认值
       formatRelativeTime = (timestamp) => utils.formatRelativeTime(timestamp, -3)
       formatDateTime = (timestamp) => utils.formatDateTime(timestamp, -3)
-      this.filters.formatDateTime = formatDateTime
       this.setData({
         approvalTabs: [
           { key: 'pending', label: '待审批' },
@@ -844,94 +837,62 @@ Page({
     this.setData({ actionLoading: true })
 
     const reviewRemark = this.data.reviewRemark || ''
-    
+
     const currentUser = this.data.currentUser || app.globalData.userProfile
     const openid = app.globalData.openid
     const operatorName = currentUser ? currentUser.name : '审批人'
 
     const request = this.data.selectedRequest
-    const isMedicalApplication = request.orderType === 'medical_application'
-    
-    if (isMedicalApplication) {
-      wx.cloud.callFunction({
-        name: 'workflowEngine',
-        data: {
-          action: 'approveTask',
-          taskId: request.taskId,
-          approveAction: decision,
-          comment: reviewRemark || (decision === 'approve' ? '已批准' : '已驳回'),
-          operatorId: openid,
-          operatorName: operatorName
+
+    // 所有工单审批统一走工作流引擎（工作流引擎会验证权限）
+    wx.cloud.callFunction({
+      name: 'workflowEngine',
+      data: {
+        action: 'approveTask',
+        taskId: request.taskId,
+        approveAction: decision,
+        comment: reviewRemark || (decision === 'approve' ? '已批准' : '已驳回'),
+        operatorId: openid,
+        operatorName: operatorName
+      }
+    })
+      .then((result) => {
+        if (result.result.code !== 0) {
+          throw new Error(result.result.message || '审批失败')
         }
-      })
-        .then((result) => {
-          if (result.result.code !== 0) {
-            throw new Error(result.result.message || '审批失败')
-          }
 
-          const message = result.result.message || (decision === 'approve' ? '已批准' : '已驳回')
+        const message = result.result.message || (decision === 'approve' ? '已批准' : '已驳回')
 
-          // 检查是否是警告消息（后端已自动中止）
-          const isWarningMessage = message.includes('已自动中止')
+        // 检查是否是警告消息（后端已自动中止）
+        const isWarningMessage = message.includes('已自动中止')
 
-          if (isWarningMessage) {
-            // 后端已自动中止，直接显示提示
-            wx.showModal({
-              title: '提示',
-              content: message,
-              showCancel: false,
-              confirmText: '我知道了',
-              confirmColor: '#ff0000'
-            })
-          } else {
-            utils.showToast({
-              title: message,
-              icon: 'success'
-            })
-          }
-
-          this.closeDetail()
-          this.loadApprovalData()
-        })
-        .catch((error) => {
-          utils.showToast({
-            title: error.message || '处理失败',
-            icon: 'none'
+        if (isWarningMessage) {
+          // 后端已自动中止，直接显示提示
+          wx.showModal({
+            title: '提示',
+            content: message,
+            showCancel: false,
+            confirmText: '我知道了',
+            confirmColor: '#ff0000'
           })
-        })
-        .then(() => {
-          this.setData({ actionLoading: false })
-        })
-    } else {
-      app.callOfficeAuth('reviewRegistration', {
-        taskId: this.data.selectedRequest.taskId || this.data.selectedRequest._id,
-        decision,
-        reviewRemark
-      })
-        .then((result) => {
+        } else {
           utils.showToast({
-            title: decision === 'approve' ? '已批准' : '已驳回',
+            title: message,
             icon: 'success'
           })
+        }
 
-          if (result && result.request) {
-            const notificationType = decision === 'approve' ? '注册申请通过' : '注册申请被驳回'
-            const notificationContent = `您提交的${result.request.name}的${result.request.role}申请${decision === 'approve' ? '已通过' : '已被驳回'}${decision === 'rejected' && result.reviewRemark ? '，原因：' + result.reviewRemark : ''}`
-            app.addApprovalNotification(notificationType, notificationContent)
-          }
-
-          this.closeDetail()
-          this.loadApprovalData()
+        this.closeDetail()
+        this.loadApprovalData()
+      })
+      .catch((error) => {
+        utils.showToast({
+          title: error.message || '处理失败',
+          icon: 'none'
         })
-        .catch((error) => {
-          utils.showToast({
-            title: error.message || '处理失败',
-            icon: 'none'
-          })
-        })
-        .then(() => {
-          this.setData({ actionLoading: false })
-        })
-    }
+      })
+      .then(() => {
+        this.setData({ actionLoading: false })
+      })
   }
 })

@@ -787,6 +787,64 @@
 
 ---
 
+### 20. passport_records - 护照借用记录
+
+**用途**：存储护照借用记录，审批通过后自动创建
+
+**安全规则**：`ADMINWRITE` - 所有用户可读，仅管理员可写
+
+> **重要说明**：借用记录由云函数创建（审批通过后自动创建），使用 `ADMINWRITE` 规则，用户可读取自己的借用记录。
+
+**记录数**：动态
+
+**索引**：
+
+- `_id` - 记录 ID（云开发自动创建）
+- `idx_applicantId` - 申请人 ID 索引
+- `idx_borrowerOpenids` - 借用人 openid 索引
+- `idx_status` - 状态索引
+- `idx_borrowedAt` - 借用时间索引（降序）
+
+**字段结构**：
+```javascript
+{
+  _id: String,                    // 记录 ID（自动生成）
+  orderId: String,                // 关联的工单 ID
+  orderNo: String,                // 工单编号
+  // 申请人信息
+  applicantId: String,            // 申请人 openid
+  applicantName: String,          // 申请人姓名
+  // 借用的护照信息
+  borrowerNames: Array[String],   // 借用人姓名列表
+  borrowerOpenids: Array[String], // 借用人 openid 列表
+  borrowerInfoList: Array[Object],// 借用人详细信息列表 [{ name, openid }]
+  // 借用信息
+  borrowDate: String,             // 借用日期 YYYY-MM-DD
+  expectedReturnDate: String,     // 预计归还日期 YYYY-MM-DD
+  reason: String,                 // 借用原因
+  // 状态
+  status: String,                 // 状态：'borrowed'（借用中）| 'returned'（已归还）
+  // 借用操作信息
+  borrowedAt: Number,             // 借用审批通过时间戳
+  borrowedBy: String,             // 审批人 openid
+  borrowedByName: String,         // 审批人姓名
+  // 归还信息（未归还时为 null）
+  returnedAt: Number,             // 归还时间戳（null 表示未归还）
+  returnedBy: String,             // 归还操作人 openid
+  returnedByName: String,         // 归还操作人姓名
+  // 时间戳
+  createdAt: Number,              // 创建时间戳
+  updatedAt: Number               // 更新时间戳
+}
+```
+
+**业务流程说明**：
+1. 用户提交护照借用申请 → 创建 `work_orders` 工单
+2. 审批通过后 → 工作流引擎自动创建 `passport_records` 记录
+3. 归还护照 → 更新 `status` 为 `returned`，记录归还信息
+
+---
+
 ## 命名规范
 
 ### 集合命名规则
@@ -911,6 +969,7 @@ const notificationsCollection = db.collection('notifications')  // ✅
 | 2026-03-19 | 添加安全规则重要说明（云函数创建数据的权限问题） | AI |
 | 2026-03-21 | 添加 holiday_configs 节假日配置集合 | AI |
 | 2026-03-25 | 添加 feedback_posts、feedback_replies、meeting_room_reservations、schedule_subscriptions 集合 | AI |
+| 2026-03-27 | 添加 passport_records 护照借用记录集合 | AI |
 
 ---
 
@@ -933,6 +992,7 @@ https://tcb.cloud.tencent.com/dev?envId=cloud1-8gdftlggae64d5d0#/db/doc
 - [notifications](https://tcb.cloud.tencent.com/dev?envId=cloud1-8gdftlggae64d5d0#/db/doc/collection/notifications)
 - [office_registration_requests](https://tcb.cloud.tencent.com/dev?envId=cloud1-8gdftlggae64d5d0#/db/doc/collection/office_registration_requests)
 - [office_users](https://tcb.cloud.tencent.com/dev?envId=cloud1-8gdftlggae64d5d0#/db/doc/collection/office_users)
+- [passport_records](https://tcb.cloud.tencent.com/dev?envId=cloud1-8gdftlggae64d5d0#/db/doc/collection/passport_records)
 - [permissions](https://tcb.cloud.tencent.com/dev?envId=cloud1-8gdftlggae64d5d0#/db/doc/collection/permissions)
 - [schedule_subscriptions](https://tcb.cloud.tencent.com/dev?envId=cloud1-8gdftlggae64d5d0#/db/doc/collection/schedule_subscriptions)
 - [sys_config](https://tcb.cloud.tencent.com/dev?envId=cloud1-8gdftlggae64d5d0#/db/doc/collection/sys_config)

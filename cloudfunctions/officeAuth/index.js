@@ -807,14 +807,8 @@ async function getApprovalData(openid, pagination = {}) {
   let completedOrdersResult = null
 
   if (canReview) {
-    // 查询待审批的任务（包括直接分配给用户和角色审批的任务）
+    // 查询待审批的任务（工作流引擎已解析 approverList，查询时统一过滤）
     pendingTasksResult = await workflowTasksCollection
-      .where(
-        _.or([
-          { approverId: openid },
-          { approverType: 'role' }
-        ])
-      )
       .where({ taskStatus: 'pending' })
       .orderBy('assignedAt', 'desc')
       .limit(pageSize)
@@ -838,19 +832,9 @@ async function getApprovalData(openid, pagination = {}) {
           })
         }
 
-        // 过滤：基于工作流模板驱动的权限判断（无硬编码）
+        // 过滤：统一使用 approverList 判断，不再区分 approverType
         pendingList = pendingTasksResult.data.filter(task => {
-          // 1. 直接分配的任务（approverType === 'user'）
-          if (task.approverId === openid) {
-            return true
-          }
-
-          // 2. 角色审批任务：检查是否在审批人列表中
-          if (task.approverType === 'role' && task.approverList) {
-            return task.approverList.some(approver => approver.id === openid)
-          }
-
-          return false
+          return task.approverList && task.approverList.some(approver => approver.id === openid)
         }).map(task => {
           const order = ordersMap[task.orderId]
 
@@ -1011,11 +995,11 @@ async function getApprovalData(openid, pagination = {}) {
  */
 async function getPendingRegistrations() {
   try {
-    // 查询用户注册类型的进行中工单
-    const ordersResult = await workflowOrdersCollection
+    // 查询用户注册类型的待审批工单
+    const ordersResult = await workOrdersCollection
       .where({
         orderType: 'user_registration',
-        workflowStatus: 'in_progress'
+        workflowStatus: 'pending'
       })
       .orderBy('createdAt', 'asc')
       .get()
@@ -1066,66 +1050,6 @@ async function getPendingRegistrations() {
   } catch (error) {
     console.error('获取待审批注册申请失败:', error)
     return fail(error.message || '获取失败', 500)
-  }
-}
-
-async function reviewRegistration(openid, payload) {
-  const adminUser = await ensureAdminUser(openid)
-  const taskId = String((payload && payload.taskId) || '').trim()
-  const decision = String((payload && payload.decision) || '').trim()
-  const reviewRemark = String((payload && payload.reviewRemark) || '').trim()
-
-  if (!taskId) {
-    throw new Error('缺少任务记录')
-  }
-
-  if (!['approve', 'reject'].includes(decision)) {
-    throw new Error('审批动作无效')
-  }
-
-  // 查询任务
-  const taskDoc = await workflowTasksCollection.doc(taskId).get()
-  const taskRecord = taskDoc.data
-
-  if (!taskRecord) {
-    throw new Error('未找到任务记录')
-  }
-
-  if (taskRecord.taskStatus !== 'pending') {
-    throw new Error('该任务已处理，请刷新页面')
-  }
-
-  // 调用工作流引擎进行审批
-  try {
-    const workflowResult = await cloud.callFunction({
-      name: 'workflowEngine',
-      data: {
-        action: 'approveTask',
-        taskId: taskId,
-        approveAction: decision,  // 修复参数冲突：审批动作改为 approveAction
-        comment: reviewRemark || (decision === 'approve' ? '管理员已批准该申请' : '管理员已驳回该申请'),
-        operatorId: openid,  // 显式传递操作员 openid
-        operatorName: adminUser.name || '管理员'
-      }
-    })
-
-    if (workflowResult.result.code !== 0) {
-      throw new Error(workflowResult.result.message || '审批失败')
-    }
-
-    const resultData = workflowResult.result.data
-
-    // 如果是单步审批且审批通过，工作流引擎会自动创建用户记录
-    // 这里只需要返回审批结果
-    return success({
-      reviewer: formatUserRecord(adminUser),
-      taskId: taskId,
-      orderId: resultData.orderId,
-      status: resultData.status,
-      message: decision === 'approve' ? '审批通过' : '审批已驳回'
-    }, decision === 'approve' ? '审批通过' : '审批已驳回')
-  } catch (error) {
-    throw new Error('审批失败: ' + error.message)
   }
 }
 
@@ -1248,10 +1172,6 @@ exports.main = async (event) => {
         pageSize: event.pageSize || 20
       }
       return await getApprovalData(openid, pagination)
-    }
-
-    if (action === 'reviewRegistration') {
-      return await reviewRegistration(openid, event)
     }
 
     if (action === 'getWorkflowLogs') {
