@@ -251,12 +251,11 @@ async function getGenderOptions() {
 
 async function validateForm(formData) {
   const constants = await getSystemConstants()
-  const roleOptions = constants.roles || ['馆领导', '部门负责人', '馆员', '工勤', '物业', '配偶', '家属']
-  const genderOptions = constants.genders || ['男', '女']
-  const positionOptions = constants.positions || ['无', '会计主管', '会计', '招待员', '厨师']
-  const needDepartmentRoles = constants.needDepartmentRoles || ['部门负责人', '馆员', '工勤']
-  const relativeRoles = constants.relativeRoles || ['配偶', '家属']
-  const roleFieldVisibility = constants.ROLE_FIELD_VISIBILITY || constants.roleFieldVisibility || {}
+  const roleOptions = constants.ROLE_OPTIONS || ['馆领导', '部门负责人', '馆员', '工勤', '物业', '配偶', '家属']
+  const genderOptions = constants.GENDER_OPTIONS || ['男', '女']
+  const positionOptions = constants.POSITION_OPTIONS || ['无', '会计主管', '会计', '招待员', '厨师']
+  const relativeRoles = constants.NEED_RELATIVE_ROLES || ['配偶', '家属']
+  const roleFieldVisibility = constants.ROLE_FIELD_VISIBILITY || {}
 
   const payload = formData || {}
   const name = String(payload.name || '').trim()
@@ -292,7 +291,12 @@ async function validateForm(formData) {
     throw new Error('请填写亲属姓名')
   }
 
-  if (needDepartmentRoles.includes(role) && !department) {
+  // 获取角色的字段显示配置
+  const roleConfig = roleFieldVisibility[role] || { showPosition: true, showDepartment: true }
+  const showPosition = roleConfig.showPosition !== false // 默认显示
+  const showDepartment = roleConfig.showDepartment !== false // 默认显示
+
+  if (showDepartment && !department) {
     throw new Error('请选择部门')
   }
 
@@ -305,10 +309,6 @@ async function validateForm(formData) {
     throw new Error('工勤人员的部门必须为办公室')
   }
 
-  // 获取角色的字段显示配置
-  const roleConfig = roleFieldVisibility[role] || { showPosition: true, showDepartment: true }
-  const showPosition = roleConfig.showPosition !== false // 默认显示
-
   return {
     name,
     gender,
@@ -317,7 +317,7 @@ async function validateForm(formData) {
     isAdmin,
     relativeName: relativeRoles.includes(role) ? relativeName : '',
     position: showPosition ? (position || '无') : '', // 只有需要岗位的角色才设置值
-    department: needDepartmentRoles.includes(role) ? department : '',
+    department: showDepartment ? department : '',
     avatarText: name.slice(0, 1)
   }
 }

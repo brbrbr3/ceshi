@@ -7,7 +7,7 @@
 
 /* 头部 - 使用圆角渐变 */
 .trip-header {
-  padding-bottom: 32rpx;
+  padding: 70rpx 28rpx 10rpx;
 }
 
 .trip-header-content {
@@ -29,7 +29,7 @@
 .trip-status-card {
   margin: 28rpx;
   padding: 24rpx;
-  border-radius: 90rpx;
+  border-radius: 24rpx;
   transition: all 0.3s ease;
 }
 

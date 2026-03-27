@@ -1290,6 +1290,7 @@ async function completeWorkflow(orderId, decision, approverId, approverName, com
       avatarText: businessData.avatarText || '',
       relativeName: businessData.relativeName || '',
       position: businessData.position || '',
+      department: businessData.department || '',
       status: 'approved',
       sourceOrderId: order.orderId,
       approvedAt: now,

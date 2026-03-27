@@ -50,17 +50,19 @@ Page({
           }))
 
           const hasUnread = formattedData.some(n => !n.read)
-          this.setData({
-            notifications: this.data.page === 1 
-              ? formattedData 
-              : [...this.data.notifications, ...formattedData],
-            hasUnreadNotifications: this.data.page === 1 ? hasUnread : this.data.hasUnreadNotifications
-          })
-
-          // 将格式化后的数据同步到 list
-          this.setData({
-            list: this.data.notifications
-          })
+          
+          // 只更新 notifications 特有的状态，不更新 list
+          // list 由 pagination.js 统一管理
+          if (this.data.page === 1) {
+            this.setData({
+              notifications: formattedData,
+              hasUnreadNotifications: hasUnread
+            })
+          } else {
+            this.setData({
+              notifications: [...this.data.notifications, ...formattedData],
+            })
+          }
 
           resolve({
             data: formattedData,
