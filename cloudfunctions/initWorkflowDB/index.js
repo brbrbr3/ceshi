@@ -209,8 +209,8 @@ const EXAMPLE_TEMPLATES = [
   {
     name: '护照借用审批',
     code: 'passport_application',
-    version: 1,
-    description: '护照借用审批流程（3步：同部门负责人→馆领导→管理员借出）',
+    version: 2,
+    description: '护照借用审批流程（2步：同部门负责人→馆领导）',
     category: 'approval',
     steps: [
       {
@@ -239,21 +239,6 @@ const EXAMPLE_TEMPLATES = [
         canReturn: false,
         returnTo: 0,
         timeout: 72,
-        timeoutAction: 'remind'
-      },
-      {
-        stepNo: 3,
-        stepName: '管理员借出',
-        stepType: 'serial',
-        approverType: 'role',
-        approverConfig: {
-          roleIds: ['admin']
-        },
-        approvalStrategy: 'sequential',
-        canReject: false,
-        canReturn: false,
-        returnTo: 0,
-        timeout: 168,
         timeoutAction: 'remind'
       }
     ],

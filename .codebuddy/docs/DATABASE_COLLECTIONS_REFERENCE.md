@@ -787,7 +787,46 @@
 
 ---
 
-### 20. passport_records - 护照借用记录
+### 20. passport_info - 护照信息
+
+**用途**：存储用户的护照信息（由用户自行录入）
+
+**安全规则**：`READONLY` - 所有用户可读，仅创建者可写
+
+> **重要说明**：用户通过云函数 `passportManager` 管理护照信息（添加、更新、删除），云函数以管理员权限写入。使用 `READONLY` 规则，用户可查看自己的护照信息，便于护照过期检查。
+
+**记录数**：动态
+
+**索引**：
+
+- `_id` - 记录 ID（云开发自动创建）
+- `idx_openid` - 用户 openid 索引 - 查询用户护照列表
+- `idx_expiryDate` - 有效期索引 - 护照过期检查
+
+**字段结构**：
+```javascript
+{
+  _id: String,                    // 记录 ID（自动生成）
+  openid: String,                  // 所属用户 openid
+  ownerName: String,               // 持有人姓名
+  gender: String,                  // 性别：'男' | '女'
+  passportNo: String,              // 护照号
+  issueDate: String,               // 签发日期 YYYY-MM-DD
+  expiryDate: String,              // 有效期至 YYYY-MM-DD
+  createdAt: Number,               // 创建时间戳
+  updatedAt: Number                // 更新时间戳
+}
+```
+
+**业务流程说明**：
+1. 用户通过小程序页面录入护照信息
+2. 调用 `passportManager.addPassportInfo` 添加护照
+3. 定时云函数 `passportExpiryChecker` 检查护照有效期
+4. 即将过期（180天内）时发送通知提醒用户
+
+---
+
+### 21. passport_records - 护照借用记录
 
 **用途**：存储护照借用记录，审批通过后自动创建
 
@@ -970,6 +1009,7 @@ const notificationsCollection = db.collection('notifications')  // ✅
 | 2026-03-21 | 添加 holiday_configs 节假日配置集合 | AI |
 | 2026-03-25 | 添加 feedback_posts、feedback_replies、meeting_room_reservations、schedule_subscriptions 集合 | AI |
 | 2026-03-27 | 添加 passport_records 护照借用记录集合 | AI |
+| 2026-03-27 | 添加 passport_info 护照信息集合 | AI |
 
 ---
 
@@ -992,6 +1032,7 @@ https://tcb.cloud.tencent.com/dev?envId=cloud1-8gdftlggae64d5d0#/db/doc
 - [notifications](https://tcb.cloud.tencent.com/dev?envId=cloud1-8gdftlggae64d5d0#/db/doc/collection/notifications)
 - [office_registration_requests](https://tcb.cloud.tencent.com/dev?envId=cloud1-8gdftlggae64d5d0#/db/doc/collection/office_registration_requests)
 - [office_users](https://tcb.cloud.tencent.com/dev?envId=cloud1-8gdftlggae64d5d0#/db/doc/collection/office_users)
+- [passport_info](https://tcb.cloud.tencent.com/dev?envId=cloud1-8gdftlggae64d5d0#/db/doc/collection/passport_info)
 - [passport_records](https://tcb.cloud.tencent.com/dev?envId=cloud1-8gdftlggae64d5d0#/db/doc/collection/passport_records)
 - [permissions](https://tcb.cloud.tencent.com/dev?envId=cloud1-8gdftlggae64d5d0#/db/doc/collection/permissions)
 - [schedule_subscriptions](https://tcb.cloud.tencent.com/dev?envId=cloud1-8gdftlggae64d5d0#/db/doc/collection/schedule_subscriptions)

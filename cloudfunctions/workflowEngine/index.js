@@ -1408,12 +1408,13 @@ async function completeWorkflow(orderId, decision, approverId, approverName, com
           borrowDate: businessData.borrowDate,
           expectedReturnDate: businessData.expectedReturnDate || '',
           reason: businessData.reason || '',
-          // 状态
-          status: 'borrowed',
-          borrowedAt: now,
-          borrowedBy: approverId || 'system',
-          borrowedByName: approverName || '系统',
-          // 归还信息（未归还时为空）
+          // 状态：已批准待借出
+          status: 'approved',
+          // 借出信息（管理员借出后填写）
+          borrowedAt: null,
+          borrowedBy: null,
+          borrowedByName: null,
+          // 归还信息（归还后填写）
           returnedAt: null,
           returnedBy: null,
           returnedByName: null,
@@ -1422,7 +1423,7 @@ async function completeWorkflow(orderId, decision, approverId, approverName, com
           updatedAt: now
         }
       })
-      console.log('护照借用记录创建成功，订单号:', order.orderNo)
+      console.log('护照借用记录创建成功（状态：approved），订单号:', order.orderNo)
     } catch (error) {
       console.error('创建护照借用记录失败:', error)
       // 不抛出错误，允许流程继续

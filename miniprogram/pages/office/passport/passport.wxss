@@ -5,7 +5,7 @@
   background: #EEF2FF;
 }
 
-/* 头部 - 渐变色背景 */
+/* ========== 头部 - 渐变色背景 ========== */
 .passport-header {
   background: linear-gradient(135deg, #7C3AED 0%, #5B21B6 100%);
   padding: 70rpx 28rpx 32rpx;
@@ -41,7 +41,46 @@
   font-weight: 500;
 }
 
-/* 状态卡片 */
+/* ========== Tab栏 ========== */
+.passport-tabs {
+  background: #FFFFFF;
+  display: flex;
+  padding: 0 16rpx;
+  border-bottom: 1rpx solid #F1F5F9;
+  position: sticky;
+  top: 0;
+  z-index: 50;
+}
+
+.passport-tab {
+  flex: 1;
+  text-align: center;
+  padding: 28rpx 0;
+  font-size: 28rpx;
+  color: #64748B;
+  font-weight: 500;
+  position: relative;
+  transition: all 0.3s ease;
+}
+
+.passport-tab.is-active {
+  color: #7C3AED;
+  font-weight: 600;
+}
+
+.passport-tab.is-active::after {
+  content: '';
+  position: absolute;
+  bottom: 0;
+  left: 50%;
+  transform: translateX(-50%);
+  width: 48rpx;
+  height: 6rpx;
+  background: linear-gradient(135deg, #7C3AED 0%, #5B21B6 100%);
+  border-radius: 3rpx;
+}
+
+/* ========== 状态卡片 ========== */
 .passport-status-card {
   margin: 28rpx;
   padding: 24rpx;
@@ -106,7 +145,7 @@
   font-weight: 500;
 }
 
-/* 在借列表 */
+/* ========== 在借列表 ========== */
 .passport-borrowed-list {
   margin-top: 20rpx;
   padding-top: 20rpx;
@@ -134,26 +173,39 @@
   flex: 1;
 }
 
-/* 内容区 */
+/* ========== 内容区 ========== */
 .passport-content {
   padding: 24rpx;
   padding-bottom: 100rpx;
 }
 
-/* 章节标题 */
+/* ========== 章节标题 ========== */
 .passport-section {
   margin-top: 16rpx;
+}
+
+.passport-section-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 20rpx;
+  padding: 0 8rpx;
 }
 
 .passport-section-title {
   font-size: 30rpx;
   font-weight: 600;
   color: #1E293B;
-  margin-bottom: 20rpx;
   padding-left: 8rpx;
 }
 
-/* 月份分组 */
+.passport-section-action {
+  background: linear-gradient(135deg, #7C3AED 0%, #5B21B6 100%);
+  border-radius: 24rpx;
+  padding: 12rpx 24rpx;
+}
+
+/* ========== 月份分组 ========== */
 .passport-month-group {
   margin-bottom: 24rpx;
 }
@@ -165,14 +217,14 @@
   padding-left: 8rpx;
 }
 
-/* 列表 */
+/* ========== 列表 ========== */
 .passport-list {
   display: flex;
   flex-direction: column;
   gap: 16rpx;
 }
 
-/* 记录卡片 */
+/* ========== 记录卡片 ========== */
 .passport-item {
   background: #FFFFFF;
   border-radius: 20rpx;
@@ -222,7 +274,83 @@
   color: #64748B;
 }
 
-/* 空状态 */
+/* ========== 护照信息卡片 ========== */
+.passport-info-item {
+  background: #FFFFFF;
+  border-radius: 20rpx;
+  padding: 24rpx;
+  box-shadow: 0 2rpx 12rpx rgba(0, 0, 0, 0.04);
+}
+
+.passport-info-header {
+  display: flex;
+  align-items: center;
+  gap: 16rpx;
+  margin-bottom: 16rpx;
+  padding-bottom: 16rpx;
+  border-bottom: 1rpx solid #F1F5F9;
+}
+
+.passport-info-name {
+  font-size: 32rpx;
+  font-weight: 600;
+  color: #1E293B;
+}
+
+.passport-info-gender {
+  font-size: 24rpx;
+  color: #64748B;
+  background: #F1F5F9;
+  padding: 4rpx 12rpx;
+  border-radius: 8rpx;
+}
+
+.passport-info-body {
+  display: flex;
+  flex-direction: column;
+  gap: 12rpx;
+  margin-bottom: 16rpx;
+}
+
+.passport-info-row {
+  display: flex;
+}
+
+.passport-info-label {
+  font-size: 26rpx;
+  color: #64748B;
+  width: 140rpx;
+}
+
+.passport-info-value {
+  font-size: 26rpx;
+  color: #1E293B;
+  flex: 1;
+}
+
+.passport-info-value.is-expiring {
+  color: #DC2626;
+  font-weight: 600;
+}
+
+.passport-info-actions {
+  display: flex;
+  gap: 24rpx;
+  padding-top: 16rpx;
+  border-top: 1rpx solid #F1F5F9;
+}
+
+.passport-info-action {
+  font-size: 26rpx;
+  color: #7C3AED;
+  font-weight: 500;
+}
+
+.passport-info-action.is-danger {
+  color: #DC2626;
+}
+
+/* ========== 空状态 ========== */
 .passport-empty {
   display: flex;
   flex-direction: column;
@@ -241,7 +369,7 @@
   color: #94A3B8;
 }
 
-/* 加载状态 */
+/* ========== 加载状态 ========== */
 .passport-loading {
   display: flex;
   justify-content: center;
@@ -253,7 +381,7 @@
   color: #94A3B8;
 }
 
-/* 弹窗遮罩 */
+/* ========== 弹窗遮罩 ========== */
 .passport-popup-mask {
   position: fixed;
   top: 0;
@@ -272,7 +400,7 @@
   visibility: visible;
 }
 
-/* 弹窗容器 */
+/* ========== 弹窗容器 ========== */
 .passport-popup-container {
   position: absolute;
   bottom: 0;
@@ -291,7 +419,7 @@
   transform: translateY(0);
 }
 
-/* 弹窗头部 */
+/* ========== 弹窗头部 ========== */
 .passport-popup-header {
   display: flex;
   align-items: center;
@@ -317,7 +445,7 @@
   padding: 0 8rpx;
 }
 
-/* 表单 */
+/* ========== 表单 ========== */
 .passport-popup-form {
   padding: 32rpx;
   padding-bottom: calc(32rpx + env(safe-area-inset-bottom));
@@ -376,33 +504,31 @@
   color: #1E293B;
 }
 
-/* 下拉选择器 */
-.passport-picker-wrapper {
-  background: #F8FAFC;
-  border-radius: 16rpx;
-  padding: 0 24rpx;
+/* ========== 性别选择 ========== */
+.passport-radio-group {
+  display: flex;
+  gap: 24rpx;
+}
+
+.passport-radio {
+  flex: 1;
   height: 88rpx;
   display: flex;
   align-items: center;
-  justify-content: space-between;
-}
-
-.passport-picker-wrapper.is-placeholder .passport-picker-value {
-  color: #94A3B8;
-}
-
-.passport-picker-value {
+  justify-content: center;
+  background: #F8FAFC;
+  border-radius: 16rpx;
   font-size: 28rpx;
-  color: #1E293B;
+  color: #64748B;
+  transition: all 0.3s ease;
 }
 
-.passport-picker-arrow {
-  font-size: 36rpx;
-  color: #94A3B8;
-  font-weight: 300;
+.passport-radio.is-active {
+  background: linear-gradient(135deg, #7C3AED 0%, #5B21B6 100%);
+  color: #FFFFFF;
 }
 
-/* 提交按钮 */
+/* ========== 提交按钮 ========== */
 .passport-submit-btn {
   width: 100%;
   height: 96rpx;
@@ -419,7 +545,7 @@
   background: #94A3B8;
 }
 
-/* 详情内容 */
+/* ========== 详情内容 ========== */
 .passport-detail-content {
   padding: 24rpx 32rpx;
   padding-bottom: calc(24rpx + env(safe-area-inset-bottom));
@@ -446,4 +572,36 @@
   font-size: 28rpx;
   color: #1E293B;
   flex: 1;
+}
+
+/* ========== 弹窗操作按钮 ========== */
+.passport-popup-actions {
+  padding: 16rpx 32rpx;
+  padding-bottom: calc(16rpx + env(safe-area-inset-bottom));
+  display: flex;
+  gap: 16rpx;
+}
+
+.passport-action-btn {
+  flex: 1;
+  height: 88rpx;
+  font-size: 30rpx;
+  font-weight: 600;
+  border-radius: 16rpx;
+  border: none;
+}
+
+.passport-action-btn.is-primary {
+  background: linear-gradient(135deg, #7C3AED 0%, #5B21B6 100%);
+  color: #FFFFFF;
+}
+
+.passport-action-btn.is-secondary {
+  background: #F1F5F9;
+  color: #64748B;
+}
+
+.passport-action-btn[disabled] {
+  background: #94A3B8;
+  color: #FFFFFF;
 }

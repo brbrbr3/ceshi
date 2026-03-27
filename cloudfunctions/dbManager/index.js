@@ -37,6 +37,7 @@ const DB_COLLECTIONS = [
   'notifications',
   'office_registration_requests',
   'office_users',
+  'passport_info',
   'passport_records',
   'permissions',
   'schedule_subscriptions',
