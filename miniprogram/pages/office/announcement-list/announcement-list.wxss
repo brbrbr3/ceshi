@@ -45,7 +45,7 @@
 }
 
 .announcements-header {
-  padding-bottom: 74rpx;
+  padding: 60rpx 40rpx 50rpx;
 }
 
 .announcements-title {

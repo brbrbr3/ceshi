@@ -9,7 +9,7 @@
 }
 
 .menu-edit-header {
-  padding-bottom: 100rpx;
+  padding: 60rpx 40rpx 80rpx;
 }
 
 .menu-edit-title {

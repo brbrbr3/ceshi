@@ -1,7 +1,7 @@
 {
   "triggers": [
     {
-      "name": "passportExpiryCheckerTrigger",
+      "name": "pecTrigger",
       "type": "timer",
       "config": "0 0 2 * * * *"
     }

@@ -128,12 +128,17 @@ Page({
      * 加载数据
      */
     async loadData() {
-        if (this.data.activeTab === 'book') {
-            await this.loadDisplayDates()
-        } else if (this.data.activeTab === 'monthly') {
-            await this.loadMonthlyAppointments()
-        } else if (this.data.activeTab === 'mine') {
-            await this.loadMyAppointments()
+        wx.showLoading({ title: '加载中...', mask: true })
+        try {
+            if (this.data.activeTab === 'book') {
+                await this.loadDisplayDates()
+            } else if (this.data.activeTab === 'monthly') {
+                await this.loadMonthlyAppointments()
+            } else if (this.data.activeTab === 'mine') {
+                await this.loadMyAppointments()
+            }
+        } finally {
+            wx.hideLoading()
         }
     },
 

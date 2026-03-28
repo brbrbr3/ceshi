@@ -81,7 +81,7 @@ page {
 /* ========== 日期选择器（完全仿会议室样式） ========== */
 .date-selector {
   background: #FFFFFF;
-  padding: 24rpx 0 0;
+  padding: 24rpx 0 5rpx;
   border-top: 1rpx solid #E2E8F0;
 }
 
@@ -97,7 +97,7 @@ page {
 }
 
 .date-item {
-  width: 120rpx;
+  width: 140rpx;
   padding: 20rpx 0;
   border-radius: 24rpx;
   background: #F8FAFC;

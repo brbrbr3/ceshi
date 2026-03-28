@@ -8,7 +8,7 @@
 
 /* 渐变头部 */
 .feedback-gradient-header {
-  padding: calc(100rpx + env(safe-area-inset-top)) 32rpx 148rpx;
+  padding: 60rpx 32rpx 148rpx;
   background: linear-gradient(135deg, #1D4ED8 0%, #3B82F6 100%);
   color: #FFFFFF;
   border-bottom-left-radius: 40rpx;
@@ -247,12 +247,12 @@
   background: #F3F4F6;
   border-radius: 36rpx;
   padding: 0 28rpx;
-  font-size: 28rpx;
+  font-size: 32rpx;
 }
 
 .feedback-send-btn {
   width: 140rpx;
-  height: 72rpx;
+  height: 60rpx;
   background: #E5E7EB;
   border-radius: 36rpx;
   display: flex;

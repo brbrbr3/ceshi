@@ -7,7 +7,7 @@
 
 /* 头部 - 使用圆角渐变 */
 .dashboard-header {
-  padding-bottom: 32rpx;
+  padding: 60rpx 40rpx 20rpx;
 }
 
 .dashboard-header-content {

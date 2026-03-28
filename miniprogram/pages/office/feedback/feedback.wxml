@@ -67,6 +67,7 @@
       class="feedback-input" 
       type="text" 
       placeholder="请输入您的意见..." 
+      placeholder-style="font-size: 36rpx;"
       value="{{inputContent}}" 
       bindinput="handleInputChange"
       maxlength="1000"
