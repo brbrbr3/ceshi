@@ -23,6 +23,13 @@
     "miniprogram": {
       "list": [
         {
+          "name": "pages/office/haircut/haircut",
+          "pathName": "pages/office/haircut/haircut",
+          "query": "",
+          "scene": null,
+          "launchMode": "default"
+        },
+        {
           "name": "pages/office/passport/passport",
           "pathName": "pages/office/passport/passport",
           "query": "",

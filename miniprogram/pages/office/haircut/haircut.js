@@ -26,6 +26,7 @@ Page({
     // 预约理发 Tab
     displayDates: [],
     selectedDate: '',
+    selectedDateIndex: 0,
     selectedDateInfo: null,
     slots: [],
     slotsMessage: '',
@@ -135,12 +136,21 @@ Page({
         this.setData({ displayDates: dates })
 
         // 默认选择第一个可用日期
-        const availableDate = dates.find(d => !d.isDisabled)
-        if (availableDate) {
-          this.handleDateSelect({ currentTarget: { dataset: { date: availableDate } } })
+        const availableIndex = dates.findIndex(d => !d.isDisabled)
+        if (availableIndex !== -1) {
+          this.setData({
+            selectedDateIndex: availableIndex,
+            selectedDate: dates[availableIndex].date,
+            selectedDateInfo: dates[availableIndex]
+          })
+          this.loadSlots(dates[availableIndex])
         } else if (dates.length > 0) {
           // 没有可用日期，选择第一个显示提示
-          this.handleDateSelect({ currentTarget: { dataset: { date: dates[0] } } })
+          this.setData({
+            selectedDateIndex: 0,
+            selectedDate: dates[0].date,
+            selectedDateInfo: dates[0]
+          })
         }
       }
     } catch (error) {
@@ -153,11 +163,13 @@ Page({
    * 选择日期
    */
   async handleDateSelect(e) {
+    const index = e.currentTarget.dataset.index
     const dateInfo = e.currentTarget.dataset.date
     if (!dateInfo) return
 
     this.setData({
       selectedDate: dateInfo.date,
+      selectedDateIndex: index,
       selectedDateInfo: dateInfo,
       selectedSlot: '',
       selectedSlotDisplay: '',
@@ -170,6 +182,13 @@ Page({
     }
 
     // 加载时段
+    this.loadSlots(dateInfo)
+  },
+
+  /**
+   * 加载时段
+   */
+  async loadSlots(dateInfo) {
     this.setData({ loadingSlots: true })
     try {
       const res = await wx.cloud.callFunction({
@@ -259,7 +278,7 @@ Page({
         wx.showToast({ title: '预约成功', icon: 'success' })
         this.hideBookingPopup()
         // 刷新时段列表
-        this.handleDateSelect({ currentTarget: { dataset: { date: this.data.selectedDateInfo } } })
+        this.loadSlots(this.data.selectedDateInfo)
       } else {
         wx.showToast({ title: res.result.message || '预约失败', icon: 'none' })
       }

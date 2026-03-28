@@ -1,6 +1,6 @@
 <view class="haircut-page">
   <!-- 渐变色头部 -->
-  <view class="haircut-header">
+  <view class="office-gradient-header haircut-header">
     <view class="haircut-header-content">
       <view class="haircut-title">理发预约</view>
       <view class="haircut-subtitle">服务时间：每周一三五下午 14:30~18:00</view>
@@ -33,23 +33,27 @@
         </view>
       </view>
 
-      <!-- 日期选择器 -->
-      <view class="haircut-slots-title">选择日期</view>
-      <scroll-view class="haircut-date-selector" scroll-x enhanced show-scrollbar="{{false}}">
-        <view 
-          class="haircut-date-item {{selectedDate === item.date ? 'is-active' : ''}} {{item.isDisabled ? 'is-disabled' : ''}}" 
-          wx:for="{{displayDates}}" 
-          wx:key="date" 
-          bindtap="handleDateSelect" 
-          data-date="{{item}}"
-        >
-          <view class="haircut-date-weekday">周{{item.dayOfWeek}}</view>
-          <view class="haircut-date-day">{{item.date.substr(5)}}</view>
-          <view class="haircut-date-tag {{item.isHoliday ? 'is-holiday' : ''}} {{item.isToday && !item.isHoliday ? 'is-today' : ''}}" wx:if="{{item.isHoliday || item.isToday}}">
-            {{item.isHoliday ? '节假日' : '今日'}}
+      <!-- 日期选择器（仿会议室样式：上星期、中月日、下预约数） -->
+      <view class="date-selector">
+        <scroll-view class="date-scroll" scroll-x enhanced show-scrollbar="{{false}}">
+          <view class="date-list">
+            <view 
+              class="date-item {{selectedDateIndex === index ? 'is-active' : ''}} {{item.isDisabled ? 'is-disabled' : ''}}" 
+              wx:for="{{displayDates}}" 
+              wx:key="date" 
+              bindtap="handleDateSelect" 
+              data-index="{{index}}"
+              data-date="{{item}}"
+            >
+              <view class="date-weekday">{{item.weekDay}}</view>
+              <view class="date-day">{{item.monthDay}}</view>
+              <view class="date-count-badge">
+                <text>{{item.reservationCount}}</text>
+              </view>
+            </view>
           </view>
-        </view>
-      </scroll-view>
+        </scroll-view>
+      </view>
 
       <!-- 日期提示 -->
       <view class="haircut-date-hint" wx:if="{{selectedDateInfo && selectedDateInfo.isDisabled}}">

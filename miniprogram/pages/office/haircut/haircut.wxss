@@ -74,77 +74,78 @@
   padding-bottom: 100rpx;
 }
 
-/* ========== 日期选择器 ========== */
-.haircut-date-selector {
-  display: flex;
-  gap: 16rpx;
-  padding: 20rpx 0;
-  overflow-x: auto;
+/* ========== 日期选择器（完全仿会议室样式） ========== */
+.date-selector {
+  background: #FFFFFF;
+  padding: 24rpx 0;
+  border-bottom: 1rpx solid #E2E8F0;
+  margin-bottom: 20rpx;
+}
+
+.date-scroll {
+  width: 100%;
   white-space: nowrap;
 }
 
-.haircut-date-item {
-  flex-shrink: 0;
-  min-width: 160rpx;
-  padding: 20rpx 24rpx;
-  background: #FFFFFF;
-  border-radius: 16rpx;
-  text-align: center;
+.date-list {
+  display: inline-flex;
+  padding: 0 32rpx;
+  gap: 16rpx;
+}
+
+.date-item {
+  width: 120rpx;
+  padding: 20rpx 0;
+  border-radius: 24rpx;
+  background: #F8FAFC;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 8rpx;
   transition: all 0.3s ease;
-  border: 2rpx solid transparent;
+  flex-shrink: 0;
 }
 
-.haircut-date-item.is-active {
-  background: linear-gradient(135deg, #EA580C 0%, #C2410C 100%);
-  border-color: #EA580C;
+.date-item.is-active {
+  background: #FFF7ED;
 }
 
-.haircut-date-item.is-disabled {
-  opacity: 0.6;
+.date-item.is-disabled {
+  opacity: 0.5;
   background: #F1F5F9;
 }
 
-.haircut-date-weekday {
+.date-weekday {
   font-size: 24rpx;
-  color: #64748B;
-  margin-bottom: 8rpx;
+  color: #94A3B8;
 }
 
-.haircut-date-item.is-active .haircut-date-weekday {
-  color: rgba(255, 255, 255, 0.8);
-}
-
-.haircut-date-day {
-  font-size: 32rpx;
+.date-day {
+  font-size: 28rpx;
   font-weight: 600;
   color: #1E293B;
 }
 
-.haircut-date-item.is-active .haircut-date-day {
-  color: #FFFFFF;
+.date-item.is-active .date-day {
+  color: #EA580C;
 }
 
-.haircut-date-tag {
+/* 预约数圆圈徽章（橙色） */
+.date-count-badge {
+  width: 36rpx;
+  height: 36rpx;
+  border-radius: 50%;
+  background: #EA580C;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  margin-top: 4rpx;
+}
+
+.date-count-badge text {
   font-size: 20rpx;
-  margin-top: 8rpx;
-  padding: 4rpx 12rpx;
-  border-radius: 8rpx;
-  display: inline-block;
-}
-
-.haircut-date-tag.is-holiday {
-  background: #FEF3C7;
-  color: #D97706;
-}
-
-.haircut-date-tag.is-today {
-  background: #DCFCE7;
-  color: #16A34A;
-}
-
-.haircut-date-item.is-active .haircut-date-tag {
-  background: rgba(255, 255, 255, 0.2);
   color: #FFFFFF;
+  font-weight: 500;
 }
 
 /* ========== 日期提示 ========== */

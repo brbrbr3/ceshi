@@ -118,7 +118,7 @@ async function getHolidays(years) {
 }
 
 /**
- * 获取可显示日期列表
+ * 获取可显示日期列表（只显示本周的周一三五，周五18:00后切换到下周）
  */
 async function getDisplayDates() {
   const now = new Date()
@@ -132,48 +132,71 @@ async function getDisplayDates() {
     return currentHour >= 18
   })()
   
+  // 计算本周的周一
+  const currentDayOfWeek = now.getDay() // 0=周日, 1=周一...
+  const mondayOfThisWeek = new Date(now)
+  mondayOfThisWeek.setHours(0, 0, 0, 0)
+  
+  if (currentDayOfWeek === 0) {
+    // 周日，本周周一是6天前
+    mondayOfThisWeek.setDate(mondayOfThisWeek.getDate() - 6)
+  } else {
+    // 周一到周六，本周周一是 (currentDayOfWeek - 1) 天前
+    mondayOfThisWeek.setDate(mondayOfThisWeek.getDate() - (currentDayOfWeek - 1))
+  }
+  
+  // 根据是否显示下周，确定基准周一
+  let baseMonday = new Date(mondayOfThisWeek)
+  if (shouldShowNextWeek) {
+    // 切换到下周
+    baseMonday.setDate(baseMonday.getDate() + 7)
+  }
+  
   // 计算需要查询的年份
   const years = new Set()
   years.add(now.getFullYear())
-  
-  // 计算起始日期
-  let startDate = new Date(now)
-  if (shouldShowNextWeek) {
-    // 跳到下周
-    startDate.setDate(startDate.getDate() + 3)
-    startDate.setHours(0, 0, 0, 0)
-  }
-  
-  years.add(startDate.getFullYear())
+  years.add(baseMonday.getFullYear())
   
   // 获取节假日配置
   const holidays = await getHolidays([...years])
   
-  // 遍历接下来的14天，找出最多7个理发日
+  // 本周的周一(0)、周三(2)、周五(4)
   const dates = []
-  const tempDate = new Date(startDate)
+  const weekDays = ['周一', '周二', '周三', '周四', '周五', '周六', '周日']
+  const dayOffsets = [0, 2, 4] // 周一、周三、周五相对于周一的偏移
   
-  while (dates.length < 7) {
-    const dateStr = formatDate(tempDate)
-    const dayOfWeek = tempDate.getDay()
+  for (const offset of dayOffsets) {
+    const targetDate = new Date(baseMonday)
+    targetDate.setDate(targetDate.getDate() + offset)
     
-    // 只收集周一、三、五
-    if ([1, 3, 5].includes(dayOfWeek)) {
-      const isHoliday = holidays.includes(dateStr)
-      const isFullyDisabled = isDayFullyDisabled(dateStr)
-      
-      dates.push({
+    const dateStr = formatDate(targetDate)
+    const dayOfWeek = targetDate.getDay()
+    const month = targetDate.getMonth() + 1
+    const day = targetDate.getDate()
+    
+    const isHoliday = holidays.includes(dateStr)
+    const isFullyDisabled = isDayFullyDisabled(dateStr)
+    
+    // 查询当日有效预约数
+    const countRes = await appointmentsCollection
+      .where({
         date: dateStr,
-        dayOfWeek: ['日', '一', '二', '三', '四', '五', '六'][dayOfWeek],
-        isHoliday,
-        isToday: dateStr === todayStr,
-        isDisabled: isHoliday || isFullyDisabled,
-        disableReason: isHoliday ? '今日为节假日，不提供理发服务' : 
-                       isFullyDisabled ? '当前时间已过预约截止时间（当日14:20）' : ''
+        status: 'booked'
       })
-    }
+      .count()
     
-    tempDate.setDate(tempDate.getDate() + 1)
+    dates.push({
+      date: dateStr,
+      weekDay: weekDays[dayOfWeek === 0 ? 6 : dayOfWeek - 1], // 转换为周一=0格式
+      monthDay: `${month}月${day}日`,
+      dayOfWeek: ['日', '一', '二', '三', '四', '五', '六'][dayOfWeek],
+      isHoliday,
+      isToday: dateStr === todayStr,
+      isDisabled: isHoliday || isFullyDisabled,
+      disableReason: isHoliday ? '今日为节假日，不提供理发服务' : 
+                     isFullyDisabled ? '当前时间已过预约截止时间（当日14:20）' : '',
+      reservationCount: countRes.total || 0
+    })
   }
   
   return success({
