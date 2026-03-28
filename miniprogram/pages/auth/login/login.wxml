@@ -22,7 +22,7 @@
       </view>
     </view>
 
-    <button class="auth-submit-btn" loading="{{loading}}" bindtap="handleWxLogin">点击使用微信登录</button>
+    <button class="auth-submit-btn login-submit-btn" loading="{{loading}}" bindtap="handleWxLogin">微信一键登录</button>
   </view>
 
   <view wx:if="{{statusCard}}" class="auth-card auth-status-card {{statusCard.className}}">

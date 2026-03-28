@@ -36,7 +36,7 @@
 
         <view class="menu-edit-submit">
           <button
-            class="auth-submit-btn menu-submit-btn"
+            class="auth-submit-btn "
             loading="{{loading}}"
             bindtap="handleSubmit"
           >

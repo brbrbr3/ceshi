@@ -318,8 +318,8 @@ Page({
         const currentHour = now.getHours()
         
         // 判断是否应该显示下周
-        // 周五18:00后、周六(6)、周日(0) 都显示下周
-        const shouldShowNextWeek = (currentDayOfWeek === 5 && currentHour >= 18) ||
+        // 周五22:00后、周六(6)、周日(0) 都显示下周
+        const shouldShowNextWeek = (currentDayOfWeek === 5 && currentHour >= 22) ||
                                     currentDayOfWeek === 6 ||
                                     currentDayOfWeek === 0
         

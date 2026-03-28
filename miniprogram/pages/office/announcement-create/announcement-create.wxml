@@ -68,7 +68,7 @@
         <!-- 按钮组 -->
         <view class="announcement-create-buttons">
           <button
-            class="auth-submit-btn announcement-submit-btn"
+            class="auth-submit-btn "
             loading="{{submitting}}"
             bindtap="handleSubmit"
           >

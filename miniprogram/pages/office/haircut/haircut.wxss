@@ -1,7 +1,7 @@
 /* 理发预约页面样式 */
 
 page {
-  background: #FFF7ED;
+  background: #ffffff;
   height: 100%;
 }
 
@@ -81,10 +81,8 @@ page {
 /* ========== 日期选择器（完全仿会议室样式） ========== */
 .date-selector {
   background: #FFFFFF;
-  padding: 24rpx 0;
-  border-bottom: 1rpx solid #E2E8F0;
-  margin-bottom: 20rpx;
-  border-radius: 24rpx;
+  padding: 24rpx 0 0;
+  border-top: 1rpx solid #E2E8F0;
 }
 
 .date-scroll {
@@ -112,7 +110,8 @@ page {
 }
 
 .date-item.is-active {
-  background: #FFF7ED;
+  border: 4rpx solid #EA580C;
+  background: #ea5a0c1f;
 }
 
 .date-item.is-disabled {
@@ -192,18 +191,19 @@ page {
   padding: 24rpx;
   background: #FFFFFF;
   border-radius: 16rpx;
-  border: 2rpx solid transparent;
+  border: 4rpx solid #E2E8F0;
   transition: all 0.3s ease;
 }
 
 .haircut-slot-item.is-selected {
   border-color: #EA580C;
-  background: #FFF7ED;
+  background: #ea5a0c1f;
 }
 
 .haircut-slot-item.is-booked {
-  opacity: 0.6;
+  opacity: 0.8;
   background: #F1F5F9;
+  border-color: transparent;
 }
 
 .haircut-slot-time {
@@ -294,6 +294,7 @@ page {
   border-radius: 20rpx;
   padding: 24rpx;
   box-shadow: 0 2rpx 12rpx rgba(0, 0, 0, 0.04);
+  border: 4rpx solid #E2E8F0;
 }
 
 .haircut-item-header {

@@ -73,7 +73,7 @@
           >
             <view class="haircut-slot-time">{{item.display}}</view>
             <view class="haircut-slot-status {{item.isBooked ? 'is-booked' : 'is-available'}}">
-              {{item.isBooked ? '已预约' : '可预约'}}
+              {{item.isBooked ? '已被预约' : '可预约'}}
             </view>
           </view>
         </view>
