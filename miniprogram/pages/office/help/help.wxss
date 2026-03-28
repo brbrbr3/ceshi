@@ -6,7 +6,7 @@
 
 /* 头部区域 */
 .feedback-header {
-  padding: 90rpx 40rpx 50rpx;
+  padding: 60rpx 40rpx 40rpx;
   background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
 }
 
@@ -83,6 +83,17 @@
   color: #666;
   line-height: 44rpx;
   margin-bottom: 20rpx;
+}
+
+.card-features {
+  margin-bottom: 20rpx;
+}
+
+.feature-item {
+  font-size: 26rpx;
+  color: #666;
+  line-height: 40rpx;
+  margin-bottom: 8rpx;
 }
 
 .card-permission {

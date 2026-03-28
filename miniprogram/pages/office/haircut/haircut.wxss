@@ -186,6 +186,7 @@ page {
 
 .haircut-slot-item {
   display: flex;
+  
   align-items: center;
   justify-content: space-between;
   padding: 24rpx;
@@ -228,6 +229,70 @@ page {
 }
 
 .haircut-slot-status.is-booked {
+  background: #FEE2E2;
+  color: #DC2626;
+}
+
+/* 我已预约 - 黄色 */
+.haircut-slot-status.is-myBooked {
+  background: #FEF3C7;
+  color: #D97706;
+}
+
+/* 不可预约 - 灰色 */
+.haircut-slot-status.is-unavailable {
+  background: #F3F4F6;
+  color: #6B7280;
+}
+
+/* 时段左侧 */
+.haircut-slot-left {
+  display: flex;
+  flex-direction: column;
+  gap: 4rpx;
+}
+
+/* 时段理发人姓名 */
+.haircut-slot-booker {
+  font-size: 24rpx;
+  color: #6B7280;
+  font-weight: normal;
+  margin-left: 8rpx;
+}
+
+/* 时段右侧 */
+.haircut-slot-right {
+  display: flex;
+  align-items: center;
+  gap: 16rpx;
+}
+
+/* 操作按钮 */
+.haircut-slot-action {
+  width: 44rpx;
+  height: 44rpx;
+  border-radius: 50%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 32rpx;
+  font-weight: bold;
+}
+
+/* 设为不可预约按钮 - 红色 */
+.haircut-slot-action.is-disable {
+  background: #FEE2E2;
+  color: #DC2626;
+}
+
+/* 恢复为可预约按钮 - 绿色 */
+.haircut-slot-action.is-restore {
+  background: #DCFCE7;
+  color: #16A34A;
+}
+
+/* 取消按钮 - 红色 */
+.haircut-slot-action.is-cancel {
   background: #FEE2E2;
   color: #DC2626;
 }

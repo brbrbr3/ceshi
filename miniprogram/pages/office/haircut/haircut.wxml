@@ -65,15 +65,46 @@
         <view class="haircut-slots-title">选择时段</view>
         <view class="haircut-slots-list">
           <view 
-            class="haircut-slot-item {{selectedSlot === item.start ? 'is-selected' : ''}} {{item.isBooked ? 'is-booked' : ''}}" 
+            class="haircut-slot-item {{selectedSlot === item.start ? 'is-selected' : ''}} {{item.status === 'booked' || item.status === 'myBooked' || item.status === 'unavailable' ? 'is-booked' : ''}}" 
             wx:for="{{slots}}" 
             wx:key="start" 
             bindtap="handleSlotSelect" 
             data-slot="{{item}}"
           >
-            <view class="haircut-slot-time">{{item.display}}</view>
-            <view class="haircut-slot-status {{item.isBooked ? 'is-booked' : 'is-available'}}">
-              {{item.isBooked ? '已被预约' : '可预约'}}
+            <view class="haircut-slot-left">
+              <view class="haircut-slot-time">
+                <text>{{item.display}}</text>
+                <text wx:if="{{(item.status === 'booked' || item.status === 'myBooked') && item.bookingInfo}}">{{' · ' +item.bookingInfo.displayName}}
+                </text>
+              </view>
+            </view>
+            <view class="haircut-slot-right">
+              <view class="haircut-slot-status is-{{item.status}}">
+                {{item.statusLabel}}
+              </view>
+              <!-- 招待员操作按钮 -->
+              <view 
+                wx:if="{{isReceptionist && (item.status === 'available' || item.status === 'unavailable')}}" 
+                class="haircut-slot-action is-{{item.status === 'unavailable' ? 'restore' : 'disable'}}"
+                catchtap="handleSlotAction"
+                data-slot="{{item}}"
+              >
+                {{item.status === 'unavailable' ? '+' : '×'}}
+              </view>
+              <!-- 招待员取消他人预约按钮 -->
+              <view 
+                wx:if="{{isReceptionist && item.status === 'booked'}}" 
+                class="haircut-slot-action is-cancel"
+                catchtap="handleSlotAction"
+                data-slot="{{item}}"
+              >×</view>
+              <!-- 用户取消自己预约按钮 -->
+              <view 
+                wx:if="{{item.status === 'myBooked'}}" 
+                class="haircut-slot-action is-cancel"
+                catchtap="handleSlotAction"
+                data-slot="{{item}}"
+              >×</view>
             </view>
           </view>
         </view>

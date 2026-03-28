@@ -100,6 +100,24 @@
           </view>
         </view>
       </view>
+
+      <view class="help-card">
+        <view class="card-header">
+          <view class="card-icon">💈</view>
+          <view class="card-title">理发预约</view>
+        </view>
+        <view class="card-content">
+          <view class="card-desc">在线预约理发服务，支持以下功能：</view>
+          <view class="card-features">
+            <view class="feature-item">• 预约理发：选择日期和时段进行预约，支持为他人代约。</view>
+            <view class="feature-item">• 时段管理（招待员）：可将时段设为不可预约或取消他人预约。</view>
+          </view>
+          <view class="card-permission">
+            <view class="permission-label">权限要求：</view>
+            <view class="permission-value">所有用户可预约。招待员、会计主管、会计、出纳可查看预约列表。</view>
+          </view>
+        </view>
+      </view>
     </view>
 
     <!-- 协作功能 -->

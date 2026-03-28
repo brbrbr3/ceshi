@@ -37,6 +37,7 @@ Page({
         canView: false,
         isReceptionist: false,
         userName: '',
+        userOpenId: '',
 
         // Tab
         activeTab: 'book',
@@ -75,6 +76,7 @@ Page({
         cancelReasons: CANCEL_REASONS,
         cancelReason: '',
         cancellingAppointment: null,
+        cancellingSlot: null,
         cancelling: false
     },
 
@@ -105,7 +107,8 @@ Page({
                 this.setData({
                     canView,
                     isReceptionist,
-                    userName: user.name
+                    userName: user.name,
+                    userOpenId: user.openid || ''
                 })
             }
         } catch (error) {
@@ -408,14 +411,43 @@ Page({
             })
 
             if (res.result.code === 0) {
-                const bookedSlots = res.result.data.slotsByDate[dateInfo.date] || []
-                const bookedSet = new Set(bookedSlots)
+                const bookedData = res.result.data.slotsByDate[dateInfo.date] || []
                 
                 // 构建时段列表
-                const slots = TIME_SLOTS.map(slot => ({
-                    ...slot,
-                    isBooked: bookedSet.has(slot.start)
-                }))
+                const slots = TIME_SLOTS.map(slot => {
+                    // 查找该时段的预约信息
+                    const bookingInfo = bookedData.find(b => b.timeSlot === slot.start)
+                    
+                    // 判断是否为我已预约
+                    const isMyBooking = bookingInfo && 
+                        bookingInfo.status === 'booked' && 
+                        bookingInfo.bookerId === this.data.userOpenId
+                    
+                    // 确定时段状态
+                    let slotStatus = 'available' // 默认可预约
+                    let statusLabel = '可预约'
+                    
+                    if (bookingInfo) {
+                        if (bookingInfo.status === 'unavailable') {
+                            slotStatus = 'unavailable'
+                            statusLabel = '不可预约'
+                        } else if (isMyBooking) {
+                            slotStatus = 'myBooked'
+                            statusLabel = '我已预约'
+                        } else {
+                            slotStatus = 'booked'
+                            statusLabel = '已被预约'
+                        }
+                    }
+                    
+                    return {
+                        ...slot,
+                        status: slotStatus,
+                        statusLabel,
+                        isMyBooking,
+                        bookingInfo: bookingInfo || null
+                    }
+                })
                 
                 this.setData({
                     slots,
@@ -435,16 +467,209 @@ Page({
      */
     handleSlotSelect(e) {
         const slot = e.currentTarget.dataset.slot
-        if (!slot || slot.isBooked) return
-
-        // 直接设置选中时段并弹出预约弹窗
+        if (!slot) return
+        
+        // 不可预约的时段不允许点击
+        if (slot.status === 'unavailable') return
+        
+        // 已被他人预约的时段不允许点击（我已预约的可以取消）
+        if (slot.status === 'booked') return
+        
+        // 我已预约的时段 - 显示取消确认
+        if (slot.status === 'myBooked') {
+            this.handleCancelMySlot(slot)
+            return
+        }
+        
+        // 可预约时段 - 直接弹出预约弹窗
         this.setData({
             selectedSlot: slot.start,
             selectedSlotDisplay: slot.display
         })
-        
-        // 直接弹出预约弹窗
         this.showBookingForm()
+    },
+    
+    /**
+     * 取消我的预约（从时段列表）
+     */
+    async handleCancelMySlot(slot) {
+        const res = await wx.showModal({
+            title: '确认取消',
+            content: `确定要取消 ${this.data.selectedDate} ${slot.display} 的预约吗？`,
+            confirmText: '确认取消',
+            confirmColor: '#DC2626'
+        })
+        
+        if (!res.confirm) return
+        
+        try {
+            const result = await wx.cloud.callFunction({
+                name: 'haircutManager',
+                data: {
+                    action: 'cancelAppointment',
+                    appointmentId: slot.bookingInfo.appointmentId || slot.bookingInfo._id
+                }
+            })
+            
+            if (result.result.code === 0) {
+                wx.showToast({ title: '取消成功', icon: 'success' })
+                // 刷新时段列表
+                this.buildSlots(this.data.selectedDateInfo)
+                // 刷新日期列表
+                this.loadDisplayDates()
+            } else {
+                wx.showToast({ title: result.result.message || '取消失败', icon: 'none' })
+            }
+        } catch (error) {
+            console.error('取消失败:', error)
+            wx.showToast({ title: '取消失败', icon: 'none' })
+        }
+    },
+    
+    /**
+     * 招待员操作时段（点击操作按钮）
+     */
+    async handleSlotAction(e) {
+        const slot = e.currentTarget.dataset.slot
+        if (!slot) return
+        
+        // 已被他人预约 - 取消预约
+        if (slot.status === 'booked') {
+            this.showCancelSlotPopup(slot)
+            return
+        }
+        
+        // 可预约 - 设为不可预约
+        if (slot.status === 'available') {
+            const res = await wx.showModal({
+                title: '设为不可预约',
+                content: `确定将 ${this.data.selectedDate} ${slot.display} 设为不可预约吗？`,
+                confirmText: '确认',
+                confirmColor: '#EA580C'
+            })
+            
+            if (!res.confirm) return
+            
+            try {
+                const result = await wx.cloud.callFunction({
+                    name: 'haircutManager',
+                    data: {
+                        action: 'setSlotStatus',
+                        date: this.data.selectedDate,
+                        timeSlot: slot.start,
+                        status: 'unavailable'
+                    }
+                })
+                
+                if (result.result.code === 0) {
+                    wx.showToast({ title: '设置成功', icon: 'success' })
+                    this.buildSlots(this.data.selectedDateInfo)
+                    this.loadDisplayDates()
+                } else {
+                    wx.showToast({ title: result.result.message || '设置失败', icon: 'none' })
+                }
+            } catch (error) {
+                console.error('设置失败:', error)
+                wx.showToast({ title: '设置失败', icon: 'none' })
+            }
+            return
+        }
+        
+        // 不可预约 - 恢复为可预约
+        if (slot.status === 'unavailable') {
+            const res = await wx.showModal({
+                title: '恢复为可预约',
+                content: `确定将 ${this.data.selectedDate} ${slot.display} 恢复为可预约吗？`,
+                confirmText: '确认',
+                confirmColor: '#10B981'
+            })
+            
+            if (!res.confirm) return
+            
+            try {
+                const result = await wx.cloud.callFunction({
+                    name: 'haircutManager',
+                    data: {
+                        action: 'setSlotStatus',
+                        date: this.data.selectedDate,
+                        timeSlot: slot.start,
+                        status: 'available'
+                    }
+                })
+                
+                if (result.result.code === 0) {
+                    wx.showToast({ title: '恢复成功', icon: 'success' })
+                    this.buildSlots(this.data.selectedDateInfo)
+                    this.loadDisplayDates()
+                } else {
+                    wx.showToast({ title: result.result.message || '恢复失败', icon: 'none' })
+                }
+            } catch (error) {
+                console.error('恢复失败:', error)
+                wx.showToast({ title: '恢复失败', icon: 'none' })
+            }
+            return
+        }
+        
+        // 我已预约 - 取消我的预约
+        if (slot.status === 'myBooked') {
+            this.handleCancelMySlot(slot)
+            return
+        }
+    },
+    
+    /**
+     * 显示取消预约弹窗（招待员）
+     */
+    showCancelSlotPopup(e) {
+        const slot = e.currentTarget ? e.currentTarget.dataset.slot : e
+        if (!slot || slot.status !== 'booked') return
+        
+        this.setData({
+            showCancelPopup: true,
+            cancellingSlot: slot,
+            cancelReason: ''
+        })
+    },
+    
+    /**
+     * 确认取消预约（招待员）
+     */
+    async handleConfirmCancelSlot() {
+        if (!this.data.cancelReason) {
+            wx.showToast({ title: '请选择取消原因', icon: 'none' })
+            return
+        }
+        
+        const slot = this.data.cancellingSlot
+        if (!slot) return
+        
+        this.setData({ cancelling: true })
+        try {
+            const res = await wx.cloud.callFunction({
+                name: 'haircutManager',
+                data: {
+                    action: 'cancelAppointmentByReceptionist',
+                    date: this.data.selectedDate,
+                    timeSlot: slot.start,
+                    cancelReason: this.data.cancelReason
+                }
+            })
+            
+            if (res.result.code === 0) {
+                wx.showToast({ title: '取消成功', icon: 'success' })
+                this.setData({ showCancelPopup: false, cancellingSlot: null, cancelReason: '' })
+                this.buildSlots(this.data.selectedDateInfo)
+                this.loadDisplayDates()
+            } else {
+                wx.showToast({ title: res.result.message || '取消失败', icon: 'none' })
+            }
+        } catch (error) {
+            console.error('取消失败:', error)
+            wx.showToast({ title: '取消失败', icon: 'none' })
+        } finally {
+            this.setData({ cancelling: false })
+        }
     },
 
     /**
@@ -574,7 +799,7 @@ Page({
      * 隐藏取消弹窗
      */
     hideCancelPopup() {
-        this.setData({ showCancelPopup: false, cancellingAppointment: null, cancelReason: '' })
+        this.setData({ showCancelPopup: false, cancellingAppointment: null, cancellingSlot: null, cancelReason: '' })
     },
 
     /**
@@ -595,21 +820,45 @@ Page({
 
         this.setData({ cancelling: true })
         try {
-            const res = await wx.cloud.callFunction({
-                name: 'haircutManager',
-                data: {
-                    action: 'cancelAppointment',
-                    appointmentId: this.data.cancellingAppointment._id,
-                    cancelReason: this.data.cancelReason
+            // 判断是从本月预约列表取消还是从时段列表取消
+            if (this.data.cancellingSlot) {
+                // 从时段列表取消（招待员）
+                const res = await wx.cloud.callFunction({
+                    name: 'haircutManager',
+                    data: {
+                        action: 'cancelAppointmentByReceptionist',
+                        date: this.data.selectedDate,
+                        timeSlot: this.data.cancellingSlot.start,
+                        cancelReason: this.data.cancelReason
+                    }
+                })
+                
+                if (res.result.code === 0) {
+                    wx.showToast({ title: '取消成功', icon: 'success' })
+                    this.hideCancelPopup()
+                    this.buildSlots(this.data.selectedDateInfo)
+                    this.loadDisplayDates()
+                } else {
+                    wx.showToast({ title: res.result.message || '取消失败', icon: 'none' })
                 }
-            })
+            } else if (this.data.cancellingAppointment) {
+                // 从本月预约列表取消
+                const res = await wx.cloud.callFunction({
+                    name: 'haircutManager',
+                    data: {
+                        action: 'cancelAppointment',
+                        appointmentId: this.data.cancellingAppointment._id,
+                        cancelReason: this.data.cancelReason
+                    }
+                })
 
-            if (res.result.code === 0) {
-                wx.showToast({ title: '取消成功', icon: 'success' })
-                this.hideCancelPopup()
-                this.loadMonthlyAppointments()
-            } else {
-                wx.showToast({ title: res.result.message || '取消失败', icon: 'none' })
+                if (res.result.code === 0) {
+                    wx.showToast({ title: '取消成功', icon: 'success' })
+                    this.hideCancelPopup()
+                    this.loadMonthlyAppointments()
+                } else {
+                    wx.showToast({ title: res.result.message || '取消失败', icon: 'none' })
+                }
             }
         } catch (error) {
             console.error('取消失败:', error)

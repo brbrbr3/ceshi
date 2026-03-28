@@ -119,25 +119,33 @@ async function getHolidays(years) {
 }
 
 /**
- * 获取各日期已预约时段（简化版）
- * 前端负责：日期计算、节假日过滤、时段列表生成
- * 后端只返回：各日期已预约的时段列表
+ * 获取各日期已预约时段（完整版）
+ * 返回完整预约信息，供前端判断"我已预约"和招待员显示理发人
  * 
  * @param {Array} dates - 前端计算并过滤节假日后的日期列表
- * @returns {Object} slotsByDate - 各日期已预约时段 { '2026-03-30': ['14:30', '15:30'] }
+ * @returns {Object} slotsByDate - 各日期预约详情
  */
 async function getReservationSlots(dates) {
   if (!Array.isArray(dates) || dates.length === 0) {
     return success({ slotsByDate: {} })
   }
 
-  // 查询这些日期的所有有效预约
-  const result = await appointmentsCollection
+  // 查询这些日期的所有有效预约和不可预约记录
+  const bookedResult = await appointmentsCollection
     .where({
       date: _.in(dates),
-      status: 'booked'
+      status: _.in(['booked', 'unavailable'])
     })
-    .field({ date: true, timeSlot: true })
+    .field({ 
+      date: true, 
+      timeSlot: true, 
+      timeSlotDisplay: true,
+      appointeeName: true,
+      displayName: true,
+      isProxy: true,
+      bookerId: true,
+      status: true
+    })
     .get()
 
   // 按日期分组
@@ -146,10 +154,18 @@ async function getReservationSlots(dates) {
     slotsByDate[d] = []
   })
 
-  if (result.data && result.data.length > 0) {
-    result.data.forEach(item => {
+  if (bookedResult.data && bookedResult.data.length > 0) {
+    bookedResult.data.forEach(item => {
       if (slotsByDate[item.date]) {
-        slotsByDate[item.date].push(item.timeSlot)
+        slotsByDate[item.date].push({
+          timeSlot: item.timeSlot,
+          timeSlotDisplay: item.timeSlotDisplay,
+          status: item.status, // 'booked' 或 'unavailable'
+          appointeeName: item.appointeeName,
+          displayName: item.displayName,
+          isProxy: item.isProxy,
+          bookerId: item.bookerId
+        })
       }
     })
   }
@@ -428,6 +444,153 @@ function getCancelReasons() {
   })
 }
 
+/**
+ * 设置时段状态（招待员专用）
+ * 可将可预约时段设为不可预约，或将不可预约时段恢复为可预约
+ */
+async function setSlotStatus(openid, date, timeSlot, status) {
+  // 验证时段是否有效
+  const slotConfig = TIME_SLOTS.find(s => s.start === timeSlot)
+  if (!slotConfig) {
+    throw new Error('时段无效')
+  }
+
+  // 验证日期格式
+  if (!/^\d{4}-\d{2}-\d{2}$/.test(date)) {
+    throw new Error('日期格式不正确')
+  }
+
+  // 获取用户信息，验证是否为招待员
+  const userResult = await usersCollection.where({ openid }).limit(1).get()
+  if (!userResult.data || userResult.data.length === 0) {
+    throw new Error('用户不存在')
+  }
+
+  const user = userResult.data[0]
+  if (user.position !== '招待员') {
+    throw new Error('只有招待员可以设置时段状态')
+  }
+
+  const now = Date.now()
+
+  if (status === 'unavailable') {
+    // 检查是否已有记录（包括已取消的，因为有唯一索引）
+    const existingRes = await appointmentsCollection
+      .where({
+        date,
+        timeSlot
+      })
+      .limit(1)
+      .get()
+
+    if (existingRes.data && existingRes.data.length > 0) {
+      const existing = existingRes.data[0]
+      if (existing.status === 'booked') {
+        throw new Error('该时段已被预约')
+      } else if (existing.status === 'unavailable') {
+        throw new Error('该时段已设为不可预约')
+      } else if (existing.status === 'cancelled' || existing.status === 'completed') {
+        // 已取消或已完成的记录，更新为不可预约
+        await appointmentsCollection.doc(existing._id).update({
+          data: {
+            status: 'unavailable',
+            setBy: user.name,
+            updatedAt: now
+          }
+        })
+        return success({}, '已设置为不可预约')
+      }
+    }
+
+    // 创建新的不可预约记录
+    await appointmentsCollection.add({
+      data: {
+        date,
+        timeSlot,
+        timeSlotDisplay: slotConfig.display,
+        status: 'unavailable',
+        setBy: user.name,
+        createdAt: now,
+        updatedAt: now
+      }
+    })
+
+    return success({}, '已设置为不可预约')
+  } else if (status === 'available') {
+    // 查找不可预约记录
+    const unavailableRes = await appointmentsCollection
+      .where({
+        date,
+        timeSlot,
+        status: 'unavailable'
+      })
+      .limit(1)
+      .get()
+
+    if (!unavailableRes.data || unavailableRes.data.length === 0) {
+      throw new Error('该时段不是不可预约状态')
+    }
+
+    // 删除不可预约记录
+    await appointmentsCollection.doc(unavailableRes.data[0]._id).remove()
+
+    return success({}, '已恢复为可预约')
+  } else {
+    throw new Error('无效的状态')
+  }
+}
+
+/**
+ * 招待员取消预约（带原因）
+ */
+async function cancelAppointmentByReceptionist(openid, date, timeSlot, cancelReason) {
+  // 验证取消原因
+  if (!cancelReason) {
+    throw new Error('请选择取消原因')
+  }
+
+  // 获取用户信息，验证是否为招待员
+  const userResult = await usersCollection.where({ openid }).limit(1).get()
+  if (!userResult.data || userResult.data.length === 0) {
+    throw new Error('用户不存在')
+  }
+
+  const user = userResult.data[0]
+  if (user.position !== '招待员') {
+    throw new Error('只有招待员可以取消预约')
+  }
+
+  // 查找预约记录
+  const appointmentRes = await appointmentsCollection
+    .where({
+      date,
+      timeSlot,
+      status: 'booked'
+    })
+    .limit(1)
+    .get()
+
+  if (!appointmentRes.data || appointmentRes.data.length === 0) {
+    throw new Error('该时段没有预约记录')
+  }
+
+  const appointment = appointmentRes.data[0]
+  const now = Date.now()
+
+  // 更新为已取消
+  await appointmentsCollection.doc(appointment._id).update({
+    data: {
+      status: 'cancelled',
+      cancelReason,
+      cancelledAt: now,
+      cancelledBy: user.name,
+      updatedAt: now
+    }
+  })
+
+  return success({}, '取消成功')
+}
+
 // 云函数入口
 exports.main = async (event) => {
   const wxContext = cloud.getWXContext()
@@ -458,6 +621,12 @@ exports.main = async (event) => {
 
       case 'getCancelReasons':
         return getCancelReasons()
+
+      case 'setSlotStatus':
+        return await setSlotStatus(openid, event.date, event.timeSlot, event.status)
+
+      case 'cancelAppointmentByReceptionist':
+        return await cancelAppointmentByReceptionist(openid, event.date, event.timeSlot, event.cancelReason)
 
       default:
         return fail('不支持的操作类型', 400)
