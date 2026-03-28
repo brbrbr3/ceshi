@@ -68,35 +68,6 @@ function parseLocalDate(dateStr) {
 }
 
 /**
- * 格式化日期为 YYYY-MM-DD
- */
-function formatDate(date) {
-  const year = date.getFullYear()
-  const month = String(date.getMonth() + 1).padStart(2, '0')
-  const day = String(date.getDate()).padStart(2, '0')
-  return `${year}-${month}-${day}`
-}
-
-/**
- * 判断某天是否禁用全部时段（当日14:20后）
- */
-function isDayFullyDisabled(dateStr) {
-  const now = new Date()
-  const todayStr = formatDate(now)
-  
-  // 非当日，不禁用
-  if (dateStr !== todayStr) return false
-  
-  // 检查当前时间是否已过14:20
-  const currentHour = now.getHours()
-  const currentMinute = now.getMinutes()
-  const currentTime = currentHour * 60 + currentMinute
-  const disableTime = 14 * 60 + 20 // 14:20
-  
-  return currentTime >= disableTime
-}
-
-/**
  * 获取节假日列表（多年份）
  * 用于创建预约时校验
  */
@@ -210,11 +181,6 @@ async function createAppointment(openid, appointmentData) {
   
   // 检查是否为代约
   const isProxy = appointeeName.trim() !== bookerName.trim()
-  
-  // 检查当日14:20后是否还能预约
-  if (isDayFullyDisabled(date)) {
-    throw new Error('当前时间已过预约截止时间（当日14:20）')
-  }
   
   // 检查节假日
   const targetDate = parseLocalDate(date)

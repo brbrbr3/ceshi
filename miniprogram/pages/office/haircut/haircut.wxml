@@ -27,9 +27,9 @@
       <!-- 提示信息 -->
       <view class="haircut-info-card">
         <view class="haircut-info-text">
-          • 理发服务仅限周一、三、五下午 14:30~18:00<text>\n</text>
-          • 每时段仅限 1 人预约<text>\n</text>
-          • 当日 14:20 后不可再预约当日时段
+          • 理发服务仅限周一、三、五下午14:30~18:00<text>\n</text>
+          • 每半小时为1个时段，每时段限预约1人，可为他人代预约<text>\n</text>
+          • 当日14:20后锁定全部时段，只有招待员可操作
         </view>
       </view>
 
@@ -61,7 +61,7 @@
       </view>
 
       <!-- 时段列表 -->
-      <view class="haircut-slots-section" wx:if="{{selectedDate && !(selectedDateInfo && selectedDateInfo.isDisabled)}}">
+      <view class="haircut-slots-section" wx:if="{{selectedDate && (selectedDateInfo && !selectedDateInfo.isDisabled) || (selectedDateInfo && selectedDateInfo.isDayLocked)}}">
         <view class="haircut-slots-title">选择时段</view>
         <view class="haircut-slots-list">
           <view 
@@ -98,9 +98,9 @@
                 catchtap="handleSlotAction"
                 data-slot="{{item}}"
               >×</view>
-              <!-- 用户取消自己预约按钮 -->
+              <!-- 用户取消自己预约按钮（普通用户14:20后当天不显示） -->
               <view 
-                wx:if="{{item.status === 'myBooked'}}" 
+                wx:if="{{item.status === 'myBooked' && (isReceptionist || !selectedDateInfo.isDayLocked)}}" 
                 class="haircut-slot-action is-cancel"
                 catchtap="handleSlotAction"
                 data-slot="{{item}}"
@@ -192,7 +192,7 @@
               取消原因：{{item.cancelReason}}
             </view>
           </view>
-          <view class="haircut-item-actions" wx:if="{{item.status === 'booked'}}">
+          <view class="haircut-item-actions" wx:if="{{item.status === 'booked' && (isReceptionist || !isDayPastDeadline || item.date !== todayStr)}}">
             <view class="haircut-item-action is-danger" bindtap="handleCancelMyAppointment" data-item="{{item}}">取消预约</view>
           </view>
         </view>

@@ -77,7 +77,11 @@ Page({
         cancelReason: '',
         cancellingAppointment: null,
         cancellingSlot: null,
-        cancelling: false
+        cancelling: false,
+
+        // 时间状态
+        isDayPastDeadline: false,
+        todayStr: ''
     },
 
     onLoad() {
@@ -85,6 +89,10 @@ Page({
     },
 
     onShow() {
+        this.setData({
+            isDayPastDeadline: this.isAfterDeadline(),
+            todayStr: this.formatLocalDate(new Date())
+        })
         this.loadData()
     },
 
@@ -178,15 +186,16 @@ Page({
                     // 非节假日：待后续填充预约数
                     nonHolidayDates.push(calcDate.date)
                     
-                    // 检查当日14:20后是否禁用
-                    const isFullyDisabled = calcDate.date === todayStr && this.isAfterDeadline()
+                    // 检查当日14:20后是否锁定（招待员不受限制）
+                    const isDayLocked = calcDate.date === todayStr && this.isAfterDeadline() && !this.data.isReceptionist
                     
                     displayDates.push({
                         ...calcDate,
                         isHoliday: false,
                         isToday: calcDate.date === todayStr,
-                        isDisabled: isFullyDisabled,
-                        disableReason: isFullyDisabled ? '当前时间已过预约截止时间（当日14:20）' : '',
+                        isDisabled: isDayLocked,
+                        isDayLocked,
+                        disableReason: isDayLocked ? '当日时段已锁定，请联系招待员' : '',
                         reservationCount: 0 // 待后续填充
                     })
                 }
@@ -385,8 +394,8 @@ Page({
             slots: []
         })
 
-        // 如果日期禁用，不加载时段
-        if (dateInfo.isDisabled) {
+        // 仅节假日阻止加载时段，截止时间锁定的日期仍可查看
+        if (dateInfo.isDisabled && !dateInfo.isDayLocked) {
             return
         }
 
@@ -469,19 +478,26 @@ Page({
         const slot = e.currentTarget.dataset.slot
         if (!slot) return
         
-        // 不可预约的时段不允许点击
-        if (slot.status === 'unavailable') return
-        
-        // 已被他人预约的时段不允许点击（我已预约的可以取消）
-        if (slot.status === 'booked') return
-        
-        // 我已预约的时段 - 显示取消确认
-        if (slot.status === 'myBooked') {
-            this.handleCancelMySlot(slot)
+        // 当日时段已锁定（普通用户14:20后）
+        if (this.data.selectedDateInfo && this.data.selectedDateInfo.isDayLocked) {
+            wx.showModal({
+                title: '提示',
+                content: '当日时段已锁定，请联系招待员',
+                showCancel: false
+            })
             return
         }
         
-        // 可预约时段 - 直接弹出预约弹窗
+        // 不可预约的时段
+        if (slot.status === 'unavailable') return
+        
+        // 已被他人预约的时段
+        if (slot.status === 'booked') return
+        
+        // 我已预约的时段 - 无操作
+        if (slot.status === 'myBooked') return
+        
+        // 可预约时段 - 弹出预约弹窗
         this.setData({
             selectedSlot: slot.start,
             selectedSlotDisplay: slot.display
@@ -543,7 +559,7 @@ Page({
         if (slot.status === 'available') {
             const res = await wx.showModal({
                 title: '设为不可预约',
-                content: `确定将 ${this.data.selectedDate} ${slot.display} 设为不可预约吗？`,
+                content: `确定将 ${this.data.selectedDate} ${slot.display} 设为不可预约的时段吗？`,
                 confirmText: '确认',
                 confirmColor: '#EA580C'
             })
@@ -579,7 +595,7 @@ Page({
         if (slot.status === 'unavailable') {
             const res = await wx.showModal({
                 title: '恢复为可预约',
-                content: `确定将 ${this.data.selectedDate} ${slot.display} 恢复为可预约吗？`,
+                content: `确定将 ${this.data.selectedDate} ${slot.display} 恢复为可预约的时段吗？`,
                 confirmText: '确认',
                 confirmColor: '#10B981'
             })
