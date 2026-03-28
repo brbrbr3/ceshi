@@ -12,7 +12,7 @@
 const app = getApp()
 
 // 可查看理发预约的岗位
-const HAIRCUT_VIEWER_POSITIONS = ['招待员', '会计主管', '会计', '内聘']
+const HAIRCUT_VIEWER_POSITIONS = ['招待员', '会计主管', '会计', '出纳']
 
 // 取消原因
 const CANCEL_REASONS = [

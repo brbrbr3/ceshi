@@ -311,8 +311,27 @@ exports.main = async (event, context) => {
           .get()
         
         if (existingRes.data && existingRes.data.length > 0) {
-          console.log(`  - 模板 ${template.code} v${template.version} 已存在，跳过`)
+          // 已存在，更新
+          await db.collection(COLLECTIONS.WORKFLOW_TEMPLATES)
+            .doc(existingRes.data[0]._id)
+            .update({
+              data: {
+                name: template.name,
+                description: template.description,
+                category: template.category,
+                steps: template.steps,
+                displayConfig: template.displayConfig,
+                defaultTimeout: template.defaultTimeout,
+                notifyOnSubmit: template.notifyOnSubmit,
+                notifyOnComplete: template.notifyOnComplete,
+                notifyOnTimeout: template.notifyOnTimeout,
+                status: template.status,
+                updatedAt: now
+              }
+            })
+          console.log(`  ✓ 更新模板: ${template.name} (${template.code})`)
         } else {
+          // 不存在，创建
           await db.collection(COLLECTIONS.WORKFLOW_TEMPLATES).add({
             data: {
               ...template,
@@ -320,10 +339,10 @@ exports.main = async (event, context) => {
               updatedAt: now
             }
           })
-          console.log(`  ✓ 导入模板: ${template.name} (${template.code})`)
+          console.log(`  ✓ 创建模板: ${template.name} (${template.code})`)
         }
       } catch (error) {
-        console.log(`  ✗ 导入模板失败: ${template.code}`, error.message)
+        console.log(`  ✗ 处理模板失败: ${template.code}`, error.message)
       }
     }
 
