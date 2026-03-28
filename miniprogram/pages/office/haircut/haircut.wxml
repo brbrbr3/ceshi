@@ -27,8 +27,8 @@
       <!-- 提示信息 -->
       <view class="haircut-info-card">
         <view class="haircut-info-text">
-          • 理发服务仅限周一、三、五下午 14:30~18:00\n
-          • 每时段仅限 1 人预约\n
+          • 理发服务仅限周一、三、五下午 14:30~18:00<text>\n</text>
+          • 每时段仅限 1 人预约<text>\n</text>
           • 当日 14:20 后不可预约当日时段
         </view>
       </view>
@@ -90,16 +90,7 @@
         </view>
       </view>
 
-      <!-- 预约按钮 -->
-      <button 
-        class="haircut-booking-btn" 
-        loading="{{submitting}}" 
-        disabled="{{!selectedSlot || submitting}}" 
-        bindtap="showBookingForm"
-        wx:if="{{selectedDate && selectedSlot && !(selectedDateInfo && selectedDateInfo.isDisabled)}}"
-      >
-        立即预约
-      </button>
+
     </view>
 
     <!-- Tab 2: 本月预约 -->

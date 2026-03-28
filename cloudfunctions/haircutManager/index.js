@@ -2,8 +2,7 @@
  * 理发预约管理云函数
  * 
  * 功能：
- * - getDisplayDates: 获取可显示日期列表（含节假日状态）
- * - getAvailableSlots: 获取指定日期可用时段
+ * - getReservationSlots: 获取各日期已预约时段（简化版，前端计算日期和时段列表）
  * - createAppointment: 创建预约
  * - cancelAppointment: 取消预约
  * - getAppointments: 查询本月预约列表
@@ -21,7 +20,6 @@ const _ = db.command
 
 // 集合引用
 const appointmentsCollection = db.collection('haircut_appointments')
-const holidayConfigsCollection = db.collection('holiday_configs')
 const usersCollection = db.collection('office_users')
 
 // 时段配置
@@ -62,6 +60,14 @@ function fail(message, code, data) {
 }
 
 /**
+ * 解析日期字符串为 Date 对象（本地时间）
+ */
+function parseLocalDate(dateStr) {
+  const [year, month, day] = dateStr.split('-').map(Number)
+  return new Date(year, month - 1, day)
+}
+
+/**
  * 格式化日期为 YYYY-MM-DD
  */
 function formatDate(date) {
@@ -69,14 +75,6 @@ function formatDate(date) {
   const month = String(date.getMonth() + 1).padStart(2, '0')
   const day = String(date.getDate()).padStart(2, '0')
   return `${year}-${month}-${day}`
-}
-
-/**
- * 解析日期字符串为 Date 对象（本地时间）
- */
-function parseLocalDate(dateStr) {
-  const [year, month, day] = dateStr.split('-').map(Number)
-  return new Date(year, month - 1, day)
 }
 
 /**
@@ -100,8 +98,11 @@ function isDayFullyDisabled(dateStr) {
 
 /**
  * 获取节假日列表（多年份）
+ * 用于创建预约时校验
  */
 async function getHolidays(years) {
+  const db = cloud.database()
+  const holidayConfigsCollection = db.collection('holiday_configs')
   const holidays = []
   
   for (const year of years) {
@@ -118,158 +119,42 @@ async function getHolidays(years) {
 }
 
 /**
- * 获取可显示日期列表（只显示本周的周一三五，周五18:00后切换到下周）
+ * 获取各日期已预约时段（简化版）
+ * 前端负责：日期计算、节假日过滤、时段列表生成
+ * 后端只返回：各日期已预约的时段列表
+ * 
+ * @param {Array} dates - 前端计算并过滤节假日后的日期列表
+ * @returns {Object} slotsByDate - 各日期已预约时段 { '2026-03-30': ['14:30', '15:30'] }
  */
-async function getDisplayDates() {
-  const now = new Date()
-  const todayStr = formatDate(now)
-  
-  // 判断是否应该显示下周（周五18:00后）
-  const shouldShowNextWeek = (() => {
-    const dayOfWeek = now.getDay() // 0=周日, 5=周五
-    if (dayOfWeek !== 5) return false
-    const currentHour = now.getHours()
-    return currentHour >= 18
-  })()
-  
-  // 计算本周的周一
-  const currentDayOfWeek = now.getDay() // 0=周日, 1=周一...
-  const mondayOfThisWeek = new Date(now)
-  mondayOfThisWeek.setHours(0, 0, 0, 0)
-  
-  if (currentDayOfWeek === 0) {
-    // 周日，本周周一是6天前
-    mondayOfThisWeek.setDate(mondayOfThisWeek.getDate() - 6)
-  } else {
-    // 周一到周六，本周周一是 (currentDayOfWeek - 1) 天前
-    mondayOfThisWeek.setDate(mondayOfThisWeek.getDate() - (currentDayOfWeek - 1))
+async function getReservationSlots(dates) {
+  if (!Array.isArray(dates) || dates.length === 0) {
+    return success({ slotsByDate: {} })
   }
-  
-  // 根据是否显示下周，确定基准周一
-  let baseMonday = new Date(mondayOfThisWeek)
-  if (shouldShowNextWeek) {
-    // 切换到下周
-    baseMonday.setDate(baseMonday.getDate() + 7)
-  }
-  
-  // 计算需要查询的年份
-  const years = new Set()
-  years.add(now.getFullYear())
-  years.add(baseMonday.getFullYear())
-  
-  // 获取节假日配置
-  const holidays = await getHolidays([...years])
-  
-  // 本周的周一(0)、周三(2)、周五(4)
-  const dates = []
-  const weekDays = ['周一', '周二', '周三', '周四', '周五', '周六', '周日']
-  const dayOffsets = [0, 2, 4] // 周一、周三、周五相对于周一的偏移
-  
-  for (const offset of dayOffsets) {
-    const targetDate = new Date(baseMonday)
-    targetDate.setDate(targetDate.getDate() + offset)
-    
-    const dateStr = formatDate(targetDate)
-    const dayOfWeek = targetDate.getDay()
-    const month = targetDate.getMonth() + 1
-    const day = targetDate.getDate()
-    
-    const isHoliday = holidays.includes(dateStr)
-    const isFullyDisabled = isDayFullyDisabled(dateStr)
-    
-    // 查询当日有效预约数
-    const countRes = await appointmentsCollection
-      .where({
-        date: dateStr,
-        status: 'booked'
-      })
-      .count()
-    
-    dates.push({
-      date: dateStr,
-      weekDay: weekDays[dayOfWeek === 0 ? 6 : dayOfWeek - 1], // 转换为周一=0格式
-      monthDay: `${month}月${day}日`,
-      dayOfWeek: ['日', '一', '二', '三', '四', '五', '六'][dayOfWeek],
-      isHoliday,
-      isToday: dateStr === todayStr,
-      isDisabled: isHoliday || isFullyDisabled,
-      disableReason: isHoliday ? '今日为节假日，不提供理发服务' : 
-                     isFullyDisabled ? '当前时间已过预约截止时间（当日14:20）' : '',
-      reservationCount: countRes.total || 0
-    })
-  }
-  
-  return success({
-    dates,
-    shouldShowNextWeek
-  })
-}
 
-/**
- * 获取指定日期可用时段
- */
-async function getAvailableSlots(date) {
-  // 验证日期格式
-  if (!/^\d{4}-\d{2}-\d{2}$/.test(date)) {
-    throw new Error('日期格式不正确')
-  }
-  
-  const now = new Date()
-  const todayStr = formatDate(now)
-  
-  // 检查是否为周一、三、五
-  const targetDate = parseLocalDate(date)
-  const dayOfWeek = targetDate.getDay()
-  if (![1, 3, 5].includes(dayOfWeek)) {
-    return success({
-      date,
-      slots: [],
-      message: '今日非理发日（仅周一、三、五提供理发服务）'
-    })
-  }
-  
-  // 检查节假日
-  const year = targetDate.getFullYear()
-  const holidays = await getHolidays([year])
-  if (holidays.includes(date)) {
-    return success({
-      date,
-      slots: [],
-      message: '今日为节假日，不提供理发服务'
-    })
-  }
-  
-  // 检查当日14:20后禁用
-  const isFullyDisabled = isDayFullyDisabled(date)
-  if (isFullyDisabled) {
-    return success({
-      date,
-      slots: [],
-      message: '当前时间已过预约截止时间（当日14:20）'
-    })
-  }
-  
-  // 查询已预约的时段
-  const bookedRes = await appointmentsCollection
+  // 查询这些日期的所有有效预约
+  const result = await appointmentsCollection
     .where({
-      date,
+      date: _.in(dates),
       status: 'booked'
     })
+    .field({ date: true, timeSlot: true })
     .get()
-  
-  const bookedSlots = new Set(bookedRes.data.map(item => item.timeSlot))
-  
-  // 构建时段列表
-  const slots = TIME_SLOTS.map(slot => ({
-    ...slot,
-    isBooked: bookedSlots.has(slot.start)
-  }))
-  
-  return success({
-    date,
-    slots,
-    message: ''
+
+  // 按日期分组
+  const slotsByDate = {}
+  dates.forEach(d => {
+    slotsByDate[d] = []
   })
+
+  if (result.data && result.data.length > 0) {
+    result.data.forEach(item => {
+      if (slotsByDate[item.date]) {
+        slotsByDate[item.date].push(item.timeSlot)
+      }
+    })
+  }
+
+  return success({ slotsByDate })
 }
 
 /**
@@ -556,27 +441,24 @@ exports.main = async (event) => {
 
   try {
     switch (action) {
-      case 'getDisplayDates':
-        return await getDisplayDates()
-      
-      case 'getAvailableSlots':
-        return await getAvailableSlots(event.date)
+      case 'getReservationSlots':
+        return await getReservationSlots(event.dates)
       
       case 'createAppointment':
         return await createAppointment(openid, event.appointmentData)
       
       case 'cancelAppointment':
         return await cancelAppointment(openid, event.appointmentId, event.cancelReason)
-      
+
       case 'getAppointments':
         return await getAppointments(openid, event.params)
-      
+
       case 'getMyAppointments':
         return await getMyAppointments(openid, event.page, event.pageSize)
-      
+
       case 'getCancelReasons':
         return getCancelReasons()
-      
+
       default:
         return fail('不支持的操作类型', 400)
     }

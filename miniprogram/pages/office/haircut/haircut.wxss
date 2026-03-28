@@ -1,7 +1,6 @@
 /* 理发预约页面样式 */
 
 .haircut-page {
-  min-height: 100vh;
   background: #FFF7ED;
 }
 
@@ -71,7 +70,7 @@
 /* ========== 内容区 ========== */
 .haircut-content {
   padding: 24rpx;
-  padding-bottom: 100rpx;
+  padding-bottom: 200rpx;
 }
 
 /* ========== 日期选择器（完全仿会议室样式） ========== */
@@ -248,6 +247,7 @@
   display: flex;
   align-items: center;
   justify-content: center;
+  z-index: 100;
 }
 
 .haircut-booking-btn[disabled] {
