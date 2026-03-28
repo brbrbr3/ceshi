@@ -1,7 +1,12 @@
 /* 理发预约页面样式 */
 
-.haircut-page {
+page {
   background: #FFF7ED;
+  height: 100%;
+}
+
+.haircut-page {
+  min-height: 100%;
 }
 
 /* ========== 头部 - 渐变色背景（橙色系） ========== */
@@ -70,7 +75,7 @@
 /* ========== 内容区 ========== */
 .haircut-content {
   padding: 24rpx;
-  padding-bottom: 200rpx;
+  padding-bottom: 100rpx;
 }
 
 /* ========== 日期选择器（完全仿会议室样式） ========== */
@@ -79,6 +84,7 @@
   padding: 24rpx 0;
   border-bottom: 1rpx solid #E2E8F0;
   margin-bottom: 20rpx;
+  border-radius: 24rpx;
 }
 
 .date-scroll {
@@ -474,8 +480,7 @@
 
 /* ========== 表单 ========== */
 .haircut-popup-form {
-  padding: 32rpx;
-  padding-bottom: calc(32rpx + env(safe-area-inset-bottom));
+  padding: 32rpx 32rpx 0;
 }
 
 .haircut-field {

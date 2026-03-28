@@ -3,7 +3,7 @@
   <view class="office-gradient-header haircut-header">
     <view class="haircut-header-content">
       <view class="haircut-title">理发预约</view>
-      <view class="haircut-subtitle">服务时间：每周一三五下午 14:30~18:00</view>
+      <!-- <view class="haircut-subtitle">服务时间：每周一三五下午 14:30~18:00</view> -->
     </view>
   </view>
 
@@ -29,7 +29,7 @@
         <view class="haircut-info-text">
           • 理发服务仅限周一、三、五下午 14:30~18:00<text>\n</text>
           • 每时段仅限 1 人预约<text>\n</text>
-          • 当日 14:20 后不可预约当日时段
+          • 当日 14:20 后不可再预约当日时段
         </view>
       </view>
 

@@ -310,15 +310,18 @@ Page({
 
     /**
      * 计算应该显示的日期（本地时间）
-     * 规则：周五18:00后显示下周的周一三五，否则显示本周的周一三五
+     * 规则：周五18:00后、周六、周日显示下周的周一三五，否则显示本周的周一三五
      */
     calculateDisplayDates() {
         const now = new Date()
-        const currentDayOfWeek = now.getDay() // 0=周日, 5=周五
+        const currentDayOfWeek = now.getDay() // 0=周日, 5=周五, 6=周六
         const currentHour = now.getHours()
         
-        // 判断是否应该显示下周（周五18:00后）
-        const shouldShowNextWeek = currentDayOfWeek === 5 && currentHour >= 18
+        // 判断是否应该显示下周
+        // 周五18:00后、周六(6)、周日(0) 都显示下周
+        const shouldShowNextWeek = (currentDayOfWeek === 5 && currentHour >= 18) ||
+                                    currentDayOfWeek === 6 ||
+                                    currentDayOfWeek === 0
         
         // 计算本周的周一
         const mondayOfThisWeek = new Date(now)
