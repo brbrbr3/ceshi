@@ -22,6 +22,7 @@
     "pages/office/meeting-room/meeting-room",
     "pages/office/passport/passport",
     "pages/office/haircut/haircut",
+    "pages/office/repair/repair",
     "pages/office/feedback/feedback",
     "pages/office/help/help",
     "pages/test/datetime-picker-test/datetime-picker-test"

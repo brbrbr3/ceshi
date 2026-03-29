@@ -1,0 +1,261 @@
+<view class="repair-page">
+  <!-- 渐变色头部 -->
+  <view class="repair-header">
+    <view class="repair-header-content">
+      <view class="repair-title">物业报修</view>
+      <view class="repair-subtitle">在线提交报修申请</view>
+    </view>
+  </view>
+
+  <!-- Tab栏 -->
+  <view class="repair-tabs">
+    <view class="repair-tab {{activeTab === 'mine' ? 'is-active' : ''}}" bindtap="handleTabChange" data-tab="mine">
+      我的报修
+    </view>
+    <view class="repair-tab {{activeTab === 'all' ? 'is-active' : ''}}" wx:if="{{isPropertyUser}}" bindtap="handleTabChange" data-tab="all">
+      全部报修
+    </view>
+  </view>
+
+  <!-- 内容区域 -->
+  <view class="repair-content">
+    <!-- Tab 1: 我的报修 -->
+    <view wx:if="{{activeTab === 'mine'}}">
+      <view class="repair-section">
+        <view class="repair-section-header">
+          <view class="repair-section-title">我的报修记录</view>
+          <view class="repair-section-action" bindtap="showForm">
+            <text class="repair-action-text">+ 新建报修</text>
+          </view>
+        </view>
+
+        <!-- 列表 -->
+        <view class="repair-list">
+          <view class="repair-item" wx:for="{{list}}" wx:key="_id" bindtap="showDetail" data-repair="{{item}}">
+            <view class="repair-item-header">
+              <view class="repair-item-area">{{item.livingArea}}</view>
+              <view class="repair-item-status" style="background: {{item.statusBg}}; color: {{item.statusColor}};">
+                {{item.statusText}}
+              </view>
+            </view>
+            <view class="repair-item-body">
+              <view class="repair-item-addr">地址：{{item.address}}</view>
+              <view class="repair-item-content">{{item.contentPreview}}</view>
+              <view class="repair-item-images" wx:if="{{item.images && item.images.length > 0}}">
+                <image wx:for="{{item.images}}" wx:for-item="img" wx:for-index="imgIdx" wx:key="imgIdx"
+                  class="repair-item-thumb"
+                  src="{{img}}"
+                  mode="aspectFill"
+                  bindtap="handlePreviewImage"
+                  data-url="{{img}}"
+                  data-urls="{{item.images}}"
+                  catchtap="handlePreviewImage" />
+              </view>
+            </view>
+            <view class="repair-item-footer">
+              <text class="repair-item-time">{{item.createdAtText}}</text>
+            </view>
+          </view>
+        </view>
+
+        <!-- 空状态 -->
+        <view wx:if="{{!loading && list.length === 0}}" class="repair-empty">
+          <view class="repair-empty-icon">🔧</view>
+          <view class="repair-empty-text">暂无报修记录</view>
+        </view>
+
+        <!-- 加载中 -->
+        <view wx:if="{{loading}}" class="repair-loading">
+          <view class="repair-loading-text">加载中...</view>
+        </view>
+
+        <!-- 无更多 -->
+        <view wx:if="{{!hasMore && list.length > 0}}" class="repair-nomore">
+          没有更多了
+        </view>
+      </view>
+    </view>
+
+    <!-- Tab 2: 全部报修（物业） -->
+    <view wx:if="{{activeTab === 'all' && isPropertyUser}}">
+      <!-- 居住区筛选 -->
+      <view class="repair-filter">
+        <picker mode="selector" range="{{livingAreas}}" value="{{selectedArea ? livingAreas.indexOf(selectedArea) : 0}}" bindchange="handleAreaFilter">
+          <view class="repair-filter-btn">
+            <text>{{selectedArea || '全部居住区'}}</text>
+            <text class="repair-filter-arrow">▾</text>
+          </view>
+        </picker>
+      </view>
+
+      <view class="repair-section">
+        <view class="repair-section-title">全部报修记录</view>
+
+        <view class="repair-list">
+          <view class="repair-item" wx:for="{{list}}" wx:key="_id" bindtap="showDetail" data-repair="{{item}}">
+            <view class="repair-item-header">
+              <view class="repair-item-area">{{item.livingArea}}</view>
+              <view class="repair-item-status" style="background: {{item.statusBg}}; color: {{item.statusColor}};">
+                {{item.statusText}}
+              </view>
+            </view>
+            <view class="repair-item-body">
+              <view class="repair-item-reporter">报修人：{{item.reporterName}}</view>
+              <view class="repair-item-addr">地址：{{item.address}}</view>
+              <view class="repair-item-content">{{item.contentPreview}}</view>
+            </view>
+            <view class="repair-item-footer">
+              <text class="repair-item-time">{{item.createdAtText}}</text>
+            </view>
+          </view>
+        </view>
+
+        <!-- 空状态 -->
+        <view wx:if="{{!loading && list.length === 0}}" class="repair-empty">
+          <view class="repair-empty-icon">🔧</view>
+          <view class="repair-empty-text">暂无报修记录</view>
+        </view>
+
+        <!-- 加载中 -->
+        <view wx:if="{{loading}}" class="repair-loading">
+          <view class="repair-loading-text">加载中...</view>
+        </view>
+
+        <!-- 无更多 -->
+        <view wx:if="{{!hasMore && list.length > 0}}" class="repair-nomore">
+          没有更多了
+        </view>
+      </view>
+    </view>
+  </view>
+
+  <!-- 底部弹出表单：新建报修 -->
+  <view class="repair-popup-mask {{showFormPopup ? 'is-visible' : ''}}" catchtouchmove="stopPropagation" bindtap="hideFormPopup">
+    <view class="repair-popup-container" catchtap="stopPropagation">
+      <view class="repair-popup-header">
+        <view class="repair-popup-title">提交报修</view>
+        <view class="repair-popup-close" bindtap="hideFormPopup">×</view>
+      </view>
+
+      <view class="repair-popup-form">
+        <!-- 居住区 -->
+        <view class="repair-field">
+          <view class="repair-field-label">居住区 <text class="repair-required">*</text></view>
+          <picker mode="selector" range="{{livingAreas}}" value="{{areaIndex}}" bindchange="handleAreaChange">
+            <view class="repair-picker-btn">
+              <text wx:if="{{form.livingArea}}" class="repair-picker-value">{{form.livingArea}}</text>
+              <text wx:else class="repair-picker-placeholder">请选择居住区</text>
+              <text class="repair-picker-arrow">▾</text>
+            </view>
+          </picker>
+        </view>
+
+        <!-- 地址 -->
+        <view class="repair-field">
+          <view class="repair-field-label">地址 <text class="repair-required">*</text></view>
+          <view class="repair-input-wrapper">
+            <input class="repair-input" value="{{form.address}}" placeholder="请填写详细地址" placeholder-class="repair-input-placeholder" bindinput="handleAddressInput" bindfocus="hideAddressSuggestions" />
+          </view>
+          <!-- 历史地址提示 -->
+          <view class="repair-address-suggestions" wx:if="{{showAddressSuggestions && historyAddresses.length > 0}}">
+            <view class="repair-suggestion-title">历史地址</view>
+            <view class="repair-suggestion-item" wx:for="{{historyAddresses}}" wx:key="*this" bindtap="handleSelectAddress" data-address="{{item}}">
+              {{item}}
+            </view>
+          </view>
+        </view>
+
+        <!-- 报修内容 -->
+        <view class="repair-field">
+          <view class="repair-field-label">报修内容 <text class="repair-required">*</text></view>
+          <view class="repair-textarea-wrapper">
+            <textarea class="repair-textarea" value="{{form.content}}" placeholder="请描述报修问题" placeholder-class="repair-input-placeholder" bindinput="handleContentInput" maxlength="500" auto-height />
+          </view>
+        </view>
+
+        <!-- 图片上传 -->
+        <view class="repair-field">
+          <view class="repair-field-label">图片（最多3张）</view>
+          <view class="repair-image-list">
+            <view class="repair-image-item" wx:for="{{form.images}}" wx:key="*this">
+              <image class="repair-image-preview" src="{{item}}" mode="aspectFill" bindtap="handlePreviewImage" data-url="{{item}}" data-urls="{{form.images}}" />
+              <view class="repair-image-remove" bindtap="handleRemoveImage" data-index="{{index}}">×</view>
+            </view>
+            <view class="repair-image-add" wx:if="{{form.images.length < 3}}" bindtap="chooseImage">
+              <text class="repair-image-add-icon">+</text>
+              <text class="repair-image-add-text">添加图片</text>
+            </view>
+          </view>
+        </view>
+
+        <button class="repair-submit-btn" loading="{{submitting}}" disabled="{{submitting}}" bindtap="submitRepair">
+          提交报修
+        </button>
+      </view>
+    </view>
+  </view>
+
+  <!-- 底部弹出：详情 -->
+  <view class="repair-popup-mask {{showDetailPopup ? 'is-visible' : ''}}" catchtouchmove="stopPropagation" bindtap="hideDetailPopup">
+    <view class="repair-popup-container" catchtap="stopPropagation">
+      <view class="repair-popup-header">
+        <view class="repair-popup-title">报修详情</view>
+        <view class="repair-popup-close" bindtap="hideDetailPopup">×</view>
+      </view>
+
+      <view class="repair-detail-content" wx:if="{{selectedRepair}}">
+        <view class="repair-detail-row">
+          <text class="repair-detail-label">居住区：</text>
+          <text class="repair-detail-value">{{selectedRepair.livingArea}}</text>
+        </view>
+        <view class="repair-detail-row">
+          <text class="repair-detail-label">地址：</text>
+          <text class="repair-detail-value">{{selectedRepair.address}}</text>
+        </view>
+        <view class="repair-detail-row">
+          <text class="repair-detail-label">报修内容：</text>
+          <text class="repair-detail-value">{{selectedRepair.content}}</text>
+        </view>
+        <view class="repair-detail-images" wx:if="{{selectedRepair.images && selectedRepair.images.length > 0}}">
+          <text class="repair-detail-label">图片：</text>
+          <view class="repair-detail-img-list">
+            <image wx:for="{{selectedRepair.images}}" wx:for-item="img" wx:key="*this"
+              class="repair-detail-img"
+              src="{{img}}"
+              mode="aspectFill"
+              bindtap="handlePreviewImage"
+              data-url="{{img}}"
+              data-urls="{{selectedRepair.images}}" />
+          </view>
+        </view>
+        <view class="repair-detail-row">
+          <text class="repair-detail-label">当前状态：</text>
+          <text class="repair-detail-value" style="color: {{selectedRepair.statusColor}};">{{selectedRepair.statusText}}</text>
+        </view>
+        <view class="repair-detail-row">
+          <text class="repair-detail-label">报修人：</text>
+          <text class="repair-detail-value">{{selectedRepair.reporterName}}</text>
+        </view>
+        <view class="repair-detail-row">
+          <text class="repair-detail-label">提交时间：</text>
+          <text class="repair-detail-value">{{selectedRepair.createdAtText}}</text>
+        </view>
+        <view class="repair-detail-row" wx:if="{{selectedRepair.status === 'completed'}}">
+          <text class="repair-detail-label">维修时间：</text>
+          <text class="repair-detail-value">{{selectedRepair.completedAtText}}</text>
+        </view>
+        <view class="repair-detail-row" wx:if="{{selectedRepair.status === 'completed' && selectedRepair.completedByName}}">
+          <text class="repair-detail-label">维修操作人：</text>
+          <text class="repair-detail-value">{{selectedRepair.completedByName}}</text>
+        </view>
+      </view>
+
+      <!-- 物业操作按钮 -->
+      <view class="repair-popup-actions" wx:if="{{isPropertyUser && selectedRepair && selectedRepair.status === 'pending'}}">
+        <button class="repair-action-btn is-primary" loading="{{operating}}" disabled="{{operating}}" bindtap="handleComplete">
+          维修完成
+        </button>
+      </view>
+    </view>
+  </view>
+</view>

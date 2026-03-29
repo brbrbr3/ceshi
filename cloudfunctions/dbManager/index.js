@@ -40,6 +40,7 @@ const DB_COLLECTIONS = [
   'office_users',
   'passport_info',
   'passport_records',
+  'repair_orders',
   'permissions',
   'schedule_subscriptions',
   'sys_config',

@@ -819,6 +819,9 @@ App({
         withoutReview: ['mine']
       },
 
+      // 物业报修相关
+      REPAIR_LIVING_AREAS: ['本部', '馆周边', '5号院', '8号院', '湖畔'],
+
       // 外出报备相关
       TRAVEL_MODES: ['自驾', '搭车', '打车', '步行'],
       TRIP_STATUS: {
