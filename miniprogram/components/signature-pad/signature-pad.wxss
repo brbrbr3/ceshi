@@ -1,0 +1,184 @@
+/* ====== 遮罩层（居中） ====== */
+.sig-mask {
+  position: fixed;
+  top: 0;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  z-index: 1000;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  background: rgba(0, 0, 0, 0.5);
+}
+
+/* ====== 容器 ====== */
+.sig-container {
+  width: 96vw;
+  display: flex;
+  flex-direction: column;
+  background: #fff;
+  border-radius: 24rpx;
+  overflow: hidden;
+}
+
+/* 横屏模式：稍大于屏幕 + 负margin 确保旋转后完全贴边 */
+.sig-container.sig-landscape {
+  width: calc(100vh + 40px);
+  height: calc(100vw + 40px);
+  margin: -20px;
+  border-radius: 0;
+  transform: rotate(90deg);
+}
+
+/* ====== 顶部栏 ====== */
+.sig-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 20rpx 24rpx;
+  border-bottom: 1rpx solid #eee;
+  flex-shrink: 0;
+}
+
+.sig-title {
+  font-size: 32rpx;
+  font-weight: bold;
+  color: #333;
+}
+
+.sig-actions {
+  display: flex;
+  align-items: center;
+  gap: 12rpx;
+}
+
+.sig-btn {
+  padding: 8rpx 20rpx;
+  font-size: 24rpx;
+  color: #555;
+  border-radius: 8rpx;
+  background: #f5f5f5;
+}
+
+.sig-btn-hover {
+  opacity: 0.7;
+}
+
+.sig-btn-close {
+  color: #999;
+  font-size: 28rpx;
+  padding: 8rpx 14rpx;
+}
+
+/* ====== 画布区域 ====== */
+/* 竖屏：宽高比 5:4（高度 = 宽度的80%） */
+.sig-canvas-area {
+  position: relative;
+  overflow: hidden;
+  background: #fff;
+  aspect-ratio: 5 / 4;
+}
+
+/* 横屏：画布占满剩余空间 */
+.sig-landscape .sig-canvas-area {
+  aspect-ratio: auto;
+  flex: 1;
+}
+
+.sig-canvas {
+  position: absolute;
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: 100%;
+}
+
+/* 签名引导文字 */
+.sig-hint {
+  position: absolute;
+  bottom: 20%;
+  left: 0;
+  right: 0;
+  text-align: center;
+  pointer-events: none;
+}
+
+.sig-hint-text {
+  font-size: 30rpx;
+  color: #ccc;
+  letter-spacing: 8rpx;
+}
+
+/* 横屏提示 */
+.sig-orient-hint {
+  position: absolute;
+  top: 50%;
+  left: 50%;
+  transform: translate(-50%, -50%);
+  padding: 16rpx 32rpx;
+  background: rgba(0, 0, 0, 0.6);
+  border-radius: 12rpx;
+  pointer-events: none;
+}
+
+.sig-orient-hint text {
+  font-size: 26rpx;
+  color: #fff;
+}
+
+/* ====== 底部栏 ====== */
+.sig-footer {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 16rpx 24rpx;
+  border-top: 1rpx solid #eee;
+  flex-shrink: 0;
+}
+
+/* 颜色选择 */
+.sig-colors {
+  display: flex;
+  align-items: center;
+  gap: 16rpx;
+}
+
+.sig-dot {
+  width: 44rpx;
+  height: 44rpx;
+  border-radius: 50%;
+  border: 3rpx solid transparent;
+}
+
+.sig-dot.active {
+  border-color: #333;
+}
+
+/* 操作按钮行 */
+.sig-btn-row {
+  display: flex;
+  align-items: center;
+  gap: 16rpx;
+}
+
+.sig-btn-cancel {
+  padding: 14rpx 36rpx;
+  font-size: 26rpx;
+  color: #666;
+  background: #f5f5f5;
+  border-radius: 12rpx;
+}
+
+.sig-btn-confirm {
+  padding: 14rpx 36rpx;
+  font-size: 26rpx;
+  color: #fff;
+  background: #16a34a;
+  border-radius: 12rpx;
+  font-weight: 500;
+}
+
+.sig-btn-confirm.sig-btn-hover {
+  background: #15803d;
+}

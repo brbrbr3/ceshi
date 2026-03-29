@@ -25,7 +25,8 @@
     "pages/office/repair/repair",
     "pages/office/feedback/feedback",
     "pages/office/help/help",
-    "pages/test/datetime-picker-test/datetime-picker-test"
+    "pages/test/datetime-picker-test/datetime-picker-test",
+    "pages/test/signature-test/signature-test"
   ],
   "window": {
     "navigationBarTextStyle": "black",

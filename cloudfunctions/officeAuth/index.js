@@ -130,29 +130,43 @@ async function getSystemConstants() {
 }
 
 /**
- * 获取默认常量（降级方案）
+ * 获取默认常量（降级方案，与 initSystemConfig 保持同步）
  */
 function getDefaultConstants() {
   return {
     // 角色相关
     ROLE_OPTIONS: ['馆领导', '部门负责人', '馆员', '工勤', '物业', '配偶', '家属'],
-    NEED_DEPARTMENT_ROLES: ['部门负责人', '馆员', '工勤'],
+    ROLE_POSITION_MAP: {
+      '馆领导': ['无', '会计主管'],
+      '部门负责人': ['无', '会计主管', '会计', '出纳', '俱乐部', '阳光课堂'],
+      '馆员': ['无', '礼宾', '会计主管', '会计', '出纳', '俱乐部', '阳光课堂'],
+      '工勤': ['招待员', '厨师'],
+      '配偶': ['无', '出纳', '内聘']
+    },
     NEED_RELATIVE_ROLES: ['配偶', '家属'],
     DEFAULT_ROLE: '',
-    
+    ROLE_FIELD_VISIBILITY: {
+      '馆领导': { showPosition: true, showDepartment: false, fixedDepartment: null },
+      '部门负责人': { showPosition: true, showDepartment: true, fixedDepartment: null },
+      '馆员': { showPosition: true, showDepartment: true, fixedDepartment: null },
+      '工勤': { showPosition: true, showDepartment: true, fixedDepartment: '办公室' },
+      '物业': { showPosition: false, showDepartment: true, fixedDepartment: '办公室' },
+      '配偶': { showPosition: true, showDepartment: false, fixedDepartment: null },
+      '家属': { showPosition: false, showDepartment: false, fixedDepartment: null }
+    },
+
     // 岗位相关
-    POSITION_OPTIONS: ['无', '会计主管', '会计', '招待员', '厨师'],
+    POSITION_OPTIONS: ['无', '礼宾', '会计主管', '会计', '出纳', '俱乐部', '阳光课堂', '招待员', '厨师', '内聘'],
     DEFAULT_POSITION: '',
-    
+
     // 部门相关
-    DEPARTMENT_OPTIONS: ['政治处', '新公处', '经商处', '科技处', '武官处', '领侨处', '文化处', '办公室', '党委办'],
+    DEPARTMENT_OPTIONS: ['政治处', '新公处', '经商处', '科技处', '武官处', '领侨处', '文化处', '办公室', 'DW办'],
     DEFAULT_DEPARTMENT: '',
-    WORKER_DEPARTMENT: '办公室',
-    
+
     // 性别相关
     GENDER_OPTIONS: ['男', '女'],
     DEFAULT_GENDER: '男',
-    
+
     // 请求状态
     REQUEST_STATUS: {
       PENDING: 'pending',
@@ -172,9 +186,12 @@ function getDefaultConstants() {
       rejected: { color: '#DC2626', bg: '#FEE2E2' },
       terminated: { color: '#DC2626', bg: '#FEE2E2' }
     },
-    
+
     // 审批角色
-    REVIEWER_ROLES: ['馆领导', '部门负责人']
+    APPROVAL_REVIEWER_ROLES: ['馆领导', '部门负责人'],
+
+    // 物业报修
+    REPAIR_LIVING_AREAS: ['本部', '馆周边', '5号院', '8号院', '湖畔']
   }
 }
 
@@ -231,12 +248,12 @@ function normalizeBoolean(value) {
 // 动态获取常量
 async function getPositionOptions() {
   const constants = await getSystemConstants()
-  return constants.positions || ['无', '会计主管', '会计', '招待员', '厨师']
+  return constants.POSITION_OPTIONS || ['无', '礼宾', '会计主管', '会计', '出纳', '俱乐部', '阳光课堂', '招待员', '厨师', '内聘']
 }
 
 async function getDepartmentOptions() {
   const constants = await getSystemConstants()
-  return constants.departments || ['政治处', '新公处', '经商处', '科技处', '武官处', '领侨处', '文化处', '办公室', '党委办']
+  return constants.DEPARTMENT_OPTIONS || ['政治处', '新公处', '经商处', '科技处', '武官处', '领侨处', '文化处', '办公室', 'DW办']
 }
 
 async function getRoleOptions() {

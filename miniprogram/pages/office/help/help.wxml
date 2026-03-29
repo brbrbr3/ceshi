@@ -118,6 +118,23 @@
           </view>
         </view>
       </view>
+      <view class="help-card">
+        <view class="card-header">
+          <view class="card-icon">🔧</view>
+          <view class="card-title">物业报修</view>
+        </view>
+        <view class="card-content">
+          <view class="card-desc">在线提交物业报修申请，填写居住区、地址、报修内容并上传图片。提交后可查看报修状态和维修进度。</view>
+          <view class="card-features">
+            <view class="feature-item">• 我的报修：查看个人提交的报修记录，提交新报修。</view>
+            <view class="feature-item">• 全部报修（物业）：查看所有报修记录，按居住区筛选，标记维修完成。</view>
+          </view>
+          <view class="card-permission">
+            <view class="permission-label">权限要求：</view>
+            <view class="permission-value">所有用户可提交报修。仅物业角色可查看全部报修并标记完成。</view>
+          </view>
+        </view>
+      </view>
     </view>
 
     <!-- 协作功能 -->

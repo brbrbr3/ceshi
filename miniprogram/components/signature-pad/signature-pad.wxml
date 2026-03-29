@@ -1,0 +1,60 @@
+/*
+  签字板组件
+  属性：
+    show(Boolean)       - 控制显示/隐藏
+    penColor(String)    - 默认画笔颜色
+    penWidth(Number)    - 默认画笔粗细
+  事件：
+    confirm             - 确认签名，detail.tempFilePath
+    cancel              - 取消签名
+*/
+<view class="sig-mask" wx:if="{{visible}}" catchtouchmove="noop">
+  <view class="sig-container">
+    <!-- 顶部栏 -->
+    <view class="sig-header">
+      <view class="sig-title">手写签名</view>
+      <view class="sig-actions">
+        <view class="sig-btn" bindtap="undo" hover-class="sig-btn-hover">
+          <text>撤销</text>
+        </view>
+        <view class="sig-btn" bindtap="clear" hover-class="sig-btn-hover">
+          <text>清除</text>
+        </view>
+        <view class="sig-btn sig-btn-close" bindtap="onCancel" hover-class="sig-btn-hover">
+          <text>✕</text>
+        </view>
+      </view>
+    </view>
+
+    <!-- 画布区域 -->
+    <view class="sig-canvas-area">
+      <canvas type="2d" id="sigCanvas" class="sig-canvas"
+        disable-scroll="{{true}}"
+        bindtouchstart="onTouchStart"
+        bindtouchmove="onTouchMove"
+        bindtouchend="onTouchEnd" />
+      <!-- 签名引导 -->
+      <view class="sig-hint" wx:if="{{isEmpty}}">
+        <text class="sig-hint-text">请在此处签名</text>
+      </view>
+    </view>
+
+    <!-- 底部栏 -->
+    <view class="sig-footer">
+      <!-- 颜色选择 -->
+      <view class="sig-colors">
+        <view class="sig-dot {{currentPenColor === '#000000' ? 'active' : ''}}"
+          style="background: #000000;" bindtap="setColor" data-color="#000000"></view>
+        <view class="sig-dot {{currentPenColor === '#1a6cff' ? 'active' : ''}}"
+          style="background: #1a6cff;" bindtap="setColor" data-color="#1a6cff"></view>
+        <view class="sig-dot {{currentPenColor === '#dc2626' ? 'active' : ''}}"
+          style="background: #dc2626;" bindtap="setColor" data-color="#dc2626"></view>
+      </view>
+      <!-- 操作按钮 -->
+      <view class="sig-btn-row">
+        <view class="sig-btn-cancel" bindtap="onCancel" hover-class="sig-btn-hover">取消</view>
+        <view class="sig-btn-confirm" bindtap="onConfirm" hover-class="sig-btn-hover">确认签名</view>
+      </view>
+    </view>
+  </view>
+</view>
