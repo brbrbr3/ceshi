@@ -415,7 +415,7 @@ Page({
   },
 
   hideDetailPopup() {
-    this.setData({ showDetailPopup: false, selectedRepair: null })
+    this.setData({ showDetailPopup: false })
   },
 
   /**

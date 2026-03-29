@@ -16,7 +16,7 @@
 
     <!-- 背景装饰图片 -->
     <view class="home-bg-image-wrapper">
-      <image class="home-bg-image" src="/image/br2.jpg" mode="widthFix" />
+      <image class="home-bg-image" src="/image/br1.jpg" mode="widthFix" />
     </view>
   </view>
 
@@ -47,7 +47,6 @@
     <view class="office-section">
       <view class="office-section-header">
         <view class="office-section-title">常用功能</view>
-        <view class="office-link" bindtap="showComingSoon">全部</view>
       </view>
       <view class="office-card home-grid-card">
         <view class="home-grid">

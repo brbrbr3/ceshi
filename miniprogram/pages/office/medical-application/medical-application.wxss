@@ -213,8 +213,10 @@
   border-radius: 32rpx 32rpx 0 0;
   transform: translateY(100%);
   transition: transform 0.3s ease;
-  max-height: 90vh;
-  overflow-y: auto;
+  height: 85vh;
+  overflow: hidden;
+  display: flex;
+  flex-direction: column;
   margin: 0 28rpx 0;
 }
 
@@ -229,10 +231,8 @@
   justify-content: space-between;
   padding: 32rpx;
   border-bottom: 1rpx solid #F1F5F9;
-  position: sticky;
-  top: 0;
   background: #FFFFFF;
-  z-index: 1;
+  flex-shrink: 0;
 }
 
 .medical-popup-title {
@@ -250,8 +250,10 @@
 
 /* ========== 表单 ========== */
 .medical-popup-form {
+  flex: 1;
+  overflow: hidden;
   padding: 32rpx;
-  padding-bottom: calc(32rpx + env(safe-area-inset-bottom));
+  box-sizing: border-box;
 }
 
 .medical-field {
@@ -444,8 +446,10 @@
 
 /* ========== 详情内容 ========== */
 .medical-detail-content {
+  flex: 1;
+  overflow: hidden;
   padding: 24rpx 32rpx;
-  padding-bottom: calc(24rpx + env(safe-area-inset-bottom));
+  box-sizing: border-box;
 }
 
 .medical-detail-row {
@@ -533,6 +537,7 @@
   padding-bottom: calc(16rpx + env(safe-area-inset-bottom));
   display: flex;
   gap: 16rpx;
+  flex-shrink: 0;
 }
 
 .medical-action-btn {

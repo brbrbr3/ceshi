@@ -273,13 +273,7 @@ Page({
   },
 
   hideDetailPopup() {
-    this.setData({
-      showDetailPopup: false,
-      selectedRecord: null,
-      detailLogs: [],
-      approvedAtText: '',
-      submittedAtText: ''
-    })
+    this.setData({ showDetailPopup: false })
   },
 
   stopPropagation() {},

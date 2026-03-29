@@ -461,10 +461,7 @@ Page({
    * 隐藏详情弹窗
    */
   hideDetailPopup() {
-    this.setData({ 
-      showDetailPopup: false,
-      selectedRecord: null
-    })
+    this.setData({ showDetailPopup: false })
   },
 
   /**
@@ -482,10 +479,7 @@ Page({
    * 隐藏待借详情弹窗
    */
   hideApprovedPopup() {
-    this.setData({ 
-      showApprovedPopup: false,
-      selectedApproved: null
-    })
+    this.setData({ showApprovedPopup: false })
   },
 
   /**
@@ -503,10 +497,7 @@ Page({
    * 隐藏在借详情弹窗
    */
   hideBorrowedPopup() {
-    this.setData({ 
-      showBorrowedPopup: false,
-      selectedBorrowed: null
-    })
+    this.setData({ showBorrowedPopup: false })
   },
 
   /**
