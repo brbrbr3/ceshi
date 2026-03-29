@@ -884,7 +884,62 @@
 
 ---
 
-### 22. haircut_appointments - 理发预约记录
+### 22. medical_records - 就医申请记录
+
+**用途**：存储审批通过后的就医申请记录
+
+**安全规则**：`ADMINWRITE` - 所有用户可读，仅管理员可写
+
+> **重要说明**：就医记录由云函数创建（审批通过后自动创建），使用 `ADMINWRITE` 规则，用户可读取自己的就医记录用于查看和导出。
+
+**记录数**：动态
+
+**索引**：
+
+- `_id` - 记录 ID（云开发自动创建）
+- `idx_applicantId` - 申请人 ID 索引
+- `idx_createdAt` - 创建时间索引（降序）
+- `idx_medicalDate` - 就医日期索引（降序）
+
+**字段结构**：
+```javascript
+{
+  _id: String,                    // 记录 ID（自动生成）
+  orderId: String,                // 关联的工单 ID
+  orderNo: String,                // 工单编号
+  // 申请人信息
+  applicantId: String,            // 申请人 openid
+  applicantName: String,          // 申请人姓名
+  applicantRole: String,          // 申请人角色
+  // 就医信息
+  patientName: String,            // 就医人姓名
+  relation: String,               // 与申请人关系
+  medicalDate: String,            // 就医日期 YYYY-MM-DD
+  institution: String,            // 就医机构
+  otherInstitution: String,       // 其他机构名称（institution='其他'时）
+  reasonForSelection: String,     // 选择此机构的原因
+  reason: String,                 // 就医原因
+  // 状态
+  status: String,                 // 状态：'approved'（已通过）
+  // 时间戳
+  createdAt: Number,              // 创建时间戳
+  updatedAt: Number               // 更新时间戳
+}
+```
+
+**业务流程说明**：
+1. 用户提交就医申请 → 创建 `work_orders` 工单
+2. 审批通过后 → 工作流引擎自动创建 `medical_records` 记录
+3. 用户可查看已通过的就医记录列表，点击查看详情
+4. 支持导出PDF（通过 `medicalApplication.generatePdf` 云函数）
+
+**相关云函数**：
+- `medicalApplication`：处理就医申请提交、记录查询、详情查看、PDF生成等操作
+- `workflowEngine`：审批通过后自动创建 `medical_records` 记录
+
+---
+
+### 23. haircut_appointments - 理发预约记录
 
 **用途**：存储理发预约记录
 
@@ -1067,6 +1122,7 @@ const notificationsCollection = db.collection('notifications')  // ✅
 | 2026-03-25 | 添加 feedback_posts、feedback_replies、meeting_room_reservations、schedule_subscriptions 集合 | AI |
 | 2026-03-27 | 添加 passport_records 护照借用记录集合 | AI |
 | 2026-03-27 | 添加 passport_info 护照信息集合 | AI |
+| 2026-03-29 | 添加 medical_records 就医申请记录集合 | AI |
 | 2026-03-27 | 添加 haircut_appointments 理发预约记录集合 | AI |
 
 ---
@@ -1085,6 +1141,7 @@ https://tcb.cloud.tencent.com/dev?envId=cloud1-8gdftlggae64d5d0#/db/doc
 - [feedback_replies](https://tcb.cloud.tencent.com/dev?envId=cloud1-8gdftlggae64d5d0#/db/doc/collection/feedback_replies)
 - [haircut_appointments](https://tcb.cloud.tencent.com/dev?envId=cloud1-8gdftlggae64d5d0#/db/doc/collection/haircut_appointments)
 - [holiday_configs](https://tcb.cloud.tencent.com/dev?envId=cloud1-8gdftlggae64d5d0#/db/doc/collection/holiday_configs)
+- [medical_records](https://tcb.cloud.tencent.com/dev?envId=cloud1-8gdftlggae64d5d0#/db/doc/collection/medical_records)
 - [meeting_room_reservations](https://tcb.cloud.tencent.com/dev?envId=cloud1-8gdftlggae64d5d0#/db/doc/collection/meeting_room_reservations)
 - [menu_comments](https://tcb.cloud.tencent.com/dev?envId=cloud1-8gdftlggae64d5d0#/db/doc/collection/menu_comments)
 - [menus](https://tcb.cloud.tencent.com/dev?envId=cloud1-8gdftlggae64d5d0#/db/doc/collection/menus)

@@ -1,86 +1,134 @@
-<view class="office-page medical-page">
+<view class="medical-page">
+  <!-- 渐变色头部 -->
   <view class="office-gradient-header medical-header">
-    <view class="office-header-top">
-      <view>
-        <view class="medical-title">就医申请</view>
-        <view class="medical-subtitle">填写就医信息，需经部门负责人、会计主管、馆领导三级审批</view>
+    <view class="medical-header-content">
+      <view class="medical-title">就医申请</view>
+      <view class="medical-subtitle">就医申请及记录管理</view>
+    </view>
+  </view>
+
+  <!-- 内容区域 -->
+  <view class="medical-content">
+    <view class="medical-section">
+      <!-- 区域标题 + 添加按钮 -->
+      <view class="medical-section-header">
+        <view class="medical-section-title">就医申请记录</view>
+        <view class="medical-section-action" bindtap="showApplicationForm">
+          <text class="medical-action-text">添加就医申请</text>
+        </view>
+      </view>
+
+      <!-- 按月分组列表 -->
+      <block wx:for="{{groupedRecords}}" wx:key="monthKey">
+        <view class="medical-month-group">
+          <view class="medical-month-title">{{item.monthText}}</view>
+          <view class="medical-list">
+            <view class="medical-item" wx:for="{{item.records}}" wx:for-item="record" wx:key="_id" bindtap="showRecordDetail" data-record="{{record}}">
+              <view class="medical-item-header">
+                <view class="medical-item-date">{{record.medicalDateText}}</view>
+                <view class="medical-item-status">已通过</view>
+              </view>
+              <view class="medical-item-body">
+                <view class="medical-item-patient">就医人：{{record.patientName}}</view>
+                <view class="medical-item-meta">
+                  <text class="medical-item-institution">机构：{{record.institutionText}}</text>
+                </view>
+                <view class="medical-item-meta" wx:if="{{record.relation}}">
+                  <text class="medical-item-relation">关系：{{record.relation}}</text>
+                </view>
+              </view>
+            </view>
+          </view>
+        </view>
+      </block>
+
+      <!-- 空状态 -->
+      <view wx:if="{{!loading && recordList.length === 0}}" class="medical-empty">
+        <view class="medical-empty-icon">🏥</view>
+        <view class="medical-empty-text">暂无就医申请记录</view>
+        <view class="medical-empty-hint">点击上方按钮添加就医申请</view>
+      </view>
+
+      <!-- 加载中 -->
+      <view wx:if="{{loading && recordList.length === 0}}" class="medical-loading">
+        <view class="medical-loading-text">加载中...</view>
       </view>
     </view>
   </view>
 
-  <view class="office-content medical-content">
-    <view class="office-card medical-form-card">
-      <view class="medical-form">
+  <!-- 底部弹出：申请表单 -->
+  <view class="medical-popup-mask {{showFormPopup ? 'is-visible' : ''}}" catchtouchmove="stopPropagation" bindtap="hideFormPopup">
+    <view class="medical-popup-container" catchtap="stopPropagation">
+      <view class="medical-popup-header">
+        <view class="medical-popup-title">添加就医申请</view>
+        <view class="medical-popup-close" bindtap="hideFormPopup">×</view>
+      </view>
+
+      <view class="medical-popup-form">
         <view class="medical-field">
           <view class="medical-field-label">就医人姓名 <text class="medical-required">*</text></view>
-          <view class="medical-input-shell">
-            <input value="{{form.patientName}}" placeholder="请填写就医人姓名" placeholder-class="medical-input-placeholder" bindinput="handlePatientNameInput" />
+          <view class="medical-input-wrapper">
+            <input class="medical-input" value="{{form.patientName}}" placeholder="请填写就医人姓名" placeholder-class="medical-input-placeholder" bindinput="handlePatientNameInput" />
           </view>
         </view>
 
         <view class="medical-field">
           <view class="medical-field-label">与申请人关系 <text class="medical-required">*</text></view>
-          <picker mode="selector" range="{{relationOptions}}" value="{{relationIndex >= 0 ? relationIndex : 0}}" bindchange="handleRelationChange">
-            <view class="medical-picker-shell {{form.relation ? '' : 'is-placeholder'}}">
-              <view class="medical-picker-value">{{form.relation || '请选择关系'}}</view>
-              <view class="medical-picker-arrow">›</view>
+          <view wx:if="{{relations.length > 0}}" class="medical-select-group">
+            <view class="medical-select-item {{form.relation === item.value ? 'is-active' : ''}}" wx:for="{{relations}}" wx:key="value" bindtap="handleRelationSelect" data-value="{{item.value}}">
+              {{item.name}}
             </view>
-          </picker>
+          </view>
+          <view wx:else class="medical-select-empty">暂无可选项，请检查系统配置</view>
         </view>
 
         <view class="medical-field">
-          <view class="medical-field-label">就医时间 <text class="medical-required">*</text></view>
-          <picker mode="date" value="{{form.medicalDate}}" start="2024-01-01" end="2030-12-31" bindchange="handleMedicalDateChange">
-            <view class="medical-picker-shell {{form.medicalDate ? '' : 'is-placeholder'}}">
-              <view class="medical-picker-value">{{form.medicalDate || '请选择就医时间'}}</view>
-              <view class="medical-picker-arrow">›</view>
-            </view>
-          </picker>
+          <view class="medical-field-label">就医日期 <text class="medical-required">*</text></view>
+          <datetime-picker
+            value="{{form.medicalDate}}"
+            fields="{{['year', 'month', 'day', 'weekday']}}"
+            start-date="{{today}}"
+            placeholder="请选择就医日期"
+            type="border"
+            bindchange="handleMedicalDateChange"
+          />
         </view>
 
         <view class="medical-field">
-          <view class="medical-field-label">就医机构 (2025年6月更新) <text class="medical-required">*</text></view>
-          <picker mode="selector" range="{{medicalInstitutions}}" value="{{institutionIndex >= 0 ? institutionIndex : 0}}" bindchange="handleInstitutionChange">
-            <view class="medical-picker-shell {{form.institution ? '' : 'is-placeholder'}}">
-              <view class="medical-picker-value">{{form.institution || '请选择就医机构'}}</view>
-              <view class="medical-picker-arrow">›</view>
+          <view class="medical-field-label">就医机构 <text class="medical-required">*</text></view>
+          <view wx:if="{{institutions.length > 0}}" class="medical-select-group">
+            <view class="medical-select-item {{form.institution === item.value ? 'is-active' : ''}}" wx:for="{{institutions}}" wx:key="value" bindtap="handleInstitutionSelect" data-value="{{item.value}}">
+              {{item.name}}
             </view>
-          </picker>
+          </view>
+          <view wx:else class="medical-select-empty">暂无可选项，请检查系统配置</view>
         </view>
 
         <view wx:if="{{form.institution === '其他'}}" class="medical-field">
           <view class="medical-field-label">就医机构名称 <text class="medical-required">*</text></view>
-          <view class="medical-input-shell">
-            <input value="{{form.otherInstitution}}" placeholder="请填写就医机构名称" placeholder-class="medical-input-placeholder" bindinput="handleOtherInstitutionInput" />
+          <view class="medical-input-wrapper">
+            <input class="medical-input" value="{{form.otherInstitution}}" placeholder="请填写就医机构名称" placeholder-class="medical-input-placeholder" bindinput="handleOtherInstitutionInput" />
           </view>
         </view>
 
         <view wx:if="{{form.institution === '其他'}}" class="medical-field">
-          <view class="medical-field-label">选择此机构的原因 <text class="medical-required">*</text></view>
-          <view class="medical-textarea-shell">
-            <textarea value="{{form.reasonForSelection}}" placeholder="请说明选择此就医机构的原因" placeholder-class="medical-textarea-placeholder" bindinput="handleReasonForSelectionInput" maxlength="500" />
+          <view class="medical-field-label">选择此机构的原因</view>
+          <view class="medical-textarea-wrapper">
+            <textarea class="medical-textarea" value="{{form.reasonForSelection}}" placeholder="请说明选择此就医机构的原因" placeholder-class="medical-input-placeholder" bindinput="handleReasonForSelectionInput" maxlength="500" auto-height />
           </view>
         </view>
 
         <view class="medical-field">
           <view class="medical-field-label">就医原因 <text class="medical-required">*</text></view>
-          <view class="medical-textarea-shell">
-            <textarea value="{{form.reason}}" placeholder="请填写就医原因（如：突发疾病、定期检查、专科就诊等）" placeholder-class="medical-textarea-placeholder" bindinput="handleReasonInput" maxlength="500" />
+          <view class="medical-textarea-wrapper">
+            <textarea class="medical-textarea" value="{{form.reason}}" placeholder="请填写就医原因" placeholder-class="medical-input-placeholder" bindinput="handleReasonInput" maxlength="500" auto-height />
           </view>
         </view>
 
+        <!-- 审批流程说明 -->
         <view class="medical-note">
           <view class="medical-note-title">📋 审批流程</view>
-          <view wx:if="{{workflowSteps.length > 0}}" class="medical-note-steps">
-            <block wx:for="{{workflowSteps}}" wx:key="index">
-              <view class="medical-note-step">
-                <view class="medical-step-dot"></view>
-                <view class="medical-step-text">{{item}}</view>
-              </view>
-              <view wx:if="{{index < workflowSteps.length - 1}}" class="medical-note-arrow">→</view>
-            </block>
-          </view>
-          <view wx:else class="medical-note-steps">
+          <view class="medical-note-steps">
             <view class="medical-note-step">
               <view class="medical-step-dot"></view>
               <view class="medical-step-text">部门负责人审批</view>
@@ -98,7 +146,82 @@
           </view>
         </view>
 
-        <button class="medical-submit-btn" loading="{{loading}}" disabled="{{loading}}" bindtap="submitApplication">提交申请</button>
+        <button class="medical-submit-btn" loading="{{submitting}}" disabled="{{submitting}}" bindtap="submitApplication">
+          提交申请
+        </button>
+      </view>
+    </view>
+  </view>
+
+  <!-- 底部弹出：记录详情 -->
+  <view class="medical-popup-mask {{showDetailPopup ? 'is-visible' : ''}}" catchtouchmove="stopPropagation" bindtap="hideDetailPopup">
+    <view class="medical-popup-container" catchtap="stopPropagation">
+      <view class="medical-popup-header">
+        <view class="medical-popup-title">就医申请详情</view>
+        <view class="medical-popup-close" bindtap="hideDetailPopup">×</view>
+      </view>
+
+      <view class="medical-detail-content" wx:if="{{selectedRecord}}">
+        <view class="medical-detail-row">
+          <text class="medical-detail-label">就医人姓名：</text>
+          <text class="medical-detail-value">{{selectedRecord.patientName}}</text>
+        </view>
+        <view class="medical-detail-row">
+          <text class="medical-detail-label">与申请人关系：</text>
+          <text class="medical-detail-value">{{selectedRecord.relation || '-'}}</text>
+        </view>
+        <view class="medical-detail-row">
+          <text class="medical-detail-label">就医日期：</text>
+          <text class="medical-detail-value">{{selectedRecord.medicalDateText}}</text>
+        </view>
+        <view class="medical-detail-row">
+          <text class="medical-detail-label">就医机构：</text>
+          <text class="medical-detail-value">{{selectedRecord.institutionText}}</text>
+        </view>
+        <view class="medical-detail-row" wx:if="{{selectedRecord.reasonForSelection}}">
+          <text class="medical-detail-label">选择原因：</text>
+          <text class="medical-detail-value">{{selectedRecord.reasonForSelection}}</text>
+        </view>
+        <view class="medical-detail-row">
+          <text class="medical-detail-label">就医原因：</text>
+          <text class="medical-detail-value">{{selectedRecord.reason || '-'}}</text>
+        </view>
+        <view class="medical-detail-row">
+          <text class="medical-detail-label">申请人：</text>
+          <text class="medical-detail-value">{{selectedRecord.applicantName}}</text>
+        </view>
+        <view class="medical-detail-row">
+          <text class="medical-detail-label">申请状态：</text>
+          <text class="medical-detail-value medical-status-approved">已通过</text>
+        </view>
+        <view class="medical-detail-row">
+          <text class="medical-detail-label">申请时间：</text>
+          <text class="medical-detail-value">{{selectedRecord.createdAtText}}</text>
+        </view>
+
+        <!-- 审批日志 -->
+        <view wx:if="{{detailLogs.length > 0}}" class="medical-detail-logs">
+          <view class="medical-logs-title">审批记录</view>
+          <view class="medical-log-item" wx:for="{{detailLogs}}" wx:key="index">
+            <view class="medical-log-dot"></view>
+            <view class="medical-log-content">
+              <view class="medical-log-action">{{item.actionText}}</view>
+              <view class="medical-log-info" wx:if="{{item.operatorName}}">
+                <text wx:if="{{item.remark}}">{{item.operatorName}}：{{item.remark}}</text>
+                <text wx:else>{{item.operatorName}}</text>
+              </view>
+              <view class="medical-log-info" wx:elif="{{item.remark}}">{{item.remark}}</view>
+              <view class="medical-log-time">{{item.timeText}}</view>
+            </view>
+          </view>
+        </view>
+      </view>
+
+      <!-- 导出按钮 -->
+      <view class="medical-popup-actions">
+        <button class="medical-action-btn is-export" loading="{{exporting}}" disabled="{{exporting}}" bindtap="handleExportPdf">
+          导出PDF
+        </button>
       </view>
     </view>
   </view>

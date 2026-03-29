@@ -1387,6 +1387,41 @@ async function completeWorkflow(orderId, decision, approverId, approverName, com
     }
   }
 
+  // 特殊处理：就医申请审批通过，创建 medical_records 记录
+  if (order.orderType === 'medical_application' && decision === 'approved') {
+    const medicalRecordsCollection = db.collection('medical_records')
+    const businessData = order.businessData || {}
+
+    try {
+      await medicalRecordsCollection.add({
+        data: {
+          orderId: order._id,
+          orderNo: order.orderNo,
+          // 申请人信息
+          applicantId: businessData.applicantId,
+          applicantName: businessData.applicantName,
+          applicantRole: businessData.applicantRole,
+          // 就医信息
+          patientName: businessData.patientName,
+          relation: businessData.relation,
+          medicalDate: businessData.medicalDate,
+          institution: businessData.institution,
+          otherInstitution: businessData.otherInstitution || '',
+          reasonForSelection: businessData.reasonForSelection || '',
+          reason: businessData.reason || '',
+          // 状态
+          status: 'approved',
+          // 时间戳
+          createdAt: now,
+          updatedAt: now
+        }
+      })
+      console.log('就医申请记录创建成功，订单号:', order.orderNo)
+    } catch (error) {
+      console.error('创建就医申请记录失败:', error)
+    }
+  }
+
   // 特殊处理：护照借用审批通过，创建 passport_records 记录
   if (order.orderType === 'passport_application' && decision === 'approved') {
     const passportRecordsCollection = db.collection('passport_records')

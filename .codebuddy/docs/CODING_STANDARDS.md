@@ -41,23 +41,60 @@
 
 **重要经验**：`PRIVATE` 规则检查的是 `_openid` 字段（创建者），而非业务字段。云函数创建的数据不要使用 `PRIVATE`。
 
-### 1.5 常量统一管理
+### 1.5 全局常量获取规范
 
-所有常量在 `cloudfunctions/initSystemConfig/index.js` 中定义，前端通过 `common/constants.js` 获取。
+所有全局常量在`cloudfunctions\initSystemConfig\index.js`中定义，前端通过 `app.js` 中带缓存机制的函数获取，**禁止直接调用云函数 `initSystemConfig` 或 `getSystemConfig`**。
+
+#### 缓存机制
+
+```
+内存缓存 → 本地存储缓存 → 硬编码默认值（降级）
+```
+
+- 缓存在登录成功后由 `app.loadConstants()` 预加载
+- 版本变化时自动清除缓存（`CACHE_VERSION`）
+
+#### API 速查
+
+| 方法 | 说明 | 是否异步 |
+|------|------|---------|
+| `app.getConstantSync(key)` | 同步获取单个常量（优先缓存，降级默认值） | 同步 |
+| `app.getConstant(key)` | 异步获取单个常量（缓存未命中时请求云函数） | 异步 |
+| `app.getAllConstants()` | 获取所有常量（带缓存） | 异步 |
+| `app.getConstantsCache()` | 仅从缓存获取（不降级） | 同步 |
+| `app.clearConstantsCache()` | 清除常量缓存 | 同步 |
+
+#### 使用示例
 
 ```javascript
-// 定义常量
-{
-  type: 'role',
-  key: 'ROLE_OPTIONS',
-  value: ['馆领导', '部门负责人', '馆员'],
-  description: '角色选项列表'
-}
+const app = getApp()
 
-// 前端获取
-const constants = require('../../../common/constants.js')
-const roleOptions = await constants.getConstant('ROLE_OPTIONS')
+// ✅ 正确：同步获取（推荐，适用于页面 onLoad）
+const ROLE_OPTIONS = app.getConstantSync('ROLE_OPTIONS')
+const institutions = app.getConstantSync('MEDICAL_INSTITUTIONS')
+
+// ✅ 正确：异步获取（缓存未命中时自动请求云函数）
+const constants = await app.getAllConstants()
+
+// ❌ 错误：直接调用云函数
+const res = await wx.cloud.callFunction({
+  name: 'initSystemConfig',
+  data: { action: 'getConfig' }
+})
 ```
+
+#### 常量列表
+
+常用常量键名定义在 `app.js` 的 `getDefaultConstants()` 中：
+
+| 常量键名 | 说明 |
+|---------|------|
+| `ROLE_OPTIONS` | 角色选项 |
+| `RELATION_OPTIONS` | 与申请人关系选项 |
+| `MEDICAL_INSTITUTIONS` | 就医机构列表 |
+| `NOTIFICATION_TYPES` | 消息类型 |
+| `NOTIFICATION_TARGET_TAB` | 消息跳转映射 |
+| 其他 | 见 `app.js` → `getDefaultConstants()` |
 
 ---
 

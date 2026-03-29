@@ -1,16 +1,37 @@
+/**
+ * 就医申请页面
+ * 
+ * 功能：
+ * - 查看就医申请记录列表（审批通过的记录）
+ * - 添加就医申请（底部弹窗表单）
+ * - 查看记录详情
+ * - 导出PDF
+ */
 const app = getApp()
 const utils = require('../../../common/utils.js')
+const paginationBehavior = require('../../../behaviors/pagination.js')
 
 Page({
+  behaviors: [paginationBehavior],
+
   data: {
     loading: false,
-    submitting: false, // 防止重复提交
-    roleOptions: [],           // 从数据库加载
-    relationOptions: [],       // 从数据库加载
-    medicalInstitutions: [],   // 从数据库加载
-    workflowSteps: [],         // 工作流步骤（从模板加载）
-    relationIndex: -1,
-    institutionIndex: -1,
+    submitting: false,
+    exporting: false,
+
+    // 弹窗控制
+    showFormPopup: false,
+    showDetailPopup: false,
+
+    // 数据列表
+    recordList: [],
+    groupedRecords: [],
+
+    // 选中的记录
+    selectedRecord: null,
+    detailLogs: [],
+
+    // 表单数据
     form: {
       patientName: '',
       relation: '',
@@ -20,181 +41,277 @@ Page({
       reasonForSelection: '',
       reason: ''
     },
-    currentUser: null,
-    mode: 'create' // create 或 copy
+
+    // 选项列表
+    institutions: [],
+    relations: [],
+
+    // 日期限制
+    today: ''
   },
 
   async onLoad(options) {
-    // 如果是复制模式，先显示加载中
-    const isCopyMode = options.mode === 'copy'
-    if (isCopyMode) {
-      wx.showLoading({
-        title: '加载中',
-        mask: true
-      })
-    }
+    this.initPagination({
+      initialPageSize: 10,
+      loadMorePageSize: 10
+    })
 
-    // 先加载常量配置
-    await this.loadConstants()
+    this.loadConstants()
 
-    // 获取当前用户信息
-    app.checkUserRegistration()
-      .then((result) => {
-        if (!result.registered || !result.user) {
-          wx.reLaunch({
-            url: '/pages/auth/login/login'
-          })
-          return
-        }
-
-        const user = result.user
-
-        // 使用统一的权限检查
-        return app.checkPermission('medical_application')
-          .then((hasPermission) => {
-            if (!hasPermission) {
-              // 获取详细的权限信息
-              return app.getPermissionInfo('medical_application')
-                .then((permInfo) => {
-                  const message = permInfo.feature ? permInfo.feature.message : '您没有权限使用此功能'
-                  wx.showModal({
-                    title: '权限提示',
-                    content: message,
-                    showCancel: false,
-                    confirmText: '我知道了'
-                  })
-                  setTimeout(() => {
-                    wx.navigateBack()
-                  }, 2000)
-                })
-            }
-
-            // 有权限，设置用户信息
-            this.setData({
-              currentUser: user,
-              mode: isCopyMode ? 'copy' : 'create'
-            })
-
-            // 如果是复制模式，从 options 中加载数据
-            if (isCopyMode) {
-              this.loadCopyData(options)
-            }
-          })
-      })
-      .catch((error) => {
-        console.error('权限检查失败:', error)
-        wx.showToast({
-          title: error.message || '获取用户信息失败',
-          icon: 'none'
+    // 如果是从审批中心复制过来的
+    if (options && options.mode === 'copy' && options.data) {
+      try {
+        const copyData = JSON.parse(decodeURIComponent(options.data))
+        this.setData({
+          form: {
+            patientName: copyData.patientName || '',
+            relation: copyData.relation || '',
+            medicalDate: copyData.medicalDate || '',
+            institution: copyData.institution || '',
+            otherInstitution: copyData.otherInstitution || '',
+            reasonForSelection: copyData.reasonForSelection || '',
+            reason: copyData.reason || ''
+          },
+          showFormPopup: true
         })
-      })
-      .finally(() => {
-        // 隐藏加载中
-        if (isCopyMode) {
-          wx.hideLoading()
-        }
-      })
+      } catch (e) {
+        console.error('解析复制数据失败:', e)
+      }
+    }
+  },
+
+  async onShow() {
+    // 如果没有在显示弹窗，则刷新列表
+    if (!this.data.showFormPopup) {
+      wx.showLoading({ title: '加载中...', mask: true })
+      try {
+        await this.refreshList()
+      } finally {
+        wx.hideLoading()
+      }
+    }
+  },
+
+  onReachBottom() {
+    this.loadMore()
+  },
+
+  async onPullDownRefresh() {
+    await this.refreshList()
+    wx.stopPullDownRefresh()
   },
 
   /**
-   * 加载常量配置
+   * 加载系统常量（医疗机构、关系选项）
+   * 使用 app.js 的缓存机制获取
    */
-  async loadConstants() {
-    try {
-      const [roleOptions, relationOptions, medicalInstitutions] = await Promise.all([
-        app.getConstant('ROLE_OPTIONS'),
-        app.getConstant('RELATION_OPTIONS'),
-        app.getConstant('MEDICAL_INSTITUTIONS')
-      ])
+  loadConstants() {
+    const RELATION_OPTIONS = app.getConstantSync('RELATION_OPTIONS') || []
+    const MEDICAL_INSTITUTIONS = app.getConstantSync('MEDICAL_INSTITUTIONS') || []
 
-      this.setData({
-        roleOptions: roleOptions || [],
-        relationOptions: relationOptions || [],
-        medicalInstitutions: medicalInstitutions || [],
-        // 使用默认审批流程文案，避免不必要的云函数调用
-        workflowSteps: ['部门负责人审批', '会计主管审批', '馆领导审批']
+    this.setData({
+      institutions: MEDICAL_INSTITUTIONS.map(item =>
+        typeof item === 'string' ? { name: item, value: item } : item
+      ),
+      relations: RELATION_OPTIONS.map(item =>
+        typeof item === 'string' ? { name: item, value: item } : item
+      ),
+      today: utils.getLocalDateString()
+    })
+  },
+
+  /**
+   * 重写 loadData 方法（分页加载就医记录）
+   */
+  async loadData(params) {
+    const { page, pageSize } = params
+
+    return new Promise((resolve, reject) => {
+      wx.cloud.callFunction({
+        name: 'medicalApplication',
+        data: {
+          action: 'getHistory',
+          page,
+          pageSize
+        }
+      }).then(res => {
+        if (res.result.code === 0) {
+          const data = res.result.data
+          const recordList = (data.list || []).map(item => this.formatRecordItem(item))
+
+          this.setData({
+            recordList: page === 1 ? recordList : [...this.data.recordList, ...recordList]
+          })
+
+          this.updateGroupedRecords()
+
+          resolve({
+            data: recordList,
+            hasMore: data.hasMore !== false
+          })
+        } else {
+          reject(new Error(res.result.message))
+        }
+      }).catch(error => {
+        console.error('加载就医记录失败:', error)
+        utils.showToast({ title: '加载失败', icon: 'none' })
+        reject(error)
       })
-    } catch (error) {
-      console.error('加载常量配置失败:', error)
-      // 使用默认值
-      const defaults = app.getDefaultConstants()
-      this.setData({
-        roleOptions: defaults.ROLE_OPTIONS || [],
-        relationOptions: defaults.RELATION_OPTIONS || [],
-        medicalInstitutions: defaults.MEDICAL_INSTITUTIONS || [],
-        workflowSteps: ['部门负责人审批', '会计主管审批', '馆领导审批']
-      })
+    })
+  },
+
+  /**
+   * 格式化记录项
+   */
+  formatRecordItem(item) {
+    const createdAt = new Date(item.createdAt)
+    const institutionText = item.institution === '其他'
+      ? item.otherInstitution
+      : item.institution
+
+    return {
+      ...item,
+      institutionText: institutionText || '-',
+      createdAtText: utils.formatDateTime(item.createdAt),
+      medicalDateText: item.medicalDate || '-',
+      monthKey: `${createdAt.getFullYear()}-${String(createdAt.getMonth() + 1).padStart(2, '0')}`,
+      monthText: `${createdAt.getFullYear()}年${createdAt.getMonth() + 1}月`
     }
   },
 
-  loadCopyData(options) {
-    // 从 URL 参数中解析复制的申请数据
+  /**
+   * 更新按月分组的记录
+   */
+  updateGroupedRecords() {
+    const recordList = this.data.recordList
+    const groupedMap = {}
+
+    recordList.forEach(record => {
+      if (!groupedMap[record.monthKey]) {
+        groupedMap[record.monthKey] = {
+          monthKey: record.monthKey,
+          monthText: record.monthText,
+          records: []
+        }
+      }
+      groupedMap[record.monthKey].records.push(record)
+    })
+
+    const groupedRecords = Object.values(groupedMap).sort((a, b) => b.monthKey.localeCompare(a.monthKey))
+    this.setData({ groupedRecords })
+  },
+
+  // ========== 弹窗操作 ==========
+
+  /**
+   * 显示申请表单
+   */
+  showApplicationForm() {
+    this.setData({
+      showFormPopup: true,
+      form: {
+        patientName: this.data.form.patientName || '',
+        relation: this.data.form.relation || '',
+        medicalDate: this.data.form.medicalDate || utils.getLocalDateString(),
+        institution: this.data.form.institution || '',
+        otherInstitution: this.data.form.otherInstitution || '',
+        reasonForSelection: this.data.form.reasonForSelection || '',
+        reason: this.data.form.reason || ''
+      }
+    })
+  },
+
+  hideFormPopup() {
+    this.setData({ showFormPopup: false })
+  },
+
+  /**
+   * 显示记录详情
+   */
+  async showRecordDetail(e) {
+    const record = e.currentTarget.dataset.record
+
+    wx.showLoading({ title: '加载中...' })
     try {
-      const copyData = JSON.parse(decodeURIComponent(options.data || '{}'))
-      this.setData({
-        form: {
-          patientName: copyData.patientName || '',
-          relation: copyData.relation || '',
-          medicalDate: copyData.medicalDate || '',
-          institution: copyData.institution || '',
-          otherInstitution: copyData.otherInstitution || '',
-          reasonForSelection: copyData.reasonForSelection || '',
-          reason: copyData.reason || ''
+      const res = await wx.cloud.callFunction({
+        name: 'medicalApplication',
+        data: {
+          action: 'getDetail',
+          recordId: record._id
         }
       })
+
+      if (res.result.code === 0) {
+        const logs = (res.result.data.logs || []).map(log => ({
+          ...log,
+          timeText: log.operateTime ? utils.formatDateTime(log.operateTime) : '-',
+          actionText: {
+            'submit': '提交申请',
+            'approve': '审批通过',
+            'reject': '审批拒绝',
+            'return': '退回修改'
+          }[log.action] || log.action
+        }))
+
+        this.setData({
+          selectedRecord: record,
+          detailLogs: logs,
+          showDetailPopup: true
+        })
+      }
     } catch (error) {
-      console.error('加载复制数据失败:', error)
+      console.error('获取详情失败:', error)
+      utils.showToast({ title: '获取详情失败', icon: 'none' })
+    } finally {
+      wx.hideLoading()
     }
   },
 
-  handlePatientNameInput(e) {
+  hideDetailPopup() {
     this.setData({
-      'form.patientName': e.detail.value
+      showDetailPopup: false,
+      selectedRecord: null,
+      detailLogs: []
     })
   },
 
-  handleRelationChange(e) {
-    const index = Number(e.detail.value)
-    const relation = this.data.relationOptions[index]
-    this.setData({
-      relationIndex: index,
-      'form.relation': relation
-    })
+  stopPropagation() {},
+
+  // ========== 表单输入处理 ==========
+
+  handlePatientNameInput(e) {
+    this.setData({ 'form.patientName': e.detail.value })
+  },
+
+  handleRelationSelect(e) {
+    const relation = e.currentTarget.dataset.value
+    this.setData({ 'form.relation': relation })
   },
 
   handleMedicalDateChange(e) {
-    this.setData({
-      'form.medicalDate': e.detail.value
-    })
+    this.setData({ 'form.medicalDate': e.detail.value })
   },
 
-  handleInstitutionChange(e) {
-    const index = Number(e.detail.value)
-    const institution = this.data.medicalInstitutions[index]
-    this.setData({
-      institutionIndex: index,
-      'form.institution': institution
-    })
+  handleInstitutionSelect(e) {
+    const institution = e.currentTarget.dataset.value
+    this.setData({ 'form.institution': institution })
   },
 
   handleOtherInstitutionInput(e) {
-    this.setData({
-      'form.otherInstitution': e.detail.value
-    })
+    this.setData({ 'form.otherInstitution': e.detail.value })
   },
 
   handleReasonForSelectionInput(e) {
-    this.setData({
-      'form.reasonForSelection': e.detail.value
-    })
+    this.setData({ 'form.reasonForSelection': e.detail.value })
   },
 
   handleReasonInput(e) {
-    this.setData({
-      'form.reason': e.detail.value
-    })
+    this.setData({ 'form.reason': e.detail.value })
   },
 
+  /**
+   * 验证表单
+   */
   validateForm() {
     const form = this.data.form
 
@@ -209,7 +326,7 @@ Page({
     }
 
     if (!form.medicalDate) {
-      utils.showToast({ title: '请选择就医时间', icon: 'none' })
+      utils.showToast({ title: '请选择就医日期', icon: 'none' })
       return false
     }
 
@@ -218,15 +335,8 @@ Page({
       return false
     }
 
-    // 如果选择了"其他"，必须填写机构名称
     if (form.institution === '其他' && !String(form.otherInstitution || '').trim()) {
       utils.showToast({ title: '请填写就医机构名称', icon: 'none' })
-      return false
-    }
-
-    // 如果选择了"其他"，必须填写选择原因
-    if (form.institution === '其他' && !String(form.reasonForSelection || '').trim()) {
-      utils.showToast({ title: '请填写选择此机构的原因', icon: 'none' })
       return false
     }
 
@@ -238,78 +348,113 @@ Page({
     return true
   },
 
-  submitApplication() {
-    // 防止重复提交 - 使用本地变量立即阻止
-    if (this._isSubmitting || this.data.loading) {
-      return
-    }
-
-    // 立即设置本地标记，防止重复点击
-    this._isSubmitting = true
-
-    if (!this.validateForm()) {
-      this._isSubmitting = false
-      return
-    }
-
-    // 立即设置提交状态
-    this.setData({
-      loading: true
-    })
+  /**
+   * 提交申请
+   */
+  async submitApplication() {
+    if (this.data.submitting) return
+    if (!this.validateForm()) return
 
     const form = this.data.form
-    const businessData = {
-      patientName: form.patientName.trim(),
-      relation: form.relation,
-      medicalDate: form.medicalDate,
-      institution: form.institution,
-      otherInstitution: form.institution === '其他' ? form.otherInstitution.trim() : '',
-      reasonForSelection: form.institution === '其他' ? form.reasonForSelection.trim() : '',
-      reason: form.reason.trim()
-    }
+    this.setData({ submitting: true })
 
-    // 调用云函数提交就医申请
-    wx.cloud.callFunction({
-      name: 'medicalApplication',
-      data: {
-        action: 'submit',
-        businessData: businessData
-      }
-    }).then((res) => {
-      if (res.result.code === 0) {
-        wx.showModal({
-          title: '提交成功',
-          content: '就医申请已提交，请等待审批。',
-          showCancel: false,
-          success: () => {
-            // 设置跳转目标为"我的发起"tab
-            app.globalData.targetApprovalTab = 'mine'
-            wx.switchTab({
-              url: '/pages/office/approval/approval'
-            })
+    try {
+      const res = await wx.cloud.callFunction({
+        name: 'medicalApplication',
+        data: {
+          action: 'submit',
+          businessData: {
+            patientName: form.patientName.trim(),
+            relation: form.relation,
+            medicalDate: form.medicalDate,
+            institution: form.institution,
+            otherInstitution: form.otherInstitution ? form.otherInstitution.trim() : '',
+            reasonForSelection: form.reasonForSelection ? form.reasonForSelection.trim() : '',
+            reason: form.reason.trim()
           }
-        })
+        }
+      })
+
+      if (res.result.code === 0) {
+        utils.showToast({ title: '提交成功，等待审批', icon: 'success' })
+        this.setData({ showFormPopup: false })
+
+        // 跳转到审批中心
+        setTimeout(() => {
+          wx.switchTab({
+            url: '/pages/office/approval/approval'
+          })
+        }, 1500)
       } else {
-        wx.showToast({
-          title: res.result.message || '提交失败',
-          icon: 'none'
-        })
+        utils.showToast({ title: res.result.message || '提交失败', icon: 'none' })
       }
-    }).catch((error) => {
-      console.error('提交就医申请失败:', error)
-      wx.showToast({
-        title: error.message || '提交失败，请稍后重试',
-        icon: 'none'
+    } catch (error) {
+      console.error('提交申请失败:', error)
+      utils.showToast({ title: '提交失败，请重试', icon: 'none' })
+    } finally {
+      this.setData({ submitting: false })
+    }
+  },
+
+  /**
+   * 导出PDF
+   */
+  async handleExportPdf() {
+    if (this.data.exporting) return
+    if (!this.data.selectedRecord) return
+
+    this.setData({ exporting: true })
+
+    try {
+      const res = await wx.cloud.callFunction({
+        name: 'medicalApplication',
+        data: {
+          action: 'generatePdf',
+          recordId: this.data.selectedRecord._id
+        }
       })
-    }).finally(() => {
-      // 清理状态
-      this.setData({
-        loading: false
-      })
-      // 延迟清理本地标记，防止快速重复点击
-      setTimeout(() => {
-        this._isSubmitting = false
-      }, 1000)
-    })
+
+      if (res.result.code === 0) {
+        const fileUrl = res.result.data.fileUrl
+        const fileName = res.result.data.fileName
+
+        // 下载文件并打开
+        wx.showLoading({ title: '正在打开文件...' })
+        const downloadResult = await new Promise((resolve, reject) => {
+          wx.downloadFile({
+            url: fileUrl,
+            success: resolve,
+            fail: reject
+          })
+        })
+
+        wx.hideLoading()
+
+        if (downloadResult.statusCode === 200) {
+          wx.openDocument({
+            filePath: downloadResult.tempFilePath,
+            fileName: fileName,
+            fileType: 'pdf',
+            showMenu: true,
+            success: () => {
+              console.log('PDF打开成功')
+            },
+            fail: (err) => {
+              console.error('打开PDF失败:', err)
+              utils.showToast({ title: '打开文件失败', icon: 'none' })
+            }
+          })
+        } else {
+          utils.showToast({ title: '下载文件失败', icon: 'none' })
+        }
+      } else {
+        utils.showToast({ title: res.result.message || '导出失败', icon: 'none' })
+      }
+    } catch (error) {
+      console.error('导出PDF失败:', error)
+      utils.showToast({ title: '导出失败，请重试', icon: 'none' })
+    } finally {
+      this.setData({ exporting: false })
+    }
   }
 })
