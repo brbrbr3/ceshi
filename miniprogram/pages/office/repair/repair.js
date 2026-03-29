@@ -22,6 +22,7 @@ Page({
 
     // 筛选（物业用户）
     livingAreas: [],
+    areaPickerRange: [],
     selectedArea: '',
 
     // 弹窗控制
@@ -76,8 +77,10 @@ Page({
    */
   loadLivingAreas() {
     const areas = app.getConstantSync('REPAIR_LIVING_AREAS')
+    const livingAreas = areas || ['本部', '馆周边', '5号院', '8号院', '湖畔']
     this.setData({
-      livingAreas: areas || ['本部', '馆周边', '5号院', '8号院', '湖畔']
+      livingAreas: livingAreas,
+      areaPickerRange: ['全部居住区', ...livingAreas]
     })
   },
 
@@ -126,7 +129,7 @@ Page({
     const index = e.detail.value
     const areas = this.data.livingAreas
     this.setData({
-      selectedArea: index > 0 ? areas[index] : ''
+      selectedArea: index > 0 ? areas[index - 1] : ''
     })
 
     wx.showLoading({ title: '加载中...', mask: true })

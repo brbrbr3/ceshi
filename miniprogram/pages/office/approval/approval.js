@@ -661,7 +661,7 @@ Page({
 
   showLaunchTip() {
     wx.showToast({
-      title: this.data.canReview ? '当前页面用于处理注册审批' : '当前账号仅可查看自己的申请状态',
+      title: this.data.canReview ? '当前页面用于审批用户的申请' : '当前账号仅可查看自己的申请状态',
       icon: 'none'
     })
   },

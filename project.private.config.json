@@ -23,11 +23,18 @@
     "miniprogram": {
       "list": [
         {
-          "name": "pages/office/meeting-room/meeting-room",
-          "pathName": "pages/office/meeting-room/meeting-room",
+          "name": "pages/office/repair/repair",
+          "pathName": "pages/office/repair/repair",
           "query": "",
           "scene": null,
           "launchMode": "default"
+        },
+        {
+          "name": "pages/office/meeting-room/meeting-room",
+          "pathName": "pages/office/meeting-room/meeting-room",
+          "query": "",
+          "launchMode": "default",
+          "scene": null
         },
         {
           "name": "pages/office/haircut/haircut",

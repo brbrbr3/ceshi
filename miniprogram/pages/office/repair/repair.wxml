@@ -1,6 +1,6 @@
 <view class="repair-page">
   <!-- 渐变色头部 -->
-  <view class="repair-header">
+  <view class="office-gradient-header repair-header">
     <view class="repair-header-content">
       <view class="repair-title">物业报修</view>
       <view class="repair-subtitle">在线提交报修申请</view>
@@ -80,7 +80,7 @@
     <view wx:if="{{activeTab === 'all' && isPropertyUser}}">
       <!-- 居住区筛选 -->
       <view class="repair-filter">
-        <picker mode="selector" range="{{livingAreas}}" value="{{selectedArea ? livingAreas.indexOf(selectedArea) : 0}}" bindchange="handleAreaFilter">
+        <picker mode="selector" range="{{areaPickerRange}}" value="{{selectedArea ? areaPickerRange.indexOf(selectedArea) : 0}}" bindchange="handleAreaFilter">
           <view class="repair-filter-btn">
             <text>{{selectedArea || '全部居住区'}}</text>
             <text class="repair-filter-arrow">▾</text>
@@ -103,6 +103,15 @@
               <view class="repair-item-reporter">报修人：{{item.reporterName}}</view>
               <view class="repair-item-addr">地址：{{item.address}}</view>
               <view class="repair-item-content">{{item.contentPreview}}</view>
+              <view class="repair-item-images" wx:if="{{item.images && item.images.length > 0}}">
+                <image wx:for="{{item.images}}" wx:for-item="img" wx:for-index="imgIdx" wx:key="imgIdx"
+                  class="repair-item-thumb"
+                  src="{{img}}"
+                  mode="aspectFill"
+                  catchtap="handlePreviewImage"
+                  data-url="{{img}}"
+                  data-urls="{{item.images}}" />
+              </view>
             </view>
             <view class="repair-item-footer">
               <text class="repair-item-time">{{item.createdAtText}}</text>
