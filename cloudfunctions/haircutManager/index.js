@@ -5,7 +5,7 @@
  * - getReservationSlots: 获取各日期已预约时段（简化版，前端计算日期和时段列表）
  * - createAppointment: 创建预约
  * - cancelAppointment: 取消预约
- * - getAppointments: 查询本月预约列表
+ * - getAppointments: 查询理发统计列表
  * - getMyAppointments: 获取我的预约记录
  */
 
@@ -318,35 +318,42 @@ async function cancelAppointment(openid, appointmentId, cancelReason) {
 }
 
 /**
- * 获取本月预约列表
+ * 获取理发统计列表
  */
 async function getAppointments(openid, params = {}) {
   const { year, month, sortBy = 'time' } = params
-  
+
   // 验证用户权限
   const userResult = await usersCollection.where({ openid }).limit(1).get()
   if (!userResult.data || userResult.data.length === 0) {
     throw new Error('用户不存在')
   }
-  
+
   const user = userResult.data[0]
   if (!HAIRCUT_VIEWER_POSITIONS.includes(user.position)) {
     throw new Error('您无权查看理发预约列表')
   }
-  
+
   // 构建日期范围
   const now = new Date()
   const targetYear = year || now.getFullYear()
   const targetMonth = month !== undefined ? month : now.getMonth() + 1
-  
-  const startDate = `${targetYear}-${String(targetMonth).padStart(2, '0')}-01`
-  let endDate
-  if (targetMonth === 12) {
+
+  let startDate, endDate
+  if (targetMonth === undefined) {
+    // 查询全年
+    startDate = `${targetYear}-01-01`
     endDate = `${targetYear + 1}-01-01`
   } else {
-    endDate = `${targetYear}-${String(targetMonth + 1).padStart(2, '0')}-01`
+    // 查询单月
+    startDate = `${targetYear}-${String(targetMonth).padStart(2, '0')}-01`
+    if (targetMonth === 12) {
+      endDate = `${targetYear + 1}-01-01`
+    } else {
+      endDate = `${targetYear}-${String(targetMonth + 1).padStart(2, '0')}-01`
+    }
   }
-  
+
   // 查询预约记录
   const result = await appointmentsCollection
     .where({
@@ -356,9 +363,9 @@ async function getAppointments(openid, params = {}) {
     .orderBy('date', 'asc')
     .orderBy('timeSlot', 'asc')
     .get()
-  
+
   let list = result.data || []
-  
+
   // 按人员排序
   if (sortBy === 'name') {
     list.sort((a, b) => {
@@ -369,7 +376,7 @@ async function getAppointments(openid, params = {}) {
       return a.timeSlot.localeCompare(b.timeSlot)
     })
   }
-  
+
   return success({
     list,
     total: list.length,

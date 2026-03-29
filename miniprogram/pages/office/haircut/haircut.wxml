@@ -12,8 +12,8 @@
     <view class="haircut-tab {{activeTab === 'book' ? 'is-active' : ''}}" bindtap="handleTabChange" data-tab="book">
       预约理发
     </view>
-    <view class="haircut-tab {{activeTab === 'monthly' ? 'is-active' : ''}}" wx:if="{{canView}}" bindtap="handleTabChange" data-tab="monthly">
-      本月预约
+    <view class="haircut-tab {{activeTab === 'stats' ? 'is-active' : ''}}" wx:if="{{canView}}" bindtap="handleTabChange" data-tab="stats">
+      理发统计
     </view>
     <view class="haircut-tab {{activeTab === 'mine' ? 'is-active' : ''}}" bindtap="handleTabChange" data-tab="mine">
       我的预约
@@ -124,8 +124,8 @@
 
     </view>
 
-    <!-- Tab 2: 本月预约 -->
-    <view wx:if="{{activeTab === 'monthly' && canView}}">
+    <!-- Tab 2: 理发统计 -->
+    <view wx:if="{{activeTab === 'stats' && canView}}">
       <!-- 排序切换 -->
       <view class="haircut-sort-bar">
         <view class="haircut-sort-btn {{sortBy === 'time' ? 'is-active' : ''}}" bindtap="handleSortChange" data-sort="time">
@@ -136,39 +136,55 @@
         </view>
       </view>
 
-      <!-- 预约列表 -->
-      <view class="haircut-list">
-        <view class="haircut-item" wx:for="{{monthlyList}}" wx:key="_id">
-          <view class="haircut-item-header">
-            <view class="haircut-item-datetime">
-              <view class="haircut-item-date">{{item.date}}</view>
-              <view class="haircut-item-time">{{item.timeSlotDisplay}}</view>
+      <!-- 按时间排序 -->
+      <block wx:if="{{sortBy === 'time'}}">
+        <view class="haircut-stats-month-group" wx:for="{{statsGrouped}}" wx:key="monthKey" wx:for-item="group">
+          <view class="haircut-stats-month-title">{{group.monthLabel}}</view>
+          <view class="haircut-list">
+            <view class="haircut-item" wx:for="{{group.items}}" wx:for-item="item" wx:key="_id">
+              <view class="haircut-item-header">
+                <view class="haircut-item-datetime">
+                  <view class="haircut-item-date">{{item.date}}</view>
+                  <view class="haircut-item-time">{{item.timeSlotDisplay}}</view>
+                </view>
+                <view class="haircut-item-status is-{{item.displayStatus}}">
+                  {{item.displayStatus === 'booked' ? '已预约' : item.displayStatus === 'cancelled' ? '已取消' : '已完成'}}
+                </view>
+              </view>
+              <view class="haircut-item-body">
+                <view class="haircut-item-name">{{item.displayName}}</view>
+                <view class="haircut-item-meta" wx:if="{{item.cancelReason}}">
+                  取消原因：{{item.cancelReason}}（{{item.cancelledBy}}）
+                </view>
+              </view>
+              <view class="haircut-item-actions" wx:if="{{item.displayStatus === 'booked' && isReceptionist}}">
+                <view class="haircut-item-action is-danger" bindtap="showCancelPopup" data-item="{{item}}">取消预约</view>
+              </view>
             </view>
-            <view class="haircut-item-status is-{{item.status}}">
-              {{item.status === 'booked' ? '已预约' : item.status === 'cancelled' ? '已取消' : '已完成'}}
-            </view>
-          </view>
-          <view class="haircut-item-body">
-            <view class="haircut-item-name">{{item.displayName}}</view>
-            <view class="haircut-item-meta" wx:if="{{item.cancelReason}}">
-              取消原因：{{item.cancelReason}}（{{item.cancelledBy}}）
-            </view>
-          </view>
-          <view class="haircut-item-actions" wx:if="{{item.status === 'booked' && isReceptionist}}">
-            <view class="haircut-item-action is-danger" bindtap="showCancelPopup" data-item="{{item}}">取消预约</view>
           </view>
         </view>
-      </view>
+      </block>
 
-      <!-- 空状态 -->
-      <view wx:if="{{!loadingMonthly && monthlyList.length === 0}}" class="haircut-empty">
-        <view class="haircut-empty-icon">📋</view>
-        <view class="haircut-empty-text">本月暂无预约记录</view>
-      </view>
+      <!-- 按人员排序 -->
+      <block wx:if="{{sortBy === 'name'}}">
+        <view class="haircut-stats-month-group" wx:for="{{statsGrouped}}" wx:key="monthKey" wx:for-item="group">
+          <view class="haircut-stats-month-title">{{group.monthLabel}}</view>
+          <view class="haircut-stats-name-list" user-select="true">
+            <view class="haircut-stats-name-item" wx:for="{{group.items}}" wx:for-item="item" wx:key="appointeeName">
+              <text class="haircut-stats-name-text">{{item.appointeeName}}</text>
+              <text class="haircut-stats-count-text">{{item.count}}次</text>
+            </view>
+          </view>
+        </view>
+      </block>
 
-      <!-- 加载中 -->
-      <view wx:if="{{loadingMonthly}}" class="haircut-loading">
+      <!-- 分页加载状态 -->
+      <view class="haircut-loading" wx:if="{{loadingstats}}">
         <view class="haircut-loading-text">加载中...</view>
+      </view>
+      <view class="haircut-empty" wx:if="{{!loadingstats && statsGrouped.length === 0}}">
+        <view class="haircut-empty-icon">📋</view>
+        <view class="haircut-empty-text">本年暂无预约记录</view>
       </view>
     </view>
 

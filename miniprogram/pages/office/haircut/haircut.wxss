@@ -707,3 +707,54 @@ page {
   color: #1E40AF;
   line-height: 1.6;
 }
+
+/* ========== 统计月分组 ========== */
+.haircut-stats-month-group {
+  margin-bottom: 32rpx;
+}
+
+.haircut-stats-month-title {
+  font-size: 28rpx;
+  font-weight: 600;
+  color: #475569;
+  padding: 16rpx 8rpx;
+  border-left: 6rpx solid #EA580C;
+  background: #F8FAFC;
+  border-radius: 0 12rpx 12rpx 0;
+  margin-bottom: 16rpx;
+}
+
+/* ========== 按人员排序 - 人名列表 ========== */
+.haircut-stats-name-list {
+  background: #FFFFFF;
+  border-radius: 16rpx;
+  padding: 16rpx 24rpx;
+  box-shadow: 0 2rpx 12rpx rgba(0, 0, 0, 0.04);
+  border: 4rpx solid #E2E8F0;
+}
+
+.haircut-stats-name-item {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 16rpx 0;
+  border-bottom: 1rpx solid #F1F5F9;
+}
+
+.haircut-stats-name-item:last-child {
+  border-bottom: none;
+}
+
+.haircut-stats-name-text {
+  font-size: 28rpx;
+  color: #1E293B;
+  font-weight: 500;
+}
+
+.haircut-stats-count-text {
+  font-size: 26rpx;
+  color: #64748B;
+  background: #F1F5F9;
+  padding: 4rpx 16rpx;
+  border-radius: 20rpx;
+}

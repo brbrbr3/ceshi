@@ -53,9 +53,14 @@ Page({
         selectedSlot: '',
         selectedSlotDisplay: '',
 
-        // 本月预约 Tab
-        monthlyList: [],
-        loadingMonthly: false,
+        // 理发统计 Tab
+        statsList: [],
+        statsGrouped: [],
+        statsPage: 1,
+        statsHasMore: true,
+        statsTotalCount: 0,
+        loadingstats: false,
+        statsAllLoaded: false,
         sortBy: 'time',
 
         // 我的预约 Tab
@@ -132,8 +137,8 @@ Page({
         try {
             if (this.data.activeTab === 'book') {
                 await this.loadDisplayDates()
-            } else if (this.data.activeTab === 'monthly') {
-                await this.loadMonthlyAppointments()
+            } else if (this.data.activeTab === 'stats') {
+                await this.loadstatsAppointments()
             } else if (this.data.activeTab === 'mine') {
                 await this.loadMyAppointments()
             }
@@ -759,15 +764,30 @@ Page({
         }
     },
 
-    // ==================== 本月预约 Tab ====================
+    // ==================== 理发统计 Tab ====================
 
     /**
-     * 加载本月预约
+     * 加载理发统计（重置分页）
      */
-    async loadMonthlyAppointments() {
+    async loadstatsAppointments() {
         if (!this.data.canView) return
 
-        this.setData({ loadingMonthly: true })
+        this.setData({
+            loadingstats: true,
+            statsList: [],
+            statsGrouped: [],
+            statsPage: 1,
+            statsHasMore: true,
+            statsTotalCount: 0,
+            statsAllLoaded: false
+        })
+        await this.fetchStatsAppointments()
+    },
+
+    /**
+     * 获取理发统计数据（分页）
+     */
+    async fetchStatsAppointments() {
         try {
             const now = new Date()
             const res = await wx.cloud.callFunction({
@@ -776,21 +796,108 @@ Page({
                     action: 'getAppointments',
                     params: {
                         year: now.getFullYear(),
-                        month: now.getMonth() + 1,
                         sortBy: this.data.sortBy
                     }
                 }
             })
 
             if (res.result.code === 0) {
-                this.setData({ monthlyList: res.result.data.list || [] })
+                const allList = res.result.data.list || []
+                this.setData({
+                    statsAllLoaded: true,
+                    statsTotalCount: allList.length,
+                    statsHasMore: false
+                })
+
+                if (this.data.sortBy === 'time') {
+                    this.processStatsByTime(allList)
+                } else {
+                    this.processStatsByName(allList)
+                }
             }
         } catch (error) {
-            console.error('加载本月预约失败:', error)
+            console.error('加载理发统计失败:', error)
             wx.showToast({ title: '加载失败', icon: 'none' })
         } finally {
-            this.setData({ loadingMonthly: false })
+            this.setData({ loadingstats: false })
         }
+    },
+
+    /**
+     * 按时间排序：按月分组，过去日期标记已完成
+     */
+    processStatsByTime(list) {
+        const todayStr = this.data.todayStr
+        // 按月分组
+        const groupMap = {}
+        list.forEach(item => {
+            const monthKey = item.date.substring(0, 7) // "2026-03"
+            if (!groupMap[monthKey]) {
+                const [y, m] = monthKey.split('-')
+                groupMap[monthKey] = {
+                    monthKey,
+                    monthLabel: `${parseInt(y)}年${parseInt(m)}月`,
+                    items: []
+                }
+            }
+            // 日期在今日之前的标记为已完成
+            const isPast = item.status === 'booked' && item.date < todayStr
+            groupMap[monthKey].items.push({
+                ...item,
+                displayStatus: isPast ? 'completed' : item.status
+            })
+        })
+
+        // 月份倒序排列（最新月份在前）
+        const groups = Object.values(groupMap).sort((a, b) => b.monthKey.localeCompare(a.monthKey))
+        this.setData({
+            statsList: list,
+            statsGrouped: groups
+        })
+    },
+
+    /**
+     * 按人员排序：按月分组，每月内统计每人理发次数并倒序
+     */
+    processStatsByName(list) {
+        // 只统计非取消的记录
+        const activeList = list.filter(item => item.status !== 'cancelled')
+
+        // 按月分组
+        const groupMap = {}
+        activeList.forEach(item => {
+            const monthKey = item.date.substring(0, 7)
+            if (!groupMap[monthKey]) {
+                const [y, m] = monthKey.split('-')
+                groupMap[monthKey] = {
+                    monthKey,
+                    monthLabel: `${parseInt(y)}年${parseInt(m)}月`,
+                    items: []
+                }
+            }
+            // 统计人名和次数
+            const existing = groupMap[monthKey].items.find(i => i.appointeeName === item.appointeeName)
+            if (existing) {
+                existing.count++
+            } else {
+                groupMap[monthKey].items.push({
+                    appointeeName: item.appointeeName,
+                    count: 1
+                })
+            }
+        })
+
+        // 每月内按次数倒序，月份倒序
+        const groups = Object.values(groupMap)
+        groups.forEach(g => {
+            g.items.sort((a, b) => b.count - a.count || a.appointeeName.localeCompare(b.appointeeName, 'zh-CN'))
+        })
+        groups.sort((a, b) => b.monthKey.localeCompare(a.monthKey))
+
+        this.setData({
+            statsList: list,
+            statsGrouped: groups
+        })
     },
 
     /**
@@ -801,7 +908,7 @@ Page({
         if (sortBy === this.data.sortBy) return
 
         this.setData({ sortBy })
-        this.loadMonthlyAppointments()
+        this.loadstatsAppointments()
     },
 
     /**
@@ -841,7 +948,7 @@ Page({
 
         this.setData({ cancelling: true })
         try {
-            // 判断是从本月预约列表取消还是从时段列表取消
+            // 判断是从预约统计列表取消还是从时段列表取消
             if (this.data.cancellingSlot) {
                 // 从时段列表取消（招待员）
                 const res = await wx.cloud.callFunction({
@@ -863,7 +970,7 @@ Page({
                     wx.showToast({ title: res.result.message || '取消失败', icon: 'none' })
                 }
             } else if (this.data.cancellingAppointment) {
-                // 从本月预约列表取消
+                // 从预约统计列表取消
                 const res = await wx.cloud.callFunction({
                     name: 'haircutManager',
                     data: {
@@ -876,7 +983,7 @@ Page({
                 if (res.result.code === 0) {
                     wx.showToast({ title: '取消成功', icon: 'success' })
                     this.hideCancelPopup()
-                    this.loadMonthlyAppointments()
+                    this.loadstatsAppointments()
                 } else {
                     wx.showToast({ title: res.result.message || '取消失败', icon: 'none' })
                 }
