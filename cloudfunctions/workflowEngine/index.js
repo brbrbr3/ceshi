@@ -54,6 +54,49 @@ const TIMEOUT_ACTION = {
   REMIND: 'remind'
 }
 
+const WORKFLOW_ACTION = {
+  START: 'start',
+  APPROVE: 'approve',
+  REJECT: 'reject',
+  RETURN: 'return',
+  COMPLETE: 'complete',
+  CANCEL: 'cancel',
+  TERMINATE: 'terminate',
+  SUPPLEMENT: 'supplement'
+}
+
+// 工作流操作类型中文映射（与 sys_config WORKFLOW_ACTION_TEXT 保持一致）
+const ACTION_TEXT_MAP = {
+  [WORKFLOW_ACTION.START]: '提交工单',
+  [WORKFLOW_ACTION.APPROVE]: '审批通过',
+  [WORKFLOW_ACTION.REJECT]: '审批驳回',
+  [WORKFLOW_ACTION.RETURN]: '退回补充',
+  [WORKFLOW_ACTION.COMPLETE]: '流程完成',
+  [WORKFLOW_ACTION.CANCEL]: '撤回工单',
+  [WORKFLOW_ACTION.TERMINATE]: '中止工单',
+  [WORKFLOW_ACTION.SUPPLEMENT]: '补充资料'
+}
+
+/**
+ * 获取操作类型中文文本
+ * 优先从 sys_config 读取，失败则使用本地常量
+ */
+const sysConfigCollection = db.collection('sys_config')
+async function getActionText(action) {
+  try {
+    const configRes = await sysConfigCollection
+      .where({ type: 'workflow', key: 'WORKFLOW_ACTION_TEXT' })
+      .limit(1)
+      .get()
+    if (configRes.data && configRes.data.length > 0 && configRes.data[0].value) {
+      return configRes.data[0].value[action] || action
+    }
+  } catch (e) {
+    // 降级使用本地常量
+  }
+  return ACTION_TEXT_MAP[action] || action
+}
+
 // 工具函数
 function success(data, message) {
   return {
@@ -454,9 +497,9 @@ async function startWorkflow(orderType, businessData) {
     // 6. 记录日志（异步执行，不阻塞主流程）
     logWorkflowAction(
       orderId,
-      'start',
+      WORKFLOW_ACTION.START,
       businessData.applicantId || 'unknown',
-      '申请人',
+      businessData.applicantName || '申请人',
       '提交工单',
       null,
       null,
@@ -714,11 +757,7 @@ async function approveTask(taskId, action, comment, operatorId, operatorName, at
     })
 
     // 7. 记录日志
-    const actionText = {
-      'approve': '通过',
-      'reject': '驳回',
-      'return': '退回'
-    }[action] || action
+    const actionText = await getActionText(action)
 
     await logWorkflowAction(
       order._id,
@@ -1269,7 +1308,7 @@ async function autoTerminateOrder(order, reason) {
   // 记录日志（操作人为"系统"）
   await logWorkflowAction(
     order._id,
-    'terminate',
+    WORKFLOW_ACTION.TERMINATE,
     'system',
     '系统',
     '中止工单',
@@ -1301,12 +1340,12 @@ async function completeWorkflow(orderId, decision, approverId, approverName, com
     }
   })
   
-  // 记录日志
+  // 记录日志（流程完成是系统自动行为）
   await logWorkflowAction(
     orderId,
-    'complete',
-    approverId || 'system',
-    approverName || '系统',
+    WORKFLOW_ACTION.COMPLETE,
+    'system',
+    '系统',
     `流程${decision === 'approved' ? '通过' : '驳回'}`,
     null,
     { workflowStatus: order.workflowStatus },
@@ -1670,7 +1709,7 @@ async function supplementOrder(orderId, openid, supplementData, comment) {
     // 记录日志
     await logWorkflowAction(
       orderId,
-      'supplement',
+      WORKFLOW_ACTION.SUPPLEMENT,
       openid,
       order.businessData.applicantName || '申请人',
       '补充资料',
@@ -1725,7 +1764,7 @@ async function cancelOrder(orderId, openid) {
     // 记录日志
     await logWorkflowAction(
       orderId,
-      'cancel',
+      WORKFLOW_ACTION.CANCEL,
       openid,
       order.businessData.applicantName || '申请人',
       '撤回工单',
@@ -1790,7 +1829,7 @@ async function terminateOrder(orderId, openid, operatorName = '审批人', reaso
     // 记录日志
     await logWorkflowAction(
       orderId,
-      'terminate',
+      WORKFLOW_ACTION.TERMINATE,
       openid,
       isApplicant ? (order.businessData.applicantName || '申请人') : operatorName,
       '中止工单',

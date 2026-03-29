@@ -216,6 +216,38 @@ const SYSTEM_CONFIGS = [
     description: '超时处理动作',
     sort: 54
   },
+  {
+    type: 'workflow',
+    key: 'WORKFLOW_ACTION',
+    value: {
+      START: 'start',
+      APPROVE: 'approve',
+      REJECT: 'reject',
+      RETURN: 'return',
+      COMPLETE: 'complete',
+      CANCEL: 'cancel',
+      TERMINATE: 'terminate',
+      SUPPLEMENT: 'supplement'
+    },
+    description: '工作流操作类型枚举',
+    sort: 55
+  },
+  {
+    type: 'workflow',
+    key: 'WORKFLOW_ACTION_TEXT',
+    value: {
+      start: '提交工单',
+      approve: '审批通过',
+      reject: '审批驳回',
+      return: '退回补充',
+      complete: '流程完成',
+      cancel: '撤回工单',
+      terminate: '中止工单',
+      supplement: '补充资料'
+    },
+    description: '工作流操作类型中文映射（全项目统一）',
+    sort: 56
+  },
   // ==================== 时区配置 ====================
   {
     type: 'timezone',

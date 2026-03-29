@@ -179,7 +179,7 @@
           <text class="medical-detail-value">{{selectedRecord.institutionText}}</text>
         </view>
         <view class="medical-detail-row" wx:if="{{selectedRecord.reasonForSelection}}">
-          <text class="medical-detail-label">选择原因：</text>
+          <text class="medical-detail-label">选择此机构的原因：</text>
           <text class="medical-detail-value">{{selectedRecord.reasonForSelection}}</text>
         </view>
         <view class="medical-detail-row">
@@ -196,6 +196,10 @@
         </view>
         <view class="medical-detail-row">
           <text class="medical-detail-label">申请时间：</text>
+          <text class="medical-detail-value">{{submittedAtText}}</text>
+        </view>
+        <view class="medical-detail-row">
+          <text class="medical-detail-label">通过时间：</text>
           <text class="medical-detail-value">{{selectedRecord.createdAtText}}</text>
         </view>
 

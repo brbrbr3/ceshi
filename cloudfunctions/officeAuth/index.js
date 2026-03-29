@@ -1073,6 +1073,21 @@ async function getPendingRegistrations() {
 // 获取工作流日志
 async function getWorkflowLogs(orderId) {
   try {
+    // 从 sys_config 读取 WORKFLOW_ACTION_TEXT
+    const sysConfigCollection = db.collection('sys_config')
+    let actionTextMap = {}
+    try {
+      const configRes = await sysConfigCollection
+        .where({ type: 'workflow', key: 'WORKFLOW_ACTION_TEXT' })
+        .limit(1)
+        .get()
+      if (configRes.data && configRes.data.length > 0 && configRes.data[0].value) {
+        actionTextMap = configRes.data[0].value
+      }
+    } catch (e) {
+      // 降级使用空映射
+    }
+
     const logsResult = await workflowLogsCollection
       .where({
         orderId: orderId
@@ -1109,19 +1124,7 @@ async function getWorkflowLogs(orderId) {
       const operatorName = log.operatorName ||
         (log.operatorId === 'system' ? '系统' : (usersMap[log.operatorId] || '未知'))
 
-      const actionText = {
-        'start': '提交工单',
-        'approve': '审批通过',
-        'reject': '审批驳回',
-        'return': '退回补充',
-        'cancel': '撤回工单',
-        'terminate': '中止工单',
-        'timeout': '超时处理',
-        'escalate': '升级处理',
-        'auto_approve': '自动通过',
-        'auto_reject': '自动驳回',
-        'remind': '发送提醒'
-      }[log.action] || log.action
+      const actionText = actionTextMap[log.action] || log.action
 
       return {
         _id: log._id,

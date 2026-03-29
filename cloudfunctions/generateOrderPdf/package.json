@@ -1,0 +1,10 @@
+{
+  "name": "generateOrderPdf",
+  "version": "1.0.0",
+  "description": "通用工单PDF导出云函数",
+  "main": "index.js",
+  "dependencies": {
+    "pdfkit": "^0.13.0",
+    "wx-server-sdk": "~2.6.3"
+  }
+}

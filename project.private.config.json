@@ -23,11 +23,18 @@
     "miniprogram": {
       "list": [
         {
-          "name": "pages/test/signature-test/signature-test",
-          "pathName": "pages/test/signature-test/signature-test",
+          "name": "pages/office/medical-application/medical-application",
+          "pathName": "pages/office/medical-application/medical-application",
           "query": "",
           "scene": null,
           "launchMode": "default"
+        },
+        {
+          "name": "pages/test/signature-test/signature-test",
+          "pathName": "pages/test/signature-test/signature-test",
+          "query": "",
+          "launchMode": "default",
+          "scene": null
         },
         {
           "name": "pages/office/repair/repair",

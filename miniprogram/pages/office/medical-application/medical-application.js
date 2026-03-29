@@ -30,6 +30,8 @@ Page({
     // 选中的记录
     selectedRecord: null,
     detailLogs: [],
+    approvedAtText: '',
+    submittedAtText: '',
 
     // 表单数据
     form: {
@@ -242,20 +244,23 @@ Page({
       })
 
       if (res.result.code === 0) {
+        const actionTextMap = app.getConstantSync('WORKFLOW_ACTION_TEXT') || {}
         const logs = (res.result.data.logs || []).map(log => ({
           ...log,
-          timeText: log.operateTime ? utils.formatDateTime(log.operateTime) : '-',
-          actionText: {
-            'submit': '提交申请',
-            'approve': '审批通过',
-            'reject': '审批拒绝',
-            'return': '退回修改'
-          }[log.action] || log.action
+          timeText: log.createdAt ? utils.formatDateTime(log.createdAt) : '-',
+          actionText: actionTextMap[log.action] || log.action
         }))
+
+        // 申请时间 = action=start 日志的 createdAt
+        const startLog = logs.find(l => l.action === 'start')
+        const submittedAtText = startLog
+          ? startLog.timeText
+          : (record.createdAt ? utils.formatDateTime(record.createdAt) : '-')
 
         this.setData({
           selectedRecord: record,
           detailLogs: logs,
+          submittedAtText,
           showDetailPopup: true
         })
       }
@@ -271,7 +276,9 @@ Page({
     this.setData({
       showDetailPopup: false,
       selectedRecord: null,
-      detailLogs: []
+      detailLogs: [],
+      approvedAtText: '',
+      submittedAtText: ''
     })
   },
 
@@ -376,7 +383,10 @@ Page({
       })
 
       if (res.result.code === 0) {
-        utils.showToast({ title: '提交成功，等待审批', icon: 'success' })
+        wx.showModal({
+          title: '成功',
+          content: '提交成功，请等待审批，您可在审批中心“我的发起”中查看进度。'
+        })
         this.setData({ showFormPopup: false })
 
         // 跳转到审批中心
@@ -407,10 +417,9 @@ Page({
 
     try {
       const res = await wx.cloud.callFunction({
-        name: 'medicalApplication',
+        name: 'generateOrderPdf',
         data: {
-          action: 'generatePdf',
-          recordId: this.data.selectedRecord._id
+          orderId: this.data.selectedRecord.orderId
         }
       })
 

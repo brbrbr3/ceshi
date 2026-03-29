@@ -754,6 +754,30 @@ App({
         REMIND: 'remind'
       },
 
+      // 工作流操作类型枚举
+      WORKFLOW_ACTION: {
+        START: 'start',
+        APPROVE: 'approve',
+        REJECT: 'reject',
+        RETURN: 'return',
+        COMPLETE: 'complete',
+        CANCEL: 'cancel',
+        TERMINATE: 'terminate',
+        SUPPLEMENT: 'supplement'
+      },
+
+      // 工作流操作类型中文映射
+      WORKFLOW_ACTION_TEXT: {
+        start: '提交工单',
+        approve: '审批通过',
+        reject: '审批驳回',
+        return: '退回补充',
+        complete: '流程完成',
+        cancel: '撤回工单',
+        terminate: '中止工单',
+        supplement: '补充资料'
+      },
+
       // 时区配置
       TIMEZONE_OFFSET: -3,
       TIMEZONE_NAME: 'America/Sao_Paulo',
