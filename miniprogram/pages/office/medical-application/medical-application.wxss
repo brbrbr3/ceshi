@@ -252,8 +252,12 @@
 .medical-popup-form {
   flex: 1;
   overflow: hidden;
-  padding: 32rpx;
+  padding: 32rpx 32rpx 15rpx;
   box-sizing: border-box;
+}
+
+.medical-form-scroll-main{
+  padding-bottom: 15rpx;
 }
 
 .medical-field {
@@ -433,6 +437,7 @@
   border: none;
   margin-top: 20rpx;
   box-shadow: 0 8rpx 24rpx rgba(37, 99, 235, 0.2);
+  padding-top: 22rpx;
 }
 
 .medical-submit-btn::after {
@@ -448,7 +453,7 @@
 .medical-detail-content {
   flex: 1;
   overflow: hidden;
-  padding: 24rpx 32rpx;
+  padding: 5rpx 32rpx;
   box-sizing: border-box;
 }
 
@@ -482,9 +487,8 @@
 
 /* ========== 审批日志 ========== */
 .medical-detail-logs {
-  margin-top: 24rpx;
-  padding-top: 24rpx;
-  border-top: 1rpx solid #E2E8F0;
+  margin-top: 0;
+  padding-top: 16rpx;
 }
 
 .medical-logs-title {
@@ -533,8 +537,8 @@
 
 /* ========== 弹窗操作按钮 ========== */
 .medical-popup-actions {
-  padding: 16rpx 32rpx;
-  padding-bottom: calc(16rpx + env(safe-area-inset-bottom));
+  padding: 0 32rpx;
+  padding-bottom: env(safe-area-inset-bottom);
   display: flex;
   gap: 16rpx;
   flex-shrink: 0;
@@ -547,6 +551,7 @@
   font-weight: 600;
   border-radius: 16rpx;
   border: none;
+  padding-top: 20rpx;
 }
 
 .medical-action-btn.is-export {

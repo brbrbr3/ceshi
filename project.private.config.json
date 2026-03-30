@@ -23,50 +23,8 @@
     "miniprogram": {
       "list": [
         {
-          "name": "pages/office/medical-application/medical-application",
-          "pathName": "pages/office/medical-application/medical-application",
-          "query": "",
-          "scene": null,
-          "launchMode": "default"
-        },
-        {
           "name": "pages/test/signature-test/signature-test",
           "pathName": "pages/test/signature-test/signature-test",
-          "query": "",
-          "launchMode": "default",
-          "scene": null
-        },
-        {
-          "name": "pages/office/repair/repair",
-          "pathName": "pages/office/repair/repair",
-          "query": "",
-          "launchMode": "default",
-          "scene": null
-        },
-        {
-          "name": "pages/office/meeting-room/meeting-room",
-          "pathName": "pages/office/meeting-room/meeting-room",
-          "query": "",
-          "launchMode": "default",
-          "scene": null
-        },
-        {
-          "name": "pages/office/haircut/haircut",
-          "pathName": "pages/office/haircut/haircut",
-          "query": "",
-          "launchMode": "default",
-          "scene": null
-        },
-        {
-          "name": "pages/office/passport/passport",
-          "pathName": "pages/office/passport/passport",
-          "query": "",
-          "launchMode": "default",
-          "scene": null
-        },
-        {
-          "name": "pages/office/approval/approval",
-          "pathName": "pages/office/approval/approval",
           "query": "",
           "launchMode": "default",
           "scene": null

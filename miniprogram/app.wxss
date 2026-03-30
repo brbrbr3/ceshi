@@ -286,10 +286,10 @@ input {
   border-radius: 24rpx;
   background: linear-gradient(135deg, #1D4ED8 0%, #3B82F6 100%);
   color: #FFFFFF;
-  font-size: 28rpx;
+  font-size: 32rpx;
   font-weight: 600;
   box-shadow: 0 16rpx 30rpx rgba(37, 99, 235, 0.18);
-  padding: 25rpx 0 0;
+  padding: 24rpx 0 0;
 }
 
 .auth-submit-btn::after {

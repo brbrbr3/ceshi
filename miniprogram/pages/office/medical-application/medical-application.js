@@ -85,7 +85,10 @@ Page({
   async onShow() {
     // 如果没有在显示弹窗，则刷新列表
     if (!this.data.showFormPopup) {
-      wx.showLoading({ title: '加载中...', mask: true })
+      wx.showLoading({
+        title: '加载中...',
+        mask: true
+      })
       try {
         await this.refreshList()
       } finally {
@@ -113,10 +116,16 @@ Page({
 
     this.setData({
       institutions: MEDICAL_INSTITUTIONS.map(item =>
-        typeof item === 'string' ? { name: item, value: item } : item
+        typeof item === 'string' ? {
+          name: item,
+          value: item
+        } : item
       ),
       relations: RELATION_OPTIONS.map(item =>
-        typeof item === 'string' ? { name: item, value: item } : item
+        typeof item === 'string' ? {
+          name: item,
+          value: item
+        } : item
       ),
       today: utils.getLocalDateString()
     })
@@ -126,7 +135,10 @@ Page({
    * 重写 loadData 方法（分页加载就医记录）
    */
   async loadData(params) {
-    const { page, pageSize } = params
+    const {
+      page,
+      pageSize
+    } = params
 
     return new Promise((resolve, reject) => {
       wx.cloud.callFunction({
@@ -156,7 +168,10 @@ Page({
         }
       }).catch(error => {
         console.error('加载就医记录失败:', error)
-        utils.showToast({ title: '加载失败', icon: 'none' })
+        utils.showToast({
+          title: '加载失败',
+          icon: 'none'
+        })
         reject(error)
       })
     })
@@ -167,9 +182,9 @@ Page({
    */
   formatRecordItem(item) {
     const createdAt = new Date(item.createdAt)
-    const institutionText = item.institution === '其他'
-      ? item.otherInstitution
-      : item.institution
+    const institutionText = item.institution === '其他' ?
+      item.otherInstitution :
+      item.institution
 
     return {
       ...item,
@@ -200,7 +215,9 @@ Page({
     })
 
     const groupedRecords = Object.values(groupedMap).sort((a, b) => b.monthKey.localeCompare(a.monthKey))
-    this.setData({ groupedRecords })
+    this.setData({
+      groupedRecords
+    })
   },
 
   // ========== 弹窗操作 ==========
@@ -224,7 +241,9 @@ Page({
   },
 
   hideFormPopup() {
-    this.setData({ showFormPopup: false })
+    this.setData({
+      showFormPopup: false
+    })
   },
 
   /**
@@ -233,7 +252,9 @@ Page({
   async showRecordDetail(e) {
     const record = e.currentTarget.dataset.record
 
-    wx.showLoading({ title: '加载中...' })
+    wx.showLoading({
+      title: '加载中...'
+    })
     try {
       const res = await wx.cloud.callFunction({
         name: 'medicalApplication',
@@ -253,9 +274,9 @@ Page({
 
         // 申请时间 = action=start 日志的 createdAt
         const startLog = logs.find(l => l.action === 'start')
-        const submittedAtText = startLog
-          ? startLog.timeText
-          : (record.createdAt ? utils.formatDateTime(record.createdAt) : '-')
+        const submittedAtText = startLog ?
+          startLog.timeText :
+          (record.createdAt ? utils.formatDateTime(record.createdAt) : '-')
 
         this.setData({
           selectedRecord: record,
@@ -266,14 +287,19 @@ Page({
       }
     } catch (error) {
       console.error('获取详情失败:', error)
-      utils.showToast({ title: '获取详情失败', icon: 'none' })
+      utils.showToast({
+        title: '获取详情失败',
+        icon: 'none'
+      })
     } finally {
       wx.hideLoading()
     }
   },
 
   hideDetailPopup() {
-    this.setData({ showDetailPopup: false })
+    this.setData({
+      showDetailPopup: false
+    })
   },
 
   stopPropagation() {},
@@ -281,33 +307,47 @@ Page({
   // ========== 表单输入处理 ==========
 
   handlePatientNameInput(e) {
-    this.setData({ 'form.patientName': e.detail.value })
+    this.setData({
+      'form.patientName': e.detail.value
+    })
   },
 
   handleRelationSelect(e) {
     const relation = e.currentTarget.dataset.value
-    this.setData({ 'form.relation': relation })
+    this.setData({
+      'form.relation': relation
+    })
   },
 
   handleMedicalDateChange(e) {
-    this.setData({ 'form.medicalDate': e.detail.value })
+    this.setData({
+      'form.medicalDate': e.detail.value
+    })
   },
 
   handleInstitutionSelect(e) {
     const institution = e.currentTarget.dataset.value
-    this.setData({ 'form.institution': institution })
+    this.setData({
+      'form.institution': institution
+    })
   },
 
   handleOtherInstitutionInput(e) {
-    this.setData({ 'form.otherInstitution': e.detail.value })
+    this.setData({
+      'form.otherInstitution': e.detail.value
+    })
   },
 
   handleReasonForSelectionInput(e) {
-    this.setData({ 'form.reasonForSelection': e.detail.value })
+    this.setData({
+      'form.reasonForSelection': e.detail.value
+    })
   },
 
   handleReasonInput(e) {
-    this.setData({ 'form.reason': e.detail.value })
+    this.setData({
+      'form.reason': e.detail.value
+    })
   },
 
   /**
@@ -317,32 +357,50 @@ Page({
     const form = this.data.form
 
     if (!String(form.patientName || '').trim()) {
-      utils.showToast({ title: '请填写就医人姓名', icon: 'none' })
+      utils.showToast({
+        title: '请填写就医人姓名',
+        icon: 'none'
+      })
       return false
     }
 
     if (!form.relation) {
-      utils.showToast({ title: '请选择与申请人关系', icon: 'none' })
+      utils.showToast({
+        title: '请选择与申请人关系',
+        icon: 'none'
+      })
       return false
     }
 
     if (!form.medicalDate) {
-      utils.showToast({ title: '请选择就医日期', icon: 'none' })
+      utils.showToast({
+        title: '请选择就医日期',
+        icon: 'none'
+      })
       return false
     }
 
     if (!form.institution) {
-      utils.showToast({ title: '请选择就医机构', icon: 'none' })
+      utils.showToast({
+        title: '请选择就医机构',
+        icon: 'none'
+      })
       return false
     }
 
     if (form.institution === '其他' && !String(form.otherInstitution || '').trim()) {
-      utils.showToast({ title: '请填写就医机构名称', icon: 'none' })
+      utils.showToast({
+        title: '请填写就医机构名称',
+        icon: 'none'
+      })
       return false
     }
 
     if (!String(form.reason || '').trim()) {
-      utils.showToast({ title: '请填写就医原因', icon: 'none' })
+      utils.showToast({
+        title: '请填写就医原因',
+        icon: 'none'
+      })
       return false
     }
 
@@ -357,7 +415,9 @@ Page({
     if (!this.validateForm()) return
 
     const form = this.data.form
-    this.setData({ submitting: true })
+    this.setData({
+      submitting: true
+    })
 
     try {
       const res = await wx.cloud.callFunction({
@@ -378,25 +438,39 @@ Page({
 
       if (res.result.code === 0) {
         wx.showModal({
-          title: '成功',
-          content: '提交成功，请等待审批，您可在审批中心“我的发起”中查看进度。'
+          title: '提交成功',
+          content: '提交成功，请等待审批，您可在审批中心“我的发起”中查看进度。',
+          showCancel: 'false',
+          success: (modalRes) => {
+            if (modalRes.confirm) {
+              this.setData({
+                showFormPopup: false
+              })
+              // 跳转到审批中心
+              setTimeout(() => {
+                wx.switchTab({
+                  url: '/pages/office/approval/approval'
+                })
+              }, 1500)
+            }
+          }
         })
-        this.setData({ showFormPopup: false })
-
-        // 跳转到审批中心
-        setTimeout(() => {
-          wx.switchTab({
-            url: '/pages/office/approval/approval'
-          })
-        }, 1500)
       } else {
-        utils.showToast({ title: res.result.message || '提交失败', icon: 'none' })
+        utils.showToast({
+          title: res.result.message || '提交失败',
+          icon: 'none'
+        })
       }
     } catch (error) {
       console.error('提交申请失败:', error)
-      utils.showToast({ title: '提交失败，请重试', icon: 'none' })
+      utils.showToast({
+        title: '提交失败，请重试',
+        icon: 'none'
+      })
     } finally {
-      this.setData({ submitting: false })
+      this.setData({
+        submitting: false
+      })
     }
   },
 
@@ -407,7 +481,9 @@ Page({
     if (this.data.exporting) return
     if (!this.data.selectedRecord) return
 
-    this.setData({ exporting: true })
+    this.setData({
+      exporting: true
+    })
 
     try {
       const res = await wx.cloud.callFunction({
@@ -422,7 +498,9 @@ Page({
         const fileName = res.result.data.fileName
 
         // 下载文件并打开
-        wx.showLoading({ title: '正在打开文件...' })
+        wx.showLoading({
+          title: '正在打开文件...'
+        })
         const downloadResult = await new Promise((resolve, reject) => {
           wx.downloadFile({
             url: fileUrl,
@@ -444,20 +522,34 @@ Page({
             },
             fail: (err) => {
               console.error('打开PDF失败:', err)
-              utils.showToast({ title: '打开文件失败', icon: 'none' })
+              utils.showToast({
+                title: '打开文件失败',
+                icon: 'none'
+              })
             }
           })
         } else {
-          utils.showToast({ title: '下载文件失败', icon: 'none' })
+          utils.showToast({
+            title: '下载文件失败',
+            icon: 'none'
+          })
         }
       } else {
-        utils.showToast({ title: res.result.message || '导出失败', icon: 'none' })
+        utils.showToast({
+          title: res.result.message || '导出失败',
+          icon: 'none'
+        })
       }
     } catch (error) {
       console.error('导出PDF失败:', error)
-      utils.showToast({ title: '导出失败，请重试', icon: 'none' })
+      utils.showToast({
+        title: '导出失败，请重试',
+        icon: 'none'
+      })
     } finally {
-      this.setData({ exporting: false })
+      this.setData({
+        exporting: false
+      })
     }
   }
 })

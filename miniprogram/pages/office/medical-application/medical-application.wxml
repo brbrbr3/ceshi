@@ -65,6 +65,7 @@
       </view>
 
       <scroll-view scroll-y class="medical-popup-form">
+      <view class="medical-form-scroll-main">
         <view class="medical-field">
           <view class="medical-field-label">就医人姓名 <text class="medical-required">*</text></view>
           <view class="medical-input-wrapper">
@@ -144,6 +145,7 @@
             </view>
           </view>
         </view>
+      </view>
       </scroll-view>
 
       <view class="medical-popup-actions">
@@ -225,7 +227,7 @@
       <!-- 导出按钮 -->
       <view class="medical-popup-actions">
         <button class="medical-action-btn is-export" loading="{{exporting}}" disabled="{{exporting}}" bindtap="handleExportPdf">
-          导出PDF
+          {{exporting ? '正在导出PDF，约需30秒，请耐心等待' : '导出PDF文件'}}
         </button>
       </view>
     </view>
