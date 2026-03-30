@@ -33,7 +33,7 @@
           <view class="card-title">就医申请</view>
         </view>
         <view class="card-content">
-          <view class="card-desc">在线提交就医申请，填写就诊时间、医院、科室等信息，提交后进入审批流程，可查看实时审批进度。</view>
+          <view class="card-desc">在线提交就医申请，填写就诊人、就诊时间、医院等信息，提交后进入审批流程，可在“审批中心”查看实时审批进度。<text>\n</text>已批准的申请会显示在“就医申请记录”中，可导出为PDF文件。</view>
           <view class="card-permission">
             <view class="permission-label">权限要求：</view>
             <view class="permission-value">配偶、家属请馆员代为申请。</view>
@@ -89,7 +89,7 @@
           <view class="card-title">护照管理</view>
         </view>
         <view class="card-content">
-          <view class="card-desc">护照借用申请与管理，包含四个功能模块：</view>
+          <view class="card-desc">护照借用申请与管理，支持以下功能：</view>
           <view class="card-features">
             <view class="feature-item">• 护照借出：提交借用申请，查看借用记录</view>
             <view class="feature-item">• 护照信息维护：填写护照信息，系统自动提醒即将在半年内过期的护照。</view>
@@ -111,10 +111,11 @@
           <view class="card-features">
             <view class="feature-item">• 预约理发：选择日期和时段进行预约，支持为他人代约。</view>
             <view class="feature-item">• 时段管理（招待员）：可将时段设为不可预约或取消他人预约。</view>
+            <view class="feature-item">• 理发统计：按月统计每人理发次数。</view>
           </view>
           <view class="card-permission">
             <view class="permission-label">权限要求：</view>
-            <view class="permission-value">所有用户可预约。招待员、会计主管、会计、出纳可查看预约列表。</view>
+            <view class="permission-value">所有用户可预约。招待员、会计主管、会计、出纳可查看理发统计。</view>
           </view>
         </view>
       </view>
@@ -131,7 +132,7 @@
           </view>
           <view class="card-permission">
             <view class="permission-label">权限要求：</view>
-            <view class="permission-value">所有用户可提交报修。仅物业角色可查看全部报修并标记完成。</view>
+            <view class="permission-value">所有用户可提交报修。物业可查看全部报修，标记维修完成。</view>
           </view>
         </view>
       </view>
@@ -147,10 +148,10 @@
           <view class="card-title">审批中心</view>
         </view>
         <view class="card-content">
-          <view class="card-desc">处理审批任务和查看已提交申请。分为"待审批"、"我的发起"、"已处理"三个模块，根据用户角色显示相应的内容。</view>
+          <view class="card-desc">处理审批任务和查看已提交申请。分为"待审批"、"我发起的"、"已处理"三个Tab页，根据用户角色显示相应的内容。</view>
           <view class="card-permission">
             <view class="permission-label">权限要求：</view>
-            <view class="permission-value">无特定权限要求，根据角色显示不同内容</view>
+            <view class="permission-value">无特定权限要求，根据用户角色显示不同内容</view>
           </view>
         </view>
       </view>

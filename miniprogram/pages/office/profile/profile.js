@@ -23,9 +23,10 @@ Page({
     ],
     menuGroups: [
       {
-        title: '工作记录',
+        title: '工作设置',
         items: [
-          { icon: '🔔', label: '消息通知' }
+          { icon: '🔔', label: '消息通知' },
+          { icon: '✍️', label: '签字管理' }
         ]
       },
       {
@@ -140,6 +141,10 @@ Page({
     } else if (label === '消息通知') {
       wx.navigateTo({
         url: '/pages/office/notifications/notifications'
+      })
+    } else if (label === '签字管理') {
+      wx.navigateTo({
+        url: '/pages/office/signature-manage/signature-manage'
       })
     } else if (label === '意见反馈') {
       wx.navigateTo({

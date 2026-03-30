@@ -23,6 +23,13 @@
     "miniprogram": {
       "list": [
         {
+          "name": "pages/office/signature-manage/signature-manage",
+          "pathName": "pages/office/signature-manage/signature-manage",
+          "query": "",
+          "scene": null,
+          "launchMode": "default"
+        },
+        {
           "name": "pages/test/signature-test/signature-test",
           "pathName": "pages/test/signature-test/signature-test",
           "query": "",

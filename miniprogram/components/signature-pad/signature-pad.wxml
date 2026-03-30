@@ -1,4 +1,4 @@
-/*
+<!-- /*
   签字板组件
   属性：
     show(Boolean)       - 控制显示/隐藏
@@ -7,7 +7,7 @@
   事件：
     confirm             - 确认签名，detail.tempFilePath
     cancel              - 取消签名
-*/
+*/ -->
 <view class="sig-mask" wx:if="{{visible}}" catchtouchmove="noop">
   <view class="sig-container">
     <!-- 顶部栏 -->

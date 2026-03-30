@@ -82,7 +82,7 @@ function mapRequestItem(request) {
 
   // 根据申请类型生成不同的详情
   let detail = ''
-  let requestType = request.requestType || '注册申请'
+  let requestType = request.requestType || 'XX申请'
 
   // 从工单数据获取工作流步骤信息
   const workflowSnapshot = request.workflowSnapshot || {}

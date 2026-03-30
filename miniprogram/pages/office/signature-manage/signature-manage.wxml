@@ -1,0 +1,65 @@
+<view class="office-page sig-page">
+  <view class="office-gradient-header sig-header">
+    <view class="office-header-top">
+      <view>
+        <view class="sig-title">签字管理</view>
+        <view class="sig-subtitle">管理您的手写签字，最多保存{{maxCount}}个</view>
+      </view>
+    </view>
+  </view>
+
+  <view class="office-content sig-content">
+    <!-- 签字卡片列表 -->
+    <view class="sig-list" wx:if="{{signatures.length > 0}}">
+      <view class="office-card sig-card" wx:for="{{signatures}}" wx:key="_id">
+        <!-- 签字缩略图 -->
+        <view class="sig-card-preview" bindtap="handlePreviewSignature" data-index="{{index}}">
+          <view class="sig-card-image-wrap" wx:if="{{item.tempUrl}}">
+            <image class="sig-card-image" src="{{item.tempUrl}}" mode="aspectFit" />
+          </view>
+          <view class="sig-card-image-placeholder" wx:else>
+            <text class="sig-card-loading" wx:if="{{item.loading}}">加载中...</text>
+            <text class="sig-card-error" wx:else>加载失败</text>
+          </view>
+        </view>
+
+        <!-- 签字信息 -->
+        <view class="sig-card-info">
+          <view class="sig-card-label">{{item.label}}</view>
+          <view class="sig-card-time">创建于 {{item.timeText}}</view>
+          <view class="sig-card-actions">
+            <view class="sig-action-btn" bindtap="handleReplaceSignature" data-index="{{index}}">
+              <text>替换</text>
+            </view>
+            <view class="sig-action-btn sig-action-delete" bindtap="handleDeleteSignature" data-index="{{index}}">
+              <text>删除</text>
+            </view>
+          </view>
+        </view>
+      </view>
+    </view>
+
+    <!-- 空状态 -->
+    <view class="sig-empty" wx:elif="{{signatures.length === 0}}">
+      <view class="sig-empty-icon">✍️</view>
+      <view class="sig-empty-text">暂无签字</view>
+      <view class="sig-empty-hint">点击下方按钮添加您的手写签字</view>
+    </view>
+
+    <!-- 添加按钮 -->
+    <view class="sig-add-section">
+      <view class="sig-add-btn {{canAdd ? '' : 'sig-add-btn-disabled'}}" bindtap="handleAddSignature">
+        <text class="sig-add-icon">+</text>
+        <text>添加签字</text>
+      </view>
+      <view class="sig-add-hint" wx:if="{{!canAdd}}">已达到上限（{{maxCount}}个）</view>
+    </view>
+  </view>
+
+  <!-- 签字板组件 -->
+  <signature-pad
+    show="{{showSignaturePad}}"
+    penColor="#000000"
+    bind:confirm="onSignConfirm"
+    bind:cancel="onSignCancel" />
+</view>

@@ -1,0 +1,7 @@
+{
+  "navigationBarTitleText": "签字管理",
+  "enablePullDownRefresh": false,
+  "usingComponents": {
+    "signature-pad": "/components/signature-pad/signature-pad"
+  }
+}

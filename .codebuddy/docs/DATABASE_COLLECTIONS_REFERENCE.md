@@ -996,6 +996,43 @@
 
 ---
 
+### 24. user_signatures - 用户签字
+
+**用途**：存储用户的手写签字图片（用于审批申请表PDF导出等场景）
+
+**安全规则**：`PRIVATE` - 仅创建者可读写
+
+> **重要说明**：签字是用户个人数据，使用 `PRIVATE` 规则，用户只能查看和管理自己的签字。云函数（如PDF生成）以管理员权限运行，可绕过安全规则读取任意用户的签字。
+
+**记录数**：动态
+
+**索引**：
+
+- `_id` - 记录 ID（云开发自动创建）
+- `idx_openid` - 用户 openid 索引 - 优化按用户查询
+
+**字段结构**：
+```javascript
+{
+  _id: String,                    // 记录 ID（自动生成）
+  _openid: String,                // 创建者 openid（PRIVATE 规则自动填充）
+  fileID: String,                 // 云存储文件 ID
+  label: String,                  // 签字标签（如 '签字 1'、'签字 2'）
+  index: Number,                  // 排序序号（0 或 1）
+  createdAt: Number,              // 创建时间戳
+  updatedAt: Number               // 更新时间戳
+}
+```
+
+**业务规则**：
+1. 每个用户最多保存 2 个签字
+2. 签字图片通过 `signature-pad` 组件手写生成，上传到云存储
+3. 云存储路径格式：`signatures/{openid}/{timestamp}_{index}.png`
+4. 签字可通过前端 SDK 进行添加、替换、删除操作
+5. 审批通过后的PDF导出功能可通过云函数读取用户的签字图片
+
+---
+
 ## 命名规范
 
 ### 集合命名规则
@@ -1124,6 +1161,7 @@ const notificationsCollection = db.collection('notifications')  // ✅
 | 2026-03-27 | 添加 passport_info 护照信息集合 | AI |
 | 2026-03-29 | 添加 medical_records 就医申请记录集合 | AI |
 | 2026-03-27 | 添加 haircut_appointments 理发预约记录集合 | AI |
+| 2026-03-30 | 添加 user_signatures 用户签字集合 | AI |
 
 ---
 
@@ -1154,6 +1192,7 @@ https://tcb.cloud.tencent.com/dev?envId=cloud1-8gdftlggae64d5d0#/db/doc
 - [schedule_subscriptions](https://tcb.cloud.tencent.com/dev?envId=cloud1-8gdftlggae64d5d0#/db/doc/collection/schedule_subscriptions)
 - [sys_config](https://tcb.cloud.tencent.com/dev?envId=cloud1-8gdftlggae64d5d0#/db/doc/collection/sys_config)
 - [trip_reports](https://tcb.cloud.tencent.com/dev?envId=cloud1-8gdftlggae64d5d0#/db/doc/collection/trip_reports)
+- [user_signatures](https://tcb.cloud.tencent.com/dev?envId=cloud1-8gdftlggae64d5d0#/db/doc/collection/user_signatures)
 - [work_orders](https://tcb.cloud.tencent.com/dev?envId=cloud1-8gdftlggae64d5d0#/db/doc/collection/work_orders)
 - [workflow_logs](https://tcb.cloud.tencent.com/dev?envId=cloud1-8gdftlggae64d5d0#/db/doc/collection/workflow_logs)
 - [workflow_tasks](https://tcb.cloud.tencent.com/dev?envId=cloud1-8gdftlggae64d5d0#/db/doc/collection/workflow_tasks)

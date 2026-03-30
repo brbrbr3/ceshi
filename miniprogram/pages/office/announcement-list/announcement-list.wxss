@@ -70,8 +70,8 @@
 
 /* 透明标签栏样式 */
 .announcements-tabs-shell {
-  margin-top: 30rpx;
-  margin-bottom: -40rpx;
+  margin-top: 15rpx;
+  margin-bottom: -10rpx;
   padding: 6rpx;
   border-radius: 28rpx;
   background: rgba(255, 255, 255, 0.15);
@@ -96,7 +96,7 @@
 }
 
 .announcements-content {
-  margin-top: -70rpx;
+  margin-top: -20rpx;
   padding: 0 24rpx 0;
 }
 

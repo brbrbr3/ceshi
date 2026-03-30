@@ -379,7 +379,8 @@ Component({
 
       wx.showLoading({ title: '生成中...' })
 
-      this.canvas.toTempFilePath({
+      wx.canvasToTempFilePath({
+        canvas: this.canvas,
         x: 0,
         y: 0,
         width: this.canvasWidth * this.dpr,
@@ -396,7 +397,7 @@ Component({
           console.error('导出签名失败:', err)
           wx.showToast({ title: '导出失败', icon: 'none' })
         }
-      })
+      }, this)
     },
 
     /**

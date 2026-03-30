@@ -25,6 +25,7 @@
     "pages/office/repair/repair",
     "pages/office/feedback/feedback",
     "pages/office/help/help",
+    "pages/office/signature-manage/signature-manage",
     "pages/test/datetime-picker-test/datetime-picker-test",
     "pages/test/signature-test/signature-test"
   ],
