@@ -137,9 +137,9 @@ function getDefaultConstants() {
     // 角色相关
     ROLE_OPTIONS: ['馆领导', '部门负责人', '馆员', '工勤', '物业', '配偶', '家属'],
     ROLE_POSITION_MAP: {
-      '馆领导': ['无', '会计主管'],
-      '部门负责人': ['无', '会计主管', '会计', '出纳', '俱乐部', '阳光课堂'],
-      '馆员': ['无', '礼宾', '会计主管', '会计', '出纳', '俱乐部', '阳光课堂'],
+      '馆领导': ['无', '人事主管', '会计主管'],
+      '部门负责人': ['无', '人事主管', '会计主管', '会计', '出纳', '俱乐部', '阳光课堂'],
+      '馆员': ['无', '礼宾', '会计', '出纳', '俱乐部', '阳光课堂'],
       '工勤': ['招待员', '厨师'],
       '配偶': ['无', '出纳', '内聘']
     },
@@ -156,7 +156,7 @@ function getDefaultConstants() {
     },
 
     // 岗位相关
-    POSITION_OPTIONS: ['无', '礼宾', '会计主管', '会计', '出纳', '俱乐部', '阳光课堂', '招待员', '厨师', '内聘'],
+    POSITION_OPTIONS: ['无', '人事主管', '会计主管', '礼宾', '会计', '出纳', '俱乐部', '阳光课堂', '招待员', '厨师', '内聘'],
     DEFAULT_POSITION: '',
 
     // 部门相关
@@ -248,7 +248,7 @@ function normalizeBoolean(value) {
 // 动态获取常量
 async function getPositionOptions() {
   const constants = await getSystemConstants()
-  return constants.POSITION_OPTIONS || ['无', '礼宾', '会计主管', '会计', '出纳', '俱乐部', '阳光课堂', '招待员', '厨师', '内聘']
+  return constants.POSITION_OPTIONS || ['无', '人事主管', '会计主管', '礼宾', '会计', '出纳', '俱乐部', '阳光课堂', '招待员', '厨师', '内聘']
 }
 
 async function getDepartmentOptions() {
@@ -270,7 +270,7 @@ async function validateForm(formData) {
   const constants = await getSystemConstants()
   const roleOptions = constants.ROLE_OPTIONS || ['馆领导', '部门负责人', '馆员', '工勤', '物业', '配偶', '家属']
   const genderOptions = constants.GENDER_OPTIONS || ['男', '女']
-  const positionOptions = constants.POSITION_OPTIONS || ['无', '会计主管', '会计', '招待员', '厨师']
+  const positionOptions = constants.POSITION_OPTIONS || ['无', '人事主管', '会计主管', '礼宾', '会计', '出纳', '俱乐部', '阳光课堂', '招待员', '厨师', '内聘']
   const relativeRoles = constants.NEED_RELATIVE_ROLES || ['配偶', '家属']
   const roleFieldVisibility = constants.ROLE_FIELD_VISIBILITY || {}
 

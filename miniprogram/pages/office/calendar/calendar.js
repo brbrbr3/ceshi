@@ -76,6 +76,7 @@ Page({
     submitting: false,
 
     // 日程相关
+    showScheduleSection: true,  // 是否显示时间轴日程列表
     selectedDate: null,
     selectedDateText: '',
     schedules: {
@@ -251,9 +252,14 @@ Page({
         const isAdmin = user.isAdmin || user.role === 'admin'
         const canManageSchedule = isAdmin || SCHEDULE_ALLOWED_POSITIONS.includes(user.position)
 
+        // 物业/家属/配偶且岗位为"无"的用户不显示时间轴日程列表
+        const hiddenRoles = ['物业', '家属', '配偶']
+        const shouldHideSchedule = hiddenRoles.includes(user.role) && user.position === '无'
+
         this.setData({
           currentUser: user,
-          canManageSchedule
+          canManageSchedule,
+          showScheduleSection: !shouldHideSchedule
         })
       }
     }).catch(() => {

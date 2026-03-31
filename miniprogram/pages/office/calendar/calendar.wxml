@@ -16,8 +16,8 @@
     <calendar id="calendar" view="{{calendarView}}" weekstart="{{0}}" marks="{{marks}}" custom-nav-bar="{{true}}" bindload="handleCalendarLoad" bindclick="handleCalendarClick" bindchange="handleCalendarChange" bindviewchange="handleViewChange" style="--wc-primary: #2563EB; --wc-bg-light: #FFFFFF;" />
   </view>
 
-  <!-- 时间轴日程列表（仅周视图显示） -->
-  <view class="schedule-section" wx:if="{{isWeekView}}">
+  <!-- 时间轴日程列表（仅周视图显示，且当前用户不被隐藏） -->
+  <view class="schedule-section" wx:if="{{isWeekView && showScheduleSection}}">
     <!-- 日期标题 -->
     <view class="schedule-date-header">
       <view class="schedule-date-title">{{selectedDateText}}</view>

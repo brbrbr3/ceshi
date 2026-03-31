@@ -23,15 +23,15 @@
     "miniprogram": {
       "list": [
         {
-          "name": "pages/office/signature-manage/signature-manage",
-          "pathName": "pages/office/signature-manage/signature-manage",
+          "name": "pages/office/calendar/calendar",
+          "pathName": "pages/office/calendar/calendar",
           "query": "",
           "scene": null,
           "launchMode": "default"
         },
         {
-          "name": "pages/test/signature-test/signature-test",
-          "pathName": "pages/test/signature-test/signature-test",
+          "name": "pages/office/signature-manage/signature-manage",
+          "pathName": "pages/office/signature-manage/signature-manage",
           "query": "",
           "launchMode": "default",
           "scene": null
