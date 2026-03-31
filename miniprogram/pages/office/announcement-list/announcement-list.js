@@ -11,7 +11,10 @@ Page({
   data: {
     list: [],
     filterType: 'all',
-    showCreateButton: false
+    showCreateButton: false,
+    // 左划菜单状态
+    swipeItem: null,      // 当前展开的公告 _id
+    swipeX: {}            // { [id]: offset }
   },
 
   onLoad() {
@@ -33,18 +36,19 @@ Page({
     app.checkUserRegistration()
       .then((result) => {
         if (!result.registered || !result.user) {
-          this.setData({ showCreateButton: false })
+          this.setData({ showCreateButton: false, isAdmin: false })
           return
         }
 
         // 所有用户都可以发布通知公告
         this.setData({
-          showCreateButton: true
+          showCreateButton: true,
+          isAdmin: !!result.user.isAdmin
         })
       })
       .catch((error) => {
         console.error('检查权限失败', error)
-        this.setData({ showCreateButton: false })
+        this.setData({ showCreateButton: false, isAdmin: false })
       })
   },
 
@@ -158,5 +162,137 @@ Page({
       'normal': 'tag-normal'
     }
     return classMap[type] || 'tag-normal'
+  },
+
+  // ========== 左划菜单 ==========
+
+  handleTouchStart(e) {
+    const id = e.currentTarget.dataset.id
+    const touch = e.touches[0]
+    this.setData({
+      [`touchStartX_${id}`]: touch.clientX,
+      [`touchStartY_${id}`]: touch.clientY
+    })
+  },
+
+  handleTouchMove(e) {
+    const id = e.currentTarget.dataset.id
+    const touch = e.touches[0]
+    const startX = this.data[`touchStartX_${id}`]
+    const startY = this.data[`touchStartY_${id}`]
+    const deltaX = touch.clientX - startX
+    const deltaY = touch.clientY - startY
+
+    // 纵向滑动不处理
+    if (Math.abs(deltaY) > Math.abs(deltaX)) return
+
+    // 只允许左滑
+    if (deltaX < 0) {
+      const offset = Math.max(deltaX, -160) // 最大展开160rpx
+      this.setData({ [`swipeX.${id}`]: offset, swipeItem: id })
+    }
+  },
+
+  handleTouchEnd(e) {
+    const id = e.currentTarget.dataset.id
+    const currentX = this.data.swipeX[id] || 0
+
+    if (currentX < -60) {
+      this.setData({ [`swipeX.${id}`]: -160, swipeItem: id })
+    } else {
+      this.setData({ [`swipeX.${id}`]: 0 })
+    }
+  },
+
+  // 点击列表项时收起菜单（防止误触）
+  handleItemTap(e) {
+    if (this.data.swipeItem) {
+      const id = e.currentTarget.dataset.id
+      this.setData({ [`swipeX.${id}`]: 0, swipeItem: null })
+      // 如果已展开，不执行跳转
+      return
+    }
+    const id = e.currentTarget.dataset.id
+    wx.navigateTo({
+      url: `/pages/office/announcement-detail/announcement-detail?id=${id}`
+    })
+  },
+
+  // ========== 置顶 ==========
+
+  handlePin(e) {
+    if (!this.data.isAdmin) {
+      wx.showModal({ title: '提示', content: '只有管理员可置顶公告', showCancel: false })
+      return
+    }
+    const id = e.currentTarget.dataset.id
+    const item = this.data.list.find(i => i._id === id)
+    if (!item) return
+
+    const action = item.isPinned ? '取消置顶' : '置顶'
+
+    wx.showModal({
+      title: `确认${action}`,
+      content: `${action}「${item.title}」？`,
+      confirmText: '确定',
+      success: async (res) => {
+        if (!res.confirm) return
+        wx.showLoading({ title: '处理中...', mask: true })
+        try {
+          const result = await wx.cloud.callFunction({
+            name: 'announcementManager',
+            data: { action: 'pin', announcementId: id }
+          })
+          wx.hideLoading()
+          if (result.result && result.result.code === 0) {
+            utils.showToast({ title: result.result.message || '操作成功', icon: 'success' })
+            this.resetPagination()
+            this.loadAnnouncements()
+          } else {
+            utils.showToast({ title: result.result.message || '操作失败', icon: 'none' })
+          }
+        } catch (err) {
+          wx.hideLoading()
+          utils.showToast({ title: '操作失败', icon: 'none' })
+        }
+        this.setData({ [`swipeX.${id}`]: 0, swipeItem: null })
+      }
+    })
+  },
+
+  // ========== 删除 ==========
+
+  handleDelete(e) {
+    const id = e.currentTarget.dataset.id
+    const item = this.data.list.find(i => i._id === id)
+    if (!item) return
+
+    wx.showModal({
+      title: '确认删除',
+      content: `删除「${item.title}」？此操作不可恢复。`,
+      confirmColor: '#EF4444',
+      success: async (res) => {
+        if (!res.confirm) return
+        wx.showLoading({ title: '删除中...', mask: true })
+        try {
+          const result = await wx.cloud.callFunction({
+            name: 'announcementManager',
+            data: { action: 'delete', announcementId: id }
+          })
+          wx.hideLoading()
+          if (result.result && result.result.code === 0) {
+            utils.showToast({ title: '已删除', icon: 'success' })
+            this.resetPagination()
+            this.loadAnnouncements()
+          } else {
+            utils.showToast({ title: result.result.message || '删除失败', icon: 'none' })
+          }
+        } catch (err) {
+          wx.hideLoading()
+          utils.showToast({ title: '删除失败', icon: 'none' })
+        }
+        this.setData({ [`swipeX.${id}`]: 0, swipeItem: null })
+      }
+    })
   }
 })

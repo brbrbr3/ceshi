@@ -217,10 +217,12 @@ async function listAnnouncements(params) {
 
   const total = countResult.total || 0
 
-  // 查询列表
+  // 查询列表：置顶优先（isPinned 降序），同级别按发布时间降序
   const skip = (page - 1) * pageSize
   const listResult = await announcementsCollection
     .where(where)
+    .orderBy('isPinned', 'desc')
+    .orderBy('pinnedAt', 'desc')
     .orderBy('publishedAt', 'desc')
     .skip(skip)
     .limit(pageSize)
@@ -319,6 +321,65 @@ async function revokeAnnouncement(openid, announcementId) {
   return success(null, '通知公告已撤回')
 }
 
+/**
+ * 置顶/取消置顶通知公告
+ */
+async function pinAnnouncement(openid, announcementId) {
+  const result = await announcementsCollection.doc(announcementId).get()
+
+  if (!result.data) {
+    return fail('通知公告不存在', 404)
+  }
+
+  const announcement = result.data
+
+  if (announcement.status !== 'published') {
+    return fail('只能置顶已发布的公告', 400)
+  }
+
+  const now = Date.now()
+  const newPinned = !announcement.isPinned
+
+  await announcementsCollection.doc(announcementId).update({
+    data: {
+      isPinned: newPinned,
+      pinnedAt: newPinned ? now : db.command.remove(),
+      updatedAt: now
+    }
+  })
+
+  return success({ isPinned: newPinned }, newPinned ? '已置顶' : '已取消置顶')
+}
+
+/**
+ * 删除通知公告
+ */
+async function deleteAnnouncement(openid, announcementId) {
+  const result = await announcementsCollection.doc(announcementId).get()
+
+  if (!result.data) {
+    return fail('通知公告不存在', 404)
+  }
+
+  const announcement = result.data
+
+  // 只有发布者和管理员可以删除
+  if (announcement.publisherId !== openid) {
+    const userResult = await usersCollection
+      .where({ openid })
+      .limit(1)
+      .get()
+
+    if (!userResult.data || userResult.data.length === 0 || !userResult.data[0].isAdmin) {
+      return fail('只有发布者或管理员才能删除通知公告', 403)
+    }
+  }
+
+  await announcementsCollection.doc(announcementId).remove()
+
+  return success(null, '已删除')
+}
+
 exports.main = async (event) => {
   const wxContext = cloud.getWXContext()
   const openid = wxContext.OPENID
@@ -354,6 +415,22 @@ exports.main = async (event) => {
         return fail('缺少通知公告ID', 400)
       }
       return await revokeAnnouncement(openid, announcementId)
+    }
+
+    if (action === 'pin') {
+      const announcementId = event.announcementId
+      if (!announcementId) {
+        return fail('缺少通知公告ID', 400)
+      }
+      return await pinAnnouncement(openid, announcementId)
+    }
+
+    if (action === 'delete') {
+      const announcementId = event.announcementId
+      if (!announcementId) {
+        return fail('缺少通知公告ID', 400)
+      }
+      return await deleteAnnouncement(openid, announcementId)
     }
 
     return fail('不支持的操作类型', 400)

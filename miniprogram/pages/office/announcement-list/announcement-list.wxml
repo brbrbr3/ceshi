@@ -49,24 +49,48 @@
 
     <!-- 列表内容 -->
     <view class="office-card announcements-list" wx:if="{{list.length > 0}}">
-      <view class="announcement-item" wx:for="{{list}}" wx:key="_id" bindtap="handleAnnouncementTap" data-id="{{item._id}}">
-        <view class="announcement-item-left">
-          <view class="announcement-item-icon {{item.typeClass}}">
-            <text wx:if="{{item.type === 'urgent'}}">🔔</text>
-            <text wx:elif="{{item.type === 'important'}}">⚠️</text>
-            <text wx:else>📢</text>
+      <view class="swipe-wrapper" wx:for="{{list}}" wx:key="_id">
+        <!-- 操作按钮层 -->
+        <view class="swipe-actions">
+          <view class="swipe-action swipe-action-pin" bindtap="handlePin" data-id="{{item._id}}">
+            <text>{{item.isPinned ? '取消↑' : '置顶↑'}}</text>
           </view>
-          <view class="announcement-item-main">
-            <view class="announcement-item-title">{{item.title}}</view>
-            <view class="announcement-item-meta">
-              <text class="announcement-item-time">{{item.timeText}}</text>
-              <text class="announcement-item-author">· {{item.publisherName}}</text>
-              <text wx:if="{{item.unread}}" class="announcement-item-dot"></text>
-            </view>
+          <view class="swipe-action swipe-action-delete" bindtap="handleDelete" data-id="{{item._id}}">
+            <text>×</text>
           </view>
         </view>
-        <view class="announcement-item-right">
-          <view class="announcement-item-arrow">›</view>
+        <!-- 内容层（左划平移） -->
+        <view
+          class="swipe-content"
+          style="transform: translateX({{swipeX[item._id] || 0}}px); transition: transform 0.3s;"
+          bindtouchstart="handleTouchStart"
+          bindtouchmove="handleTouchMove"
+          bindtouchend="handleTouchEnd"
+          data-id="{{item._id}}"
+        >
+          <view class="announcement-item" bindtap="handleItemTap" data-id="{{item._id}}">
+            <view class="announcement-item-left">
+              <view class="announcement-item-icon {{item.typeClass}}">
+                <text wx:if="{{item.type === 'urgent'}}">🔔</text>
+                <text wx:elif="{{item.type === 'important'}}">⚠️</text>
+                <text wx:else>📢</text>
+              </view>
+              <view class="announcement-item-main">
+                <view class="announcement-item-title">
+                  <text wx:if="{{item.isPinned}}" class="pinned-badge">置顶</text>
+                  {{item.title}}
+                </view>
+                <view class="announcement-item-meta">
+                  <text class="announcement-item-time">{{item.timeText}}</text>
+                  <text class="announcement-item-author">· {{item.publisherName}}</text>
+                  <text wx:if="{{item.unread}}" class="announcement-item-dot"></text>
+                </view>
+              </view>
+            </view>
+            <view class="announcement-item-right">
+              <view class="announcement-item-arrow">›</view>
+            </view>
+          </view>
         </view>
       </view>
     </view>
