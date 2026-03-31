@@ -19,24 +19,5 @@
     "ignoreDevUnusedFiles": true
   },
   "libVersion": "3.15.0",
-  "condition": {
-    "miniprogram": {
-      "list": [
-        {
-          "name": "pages/office/calendar/calendar",
-          "pathName": "pages/office/calendar/calendar",
-          "query": "",
-          "scene": null,
-          "launchMode": "default"
-        },
-        {
-          "name": "pages/office/signature-manage/signature-manage",
-          "pathName": "pages/office/signature-manage/signature-manage",
-          "query": "",
-          "launchMode": "default",
-          "scene": null
-        }
-      ]
-    }
-  }
+  "condition": {}
 }

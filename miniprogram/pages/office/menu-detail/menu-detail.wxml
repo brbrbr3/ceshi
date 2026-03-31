@@ -3,8 +3,8 @@
     <view>
       <view class="menu-detail-title">{{menu.title}}</view>
       <view class="menu-detail-meta">
-        <text>提交于 {{menu.timeText}}</text>
-        <text>· {{menu.authorName}}</text>
+        <text>{{menu.authorName}}</text>
+        <text> · {{menu.timeText}}提交</text>
       </view>
     </view>
   </view>

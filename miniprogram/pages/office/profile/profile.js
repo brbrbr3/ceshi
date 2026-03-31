@@ -25,7 +25,7 @@ Page({
       {
         title: '工作设置',
         items: [
-          { icon: '🔔', label: '消息通知' },
+          { icon: '🔔', label: '消息中心' },
           { icon: '✍️', label: '签字管理' }
         ]
       },

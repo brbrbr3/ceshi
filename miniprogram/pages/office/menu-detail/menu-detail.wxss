@@ -15,7 +15,7 @@
 
 .menu-detail-meta {
   margin-top: 8rpx;
-  font-size: 22rpx;
+  font-size: 26rpx;
   color: rgba(255, 255, 255, 0.9);
 }
 
@@ -29,14 +29,14 @@
 }
 
 .menu-content-title {
-  font-size: 28rpx;
+  font-size: 36rpx;
   font-weight: 600;
   color: #1E293B;
   margin-bottom: 20rpx;
 }
 
 .menu-content-html {
-  font-size: 26rpx;
+  font-size: 30rpx;
   line-height: 1.8;
   color: #475569;
 }
@@ -49,6 +49,7 @@
 
 .menu-action-btn {
   flex: 1;
+  font-size: 26rpx;
 }
 
 .menu-action-btn.is-delete {
@@ -120,7 +121,7 @@
   align-items: center;
   justify-content: center;
   color: #FFFFFF;
-  font-size: 24rpx;
+  font-size: 26rpx;
   font-weight: 600;
   flex-shrink: 0;
 }
@@ -138,18 +139,18 @@
 }
 
 .menu-comment-author {
-  font-size: 24rpx;
+  font-size: 26rpx;
   font-weight: 600;
   color: #1E293B;
 }
 
 .menu-comment-time {
-  font-size: 20rpx;
+  font-size: 22rpx;
   color: #94A3B8;
 }
 
 .menu-comment-text {
-  font-size: 24rpx;
+  font-size: 26rpx;
   line-height: 1.6;
   color: #475569;
   word-break: break-all;

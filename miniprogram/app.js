@@ -168,7 +168,9 @@ App({
     this.globalData.userProfile = defaults.userProfile
     this.globalData.registrationRequest = defaults.registrationRequest
     this.globalData.authStatus = defaults.authStatus
+    //清除用户信息缓存、常量缓存
     removeStorage(USER_INFO_CACHE_KEY)
+    removeStorage(CONSTANTS_CACHE_KEY)
   },
 
   getUserOpenId(callback) {

@@ -38,14 +38,14 @@
 }
 
 .detail-title {
-  font-size: 36rpx;
-  font-weight: 700;
+  font-size: 32rpx;
   color: #FFFFFF;
 }
 
 .detail-subtitle {
   margin-top: 12rpx;
-  font-size: 36rpx;
+  font-size: 42rpx;
+  font-weight: 600;
   color: rgba(255, 255, 255, 0.9);
 }
 

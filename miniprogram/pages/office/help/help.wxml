@@ -179,7 +179,7 @@
           <view class="card-desc">以日历视图展示馆内日程及节假日安排，方便规划工作和活动。支持订阅感兴趣的日程，已订阅的今日日程会显示在首页“今日日程”模块。</view>
           <view class="card-permission">
             <view class="permission-label">权限要求：</view>
-            <view class="permission-value">所有用户可查看日历及订阅日程。仅礼宾可添加修改删除日程。</view>
+            <view class="permission-value">所有用户可查看日历。在编馆员可查看及订阅日程。仅礼宾可添加修改删除日程。</view>
           </view>
         </view>
       </view>
