@@ -138,6 +138,42 @@ async function generateOrderPdf(openid, orderId) {
     getTimezoneOffset()
   ])
 
+  // 5. 收集日志中的 operatorId，批量查询 user_signatures 获取签字图片
+  const operatorIds = [...new Set(logs.map(l => l.operatorId).filter(id => id && id !== 'system'))]
+  const signatureMap = {} // operatorId -> [{ fileID }]
+  if (operatorIds.length > 0) {
+    for (let i = 0; i < operatorIds.length; i += 20) {
+      const batch = operatorIds.slice(i, i + 20)
+      const sigRes = await db.collection('user_signatures')
+        .where({ _openid: db.command.in(batch) })
+        .orderBy('index', 'asc')
+        .get()
+      sigRes.data.forEach(sig => {
+        const openid = sig._openid
+        if (!signatureMap[openid]) signatureMap[openid] = []
+        if (sig.fileID) signatureMap[openid].push(sig.fileID)
+      })
+    }
+  }
+
+  // 预下载签字图片到本地临时文件
+  const allFileIDs = [...new Set(Object.values(signatureMap).flat())]
+  const imageTempPaths = {}
+  if (allFileIDs.length > 0) {
+    // 下载图片到本地 /tmp
+    for (const fileID of allFileIDs) {
+      try {
+        const res = await cloud.downloadFile({ fileID })
+        const ext = path.extname(fileID) || '.png'
+        const localPath = `/tmp/sign_${fileID.replace(/[^a-zA-Z0-9]/g, '')}${ext}`
+        fs.writeFileSync(localPath, res.fileContent)
+        imageTempPaths[fileID] = localPath
+      } catch (e) {
+        console.error('下载签字图片失败:', fileID, e.message)
+      }
+    }
+  }
+
   // 5. 生成 PDF
   const fontPath = await ensureFont()
 
@@ -202,10 +238,31 @@ async function generateOrderPdf(openid, orderId) {
         ? formatLocalTime(new Date(log.createdAt), timezoneOffset)
         : '-'
 
-      pdfDoc.text(`[${timeStr}] ${log.operatorName || '-'} - ${actionText}`)
+      // 构造名称前缀（stepName 如果存在）
+      const stepPrefix = log.stepName ? `${log.stepName} - ` : ''
+      pdfDoc.text(`[${timeStr}] ${stepPrefix}${log.operatorName || '-'} - ${actionText}`)
       if (log.approvalComment) {
         pdfDoc.text(`  审批意见：${log.approvalComment}`)
       }
+
+      // 签字图片（通过 operatorId 查 user_signatures）
+      if (log.operatorId && signatureMap[log.operatorId]) {
+        const sigFileIDs = signatureMap[log.operatorId]
+        // 只嵌入第一个签字（优先使用 index 最小的）
+        const firstSigFileID = sigFileIDs[0]
+        if (firstSigFileID && imageTempPaths[firstSigFileID]) {
+          const imgPath = imageTempPaths[firstSigFileID]
+          try {
+            if (fs.existsSync(imgPath)) {
+              pdfDoc.image(imgPath, 70, undefined, { width: 120, height: 60 })
+              pdfDoc.moveDown(0.2)
+            }
+          } catch (e) {
+            console.error('嵌入签字图片失败:', e.message)
+          }
+        }
+      }
+
       pdfDoc.moveDown(0.3)
     })
 
