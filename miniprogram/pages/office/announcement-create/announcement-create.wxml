@@ -46,23 +46,78 @@
           <view class="auth-field-count">{{title.length}}/100</view>
         </view>
 
-        <!-- 内容 -->
+        <!-- 内容（富文本编辑器） -->
         <view class="auth-field">
           <view class="auth-field-label">
             内容
             <text class="auth-field-required">*</text>
           </view>
-          <view class="auth-textarea-wrapper">
-            <textarea
-              value="{{content}}"
-              bindinput="handleContentInput"
+          <view class="editor-container">
+            <!-- 工具栏 -->
+            <view class="editor-toolbar">
+              <!-- 第一行：常用格式 -->
+              <view class="toolbar-row toolbar-row-common">
+                <view class="toolbar-btn" bindtap="handleFormat" data-name="bold" data-label="粗体">
+                  <text class="toolbar-icon-bold">B</text>
+                </view>
+                <view class="toolbar-btn" bindtap="handleFormat" data-name="italic" data-label="斜体">
+                  <text class="toolbar-icon-italic">I</text>
+                </view>
+                <view class="toolbar-btn" bindtap="handleFormat" data-name="underline" data-label="下划线">
+                  <text class="toolbar-icon-underline">U</text>
+                </view>
+                <view class="toolbar-divider"></view>
+                <view class="toolbar-btn" bindtap="handleFormat" data-name="list" data-value="ordered" data-label="有序列表">
+                  <text class="toolbar-icon-list">1.</text>
+                </view>
+                <view class="toolbar-btn" bindtap="handleFormat" data-name="list" data-value="bullet" data-label="无序列表">
+                  <text class="toolbar-icon-list">•</text>
+                </view>
+                <view class="toolbar-spacer"></view>
+                <view class="toolbar-btn toolbar-btn-expand" bindtap="handleToggleToolbar">
+                  <text class="expand-icon {{toolbarExpanded ? 'expand-icon-up' : ''}}">▸</text>
+                </view>
+              </view>
+              <!-- 第二行：展开后显示更多格式 -->
+              <view class="toolbar-row toolbar-row-extra" wx:if="{{toolbarExpanded}}">
+                <view class="toolbar-btn" bindtap="handleFormat" data-name="strike" data-label="删除线">
+                  <text class="toolbar-icon-strike">S</text>
+                </view>
+                <view class="toolbar-divider"></view>
+                <view class="toolbar-btn" bindtap="handleFormat" data-name="header" data-value="1" data-label="标题1">
+                  <text class="toolbar-icon-header">H1</text>
+                </view>
+                <view class="toolbar-btn" bindtap="handleFormat" data-name="header" data-value="2" data-label="标题2">
+                  <text class="toolbar-icon-header">H2</text>
+                </view>
+                <view class="toolbar-divider"></view>
+                <view class="toolbar-btn" bindtap="handleFormat" data-name="align" data-value="left" data-label="左对齐">
+                  <text class="toolbar-icon-align">≡</text>
+                </view>
+                <view class="toolbar-btn" bindtap="handleFormat" data-name="align" data-value="center" data-label="居中">
+                  <text class="toolbar-icon-align">≡</text>
+                </view>
+                <view class="toolbar-btn" bindtap="handleFormat" data-name="align" data-value="right" data-label="右对齐">
+                  <text class="toolbar-icon-align">≡</text>
+                </view>
+                <view class="toolbar-divider"></view>
+                <view class="toolbar-btn" bindtap="handleInsertDivider" data-label="分割线">
+                  <text class="toolbar-icon-divider">—</text>
+                </view>
+              </view>
+            </view>
+            <!-- 编辑区域 -->
+            <editor
+              id="contentEditor"
+              class="editor-body"
               placeholder="请输入通知内容"
-              placeholder-class="auth-input-placeholder"
-              maxlength="1000"
-              auto-height
+              show-img-size
+              show-img-toolbar
+              bindready="handleEditorReady"
+              bindinput="handleEditorInput"
+              bindstatuschange="handleStatusChange"
             />
           </view>
-          <view class="auth-field-count">{{content.length}}/1000</view>
         </view>
 
         <!-- 按钮组 -->

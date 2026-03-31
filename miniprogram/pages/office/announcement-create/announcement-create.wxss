@@ -10,8 +10,6 @@
   color: #1E293B;
 }
 
-
-
 .announcement-create-header {
   padding-bottom: 100rpx;
 }
@@ -36,14 +34,123 @@
   margin-left: 4rpx;
 }
 
-.auth-textarea-wrapper {
+/* ===== 富文本编辑器 ===== */
+.editor-container {
   border-radius: 24rpx;
   overflow: hidden;
   background: #F8FAFC;
-  border: 2rpx solid transparent;
+  border: 2rpx solid #E2E8F0;
 }
 
-.auth-textarea-wrapper textarea {
+/* 工具栏 */
+.editor-toolbar {
+  background: #FFFFFF;
+  border-bottom: 1rpx solid #E2E8F0;
+  padding: 8rpx 12rpx;
+}
+
+.toolbar-row {
+  display: flex;
+  align-items: center;
+  min-height: 64rpx;
+}
+
+.toolbar-row-extra {
+  border-top: 1rpx solid #F1F5F9;
+  margin-top: 4rpx;
+  padding-top: 8rpx;
+}
+
+.toolbar-btn {
+  width: 64rpx;
+  height: 56rpx;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  border-radius: 8rpx;
+  font-size: 26rpx;
+  color: #475569;
+  transition: background-color 0.15s;
+}
+
+.toolbar-btn:active {
+  background-color: #E2E8F0;
+}
+
+.toolbar-btn-expand {
+  width: 56rpx;
+  color: #94A3B8;
+}
+
+.expand-icon {
+  font-size: 24rpx;
+  transition: transform 0.2s;
+  display: inline-block;
+}
+
+.expand-icon-up {
+  transform: rotate(90deg);
+}
+
+.toolbar-divider {
+  width: 1rpx;
+  height: 32rpx;
+  background-color: #E2E8F0;
+  margin: 0 6rpx;
+}
+
+.toolbar-spacer {
+  flex: 1;
+}
+
+/* 工具栏图标样式 */
+.toolbar-icon-bold {
+  font-weight: 800;
+  font-size: 28rpx;
+  font-family: Georgia, serif;
+}
+
+.toolbar-icon-italic {
+  font-style: italic;
+  font-size: 28rpx;
+  font-family: Georgia, serif;
+}
+
+.toolbar-icon-underline {
+  text-decoration: underline;
+  font-size: 28rpx;
+  font-family: Georgia, serif;
+}
+
+.toolbar-icon-strike {
+  text-decoration: line-through;
+  font-size: 26rpx;
+  font-family: Georgia, serif;
+}
+
+.toolbar-icon-list {
+  font-size: 24rpx;
+  font-weight: 600;
+}
+
+.toolbar-icon-header {
+  font-size: 22rpx;
+  font-weight: 700;
+  color: #2563EB;
+}
+
+.toolbar-icon-align {
+  font-size: 28rpx;
+  letter-spacing: -2rpx;
+}
+
+.toolbar-icon-divider {
+  font-size: 28rpx;
+  color: #94A3B8;
+}
+
+/* 编辑器主体 */
+.editor-body {
   min-height: 300rpx;
   padding: 20rpx;
   box-sizing: border-box;

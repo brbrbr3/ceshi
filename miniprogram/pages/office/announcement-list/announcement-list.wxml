@@ -56,7 +56,7 @@
             <text>{{item.isPinned ? '取消↑' : '置顶↑'}}</text>
           </view>
           <view class="swipe-action swipe-action-delete" bindtap="handleDelete" data-id="{{item._id}}">
-            <text>×</text>
+            <text>删除×</text>
           </view>
         </view>
         <!-- 内容层（左划平移） -->

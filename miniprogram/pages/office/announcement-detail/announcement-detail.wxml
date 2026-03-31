@@ -39,7 +39,8 @@
 
       <!-- 公告内容 -->
       <view class="detail-body">
-        <text class="body-text">{{announcement.content}}</text>
+        <rich-text nodes="{{announcement.contentHtml}}" wx:if="{{announcement.contentHtml}}" />
+        <text class="body-text" wx:else>{{announcement.content}}</text>
       </view>
 
       <!-- 操作按钮 -->

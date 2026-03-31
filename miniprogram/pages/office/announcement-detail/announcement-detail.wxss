@@ -126,7 +126,7 @@
 .detail-body {
   background-color: #fff;
   border-radius: 12rpx;
-  padding: 32rpx;
+  padding: 32rpx 24rpx;
   margin-bottom: 24rpx;
 }
 
@@ -135,6 +135,14 @@
   color: #333;
   line-height: 1.8;
   white-space: pre-wrap;
+  word-break: break-all;
+}
+
+/* 富文本内容样式 */
+.detail-body rich-text {
+  font-size: 30rpx;
+  color: #333;
+  line-height: 1.8;
   word-break: break-all;
 }
 

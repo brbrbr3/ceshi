@@ -75,6 +75,7 @@ Page({
             timeText: formatDateTime(announcement.publishedAt),
             typeText: this.getTypeText(announcement.type),
             typeClass: this.getTypeClass(announcement.type),
+            contentHtml: this._parseContent(announcement.content),
             canRevoke
           },
           loading: false
@@ -140,6 +141,19 @@ Page({
         icon: 'none'
       })
     })
+  },
+
+  /**
+   * 解析内容：判断是 HTML 还是纯文本，兼容老数据
+   */
+  _parseContent(content) {
+    if (!content) return ''
+    // 含有 HTML 标签则视为富文本内容
+    if (/<[a-z][\s\S]*>/i.test(content)) {
+      return content
+    }
+    // 纯文本不设置 contentHtml，由 wxml 中 wx:else 回退到 text 组件
+    return ''
   },
 
   /**
