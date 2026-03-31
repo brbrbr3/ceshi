@@ -116,7 +116,7 @@ const EXAMPLE_TEMPLATES = [
   {
     name: '就医申请审批',
     code: 'medical_application',
-    version: 1,
+    version: 2,
     description: '就医申请审批流程（4步：部门负责人→会计主管→馆领导）',
     category: 'approval',
     steps: [
@@ -124,10 +124,8 @@ const EXAMPLE_TEMPLATES = [
         stepNo: 1,
         stepName: '部门负责人审批',
         stepType: 'serial',
-        approverType: 'role',
-        approverConfig: {
-          roleIds: ['department_head']
-        },
+        approverType: 'dept_head',//本部门负责人审批，该类型叫dept_head
+        approverConfig: {},
         approvalStrategy: 'sequential',
         canReject: true,
         canReturn: false,

@@ -214,6 +214,12 @@
   margin-bottom: 8rpx;
 }
 
+.approval-modal-logs-step {
+  font-size: 24rpx;
+  color: #6B7280;
+  margin-bottom: 6rpx;
+}
+
 .approval-modal-logs-info {
   display: flex;
   justify-content: space-between;

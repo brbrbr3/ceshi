@@ -54,6 +54,7 @@
       <view wx:if="{{workflowLogs && workflowLogs.length > 0}}" class="approval-modal-logs-list">
         <view wx:for="{{workflowLogs}}" wx:key="_id" wx:for-index="idx" class="approval-modal-logs-item {{item.action === 'reject' || item.action === 'terminate' ? 'is-error' : ''}} {{item.action === 'approve' ? 'is-approved' : ''}}">
           <view class="approval-modal-logs-action">{{item.actionText}}</view>
+          <view wx:if="{{item.stepName}}" class="approval-modal-logs-step">{{item.stepName}}</view>
           <view class="approval-modal-logs-info">
             <text class="approval-modal-logs-operator">{{idx === 0 && item.action === 'start' ? request.name : item.operatorName}}</text>
             <text class="approval-modal-logs-time">{{item.formattedTime}}</text>

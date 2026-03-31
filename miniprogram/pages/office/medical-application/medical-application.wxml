@@ -213,6 +213,7 @@
             <view class="medical-log-dot"></view>
             <view class="medical-log-content">
               <view class="medical-log-action">{{item.actionText}}</view>
+              <view class="medical-log-info" wx:if="{{item.stepName}}">{{item.stepName}}</view>
               <view class="medical-log-info" wx:if="{{item.operatorName}}">
                 <text wx:if="{{item.remark}}">{{item.operatorName}}：{{item.remark}}</text>
                 <text wx:else>{{item.operatorName}}</text>

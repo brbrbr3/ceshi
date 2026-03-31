@@ -328,11 +328,24 @@ async function resolveApprovers(approverType, approverConfig, businessData) {
 // 记录工作流日志
 async function logWorkflowAction(orderId, action, operatorId, operatorName, description, taskId, beforeData, afterData, changes) {
   try {
+    let stepName = ''
+    if (taskId) {
+      try {
+        const taskRes = await tasksCollection.doc(taskId).get()
+        if (taskRes.data && taskRes.data.stepName) {
+          stepName = taskRes.data.stepName
+        }
+      } catch (e) {
+        // 查询 task 失败时 stepName 留空
+      }
+    }
+
     const now = Date.now()
     await logsCollection.add({
       data: {
         orderId,
         taskId,
+        stepName,
         action,
         operatorType: operatorId === 'system' ? 'system' : 'user',
         operatorId,

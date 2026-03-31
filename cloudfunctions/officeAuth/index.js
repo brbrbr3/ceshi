@@ -1133,6 +1133,7 @@ async function getWorkflowLogs(orderId) {
         operatorId: log.operatorId,
         operatorName: operatorName,
         description: log.description,
+        stepName: log.stepName || '',
         createdAt: log.createdAt
       }
     })
