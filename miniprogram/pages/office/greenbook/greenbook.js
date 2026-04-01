@@ -6,6 +6,130 @@ const app = getApp()
 
 const CATEGORIES = ['推荐', '最新', '美食', '生活', '出行', '运动', '学习', '分享']
 
+// ========== 自定义路由 Builder（模块级别安装）==========
+let _routeBuilderInstalled = false
+
+function installCardTransitionRoute() {
+  if (_routeBuilderInstalled) return
+  
+  try {
+    if (!wx.router || !wx.router.addRouteBuilder) {
+      console.warn('[greenbook] wx.router 不可用')
+      return
+    }
+    
+    const { Easing, shared, derived } = wx.worklet
+    if (!Easing) {
+      console.warn('[greenbook] wx.worklet 不可用')
+      return
+    }
+
+    const AnimationStatus = { dismissed: 0, forward: 1, reverse: 2, completed: 3 }
+    const Curves = {
+      fastOutSlowIn: Easing.cubicBezier(0.4, 0.0, 0.2, 1.0)
+    }
+
+    function CurveAnimation({ animation, animationStatus, curve, reverseCurve }) {
+      return derived(() => {
+        'worklet'
+        const useForwardCurve = !reverseCurve || animationStatus.value !== AnimationStatus.reverse
+        const activeCurve = useForwardCurve ? curve : reverseCurve
+        const t = animation.value
+        if (!activeCurve) return t
+        if (t === 0 || t === 1) return t
+        return activeCurve(t)
+      })
+    }
+
+    function lerp(begin, end, t) {
+      'worklet'
+      return begin + (end - begin) * t
+    }
+
+    const ScaleTransitionRouteBuilder = (routeContext) => {
+      const { primaryAnimation, primaryAnimationStatus, userGestureInProgress } = routeContext
+      const shareEleTop = shared(0)
+      routeContext.shareEleTop = shareEleTop
+
+      const _curvePrimaryAnimation = CurveAnimation({
+        animation: primaryAnimation,
+        animationStatus: primaryAnimationStatus,
+        curve: Easing.in(Curves.fastOutSlowIn),
+        reverseCurve: Easing.out(Curves.fastOutSlowIn)
+      })
+
+      const reset = () => {
+        'worklet'
+        if (globalThis['GbRouteCardSrcRect']) globalThis['GbRouteCardSrcRect'].value = undefined
+        if (globalThis['GbRouteCardDestRect']) globalThis['GbRouteCardDestRect'].value = undefined
+      }
+
+      const handlePrimaryAnimation = () => {
+        'worklet'
+        const status = primaryAnimationStatus.value
+
+        if (userGestureInProgress.value) {
+          return { opacity: Easing.out(Easing.cubicBezier(0.5, 0, 0.7, 0.5))(primaryAnimation.value) }
+        }
+
+        if (status == AnimationStatus.dismissed) { reset(); return { transform: 'translate(0, 0) scale(0)' } }
+        if (status == AnimationStatus.completed) { reset(); return { transform: 'translate(0, 0) scale(1)' } }
+
+        let transX = 0, transY = 0, scale = status === AnimationStatus.reverse ? 1 : 0
+
+        if (globalThis['GbRouteCardSrcRect'] && globalThis['GbRouteCardSrcRect'].value != undefined) {
+          const begin = globalThis['GbRouteCardSrcRect'].value
+          const end = globalThis['GbRouteCardDestRect'].value
+
+          if (status === AnimationStatus.forward) shareEleTop.value = end.top
+
+          let t = _curvePrimaryAnimation.value
+          if (status === AnimationStatus.reverse || status === AnimationStatus.dismissed) t = 1 - t
+
+          const shareEleX = lerp(begin.left, end.left, t)
+          const shareEleY = lerp(begin.top, end.top, t)
+          const shareEleW = lerp(begin.width, end.width, t)
+          transX = shareEleX
+
+          if (status === AnimationStatus.reverse) {
+            scale = shareEleW / begin.width
+            transY = shareEleY - begin.top * scale
+          } else {
+            scale = shareEleW / end.width
+            transY = shareEleY - end.top * scale
+          }
+        }
+
+        return {
+          transform: `translate(${transX}px, ${transY}px) scale(${scale})`,
+          transformOrigin: '0 0',
+          opacity: _curvePrimaryAnimation.value
+        }
+      }
+
+      return {
+        opaque: false,
+        handlePrimaryAnimation,
+        transitionDuration: 250,
+        reverseTransitionDuration: 250,
+        canTransitionTo: false,
+        canTransitionFrom: false,
+        barrierColor: "rgba(0, 0, 0, 0.3)"
+      }
+    }
+
+    wx.router.addRouteBuilder('GbCardTransition', ScaleTransitionRouteBuilder)
+    _routeBuilderInstalled = true
+    console.log('[greenbook] 路由 builder 安装成功')
+  } catch (e) {
+    console.warn('[greenbook] 路由安装失败:', e)
+  }
+}
+
+// 模块加载时立即安装路由
+installCardTransitionRoute()
+
+// ========== 页面组件 ==========
 Component({
   data: {
     // 分类Tab
@@ -53,8 +177,8 @@ Component({
         ready: true
       })
 
-      // 安装自定义路由
-      this.installRouteBuilder()
+      // 再次确保路由已安装
+      installCardTransitionRoute()
 
       this.loadPosts()
     }
@@ -62,6 +186,9 @@ Component({
 
   pageLifetimes: {
     show() {
+      // 每次显示时确保路由已安装
+      installCardTransitionRoute()
+      
       if (this.data.ready) {
         this.refreshPosts()
       }
@@ -69,120 +196,6 @@ Component({
   },
 
   methods: {
-    /**
-     * 安装自定义路由 builder（卡片缩放转场）
-     */
-    installRouteBuilder() {
-      try {
-        if (wx.router && wx.router.addRouteBuilder && !this._routeInstalled) {
-          const { Easing, shared, derived } = wx.worklet
-
-          const AnimationStatus = { dismissed: 0, forward: 1, reverse: 2, completed: 3 }
-          const Curves = {
-            fastOutSlowIn: Easing.cubicBezier(0.4, 0.0, 0.2, 1.0)
-          }
-
-          function CurveAnimation({ animation, animationStatus, curve, reverseCurve }) {
-            return derived(() => {
-              'worklet'
-              const useForwardCurve = !reverseCurve || animationStatus.value !== AnimationStatus.reverse
-              const activeCurve = useForwardCurve ? curve : reverseCurve
-              const t = animation.value
-              if (!activeCurve) return t
-              if (t === 0 || t === 1) return t
-              return activeCurve(t)
-            })
-          }
-
-          function lerp(begin, end, t) {
-            'worklet'
-            return begin + (end - begin) * t
-          }
-
-          function clamp(cur, lowerBound, upperBound) {
-            'worklet'
-            if (cur > upperBound) return upperBound
-            if (cur < lowerBound) return lowerBound
-            return cur
-          }
-
-          const ScaleTransitionRouteBuilder = (routeContext) => {
-            const { primaryAnimation, primaryAnimationStatus, userGestureInProgress } = routeContext
-            const shareEleTop = shared(0)
-            routeContext.shareEleTop = shareEleTop
-
-            const _curvePrimaryAnimation = CurveAnimation({
-              animation: primaryAnimation,
-              animationStatus: primaryAnimationStatus,
-              curve: Easing.in(Curves.fastOutSlowIn),
-              reverseCurve: Easing.out(Curves.fastOutSlowIn)
-            })
-
-            const reset = () => {
-              'worklet'
-              if (globalThis['GbRouteCardSrcRect']) globalThis['GbRouteCardSrcRect'].value = undefined
-              if (globalThis['GbRouteCardDestRect']) globalThis['GbRouteCardDestRect'].value = undefined
-            }
-
-            const handlePrimaryAnimation = () => {
-              'worklet'
-              const status = primaryAnimationStatus.value
-
-              if (userGestureInProgress.value) {
-                return { opacity: Easing.out(Easing.cubicBezier(0.5, 0, 0.7, 0.5)(primaryAnimation.value)) }
-              }
-
-              if (status == AnimationStatus.dismissed) { reset(); return { transform: 'translate(0, 0) scale(0)' } }
-              if (status == AnimationStatus.completed) { reset(); return { transform: 'translate(0, 0) scale(1)' } }
-
-              let transX = 0, transY = 0, scale = status === AnimationStatus.reverse ? 1 : 0
-
-              if (globalThis['GbRouteCardSrcRect'] && globalThis['GbRouteCardSrcRect'].value != undefined) {
-                const begin = globalThis['GbRouteCardSrcRect'].value
-                const end = globalThis['GbRouteCardDestRect'].value
-
-                if (status === AnimationStatus.forward) shareEleTop.value = end.top
-
-                let t = _curvePrimaryAnimation.value
-                if (status === AnimationStatus.reverse || status === AnimationStatus.dismissed) t = 1 - t
-
-                const shareEleX = lerp(begin.left, end.left, t)
-                const shareEleY = lerp(begin.top, end.top, t)
-                const shareEleW = lerp(begin.width, end.width, t)
-                transX = shareEleX
-
-                if (status === AnimationStatus.reverse) {
-                  scale = shareEleW / begin.width
-                  transY = shareEleY - begin.top * scale
-                } else {
-                  scale = shareEleW / end.width
-                  transY = shareEleY - end.top * scale
-                }
-              }
-
-              return {
-                transform: `translate(${transX}px, ${transY}px) scale(${scale})`,
-                transformOrigin: '0 0',
-                opacity: _curvePrimaryAnimation.value
-              }
-            }
-
-            return {
-              opaque: false, handlePrimaryAnimation,
-              transitionDuration: 250, reverseTransitionDuration: 250,
-              canTransitionTo: false, canTransitionFrom: false,
-              barrierColor: "rgba(0, 0, 0, 0.3)"
-            }
-          }
-
-          wx.router.addRouteBuilder('GbCardTransition', ScaleTransitionRouteBuilder)
-          this._routeInstalled = true
-        }
-      } catch (e) {
-        console.warn('[greenbook] 路由安装失败:', e)
-      }
-    },
-
     /**
      * 加载帖子列表
      */
@@ -275,6 +288,47 @@ Component({
      */
     handleScrollToLower() {
       this.loadMore()
+    },
+
+    /**
+     * 卡片点赞
+     */
+    async handleCardLike(e) {
+      const { postId, isLiked } = e.detail
+      const { list } = this.data
+
+      // 找到对应的帖子
+      const index = list.findIndex(item => item._id === postId)
+      if (index === -1) return
+
+      // 乐观更新
+      const item = list[index]
+      const newIsLiked = !item.isLiked
+      this.setData({
+        [`list[${index}].isLiked`]: newIsLiked,
+        [`list[${index}].likeCount`]: newIsLiked ? (item.likeCount || 0) + 1 : Math.max(0, (item.likeCount || 1) - 1)
+      })
+
+      try {
+        await wx.cloud.callFunction({
+          name: 'greenbookManager',
+          data: { action: 'toggleLike', targetId: postId, targetType: 'post' }
+        })
+      } catch (e) {
+        // 回滚
+        this.setData({
+          [`list[${index}].isLiked`]: item.isLiked,
+          [`list[${index}].likeCount`]: item.likeCount
+        })
+        wx.showToast({ title: '操作失败', icon: 'none' })
+      }
+    },
+
+    /**
+     * 卡片导航（备用）
+     */
+    handleCardNavigate(e) {
+      // 由卡片组件内部处理导航
     }
   }
 })

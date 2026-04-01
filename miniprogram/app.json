@@ -60,8 +60,7 @@
         "pagePath": "pages/office/greenbook/greenbook",
         "text": "小绿书",
         "iconPath": "image/greenbook1.png",
-        "selectedIconPath": "image/greenbook1-s.png",
-        "selectedColor": "#408E45"
+        "selectedIconPath": "image/greenbook1-s.png"
       },
       {
         "pagePath": "pages/office/profile/profile",

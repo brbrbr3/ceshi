@@ -6,10 +6,20 @@ const app = getApp()
 const utils = require('../../../common/utils.js')
 
 Component({
+  options: {
+    // 允许从 URL 参数自动注入到 properties
+    multipleSlots: true
+  },
+
+  properties: {
+    // URL 参数会自动注入到 properties
+    postId: { type: String, value: '' },
+    index: { type: String, value: '0' }
+  },
+
   data: {
-    postId: '',
-    index: -1,
-    post: null,
+    // 状态栏高度
+    statusBarHeight: 0,
 
     // 图片swiper
     currentImage: 0,
@@ -47,10 +57,13 @@ Component({
       } catch (e) {}
     },
     attached() {
-      const { postId, index } = this.data
-      this.setData({ postId, index: parseInt(index) || 0 })
-
-      const { screenWidth } = wx.getSystemInfoSync()
+      const { postId, index } = this.properties
+      const { screenWidth, statusBarHeight } = wx.getSystemInfoSync()
+      this.setData({
+        statusBarHeight,
+        // 保存 index 用于 share-element key
+        index: parseInt(index) || 0
+      })
 
       try {
         this.customRouteContext = wx.router?.getRouteContext(this)
@@ -134,8 +147,11 @@ Component({
      * 加载帖子详情
      */
     async loadPostDetail() {
-      const { postId } = this.data
-      if (!postId) return
+      const postId = this.properties.postId || this.data.postId
+      if (!postId) {
+        console.warn('[greenbook-detail] postId 为空')
+        return
+      }
 
       try {
         const res = await wx.cloud.callFunction({
@@ -168,7 +184,8 @@ Component({
      * 加载评论
      */
     async loadComments(append = false) {
-      const { postId, commentPage } = this.data
+      const postId = this.properties.postId || this.data.postId
+      const { commentPage } = this.data
       if (!postId) return
       if (this.data.loadingComments) return
       this.setData({ loadingComments: true })

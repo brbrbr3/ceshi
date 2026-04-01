@@ -105,9 +105,9 @@ Component({
 
     /**
      * 点赞
+     * 注意：wxml 中使用 catchtap 已阻止冒泡，无需调用 stopPropagation
      */
     handleLike(e) {
-      e.stopPropagation()
       const { item } = this.data
       this.triggerEvent('like', { postId: item._id, isLiked: !item.isLiked })
     }
