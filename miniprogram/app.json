@@ -29,6 +29,9 @@
     "pages/office/greenbook/greenbook",
     "pages/office/greenbook-detail/greenbook-detail",
     "pages/office/greenbook-create/greenbook-create",
+    "pages/office/learning-list/learning-list",
+    "pages/office/learning-detail/learning-detail",
+    "pages/office/learning-create/learning-create",
     "pages/test/datetime-picker-test/datetime-picker-test",
     "pages/test/signature-test/signature-test"
   ],
@@ -87,8 +90,8 @@
   "cloud": true,
   "sitemapLocation": "sitemap.json",
   "themeLocation": "demo.theme.json",
-  "darkmode": true,
-  "resizable": false,
+  "darkmode": false,
+  "resizable": true,
   "useExtendedLib": {
     "weui": true
   },

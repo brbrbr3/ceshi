@@ -38,6 +38,11 @@ Page({
       statusBarHeight
     })
 
+    // 计算滚动区域顶部偏移
+    const menuButtonInfo = wx.getMenuButtonBoundingClientRect()
+    const navBarHeight = statusBarHeight + 44
+    this.setData({ navBarHeight })
+
     this.loadPostDetail()
     this.loadComments()
   },
@@ -184,6 +189,38 @@ Page({
 
   handleCancelReply() {
     this.setData({ replyTarget: null, commentContent: '' })
+  },
+
+  // 评论点赞
+  async handleLikeComment(e) {
+    const { commentId } = e.currentTarget.dataset
+    const comments = this.data.comments
+    const commentIndex = comments.findIndex(c => c._id === commentId)
+    
+    if (commentIndex === -1) return
+    
+    const comment = comments[commentIndex]
+    const isLiked = comment.isLiked || false
+    const likeCount = comment.likeCount || 0
+    
+    // 乐观更新
+    comments[commentIndex] = {
+      ...comment,
+      isLiked: !isLiked,
+      likeCount: isLiked ? likeCount - 1 : likeCount + 1
+    }
+    this.setData({ comments })
+    
+    try {
+      await wx.cloud.callFunction({
+        name: 'greenbookManager',
+        data: { action: 'toggleLike', targetId: commentId, targetType: 'comment' }
+      })
+    } catch (e) {
+      // 回滚
+      comments[commentIndex] = comment
+      this.setData({ comments })
+    }
   },
 
   handleBack() {

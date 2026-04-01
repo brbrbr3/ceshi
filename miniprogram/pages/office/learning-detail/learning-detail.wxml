@@ -1,0 +1,49 @@
+<view class="office-page learning-detail-page">
+  <!-- 红色渐变头部 -->
+  <view class="learning-detail-header office-gradient-header">
+    <view class="office-header-top">
+      <view>
+        <view class="ld-page-title">文章详情</view>
+        <view class="ld-article-title">{{article.title}}</view>
+      </view>
+    </view>
+  </view>
+
+  <!-- 详情内容 -->
+  <view class="office-content ld-content" wx:if="{{!loading}}">
+    <view class="office-card ld-card">
+      <!-- 作者信息 -->
+      <view class="ld-author-row">
+        <image class="ld-author-avatar" src="{{article.authorAvatar || '/image/default-avatar.png'}}" mode="aspectFill" />
+        <view class="ld-author-info">
+          <view class="ld-author-name">{{article.authorName}}</view>
+          <view class="ld-author-meta">
+            <text>{{article.timeText}}</text>
+            <text class="ld-meta-dot">·</text>
+            <text>{{article.readCount}} 阅读</text>
+            <text wx:if="{{article.isPinned}}" class="ld-pinned-tag">已置顶</text>
+          </view>
+        </view>
+      </view>
+
+      <view class="ld-divider"></view>
+
+      <!-- 文章内容（支持选中复制） -->
+      <view class="ld-body">
+        <rich-text nodes="{{article.contentHtml}}" wx:if="{{article.contentHtml}}" user-select />
+        <text class="ld-body-text" wx:else user-select>{{article.content}}</text>
+      </view>
+
+      <!-- 操作按钮 -->
+      <view class="ld-actions" wx:if="{{article.canDelete}}">
+        <button class="btn-delete" bindtap="handleDelete">删除文章</button>
+      </view>
+    </view>
+  </view>
+
+  <!-- 加载状态 -->
+  <view class="loading-state" wx:if="{{loading}}">
+    <view class="loading-spinner"></view>
+    <text class="loading-text">加载中...</text>
+  </view>
+</view>

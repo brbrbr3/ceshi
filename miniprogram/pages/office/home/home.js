@@ -31,6 +31,8 @@ Page({
       { icon: '🔧', label: '物业报修', color: '#8B6F47', bg: '#FDF3E1', implemented: true, featureKey: null }
     ],
     announcements: [],
+    articles: [],
+    loadingArticles: false,
     todaySchedules: [],
     loadingSchedules: false,
     // 日程详情弹窗
@@ -45,6 +47,7 @@ Page({
     this.syncUserProfile()
     this.syncNotifications()
     this.loadAnnouncements()
+    this.loadArticles()
     this.loadPermissionCache()
     this.loadHolidayConfig()
     this.loadTodaySchedules()  // 加载今日日程
@@ -232,6 +235,56 @@ Page({
     if (id) {
       wx.navigateTo({
         url: `/pages/office/announcement-detail/announcement-detail?id=${id}`
+      })
+    }
+  },
+
+  loadArticles() {
+    this.setData({ loadingArticles: true })
+
+    wx.cloud.callFunction({
+      name: 'articleManager',
+      data: {
+        action: 'list',
+        params: {
+          page: 1,
+          pageSize: 3
+        }
+      }
+    }).then(res => {
+      const result = res.result
+      if (result && result.code === 0) {
+        const list = (result.data.list || []).map(item => ({
+          _id: item._id,
+          title: item.title,
+          authorName: item.authorName,
+          time: formatTime(item.createdAt),
+          isPinned: item.isPinned || false
+        }))
+        this.setData({
+          articles: list,
+          loadingArticles: false
+        })
+      } else {
+        throw new Error(result.message || '加载失败')
+      }
+    }).catch(error => {
+      console.error('加载学习园地失败:', error)
+      this.setData({ loadingArticles: false })
+    })
+  },
+
+  goLearning() {
+    wx.navigateTo({
+      url: '/pages/office/learning-list/learning-list'
+    })
+  },
+
+  handleArticleTap(e) {
+    const id = e.currentTarget.dataset.id
+    if (id) {
+      wx.navigateTo({
+        url: `/pages/office/learning-detail/learning-detail?id=${id}`
       })
     }
   },

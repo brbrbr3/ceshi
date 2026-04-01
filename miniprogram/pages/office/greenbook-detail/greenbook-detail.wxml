@@ -1,11 +1,15 @@
 <view class="gb-detail-page">
-  <!-- 导航栏 -->
-  <view class="gb-detail-navbar" style="padding-top: {{statusBarHeight}}px;">
-    <view class="gb-detail-navbar-inner">
+  <!-- 顶部固定：发帖人信息 -->
+  <view class="gb-detail-header" style="padding-top: {{statusBarHeight}}px;">
+    <view class="gb-detail-header-inner">
       <view class="gb-detail-back" bindtap="handleBack">
         <view class="gb-detail-back-icon"></view>
       </view>
-      <view class="gb-detail-navbar-title"></view>
+      <view class="gb-detail-author-fixed">
+        <image class="gb-detail-author-avatar" src="{{post.authorAvatar}}" wx:if="{{post && post.authorAvatar}}" />
+        <view class="gb-detail-author-avatar-placeholder" wx:elif="{{post}}">{{post.authorName[0] || '?'}}</view>
+        <text class="gb-detail-author-name">{{post ? post.authorName : ''}}</text>
+      </view>
       <view class="gb-detail-more" bindtap="handleMore">
         <text>···</text>
       </view>
@@ -16,6 +20,7 @@
   <scroll-view
     scroll-y
     class="gb-detail-scroll"
+    style="margin-top: {{statusBarHeight + 44}}px;"
     show-scrollbar="{{false}}"
     enhanced
     bindscrolltolower="loadMoreComments"
@@ -42,16 +47,6 @@
 
       <!-- 详情内容 -->
       <view class="gb-detail-content">
-        <!-- 作者信息 -->
-        <view class="gb-detail-author">
-          <image class="gb-detail-author-avatar" src="{{post.authorAvatar}}" wx:if="{{post.authorAvatar}}" />
-          <view class="gb-detail-author-avatar-placeholder" wx:else>{{post.authorName[0] || '?'}}</view>
-          <view class="gb-detail-author-info">
-            <view class="gb-detail-author-name">{{post.authorName}}</view>
-            <view class="gb-detail-author-time">{{post.createdAt ? formatTime(post.createdAt) : ''}}</view>
-          </view>
-        </view>
-
         <!-- 标题 -->
         <view class="gb-detail-title" wx:if="{{post.title}}">{{post.title}}</view>
 
@@ -86,31 +81,38 @@
           <!-- 评论列表 -->
           <view wx:if="{{comments.length > 0}}">
             <view class="gb-detail-comment" wx:for="{{comments}}" wx:key="_id" wx:for-item="comment">
-              <view class="gb-detail-comment-main">
+              <!-- 左侧头像 -->
+              <view class="gb-detail-comment-avatar-wrap">
                 <image class="gb-detail-comment-avatar" src="{{comment.authorAvatar}}" wx:if="{{comment.authorAvatar}}" />
                 <view class="gb-detail-comment-avatar-placeholder" wx:else>{{comment.authorName[0] || '?'}}</view>
-                <view class="gb-detail-comment-body">
-                  <view class="gb-detail-comment-header">
-                    <text class="gb-detail-comment-name">{{comment.authorName}}</text>
-                    <text class="gb-detail-comment-time">{{comment.createdAt ? formatTime(comment.createdAt) : ''}}</text>
-                  </view>
-                  <view class="gb-detail-comment-text">{{comment.content}}</view>
-                  <view class="gb-detail-comment-reply-bar">
-                    <text class="gb-detail-comment-reply-btn" bindtap="handleReplyComment" data-comment-id="{{comment._id}}" data-author-name="{{comment.authorName}}">回复</text>
-                  </view>
+              </view>
+              
+              <!-- 中间内容 -->
+              <view class="gb-detail-comment-center">
+                <text class="gb-detail-comment-name">{{comment.authorName}}</text>
+                <view class="gb-detail-comment-text">{{comment.content}}</view>
+                <view class="gb-detail-comment-bottom">
+                  <text class="gb-detail-comment-time">{{comment.createdAt ? formatTime(comment.createdAt) : ''}}</text>
+                  <text class="gb-detail-comment-reply-btn" bindtap="handleReplyComment" data-comment-id="{{comment._id}}" data-author-name="{{comment.authorName}}">回复</text>
+                </view>
 
-                  <!-- 二级回复 -->
-                  <view class="gb-detail-replies" wx:if="{{comment.replies && comment.replies.length > 0}}">
-                    <view class="gb-detail-reply" wx:for="{{comment.replies}}" wx:key="_id" wx:for-item="reply">
-                      <view class="gb-detail-reply-name">{{reply.authorName}}</view>
-                      <text wx:if="{{reply.replyToName}}"> 回复 <text class="gb-detail-reply-to">{{reply.replyToName}}</text></text>
-                      <view class="gb-detail-reply-text">{{reply.content}}</view>
-                    </view>
-                    <view class="gb-detail-more-replies" wx:if="{{comment.replyCount > 3}}" bindtap="handleReplyComment" data-comment-id="{{comment._id}}" data-author-name="{{comment.authorName}}">
-                      查看全部 {{comment.replyCount}} 条回复 >
-                    </view>
+                <!-- 二级回复（缩进） -->
+                <view class="gb-detail-replies" wx:if="{{comment.replies && comment.replies.length > 0}}">
+                  <view class="gb-detail-reply" wx:for="{{comment.replies}}" wx:key="_id" wx:for-item="reply">
+                    <text class="gb-detail-reply-name">{{reply.authorName}}</text>
+                    <text class="gb-detail-if-reply-to-name" wx:if="{{reply.replyToName}}"> 回复 <text class="gb-detail-reply-to">{{reply.replyToName}}</text></text>
+                    <text class="gb-detail-reply-text">：{{reply.content}}</text>
+                  </view>
+                  <view class="gb-detail-more-replies" wx:if="{{comment.replyCount > 3}}" bindtap="handleReplyComment" data-comment-id="{{comment._id}}" data-author-name="{{comment.authorName}}">
+                    查看全部 {{comment.replyCount}} 条回复 >
                   </view>
                 </view>
+              </view>
+              
+              <!-- 右侧点赞 -->
+              <view class="gb-detail-comment-like" bindtap="handleLikeComment" data-comment-id="{{comment._id}}">
+                <text class="gb-detail-comment-like-icon {{comment.isLiked ? 'is-liked' : ''}}">{{comment.isLiked ? '❤️' : '🤍'}}</text>
+                <text class="gb-detail-comment-like-count" wx:if="{{comment.likeCount > 0}}">{{comment.likeCount}}</text>
               </view>
             </view>
           </view>

@@ -20,15 +20,18 @@ view, scroll-view, page, image {
   overflow: hidden;
 }
 
-/* 导航栏 */
-.gb-detail-navbar {
-  position: relative;
-  z-index: 10;
-  background: rgba(255, 255, 255, 0.95);
-  flex-shrink: 0;
+/* 顶部固定：发帖人信息 */
+.gb-detail-header {
+  position: fixed;
+  top: 0;
+  left: 0;
+  right: 0;
+  z-index: 100;
+  background: rgba(255, 255, 255, 0.98);
+  border-bottom: 1rpx solid #F1F5F9;
 }
 
-.gb-detail-navbar-inner {
+.gb-detail-header-inner {
   height: 88rpx;
   display: flex;
   align-items: center;
@@ -50,8 +53,39 @@ view, scroll-view, page, image {
   background-size: cover;
 }
 
-.gb-detail-navbar-title {
+.gb-detail-author-fixed {
   flex: 1;
+  display: flex;
+  align-items: center;
+  justify-content: left;
+  gap: 16rpx;
+}
+
+.gb-detail-author-avatar {
+  width: 56rpx;
+  height: 56rpx;
+  border-radius: 50%;
+  flex-shrink: 0;
+}
+
+.gb-detail-author-avatar-placeholder {
+  width: 56rpx;
+  height: 56rpx;
+  border-radius: 50%;
+  background: linear-gradient(135deg, #16A34A, #22C55E);
+  color: #FFF;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 26rpx;
+  font-weight: 600;
+  flex-shrink: 0;
+}
+
+.gb-detail-author-name {
+  font-size: 30rpx;
+  font-weight: 600;
+  color: #1E293B;
 }
 
 .gb-detail-more {
@@ -85,51 +119,6 @@ view, scroll-view, page, image {
 /* 详情内容 */
 .gb-detail-content {
   padding: 24rpx;
-}
-
-/* 作者信息 */
-.gb-detail-author {
-  display: flex;
-  align-items: center;
-  margin-bottom: 24rpx;
-}
-
-.gb-detail-author-avatar {
-  width: 80rpx;
-  height: 80rpx;
-  border-radius: 50%;
-  flex-shrink: 0;
-}
-
-.gb-detail-author-avatar-placeholder {
-  width: 80rpx;
-  height: 80rpx;
-  border-radius: 50%;
-  background: linear-gradient(135deg, #16A34A, #22C55E);
-  color: #FFF;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  font-size: 32rpx;
-  font-weight: 600;
-  flex-shrink: 0;
-}
-
-.gb-detail-author-info {
-  margin-left: 20rpx;
-  flex: 1;
-}
-
-.gb-detail-author-name {
-  font-size: 28rpx;
-  font-weight: 600;
-  color: #1E293B;
-}
-
-.gb-detail-author-time {
-  font-size: 22rpx;
-  color: #94A3B8;
-  margin-top: 4rpx;
 }
 
 /* 标题和正文 */
@@ -204,16 +193,23 @@ view, scroll-view, page, image {
   margin-bottom: 24rpx;
 }
 
+/* 评论项 - 三栏布局 */
 .gb-detail-comment {
   display: flex;
+  align-items: flex-start;
   margin-bottom: 32rpx;
+  gap: 16rpx;
+}
+
+/* 左侧头像 */
+.gb-detail-comment-avatar-wrap {
+  flex-shrink: 0;
 }
 
 .gb-detail-comment-avatar {
   width: 64rpx;
   height: 64rpx;
   border-radius: 50%;
-  flex-shrink: 0;
 }
 
 .gb-detail-comment-avatar-placeholder {
@@ -227,29 +223,19 @@ view, scroll-view, page, image {
   justify-content: center;
   font-size: 24rpx;
   font-weight: 600;
-  flex-shrink: 0;
 }
 
-.gb-detail-comment-body {
+/* 中间内容 */
+.gb-detail-comment-center {
   flex: 1;
-  margin-left: 16rpx;
-}
-
-.gb-detail-comment-header {
-  display: flex;
-  align-items: center;
-  justify-content: space-between;
+  min-width: 0;
 }
 
 .gb-detail-comment-name {
   font-size: 26rpx;
   font-weight: 600;
   color: #1E293B;
-}
-
-.gb-detail-comment-time {
-  font-size: 22rpx;
-  color: #94A3B8;
+  display: block;
 }
 
 .gb-detail-comment-text {
@@ -259,8 +245,16 @@ view, scroll-view, page, image {
   margin-top: 8rpx;
 }
 
-.gb-detail-comment-reply-bar {
-  margin-top: 8rpx;
+.gb-detail-comment-bottom {
+  display: flex;
+  align-items: center;
+  gap: 24rpx;
+  margin-top: 12rpx;
+}
+
+.gb-detail-comment-time {
+  font-size: 22rpx;
+  color: #94A3B8;
 }
 
 .gb-detail-comment-reply-btn {
@@ -268,9 +262,33 @@ view, scroll-view, page, image {
   color: #94A3B8;
 }
 
-/* 二级回复 */
+/* 右侧点赞 */
+.gb-detail-comment-like {
+  flex-shrink: 0;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 4rpx;
+  padding: 8rpx;
+}
+
+.gb-detail-comment-like-icon {
+  font-size: 32rpx;
+}
+
+.gb-detail-comment-like-icon.is-liked {
+  transform: scale(1.1);
+}
+
+.gb-detail-comment-like-count {
+  font-size: 20rpx;
+  color: #94A3B8;
+}
+
+/* 二级回复 - 缩进 */
 .gb-detail-replies {
   margin-top: 16rpx;
+  margin-left: 16rpx;
   padding: 16rpx;
   background: #F8FAFC;
   border-radius: 12rpx;
@@ -278,6 +296,7 @@ view, scroll-view, page, image {
 
 .gb-detail-reply {
   margin-bottom: 12rpx;
+  line-height: 1.6;
 }
 
 .gb-detail-reply:last-child {
@@ -285,21 +304,22 @@ view, scroll-view, page, image {
 }
 
 .gb-detail-reply-name {
-  display: inline;
-  font-size: 24rpx;
-  font-weight: 600;
+  font-size: 28rpx;
   color: #16A34A;
 }
 
+.gb-detail-if-reply-to-name{
+  font-size: 28rpx;
+}
+
 .gb-detail-reply-to {
+  font-size: 28rpx;
   color: #16A34A;
 }
 
 .gb-detail-reply-text {
-  display: inline;
-  font-size: 24rpx;
+  font-size: 28rpx;
   color: #475569;
-  line-height: 1.6;
 }
 
 .gb-detail-more-replies {

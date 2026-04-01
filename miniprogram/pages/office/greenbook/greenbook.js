@@ -47,11 +47,7 @@ Page({
     this.loadPosts()
   },
 
-  onShow() {
-    if (this.data.ready) {
-      this.refreshPosts()
-    }
-  },
+  onShow() {},
 
   onPullDownRefresh() {
     this.refreshPosts()

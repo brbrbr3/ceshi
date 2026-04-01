@@ -1,0 +1,180 @@
+/* pages/office/learning-create/learning-create.wxss */
+.learning-create-page {
+  min-height: 100%;
+}
+
+.learning-create-header {
+  padding: 60rpx 40rpx 110rpx;
+  background: linear-gradient(135deg, #B91C1C 0%, #DC2626 50%, #EF4444 100%) !important;
+}
+
+.learning-create-title {
+  margin-top: 40rpx;
+  font-size: 48rpx;
+  font-weight: 700;
+  color: #FFFFFF;
+  text-align: left;
+}
+
+.learning-create-content {
+  margin-top: -100rpx;
+}
+
+.learning-create-form {
+  padding: 28rpx;
+}
+
+.auth-field-required {
+  color: #DC2626;
+  margin-left: 4rpx;
+}
+
+/* 红色提交按钮 */
+.learning-submit-btn {
+  background: linear-gradient(135deg, #B91C1C 0%, #DC2626 100%) !important;
+  box-shadow: 0 16rpx 30rpx rgba(185, 28, 28, 0.25) !important;
+}
+
+.learning-submit-btn:active {
+  opacity: 0.9;
+}
+
+/* 富文本编辑器 - 复用公告编辑器样式 */
+.editor-container {
+  border-radius: 24rpx;
+  overflow: hidden;
+  background: #F8FAFC;
+  border: 2rpx solid #E2E8F0;
+}
+
+.editor-toolbar {
+  background: #FFFFFF;
+  border-bottom: 1rpx solid #E2E8F0;
+  padding: 8rpx 12rpx;
+}
+
+.toolbar-row {
+  display: flex;
+  align-items: center;
+  min-height: 64rpx;
+}
+
+.toolbar-row-extra {
+  border-top: 1rpx solid #F1F5F9;
+  margin-top: 4rpx;
+  padding-top: 8rpx;
+}
+
+.toolbar-btn {
+  width: 64rpx;
+  height: 56rpx;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  border-radius: 8rpx;
+  font-size: 26rpx;
+  color: #475569;
+  transition: background-color 0.15s;
+}
+
+.toolbar-btn:active {
+  background-color: #FEE2E2;
+}
+
+.toolbar-btn-expand {
+  width: 56rpx;
+  color: #94A3B8;
+}
+
+.expand-icon {
+  font-size: 24rpx;
+  transition: transform 0.2s;
+  display: inline-block;
+}
+
+.expand-icon-up {
+  transform: rotate(90deg);
+}
+
+.toolbar-divider {
+  width: 1rpx;
+  height: 32rpx;
+  background-color: #E2E8F0;
+  margin: 0 6rpx;
+}
+
+.toolbar-spacer {
+  flex: 1;
+}
+
+.toolbar-icon-bold {
+  font-weight: 800;
+  font-size: 28rpx;
+  font-family: Georgia, serif;
+}
+
+.toolbar-icon-italic {
+  font-style: italic;
+  font-size: 28rpx;
+  font-family: Georgia, serif;
+}
+
+.toolbar-icon-underline {
+  text-decoration: underline;
+  font-size: 28rpx;
+  font-family: Georgia, serif;
+}
+
+.toolbar-icon-strike {
+  text-decoration: line-through;
+  font-size: 26rpx;
+  font-family: Georgia, serif;
+}
+
+.toolbar-icon-list {
+  font-size: 24rpx;
+  font-weight: 600;
+}
+
+.toolbar-icon-header {
+  font-size: 22rpx;
+  font-weight: 700;
+  color: #B91C1C;
+}
+
+.toolbar-icon-align {
+  font-size: 28rpx;
+  letter-spacing: -2rpx;
+}
+
+.toolbar-icon-divider {
+  font-size: 28rpx;
+  color: #94A3B8;
+}
+
+.toolbar-icon-image {
+  font-size: 28rpx;
+}
+
+.editor-body {
+  min-height: 300rpx;
+  padding: 20rpx;
+  box-sizing: border-box;
+  width: 100%;
+  font-size: 26rpx;
+  color: #0F172A;
+  line-height: 1.6;
+}
+
+.auth-field-count {
+  text-align: right;
+  font-size: 22rpx;
+  color: #94A3B8;
+  margin-top: 10rpx;
+}
+
+.learning-create-buttons {
+  display: flex;
+  justify-content: center;
+  margin-top: 32rpx;
+}

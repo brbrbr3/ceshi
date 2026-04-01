@@ -460,6 +460,32 @@ page {
   color: #94A3B8;
 }
 
+/* 学习园地首页模块 */
+.home-learning-icon {
+  width: 48rpx;
+  height: 48rpx;
+  border-radius: 14rpx;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 28rpx;
+  background: linear-gradient(135deg, #FEE2E2, #FECACA);
+  flex-shrink: 0;
+  margin-top: 2rpx;
+}
+
+.home-learning-pinned {
+  display: inline-block;
+  font-size: 18rpx;
+  color: #FFFFFF;
+  background: linear-gradient(135deg, #DC2626, #B91C1C);
+  padding: 0 8rpx;
+  border-radius: 4rpx;
+  margin-right: 6rpx;
+  vertical-align: middle;
+  line-height: 1.4;
+}
+
 /* 空状态 */
 .empty-schedule,
 .loading-schedule {
