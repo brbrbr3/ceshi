@@ -1,7 +1,5 @@
 {
-  "renderer": "skyline",
-  "componentFramework": "glass-easel",
-  "disableScroll": true,
+  "navigationBarTitleText": "帖文详情",
   "navigationStyle": "custom",
-  "backgroundColorContent": "#00000000"
+  "usingComponents": {}
 }

@@ -22,11 +22,10 @@
     </view>
   </scroll-view>
 
-  <!-- 瀑布流列表 -->
+  <!-- 帖子列表（双列 flex 瀑布流） -->
   <scroll-view
     class="greenbook-scroll"
     scroll-y
-    type="custom"
     show-scrollbar="{{false}}"
     refresher-enabled="{{true}}"
     refresher-triggered="{{loading}}"
@@ -35,23 +34,30 @@
     enhanced
     bounces="{{true}}"
   >
-    <grid-view
-      type="masonry"
-      cross-axis-count="2"
-      cross-axis-gap="{{gap}}"
-      main-axis-gap="{{gap}}"
-      class="greenbook-grid"
-    >
-      <greenbook-card
-        wx:for="{{list}}"
-        wx:key="_id"
-        item="{{item}}"
-        card-width="{{cardWidth}}"
-        index="{{index}}"
-        bind:like="handleCardLike"
-        bind:navigate="handleCardNavigate"
-      />
-    </grid-view>
+    <view class="greenbook-waterfall">
+      <view class="greenbook-waterfall-col">
+        <greenbook-card
+          wx:for="{{list}}"
+          wx:key="_id"
+          wx:if="{{index % 2 === 0}}"
+          item="{{item}}"
+          card-width="{{cardWidth}}"
+          index="{{index}}"
+          bind:like="handleCardLike"
+        />
+      </view>
+      <view class="greenbook-waterfall-col">
+        <greenbook-card
+          wx:for="{{list}}"
+          wx:key="_id"
+          wx:if="{{index % 2 === 1}}"
+          item="{{item}}"
+          card-width="{{cardWidth}}"
+          index="{{index}}"
+          bind:like="handleCardLike"
+        />
+      </view>
+    </view>
 
     <!-- 加载更多提示 -->
     <view class="greenbook-load-more" wx:if="{{hasMore && !loading}}">

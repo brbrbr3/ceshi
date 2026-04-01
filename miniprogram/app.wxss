@@ -420,7 +420,7 @@ input {
   color: #94A3B8;
 }
 
-.auth-input-shell:focus-within {
+.auth-input-shell.is-focused {
   border-color: #93C5FD;
   background: #FFFFFF;
 }

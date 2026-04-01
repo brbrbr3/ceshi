@@ -1,22 +1,23 @@
 page {
-  background-color: transparent;
-  height: 100vh;
+  background-color: #FFFFFF;
+  height: 100%;
 }
 
 view, scroll-view, page, image {
   box-sizing: border-box;
 }
 
-#gb-fake-host {
-  background-color: #FFF;
-  border-radius: 16rpx;
-  overflow: hidden;
-}
-
-#gb-detail-page {
+.gb-detail-page {
   display: flex;
   flex-direction: column;
   height: 100vh;
+  background-color: #FFFFFF;
+}
+
+.gb-detail-scroll {
+  flex: 1;
+  width: 100%;
+  overflow: hidden;
 }
 
 /* 导航栏 */
@@ -24,6 +25,7 @@ view, scroll-view, page, image {
   position: relative;
   z-index: 10;
   background: rgba(255, 255, 255, 0.95);
+  flex-shrink: 0;
 }
 
 .gb-detail-navbar-inner {
@@ -364,7 +366,6 @@ view, scroll-view, page, image {
   font-size: 26rpx;
   font-weight: 600;
   flex-shrink: 0;
-  transition: all 0.2s;
 }
 
 .gb-detail-send-btn.is-active {

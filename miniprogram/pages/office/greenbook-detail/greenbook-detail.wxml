@@ -1,171 +1,155 @@
-<pan-gesture-handler worklet:ongesture="handlePanGesture">
-  <view id="gb-fake-host">
-    <view id="gb-detail-page">
-      <!-- 导航栏 -->
-      <view class="gb-detail-navbar" style="padding-top: {{statusBarHeight}}px;">
-        <view class="gb-detail-navbar-inner">
-          <view class="gb-detail-back" bindtap="handleBack">
-            <view class="gb-detail-back-icon"></view>
-          </view>
-          <view class="gb-detail-navbar-title"></view>
-          <view class="gb-detail-more" bindtap="handleMore">
-            <text>···</text>
-          </view>
-        </view>
+<view class="gb-detail-page">
+  <!-- 导航栏 -->
+  <view class="gb-detail-navbar" style="padding-top: {{statusBarHeight}}px;">
+    <view class="gb-detail-navbar-inner">
+      <view class="gb-detail-back" bindtap="handleBack">
+        <view class="gb-detail-back-icon"></view>
+      </view>
+      <view class="gb-detail-navbar-title"></view>
+      <view class="gb-detail-more" bindtap="handleMore">
+        <text>···</text>
+      </view>
+    </view>
+  </view>
+
+  <!-- 可滚动内容 -->
+  <scroll-view
+    scroll-y
+    class="gb-detail-scroll"
+    show-scrollbar="{{false}}"
+    enhanced
+    bindscrolltolower="loadMoreComments"
+  >
+    <view wx:if="{{post}}">
+      <!-- 图片 Swiper -->
+      <swiper
+        style="width: 100%; height: {{swiperHeight}}px;"
+        indicator-dots
+        indicator-color="rgba(0,0,0,0.3)"
+        indicator-active-color="#FFFFFF"
+        circular
+        bindchange="handleSwiperChange"
+      >
+        <swiper-item wx:for="{{post.images}}" wx:key="*this" wx:for-item="img">
+          <image class="gb-detail-image" mode="aspectFill" src="{{img}}" />
+        </swiper-item>
+      </swiper>
+
+      <!-- 图片计数 -->
+      <view class="gb-detail-image-counter" wx:if="{{post.images.length > 1}}">
+        {{currentImage + 1}} / {{post.images.length}}
       </view>
 
-      <!-- share-element -->
-      <share-element
-        key="se-key{{index}}"
-        shuttle-on-push="from"
-        transition-on-gesture="{{true}}"
-        rect-tween-type="cubic-bezier(0.4, 0.0, 0.2, 1.0)"
-        style="width: 100%; height: 0px;"
-      >
-        <view />
-      </share-element>
-
-      <!-- 可滚动内容 -->
-      <scroll-view
-        scroll-y
-        style="flex: 1; width: 100%; overflow: hidden;"
-        type="list"
-        show-scrollbar="{{false}}"
-        enhanced
-        bindscrolltolower="loadMoreComments"
-      >
-        <view wx:if="{{post}}">
-          <!-- 图片 Swiper -->
-          <swiper
-            style="width: 100%; height: {{swiperHeight}}px;"
-            indicator-dots
-            indicator-color="rgba(0,0,0,0.3)"
-            indicator-active-color="#FFFFFF"
-            circular
-            bindchange="handleSwiperChange"
-          >
-            <swiper-item wx:for="{{post.images}}" wx:key="*this" wx:for-item="img">
-              <image class="gb-detail-image" mode="aspectFill" src="{{img}}" />
-            </swiper-item>
-          </swiper>
-
-          <!-- 图片计数 -->
-          <view class="gb-detail-image-counter" wx:if="{{post.images.length > 1}}">
-            {{currentImage + 1}} / {{post.images.length}}
+      <!-- 详情内容 -->
+      <view class="gb-detail-content">
+        <!-- 作者信息 -->
+        <view class="gb-detail-author">
+          <image class="gb-detail-author-avatar" src="{{post.authorAvatar}}" wx:if="{{post.authorAvatar}}" />
+          <view class="gb-detail-author-avatar-placeholder" wx:else>{{post.authorName[0] || '?'}}</view>
+          <view class="gb-detail-author-info">
+            <view class="gb-detail-author-name">{{post.authorName}}</view>
+            <view class="gb-detail-author-time">{{post.createdAt ? formatTime(post.createdAt) : ''}}</view>
           </view>
+        </view>
 
-          <!-- 详情内容 -->
-          <view class="gb-detail-content">
-            <!-- 作者信息 -->
-            <view class="gb-detail-author">
-              <image class="gb-detail-author-avatar" src="{{post.authorAvatar}}" wx:if="{{post.authorAvatar}}" />
-              <view class="gb-detail-author-avatar-placeholder" wx:else>{{post.authorName[0] || '?'}}</view>
-              <view class="gb-detail-author-info">
-                <view class="gb-detail-author-name">{{post.authorName}}</view>
-                <view class="gb-detail-author-time">{{post.createdAt ? formatTime(post.createdAt) : ''}}</view>
-              </view>
-            </view>
+        <!-- 标题 -->
+        <view class="gb-detail-title" wx:if="{{post.title}}">{{post.title}}</view>
 
-            <!-- 标题 -->
-            <view class="gb-detail-title" wx:if="{{post.title}}">{{post.title}}</view>
+        <!-- 正文 -->
+        <view class="gb-detail-body">{{post.content}}</view>
 
-            <!-- 正文 -->
-            <view class="gb-detail-body">{{post.content}}</view>
+        <!-- 话题标签 -->
+        <view class="gb-detail-tags" wx:if="{{post.tags && post.tags.length > 0}}">
+          <text class="gb-detail-tag" wx:for="{{post.tags}}" wx:key="*this">#{{item}}</text>
+        </view>
 
-            <!-- 话题标签 -->
-            <view class="gb-detail-tags" wx:if="{{post.tags && post.tags.length > 0}}">
-              <text class="gb-detail-tag" wx:for="{{post.tags}}" wx:key="*this">#{{item}}</text>
-            </view>
+        <!-- 交互栏 -->
+        <view class="gb-detail-actions">
+          <view class="gb-detail-action" bindtap="handleLike">
+            <text class="gb-detail-action-icon {{isLiked ? 'is-liked' : ''}}">{{isLiked ? '❤️' : '🤍'}}</text>
+            <text>{{likeCount}}</text>
+          </view>
+          <view class="gb-detail-action">
+            <text class="gb-detail-action-icon">💬</text>
+            <text>{{commentCount}}</text>
+          </view>
+          <view class="gb-detail-action" bindtap="handleCollect">
+            <text class="gb-detail-action-icon {{isCollected ? 'is-collected' : ''}}">{{isCollected ? '⭐' : '☆'}}</text>
+            <text>{{collectCount}}</text>
+          </view>
+        </view>
 
-            <!-- 交互栏 -->
-            <view class="gb-detail-actions">
-              <view class="gb-detail-action" bindtap="handleLike">
-                <text class="gb-detail-action-icon {{isLiked ? 'is-liked' : ''}}">{{isLiked ? '❤️' : '🤍'}}</text>
-                <text>{{likeCount}}</text>
-              </view>
-              <view class="gb-detail-action">
-                <text class="gb-detail-action-icon">💬</text>
-                <text>{{commentCount}}</text>
-              </view>
-              <view class="gb-detail-action" bindtap="handleCollect">
-                <text class="gb-detail-action-icon {{isCollected ? 'is-collected' : ''}}">{{isCollected ? '⭐' : '☆'}}</text>
-                <text>{{collectCount}}</text>
-              </view>
-            </view>
+        <!-- 评论区 -->
+        <view class="gb-detail-comments">
+          <view class="gb-detail-comments-title">评论 ({{commentCount}})</view>
 
-            <!-- 评论区 -->
-            <view class="gb-detail-comments">
-              <view class="gb-detail-comments-title">评论 ({{commentCount}})</view>
+          <!-- 评论列表 -->
+          <view wx:if="{{comments.length > 0}}">
+            <view class="gb-detail-comment" wx:for="{{comments}}" wx:key="_id" wx:for-item="comment">
+              <view class="gb-detail-comment-main">
+                <image class="gb-detail-comment-avatar" src="{{comment.authorAvatar}}" wx:if="{{comment.authorAvatar}}" />
+                <view class="gb-detail-comment-avatar-placeholder" wx:else>{{comment.authorName[0] || '?'}}</view>
+                <view class="gb-detail-comment-body">
+                  <view class="gb-detail-comment-header">
+                    <text class="gb-detail-comment-name">{{comment.authorName}}</text>
+                    <text class="gb-detail-comment-time">{{comment.createdAt ? formatTime(comment.createdAt) : ''}}</text>
+                  </view>
+                  <view class="gb-detail-comment-text">{{comment.content}}</view>
+                  <view class="gb-detail-comment-reply-bar">
+                    <text class="gb-detail-comment-reply-btn" bindtap="handleReplyComment" data-comment-id="{{comment._id}}" data-author-name="{{comment.authorName}}">回复</text>
+                  </view>
 
-              <!-- 评论列表 -->
-              <view wx:if="{{comments.length > 0}}">
-                <view class="gb-detail-comment" wx:for="{{comments}}" wx:key="_id" wx:for-item="comment">
-                  <view class="gb-detail-comment-main">
-                    <image class="gb-detail-comment-avatar" src="{{comment.authorAvatar}}" wx:if="{{comment.authorAvatar}}" />
-                    <view class="gb-detail-comment-avatar-placeholder" wx:else>{{comment.authorName[0] || '?'}}</view>
-                    <view class="gb-detail-comment-body">
-                      <view class="gb-detail-comment-header">
-                        <text class="gb-detail-comment-name">{{comment.authorName}}</text>
-                        <text class="gb-detail-comment-time">{{comment.createdAt ? formatTime(comment.createdAt) : ''}}</text>
-                      </view>
-                      <view class="gb-detail-comment-text">{{comment.content}}</view>
-                      <view class="gb-detail-comment-reply-bar">
-                        <text class="gb-detail-comment-reply-btn" bindtap="handleReplyComment" data-comment-id="{{comment._id}}" data-author-name="{{comment.authorName}}">回复</text>
-                      </view>
-
-                      <!-- 二级回复 -->
-                      <view class="gb-detail-replies" wx:if="{{comment.replies && comment.replies.length > 0}}">
-                        <view class="gb-detail-reply" wx:for="{{comment.replies}}" wx:key="_id" wx:for-item="reply">
-                          <view class="gb-detail-reply-name">{{reply.authorName}}</view>
-                          <text wx:if="{{reply.replyToName}}"> 回复 <text class="gb-detail-reply-to">{{reply.replyToName}}</text></text>
-                          <view class="gb-detail-reply-text">{{reply.content}}</view>
-                        </view>
-                        <view class="gb-detail-more-replies" wx:if="{{comment.replyCount > 3}}" bindtap="handleReplyComment" data-comment-id="{{comment._id}}" data-author-name="{{comment.authorName}}">
-                          查看全部 {{comment.replyCount}} 条回复 >
-                        </view>
-                      </view>
+                  <!-- 二级回复 -->
+                  <view class="gb-detail-replies" wx:if="{{comment.replies && comment.replies.length > 0}}">
+                    <view class="gb-detail-reply" wx:for="{{comment.replies}}" wx:key="_id" wx:for-item="reply">
+                      <view class="gb-detail-reply-name">{{reply.authorName}}</view>
+                      <text wx:if="{{reply.replyToName}}"> 回复 <text class="gb-detail-reply-to">{{reply.replyToName}}</text></text>
+                      <view class="gb-detail-reply-text">{{reply.content}}</view>
+                    </view>
+                    <view class="gb-detail-more-replies" wx:if="{{comment.replyCount > 3}}" bindtap="handleReplyComment" data-comment-id="{{comment._id}}" data-author-name="{{comment.authorName}}">
+                      查看全部 {{comment.replyCount}} 条回复 >
                     </view>
                   </view>
                 </view>
               </view>
-
-              <view class="gb-detail-empty" wx:else>
-                <text>暂无评论，快来说点什么吧~</text>
-              </view>
-
-              <!-- 加载更多评论 -->
-              <view class="gb-detail-load-more" wx:if="{{commentHasMore}}" bindtap="loadMoreComments">
-                <text>加载更多评论</text>
-              </view>
             </view>
+          </view>
 
-            <!-- 底部安全区域 -->
-            <view style="height: 120rpx;"></view>
+          <view class="gb-detail-empty" wx:else>
+            <text>暂无评论，快来说点什么吧~</text>
+          </view>
+
+          <!-- 加载更多评论 -->
+          <view class="gb-detail-load-more" wx:if="{{commentHasMore}}" bindtap="loadMoreComments">
+            <text>加载更多评论</text>
           </view>
         </view>
-      </scroll-view>
 
-      <!-- 底部评论输入栏 -->
-      <view class="gb-detail-footer" style="padding-bottom: env(safe-area-inset-bottom);">
-        <view class="gb-detail-reply-hint" wx:if="{{replyTarget}}">
-          <text>回复 @{{replyTarget.authorName}}</text>
-          <text class="gb-detail-reply-cancel" bindtap="handleCancelReply"> x</text>
-        </view>
-        <view class="gb-detail-footer-inner">
-          <input
-            class="gb-detail-input"
-            placeholder="说点什么..."
-            value="{{commentContent}}"
-            bindinput="handleCommentInput"
-            bindconfirm="handleSendComment"
-            focus="{{false}}"
-            confirm-type="send"
-          />
-          <view class="gb-detail-send-btn {{commentContent ? 'is-active' : ''}}" bindtap="handleSendComment">
-            <text>发送</text>
-          </view>
-        </view>
+        <!-- 底部安全区域 -->
+        <view style="height: 120rpx;"></view>
+      </view>
+    </view>
+  </scroll-view>
+
+  <!-- 底部评论输入栏 -->
+  <view class="gb-detail-footer" style="padding-bottom: env(safe-area-inset-bottom);">
+    <view class="gb-detail-reply-hint" wx:if="{{replyTarget}}">
+      <text>回复 @{{replyTarget.authorName}}</text>
+      <text class="gb-detail-reply-cancel" bindtap="handleCancelReply"> x</text>
+    </view>
+    <view class="gb-detail-footer-inner">
+      <input
+        class="gb-detail-input"
+        placeholder="说点什么..."
+        value="{{commentContent}}"
+        bindinput="handleCommentInput"
+        bindconfirm="handleSendComment"
+        focus="{{false}}"
+        confirm-type="send"
+      />
+      <view class="gb-detail-send-btn {{commentContent ? 'is-active' : ''}}" bindtap="handleSendComment">
+        <text>发送</text>
       </view>
     </view>
   </view>
-</pan-gesture-handler>
+</view>

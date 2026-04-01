@@ -43,7 +43,7 @@
     "useCompilerPlugins": false,
     "ignoreUploadUnusedFiles": true,
     "useStaticServer": true,
-    "compileWorklet": false,
+    "compileWorklet": true,
     "localPlugins": false,
     "condition": false,
     "swc": false,

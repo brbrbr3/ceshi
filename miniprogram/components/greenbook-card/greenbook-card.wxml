@@ -5,42 +5,30 @@
   data-index="{{index}}"
   data-item="{{item}}"
 >
-  <share-element
-    key="se-key{{index}}"
-    rect-tween-type="cubic-bezier(0.4, 0.0, 0.2, 1.0)"
-    worklet:onframe="handleFrame"
-    transition-on-gesture="{{true}}"
-    style="width: 100%; height: 100%;"
-  >
-    <view style="position: relative;">
-      <view class="greenbook-card-wrap">
-        <!-- 图片 -->
-        <image
-          class="greenbook-card-image"
-          mode="aspectFill"
-          src="{{item.images[0]}}"
-          fade-in
-          style="height: {{item.imageRatios[0] ? (cardWidth / item.imageRatios[0]) : cardWidth}}px;"
-        />
-        <!-- 图片数量标记 -->
-        <view class="greenbook-card-image-count" wx:if="{{item.images.length > 1}}">
-          {{item.images.length}}
-        </view>
+  <!-- 图片 -->
+  <image
+    class="greenbook-card-image"
+    mode="aspectFill"
+    src="{{item.images[0]}}"
+    lazy-load
+    style="height: {{item.imageRatios[0] ? (cardWidth / item.imageRatios[0]) : cardWidth}}px;"
+  />
+  <!-- 图片数量标记 -->
+  <view class="greenbook-card-image-count" wx:if="{{item.images.length > 1}}">
+    {{item.images.length}}
+  </view>
 
-        <!-- 文字区域 -->
-        <view class="greenbook-card-desc">
-          <view class="greenbook-card-title">{{item.title || item.content}}</view>
-          <view class="greenbook-card-footer">
-            <image class="greenbook-card-avatar" src="{{item.authorAvatar}}" wx:if="{{item.authorAvatar}}" />
-            <view class="greenbook-card-avatar-placeholder" wx:else>{{item.authorName[0] || '?'}}</view>
-            <text class="greenbook-card-nickname">{{item.authorName}}</text>
-            <view class="greenbook-card-like {{item.isLiked ? 'is-liked' : ''}}" catchtap="handleLike">
-              <text>{{item.isLiked ? '❤️' : '🤍'}}</text>
-              <text wx:if="{{item.likeCount > 0}}">{{item.likeCount}}</text>
-            </view>
-          </view>
-        </view>
+  <!-- 文字区域 -->
+  <view class="greenbook-card-desc">
+    <view class="greenbook-card-title">{{item.title || item.content}}</view>
+    <view class="greenbook-card-footer">
+      <image class="greenbook-card-avatar" src="{{item.authorAvatar}}" wx:if="{{item.authorAvatar}}" />
+      <view class="greenbook-card-avatar-placeholder" wx:else>{{item.authorName[0] || '?'}}</view>
+      <text class="greenbook-card-nickname">{{item.authorName}}</text>
+      <view class="greenbook-card-like {{item.isLiked ? 'is-liked' : ''}}" catchtap="handleLike">
+        <text>{{item.isLiked ? '❤️' : '🤍'}}</text>
+        <text wx:if="{{item.likeCount > 0}}">{{item.likeCount}}</text>
       </view>
     </view>
-  </share-element>
+  </view>
 </view>

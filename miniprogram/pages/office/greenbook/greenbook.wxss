@@ -1,6 +1,6 @@
 page {
   background-color: #F0FDF4;
-  height: 100vh;
+  height: 100%;
 }
 
 .greenbook-page {
@@ -38,15 +38,6 @@ page {
   flex-shrink: 0;
 }
 
-.greenbook-nav-search {
-  height: 32px;
-  border-radius: 16px;
-  background: rgba(255, 255, 255, 0.2);
-  display: flex;
-  align-items: center;
-  padding: 0 12px;
-}
-
 .greenbook-search-input {
   flex: 1;
   font-size: 13px;
@@ -77,7 +68,6 @@ page {
   font-size: 24rpx;
   color: #64748B;
   background: #F1F5F9;
-  transition: all 0.2s;
 }
 
 .greenbook-category-item.is-active {
@@ -94,8 +84,17 @@ page {
   box-sizing: border-box;
 }
 
-.greenbook-grid {
-  width: 100%;
+.greenbook-waterfall {
+  display: flex;
+  gap: 16rpx;
+  align-items: flex-start;
+}
+
+.greenbook-waterfall-col {
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+  gap: 16rpx;
 }
 
 /* 加载更多 */
