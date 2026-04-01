@@ -1,0 +1,272 @@
+page {
+  background-color: #FFFFFF;
+  height: 100%;
+}
+
+.gb-create-page {
+  min-height: 100%;
+  background: #FFFFFF;
+  padding-bottom: calc(40rpx + env(safe-area-inset-bottom));
+}
+
+/* 顶部操作栏 */
+.gb-create-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 16rpx 24rpx;
+  padding-top: calc(16rpx + env(safe-area-inset-top));
+  border-bottom: 1rpx solid #F1F5F9;
+  position: sticky;
+  top: 0;
+  background: #FFFFFF;
+  z-index: 10;
+}
+
+.gb-create-cancel {
+  font-size: 28rpx;
+  color: #64748B;
+  padding: 8rpx 16rpx;
+}
+
+.gb-create-title {
+  font-size: 32rpx;
+  font-weight: 600;
+  color: #1E293B;
+}
+
+.gb-create-publish {
+  font-size: 28rpx;
+  font-weight: 600;
+  color: #FFFFFF;
+  background: #16A34A;
+  padding: 12rpx 36rpx;
+  border-radius: 32rpx;
+  box-shadow: 0 4rpx 12rpx rgba(22, 163, 74, 0.3);
+}
+
+.gb-create-publish.is-disabled {
+  background: #CBD5E1;
+  color: #94A3B8;
+  box-shadow: none;
+}
+
+/* 区块 */
+.gb-create-section {
+  padding: 24rpx;
+  border-bottom: 1rpx solid #F8FAFC;
+}
+
+.gb-create-label {
+  font-size: 26rpx;
+  font-weight: 600;
+  color: #1E293B;
+  margin-bottom: 16rpx;
+}
+
+/* 图片选择 */
+.gb-create-images {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 16rpx;
+}
+
+.gb-create-image-item {
+  position: relative;
+  width: 200rpx;
+  height: 200rpx;
+  border-radius: 16rpx;
+  overflow: hidden;
+}
+
+.gb-create-image {
+  width: 100%;
+  height: 100%;
+}
+
+.gb-create-image-delete {
+  position: absolute;
+  top: 0;
+  right: 0;
+  width: 44rpx;
+  height: 44rpx;
+  background: rgba(0, 0, 0, 0.5);
+  color: #FFFFFF;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 24rpx;
+  border-bottom-left-radius: 16rpx;
+}
+
+.gb-create-image-add {
+  width: 200rpx;
+  height: 200rpx;
+  border-radius: 16rpx;
+  border: 2rpx dashed #CBD5E1;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  gap: 8rpx;
+}
+
+.gb-create-image-add-icon {
+  font-size: 48rpx;
+  color: #94A3B8;
+  font-weight: 300;
+  line-height: 1;
+}
+
+.gb-create-image-add-text {
+  font-size: 20rpx;
+  color: #94A3B8;
+}
+
+/* 标题输入 */
+.gb-create-title-input {
+  font-size: 32rpx;
+  font-weight: 600;
+  color: #1E293B;
+  padding: 8rpx 0;
+}
+
+/* 正文输入 */
+.gb-create-content-input {
+  font-size: 28rpx;
+  color: #1E293B;
+  width: 100%;
+  min-height: 200rpx;
+  line-height: 1.8;
+}
+
+.gb-create-content-count {
+  text-align: right;
+  font-size: 22rpx;
+  color: #94A3B8;
+  margin-top: 8rpx;
+}
+
+/* 话题标签 */
+.gb-create-tags {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 12rpx;
+  margin-bottom: 16rpx;
+}
+
+.gb-create-tag {
+  display: flex;
+  align-items: center;
+  gap: 8rpx;
+  padding: 8rpx 16rpx;
+  border-radius: 16rpx;
+  background: #F0FDF4;
+  color: #16A34A;
+  font-size: 24rpx;
+}
+
+.gb-create-tag-delete {
+  color: #94A3B8;
+  font-size: 20rpx;
+}
+
+.gb-create-tag-input-row {
+  display: flex;
+  gap: 12rpx;
+}
+
+.gb-create-tag-input {
+  flex: 1;
+  height: 64rpx;
+  background: #F8FAFC;
+  border-radius: 16rpx;
+  padding: 0 20rpx;
+  font-size: 26rpx;
+}
+
+.gb-create-tag-add {
+  height: 64rpx;
+  padding: 0 28rpx;
+  border-radius: 16rpx;
+  background: #16A34A;
+  color: #FFFFFF;
+  font-size: 26rpx;
+  display: flex;
+  align-items: center;
+  font-weight: 600;
+}
+
+/* 分类选择 */
+.gb-create-category {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 20rpx 24rpx;
+  background: #F8FAFC;
+  border-radius: 16rpx;
+  font-size: 28rpx;
+  color: #1E293B;
+}
+
+.gb-create-category-arrow {
+  color: #94A3B8;
+  font-size: 28rpx;
+}
+
+/* 分类弹窗 */
+.gb-create-picker-mask {
+  position: fixed;
+  top: 0;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  background: rgba(0, 0, 0, 0.4);
+  z-index: 100;
+  display: flex;
+  align-items: flex-end;
+  opacity: 0;
+  pointer-events: none;
+  transition: opacity 0.3s;
+}
+
+.gb-create-picker-mask.is-visible {
+  opacity: 1;
+  pointer-events: auto;
+}
+
+.gb-create-picker-container {
+  width: 100%;
+  background: #FFFFFF;
+  border-radius: 32rpx 32rpx 0 0;
+  padding: 32rpx;
+  padding-bottom: calc(32rpx + env(safe-area-inset-bottom));
+}
+
+.gb-create-picker-title {
+  font-size: 32rpx;
+  font-weight: 600;
+  color: #1E293B;
+  margin-bottom: 24rpx;
+  text-align: center;
+}
+
+.gb-create-picker-list {
+  display: grid;
+  grid-template-columns: repeat(3, 1fr);
+  gap: 16rpx;
+}
+
+.gb-create-picker-item {
+  padding: 20rpx;
+  text-align: center;
+  border-radius: 16rpx;
+  background: #F8FAFC;
+  font-size: 28rpx;
+  color: #475569;
+}
+
+.gb-create-picker-item.is-active {
+  background: #16A34A;
+  color: #FFFFFF;
+}

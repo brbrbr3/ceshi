@@ -48,7 +48,10 @@ const DB_COLLECTIONS = [
   'work_orders',
   'workflow_logs',
   'workflow_tasks',
-  'workflow_templates'
+  'workflow_templates',
+  'greenbook_posts',
+  'greenbook_comments',
+  'greenbook_likes'
 ]
 
 /**

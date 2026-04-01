@@ -27,9 +27,10 @@
       <!-- 提示信息 -->
       <view class="haircut-info-card">
         <view class="haircut-info-text">
-          • 理发服务仅限周一、三、五下午14:30~18:00<text>\n</text>
-          • 每半小时为1个时段，每时段限预约1人，可为他人代预约<text>\n</text>
-          • 当日14:20后锁定全部时段，只有招待员可操作
+          • 理发服务仅限周一、三、五14:30~18:00<text>\n</text>
+          • 每半小时1个时段，每时段限预约1人，可为他人代预约<text>\n</text>
+          • 当日14:20后该日锁定，不再允许预约或取消<text wx:if="{{isReceptionist}}">
+          \n• 招待员对时段的操作不受限制</text>
         </view>
       </view>
 
@@ -208,7 +209,7 @@
               取消原因：{{item.cancelReason}}
             </view>
           </view>
-          <view class="haircut-item-actions" wx:if="{{item.status === 'booked' && (isReceptionist || !isDayPastDeadline || item.date !== todayStr)}}">
+          <view class="haircut-item-actions" wx:if="{{item.status === 'booked' && (isReceptionist || !item.isDateLocked)}}">
             <view class="haircut-item-action is-danger" bindtap="handleCancelMyAppointment" data-item="{{item}}">取消预约</view>
           </view>
         </view>

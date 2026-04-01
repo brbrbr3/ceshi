@@ -26,6 +26,9 @@
     "pages/office/feedback/feedback",
     "pages/office/help/help",
     "pages/office/signature-manage/signature-manage",
+    "pages/office/greenbook/greenbook",
+    "pages/office/greenbook-detail/greenbook-detail",
+    "pages/office/greenbook-create/greenbook-create",
     "pages/test/datetime-picker-test/datetime-picker-test",
     "pages/test/signature-test/signature-test"
   ],
@@ -52,6 +55,13 @@
         "text": "审批中心",
         "iconPath": "image/ap1.png",
         "selectedIconPath": "image/ap1-s.png"
+      },
+      {
+        "pagePath": "pages/office/greenbook/greenbook",
+        "text": "小绿书",
+        "iconPath": "image/greenbook1.png",
+        "selectedIconPath": "image/greenbook1-s.png",
+        "selectedColor": "#408E45"
       },
       {
         "pagePath": "pages/office/profile/profile",

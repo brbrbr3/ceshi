@@ -1,0 +1,85 @@
+<view class="gb-create-page">
+  <!-- 顶部操作栏 -->
+  <view class="gb-create-header">
+    <view class="gb-create-cancel" bindtap="handleCancel">取消</view>
+    <view class="gb-create-title">发布帖子</view>
+    <view class="gb-create-publish {{submitting || (!content && images.length === 0) ? 'is-disabled' : ''}}" bindtap="handlePublish">
+      {{submitting ? '发布中...' : '发布'}}
+    </view>
+  </view>
+
+  <!-- 图片选择 -->
+  <view class="gb-create-section">
+    <view class="gb-create-images">
+      <view class="gb-create-image-item" wx:for="{{images}}" wx:key="*this">
+        <image class="gb-create-image" src="{{item}}" mode="aspectFill" />
+        <view class="gb-create-image-delete" bindtap="handleDeleteImage" data-index="{{index}}">
+          <text>x</text>
+        </view>
+      </view>
+      <view class="gb-create-image-add" wx:if="{{images.length < maxImages}}" bindtap="handleChooseImage">
+        <view class="gb-create-image-add-icon">+</view>
+        <view class="gb-create-image-add-text">{{maxImages - images.length}}/{{maxImages}}</view>
+      </view>
+    </view>
+  </view>
+
+  <!-- 标题 -->
+  <view class="gb-create-section">
+    <input class="gb-create-title-input" placeholder="添加标题（可选）" maxlength="50" value="{{title}}" bindinput="handleTitleInput" />
+  </view>
+
+  <!-- 正文 -->
+  <view class="gb-create-section">
+    <textarea
+      class="gb-create-content-input"
+      placeholder="分享你的生活..."
+      maxlength="500"
+      value="{{content}}"
+      bindinput="handleContentInput"
+      auto-height
+      show-confirm-bar="{{false}}"
+    />
+    <view class="gb-create-content-count">{{content.length}}/500</view>
+  </view>
+
+  <!-- 话题标签 -->
+  <view class="gb-create-section">
+    <view class="gb-create-label">添加话题</view>
+    <view class="gb-create-tags" wx:if="{{tags.length > 0}}">
+      <view class="gb-create-tag" wx:for="{{tags}}" wx:key="*this">
+        <text>#{{item}}</text>
+        <text class="gb-create-tag-delete" bindtap="handleDeleteTag" data-tag="{{item}}">x</text>
+      </view>
+    </view>
+    <view class="gb-create-tag-input-row">
+      <input class="gb-create-tag-input" placeholder="输入话题标签" value="{{tagInput}}" bindinput="handleTagInput" bindconfirm="handleAddTag" />
+      <view class="gb-create-tag-add" bindtap="handleAddTag">添加</view>
+    </view>
+  </view>
+
+  <!-- 分类选择 -->
+  <view class="gb-create-section">
+    <view class="gb-create-label">选择分类</view>
+    <view class="gb-create-category" bindtap="handleShowCategoryPicker">
+      <text>{{category}}</text>
+      <text class="gb-create-category-arrow">></text>
+    </view>
+  </view>
+
+  <!-- 分类选择弹窗 -->
+  <view class="gb-create-picker-mask {{showCategoryPicker ? 'is-visible' : ''}}" bindtap="handleHideCategoryPicker">
+    <view class="gb-create-picker-container" catchtap="handleHideCategoryPicker">
+      <view class="gb-create-picker-title">选择分类</view>
+      <view class="gb-create-picker-list">
+        <view
+          class="gb-create-picker-item {{category === item ? 'is-active' : ''}}"
+          wx:for="{{categories}}"
+          wx:key="*this"
+          bindtap="handleCategorySelect"
+          data-category="{{item}}"
+        >{{item}}</view>
+      </view>
+    </view>
+  </view>
+</view>

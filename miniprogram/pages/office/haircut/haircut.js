@@ -85,7 +85,6 @@ Page({
         cancelling: false,
 
         // 时间状态
-        isDayPastDeadline: false,
         todayStr: ''
     },
 
@@ -95,7 +94,6 @@ Page({
 
     onShow() {
         this.setData({
-            isDayPastDeadline: this.isAfterDeadline(),
             todayStr: this.formatLocalDate(new Date())
         })
         this.loadData()
@@ -196,8 +194,8 @@ Page({
                     // 非节假日：待后续填充预约数
                     nonHolidayDates.push(calcDate.date)
                     
-                    // 检查当日14:20后是否锁定（招待员不受限制）
-                    const isDayLocked = calcDate.date === todayStr && this.isAfterDeadline() && !this.data.isReceptionist
+                    // 检查该日期是否已锁定（招待员不受限制）
+                    const isDayLocked = this.isDateLocked(calcDate.date) && !this.data.isReceptionist
                     
                     displayDates.push({
                         ...calcDate,
@@ -205,7 +203,7 @@ Page({
                         isToday: calcDate.date === todayStr,
                         isDisabled: isDayLocked,
                         isDayLocked,
-                        disableReason: isDayLocked ? '当日时段已锁定，请联系招待员' : '',
+                        disableReason: isDayLocked ? (calcDate.date === todayStr ? '今日时段已锁定，请联系招待员' : '该日时段已锁定，请联系招待员') : '',
                         reservationCount: 0 // 待后续填充
                     })
                 }
@@ -318,6 +316,24 @@ Page({
         const currentTime = currentHour * 60 + currentMinute
         const deadlineTime = 14 * 60 + 20 // 14:20
         return currentTime >= deadlineTime
+    },
+
+    /**
+     * 判断指定日期是否已锁定（该日期的14:20已过，且锁永不解除）
+     * 规则：如果指定日期 <= 今天，且（指定日期 < 今天 或 今天已过14:20），则该日期已锁定
+     */
+    isDateLocked(dateStr) {
+        const todayStr = this.formatLocalDate(new Date())
+        if (dateStr < todayStr) {
+            // 过去的日期，一定已锁定
+            return true
+        }
+        if (dateStr === todayStr) {
+            // 今天，看是否过了14:20
+            return this.isAfterDeadline()
+        }
+        // 未来的日期，未锁定
+        return false
     },
 
     /**
@@ -519,6 +535,12 @@ Page({
      * 取消我的预约（从时段列表）
      */
     async handleCancelMySlot(slot) {
+        // 校验：已锁定日期不允许普通用户取消
+        if (!this.data.isReceptionist && this.data.selectedDateInfo && this.data.selectedDateInfo.isDayLocked) {
+            wx.showToast({ title: '该日期时段已锁定，无法取消', icon: 'none' })
+            return
+        }
+
         const res = await wx.showModal({
             title: '确认取消',
             content: `确定要取消 ${this.data.selectedDate} ${slot.display} 的预约吗？`,
@@ -1023,9 +1045,14 @@ Page({
             if (res.result.code === 0) {
                 const list = res.result.data.list || []
                 const total = res.result.data.total || 0
+                // 为每条预约标记是否已锁定（已过该日期的14:20）
+                const enrichedList = list.map(item => ({
+                    ...item,
+                    isDateLocked: this.isDateLocked(item.date)
+                }))
                 this.setData({
-                    myList: this.data.myList.concat(list),
-                    hasMoreMine: this.data.myList.length + list.length < total
+                    myList: this.data.myList.concat(enrichedList),
+                    hasMoreMine: this.data.myList.length + enrichedList.length < total
                 })
             }
         } catch (error) {
@@ -1051,6 +1078,12 @@ Page({
      */
     async handleCancelMyAppointment(e) {
         const item = e.currentTarget.dataset.item
+
+        // 前端校验：已锁定日期不允许取消（招待员不受限制）
+        if (!this.data.isReceptionist && this.isDateLocked(item.date)) {
+            wx.showToast({ title: '该日期时段已锁定，无法取消', icon: 'none' })
+            return
+        }
 
         const res = await wx.showModal({
             title: '确认取消',

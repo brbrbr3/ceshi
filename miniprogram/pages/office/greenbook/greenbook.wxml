@@ -1,0 +1,78 @@
+<!-- 自定义导航栏 -->
+<view class="greenbook-navbar" style="padding-top: {{statusBarHeight}}px;">
+  <view class="greenbook-navbar-inner">
+    <view class="greenbook-navbar-title">小绿书</view>
+    <view class="greenbook-navbar-search">
+      <input class="greenbook-search-input" placeholder="搜索帖子" placeholder-style="color:rgba(255,255,255,0.6)" bindinput="handleSearchInput" bindconfirm="handleSearchConfirm" value="{{searchKeyword}}" />
+    </view>
+  </view>
+</view>
+
+<view class="greenbook-page" style="padding-top: {{statusBarHeight + 44}}px;">
+  <!-- 分类Tab -->
+  <scroll-view class="greenbook-categories" scroll-x enhanced show-scrollbar="{{false}}">
+    <view class="greenbook-categories-inner">
+      <view
+        class="greenbook-category-item {{activeCategory === item ? 'is-active' : ''}}"
+        wx:for="{{categories}}"
+        wx:key="*this"
+        bindtap="handleCategoryTap"
+        data-category="{{item}}"
+      >{{item}}</view>
+    </view>
+  </scroll-view>
+
+  <!-- 瀑布流列表 -->
+  <scroll-view
+    class="greenbook-scroll"
+    scroll-y
+    type="custom"
+    show-scrollbar="{{false}}"
+    refresher-enabled="{{true}}"
+    refresher-triggered="{{loading}}"
+    bindrefresherrefresh="handleRefresh"
+    bindscrolltolower="handleScrollToLower"
+    enhanced
+    bounces="{{true}}"
+  >
+    <grid-view
+      type="masonry"
+      cross-axis-count="2"
+      cross-axis-gap="{{gap}}"
+      main-axis-gap="{{gap}}"
+      class="greenbook-grid"
+    >
+      <greenbook-card
+        wx:for="{{list}}"
+        wx:key="_id"
+        item="{{item}}"
+        card-width="{{cardWidth}}"
+        index="{{index}}"
+        bind:like="handleCardLike"
+        bind:navigate="handleCardNavigate"
+      />
+    </grid-view>
+
+    <!-- 加载更多提示 -->
+    <view class="greenbook-load-more" wx:if="{{hasMore && !loading}}">
+      <text>上拉加载更多</text>
+    </view>
+    <view class="greenbook-load-more" wx:if="{{!hasMore && list.length > 0}}">
+      <text>— 没有更多了 —</text>
+    </view>
+
+    <!-- 空状态 -->
+    <view class="greenbook-empty" wx:if="{{!loading && list.length === 0}}">
+      <view class="greenbook-empty-icon">🌱</view>
+      <view class="greenbook-empty-text">还没有帖子，快来分享吧</view>
+    </view>
+
+    <!-- 底部占位（FAB按钮空间） -->
+    <view style="height: 140rpx;"></view>
+  </scroll-view>
+
+  <!-- FAB 发布按钮 -->
+  <view class="greenbook-fab" bindtap="handleCreate">
+    <text class="greenbook-fab-icon">+</text>
+  </view>
+</view>

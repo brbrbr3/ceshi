@@ -1,0 +1,149 @@
+page {
+  background-color: #F0FDF4;
+  height: 100vh;
+}
+
+.greenbook-page {
+  display: flex;
+  flex-direction: column;
+  height: 100vh;
+  background-color: #F0FDF4;
+  width: 100%;
+  box-sizing: border-box;
+}
+
+/* 导航栏 */
+.greenbook-navbar {
+  position: fixed;
+  top: 0;
+  left: 0;
+  right: 0;
+  z-index: 100;
+  background: linear-gradient(135deg, #16A34A 0%, #408E45 100%);
+  padding-left: 24rpx;
+  padding-right: 24rpx;
+}
+
+.greenbook-navbar-inner {
+  height: 44px;
+  display: flex;
+  align-items: center;
+  gap: 16rpx;
+}
+
+.greenbook-navbar-title {
+  font-size: 22px;
+  font-weight: bold;
+  color: #FFFFFF;
+  flex-shrink: 0;
+}
+
+.greenbook-nav-search {
+  height: 32px;
+  border-radius: 16px;
+  background: rgba(255, 255, 255, 0.2);
+  display: flex;
+  align-items: center;
+  padding: 0 12px;
+}
+
+.greenbook-search-input {
+  flex: 1;
+  font-size: 13px;
+  color: #FFFFFF;
+  height: 32px;
+}
+
+/* 分类Tab */
+.greenbook-categories {
+  white-space: nowrap;
+  padding: 16rpx 24rpx;
+  background-color: #FFFFFF;
+  box-shadow: 0 2rpx 8rpx rgba(0, 0, 0, 0.04);
+  flex-shrink: 0;
+}
+
+.greenbook-categories-inner {
+  display: inline-flex;
+  gap: 16rpx;
+}
+
+.greenbook-category-item {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  padding: 12rpx 28rpx;
+  border-radius: 999rpx;
+  font-size: 24rpx;
+  color: #64748B;
+  background: #F1F5F9;
+  transition: all 0.2s;
+}
+
+.greenbook-category-item.is-active {
+  background: #408E45;
+  color: #FFFFFF;
+  box-shadow: 0 4rpx 12rpx rgba(22, 163, 74, 0.3);
+}
+
+/* 瀑布流滚动区 */
+.greenbook-scroll {
+  flex: 1;
+  width: 100%;
+  padding: 16rpx;
+  box-sizing: border-box;
+}
+
+.greenbook-grid {
+  width: 100%;
+}
+
+/* 加载更多 */
+.greenbook-load-more {
+  padding: 24rpx 0 40rpx;
+  text-align: center;
+  font-size: 24rpx;
+  color: #94A3B8;
+}
+
+/* 空状态 */
+.greenbook-empty {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  padding: 120rpx 0;
+}
+
+.greenbook-empty-icon {
+  font-size: 80rpx;
+  margin-bottom: 16rpx;
+}
+
+.greenbook-empty-text {
+  font-size: 28rpx;
+  color: #94A3B8;
+}
+
+/* FAB 发布按钮 */
+.greenbook-fab {
+  position: fixed;
+  right: 40rpx;
+  bottom: calc(120rpx + env(safe-area-inset-bottom));
+  width: 100rpx;
+  height: 100rpx;
+  border-radius: 50rpx;
+  background: linear-gradient(135deg, #16A34A 0%, #408E45 100%);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  box-shadow: 0 8rpx 24rpx rgba(22, 163, 74, 0.4);
+  z-index: 100;
+}
+
+.greenbook-fab-icon {
+  font-size: 48rpx;
+  color: #FFFFFF;
+  font-weight: 700;
+  line-height: 1;
+}
