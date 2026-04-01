@@ -210,6 +210,13 @@ Page({
       if (res.result.code === 0) {
         wx.hideLoading()
         wx.showToast({ title: '发布成功', icon: 'success' })
+
+        // 通知列表页清除缓存并刷新
+        const eventChannel = this.getOpenerEventChannel()
+        if (eventChannel && eventChannel.emit) {
+          eventChannel.emit('publishSuccess')
+        }
+
         setTimeout(() => {
           wx.navigateBack()
         }, 1500)

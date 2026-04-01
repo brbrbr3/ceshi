@@ -4,6 +4,64 @@
 const app = getApp()
 const utils = require('../../../common/utils.js')
 
+// ===== 详情页缓存配置 =====
+const DETAIL_CACHE_PREFIX = 'gb_detail_'
+const DETAIL_EXPIRE = 3 * 60 * 1000 // 3分钟
+
+// 页面级内存缓存
+const detailMemoryCache = new Map()
+
+function readDetailCache(postId) {
+  // 1. 内存缓存
+  const memCached = detailMemoryCache.get(postId)
+  if (memCached && Date.now() - memCached.time < DETAIL_EXPIRE) {
+    return { data: memCached.data, source: 'memory' }
+  }
+
+  // 2. Storage 缓存
+  try {
+    const key = `${DETAIL_CACHE_PREFIX}${postId}`
+    const stored = wx.getStorageSync(key)
+    if (stored && stored.data && Date.now() - stored.time < DETAIL_EXPIRE) {
+      // 回填内存缓存
+      detailMemoryCache.set(postId, { data: stored.data, time: Date.now() })
+      return { data: stored.data, source: 'storage' }
+    }
+  } catch (e) {
+    console.warn('读取详情缓存失败:', e)
+  }
+
+  return null
+}
+
+function writeDetailCache(postId, data) {
+  detailMemoryCache.set(postId, { data, time: Date.now() })
+  try {
+    const key = `${DETAIL_CACHE_PREFIX}${postId}`
+    wx.setStorageSync(key, { data, time: Date.now() })
+  } catch (e) {
+    console.warn('写入详情缓存失败:', e)
+  }
+}
+
+function clearDetailCache(postId) {
+  if (postId) {
+    detailMemoryCache.delete(postId)
+    try { wx.removeStorageSync(`${DETAIL_CACHE_PREFIX}${postId}`) } catch (e) {}
+    return
+  }
+  // 清除所有详情缓存
+  detailMemoryCache.clear()
+  try {
+    const res = wx.getStorageInfoSync()
+    res.keys.forEach(key => {
+      if (key.startsWith(DETAIL_CACHE_PREFIX)) {
+        wx.removeStorageSync(key)
+      }
+    })
+  } catch (e) {}
+}
+
 Page({
   data: {
     postId: '',
@@ -47,9 +105,32 @@ Page({
     this.loadComments()
   },
 
-  async loadPostDetail() {
+  async loadPostDetail(forceRefresh = false) {
     const { postId } = this.data
     if (!postId) return
+
+    // 尝试读取缓存（非强制刷新时）
+    if (!forceRefresh) {
+      const cached = readDetailCache(postId)
+      if (cached) {
+        const post = cached.data
+        const { screenWidth } = wx.getWindowInfo()
+        const firstRatio = post.imageRatios && post.imageRatios[0] ? post.imageRatios[0] : 1
+        this.setData({
+          post,
+          isLiked: post.isLiked || false,
+          isCollected: post.isCollected || false,
+          likeCount: post.likeCount || 0,
+          collectCount: post.collectCount || 0,
+          commentCount: post.commentCount || 0,
+          swiperHeight: screenWidth / firstRatio,
+          currentImage: 0
+        })
+        // 后台静默刷新（缓存可能是旧数据）
+        this._silentRefreshDetail()
+        return
+      }
+    }
 
     try {
       const res = await wx.cloud.callFunction({
@@ -71,10 +152,43 @@ Page({
           swiperHeight: screenWidth / firstRatio,
           currentImage: 0
         })
+        // 写入缓存
+        writeDetailCache(postId, post)
       }
     } catch (e) {
       console.error('加载详情失败:', e)
       wx.showToast({ title: '加载失败', icon: 'none' })
+    }
+  },
+
+  /**
+   * 后台静默刷新详情
+   */
+  async _silentRefreshDetail() {
+    const { postId } = this.data
+    if (!postId) return
+    try {
+      const res = await wx.cloud.callFunction({
+        name: 'greenbookManager',
+        data: { action: 'detail', postId }
+      })
+      if (res.result.code === 0) {
+        const post = res.result.data
+        const { screenWidth } = wx.getWindowInfo()
+        const firstRatio = post.imageRatios && post.imageRatios[0] ? post.imageRatios[0] : 1
+        this.setData({
+          post,
+          isLiked: post.isLiked || false,
+          isCollected: post.isCollected || false,
+          likeCount: post.likeCount || 0,
+          collectCount: post.collectCount || 0,
+          commentCount: post.commentCount || 0,
+          swiperHeight: screenWidth / firstRatio
+        })
+        writeDetailCache(postId, post)
+      }
+    } catch (e) {
+      console.warn('静默刷新详情失败:', e)
     }
   },
 
@@ -125,6 +239,7 @@ Page({
         name: 'greenbookManager',
         data: { action: 'toggleLike', targetId: postId, targetType: 'post' }
       })
+      clearDetailCache(postId)
     } catch (e) {
       this.setData({ isLiked, likeCount })
     }
@@ -141,6 +256,7 @@ Page({
         name: 'greenbookManager',
         data: { action: 'toggleCollect', postId }
       })
+      clearDetailCache(postId)
     } catch (e) {
       this.setData({ isCollected, collectCount })
     }
@@ -171,6 +287,7 @@ Page({
 
       if (res.result.code === 0) {
         this.setData({ commentContent: '', replyTarget: null, commentCount: commentCount + 1 })
+        clearDetailCache(postId)
         this.loadComments(false)
         wx.showToast({ title: '评论成功', icon: 'success' })
       }
@@ -247,6 +364,7 @@ Page({
                 data: { action: 'delete', postId: post._id }
               })
               if (result.result.code === 0) {
+                clearDetailCache(post._id)
                 wx.showToast({ title: '已删除', icon: 'success' })
                 setTimeout(() => wx.navigateBack(), 1500)
               }
