@@ -8,11 +8,20 @@
   </view>
 
   <view class="dashboard-content">
-    <!-- 部门筛选 -->
+    <!-- 筛选区域 -->
     <view class="dashboard-filter">
-      <picker mode="selector" range="{{departmentOptions}}" value="{{selectedDepartment === 'all' ? 0 : departmentOptions.indexOf(selectedDepartment)}}" bindchange="handleDepartmentChange">
+      <picker wx:if="{{departmentOptions.length > 1}}" mode="selector" range="{{departmentOptions}}" value="{{selectedDepartment === 'all' ? 0 : departmentOptions.indexOf(selectedDepartment)}}" bindchange="handleDepartmentChange">
         <view class="dashboard-filter-picker">
           <text>{{selectedDepartment === 'all' ? '全部部门' : selectedDepartment}}</text>
+          <text class="dashboard-filter-arrow">▼</text>
+        </view>
+      </picker>
+      <view wx:else class="dashboard-filter-picker">
+        <text>{{departmentOptions[0]}}</text>
+      </view>
+      <picker mode="selector" range="{{timeRangeOptions}}" value="{{selectedTimeRangeIndex}}" bindchange="handleTimeRangeChange">
+        <view class="dashboard-filter-picker dashboard-filter-time">
+          <text>{{timeRangeOptions[selectedTimeRangeIndex]}}</text>
           <text class="dashboard-filter-arrow">▼</text>
         </view>
       </picker>
@@ -35,7 +44,7 @@
         </view>
         <view class="dashboard-stat-card">
           <view class="dashboard-stat-value">{{statistics.total}}</view>
-          <view class="dashboard-stat-label">本月出行次数</view>
+          <view class="dashboard-stat-label">{{statTimeRangeLabel || '本月'}}出行次数</view>
         </view>
       </view>
 
@@ -152,6 +161,14 @@
               <text class="dashboard-chart-bar-value">{{chartData.deptValues[idx]}}</text>
             </view>
           </view>
+        </view>
+      </view>
+
+      <!-- 个人出行排行（uCharts 柱形图） -->
+      <view wx:if="{{chartData.personCategories.length > 0}}" class="dashboard-section">
+        <view class="dashboard-section-title">个人出行排行</view>
+        <view class="dashboard-person-charts">
+          <canvas canvas-id="personChart" id="personChart" class="dashboard-person-charts" bindtouchend="tapPersonChart"/>
         </view>
       </view>
     </view>

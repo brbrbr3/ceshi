@@ -436,6 +436,17 @@ async function getStatistics(params) {
     }
   })
 
+  // 按人统计（按出行次数降序，取前20人）
+  const personMap = {}
+  trips.forEach(trip => {
+    const name = trip.userName || '未知'
+    personMap[name] = (personMap[name] || 0) + 1
+  })
+  statistics.byPerson = Object.entries(personMap)
+    .map(([name, count]) => ({ name, count }))
+    .sort((a, b) => b.count - a.count)
+    .slice(0, 20)
+
   return success(statistics)
 }
 

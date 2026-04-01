@@ -1,6 +1,10 @@
+import uCharts from '@qiun/wx-ucharts/src/u-charts'
+
 const app = getApp()
 const utils = require('../../../common/utils.js')
 const paginationBehavior = require('../../../behaviors/pagination.js')
+
+var personChartInstance = null
 
 // 状态样式映射
 const STATUS_STYLE = {
@@ -20,6 +24,10 @@ Page({
     currentUser: null,
     userRole: '',              // 用户角色
     canViewAll: false,         // 是否可查看全部数据
+    
+    // 统计时长
+    timeRangeOptions: ['本月', '过去一个月', '过去三个月', '过去半年'],
+    selectedTimeRangeIndex: 0,  // 默认"本月"
     
     // 今日概览数据
     todayOverview: {
@@ -43,7 +51,9 @@ Page({
       modeLabels: [],
       modeValues: [],
       deptLabels: [],
-      deptValues: []
+      deptValues: [],
+      personCategories: [],
+      personValues: []
     }
   },
 
@@ -134,14 +144,27 @@ Page({
   async loadConstants() {
     try {
       const departmentOptions = await app.getConstant('DEPARTMENT_OPTIONS')
-      this.setData({
-        departmentOptions: ['全部', ...(departmentOptions || [])]
-      })
+      // 部门负责人只能选自己所在部门
+      if (this.data.userRole === '部门负责人' && this.data.currentUser && this.data.currentUser.department) {
+        this.setData({
+          departmentOptions: [this.data.currentUser.department]
+        })
+      } else {
+        this.setData({
+          departmentOptions: ['全部', ...(departmentOptions || [])]
+        })
+      }
     } catch (error) {
       console.error('加载常量配置失败:', error)
-      this.setData({
-        departmentOptions: ['全部', '政治处', '新公处', '经商处', '科技处', '武官处', '领侨处', '文化处', '办公室', 'DW办']
-      })
+      if (this.data.userRole === '部门负责人' && this.data.currentUser && this.data.currentUser.department) {
+        this.setData({
+          departmentOptions: [this.data.currentUser.department]
+        })
+      } else {
+        this.setData({
+          departmentOptions: ['全部', '政治处', '新公处', '经商处', '科技处', '武官处', '领侨处', '文化处', '办公室', 'DW办']
+        })
+      }
     }
   },
 
@@ -220,10 +243,27 @@ Page({
         params.department = this.data.selectedDepartment
       }
 
-      // 获取本月数据
+      // 根据统计时长计算 dateStart
       const now = new Date()
-      const monthStart = new Date(now.getFullYear(), now.getMonth(), 1).getTime()
-      params.dateStart = monthStart
+      let dateLabel = ''
+      switch (this.data.timeRangeOptions[this.data.selectedTimeRangeIndex]) {
+        case '本月':
+          dateLabel = '本月'
+          params.dateStart = new Date(now.getFullYear(), now.getMonth(), 1).getTime()
+          break
+        case '过去一个月':
+          dateLabel = '过去一个月'
+          params.dateStart = now.getTime() - 30 * 24 * 60 * 60 * 1000
+          break
+        case '过去三个月':
+          dateLabel = '过去三个月'
+          params.dateStart = now.getTime() - 90 * 24 * 60 * 60 * 1000
+          break
+        case '过去半年':
+          dateLabel = '过去半年'
+          params.dateStart = now.getTime() - 180 * 24 * 60 * 60 * 1000
+          break
+      }
 
       const res = await wx.cloud.callFunction({
         name: 'tripReport',
@@ -246,19 +286,32 @@ Page({
         const modeMax = modeValues.length > 0 ? Math.max(...modeValues) : 1
         const deptMax = deptValues.length > 0 ? Math.max(...deptValues) : 1
 
+        // 按人统计数据（用于 uCharts 柱形图）
+        const byPerson = stats.byPerson || []
+        const personCategories = byPerson.map(p => p.name)
+        const personValues = byPerson.map(p => p.count)
+
         const chartData = {
           modeLabels,
           modeValues,
           modePercentages: modeValues.map(v => (v / modeMax * 100).toFixed(1)),
           deptLabels,
           deptValues,
-          deptPercentages: deptValues.map(v => (v / deptMax * 100).toFixed(1))
+          deptPercentages: deptValues.map(v => (v / deptMax * 100).toFixed(1)),
+          personCategories,
+          personValues
         }
 
         this.setData({
           statistics: stats,
-          chartData
+          chartData,
+          statTimeRangeLabel: dateLabel
         })
+
+        // 初始化 uCharts 柱形图
+        if (personCategories.length > 0) {
+          this.initPersonChart(personCategories, personValues)
+        }
       }
     } catch (error) {
       console.error('加载统计数据失败:', error)
@@ -373,6 +426,85 @@ Page({
     if (selectedDepartment !== this.data.selectedDepartment) {
       this.setData({ selectedDepartment })
       this.loadAllData()
+    }
+  },
+
+  /**
+   * 统计时长筛选
+   */
+  handleTimeRangeChange(e) {
+    const index = Number(e.detail.value)
+    if (index !== this.data.selectedTimeRangeIndex) {
+      this.setData({ selectedTimeRangeIndex: index })
+      this.loadStatistics()
+    }
+  },
+
+  /**
+   * 初始化 uCharts 个人出行柱形图（旧版 Canvas API，按官方示例）
+   */
+  initPersonChart(categories, values) {
+    // 用 rpx 转 px 计算实际尺寸（官方推荐方式）
+    const windowWidth = wx.getWindowInfo().windowWidth
+    const cWidth = 750 / 750 * windowWidth
+    const cHeight = 500 / 750 * windowWidth
+
+    const ctx = wx.createCanvasContext('personChart', this)
+    personChartInstance = new uCharts({
+      type: 'column',
+      context: ctx,
+      width: cWidth,
+      height: cHeight,
+      categories: categories,
+      series: [{
+        name: '出行次数',
+        data: values
+      }],
+      animation: true,
+      background: '#FFFFFF',
+      color: ['#3B82F6', '#6366F1', '#8B5CF6', '#EC4899', '#F59E0B', '#10B981', '#06B6D4', '#EF4444', '#84CC16'],
+      padding: [15, 30, 10, 5],
+      legend: { show: false },
+      xAxis: {
+        rotateLabel: true,
+        rotateAngle: 45,
+        fontSize: 16,
+        fontColor: '#64748B',
+        itemCount: 5,
+        scrollShow: true,
+        scrollAlign: 'left',
+        disableGrid: true
+      },
+      yAxis: {
+        gridColor: '#F1F5F9',
+        fontSize: 10,
+        fontColor: '#94A3B8',
+        splitNumber: 4,
+        min: 0,
+        data: [{ min: 0 }]
+      },
+      dataLabel: true,
+      dataPointShape: false,
+      extra: {
+        column: {
+          type: 'group',
+          width: 18,
+          barBorderRadius: [4, 4, 0, 0],
+          activeBgColor: '#4F46E5',
+          seriesGap: 2,
+          categoryGap: 6
+        }
+      }
+    })
+  },
+
+  /**
+   * 图表点击事件
+   */
+  tapPersonChart(e) {
+    if (personChartInstance) {
+      personChartInstance.touchLegend(e)
+      personChartInstance.showToolTip(e)
     }
   },
 

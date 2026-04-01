@@ -5,7 +5,7 @@
 
 /* 红色渐变头部 */
 .learning-header {
-  padding: 110rpx 40rpx 30rpx;
+  padding: 130rpx 40rpx 60rpx;
   background: linear-gradient(135deg, #B91C1C 0%, #DC2626 50%, #EF4444 100%) !important;
 }
 
@@ -37,7 +37,7 @@
 }
 
 .learning-content {
-  margin-top: 0;
+  margin-top: -30rpx;
   padding: 0 24rpx 0;
 }
 

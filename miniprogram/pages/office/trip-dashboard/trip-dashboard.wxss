@@ -33,6 +33,8 @@
 
 /* 部门筛选 */
 .dashboard-filter {
+  display: flex;
+  gap: 16rpx;
   margin-bottom: 20rpx;
 }
 
@@ -355,4 +357,22 @@
   padding: 32rpx 0;
   font-size: 26rpx;
   color: #94A3B8;
+}
+
+/* 时间范围 picker */
+.dashboard-filter-time {
+  margin-left: auto;
+}
+
+/* uCharts 图表容器 */
+.dashboard-person-charts {
+  background: #FFFFFF;
+  border-radius: 20rpx;
+  box-shadow: 0 2rpx 12rpx rgba(0, 0, 0, 0.04);
+  padding: 12rpx 0 0 0;
+}
+
+.dashboard-person-charts canvas {
+  width: 100%;
+  height: 500rpx;
 }

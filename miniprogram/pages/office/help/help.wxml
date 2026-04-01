@@ -11,7 +11,7 @@
   <view class="feedback-content">
     <!-- 核心功能 -->
     <view class="help-section">
-      <view class="section-title">核心功能</view>
+      <view class="section-title">常用功能</view>
       
       <view class="help-card">
         <view class="card-header">
@@ -155,20 +155,7 @@
           </view>
         </view>
       </view>
-
-      <view class="help-card">
-        <view class="card-header">
-          <view class="card-icon">📢</view>
-          <view class="card-title">通知公告</view>
-        </view>
-        <view class="card-content">
-          <view class="card-desc">查看重要通知和公告信息，支持紧急/重要/普通三级分类，未读消息会有明显标记提醒。</view>
-          <view class="card-permission">
-            <view class="permission-label">权限要求：</view>
-            <view class="permission-value">无限制，所有用户可查看</view>
-          </view>
-        </view>
-      </view>
+      
 
       <view class="help-card">
         <view class="card-header">
@@ -183,20 +170,56 @@
           </view>
         </view>
       </view>
-
       <view class="help-card">
         <view class="card-header">
-          <view class="card-icon">🔔</view>
-          <view class="card-title">消息通知</view>
+          <view class="card-icon">📢</view>
+          <view class="card-title">通知公告</view>
         </view>
         <view class="card-content">
-          <view class="card-desc">接收系统消息提醒，包括审批状态变更通知、菜单更新通知等。支持标记已读和清除功能。</view>
+          <view class="card-desc">查看重要通知和公告信息，支持紧急/重要/普通三级分类，未读消息会有明显标记提醒。</view>
           <view class="card-permission">
             <view class="permission-label">权限要求：</view>
             <view class="permission-value">无限制，所有用户可查看</view>
           </view>
         </view>
       </view>
+
+      
+
+      <view class="help-card">
+        <view class="card-header">
+          <view class="card-icon">📚</view>
+          <view class="card-title">学习园地</view>
+        </view>
+        <view class="card-content">
+          <view class="card-desc">知识分享与学习交流平台，支持发布富文本文章（含图片），查看文章详情和阅读量统计。</view>
+          <view class="card-permission">
+            <view class="permission-label">权限要求：</view>
+            <view class="permission-value">所有用户可查看文章、发布文章。管理员可置顶文章。管理员、作者可删除文章。</view>
+          </view>
+        </view>
+      </view>
+      <view class="help-card">
+        <view class="card-header">
+          <view class="card-icon">📗</view>
+          <view class="card-title">小绿书</view>
+        </view>
+        <view class="card-content">
+          <view class="card-desc">馆内生活分享社区，支持发布图文帖子、按分类浏览、搜索帖子。支持以下功能：</view>
+          <view class="card-features">
+            <view class="feature-item">• 发帖：上传图片并发布帖子，选择分类标签。</view>
+            <view class="feature-item">• 浏览：瀑布流展示帖子，按分类筛选和关键词搜索。</view>
+            <view class="feature-item">• 互动：查看帖子详情和评论。</view>
+          </view>
+          <view class="card-permission">
+            <view class="permission-label">权限要求：</view>
+            <view class="permission-value">所有用户可浏览、发帖和评论。</view>
+          </view>
+        </view>
+      </view>
+      
+
+      
     </view>
 
     <!-- 个人功能 -->
@@ -213,6 +236,32 @@
           <view class="card-permission">
             <view class="permission-label">权限要求：</view>
             <view class="permission-value">无限制，所有用户可访问自己的信息</view>
+          </view>
+        </view>
+      </view>
+      <view class="help-card">
+        <view class="card-header">
+          <view class="card-icon">✍️</view>
+          <view class="card-title">签字管理</view>
+        </view>
+        <view class="card-content">
+          <view class="card-desc">管理个人手写签字，支持手写签名板录入、预览、替换和删除。保存的签字可用于后续文件签署等场景。每位用户最多保存2个签字。</view>
+          <view class="card-permission">
+            <view class="permission-label">权限要求：</view>
+            <view class="permission-value">所有用户可使用</view>
+          </view>
+        </view>
+      </view>
+      <view class="help-card">
+        <view class="card-header">
+          <view class="card-icon">🔔</view>
+          <view class="card-title">消息通知</view>
+        </view>
+        <view class="card-content">
+          <view class="card-desc">接收系统消息提醒，包括审批状态变更通知、菜单更新通知等。支持标记已读和清除功能。</view>
+          <view class="card-permission">
+            <view class="permission-label">权限要求：</view>
+            <view class="permission-value">无限制，所有用户可查看</view>
           </view>
         </view>
       </view>
