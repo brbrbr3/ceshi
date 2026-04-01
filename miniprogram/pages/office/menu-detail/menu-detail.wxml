@@ -13,7 +13,7 @@
     <view class="office-card menu-content-card">
       <view class="menu-content-title">菜单内容</view>
       <view class="menu-content-html">
-        <rich-text nodes="{{menu.content}}"></rich-text>
+        <mp-html content="{{menu.content}}" bindlinktap="onLinkTap" />
       </view>
 
       <view class="menu-detail-actions" wx:if="{{canEdit || canDelete}}">

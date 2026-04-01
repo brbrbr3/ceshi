@@ -1,4 +1,6 @@
 {
   "navigationBarTitleText": "菜单详情",
-  "usingComponents": {}
+  "usingComponents": {
+    "mp-html": "mp-html/index"
+  }
 }

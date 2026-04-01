@@ -30,7 +30,7 @@
 
       <!-- 文章内容（支持选中复制） -->
       <view class="ld-body">
-        <rich-text nodes="{{article.contentHtml}}" wx:if="{{article.contentHtml}}" user-select />
+        <mp-html content="{{article.contentHtml}}" wx:if="{{article.contentHtml}}" bindlinktap="onLinkTap" />
         <text class="ld-body-text" wx:else user-select>{{article.content}}</text>
       </view>
 

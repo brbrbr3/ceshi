@@ -39,7 +39,7 @@
 
       <!-- 公告内容 -->
       <view class="detail-body">
-        <rich-text nodes="{{announcement.contentHtml}}" wx:if="{{announcement.contentHtml}}" />
+        <mp-html content="{{announcement.contentHtml}}" wx:if="{{announcement.contentHtml}}" bindlinktap="onLinkTap" />
         <text class="body-text" wx:else>{{announcement.content}}</text>
       </view>
 

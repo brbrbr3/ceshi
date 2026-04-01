@@ -146,6 +146,17 @@ Page({
   /**
    * 解析内容：判断是 HTML 还是纯文本，兼容老数据
    */
+  onLinkTap(e) {
+    const url = e.detail.href
+    if (!url) return
+    wx.setClipboardData({
+      data: url,
+      success() {
+        wx.showToast({ title: '链接已复制，请在浏览器中打开', icon: 'none' })
+      }
+    })
+  },
+
   _parseContent(content) {
     if (!content) return ''
     // 含有 HTML 标签则视为富文本内容
