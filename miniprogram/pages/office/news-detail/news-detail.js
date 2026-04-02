@@ -26,6 +26,25 @@ function writeDetailCache(articleId, data) {
   } catch (e) {}
 }
 
+/**
+ * 格式化文章 HTML 内容
+ * - 为 <p> 标签添加首行缩进
+ */
+function formatContent(html) {
+  if (!html) return html
+  return html.replace(/<p[^>]*>/gi, (match) => {
+    if (match.includes('style=')) {
+      return match.replace(/style="([^"]*)"/, 'style="$1text-indent:2em;"')
+    }
+    return match.replace('>', ' style="text-indent:2em;">')
+  })
+}
+
+function withFormattedContent(article) {
+  if (!article || !article.content) return article
+  return { ...article, content: formatContent(article.content) }
+}
+
 Page({
   data: {
     articleId: '',
@@ -70,7 +89,7 @@ Page({
     if (!forceRefresh) {
       const cached = readDetailCache(articleId)
       if (cached) {
-        this.setData({ article: cached, loading: false })
+        this.setData({ article: withFormattedContent(cached), loading: false })
         this._silentRefresh()
         return
       }
@@ -85,8 +104,9 @@ Page({
       })
 
       if (res.result.code === 0) {
-        this.setData({ article: res.result.data, loading: false })
-        writeDetailCache(articleId, res.result.data)
+        const article = withFormattedContent(res.result.data)
+        this.setData({ article, loading: false })
+        writeDetailCache(articleId, article)
       } else {
         this.setData({ loading: false })
         wx.showToast({ title: res.result.message || '加载失败', icon: 'none' })
@@ -107,8 +127,9 @@ Page({
         data: { action: 'detail', articleId }
       })
       if (res.result.code === 0) {
-        this.setData({ article: res.result.data })
-        writeDetailCache(articleId, res.result.data)
+        const article = withFormattedContent(res.result.data)
+        this.setData({ article })
+        writeDetailCache(articleId, article)
       }
     } catch (e) {
       console.warn('详情静默刷新失败:', e)

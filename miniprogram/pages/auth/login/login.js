@@ -73,7 +73,9 @@ Page({
     clearDbAuthMode: false  // 标记超级管理员验证是否用于清除数据库
   },
 
+  //页面启动即清除用户信息缓存
   onShow() {
+    app.clearAuthState()
     this.refreshStatus()
     // 页面显示时预加载常量（并行执行，不阻塞UI）
     app.loadConstants().catch(err => {
@@ -81,6 +83,11 @@ Page({
     })
   },
 
+  onPullDownRefresh() {
+    // TODO: 下拉刷新的回调函数
+    app.clearAuthState()
+    this.refreshStatus()
+  },
 
 
   refreshStatus() {
@@ -124,8 +131,8 @@ Page({
 
     this.setData({ loading: true })
 
-    // 直接检查用户注册状态，不再需要 wx.login（强制刷新获取最新状态）
-    app.checkUserRegistration({ forceRefresh: true })
+    // 直接检查用户注册状态，不再需要 wx.login（不再强制刷新）
+    app.checkUserRegistration()
       .then((result) => {
         if (result.registered === true) {
           // 跳转主页

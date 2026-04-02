@@ -5,7 +5,7 @@
     <view class="auth-subtitle">欢迎使用Embaixada da China办公小程序！</view>
     <view class="auth-tip-row">
       <view class="auth-tip-pill">微信身份校验</view>
-      <view class="auth-tip-pill">审批后可用</view>
+      <view class="auth-tip-pill">审批后可登录</view>
     </view>
   </view>
 
@@ -35,7 +35,7 @@
     <view wx:if="{{statusCard.time}}" class="auth-status-time">{{statusCard.time}}</view>
   </view>
 
-  <view wx:if="{{showRegisterLink}}" class="auth-bottom-link" bindtap="goRegister">还没有登记资料？去填写注册申请</view>
+  <view wx:if="{{showRegisterLink}}" class="auth-bottom-link" bindtap="goRegister">尚未注册？去填写注册申请</view>
 
   <!-- 调试模式入口（仅管理员可见） -->
   <view wx:if="{{isAdmin}}" class="auth-debug-entry" bindtap="showDebugPassword">调试模式</view>

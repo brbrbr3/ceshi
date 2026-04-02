@@ -330,12 +330,7 @@ console.log('提交的表单数据:', JSON.stringify(this.data.form))
     app.submitProfileUpdate(form)
       .then(() => {
         // 清除缓存，让返回后的页面重新拉取最新状态
-        try {
-          wx.removeStorageSync('app-user-info-cache')
-          wx.removeStorageSync('app-permission-cache')
-        } catch (e) {
-          // 忽略清除失败
-        }
+        app.clearAuthState()
 
         wx.showModal({
           title: '提交成功',

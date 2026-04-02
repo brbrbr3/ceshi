@@ -37,6 +37,7 @@ function writeStorage(key, value) {
 function removeStorage(key) {
   try {
     wx.removeStorageSync(key)
+    console.log(key + '已清除')
   } catch (error) {
     // 静默失败
   }
@@ -87,11 +88,14 @@ App({
   checkCacheVersion() {
     const storedVersion = readStorage(CACHE_VERSION_KEY)
     if (storedVersion !== config.CACHE_VERSION) {
-      // 版本变化，清除权限缓存、常量缓存
-      removeStorage(PERMISSION_CACHE_KEY)
-      removeStorage(CONSTANTS_CACHE_KEY)
+      //清除常量、权限的内存、缓存
+      this.clearConstantsCache()
+      this.clearPermissionCache()
       writeStorage(CACHE_VERSION_KEY, config.CACHE_VERSION)
-      console.log('缓存版本已更新，已清除旧缓存(PERMISSION_CACHE_KEY, CONSTANTS_CACHE_KEY')
+      console.log('缓存版本已更新为'+readStorage(CACHE_VERSION_KEY)+'，已清除旧内存、缓存（PERMISSION_CACHE_KEY, CONSTANTS_CACHE_KEY）')
+    }
+    else{
+      console.log('缓存版本为'+storedVersion)
     }
   },
 
@@ -161,16 +165,26 @@ App({
     return this.globalData
   },
 
+  //清除登录状态（用户信息缓存（内存+本地存储））
   clearAuthState() {
+    //清除用户信息内存
     const defaults = getDefaultAuthState()
     this.globalData.hasLogin = defaults.hasLogin
     this.globalData.openid = defaults.openid
     this.globalData.userProfile = defaults.userProfile
     this.globalData.registrationRequest = defaults.registrationRequest
     this.globalData.authStatus = defaults.authStatus
-    //清除用户信息缓存、常量缓存
-    removeStorage(USER_INFO_CACHE_KEY)
-    removeStorage(CONSTANTS_CACHE_KEY)
+    // 清除用户信息本地存储
+    this.clearUserInfoCache()
+  },
+
+  //清除全部内存、缓存
+  clearOverallState(){
+    //清除用户信息缓存（内存+本地存储）
+    this.clearAuthState()
+    //清除常量缓存、权限缓存（内存+本地存储）
+    this.clearConstantsCache()
+    this.clearPermissionCache()
   },
 
   getUserOpenId(callback) {
@@ -983,5 +997,12 @@ App({
   clearPermissionCache() {
     this.globalData.permissionCache = null
     removeStorage(PERMISSION_CACHE_KEY)
+  },
+
+  /**
+   * 清除用户信息缓存
+   */
+  clearUserInfoCache() {
+    removeStorage(USER_INFO_CACHE_KEY)
   }
 })
