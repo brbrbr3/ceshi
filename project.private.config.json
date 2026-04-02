@@ -23,11 +23,18 @@
     "miniprogram": {
       "list": [
         {
-          "name": "pages/office/trip-dashboard/trip-dashboard",
-          "pathName": "pages/office/trip-dashboard/trip-dashboard",
+          "name": "pages/office/news/news",
+          "pathName": "pages/office/news/news",
           "query": "",
           "scene": null,
           "launchMode": "default"
+        },
+        {
+          "name": "pages/office/trip-dashboard/trip-dashboard",
+          "pathName": "pages/office/trip-dashboard/trip-dashboard",
+          "query": "",
+          "launchMode": "default",
+          "scene": null
         },
         {
           "name": "pages/office/learning-list/learning-list",

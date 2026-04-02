@@ -1,2 +1,5 @@
 cloudfunctions/generateOrderPdf/node_modules/
+cloudfunctions/newsFetcher/node_modules
 node_modules/
+miniprogram/miniprogram_npm
+miniprogram/node_modules

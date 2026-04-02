@@ -1,0 +1,11 @@
+{
+  "name": "newsFetcher",
+  "version": "1.0.0",
+  "description": "新闻爬取云函数 - 从巴西主流媒体网站抓取最新新闻",
+  "main": "index.js",
+  "dependencies": {
+    "axios": "^1.14.0",
+    "node-html-parser": "^6.1.13",
+    "wx-server-sdk": "~2.6.3"
+  }
+}

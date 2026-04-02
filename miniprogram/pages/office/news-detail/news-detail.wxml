@@ -1,0 +1,71 @@
+<view class="nd-page" wx:if="{{!loading}}">
+  <!-- 顶部固定导航栏 -->
+  <view class="nd-navbar" style="padding-top: {{statusBarHeight}}px;">
+    <view class="nd-navbar-inner">
+      <view class="nd-back" bindtap="handleBack">
+        <view class="nd-back-icon"></view>
+      </view>
+      <view class="nd-navbar-title">新闻详情</view>
+      <view style="width: 72rpx;"></view>
+    </view>
+  </view>
+
+  <!-- 可滚动内容 -->
+  <scroll-view
+    scroll-y
+    class="nd-scroll"
+    style="margin-top: {{navBarHeight}}px;"
+    show-scrollbar="{{false}}"
+    enhanced
+  >
+    <view class="nd-content" wx:if="{{article}}">
+      <!-- 文章标题 -->
+      <view class="nd-title">{{article.title}}</view>
+
+      <!-- 元信息 -->
+      <view class="nd-meta">
+        <view class="nd-meta-source {{'source-' + article.source}}">{{article.sourceName}}</view>
+        <text class="nd-meta-time" wx:if="{{article.publishedAt}}">{{formatTime(article.publishedAt)}}</text>
+      </view>
+
+      <!-- 封面图 -->
+      <view class="nd-cover" wx:if="{{article.imageUrl}}">
+        <image class="nd-cover-img" src="{{article.imageUrl}}" mode="widthFix" lazy-load />
+      </view>
+
+      <!-- 分类标签 -->
+      <view class="nd-category" wx:if="{{article.category}}">
+        <text>{{article.category}}</text>
+      </view>
+
+      <!-- 文章正文 -->
+      <view class="nd-body" wx:if="{{article.content}}">
+        <rich-text nodes="{{article.content}}" />
+      </view>
+
+      <!-- 无正文提示 -->
+      <view class="nd-no-content" wx:else>
+        <text>正文内容加载中...</text>
+      </view>
+
+      <!-- 底部安全区域 -->
+      <view style="height: 140rpx;"></view>
+    </view>
+  </scroll-view>
+
+  <!-- 底部操作栏 -->
+  <view class="nd-footer" wx:if="{{article}}">
+    <view class="nd-footer-inner" style="padding-bottom: env(safe-area-inset-bottom);">
+      <view class="nd-original-btn" bindtap="handleOpenOriginal">
+        <text class="nd-original-icon">🔗</text>
+        <text>阅读原文</text>
+      </view>
+    </view>
+  </view>
+</view>
+
+<!-- 加载中 -->
+<view class="nd-loading" wx:if="{{loading}}">
+  <view class="nd-loading-spinner"></view>
+  <text class="nd-loading-text">加载中...</text>
+</view>

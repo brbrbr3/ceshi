@@ -1,0 +1,9 @@
+{
+  "triggers": [
+    {
+      "name": "newsFetcherTrigger",
+      "type": "timer",
+      "config": "0 15 * * * * *"
+    }
+  ]
+}

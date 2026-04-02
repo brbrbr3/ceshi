@@ -1,0 +1,81 @@
+<!-- 自定义导航栏 -->
+<view class="news-navbar" style="padding-top: {{statusBarHeight}}px;">
+  <view class="news-navbar-inner">
+    <view class="news-navbar-title">巴西新闻</view>
+  </view>
+</view>
+
+<view class="news-page" style="padding-top: {{navBarHeight}}px;">
+  <!-- 来源Tab -->
+  <scroll-view class="news-sources" scroll-x enhanced show-scrollbar="{{false}}">
+    <view class="news-sources-inner">
+      <view
+        class="news-source-item {{activeSource === item.id ? 'is-active' : ''}}"
+        wx:for="{{sources}}"
+        wx:key="id"
+        bindtap="handleSourceTap"
+        data-id="{{item.id}}"
+        data-name="{{item.name}}"
+      >{{item.name}}</view>
+    </view>
+  </scroll-view>
+
+  <!-- 新闻列表 -->
+  <scroll-view
+    class="news-scroll"
+    scroll-y
+    show-scrollbar="{{false}}"
+    refresher-enabled="{{true}}"
+    refresher-triggered="{{loading}}"
+    bindrefresherrefresh="handleRefresh"
+    bindscrolltolower="handleScrollToLower"
+    enhanced
+    bounces="{{true}}"
+  >
+    <view class="news-list">
+      <view
+        class="news-card"
+        wx:for="{{list}}"
+        wx:key="_id"
+        bindtap="handleNewsTap"
+        data-id="{{item._id}}"
+      >
+        <!-- 左侧封面图 -->
+        <view class="news-card-image" wx:if="{{item.imageUrl}}">
+          <image class="news-card-img" src="{{item.imageUrl}}" mode="aspectFill" lazy-load />
+        </view>
+        <!-- 无图占位 -->
+        <view class="news-card-image news-card-placeholder" wx:else>
+          <text class="news-placeholder-icon">📰</text>
+        </view>
+
+        <!-- 右侧内容 -->
+        <view class="news-card-content">
+          <view class="news-card-title">{{item.title}}</view>
+          <view class="news-card-summary" wx:if="{{item.summary}}">{{item.summary}}</view>
+          <view class="news-card-meta">
+            <view class="news-card-source {{'source-' + item.source}}">{{item.sourceName}}</view>
+            <text class="news-card-time">{{item.publishedAt ? formatTime(item.publishedAt) : ''}}</text>
+          </view>
+        </view>
+      </view>
+    </view>
+
+    <!-- 加载更多 -->
+    <view class="news-load-more" wx:if="{{hasMore && !loading}}">
+      <text>上拉加载更多</text>
+    </view>
+    <view class="news-load-more" wx:if="{{!hasMore && list.length > 0}}">
+      <text>— 没有更多了 —</text>
+    </view>
+
+    <!-- 空状态 -->
+    <view class="news-empty" wx:if="{{!loading && list.length === 0}}">
+      <view class="news-empty-icon">📰</view>
+      <view class="news-empty-text">暂无新闻，下拉刷新</view>
+    </view>
+
+    <!-- 底部占位（TabBar空间） -->
+    <view style="height: 120rpx;"></view>
+  </scroll-view>
+</view>

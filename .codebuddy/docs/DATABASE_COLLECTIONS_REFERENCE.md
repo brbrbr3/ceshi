@@ -996,7 +996,64 @@
 
 ---
 
-### 24. user_signatures - 用户签字
+### 24. learning_articles - 学习园地文章
+
+**用途**：存储学习园地模块的文章，支持富文本编辑、图片插入、置顶等功能
+
+**安全规则**：`ADMINWRITE` - 所有用户可读，仅管理员可写
+
+> **重要说明**：文章由云函数 `articleManager` 创建和管理。所有用户可发布文章（通过云函数以管理员权限写入），管理员可置顶文章，管理员和文章发布者可删除文章。
+
+**记录数**：动态
+
+**索引**：
+
+- `_id` - 记录 ID（云开发自动创建）
+- `idx_status_createdAt` - 组合索引：status（升序）+ createdAt（降序）- 优化已发布文章列表查询
+- `idx_isPinned_pinnedAt` - 组合索引：isPinned（降序）+ pinnedAt（降序）- 优化置顶排序
+- `idx_authorId` - 作者 ID 索引 - 查询用户发布的文章
+
+**字段结构**：
+```javascript
+{
+  _id: String,                    // 记录 ID（自动生成）
+  title: String,                   // 文章标题（必填，最长100字符）
+  content: String,                 // 富文本 HTML 内容
+  plainText: String,               // 纯文本摘要（最长200字符，用于列表展示）
+  // 作者信息
+  authorId: String,                // 发布者 openid
+  authorName: String,              // 发布者姓名
+  authorAvatar: String,            // 发布者头像 URL（可选）
+  // 封面图
+  coverImage: String,              // 封面图 URL（可选，取编辑器第一张图）
+  // 状态
+  isPinned: Boolean,               // 是否置顶
+  pinnedAt: Number,                // 置顶时间戳（未置顶时为 0）
+  readCount: Number,               // 阅读量
+  status: String,                  // 状态：'published'（已发布）| 'deleted'（已删除）
+  // 时间戳
+  createdAt: Number,               // 创建时间戳
+  updatedAt: Number                // 更新时间戳
+}
+```
+
+**业务流程说明**：
+1. 用户通过发布页（富文本编辑器）创建文章 → 调用 `articleManager.create`
+2. 列表页展示已发布文章，按置顶 > 创建时间排序 → 调用 `articleManager.list`
+3. 详情页查看文章内容，自动递增阅读量 → 调用 `articleManager.get`
+4. 管理员可置顶/取消置顶文章 → 调用 `articleManager.pin`
+5. 管理员或文章发布者可删除文章（软删除，更新 status 为 deleted）→ 调用 `articleManager.delete`
+
+**排序规则**：
+- 列表排序：`isPinned desc` > `pinnedAt desc` > `createdAt desc`
+- 置顶文章始终排在最前面，多个置顶文章按置顶时间倒序
+
+**相关云函数**：
+- `articleManager`：处理文章的创建、列表、详情、置顶、删除等操作
+
+---
+
+### 25. user_signatures - 用户签字
 
 **用途**：存储用户的手写签字图片（用于审批申请表PDF导出等场景）
 
@@ -1030,6 +1087,267 @@
 3. 云存储路径格式：`signatures/{openid}/{timestamp}_{index}.png`
 4. 签字可通过前端 SDK 进行添加、替换、删除操作
 5. 审批通过后的PDF导出功能可通过云函数读取用户的签字图片
+
+---
+
+### 26. greenbook_posts - 小绿书帖子
+
+**用途**：存储小绿书模块的用户帖子（图片+文字社交内容）
+
+**安全规则**：`READONLY` - 所有用户可读，仅创建者可写
+
+> **重要说明**：帖子由用户通过云函数 `greenbookManager` 创建（云函数以管理员权限写入）。使用 `READONLY` 规则，用户可读取所有帖子，通过 `_openid` 字段过滤"我的帖子"。
+
+**记录数**：动态
+
+**索引**：
+
+- `_id` - 记录 ID（云开发自动创建）
+- `_openid_1` - 创建者 openid 索引 - 优化"我的帖子"查询
+- `idx_category_createdAt` - 组合索引：category（升序）+ createdAt（降序）- 优化分类筛选查询
+- `idx_createdAt` - 创建时间索引（降序）- 优化时间排序查询
+
+**字段结构**：
+```javascript
+{
+  _id: String,                    // 记录 ID（自动生成）
+  _openid: String,                // 创建者 openid（READONLY 规则检查此字段）
+  // 作者信息
+  authorName: String,             // 作者姓名
+  authorAvatar: String,           // 作者头像 URL
+  // 帖子内容
+  title: String,                  // 帖子标题（可选）
+  content: String,                // 帖子正文
+  images: Array[String],          // 图片 fileID 列表（1~9张）
+  imageRatios: Array[Number],     // 图片宽高比列表（与 images 一一对应）
+  tags: Array[String],            // 话题标签列表（最多5个）
+  category: String,               // 分类：'美食'|'生活'|'出行'|'运动'|'学习'|'分享'
+  // 统计
+  likeCount: Number,              // 点赞数
+  commentCount: Number,           // 评论数
+  collectCount: Number,           // 收藏数
+  // 时间戳
+  createdAt: Number,              // 创建时间戳
+  updatedAt: Number               // 更新时间戳
+}
+```
+
+**业务流程说明**：
+1. 用户选择图片 + 编辑内容 → 调用 `greenbookManager.create` 创建帖子
+2. 列表页按分类筛选、按热度或最新排序 → 调用 `greenbookManager.list`
+3. 详情页展示完整内容和评论 → 调用 `greenbookManager.detail`
+4. 用户点赞/收藏 → 调用 `greenbookManager.toggleLike` / `toggleCollect`
+5. 删除帖子（作者或管理员）→ 同时删除相关评论和点赞/收藏记录
+
+**排序规则**：
+- 最新：`createdAt desc`
+- 热门：`likeCount desc, createdAt desc`
+
+**相关云函数**：
+- `greenbookManager`：处理帖子的创建、列表、详情、删除、点赞、收藏等操作
+
+---
+
+### 27. greenbook_comments - 小绿书评论
+
+**用途**：存储小绿书帖子的评论（支持一级评论和二级回复）
+
+**安全规则**：`READONLY` - 所有用户可读，仅创建者可写
+
+> **重要说明**：评论由用户通过云函数 `greenbookManager` 创建。使用 `READONLY` 规则，用户可读取所有评论。
+
+**记录数**：动态
+
+**索引**：
+
+- `_id` - 记录 ID（云开发自动创建）
+- `_openid_1` - 创建者 openid 索引
+- `idx_postId_createdAt` - 组合索引：postId（升序）+ createdAt（降序）- 优化帖子评论列表查询
+- `idx_replyToId` - 回复目标索引 - 优化二级回复查询
+
+**字段结构**：
+```javascript
+{
+  _id: String,                    // 记录 ID（自动生成）
+  _openid: String,                // 评论者 openid（READONLY 规则检查此字段）
+  // 关联
+  postId: String,                 // 关联的帖子 ID
+  replyToId: String | null,       // 回复的目标评论 ID（一级评论为 null）
+  replyToName: String | null,     // 回复的目标评论者姓名
+  // 评论内容
+  authorName: String,             // 评论者姓名
+  authorAvatar: String,           // 评论者头像 URL
+  content: String,                // 评论内容
+  // 统计
+  likeCount: Number,              // 点赞数
+  // 时间戳
+  createdAt: Number               // 创建时间戳
+}
+```
+
+**评论层级说明**：
+- **一级评论**：`replyToId` 为 `null`，直接评论帖子
+- **二级回复**：`replyToId` 指向某条一级评论，回复该评论者
+- 获取评论列表时，后端会自动加载每条一级评论的最近3条回复
+
+**相关云函数**：
+- `greenbookManager`：处理评论的添加、删除、列表查询等操作
+
+---
+
+### 28. greenbook_likes - 小绿书点赞与收藏
+
+**用途**：统一存储小绿书模块的点赞和收藏记录（帖子和评论共用）
+
+**安全规则**：`READONLY` - 所有用户可读，仅创建者可写
+
+> **重要说明**：点赞/收藏由用户通过云函数 `greenbookManager` 创建。使用 `READONLY` 规则。
+
+**记录数**：动态
+
+**索引**：
+
+- `_id` - 记录 ID（云开发自动创建）
+- `_openid_1` - 创建者 openid 索引 - 高频访问索引（点赞查询最频繁）
+- `idx_targetId_targetType` - 组合索引：targetId（升序）+ targetType（升序）- 优化点赞状态查询
+
+**字段结构**：
+```javascript
+{
+  _id: String,                    // 记录 ID（自动生成）
+  _openid: String,                // 操作者 openid（READONLY 规则检查此字段）
+  targetId: String,               // 目标对象 ID（帖子 ID 或评论 ID）
+  targetType: String,             // 目标类型：'post'（点赞帖子）| 'comment'（点赞评论）| 'collect'（收藏帖子）
+  createdAt: Number               // 创建时间戳
+}
+```
+
+**targetType 说明**：
+| targetType | 含义 | 关联集合 | 影响 |
+|------------|------|---------|------|
+| `post` | 点赞帖子 | `greenbook_posts` | 帖子 `likeCount` ±1 |
+| `comment` | 点赞评论 | `greenbook_comments` | 评论 `likeCount` ±1 |
+| `collect` | 收藏帖子 | `greenbook_posts` | 帖子 `collectCount` ±1 |
+
+**业务规则**：
+- 切换机制：点赞/收藏为 toggle 操作，已存在则删除（取消），不存在则新增
+- 删除帖子时级联删除：同时删除该帖子下所有评论的点赞、帖子的点赞和收藏
+
+**相关云函数**：
+- `greenbookManager`：处理点赞切换（`toggleLike`）和收藏切换（`toggleCollect`）
+
+---
+
+### 29. repair_orders - 物业报修记录
+
+**用途**：存储用户提交的物业报修申请
+
+**安全规则**：`ADMINWRITE` - 所有用户可读，仅管理员可写
+
+> **重要说明**：报修记录由云函数 `repairManager` 创建和管理。用户可读取所有报修记录（列表页），物业角色可查看全部记录并标记完成。
+
+**记录数**：动态
+
+**索引**：
+
+- `_id` - 记录 ID（云开发自动创建）
+- `_openid_1` - 创建者 openid 索引 - 优化"我的报修"查询
+- `idx_status` - 状态索引 - 优化状态筛选
+- `idx_createdAt` - 创建时间索引（降序）- 优化时间排序查询
+
+**字段结构**：
+```javascript
+{
+  _id: String,                    // 记录 ID（自动生成）
+  // 报修人信息
+  openid: String,                 // 报修人 openid
+  reporterName: String,           // 报修人姓名
+  reporterDepartment: String,     // 报修人部门
+  // 报修内容
+  livingArea: String,             // 居住区
+  address: String,                // 报修地址
+  content: String,                // 报修内容描述
+  images: Array[String],          // 报修图片 fileID 列表（最多3张）
+  // 状态
+  status: String,                 // 状态：'pending'（待处理）| 'completed'（已完成）
+  // 完成信息（未完成时为 null）
+  completedAt: Number,            // 完成时间戳（null 表示未完成）
+  completedByName: String,        // 完成操作人姓名（物业角色）
+  // 时间戳
+  createdAt: Number,              // 创建时间戳
+  updatedAt: Number               // 更新时间戳
+}
+```
+
+**业务流程说明**：
+1. 用户提交报修 → 调用 `repairManager.submit`，状态为 `pending`
+2. 物业角色查看全部报修记录 → 调用 `repairManager.getAllList`
+3. 用户查看自己的报修记录 → 调用 `repairManager.getMyList`
+4. 物业角色标记维修完成 → 调用 `repairManager.complete`，状态更新为 `completed`
+
+**权限规则**：
+- 所有注册用户可提交报修
+- 用户可查看自己的报修记录
+- 仅物业角色（`user.role === '物业'`）可查看全部记录和标记完成
+
+**相关云函数**：
+- `repairManager`：处理报修的提交、列表查询、标记完成、历史地址查询等操作
+
+---
+
+### 30. news_articles - 新闻文章
+
+**用途**：存储从巴西主流媒体网站爬取的新闻文章（标题、正文、来源等）
+
+**安全规则**：`ADMINWRITE` - 所有用户可读，仅管理员可写
+
+> **重要说明**：新闻由云函数 `newsFetcher` 爬取并写入数据库，所有用户可阅读。使用 `ADMINWRITE` 规则，云函数以管理员权限写入，用户只读。
+
+**记录数**：动态（由定时爬取刷新）
+
+**索引**：
+
+- `_id` - 记录 ID（云开发自动创建）
+- `idx_source_scrapedAt` - 组合索引：source（升序）+ scrapedAt（降序）- 优化按来源筛选和时间排序查询
+- `idx_url` - 原文 URL 唯一索引 - 防止重复抓取同一篇文章
+
+**字段结构**：
+```javascript
+{
+  _id: String,                    // 记录 ID（自动生成）
+  title: String,                  // 新闻标题
+  summary: String,               // 新闻摘要（截取正文前 150 字符）
+  content: String,               // 新闻正文 HTML（经 cheerio 清理后）
+  coverImage: String,            // 封面图 URL（可选）
+  source: String,                // 新闻来源标识：'g1'（G1 Globo）| 'folha'（Folha de S.Paulo）| 'estadao'（Estadão）
+  sourceName: String,            // 来源显示名称：'G1' | 'Folha' | 'Estadão'
+  author: String,                // 作者姓名（可选）
+  originalUrl: String,           // 原文链接
+  publishedAt: String,           // 原文发布日期（ISO 8601 格式，如 '2026-04-02T10:30:00-03:00'）
+  category: String,              // 新闻分类（可选，从原文提取）
+  scrapedAt: Number,             // 爬取时间戳（毫秒）
+  updatedAt: Number              // 更新时间戳
+}
+```
+
+**业务流程说明**：
+1. 定时云函数触发器每 15 分钟调用 `newsFetcher.refresh`
+2. `newsFetcher.refresh` 从各新闻源爬取最新文章列表
+3. 通过 `originalUrl` 唯一索引去重，已存在的文章不重复写入
+4. 前端新闻列表页调用 `newsFetcher.list` 获取新闻（支持按来源筛选、分页）
+5. 前端新闻详情页调用 `newsFetcher.detail` 获取完整内容
+6. 前端本地缓存 5 分钟，减少云函数调用
+
+**新闻源扩展**：
+- 新增新闻源只需在 `cloudfunctions/newsFetcher/index.js` 的 `SOURCES` 注册表中添加配置
+- 配置项包括：`id`、`name`、`listUrl`（文章列表页）、`articleSelector`、`itemSelectors`（标题/摘要/链接/日期等选择器）
+- 添加后无需修改前端代码，新闻列表页会自动显示新的来源 Tab
+
+**相关云函数**：
+- `newsFetcher`：处理新闻的爬取（refresh）、列表查询（list）、详情获取（detail）
+
+**控制台链接**：
+- [news_articles](https://tcb.cloud.tencent.com/dev?envId=cloud1-8gdftlggae64d5d0#/db/doc/collection/news_articles)
 
 ---
 
@@ -1162,6 +1480,10 @@ const notificationsCollection = db.collection('notifications')  // ✅
 | 2026-03-29 | 添加 medical_records 就医申请记录集合 | AI |
 | 2026-03-27 | 添加 haircut_appointments 理发预约记录集合 | AI |
 | 2026-03-30 | 添加 user_signatures 用户签字集合 | AI |
+| 2026-04-01 | 添加 learning_articles 学习园地文章集合 | AI |
+| 2026-04-01 | 添加 greenbook_posts、greenbook_comments、greenbook_likes 小绿书集合 | AI |
+| 2026-04-01 | 添加 repair_orders 物业报修记录集合 | AI |
+| 2026-04-02 | 添加 news_articles 新闻文章集合 | AI |
 
 ---
 
@@ -1177,18 +1499,24 @@ https://tcb.cloud.tencent.com/dev?envId=cloud1-8gdftlggae64d5d0#/db/doc
 - [calendar_schedules](https://tcb.cloud.tencent.com/dev?envId=cloud1-8gdftlggae64d5d0#/db/doc/collection/calendar_schedules)
 - [feedback_posts](https://tcb.cloud.tencent.com/dev?envId=cloud1-8gdftlggae64d5d0#/db/doc/collection/feedback_posts)
 - [feedback_replies](https://tcb.cloud.tencent.com/dev?envId=cloud1-8gdftlggae64d5d0#/db/doc/collection/feedback_replies)
+- [greenbook_comments](https://tcb.cloud.tencent.com/dev?envId=cloud1-8gdftlggae64d5d0#/db/doc/collection/greenbook_comments)
+- [greenbook_likes](https://tcb.cloud.tencent.com/dev?envId=cloud1-8gdftlggae64d5d0#/db/doc/collection/greenbook_likes)
+- [greenbook_posts](https://tcb.cloud.tencent.com/dev?envId=cloud1-8gdftlggae64d5d0#/db/doc/collection/greenbook_posts)
 - [haircut_appointments](https://tcb.cloud.tencent.com/dev?envId=cloud1-8gdftlggae64d5d0#/db/doc/collection/haircut_appointments)
 - [holiday_configs](https://tcb.cloud.tencent.com/dev?envId=cloud1-8gdftlggae64d5d0#/db/doc/collection/holiday_configs)
+- [learning_articles](https://tcb.cloud.tencent.com/dev?envId=cloud1-8gdftlggae64d5d0#/db/doc/collection/learning_articles)
 - [medical_records](https://tcb.cloud.tencent.com/dev?envId=cloud1-8gdftlggae64d5d0#/db/doc/collection/medical_records)
 - [meeting_room_reservations](https://tcb.cloud.tencent.com/dev?envId=cloud1-8gdftlggae64d5d0#/db/doc/collection/meeting_room_reservations)
 - [menu_comments](https://tcb.cloud.tencent.com/dev?envId=cloud1-8gdftlggae64d5d0#/db/doc/collection/menu_comments)
 - [menus](https://tcb.cloud.tencent.com/dev?envId=cloud1-8gdftlggae64d5d0#/db/doc/collection/menus)
+- [news_articles](https://tcb.cloud.tencent.com/dev?envId=cloud1-8gdftlggae64d5d0#/db/doc/collection/news_articles)
 - [notifications](https://tcb.cloud.tencent.com/dev?envId=cloud1-8gdftlggae64d5d0#/db/doc/collection/notifications)
 - [office_registration_requests](https://tcb.cloud.tencent.com/dev?envId=cloud1-8gdftlggae64d5d0#/db/doc/collection/office_registration_requests)
 - [office_users](https://tcb.cloud.tencent.com/dev?envId=cloud1-8gdftlggae64d5d0#/db/doc/collection/office_users)
 - [passport_info](https://tcb.cloud.tencent.com/dev?envId=cloud1-8gdftlggae64d5d0#/db/doc/collection/passport_info)
 - [passport_records](https://tcb.cloud.tencent.com/dev?envId=cloud1-8gdftlggae64d5d0#/db/doc/collection/passport_records)
 - [permissions](https://tcb.cloud.tencent.com/dev?envId=cloud1-8gdftlggae64d5d0#/db/doc/collection/permissions)
+- [repair_orders](https://tcb.cloud.tencent.com/dev?envId=cloud1-8gdftlggae64d5d0#/db/doc/collection/repair_orders)
 - [schedule_subscriptions](https://tcb.cloud.tencent.com/dev?envId=cloud1-8gdftlggae64d5d0#/db/doc/collection/schedule_subscriptions)
 - [sys_config](https://tcb.cloud.tencent.com/dev?envId=cloud1-8gdftlggae64d5d0#/db/doc/collection/sys_config)
 - [trip_reports](https://tcb.cloud.tencent.com/dev?envId=cloud1-8gdftlggae64d5d0#/db/doc/collection/trip_reports)

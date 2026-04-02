@@ -26,14 +26,14 @@
     "pages/office/feedback/feedback",
     "pages/office/help/help",
     "pages/office/signature-manage/signature-manage",
+    "pages/office/news/news",
+    "pages/office/news-detail/news-detail",
     "pages/office/greenbook/greenbook",
     "pages/office/greenbook-detail/greenbook-detail",
     "pages/office/greenbook-create/greenbook-create",
     "pages/office/learning-list/learning-list",
     "pages/office/learning-detail/learning-detail",
-    "pages/office/learning-create/learning-create",
-    "pages/test/datetime-picker-test/datetime-picker-test",
-    "pages/test/signature-test/signature-test"
+    "pages/office/learning-create/learning-create"
   ],
   "window": {
     "navigationBarTextStyle": "black",
@@ -58,6 +58,12 @@
         "text": "审批中心",
         "iconPath": "image/ap1.png",
         "selectedIconPath": "image/ap1-s.png"
+      },
+      {
+        "pagePath": "pages/office/news/news",
+        "text": "新闻",
+        "iconPath": "image/news1.png",
+        "selectedIconPath": "image/news1-s.png"
       },
       {
         "pagePath": "pages/office/greenbook/greenbook",
