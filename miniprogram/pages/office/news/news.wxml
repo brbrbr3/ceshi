@@ -21,17 +21,18 @@
   </scroll-view>
 
   <!-- 新闻列表 -->
-  <scroll-view
-    class="news-scroll"
-    scroll-y
-    show-scrollbar="{{false}}"
-    refresher-enabled="{{true}}"
-    refresher-triggered="{{loading}}"
-    bindrefresherrefresh="handleRefresh"
-    bindscrolltolower="handleScrollToLower"
-    enhanced
-    bounces="{{true}}"
-  >
+  <view class="news-scroll-wrap" catchtouchmove>
+    <scroll-view
+      class="news-scroll"
+      scroll-y
+      enhanced
+      show-scrollbar="{{false}}"
+      refresher-enabled="{{true}}"
+      refresher-triggered="{{refreshing}}"
+      bindrefresherrefresh="onRefresh"
+      bindscrolltolower="handleScrollToLower"
+      lower-threshold="100"
+    >
     <view class="news-list">
       <view
         class="news-card"
@@ -62,11 +63,11 @@
     </view>
 
     <!-- 加载更多 -->
-    <view class="news-load-more" wx:if="{{hasMore && !loading}}">
-      <text>上拉加载更多</text>
+    <view class="news-load-more" wx:if="{{hasMore && loading}}">
+      <text>加载中...</text>
     </view>
     <view class="news-load-more" wx:if="{{!hasMore && list.length > 0}}">
-      <text>— 没有更多了 —</text>
+      <text>— 已展示全部新闻 —</text>
     </view>
 
     <!-- 空状态 -->
@@ -77,5 +78,6 @@
 
     <!-- 底部占位（TabBar空间） -->
     <view style="height: 120rpx;"></view>
-  </scroll-view>
+    </scroll-view>
+  </view>
 </view>

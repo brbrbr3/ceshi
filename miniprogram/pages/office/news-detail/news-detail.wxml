@@ -49,7 +49,7 @@
       </view>
 
       <!-- 底部安全区域 -->
-      <view style="height: 140rpx;"></view>
+      <view style="height: 180rpx;"></view>
     </view>
   </scroll-view>
 

@@ -67,6 +67,7 @@ Page({
     page: 1,
     hasMore: true,
     loading: false,
+    refreshing: false,
 
     statusBarHeight: 0,
     navBarHeight: 44,
@@ -82,14 +83,6 @@ Page({
       ready: true
     })
     this.loadNews()
-  },
-
-  onPullDownRefresh() {
-    this.refreshNews()
-  },
-
-  onReachBottom() {
-    this.loadMore()
   },
 
   /**
@@ -128,7 +121,7 @@ Page({
       })
 
       if (res.result.code === 0) {
-        const { list, hasMore } = res.result.data
+        const { list, hasMore, total } = res.result.data
         this.setData({
           list: append ? [...this.data.list, ...list] : list,
           page: append ? page + 1 : 2,
@@ -187,9 +180,9 @@ Page({
   },
 
   loadMore() {
-    if (this.data.hasMore && !this.data.loading) {
-      this.loadNews(true)
-    }
+    if (this.data.loading) return
+    if (!this.data.hasMore) return
+    this.loadNews(true)
   },
 
   handleSourceTap(e) {
@@ -205,9 +198,14 @@ Page({
     this.loadNews(false)
   },
 
-  handleRefresh() {
+  onRefresh() {
+    if (this.data.refreshing) return
+    this.setData({ refreshing: true })
     clearListCache(this.data.activeSource)
-    this.refreshNews()
+    this.setData({ page: 1, hasMore: true })
+    this.loadNews(false).finally(() => {
+      this.setData({ refreshing: false })
+    })
   },
 
   handleScrollToLower() {
