@@ -3,7 +3,7 @@
   <view class="office-gradient-header passport-header">
     <view class="passport-header-content">
       <view class="passport-title">护照管理</view>
-      <view class="passport-subtitle">护照借用·个人证件管理</view>
+      <view class="passport-subtitle">护照借用 · 个人证件管理</view>
     </view>
     <!-- <view class="passport-header-action" bindtap="showApplicationForm" wx:if="{{activeTab === 'borrow'}}">
       <text class="passport-action-text">申请借出护照</text>

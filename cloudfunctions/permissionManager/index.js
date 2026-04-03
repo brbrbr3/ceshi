@@ -125,21 +125,33 @@ async function checkPermission(openid, featureKey) {
 
     // 检查角色权限
     if (!permission.enabledRoles.includes(user.role)) {
-      return fail(`您当前的角色（${user.role}）无权访问${permission.featureName}`, 403, {
-        allowed: false,
-        user: {
-          openid: user.openid,
-          name: user.name,
-          role: user.role,
-          isAdmin: !!user.isAdmin
-        },
-        feature: {
-          featureKey: permission.featureKey,
-          featureName: permission.featureName,
-          enabledRoles: permission.enabledRoles,
-          message: `只有${permission.enabledRoles.join('、')}才能访问${permission.featureName}`
-        }
-      })
+      // 检查特殊条件（角色+岗位联合判断）
+      const specialConditions = permission.specialConditions
+      let specialPassed = false
+
+      if (specialConditions && Array.isArray(specialConditions)) {
+        specialPassed = specialConditions.some(cond =>
+          user.role === cond.role && user.position === cond.position
+        )
+      }
+
+      if (!specialPassed) {
+        return fail(`您当前的角色（${user.role}）无权访问${permission.featureName}`, 403, {
+          allowed: false,
+          user: {
+            openid: user.openid,
+            name: user.name,
+            role: user.role,
+            isAdmin: !!user.isAdmin
+          },
+          feature: {
+            featureKey: permission.featureKey,
+            featureName: permission.featureName,
+            enabledRoles: permission.enabledRoles,
+            message: `只有${permission.enabledRoles.join('、')}才能访问${permission.featureName}`
+          }
+        })
+      }
     }
 
     // 有权限
@@ -233,14 +245,22 @@ async function batchCheckPermissions(openid, featureKeys) {
 
       // 检查角色权限
       if (!permission.enabledRoles.includes(user.role)) {
-        results[featureKey] = {
-          allowed: false,
-          featureKey: permission.featureKey,
-          featureName: permission.featureName,
-          enabledRoles: permission.enabledRoles,
-          message: `只有${permission.enabledRoles.join('、')}才能访问${permission.featureName}`
+        // 检查特殊条件（角色+岗位联合判断）
+        const _sc = permission.specialConditions
+        let _sp = false
+        if (_sc && Array.isArray(_sc)) {
+          _sp = _sc.some(c => user.role === c.role && user.position === c.position)
         }
-        continue
+        if (!_sp) {
+          results[featureKey] = {
+            allowed: false,
+            featureKey,
+            featureName: permission.featureName,
+            enabledRoles: permission.enabledRoles,
+            message: `只有${permission.enabledRoles.join('、')}才能访问${permission.featureName}`
+          }
+          continue
+        }
       }
 
       // 有权限

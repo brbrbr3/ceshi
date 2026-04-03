@@ -467,6 +467,14 @@ const PERMISSION_CONFIGS = [
     description: '提交护照借用申请',
     enabledRoles: ['馆领导', '部门负责人', '馆员', '工勤', '物业'],
     requireAdmin: false
+  },
+  {
+    featureKey: 'meal_management',
+    featureName: '餐食管理',
+    description: '工作餐订阅与管理',
+    enabledRoles: ['馆领导', '部门负责人', '馆员', '工勤'],
+    specialConditions: [{ role: '配偶', position: '出纳' }],
+    requireAdmin: false
   }
 ]
 

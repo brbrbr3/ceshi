@@ -138,7 +138,7 @@ Page({
       wx.navigateTo({
         url: '/pages/office/profile/edit-profile/edit-profile'
       })
-    } else if (label === '消息通知') {
+    } else if (label === '消息中心') {
       wx.navigateTo({
         url: '/pages/office/notifications/notifications'
       })

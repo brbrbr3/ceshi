@@ -1,0 +1,336 @@
+<view class="office-page meal-page">
+  <!-- 渐变头部 -->
+  <view class="office-gradient-header meal-header">
+    <view class="meal-header-top">
+      <view>
+        <view class="meal-title">餐食管理</view>
+        <view class="meal-subtitle">{{activeTab === 'myMeal' ? '管理工作餐入伙、加餐、临时停餐与退伙' : '查看工作餐调整记录'}}</view>
+      </view>
+    </view>
+
+    <!-- Tab 切换栏 -->
+    <view class="meal-tabs-shell">
+      <view
+        wx:for="{{tabs}}"
+        wx:key="key"
+        class="meal-tab {{activeTab == item.key ? 'is-active' : ''}}"
+        data-tab="{{item.key}}"
+        bindtap="switchTab"
+      >
+        <text>{{item.label}}</text>
+      </view>
+    </view>
+  </view>
+
+  <view class="office-content">
+
+    <!-- ==================== 无权限提示 ==================== -->
+    <view wx:if="{{noPermission}}" class="office-card meal-no-permission">
+      <view class="meal-no-icon">🔒</view>
+      <view class="meal-no-text">暂无访问权限</view>
+      <view class="meal-no-desc">餐食管理功能仅对特定角色/岗位开放</view>
+    </view>
+
+    <!-- ==================== 我的工作餐 Tab ==================== -->
+    <block wx:if="{{activeTab === 'myMeal' && !noPermission}}">
+
+      <!-- 首次设置弹窗（覆盖层） -->
+      <view wx:if="{{showFirstSetup}}" class="modal-mask" catchtap="closeFirstSetup"></view>
+
+      <!-- 状态气泡 + 调整按钮区域 -->
+      <view wx:if="{{!showFirstSetup}}" class="meal-status-area">
+        <view class="meal-status-card {{mealStatus.isEnrolled ? 'is-enrolled' : 'is-not-enrolled'}}">
+          <view class="status-bubble-inner">
+            <view class="status-icon">{{mealStatus.isEnrolled ? '✓' : '○'}}</view>
+            <view class="status-text">{{mealStatus.isEnrolled ? '我已入伙' : '我未入伙'}}</view>
+            <view wx:if="{{mealStatus.isEnrolled}}" class="status-count">· {{mealStatus.mealCount}} 份</view>
+          </view>
+          <view
+            class="adjust-btn"
+            bindtap="openAdjustModal"
+          >
+            工作餐调整
+          </view>
+        </view>
+
+        <!-- 提示信息 -->
+        <view class="meal-tip-card office-card">
+          <view class="meal-tip-text">点击「工作餐调整」可进行临时停餐、退伙或重新入伙操作</view>
+        </view>
+      </view>
+
+      <!-- 调整历史记录 -->
+      <view wx:if="{{!showFirstSetup && myAdjustmentList.length > 0}}" class="my-history-section">
+        <view class="section-header">
+          <text class="section-title">调整记录</text>
+          <text class="section-count">共 {{myAdjustmentList.length}} 条</text>
+        </view>
+        <view class="my-history-list">
+          <view
+            wx:for="{{myAdjustmentList}}"
+            wx:key="_id"
+            class="my-adjust-card"
+          >
+            <view class="adjust-type-tag" style="background: {{item.bg}}; color: {{item.textColor}};">{{item.label}}</view>
+            <view class="my-adjust-body">
+              <view class="my-adjust-row" wx:if="{{item.startDate}}">
+                <text class="detail-label">日期</text>
+                <text class="detail-value">
+                  {{item.startDate}}{{item.endDate ? ' ~ ' + item.endDate : ''}}
+                </text>
+              </view>
+              <view class="my-adjust-bottom">
+                <view class="adjust-count">份数：{{item.count}}</view>
+                <view class="adjust-time">{{item.formattedTime}}</view>
+              </view>
+            </view>
+          </view>
+        </view>
+      </view>
+
+      <!-- 无调整记录 -->
+      <view wx:elif="{{!showFirstSetup && myAdjustmentList.length === 0 && !loading}}" class="office-card meal-empty-small">
+        <text>暂无调整记录</text>
+      </view>
+    </block>
+
+    <!-- ==================== 工作餐管理 Tab ==================== -->
+    <block wx:if="{{activeTab === 'management' && !noPermission}}">
+
+      <view wx:if="{{adjustmentList.length > 0}}" class="meal-list-container">
+        <view
+          wx:for="{{adjustmentList}}"
+          wx:key="_id"
+          class="meal-adjust-card"
+        >
+          <view class="adjust-card-left">
+            <view class="adjust-type-tag" style="background: {{item.bg}}; color: {{item.textColor}};">{{item.label}}</view>
+          </view>
+          <view class="adjust-card-body">
+            <view class="adjust-name">{{item.name || '-'}}</view>
+            <view class="adjust-detail-row">
+              <view class="adjust-detail-item">
+                <text class="detail-label">开始日期</text>
+                <text class="detail-value">{{item.startDate || '-'}}</text>
+              </view>
+              <view wx:if="{{item.endDate}}" class="adjust-detail-item">
+                <text class="detail-label">结束日期</text>
+                <text class="detail-value">{{item.endDate}}</text>
+              </view>
+            </view>
+            <view class="adjust-bottom">
+              <view class="adjust-count">份数：{{item.count}}</view>
+              <view class="adjust-time">{{item.formattedTime}}</view>
+            </view>
+          </view>
+        </view>
+      </view>
+
+      <!-- 空状态 -->
+      <view wx:else class="office-card meal-empty">
+        <view class="meal-empty-icon">🍽️</view>
+        <view>暂无调整记录</view>
+      </view>
+
+      <!-- 分页加载状态 -->
+      <view class="pagination-loading" wx:if="{{loading}}">
+        <view class="loading-spinner"></view>
+        <text class="loading-text">加载中...</text>
+      </view>
+
+      <!-- 没有更多数据 -->
+      <view class="pagination-no-more" wx:elif="{{!hasMore && adjustmentList.length > 0}}">
+        <text class="no-more-text">没有更多数据了</text>
+      </view>
+    </block>
+
+  </view>
+
+  <!-- ==================== 首次设置弹窗 ==================== -->
+  <view wx:if="{{showFirstSetup}}" class="modal-mask" catchtap="closeFirstSetup">
+    <view class="modal-sheet" catchtap stopPropagation>
+      <view class="modal-head">
+        <text class="modal-title">首次设置当前工作餐情况</text>
+        <view class="modal-close" bindtap="closeFirstSetup">✕</view>
+      </view>
+
+      <view class="modal-body">
+        <!-- 入伙开关 -->
+        <view class="form-row">
+          <text class="form-label">当前是否已入伙</text>
+          <switch
+            checked="{{setupData.isEnrolled}}"
+            color="#2563EB"
+            bindchange="handleSwitchChange"
+          />
+        </view>
+
+        <!-- 订餐份数（已入伙时显示） -->
+        <view wx:if="{{setupData.isEnrolled}}" class="form-row form-row-count">
+          <text class="form-label">订餐份数</text>
+          <view class="count-control">
+            <view class="count-btn count-minus" data-field="setup" data-action="minus" bindtap="handleCountChange">−</view>
+            <text class="count-num">{{setupData.mealCount}}</text>
+            <view class="count-btn count-plus" data-field="setup" data-action="add" bindtap="handleCountChange">+</view>
+          </view>
+        </view>
+      </view>
+
+      <view class="modal-actions">
+        <button class="btn-cancel" bindtap="closeFirstSetup">取消</button>
+        <button class="btn-confirm" bindtap="handleSubmitSetup">确定保存</button>
+      </view>
+    </view>
+  </view>
+
+  <!-- ==================== 调整操作弹窗 ==================== -->
+  <view wx:if="{{showAdjustModal}}" class="modal-mask" catchtap="closeAdjustModal">
+    <view class="modal-sheet modal-sheet-large" catchtap stopPropagation>
+      <view class="modal-head">
+        <text class="modal-title">工作餐调整</text>
+        <view class="modal-close" bindtap="closeAdjustModal">✕</view>
+      </view>
+
+      <view class="modal-body">
+        <!-- 单选组 -->
+        <radio-group class="adjust-radio-group" bindchange="handleAdjustTypeChange">
+          <!-- 已入伙用户显示的选项 -->
+          <label wx:if="{{mealStatus && mealStatus.isEnrolled}}" class="radio-item">
+            <radio value="extra" checked="{{adjustData.type === 'extra'}}" color="#2563EB" />
+            <text>加餐</text>
+            <text class="radio-desc">临时增加工作餐份数</text>
+          </label>
+          <label wx:if="{{mealStatus && mealStatus.isEnrolled}}" class="radio-item">
+            <radio value="suspend" checked="{{adjustData.type === 'suspend'}}" color="#2563EB" />
+            <text>临时停餐</text>
+            <text class="radio-desc">暂停一段时间的工作餐</text>
+          </label>
+          <label wx:if="{{mealStatus && mealStatus.isEnrolled}}" class="radio-item">
+            <radio value="withdraw" checked="{{adjustData.type === 'withdraw'}}" color="#2563EB" />
+            <text>退伙</text>
+            <text class="radio-desc">退出工作餐计划</text>
+          </label>
+
+          <!-- 未入伙用户显示的选项 -->
+          <label wx:if="{{mealStatus && !mealStatus.isEnrolled}}" class="radio-item">
+            <radio value="enroll" checked="{{adjustData.type === 'enroll'}}" color="#2563EB" />
+            <text>我要入伙</text>
+            <text class="radio-desc">加入工作餐计划</text>
+          </label>
+        </radio-group>
+
+        <!-- 条件表单区 -->
+
+        <!-- 加餐表单 -->
+        <view wx:if="{{adjustData.type === 'extra'}}" class="form-section">
+          <view class="form-row">
+            <view class="form-row-left">
+            <text class="form-label">开始日期\n</text>
+            <text class="form-sublabel">（最早可调整下周起的工作餐）</text></view>
+            <datetime-picker
+              value="{{adjustData.startDate}}"
+              startDate="{{minStartDate}}"
+              fields="{{['year','month','day']}}"
+              placeholder="选择开始日期"
+              type="card"
+              bind:change="onStartDateChange"
+            />
+          </view>
+          <view class="form-row form-row-count">
+            <text class="form-label">加餐份数</text>
+            <view class="count-control">
+              <view class="count-btn count-minus" data-field="adjust" data-action="minus" bindtap="handleCountChange">−</view>
+              <text class="count-num">{{adjustData.count}}</text>
+              <view class="count-btn count-plus" data-field="adjust" data-action="add" bindtap="handleCountChange">+</view>
+            </view>
+          </view>
+        </view>
+
+        <!-- 临时停餐表单 -->
+        <view wx:if="{{adjustData.type === 'suspend'}}" class="form-section">
+          <view class="form-row">
+          <view class="form-row-left">
+            <text class="form-label">开始日期\n</text>
+            <text class="form-sublabel">（最早可调整下周起的工作餐）</text></view>
+            <datetime-picker
+              value="{{adjustData.startDate}}"
+              startDate="{{minStartDate}}"
+              fields="{{['year','month','day']}}"
+              placeholder="选择开始日期"
+              type="card"
+              bind:change="onStartDateChange"
+            />
+          </view>
+          <view class="form-row">
+            <text class="form-label">结束日期</text>
+            <datetime-picker
+              value="{{adjustData.endDate}}"
+              startDate="{{minStartDate}}"
+              fields="{{['year','month','day']}}"
+              placeholder="选择结束日期"
+              type="card"
+              bind:change="onEndDateChange"
+            />
+          </view>
+          <view class="form-row form-row-count">
+            <text class="form-label">停餐份数</text>
+            <view class="count-control">
+              <view class="count-btn count-minus" data-field="adjust" data-action="minus" bindtap="handleCountChange">−</view>
+              <text class="count-num">{{adjustData.count}}</text>
+              <view class="count-btn count-plus" data-field="adjust" data-action="add" bindtap="handleCountChange">+</view>
+            </view>
+          </view>
+        </view>
+
+        <!-- 退伙表单 -->
+        <view wx:if="{{adjustData.type === 'withdraw'}}" class="form-section">
+          <view class="form-row">
+            <view class="form-row-left">
+            <text class="form-label">退伙日期\n</text>
+            <text class="form-sublabel">（最早可调整下周起的工作餐）</text></view>
+            <datetime-picker
+              value="{{adjustData.startDate}}"
+              startDate="{{minStartDate}}"
+              fields="{{['year','month','day']}}"
+              placeholder="选择退伙日期"
+              type="card"
+              bind:change="onStartDateChange"
+            />
+          </view>
+          <view class="form-row form-row-count">
+            <text class="form-label">退伙份数</text>
+            <view class="count-control">
+              <view class="count-btn count-minus" data-field="adjust" data-action="minus" bindtap="handleCountChange">−</view>
+              <text class="count-num">{{adjustData.count}}</text>
+              <view class="count-btn count-plus" data-field="adjust" data-action="add" bindtap="handleCountChange">+</view>
+            </view>
+          </view>
+        </view>
+
+        <!-- 入伙表单 -->
+        <view wx:if="{{adjustData.type === 'enroll'}}" class="form-section">
+          <view class="form-row form-row-count">
+            <text class="form-label">订餐份数</text>
+            <view class="count-control">
+              <view class="count-btn count-minus" data-field="adjust" data-action="minus" bindtap="handleCountChange">−</view>
+              <text class="count-num">{{adjustData.count}}</text>
+              <view class="count-btn count-plus" data-field="adjust" data-action="add" bindtap="handleCountChange">+</view>
+            </view>
+          </view>
+        </view>
+      </view>
+
+      <view class="modal-actions">
+        <button class="btn-cancel" bindtap="closeAdjustModal">取消</button>
+        <button class="btn-submit adjust-submit-btn" disabled="{{submitLoading}}" bindtap="handleSubmitAdjust">
+          提交{{adjustData.type === 'suspend' ? '停餐' : adjustData.type === 'withdraw' ? '退伙' : adjustData.type === 'extra' ? '加餐' : '入伙'}}
+        </button>
+      </view>
+    </view>
+  </view>
+
+  <!-- 加载中遮罩 -->
+  <view wx:if="{{loading}}" class="page-loading-mask">
+    <view class="page-loading-spinner"></view>
+  </view>
+</view>

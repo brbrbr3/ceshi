@@ -22,12 +22,13 @@ Page({
     ],
     quickActions: [
       { icon: '🍽️', label: '每周菜单', color: '#16A34A', bg: '#DCFCE7', implemented: true, featureKey: null },
-      { icon: '🏥', label: '就医申请', color: '#EF4444', bg: '#FEE2E2', implemented: true, featureKey: 'medical_application' },
+      { icon: '🍱', label: '餐食管理', color: '#16A34A', bg: '#DCFCE7', implemented: true, featureKey: 'meal_management' },
       { icon: '🚗', label: '外出报备', color: '#2563EB', bg: '#EFF6FF', implemented: true, featureKey: 'trip_report' },
       { icon: '📊', label: '出行管理', color: '#7C3AED', bg: '#F3E8FF', implemented: true, featureKey: 'trip_dashboard' },
+      { icon: '🏥', label: '就医申请', color: '#EF4444', bg: '#FEE2E2', implemented: true, featureKey: 'medical_application' },
       { icon: '🏢', label: '会议室预约', color: '#7C5CFC', bg: '#E8E4FF', implemented: true, featureKey: 'meeting_room' },
-      { icon: '🛂', label: '护照管理', color: '#D97706', bg: '#FEF3C7', implemented: true, featureKey: 'passport_application' },
       { icon: '💇', label: '理发预约', color: '#EA580C', bg: '#FFF7ED', implemented: true, featureKey: 'haircut_appointment' },
+      { icon: '🛂', label: '护照管理', color: '#D97706', bg: '#FEF3C7', implemented: true, featureKey: 'passport_application' },
       { icon: '🔧', label: '物业报修', color: '#8B6F47', bg: '#FDF3E1', implemented: true, featureKey: null }
     ],
     announcements: [],
@@ -74,7 +75,7 @@ Page({
     })
 
     // 批量检查权限
-    const featureKeys = ['medical_application', 'trip_report', 'trip_dashboard', 'meeting_room', 'passport_application']
+    const featureKeys = ['medical_application', 'trip_report', 'trip_dashboard', 'meeting_room', 'passport_application', 'meal_management']
     app.loadPermissionCache(featureKeys)
       .then((permissions) => {
         this.setData({ permissionCache: permissions })
@@ -312,6 +313,9 @@ Page({
     } else if (label === '护照管理') {
       // 统一权限检查
       this.checkAndNavigate('passport_application', '/pages/office/passport/passport', '护照管理')
+    } else if (label === '餐食管理') {
+      // 统一权限检查
+      this.checkAndNavigate('meal_management', '/pages/office/meal-management/meal-management', '餐食管理')
     } else if (label === '理发预约') {
       // 全体用户可用，无需权限检查
       wx.navigateTo({

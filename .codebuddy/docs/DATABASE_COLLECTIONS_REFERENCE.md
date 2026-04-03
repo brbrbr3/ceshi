@@ -1484,6 +1484,104 @@ const notificationsCollection = db.collection('notifications')  // ✅
 | 2026-04-01 | 添加 greenbook_posts、greenbook_comments、greenbook_likes 小绿书集合 | AI |
 | 2026-04-01 | 添加 repair_orders 物业报修记录集合 | AI |
 | 2026-04-02 | 添加 news_articles 新闻文章集合 | AI |
+| 2026-04-03 | 添加 meal_subscriptions 用户订餐状态、meal_adjustments 调整记录集合（餐食管理功能） | AI |
+
+---
+
+### 31. meal_subscriptions - 用户工作餐订阅状态
+
+**用途**：存储用户的工作餐入伙/退伙/停餐状态，每用户一条记录
+
+**安全规则**：`ADMINWRITE` - 所有用户可读，仅云函数可写
+
+> **重要说明**：订阅记录由 `mealManager` 云函数创建和管理。用户通过小程序页面设置入伙状态和调整操作。
+
+**记录数**：动态
+
+**索引**：
+
+- `_id` - 记录 ID（云开发自动创建）
+- `idx_openid` - 唯一索引：openid（每用户仅一条记录）- 用于快速查询当前用户状态
+- `idx_status` - 状态索引：status - 筛选特定状态的订阅
+
+**字段结构**：
+```javascript
+{
+  _id: String,                    // 记录 ID（自动生成）
+  openid: String,                 // 用户 openid（唯一标识）
+  name: String,                   // 用户姓名
+  role: String,                   // 角色（馆领导/部门负责人/馆员/工勤等）
+  position: String,               // 岗位（会计主管/会计/出纳等）
+  isEnrolled: Boolean,            // 是否已入伙
+  mealCount: Number,              // 订餐份数（默认1，最大值由业务决定）
+  status: String,                 // 当前状态: 'active'(正常) | 'suspended'(停餐中) | 'withdrawn'(已退伙) | 'none'（未入伙）
+  createdAt: Number,              // 创建时间戳
+  updatedAt: Number               // 更新时间戳
+}
+```
+
+**状态流转**：
+```
+none ──(入伙)──→ active ──(停餐)──→ suspended ──(恢复)──→ active
+                    │
+                    └─(退伙)──→ withdrawn
+                    (withdrawn 可重新 enroll → active)
+```
+
+**相关云函数**：
+- `mealManager.getMyMealStatus`：获取当前用户订阅状态
+- `mealManager.saveMealStatus`：首次保存或更新入伙信息
+- `mealManager.submitMealAdjustment`：提交调整申请（同时更新本表 status 字段）
+
+---
+
+### 32. meal_adjustments - 工作餐调整记录
+
+**用途**：存储每次工作餐调整操作的详细记录（入伙、退伙、停餐），管理端用于查看历史
+
+**安全规则**：`ADMINWRITE` - 所有用户可读，仅云函数可写
+
+> **重要说明**：调整记录由 `mealManager` 云函数在用户提交调整时自动创建。每条操作生成一条记录。
+
+**记录数**：动态
+
+**索引**：
+
+- `_id` - 记录 ID（云开发自动创建）
+- `idx_createdAt` - 创建时间降序索引 - 管理端列表排序
+- `idx_monthKey_createdAt` - 组合索引：monthKey（升序）+ createdAt（降序）- 按月分组查询
+- `idx_openid_createdAt` - 组合索引：openid（升序）+ createdAt（降序）- 查询某用户的调整历史
+
+**字段结构**：
+```javascript
+{
+  _id: String,                    // 记录 ID（自动生成）
+  openid: String,                 // 操作人 openid
+  name: String,                   // 操作人姓名
+  adjustmentType: String,         // 类型: 'enroll'(入伙) | 'withdraw'(退伙) | 'suspend'(临时停餐)
+  startDate: String,              // 开始日期 YYYY-MM-DD（纯字符串，避免时区问题）
+  endDate: String|null,           // 结束日期 YYYY-MM-DD（仅停餐时有值）
+  count: Number,                  // 涉及份数
+  monthKey: String,                // 月份键 YYYY-MM（用于按月聚合显示）
+  remark: String|null,            // 备注（预留字段）
+  createdAt: Number               // 提交时间戳
+}
+```
+
+**adjustmentType 说明**：
+| adjustmentType | 含义 | startDate | endDate | count |
+|----------------|------|-----------|---------|-------|
+| `enroll` | 入伙 | 空 | null | 订餐份数 |
+| `withdraw` | 退伙日期 | 退伙开始日期 | null | 退伙份数 |
+| `suspend` | 临时停餐 | 停餐开始日期 | 停餐结束日期 | 停餐份数 |
+
+**相关云函数**：
+- `mealManager.submitMealAdjustment`：提交时自动创建调整记录
+- `mealManager.getAdjustmentList`：管理端获取调整记录列表（分页、倒序）
+
+**控制台链接**：
+- [meal_subscriptions](https://tcb.cloud.tencent.com/dev?envId=cloud1-8gdftlggae64d5d0#/db/doc/collection/meal_subscriptions)
+- [meal_adjustments](https://tcb.cloud.tencent.com/dev?envId=cloud1-8gdftlggae64d5d0#/db/doc/collection/meal_adjustments)
 
 ---
 
@@ -1525,3 +1623,5 @@ https://tcb.cloud.tencent.com/dev?envId=cloud1-8gdftlggae64d5d0#/db/doc
 - [workflow_logs](https://tcb.cloud.tencent.com/dev?envId=cloud1-8gdftlggae64d5d0#/db/doc/collection/workflow_logs)
 - [workflow_tasks](https://tcb.cloud.tencent.com/dev?envId=cloud1-8gdftlggae64d5d0#/db/doc/collection/workflow_tasks)
 - [workflow_templates](https://tcb.cloud.tencent.com/dev?envId=cloud1-8gdftlggae64d5d0#/db/doc/collection/workflow_templates)
+- [meal_subscriptions](https://tcb.cloud.tencent.com/dev?envId=cloud1-8gdftlggae64d5d0#/db/doc/collection/meal_subscriptions)
+- [meal_adjustments](https://tcb.cloud.tencent.com/dev?envId=cloud1-8gdftlggae64d5d0#/db/doc/collection/meal_adjustments)

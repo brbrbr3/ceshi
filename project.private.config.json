@@ -23,11 +23,18 @@
     "miniprogram": {
       "list": [
         {
-          "name": "pages/office/news/news",
-          "pathName": "pages/office/news/news",
+          "name": "pages/office/meal-management/meal-management",
+          "pathName": "pages/office/meal-management/meal-management",
           "query": "",
           "scene": null,
           "launchMode": "default"
+        },
+        {
+          "name": "pages/office/news/news",
+          "pathName": "pages/office/news/news",
+          "query": "",
+          "launchMode": "default",
+          "scene": null
         },
         {
           "name": "pages/office/trip-dashboard/trip-dashboard",

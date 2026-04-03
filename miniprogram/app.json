@@ -33,7 +33,8 @@
     "pages/office/greenbook-create/greenbook-create",
     "pages/office/learning-list/learning-list",
     "pages/office/learning-detail/learning-detail",
-    "pages/office/learning-create/learning-create"
+    "pages/office/learning-create/learning-create",
+    "pages/office/meal-management/meal-management"
   ],
   "window": {
     "navigationBarTextStyle": "black",

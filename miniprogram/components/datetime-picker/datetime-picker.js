@@ -681,9 +681,15 @@ Component({
         maskAnimation: maskAnimation.opacity(1).step().export()
       })
       
-      // 如果没有初始值，设置为当前日期时间
+      // 如果没有初始值，使用最小可选日期作为默认值
       if (!this.data.value) {
-        this.setCurrentDateTime()
+        const { minDate } = this.getEffectiveRange()
+        if (minDate && minDate !== '1900-01-01') {
+          // 有最小日期限制时，用最小日期初始化
+          this.onValueChange(minDate)
+        } else {
+          this.setCurrentDateTime()
+        }
       } else {
         // 重新计算当前选中值
         this.onValueChange(this.data.value)

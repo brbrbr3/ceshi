@@ -1,0 +1,671 @@
+page {
+  background: #EEF2FF;
+}
+
+/* ==================== 分页样式 ==================== */
+.pagination-loading {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 32rpx 0;
+}
+
+.loading-spinner {
+  width: 32rpx;
+  height: 32rpx;
+  border: 3rpx solid #e0e0e0;
+  border-top-color: #1890ff;
+  border-radius: 50%;
+  animation: spin 0.8s linear infinite;
+  margin-right: 16rpx;
+}
+
+@keyframes spin {
+  to { transform: rotate(360deg); }
+}
+
+.loading-text {
+  font-size: 28rpx;
+  color: #999;
+}
+
+.pagination-no-more {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 32rpx 0;
+}
+
+.no-more-text {
+  font-size: 24rpx;
+  color: #ccc;
+}
+
+/* ==================== 头部 ==================== */
+.meal-header {
+  padding-top: 50rpx;
+  padding-bottom: 44rpx;
+}
+
+.meal-title {
+  font-size: 48rpx;
+  font-weight: 600;
+}
+
+.meal-subtitle {
+  margin-top: 5rpx;
+  font-size: 26rpx;
+}
+
+.meal-header-top {
+  display: flex;
+  justify-content: space-between;
+  align-items: flex-start;
+}
+
+/* ==================== Tab 栏 ==================== */
+.meal-tabs-shell {
+  margin-top: 30rpx;
+  margin-bottom: -10rpx;
+  padding: 6rpx;
+  border-radius: 28rpx;
+  background: rgba(255, 255, 255, 0.15);
+  display: flex;
+}
+
+.meal-tab {
+  flex: 1;
+  height: 72rpx;
+  border-radius: 22rpx;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  color: rgba(255, 255, 255, 0.78);
+  font-size: 26rpx;
+  font-weight: 500;
+  transition: all 0.25s ease;
+}
+
+.meal-tab.is-active {
+  background: rgba(255, 255, 255, 0.95);
+  color: #2563EB;
+  font-weight: 600;
+}
+
+/* ==================== 无权限提示 ==================== */
+.meal-no-permission {
+  margin-top: 40rpx;
+  padding: 60rpx 32rpx;
+  text-align: center;
+  background: linear-gradient(180deg, #FFFFFF 0%, #F8FAFC 100%);
+}
+
+.meal-no-icon {
+  font-size: 80rpx;
+  margin-bottom: 20rpx;
+}
+
+.meal-no-text {
+  font-size: 30rpx;
+  font-weight: 600;
+  color: #1E293B;
+  margin-bottom: 12rpx;
+}
+
+.meal-no-desc {
+  font-size: 24rpx;
+  color: #94A3B8;
+  line-height: 1.6;
+}
+
+/* ==================== 状态气泡区域 ==================== */
+.meal-status-area {
+  padding-top: 24rpx;
+}
+
+.meal-status-card {
+  margin-top: 24rpx;
+  padding: 36rpx 32rpx;
+  border-radius: 24rpx;
+  background: linear-gradient(135deg, #FFFFFF 0%, #F8FAFC 100%);
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  box-shadow: 0 4rpx 16rpx rgba(37, 99, 235, 0.08);
+  position: relative;
+  overflow: hidden;
+}
+
+.meal-status-card::before {
+  content: '';
+  position: absolute;
+  left: 0;
+  top: 0;
+  bottom: 0;
+  width: 8rpx;
+}
+
+.meal-status-card.is-enrolled::before {
+  background: linear-gradient(180deg, #22C55E, #16A34A);
+}
+
+.meal-status-card.is-not-enrolled::before {
+  background: linear-gradient(180deg, #94A3B8, #64748B);
+}
+
+.status-bubble-inner {
+  display: flex;
+  align-items: center;
+  gap: 12rpx;
+}
+
+.status-icon {
+  width: 56rpx;
+  height: 56rpx;
+  border-radius: 50%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 28rpx;
+  font-weight: 700;
+  flex-shrink: 0;
+}
+
+.is-enrolled .status-icon {
+  background: #DCFCE7;
+  color: #16A34A;
+}
+
+.is-not-enrolled .status-icon {
+  background: #F1F5F9;
+  color: #64748B;
+}
+
+.status-text {
+  font-size: 34rpx;
+  font-weight: 700;
+  color: #1E293B;
+}
+
+.status-count {
+  font-size: 28rpx;
+  font-weight: 600;
+  color: #16A34A;
+  margin-left: 4rpx;
+}
+
+.is-not-enrolled .status-count {
+  color: #64748B;
+}
+
+/* 调整按钮 */
+.adjust-btn {
+  flex-shrink: 0;
+  padding: 16rpx 32rpx;
+  border-radius: 999rpx;
+  border: 2rpx solid rgba(37, 99, 235, 0.2);
+  background: rgba(37, 99, 235, 0.04);
+  color: #2563EB;
+  font-size: 24rpx;
+  font-weight: 600;
+  transition: all 0.2s ease;
+}
+
+.adjust-btn:active {
+  background: rgba(37, 99, 235, 0.12);
+  transform: scale(0.97);
+}
+
+/* 提示卡片 */
+.meal-tip-card {
+  margin-top: 24rpx;
+  padding: 24rpx 28rpx;
+  background: #EFF6FF;
+  border-radius: 16rpx;
+  border-left: 6rpx solid #2563EB;
+}
+
+.meal-tip-text {
+  font-size: 24rpx;
+  color: #475569;
+  line-height: 1.6;
+}
+
+/* ==================== 调整列表（管理端） ==================== */
+.meal-list-container {
+  display: flex;
+  flex-direction: column;
+  gap: 20rpx;
+  padding-top: 24rpx;
+}
+
+.meal-adjust-card {
+  display: flex;
+  gap: 20rpx;
+  padding: 28rpx;
+  border-radius: 20rpx;
+  background: linear-gradient(180deg, #FFFFFF 0%, #FBFDFF 100%);
+  box-shadow: 0 2rpx 12rpx rgba(148, 163, 184, 0.08);
+}
+
+.adjust-card-left {
+  flex-shrink: 0;
+  display: flex;
+  align-items: flex-start;
+  padding-top: 4rpx;
+}
+
+.adjust-type-tag {
+  padding: 8rpx 20rpx;
+  border-radius: 10rpx;
+  font-size: 22rpx;
+  font-weight: 600;
+  white-space: nowrap;
+}
+
+.adjust-card-body {
+  flex: 1;
+  min-width: 0;
+}
+
+.adjust-name {
+  font-size: 30rpx;
+  font-weight: 600;
+  color: #1E293B;
+  margin-bottom: 12rpx;
+}
+
+.adjust-detail-row {
+  display: flex;
+  gap: 32rpx;
+  flex-wrap: wrap;
+  margin-bottom: 12rpx;
+}
+
+.adjust-detail-item {
+  display: flex;
+  align-items: center;
+  gap: 8rpx;
+}
+
+.detail-label {
+  font-size: 22rpx;
+  color: #94A3B8;
+}
+
+.detail-value {
+  font-size: 24rpx;
+  color: #475569;
+  font-weight: 500;
+}
+
+.adjust-bottom {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding-top: 14rpx;
+  border-top: 1rpx solid rgba(148, 163, 184, 0.12);
+}
+
+.adjust-count {
+  font-size: 24rpx;
+  color: #2563EB;
+  font-weight: 600;
+}
+
+.adjust-time {
+  font-size: 22rpx;
+  color: #94A3B8;
+}
+
+/* ==================== 我的调整历史（Tab1） ==================== */
+.my-history-section {
+  margin-top: 24rpx;
+}
+
+.section-header {
+  display: flex;
+  align-items: baseline;
+  justify-content: space-between;
+  padding: 0 8rpx;
+  margin-bottom: 16rpx;
+}
+
+.section-title {
+  font-size: 30rpx;
+  font-weight: 700;
+  color: #1E293B;
+}
+
+.section-count {
+  font-size: 22rpx;
+  color: #94A3B8;
+}
+
+.my-history-list {
+  display: flex;
+  flex-direction: column;
+  gap: 16rpx;
+}
+
+.my-adjust-card {
+  display: flex;
+  gap: 16rpx;
+  padding: 24rpx;
+  border-radius: 16rpx;
+  background: linear-gradient(180deg, #FFFFFF 0%, #FBFDFF 100%);
+  box-shadow: 0 2rpx 12rpx rgba(148, 163, 184, 0.08);
+  align-items: flex-start;
+}
+
+.my-adjust-card .adjust-type-tag {
+  flex-shrink: 0;
+  padding: 6rpx 16rpx;
+  border-radius: 10rpx;
+  font-size: 22rpx;
+  font-weight: 600;
+  white-space: nowrap;
+}
+
+.my-adjust-body {
+  flex: 1;
+  min-width: 0;
+}
+
+.my-adjust-row {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 8rpx;
+}
+
+.my-adjust-bottom {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding-top: 10rpx;
+  border-top: 1rpx solid #F1F5F9;
+}
+
+/* 空状态 */
+.meal-empty {
+  text-align: center;
+  padding: 80rpx 32rpx;
+  background: #FFF;
+  border-radius: 20rpx;
+  margin-top: 24rpx;
+}
+
+.meal-empty-small {
+  text-align: center;
+  padding: 40rpx 32rpx;
+  background: #FFF;
+  border-radius: 16rpx;
+  margin-top: 24rpx;
+  color: #94A3B8;
+  font-size: 26rpx;
+}
+
+.meal-empty-icon {
+  font-size: 72rpx;
+  margin-bottom: 20rpx;
+}
+
+/* ==================== 弹窗通用样式 ==================== */
+.modal-mask {
+  position: fixed;
+  inset: 0;
+  background: rgba(15, 23, 42, 0.45);
+  z-index: 100;
+  display: flex;
+  align-items: flex-end;
+  justify-content: center;
+  padding: 24rpx;
+  box-sizing: border-box;
+  animation: fadeIn 0.2s ease;
+}
+
+@keyframes fadeIn {
+  from { opacity: 0; }
+  to { opacity: 1; }
+}
+
+.modal-sheet {
+  width: 100%;
+  max-height: 85vh;
+  border-radius: 32rpx 32rpx 0 0;
+  background: #FFFFFF;
+  padding: 28rpx;
+  box-sizing: border-box;
+  animation: slideUp 0.3s cubic-bezier(0.25, 0.1, 0.25, 1);
+  overflow-y: auto;
+}
+
+.modal-sheet-large {
+  border-radius: 32rpx !important;
+  max-height: 90vh;
+}
+
+@keyframes slideUp {
+  from { transform: translateY(100%); }
+  to { transform: translateY(0); }
+}
+
+.modal-head {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  margin-bottom: 28rpx;
+}
+
+.modal-title {
+  font-size: 34rpx;
+  font-weight: 700;
+  color: #0F172A;
+}
+
+.modal-close {
+  width: 56rpx;
+  height: 56rpx;
+  border-radius: 28rpx;
+  background: #F1F5F9;
+  color: #64748B;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 28rpx;
+  flex-shrink: 0;
+}
+
+.modal-body {
+  padding-bottom: 16rpx;
+}
+
+.modal-actions {
+  display: flex;
+  gap: 20rpx;
+  margin-top: 24rpx;
+  padding-top: 24rpx;
+  border-top: 1rpx solid #F1F5F9;
+}
+
+/* 按钮样式 */
+.btn-cancel,
+.btn-confirm,
+.btn-submit {
+  flex: 1;
+  height: 88rpx;
+  border-radius: 24rpx;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 28rpx;
+  font-weight: 600;
+  box-sizing: border-box;
+}
+
+.btn-cancel {
+  background: #F8FAFC;
+  color: #475569;
+  border: none;
+}
+.btn-cancel::after { border: none; }
+
+.btn-confirm {
+  background: linear-gradient(135deg, #2563EB 0%, #1D4ED8 100%);
+  color: #fff;
+  border: none;
+}
+.btn-confirm::after { border: none; }
+
+.btn-submit {
+  background: linear-gradient(135deg, #2563EB 0%, #1D4ED8 100%);
+  color: #fff;
+  border: none;
+}
+.btn-submit::after { border: none; }
+
+.btn-submit[disabled] {
+  opacity: 0.55;
+  pointer-events: none;
+}
+
+/* ==================== 表单行样式 ==================== */
+.form-row {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 24rpx 0;
+  border-bottom: 1rpx solid #F1F5F9;
+}
+
+.form-row:last-child {
+  border-bottom: none;
+}
+
+.form-row-count {
+  justify-content: space-between;
+}
+
+.form-label {
+  font-size: 28rpx;
+  color: #334155;
+  font-weight: 500;
+}
+
+.form-sublabel{
+  font-size: 24rpx;
+  color: #334155;
+  font-weight: 500;
+}
+
+/* 份数加减器 */
+.count-control {
+  display: flex;
+  align-items: center;
+  gap: 0;
+  background: #F8FAFC;
+  border-radius: 16rpx;
+  overflow: hidden;
+}
+
+.count-btn {
+  width: 68rpx;
+  height: 64rpx;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 38rpx;
+  font-weight: 300;
+  color: #2563EB;
+  background: #EFF6FF;
+  transition: all 0.15s ease;
+}
+
+.count-btn:active {
+  background: #DBEAFE;
+}
+
+.count-minus {
+  border-radius: 16rpx 0 0 16rpx;
+}
+
+.count-plus {
+  border-radius: 0 16rpx 16rpx 0;
+}
+
+.count-num {
+  min-width: 72rpx;
+  text-align: center;
+  font-size: 34rpx;
+  font-weight: 700;
+  color: #0F172A;
+}
+
+/* ==================== 单选组（调整类型） ==================== */
+.adjust-radio-group {
+  display: flex;
+  flex-direction: column;
+  gap: 0;
+}
+
+.radio-item {
+  display: flex;
+  align-items: center;
+  padding: 24rpx 16rpx;
+  border-bottom: 1rpx solid #F1F5F9;
+  gap: 16rpx;
+  transition: background 0.15s ease;
+}
+
+.radio-item:active {
+  background: #F8FAFC;
+}
+
+.radio-item radio {
+  transform: scale(1.1);
+}
+
+.radio-item text:first-of-type {
+  font-size: 28rpx;
+  font-weight: 500;
+  color: #1E293B;
+}
+
+.radio-desc {
+  font-size: 22rpx;
+  color: #94A3B8;
+  margin-left: auto;
+}
+
+/* 条件表单区 */
+.form-section {
+  margin-top: 20rpx;
+  padding: 20rpx;
+  background: #F8FAFC;
+  border-radius: 16rpx;
+}
+
+.form-section .form-row {
+  border-bottom-color: #EEF2FF;
+}
+
+/* ==================== 页面加载遮罩 ==================== */
+.page-loading-mask {
+  position: fixed;
+  inset: 0;
+  background: rgba(238, 242, 255, 0.7);
+  z-index: 200;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.page-loading-spinner {
+  width: 48rpx;
+  height: 48rpx;
+  border: 4rpx solid #e0e0e0;
+  border-top-color: #1890ff;
+  border-radius: 50%;
+  animation: spin 0.8s linear infinite;
+}
