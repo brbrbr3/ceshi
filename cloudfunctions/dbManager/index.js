@@ -56,7 +56,9 @@ const DB_COLLECTIONS = [
   'greenbook_comments',
   'greenbook_likes',
   'meal_subscriptions',
-  'meal_adjustments'
+  'meal_adjustments',
+  'side_dish_orders',
+  'side_dish_bookings'
 ]
 
 /**

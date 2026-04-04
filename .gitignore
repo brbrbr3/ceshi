@@ -3,3 +3,5 @@ cloudfunctions/newsFetcher/node_modules
 node_modules/
 miniprogram/miniprogram_npm
 miniprogram/node_modules
+.codebuddy/rules/
+.codebuddy/rules/tcb/rules/no-sql-web-sdk/security-rules.md

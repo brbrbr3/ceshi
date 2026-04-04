@@ -36,7 +36,7 @@
 
 /* 日历容器 */
 .calendar-container {
-  padding: 24rpx 0 0;
+  padding: 10rpx 0 0;
 }
 
 /* 配置弹窗遮罩 */
@@ -260,7 +260,7 @@
 
 /* 日程区域容器 */
 .schedule-section {
-  margin: 24rpx;
+  margin: 10rpx;
   background: #FFFFFF;
   border-radius: 24rpx;
   overflow: hidden;

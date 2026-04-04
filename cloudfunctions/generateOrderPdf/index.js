@@ -285,6 +285,155 @@ async function generateOrderPdf(openid, orderId) {
   }
 }
 
+/**
+ * 副食预订清单 PDF 导出
+ * 接收 orderId（side_dish_orders._id），生成预订人员清单 PDF
+ */
+async function generateSideDishBookingPdf(orderId) {
+  // 1. 查询征订单
+  const orderRes = await db.collection('side_dish_orders').doc(orderId).get()
+  if (!orderRes.data) {
+    throw new Error('征订单不存在')
+  }
+  const order = orderRes.data
+
+  // 2. 查询所有有效预订记录
+  const bookingsRes = await db.collection('side_dish_bookings')
+    .where({ orderId, status: 'booked' })
+    .orderBy('createdAt', 'asc')
+    .limit(200)
+    .get()
+  const bookings = bookingsRes.data || []
+
+  const totalCount = bookings.reduce((sum, b) => sum + (b.count || 0), 0)
+
+  // 3. 生成 PDF
+  const fontPath = await ensureFont()
+
+  const pdfDoc = new PDFDocument({
+    size: 'A4',
+    margins: { top: 50, bottom: 50, left: 50, right: 50 }
+  })
+  pdfDoc.registerFont('ChineseFont', fontPath)
+
+  const buffers = []
+  pdfDoc.on('data', buffers.push.bind(buffers))
+
+  return new Promise((resolve, reject) => {
+    pdfDoc.on('end', async () => {
+      try {
+        const pdfBuffer = Buffer.concat(buffers)
+        const fileName = `副食预订清单_${order.title}_${Date.now()}.pdf`
+        const uploadResult = await cloud.uploadFile({
+          cloudPath: `side_dish_pdfs/${fileName}`,
+          fileContent: pdfBuffer
+        })
+        const tempUrl = await cloud.getTempFileURL({
+          fileList: [uploadResult.fileID]
+        })
+        resolve({
+          code: 0,
+          message: 'ok',
+          data: {
+            fileUrl: tempUrl.fileList[0].tempFileURL,
+            fileName: `副食预订清单_${order.title}.pdf`
+          }
+        })
+      } catch (err) {
+        reject(new Error('PDF上传失败: ' + err.message))
+      }
+    })
+
+    pdfDoc.on('error', (err) => {
+      reject(new Error('PDF生成失败: ' + err.message))
+    })
+
+    // 标题
+    pdfDoc.fontSize(22).font('ChineseFont').text('副食预订清单', { align: 'center' })
+    pdfDoc.moveDown(0.8)
+
+    // 分隔线
+    pdfDoc.moveTo(50, pdfDoc.y).lineTo(545, pdfDoc.y).stroke('#2563EB')
+    pdfDoc.moveDown(0.8)
+
+    // 征订单基本信息
+    pdfDoc.fontSize(13).font('ChineseFont')
+    pdfDoc.text(`征订标题：`, 50, undefined, { continued: true }).font('ChineseFont').text(order.title)
+    pdfDoc.text(`创建者：`, 50, undefined, { continued: true }).font('ChineseFont').text(order.creatorName || '-')
+    pdfDoc.text(`截止日期：`, 50, undefined, { continued: true }).font('ChineseFont').text(order.deadline)
+    pdfDoc.text(`最大份数/人：`, 50, undefined, { continued: true }).font('ChineseFont').text(String(order.maxCount) + `（上限 ${order.maxCount * 2}）`)
+    pdfDoc.moveDown(0.6)
+
+    // 统计信息
+    pdfDoc.fontSize(12).fillColor('#2563EB')
+      .text(`预订总人数：${bookings.length} 人    预订总份数：${totalCount} 份`, { align: 'center' })
+    pdfDoc.fillColor('#000000')
+    pdfDoc.moveDown(0.8)
+
+    // 表头
+    const tableTop = pdfDoc.y
+    const colWidths = [60, 140, 100, 100]
+    const colX = [50, 110, 250, 350]
+
+    pdfDoc.rect(50, tableTop, 495, 28).fill('#EEF2FF')
+    pdfDoc.fillColor('#1E293B').fontSize(11).font('ChineseFont')
+
+    pdfDoc.text('序号', colX[0], tableTop + 8, { width: colWidths[0], align: 'center' })
+    pdfText('姓名', colX[1] + 15, tableTop + 8)
+    pdfText('预订份数', colX[2] + 25, tableTop + 8)
+    pdfText('提交时间', colX[3] + 20, tableTop + 8)
+
+    function pdfText(text, x, y) {
+      pdfDoc.font('ChineseFont').text(text, x, y)
+    }
+
+    pdfDoc.fillColor('#000000')
+    let rowY = tableTop + 28
+
+    // 数据行
+    bookings.forEach((b, idx) => {
+      if (rowY > 750) {
+        pdfDoc.addPage()
+        rowY = 50
+      }
+
+      // 行背景交替色
+      if (idx % 2 === 0) {
+        pdfDoc.rect(50, rowY, 495, 26).fill('#FAFAFA')
+      }
+      pdfDoc.rect(50, rowY, 495, 26).stroke('#EEEEEE')
+
+      const timeStr = b.createdAt ? formatLocalTime(new Date(b.createdAt), -3).split(' ')[0] : '-'
+
+      pdfDoc.fontSize(10).font('ChineseFont').fillColor('#334155')
+      pdfDoc.text(String(idx + 1), colX[0], rowY + 7, { width: colWidths[0], align: 'center' })
+      pdfDoc.text(b.name || '-', colX[1] + 15, rowY + 7, { width: colWidths[1] - 20 })
+      pdfDoc.text(String(b.count || 0), colX[2] + 35, rowY + 7, { width: colWidths[2] - 40, align: 'center' })
+      pdfDoc.text(timeStr, colX[3] + 15, rowY + 7, { width: colWidths[3] - 20 })
+
+      rowY += 26
+    })
+
+    // 无数据提示
+    if (bookings.length === 0) {
+      pdfDoc.fontSize(12).fillColor('#94A3B8')
+        .text('暂无预订记录', 50, rowY + 20, { align: 'center' })
+      pdfDoc.fillColor('#000000')
+    } else {
+      rowY += 20
+    }
+
+    // 底部信息
+    pdfDoc.moveDown(0.6)
+    pdfDoc.moveTo(50, Math.min(rowY, 780)).lineTo(545, Math.min(rowY, 780)).stroke('#DDDDDD')
+    pdfDoc.fontSize(9).fillColor('#999999')
+      .text(`生成时间：${formatLocalTime(new Date(), -3)}`, { align: 'center' })
+    pdfDoc.fillColor('#000000')
+
+    pdfDoc.end()
+  })
+}
+
 function fail(message, code) {
   return {
     code: code || 500,
@@ -301,8 +450,21 @@ exports.main = async (event) => {
     return fail('获取微信身份失败，请稍后重试', 401)
   }
 
-  const { orderId } = event || {}
+  const { orderId, type } = event || {}
 
+  // 副食预订清单导出
+  if (type === 'sideDishBookings') {
+    if (!orderId) {
+      return fail('缺少 orderId 参数', 400)
+    }
+    try {
+      return await generateSideDishBookingPdf(orderId)
+    } catch (error) {
+      return fail(error.message || '生成预订清单失败', 500)
+    }
+  }
+
+  // 原有工单 PDF 导出
   if (!orderId) {
     return fail('缺少 orderId 参数', 400)
   }

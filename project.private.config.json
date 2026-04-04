@@ -23,36 +23,22 @@
     "miniprogram": {
       "list": [
         {
-          "name": "pages/office/meal-management/meal-management",
-          "pathName": "pages/office/meal-management/meal-management",
+          "name": "pages/office/help/help",
+          "pathName": "pages/office/help/help",
           "query": "",
           "scene": null,
           "launchMode": "default"
         },
         {
+          "name": "pages/office/meal-management/meal-management",
+          "pathName": "pages/office/meal-management/meal-management",
+          "query": "",
+          "launchMode": "default",
+          "scene": null
+        },
+        {
           "name": "pages/office/news/news",
           "pathName": "pages/office/news/news",
-          "query": "",
-          "launchMode": "default",
-          "scene": null
-        },
-        {
-          "name": "pages/office/trip-dashboard/trip-dashboard",
-          "pathName": "pages/office/trip-dashboard/trip-dashboard",
-          "query": "",
-          "launchMode": "default",
-          "scene": null
-        },
-        {
-          "name": "pages/office/learning-list/learning-list",
-          "pathName": "pages/office/learning-list/learning-list",
-          "query": "",
-          "launchMode": "default",
-          "scene": null
-        },
-        {
-          "name": "pages/office/greenbook/greenbook",
-          "pathName": "pages/office/greenbook/greenbook",
           "query": "",
           "launchMode": "default",
           "scene": null

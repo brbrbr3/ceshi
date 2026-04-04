@@ -9,10 +9,11 @@
 
   <!-- 内容区域 -->
   <view class="feedback-content">
-    <!-- 核心功能 -->
+
+    <!-- ========== 首页 ========== -->
     <view class="help-section">
-      <view class="section-title">常用功能</view>
-      
+      <view class="section-title">首页</view>
+
       <view class="help-card">
         <view class="card-header">
           <view class="card-icon">🍽️</view>
@@ -29,11 +30,31 @@
 
       <view class="help-card">
         <view class="card-header">
+          <view class="card-icon">🍲</view>
+          <view class="card-title">餐食管理</view>
+        </view>
+        <view class="card-content">
+          <view class="card-desc">管理工作餐入伙、退伙、临时停餐与加餐申请，以及副食预订和管理。支持以下功能：</view>
+          <view class="card-features">
+            <view class="feature-item">• 我的工作餐：办理入伙/退伙/停餐/加餐，查看个人工作餐调整记录。</view>
+            <view class="feature-item">• 工作餐管理：查看所有用户的餐食调整历史记录。</view>
+            <view class="feature-item">• 副食预订：查看当前征订活动并预订副食。</view>
+            <view class="feature-item">• 副食管理：发布副食征订、查看预订情况及导出PDF清单。</view>
+          </view>
+          <view class="card-permission">
+            <view class="permission-label">权限要求：</view>
+            <view class="permission-value">馆领导、部门负责人、馆员、工勤可办理工作餐和预订副食。会计主管、会计、出纳、招待员、厨师可管理工作餐和副食。</view>
+          </view>
+        </view>
+      </view>
+
+      <view class="help-card">
+        <view class="card-header">
           <view class="card-icon">🏥</view>
           <view class="card-title">就医申请</view>
         </view>
         <view class="card-content">
-          <view class="card-desc">在线提交就医申请，填写就诊人、就诊时间、医院等信息，提交后进入审批流程，可在“审批中心”查看实时审批进度。<text>\n</text>已批准的申请会显示在“就医申请记录”中，可导出为PDF文件。</view>
+          <view class="card-desc">在线提交就医申请，填写就诊人、就诊时间、医院等信息，提交后进入审批流程，可在"审批中心"查看实时审批进度。<text>\n</text>已批准的申请会显示在"就医申请记录"中，可导出为PDF文件。</view>
           <view class="card-permission">
             <view class="permission-label">权限要求：</view>
             <view class="permission-value">配偶、家属请馆员代为申请。</view>
@@ -119,6 +140,7 @@
           </view>
         </view>
       </view>
+
       <view class="help-card">
         <view class="card-header">
           <view class="card-icon">🔧</view>
@@ -132,30 +154,10 @@
           </view>
           <view class="card-permission">
             <view class="permission-label">权限要求：</view>
-            <view class="permission-value">所有用户可提交报修。物业可查看全部报修，标记维修完成。</view>
+            <view class="permission-value">所有用户可提交报修。物业可查看全部报修，对报修标记维修完成。</view>
           </view>
         </view>
       </view>
-    </view>
-
-    <!-- 协作功能 -->
-    <view class="help-section">
-      <view class="section-title">协作功能</view>
-      
-      <view class="help-card">
-        <view class="card-header">
-          <view class="card-icon">📋</view>
-          <view class="card-title">审批中心</view>
-        </view>
-        <view class="card-content">
-          <view class="card-desc">处理审批任务和查看已提交申请。分为"待审批"、"我发起的"、"已处理"三个Tab页，根据用户角色显示相应的内容。</view>
-          <view class="card-permission">
-            <view class="permission-label">权限要求：</view>
-            <view class="permission-value">无特定权限要求，根据用户角色显示不同内容</view>
-          </view>
-        </view>
-      </view>
-      
 
       <view class="help-card">
         <view class="card-header">
@@ -163,13 +165,14 @@
           <view class="card-title">全馆日程</view>
         </view>
         <view class="card-content">
-          <view class="card-desc">以日历视图展示馆内日程及节假日安排，方便规划工作和活动。支持订阅感兴趣的日程，已订阅的今日日程会显示在首页“今日日程”模块。</view>
+          <view class="card-desc">以日历视图展示馆内日程及节假日安排，方便规划工作和活动。支持订阅感兴趣的日程，已订阅的今日日程会显示在首页"今日日程"模块。</view>
           <view class="card-permission">
             <view class="permission-label">权限要求：</view>
             <view class="permission-value">所有用户可查看日历。在编馆员可查看及订阅日程。仅礼宾可添加修改删除日程。</view>
           </view>
         </view>
       </view>
+
       <view class="help-card">
         <view class="card-header">
           <view class="card-icon">📢</view>
@@ -184,8 +187,6 @@
         </view>
       </view>
 
-      
-
       <view class="help-card">
         <view class="card-header">
           <view class="card-icon">📚</view>
@@ -199,6 +200,50 @@
           </view>
         </view>
       </view>
+    </view>
+
+    <!-- ========== 审批中心 ========== -->
+    <view class="help-section">
+      <view class="section-title">审批中心</view>
+
+      <view class="help-card">
+        <view class="card-header">
+          <view class="card-icon">📋</view>
+          <view class="card-title">审批中心</view>
+        </view>
+        <view class="card-content">
+          <view class="card-desc">处理审批任务和查看已提交申请。分为"待审批"、"我发起的"、"已处理"三个Tab页，根据用户角色显示相应的内容。</view>
+          <view class="card-permission">
+            <view class="permission-label">权限要求：</view>
+            <view class="permission-value">无特定权限要求，根据用户角色显示不同内容</view>
+          </view>
+        </view>
+      </view>
+    </view>
+
+    <!-- ========== 新闻 ========== -->
+    <view class="help-section">
+      <view class="section-title">新闻</view>
+
+      <view class="help-card">
+        <view class="card-header">
+          <view class="card-icon">📰</view>
+          <view class="card-title">新闻资讯</view>
+        </view>
+        <view class="card-content">
+          <view class="card-desc">浏览各类新闻资讯内容，支持按来源筛选。</view>
+          <view class="card-permission">
+            <view class="permission-label">权限要求：</view>
+            <view class="permission-value">无限制，所有用户可查看</view>
+          </view>
+        </view>
+      </view>
+    </view>
+
+    <!-- ========== 小绿书 ========== -->
+    <view class="help-section">
+      <view class="section-title">小绿书</view>
+
       <view class="help-card">
         <view class="card-header">
           <view class="card-icon">📗</view>
@@ -217,28 +262,26 @@
           </view>
         </view>
       </view>
-      
-
-      
     </view>
 
-    <!-- 个人功能 -->
+    <!-- ========== 我的 ========== -->
     <view class="help-section">
-      <view class="section-title">个人功能</view>
-      
+      <view class="section-title">我的</view>
+
       <view class="help-card">
         <view class="card-header">
           <view class="card-icon">👤</view>
-          <view class="card-title">个人中心</view>
+          <view class="card-title">个人设置</view>
         </view>
         <view class="card-content">
-          <view class="card-desc">查看和管理个人信息，包括修改个人资料等。个人资料修改后需管理员审批后生效。</view>
+          <view class="card-desc">查看和设置个人信息，包括修改个人资料等。个人资料修改后需管理员审批后生效。</view>
           <view class="card-permission">
             <view class="permission-label">权限要求：</view>
             <view class="permission-value">无限制，所有用户可访问自己的信息</view>
           </view>
         </view>
       </view>
+
       <view class="help-card">
         <view class="card-header">
           <view class="card-icon">✍️</view>
@@ -252,6 +295,7 @@
           </view>
         </view>
       </view>
+
       <view class="help-card">
         <view class="card-header">
           <view class="card-icon">🔔</view>
@@ -275,7 +319,7 @@
           <view class="card-desc">提交使用小程序的意见和问题反馈，支持查看管理员的回复。管理员会对反馈进行处理并回复。</view>
           <view class="card-permission">
             <view class="permission-label">权限要求：</view>
-            <view class="permission-value">无限制，所有用户可提交反馈</view>
+            <view class="permission-value">无限制，所有用户可提交反馈，并可看到他人的反馈及回复。</view>
           </view>
         </view>
       </view>
@@ -284,7 +328,7 @@
     <!-- 权限说明 -->
     <view class="help-section">
       <view class="section-title">权限说明</view>
-      
+
       <view class="permission-tips">
         <view class="tips-item">
           <view class="tips-icon">ℹ️</view>
@@ -293,7 +337,6 @@
             <view class="tips-desc">部分功能需要特定角色或岗位才有权使用。</view>
           </view>
         </view>
-      
       </view>
     </view>
 

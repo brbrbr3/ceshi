@@ -420,7 +420,7 @@ page {
   display: flex;
   align-items: flex-end;
   justify-content: center;
-  padding: 24rpx;
+  padding: 24rpx 24rpx 0;
   box-sizing: border-box;
   animation: fadeIn 0.2s ease;
 }
@@ -435,7 +435,7 @@ page {
   max-height: 85vh;
   border-radius: 32rpx 32rpx 0 0;
   background: #FFFFFF;
-  padding: 28rpx;
+  padding: 28rpx 28rpx 50rpx;
   box-sizing: border-box;
   animation: slideUp 0.3s cubic-bezier(0.25, 0.1, 0.25, 1);
   overflow-y: auto;
@@ -478,14 +478,13 @@ page {
 }
 
 .modal-body {
-  padding-bottom: 16rpx;
+  padding: 16rpx 0;
 }
 
 .modal-actions {
   display: flex;
   gap: 20rpx;
-  margin-top: 24rpx;
-  padding-top: 24rpx;
+  padding-top: 16rpx;
   border-top: 1rpx solid #F1F5F9;
 }
 
@@ -668,4 +667,452 @@ page {
   border-top-color: #1890ff;
   border-radius: 50%;
   animation: spin 0.8s linear infinite;
+}
+
+/* ==================== 副食预订/管理通用样式 ==================== */
+
+/* 提示卡片 */
+.side-dish-tip-card {
+  margin-top: 24rpx;
+  padding: 28rpx 32rpx;
+  background: linear-gradient(135deg, #FEF3C7 0%, #FDF6E3 100%);
+  border-radius: 16rpx;
+  display: flex;
+  align-items: center;
+  gap: 16rpx;
+  border-left: 6rpx solid #F59E0B;
+}
+
+.side-dish-tip-icon {
+  font-size: 40rpx;
+}
+
+.side-dish-tip-text {
+  font-size: 26rpx;
+  color: #92400E;
+  line-height: 1.5;
+}
+
+/* 征订单列表容器 */
+.side-dish-list {
+  display: flex;
+  flex-direction: column;
+  gap: 20rpx;
+  padding-top: 24rpx;
+}
+
+/* 征订单卡片（通用） */
+.side-dish-order-card {
+  display: flex;
+  gap: 20rpx;
+  padding: 28rpx;
+  border-radius: 20rpx;
+  background: linear-gradient(180deg, #FFFFFF 0%, #FBFDFF 100%);
+  box-shadow: 0 2rpx 12rpx rgba(148, 163, 184, 0.08);
+  transition: all 0.2s ease;
+}
+
+.side-dish-order-card:active {
+  transform: scale(0.98);
+  box-shadow: 0 2rpx 8rpx rgba(148, 163, 184, 0.12);
+}
+
+.side-dish-order-card.is-expired {
+  opacity: 0.65;
+}
+
+.sd-card-left {
+  flex-shrink: 0;
+  display: flex;
+  align-items: flex-start;
+  padding-top: 4rpx;
+}
+
+.sd-status-tag {
+  padding: 8rpx 18rpx;
+  border-radius: 10rpx;
+  font-size: 22rpx;
+  font-weight: 600;
+  white-space: nowrap;
+}
+
+.tag-active {
+  background: #DCFCE7;
+  color: #166534;
+}
+
+.tag-expired {
+  background: #F1F5F9;
+  color: #64748B;
+}
+
+.sd-card-body {
+  flex: 1;
+  min-width: 0;
+}
+
+.sd-title {
+  font-size: 30rpx;
+  font-weight: 600;
+  color: #1E293B;
+  margin-bottom: 10rpx;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.sd-desc {
+  font-size: 24rpx;
+  color: #64748B;
+  line-height: 1.5;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+  margin-bottom: 14rpx;
+}
+
+.sd-meta-row {
+  display: flex;
+  gap: 24rpx;
+  flex-wrap: wrap;
+  margin-bottom: 8rpx;
+}
+
+.sd-meta-item {
+  font-size: 22rpx;
+  color: #94A3B8;
+}
+
+.sd-card-bottom {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding-top: 14rpx;
+  margin-right: 20rpx;
+  border-top: 1rpx solid #F1F5F9;
+}
+
+.sd-deadline {
+  font-size: 22rpx;
+  color: #F59E0B;
+  font-weight: 500;
+}
+
+.sd-my-booking {
+  font-size: 22rpx;
+  color: #16A34A;
+  font-weight: 600;
+  background: #DCFCE7;
+  padding: 4rpx 16rpx;
+  border-radius: 999rpx;
+}
+
+.sd-total-info {
+  font-size: 22rpx;
+  color: #94A3B8;
+}
+
+.sd-stats {
+  font-size: 22rpx;
+  color: #2563EB;
+  font-weight: 500;
+}
+
+.sd-arrow {
+  font-size: 36rpx;
+  color: #CBD5E1;
+  font-weight: 300;
+}
+
+/* 管理端卡片额外样式 */
+.sd-manage-card {
+  position: relative;
+}
+
+.sd-manage-card::after {
+  content: '';
+  position: absolute;
+  right: 24rpx;
+  top: 50%;
+  transform: translateY(-50%);
+  width: 16rpx;
+  height: 16rpx;
+  border-top: 3rpx solid #CBD5E1;
+  border-right: 3rpx solid #CBD5E1;
+  transform: translateY(-50%) rotate(45deg);
+}
+
+/* 新建征订按钮 */
+.create-side-dish-btn {
+  margin-top: 24rpx;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 12rpx;
+  height: 88rpx;
+  border-radius: 24rpx;
+  background: linear-gradient(135deg, #7C3AED 0%, #6D28D9 100%);
+  color: #fff;
+  font-size: 28rpx;
+  font-weight: 600;
+  box-shadow: 0 8rpx 24rpx rgba(124, 58, 237, 0.3);
+  transition: all 0.25s ease;
+}
+
+.create-side-dish-btn:active {
+  transform: scale(0.97);
+  box-shadow: 0 4rpx 12rpx rgba(124, 58, 237, 0.2);
+}
+
+.create-btn-icon {
+  font-size: 36rpx;
+  font-weight: 500;
+}
+
+.empty-hint {
+  display: block;
+  font-size: 24rpx;
+  color: #94A3B8;
+  margin-top: 16rpx;
+}
+
+/* ==================== 副食预订详情弹窗样式 ==================== */
+
+.sd-detail-section {
+  padding: 20rpx;
+  background: #F8FAFC;
+  border-radius: 16rpx;
+  margin-bottom: 20rpx;
+}
+
+.sd-detail-row {
+  display: flex;
+  justify-content: space-between;
+  align-items: flex-start;
+  padding: 16rpx 0;
+  border-bottom: 1rpx solid #EEF2FF;
+}
+
+.sd-detail-row:last-child {
+  border-bottom: none;
+}
+
+.sd-detail-label {
+  font-size: 26rpx;
+  color: #64748B;
+  font-weight: 500;
+  flex-shrink: 0;
+  width: 160rpx;
+}
+
+.sd-detail-value {
+  font-size: 26rpx;
+  color: #1E293B;
+  font-weight: 500;
+  text-align: right;
+  word-break: break-all;
+}
+
+.sd-desc-text {
+  max-height: 120rpx;
+  overflow-y: auto;
+  text-align: right;
+  line-height: 1.6;
+  flex: 1;
+}
+
+.sd-deadline-info {
+  display: flex;
+  flex-direction: column;
+  gap: 8rpx;
+  padding: 16rpx 0;
+}
+
+/* 已预订状态 */
+.sd-booked-status {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 16rpx;
+  background: #ECFDF5;
+  border-radius: 12rpx;
+  margin-bottom: 20rpx;
+}
+
+.sd-booked-status text {
+  font-size: 26rpx;
+  color: #059669;
+  font-weight: 600;
+}
+
+/* 预订操作区 */
+.sd-book-area {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 24rpx 0;
+}
+
+.sd-book-label {
+  font-size: 28rpx;
+  color: #334155;
+  font-weight: 500;
+}
+
+/* 取消预订按钮 */
+.sd-cancel-wrap {
+  padding-top: 16rpx;
+  border-top: 1rpx solid #F1F5F9;
+}
+
+.btn-cancel-booking {
+  flex: 1;
+  height: 88rpx;
+  border-radius: 24rpx;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 28rpx;
+  font-weight: 600;
+  box-sizing: border-box;
+  color: #DC2626;
+  background: #FEF2F2;
+  border: none;
+}
+
+.btn-cancel-booking::after { border: none; }
+
+.btn-cancel-booking:active {
+  background: #FEE2E2;
+}
+
+/* 表单输入框 */
+.form-input {
+  flex: 1;
+  height: 68rpx;
+  font-size: 28rpx;
+  color: #1E293B;
+  text-align: right;
+  background: transparent;
+}
+
+.form-row-textarea {
+  flex-direction: column;
+  align-items: stretch;
+  gap: 12rpx;
+  border-bottom: none;
+}
+
+.form-textarea {
+  width: 100%;
+  min-height: 160rpx;
+  padding: 20rpx;
+  font-size: 28rpx;
+  color: #1E293B;
+  background: #F8FAFC;
+  border-radius: 12rpx;
+  box-sizing: border-box;
+}
+
+.required-field::after {
+  content: ' *';
+  color: #DC2626;
+}
+
+/* ==================== 管理端预订详情弹窗样式 ==================== */
+
+.booking-detail-sheet {
+  max-height: 85vh;
+}
+
+.booking-summary-card {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 32rpx 24rpx;
+  background: linear-gradient(135deg, #EEF2FF 0%, #E0E7FF 100%);
+  border-radius: 16rpx;
+  margin-bottom: 24rpx;
+}
+
+.summary-item {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 8rpx;
+  padding: 0 40rpx;
+}
+
+.summary-num {
+  font-size: 44rpx;
+  font-weight: 700;
+  color: #2563EB;
+}
+
+.summary-label {
+  font-size: 24rpx;
+  color: #64748B;
+}
+
+.summary-divider {
+  width: 1rpx;
+  height: 60rpx;
+  background: #CBD5E1;
+}
+
+/* 预订人员列表 */
+.booking-list-header {
+  font-size: 28rpx;
+  font-weight: 600;
+  color: #1E293B;
+  padding: 16rpx 0 20rpx;
+  border-bottom: 1rpx solid #F1F5F9;
+}
+
+.booking-list {
+  max-height: 400rpx;
+  overflow-y: auto;
+}
+
+.booking-item {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding: 20rpx 0;
+  border-bottom: 1rpx solid #F8FAFC;
+}
+
+.booking-name {
+  font-size: 28rpx;
+  color: #334155;
+  font-weight: 500;
+}
+
+.booking-count {
+  font-size: 28rpx;
+  color: #2563EB;
+  font-weight: 600;
+}
+
+/* PDF导出按钮 */
+.btn-export-pdf {
+  flex: 1;
+  height: 88rpx;
+  border-radius: 24rpx;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 28rpx;
+  font-weight: 600;
+  box-sizing: border-box;
+  background: linear-gradient(135deg, #7C3AED 0%, #6D28D9 100%);
+  color: #fff;
+  border: none;
+}
+
+.btn-export-pdf::after { border: none; }
+
+.btn-export-pdf[disabled] {
+  opacity: 0.45;
+  pointer-events: none;
 }

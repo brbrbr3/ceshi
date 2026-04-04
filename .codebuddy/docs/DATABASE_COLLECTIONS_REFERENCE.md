@@ -1485,6 +1485,7 @@ const notificationsCollection = db.collection('notifications')  // ✅
 | 2026-04-01 | 添加 repair_orders 物业报修记录集合 | AI |
 | 2026-04-02 | 添加 news_articles 新闻文章集合 | AI |
 | 2026-04-03 | 添加 meal_subscriptions 用户订餐状态、meal_adjustments 调整记录集合（餐食管理功能） | AI |
+| 2026-04-04 | 添加 side_dish_orders 副食征订单、side_dish_bookings 副食预订记录集合（副食预订/管理功能） | AI |
 
 ---
 
@@ -1582,6 +1583,96 @@ none ──(入伙)──→ active ──(停餐)──→ suspended ──(恢
 **控制台链接**：
 - [meal_subscriptions](https://tcb.cloud.tencent.com/dev?envId=cloud1-8gdftlggae64d5d0#/db/doc/collection/meal_subscriptions)
 - [meal_adjustments](https://tcb.cloud.tencent.com/dev?envId=cloud1-8gdftlggae64d5d0#/db/doc/collection/meal_adjustments)
+- [side_dish_orders](https://tcb.cloud.tencent.com/dev?envId=cloud1-8gdftlggae64d5d0#/db/doc/collection/side_dish_orders)
+- [side_dish_bookings](https://tcb.cloud.tencent.com/dev?envId=cloud1-8gdftlggae64d5d0#/db/doc/collection/side_dish_bookings)
+
+---
+
+### 33. side_dish_orders - 副食征订单
+
+**用途**：存储副食征订信息，由管理岗位人员创建，供普通用户预订
+
+**安全规则**：`ADMINWRITE` - 所有用户可读，仅云函数可写
+
+> **重要说明**：征订单由 `mealManager` 云函数创建和管理。用户可读取所有征订单进行预订。
+
+**记录数**：动态
+
+**索引**：
+
+- `_id` - 记录 ID（云开发自动创建）
+- `idx_status_createdAt` - 组合索引：status（升序）+ createdAt（降序）- 优化有效征订单列表查询
+- `idx_creatorOpenid` - 创建者 openid 索引
+
+**字段结构**：
+```javascript
+{
+  _id: String,                    // 记录 ID（自动生成）
+  title: String,                   // 征订标题
+  description: String,             // 副食详情描述
+  maxCount: Number,                // 最大预订份数（每人最多可订份数，实际上限为 maxCount*2）
+  deadline: String,                // 截止日期 YYYY-MM-DD（纯字符串，避免时区问题）
+  creatorOpenid: String,           // 创建者 openid
+  creatorName: String,             // 创建者姓名
+  status: String,                  // 状态: 'active'(有效) | 'expired'(已截止)
+  totalBookedCount: Number,        // 已被预订总份数（冗余字段，便于列表展示）
+  createdAt: Number,               // 创建时间戳
+  updatedAt: Number                // 更新时间戳
+}
+```
+
+**业务规则**：
+1. 截止日期过后，status 自动变为 expired（前端和云端双重判断）
+2. 每人预订上限为 maxCount * 2（允许超额预订以应对需求波动）
+3. totalBookedCount 在每次 book/cancel 操作时重新统计更新
+
+**相关云函数**：
+- `mealManager.createSideDishOrder`：创建新征订单
+- `mealManager.getSideDishOrders`：获取有效征订单列表
+- `mealManager.getSideDishBookings`：获取某征订单的预订明细
+
+---
+
+### 34. side_dish_bookings - 副食预订记录
+
+**用途**：存储用户的副食预订记录，每人对每份征订单仅一条有效记录
+
+**安全规则**：`ADMINWRITE` - 所有用户可读，仅云函数可写
+
+> **重要说明**：预订记录由 `mealManager` 云函数在用户提交/取消预订时创建或更新。
+
+**记录数**：动态
+
+**索引**：
+
+- `_id` - 记录 ID（云开发自动创建）
+- `idx_orderId_openid` - 组合索引：orderId（升序）+ openid（升序）- 快速查询用户对某征订单的预订
+- `idx_orderId_status` - 组合索引：orderId（升序）+ status（升序）- 查询某征订单的有效预订
+- `idx_openid` - 用户 openid 索引 - 查询用户的所有预订
+
+**字段结构**：
+```javascript
+{
+  _id: String,                    // 记录 ID（自动生成）
+  orderId: String,                 // 关联的征订单 ID（side_dish_orders._id）
+  openid: String,                  // 预订人 openid
+  name: String,                    // 预订人姓名
+  count: Number,                   // 预订份数（1 ~ maxCount*2）
+  status: String,                  // 状态: 'booked'(已预订) | 'cancelled'(已取消)
+  createdAt: Number,               // 创建时间戳
+  updatedAt: Number                // 更新时间戳
+}
+```
+
+**业务规则**：
+1. 幂等性：同一用户对同一征订单只有一条有效 booking（status='booked'），重复提交为 update
+2. 取消预订时将 status 改为 cancelled，而非删除记录
+3. count 范围：1 ≤ count ≤ maxCount*2（maxCount 来自关联的征订单）
+
+**相关云函数**：
+- `mealManager.bookSideDish`：提交/修改/取消预订（支持幂等更新）
+- `mealManager.getMySideDishBookings`：获取当前用户的预订汇总
+- `mealManager.getSideDishBookings`：获取某征订单的所有预订记录（管理端用）
 
 ---
 
