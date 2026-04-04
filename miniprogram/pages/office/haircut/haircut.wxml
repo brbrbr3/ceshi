@@ -164,6 +164,22 @@
             </view>
           </view>
         </view>
+
+        <!-- 分页：加载中 -->
+        <view class="pagination-loading" wx:if="{{loadingstats}}">
+          <view class="loading-spinner"></view>
+          <text class="loading-text">加载中...</text>
+        </view>
+
+        <!-- 分页：点击加载更多（按时间排序） -->
+        <view class="pagination-load-more" wx:if="{{!loadingstats && statsHasMore && sortBy === 'time'}}" bindtap="loadMoreStatsAppointments">
+          <text class="load-more-text">点击加载更多</text>
+        </view>
+
+        <!-- 分页：没有更多数据 -->
+        <view class="pagination-no-more" wx:if="{{!loadingstats && !statsHasMore && statsList.length > 0 && sortBy === 'time'}}">
+          <text class="no-more-text">没有更多数据了</text>
+        </view>
       </block>
 
       <!-- 按人员排序 -->

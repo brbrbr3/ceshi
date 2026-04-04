@@ -807,33 +807,58 @@ Page({
     },
 
     /**
-     * 获取理发统计数据（分页）
+     * 获取理发统计数据（按时间排序时分页，按人员排序时全量获取）
      */
     async fetchStatsAppointments() {
         try {
-            const now = new Date()
+            const params = {
+                sortBy: this.data.sortBy
+            }
+
+            // 按时间排序时启用分页
+            if (this.data.sortBy === 'time') {
+                params.page = this.data.statsPage
+                params.pageSize = 10
+            }
+
             const res = await wx.cloud.callFunction({
                 name: 'haircutManager',
                 data: {
                     action: 'getAppointments',
-                    params: {
-                        year: now.getFullYear(),
-                        sortBy: this.data.sortBy
-                    }
+                    params
                 }
             })
 
             if (res.result.code === 0) {
-                const allList = res.result.data.list || []
-                this.setData({
-                    statsAllLoaded: true,
-                    statsTotalCount: allList.length,
-                    statsHasMore: false
-                })
+                const data = res.result.data
 
                 if (this.data.sortBy === 'time') {
-                    this.processStatsByTime(allList)
+                    // 按时间排序：分页模式
+                    const newList = data.list || []
+                    const hasMore = data.hasMore || false
+
+                    // 追加到已有列表（首页替换）
+                    const mergedList = this.data.statsPage === 1
+                        ? newList
+                        : this.data.statsList.concat(newList)
+
+                    this.setData({
+                        statsTotalCount: data.total || 0,
+                        statsHasMore: hasMore,
+                        statsAllLoaded: !hasMore,
+                        loadingstats: false
+                    })
+
+                    this.processStatsByTime(mergedList)
                 } else {
+                    // 按人员排序：全量获取，一次性聚合
+                    const allList = data.list || []
+                    this.setData({
+                        statsAllLoaded: true,
+                        statsTotalCount: allList.length,
+                        statsHasMore: false,
+                        loadingstats: false
+                    })
                     this.processStatsByName(allList)
                 }
             }
@@ -846,7 +871,7 @@ Page({
     },
 
     /**
-     * 按时间排序：按月分组，过去日期标记已完成
+     * 按时间排序：按月分组，过去日期标记已完成（支持分页追加）
      */
     processStatsByTime(list) {
         const todayStr = this.data.todayStr
@@ -876,6 +901,18 @@ Page({
             statsList: list,
             statsGrouped: groups
         })
+    },
+
+    /**
+     * 触底加载更多（仅按时间排序时生效）
+     */
+    async loadMoreStatsAppointments() {
+        if (!this.data.statsHasMore || this.data.loadingstats) return
+        if (this.data.sortBy !== 'time') return
+
+        this.setData({ loadingstats: true })
+        this.setData({ statsPage: this.data.statsPage + 1 })
+        await this.fetchStatsAppointments()
     },
 
     /**

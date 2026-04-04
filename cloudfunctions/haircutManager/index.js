@@ -318,10 +318,22 @@ async function cancelAppointment(openid, appointmentId, cancelReason) {
 }
 
 /**
- * 获取理发统计列表
+ * 获取理发统计列表（支持分页）
+ * @param {Object} params - 查询参数
+ * @param {number} params.year - 年份（可选）
+ * @param {number} params.month - 月份（可选）
+ * @param {string} params.sortBy - 排序方式：time(默认) / name
+ * @param {number} params.page - 页码（默认1，按时间排序时生效）
+ * @param {number} params.pageSize - 每页条数（默认10，按时间排序时生效）
  */
 async function getAppointments(openid, params = {}) {
-  const { year, month, sortBy = 'time' } = params
+  const {
+    year,
+    month,
+    sortBy = 'time',
+    page = 1,
+    pageSize = 10
+  } = params
 
   // 验证用户权限
   const userResult = await usersCollection.where({ openid }).limit(1).get()
@@ -336,53 +348,101 @@ async function getAppointments(openid, params = {}) {
 
   // 构建日期范围
   const now = new Date()
-  const targetYear = year || now.getFullYear()
-  const targetMonth = month !== undefined ? month : now.getMonth() + 1
-
   let startDate, endDate
-  if (targetMonth === undefined) {
-    // 查询全年
-    startDate = `${targetYear}-01-01`
-    endDate = `${targetYear + 1}-01-01`
+
+  if (year === undefined && month === undefined) {
+    // 无任何限制：查询所有历史记录
+    startDate = '2000-01-01'
+    endDate = '2099-12-31'
+  } else if (year !== undefined && month === undefined) {
+    // 指定年份，查全年
+    startDate = `${year}-01-01`
+    endDate = `${year + 1}-01-01`
   } else {
-    // 查询单月
-    startDate = `${targetYear}-${String(targetMonth).padStart(2, '0')}-01`
-    if (targetMonth === 12) {
-      endDate = `${targetYear + 1}-01-01`
+    // 指定年月，查单月
+    const y = year || now.getFullYear()
+    const m = month || now.getMonth() + 1
+    startDate = `${y}-${String(m).padStart(2, '0')}-01`
+    if (m === 12) {
+      endDate = `${y + 1}-01-01`
     } else {
-      endDate = `${targetYear}-${String(targetMonth + 1).padStart(2, '0')}-01`
+      endDate = `${y}-${String(m + 1).padStart(2, '0')}-01`
     }
   }
 
-  // 查询预约记录
-  const result = await appointmentsCollection
-    .where({
-      date: _.gte(startDate).and(_.lt(endDate)),
-      status: _.in(['booked', 'cancelled', 'completed'])
-    })
-    .orderBy('date', 'asc')
-    .orderBy('timeSlot', 'asc')
-    .get()
-
-  let list = result.data || []
-
-  // 按人员排序
-  if (sortBy === 'name') {
-    list.sort((a, b) => {
-      const nameCompare = a.appointeeName.localeCompare(b.appointeeName, 'zh-CN')
-      if (nameCompare !== 0) return nameCompare
-      const dateCompare = a.date.localeCompare(b.date)
-      if (dateCompare !== 0) return dateCompare
-      return a.timeSlot.localeCompare(b.timeSlot)
-    })
+  // 构建基础查询条件
+  const whereCondition = {
+    date: _.gte(startDate).and(_.lt(endDate)),
+    status: _.in(['booked', 'cancelled', 'completed'])
   }
 
-  return success({
-    list,
-    total: list.length,
-    year: targetYear,
-    month: targetMonth
+  // 按时间排序：支持分页，每次返回一页数据
+  if (sortBy === 'time') {
+    // count 必须带上相同的 where 条件
+    const countResult = await appointmentsCollection.where(whereCondition).count()
+    const total = countResult.total
+
+    let list = []
+    if (total > 0) {
+      const result = await appointmentsCollection
+        .where(whereCondition)
+        .orderBy('date', 'desc')
+        .orderBy('timeSlot', 'asc')
+        .skip((page - 1) * pageSize)
+        .limit(pageSize)
+        .get()
+      list = result.data || []
+    }
+
+    return {
+      code: 0,
+      message: 'ok',
+      data: {
+        list,
+        total,
+        page,
+        pageSize,
+        hasMore: (page * pageSize) < total
+      }
+    }
+  }
+
+  // 按人员排序：一次性返回全部原始记录（前端按月聚合统计，不需要分页）
+  const MAX_LIMIT = 100
+  const countResult = await appointmentsCollection.where(whereCondition).count()
+  const total = countResult.total
+  let list = []
+  if (total > 0) {
+    const batchTimes = Math.ceil(total / MAX_LIMIT)
+    for (let i = 0; i < batchTimes; i++) {
+      const batchResult = await appointmentsCollection
+        .where(whereCondition)
+        .orderBy('date', 'asc')
+        .orderBy('timeSlot', 'asc')
+        .skip(i * MAX_LIMIT)
+        .limit(MAX_LIMIT)
+        .get()
+      list = list.concat(batchResult.data || [])
+    }
+  }
+
+  // 按人员名排序（方便前端聚合）
+  list.sort((a, b) => {
+    const nameCompare = a.appointeeName.localeCompare(b.appointeeName, 'zh-CN')
+    if (nameCompare !== 0) return nameCompare
+    const dateCompare = a.date.localeCompare(b.date)
+    if (dateCompare !== 0) return dateCompare
+    return a.timeSlot.localeCompare(b.timeSlot)
   })
+
+  return {
+    code: 0,
+    message: 'ok',
+    data: {
+      list,
+      total: list.length
+    }
+  }
 }
 
 /**

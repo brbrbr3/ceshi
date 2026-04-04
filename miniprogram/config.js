@@ -10,7 +10,7 @@ const config = {
   host,
 
   // 缓存版本号（修改此值可强制刷新用户端缓存）
-  CACHE_VERSION: '0.34.1',
+  CACHE_VERSION: '0.34.2',
 
   // 云开发环境 ID
   envId: 'cloud1-8gdftlggae64d5d0',
