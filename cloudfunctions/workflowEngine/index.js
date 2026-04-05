@@ -1868,15 +1868,13 @@ exports.main = async (event) => {
   // 只有需要 openid 的操作才进行验证
   const actionsRequireOpenid = ['getMyOrders', 'getMyTasks', 'getOrderDetail', 'supplementOrder', 'cancelOrder', 'terminateOrder', 'approveTask']
 
-  // 对于 approveTask，如果提供了 operatorId，则不依赖 wxContext.OPENID
-  const requireOpenid = actionsRequireOpenid.includes(action) && action !== 'approveTask'
+  const requireOpenid = actionsRequireOpenid.includes(action)
   if (requireOpenid && !openid) {
     return fail('获取微信身份失败,请稍后重试', 401)
   }
   
-  // 对于 approveTask，必须提供 operatorId 或 openid
-  if (action === 'approveTask' && !event.operatorId && !openid) {
-    return fail('缺少操作员信息', 401)
+  if (action === 'approveTask' && !openid) {
+    return fail('获取微信身份失败,请稍后重试', 401)
   }
 
   
@@ -1886,14 +1884,13 @@ exports.main = async (event) => {
         return await startWorkflow(event.orderType, event.businessData)
 
       case 'approveTask':
-        // 兼容 approveAction 参数，避免参数名冲突
         const actionType = event.approveAction || event.action
         return await approveTask(
           event.taskId,
           actionType,
           event.comment,
-          event.operatorId || openid,  // 优先使用传入的 operatorId
-          event.operatorName || wxContext.SERVERID || '审批人',
+          openid,
+          event.operatorName || wxContext.OPENID || '审批人',
           event.attachments
         )
       

@@ -6,6 +6,7 @@ cloud.init({
 })
 
 const db = cloud.database()
+const usersCollection = db.collection('office_users')
 
 /**
  * 系统配置初始化脚本
@@ -478,8 +479,28 @@ const PERMISSION_CONFIGS = [
   }
 ]
 
+async function assertAdmin(openid) {
+  if (!openid) {
+    throw new Error('获取微信身份失败，请稍后重试')
+  }
+
+  const userRes = await usersCollection.where({
+    openid,
+    status: 'approved',
+    isAdmin: true
+  }).limit(1).get()
+
+  if (!userRes.data || userRes.data.length === 0) {
+    throw new Error('仅管理员可执行此操作')
+  }
+
+  return userRes.data[0]
+}
+
 // 初始化系统配置
 exports.main = async (event, context) => {
+  const wxContext = cloud.getWXContext()
+  const openid = wxContext.OPENID
   const startTime = Date.now()
   const results = {
     sysConfig: { success: 0, skipped: 0, failed: 0, errors: [] },
@@ -487,6 +508,7 @@ exports.main = async (event, context) => {
   }
 
   try {
+    await assertAdmin(openid)
     console.log('=== 开始初始化系统配置 ===')
     console.log(`共 ${SYSTEM_CONFIGS.length} 项配置, ${PERMISSION_CONFIGS.length} 项权限`)
 

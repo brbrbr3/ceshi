@@ -1,0 +1,9 @@
+{
+  "name": "bootstrapAdmin",
+  "version": "1.0.0",
+  "description": "首个管理员引导云函数",
+  "main": "index.js",
+  "dependencies": {
+    "wx-server-sdk": "latest"
+  }
+}

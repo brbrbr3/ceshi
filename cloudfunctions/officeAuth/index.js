@@ -1010,8 +1010,10 @@ async function getApprovalData(openid, pagination = {}) {
 /**
  * 获取待审批的用户注册申请列表（超级管理员用）
  */
-async function getPendingRegistrations() {
+async function getPendingRegistrations(openid) {
   try {
+    await ensureAdminUser(openid)
+
     // 查询用户注册类型的待审批工单
     const ordersResult = await workOrdersCollection
       .where({
@@ -1201,7 +1203,7 @@ exports.main = async (event) => {
 
     // 超级管理员：获取待审批的用户注册申请列表（无需 openid 验证）
     if (action === 'getPendingRegistrations') {
-      return await getPendingRegistrations()
+      return await getPendingRegistrations(openid)
     }
 
     return fail('不支持的操作类型', 400)

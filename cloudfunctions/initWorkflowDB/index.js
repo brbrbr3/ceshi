@@ -8,6 +8,7 @@ cloud.init({
 })
 
 const db = cloud.database()
+const usersCollection = db.collection('office_users')
 
 // 集合名称
 const COLLECTIONS = {
@@ -263,11 +264,32 @@ const EXAMPLE_TEMPLATES = [
   }
 ]
 
+async function assertAdmin(openid) {
+  if (!openid) {
+    throw new Error('获取微信身份失败，请稍后重试')
+  }
+
+  const userRes = await usersCollection.where({
+    openid,
+    status: 'approved',
+    isAdmin: true
+  }).limit(1).get()
+
+  if (!userRes.data || userRes.data.length === 0) {
+    throw new Error('仅管理员可执行此操作')
+  }
+
+  return userRes.data[0]
+}
+
 // 初始化集合和导入示例数据
 exports.main = async (event, context) => {
+  const wxContext = cloud.getWXContext()
+  const openid = wxContext.OPENID
   const startTime = Date.now()
   
   try {
+    await assertAdmin(openid)
     console.log('=== 开始初始化工作流数据库 ===')
     
     // 1. 创建集合（如果不存在）

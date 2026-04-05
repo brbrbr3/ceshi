@@ -1,6 +1,6 @@
 <view class="auth-page login-page">
   <view class="auth-hero">
-    <view class="auth-brand" bindtap="handleAuthBrandTap">登录</view>
+    <view class="auth-brand">登录</view>
     <view class="auth-title">Embaixada da China</view>
     <view class="auth-subtitle">欢迎使用Embaixada da China办公小程序！</view>
     <view class="auth-tip-row">
@@ -37,20 +37,14 @@
 
   <view wx:if="{{showRegisterLink}}" class="auth-bottom-link" bindtap="goRegister">尚未注册？去填写注册申请</view>
 
-  <!-- 调试模式入口（仅管理员可见） -->
-  <view wx:if="{{isAdmin}}" class="auth-debug-entry" bindtap="showDebugPassword">调试模式</view>
-
-  <!-- 调试密码输入弹窗 -->
-  <view wx:if="{{showPasswordModal}}" class="auth-modal-overlay" bindtap="hideDebugPassword">
-    <view class="auth-modal" catchtap>
-      <view class="auth-modal-title">输入调试密码</view>
-      <input class="auth-modal-input" type="password" password="{{true}}" placeholder="请输入密码" value="{{debugPassword}}" bindinput="onDebugPasswordInput" />
-      <view class="auth-modal-actions">
-        <view class="auth-modal-btn auth-modal-btn-cancel" bindtap="hideDebugPassword">取消</view>
-        <view class="auth-modal-btn auth-modal-btn-confirm" bindtap="verifyDebugPassword">确认</view>
-      </view>
-    </view>
+  <view wx:if="{{bootstrapStatus.canBootstrap && !isAdmin}}" class="auth-bootstrap-card">
+    <view class="auth-bootstrap-title">首个管理员初始化</view>
+    <view class="auth-bootstrap-desc">系统中还没有已审批管理员。请先提交注册申请，再使用初始化密钥完成首个管理员引导。</view>
+    <view class="auth-bootstrap-btn" bindtap="showBootstrapModal">开始初始化</view>
   </view>
+
+  <!-- 调试模式入口（仅管理员可见） -->
+  <view wx:if="{{isAdmin}}" class="auth-debug-entry" bindtap="toggleDebugPanel">{{showDebugPanel ? '收起调试面板' : '打开调试面板'}}</view>
 
   <!-- 调试面板 -->
   <view wx:if="{{showDebugPanel}}" class="auth-debug-panel">
@@ -103,16 +97,15 @@
     
   </view>
 
-  <!-- 超级管理员登录弹窗 -->
-  <view wx:if="{{showSuperAdminModal}}" class="auth-modal-overlay" bindtap="hideSuperAdminModal">
+  <!-- 首个管理员初始化弹窗 -->
+  <view wx:if="{{showBootstrapModal}}" class="auth-modal-overlay" bindtap="hideBootstrapModal">
     <view class="auth-modal" catchtap>
-      <view class="auth-modal-title">{{clearDbAuthMode ? '超级管理员验证' : '超级管理员登录'}}</view>
-      <view wx:if="{{clearDbAuthMode}}" class="auth-modal-desc">清理数据库需要超级管理员授权</view>
-      <input class="auth-modal-input" type="text" placeholder="用户名" value="{{superAdminUsername}}" bindinput="onSuperAdminUsernameInput" />
-      <input class="auth-modal-input" type="password" password="{{true}}" placeholder="密码" value="{{superAdminPassword}}" bindinput="onSuperAdminPasswordInput" />
+      <view class="auth-modal-title">首个管理员初始化</view>
+      <view class="auth-modal-desc">请输入后端配置的初始化密钥。此入口只会在系统尚无已审批管理员时开放。</view>
+      <input class="auth-modal-input" type="password" password="{{true}}" placeholder="请输入初始化密钥" value="{{bootstrapInviteCode}}" bindinput="onBootstrapInviteCodeInput" />
       <view class="auth-modal-actions">
-        <view class="auth-modal-btn auth-modal-btn-cancel" bindtap="hideSuperAdminModal">取消</view>
-        <view class="auth-modal-btn auth-modal-btn-confirm" bindtap="verifySuperAdmin">确认</view>
+        <view class="auth-modal-btn auth-modal-btn-cancel" bindtap="hideBootstrapModal">取消</view>
+        <view class="auth-modal-btn auth-modal-btn-confirm" bindtap="confirmBootstrapAdmin">确认</view>
       </view>
     </view>
   </view>

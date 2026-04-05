@@ -7,6 +7,7 @@ cloud.init({
 
 const db = cloud.database()
 const _ = db.command
+const usersCollection = db.collection('office_users')
 
 /**
  * 数据库管理云函数
@@ -22,6 +23,24 @@ function success(data, message) {
 
 function fail(message, code) {
   return { code: code || 500, message: message || '服务异常', data: null }
+}
+
+async function assertAdmin(openid) {
+  if (!openid) {
+    throw new Error('获取微信身份失败，请稍后重试')
+  }
+
+  const userRes = await usersCollection.where({
+    openid,
+    status: 'approved',
+    isAdmin: true
+  }).limit(1).get()
+
+  if (!userRes.data || userRes.data.length === 0) {
+    throw new Error('仅管理员可执行此操作')
+  }
+
+  return userRes.data[0]
 }
 
 // 项目数据库集合列表（来自 .codebuddy/docs/DATABASE_COLLECTIONS_REFERENCE.md）
@@ -152,18 +171,26 @@ async function clearCollections(collections) {
 }
 
 exports.main = async (event, context) => {
+  const wxContext = cloud.getWXContext()
+  const openid = wxContext.OPENID
   const { action, collections } = event
 
   console.log(`dbManager action: ${action}`)
 
-  switch (action) {
-    case 'listCollections':
-      return await listCollections()
+  try {
+    await assertAdmin(openid)
 
-    case 'clearCollections':
-      return await clearCollections(collections)
+    switch (action) {
+      case 'listCollections':
+        return await listCollections()
 
-    default:
-      return fail(`未知操作: ${action}`, 400)
+      case 'clearCollections':
+        return await clearCollections(collections)
+
+      default:
+        return fail(`未知操作: ${action}`, 400)
+    }
+  } catch (error) {
+    return fail(error.message || '服务异常', 403)
   }
 }

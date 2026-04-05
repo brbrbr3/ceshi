@@ -6,7 +6,6 @@ function formatTime(timestamp) {
     return ''
   }
 
-  // 使用统一的时间处理函数
   return utils.formatShortDateTime(timestamp)
 }
 
@@ -52,75 +51,93 @@ Page({
     loading: false,
     statusCard: null,
     showRegisterLink: true,
-    avatarUrl: '',
-    tempAvatarUrl: '',
-    // 调试模式相关
     isAdmin: false,
-    showPasswordModal: false,
-    debugPassword: '',
     showDebugPanel: false,
     debugResults: [],
-    // 超级管理员相关
-    authBrandTapCount: 0,
-    showSuperAdminModal: false,
-    superAdminUsername: '',
-    superAdminPassword: '',
-    // 清除数据库相关
     showClearDbPanel: false,
     dbCollections: [],
     selectedCollections: [],
     clearDbLoading: false,
-    clearDbAuthMode: false  // 标记超级管理员验证是否用于清除数据库
+    bootstrapStatus: {
+      bootstrapKeyConfigured: false,
+      hasApprovedAdmin: true,
+      canBootstrap: false
+    },
+    showBootstrapModal: false,
+    bootstrapInviteCode: '',
+    bootstrapLoading: false
   },
 
-  //页面启动即清除用户信息缓存
   onShow() {
     app.clearAuthState()
     this.refreshStatus()
-    // 页面显示时预加载常量（并行执行，不阻塞UI）
-    app.loadConstants().catch(err => {
+    app.loadConstants().catch((err) => {
       console.warn('预加载常量失败:', err)
     })
   },
 
   onPullDownRefresh() {
-    // TODO: 下拉刷新的回调函数
     app.clearAuthState()
-    this.refreshStatus()
+    this.refreshStatus().finally(() => {
+      wx.stopPullDownRefresh()
+    })
   },
 
+  loadBootstrapStatus() {
+    return wx.cloud.callFunction({
+      name: 'bootstrapAdmin',
+      data: {
+        action: 'getStatus'
+      }
+    }).then((res) => {
+      const result = res.result || {}
+      if (result.code !== 0) {
+        throw new Error(result.message || '获取初始化状态失败')
+      }
+      const bootstrapStatus = result.data || {}
+      this.setData({ bootstrapStatus })
+      return bootstrapStatus
+    }).catch((error) => {
+      console.warn('获取首个管理员引导状态失败:', error)
+      const fallback = {
+        bootstrapKeyConfigured: false,
+        hasApprovedAdmin: true,
+        canBootstrap: false
+      }
+      this.setData({ bootstrapStatus: fallback })
+      return fallback
+    })
+  },
 
   refreshStatus() {
-    app.checkUserRegistration()
-      .then((result) => {
-        const statusCard = result.registered
-          ? buildStatusCard({ status: 'approved' })
-          : buildStatusCard(result.request)
+    return Promise.all([
+      app.checkUserRegistration(),
+      this.loadBootstrapStatus()
+    ]).then(([result]) => {
+      const statusCard = result.registered
+        ? buildStatusCard({ status: 'approved' })
+        : buildStatusCard(result.request)
 
-        // 已注册用户不显示注册链接
-        // 未注册用户：没有申请或申请被驳回时显示注册链接，申请审核中不显示
-        // 检查是否为管理员
-        const isAdmin = result.registered && result.user && result.user.isAdmin === true
+      const isAdmin = result.registered && result.user && result.user.isAdmin === true
 
-        this.setData({
-          statusCard,
-          showRegisterLink: !result.registered && (!result.request || result.request.status === 'rejected'),
-          isAdmin
-        })
+      this.setData({
+        statusCard,
+        showRegisterLink: !result.registered && (!result.request || result.request.status === 'rejected'),
+        isAdmin
       })
-      .catch((error) => {
-        this.setData({
-          statusCard: {
-            className: 'is-error',
-            title: '连接失败',
-            desc: error.message || '请稍后重试。',
-            tag: '异常',
-            extra: '',
-            time: ''
-          },
-          showRegisterLink: false
-        })
+    }).catch((error) => {
+      this.setData({
+        statusCard: {
+          className: 'is-error',
+          title: '连接失败',
+          desc: error.message || '请稍后重试。',
+          tag: '异常',
+          extra: '',
+          time: ''
+        },
+        showRegisterLink: false
       })
+    })
   },
 
   handleWxLogin() {
@@ -128,14 +145,11 @@ Page({
       return
     }
 
-
     this.setData({ loading: true })
 
-    // 直接检查用户注册状态，不再需要 wx.login（不再强制刷新）
-    app.checkUserRegistration()
+    app.checkUserRegistration({ forceRefresh: true })
       .then((result) => {
         if (result.registered === true) {
-          // 跳转主页
           utils.showToast({
             title: '登录成功',
             icon: 'success'
@@ -148,7 +162,6 @@ Page({
           return
         }
 
-        // 检查是否有待审核的申请
         if (result.request && result.request.status === 'pending') {
           this.setData({
             statusCard: buildStatusCard(result.request),
@@ -161,7 +174,6 @@ Page({
           return
         }
 
-        // 未注册或申请被退回，跳转注册页面
         wx.navigateTo({
           url: result.request && result.request.status === 'rejected'
             ? '/pages/auth/register/register?mode=reapply'
@@ -186,42 +198,14 @@ Page({
     })
   },
 
-  // ========== 调试模式相关方法 ==========
-
-  showDebugPassword() {
-    this.setData({
-      showPasswordModal: true,
-      debugPassword: ''
-    })
-  },
-
-  hideDebugPassword() {
-    this.setData({
-      showPasswordModal: false,
-      debugPassword: ''
-    })
-  },
-
-  onDebugPasswordInput(e) {
-    this.setData({
-      debugPassword: e.detail.value
-    })
-  },
-
-  verifyDebugPassword() {
-    if (this.data.debugPassword === '0802') {
-      this.setData({
-        showPasswordModal: false,
-        debugPassword: '',
-        showDebugPanel: true,
-        debugResults: []
-      })
-    } else {
-      utils.showToast({
-        title: '密码错误',
-        icon: 'none'
-      })
+  toggleDebugPanel() {
+    if (!this.data.isAdmin) {
+      return
     }
+
+    this.setData({
+      showDebugPanel: !this.data.showDebugPanel
+    })
   },
 
   hideDebugPanel() {
@@ -231,7 +215,6 @@ Page({
     })
   },
 
-  // 添加调试结果
   addDebugResult(name, success, message, data) {
     const result = {
       id: Date.now(),
@@ -245,13 +228,12 @@ Page({
     })
   },
 
-  // 调用初始化系统配置
   callInitSystemConfig() {
     wx.showLoading({ title: '执行中...', mask: true })
     wx.cloud.callFunction({
       name: 'initSystemConfig',
       data: {}
-    }).then(res => {
+    }).then((res) => {
       wx.hideLoading()
       const result = res.result || {}
       this.addDebugResult(
@@ -260,19 +242,18 @@ Page({
         result.message || (result.code === 0 ? '执行成功' : '执行失败'),
         result.data
       )
-    }).catch(error => {
+    }).catch((error) => {
       wx.hideLoading()
       this.addDebugResult('初始化系统配置', false, error.message || '执行失败')
     })
   },
 
-  // 调用初始化工作流
   callInitWorkflowDB() {
     wx.showLoading({ title: '执行中...', mask: true })
     wx.cloud.callFunction({
       name: 'initWorkflowDB',
       data: {}
-    }).then(res => {
+    }).then((res) => {
       wx.hideLoading()
       const result = res.result || {}
       this.addDebugResult(
@@ -281,17 +262,12 @@ Page({
         result.message || (result.code === 0 ? '执行成功' : '执行失败'),
         result.data
       )
-    }).catch(error => {
+    }).catch((error) => {
       wx.hideLoading()
       this.addDebugResult('初始化工作流', false, error.message || '执行失败')
     })
   },
 
-  // ========== 清除数据库相关方法 ==========
-
-  /**
-   * 显示清除数据库面板
-   */
   async showClearDbPanel() {
     this.setData({
       showClearDbPanel: true,
@@ -308,8 +284,7 @@ Page({
       wx.hideLoading()
 
       if (res.result.code === 0) {
-        // 为每个集合添加 checked 属性
-        const collections = res.result.data.collections.map(name => ({
+        const collections = res.result.data.collections.map((name) => ({
           name,
           checked: false
         }))
@@ -325,9 +300,6 @@ Page({
     }
   },
 
-  /**
-   * 隐藏清除数据库面板
-   */
   hideClearDbPanel() {
     this.setData({
       showClearDbPanel: false,
@@ -336,12 +308,9 @@ Page({
     })
   },
 
-  /**
-   * 集合选择变化
-   */
   onCollectionChange(e) {
     const selectedValues = e.detail.value || []
-    const collections = this.data.dbCollections.map(item => ({
+    const collections = this.data.dbCollections.map((item) => ({
       ...item,
       checked: selectedValues.includes(item.name)
     }))
@@ -351,26 +320,18 @@ Page({
     })
   },
 
-  /**
-   * 全选/取消全选
-   */
   toggleSelectAll() {
     const allSelected = this.data.selectedCollections.length === this.data.dbCollections.length
     if (allSelected) {
-      // 取消全选
-      const collections = this.data.dbCollections.map(item => ({ ...item, checked: false }))
+      const collections = this.data.dbCollections.map((item) => ({ ...item, checked: false }))
       this.setData({ dbCollections: collections, selectedCollections: [] })
     } else {
-      // 全选
-      const collections = this.data.dbCollections.map(item => ({ ...item, checked: true }))
-      const allNames = collections.map(item => item.name)
+      const collections = this.data.dbCollections.map((item) => ({ ...item, checked: true }))
+      const allNames = collections.map((item) => item.name)
       this.setData({ dbCollections: collections, selectedCollections: allNames })
     }
   },
 
-  /**
-   * 执行清理（两次确认 + 超级管理员验证）
-   */
   doClearDb() {
     const { selectedCollections } = this.data
 
@@ -379,7 +340,6 @@ Page({
       return
     }
 
-    // 第一次确认
     wx.showModal({
       title: '确认清理',
       content: `将清理 ${selectedCollections.length} 个集合的所有数据，此操作不可恢复，是否继续？`,
@@ -387,7 +347,6 @@ Page({
       confirmColor: '#ff4d4f',
       success: (res) => {
         if (res.confirm) {
-          // 第二次确认
           wx.showModal({
             title: '最终确认',
             content: `确定要清空以下集合的所有数据吗？\n\n${selectedCollections.join('\n')}`,
@@ -395,13 +354,7 @@ Page({
             confirmColor: '#ff4d4f',
             success: (res2) => {
               if (res2.confirm) {
-                // 显示超级管理员验证弹窗
-                this.setData({
-                  showSuperAdminModal: true,
-                  clearDbAuthMode: true,
-                  superAdminUsername: '',
-                  superAdminPassword: ''
-                })
+                this.executeClearDb()
               }
             }
           })
@@ -410,9 +363,6 @@ Page({
     })
   },
 
-  /**
-   * 执行清理操作
-   */
   async executeClearDb() {
     const { selectedCollections } = this.data
 
@@ -440,7 +390,6 @@ Page({
           results
         )
 
-        // 显示结果
         wx.showModal({
           title: summary.failed === 0 ? '清理完成' : '部分清理完成',
           content: `成功: ${summary.success} 个\n失败: ${summary.failed} 个`,
@@ -461,192 +410,79 @@ Page({
     }
   },
 
-  // ========== 超级管理员相关方法 ==========
-
-  /**
-   * auth-brand 点击计数（10次触发超级管理员弹窗）
-   */
-  handleAuthBrandTap() {
-    let count = this.data.authBrandTapCount + 1
-    this.setData({ authBrandTapCount: count })
-    
-    // 达到10次，触发超级管理员弹窗
-    if (count >= 10) {
-      this.setData({
-        showSuperAdminModal: true,
-        authBrandTapCount: 0,
-        superAdminUsername: '',
-        superAdminPassword: ''
-      })
-      return
-    }
-    
-    // 3秒内未继续点击，重置计数
-    if (this._tapResetTimer) {
-      clearTimeout(this._tapResetTimer)
-    }
-    this._tapResetTimer = setTimeout(() => {
-      this.setData({ authBrandTapCount: 0 })
-    }, 3000)
-  },
-
-  hideSuperAdminModal() {
+  showBootstrapModal() {
     this.setData({
-      showSuperAdminModal: false,
-      superAdminUsername: '',
-      superAdminPassword: '',
-      clearDbAuthMode: false
+      showBootstrapModal: true,
+      bootstrapInviteCode: ''
     })
   },
 
-  onSuperAdminUsernameInput(e) {
-    this.setData({ superAdminUsername: e.detail.value })
-  },
-
-  onSuperAdminPasswordInput(e) {
-    this.setData({ superAdminPassword: e.detail.value })
-  },
-
-  /**
-   * 生成今日密码（今天日期 + 倒序之和）
-   */
-  generateSuperPassword() {
-    const today = new Date()
-    const year = today.getFullYear()
-    const month = String(today.getMonth() + 1).padStart(2, '0')
-    const day = String(today.getDate()).padStart(2, '0')
-    const dateStr = `${year}${month}${day}`
-    const reversedDateStr = dateStr.split('').reverse().join('')
-    return String(Number(dateStr) + Number(reversedDateStr))
-  },
-
-  /**
-   * 验证超级管理员登录
-   */
-  verifySuperAdmin() {
-    const { superAdminUsername, superAdminPassword, clearDbAuthMode } = this.data
-
-    // 验证用户名
-    if (superAdminUsername !== '999') {
-      utils.showToast({ title: '用户名错误', icon: 'none' })
-      return
-    }
-
-    // 验证密码
-    const correctPassword = this.generateSuperPassword()
-    if (superAdminPassword !== correctPassword) {
-      utils.showToast({ title: '密码错误', icon: 'none' })
-      return
-    }
-
-    // 验证通过，隐藏弹窗
+  hideBootstrapModal() {
     this.setData({
-      showSuperAdminModal: false,
-      superAdminUsername: '',
-      superAdminPassword: ''
+      showBootstrapModal: false,
+      bootstrapInviteCode: ''
     })
-
-    // 根据模式执行不同操作
-    if (clearDbAuthMode) {
-      // 清除数据库模式：执行清理
-      this.setData({ clearDbAuthMode: false })
-      this.executeClearDb()
-    } else {
-      // 默认模式：开始审批流程
-      this.processPendingRegistrations()
-    }
   },
 
-  /**
-   * 获取待审批的用户注册申请
-   */
-  async getPendingRegistrations() {
-    try {
-      const res = await wx.cloud.callFunction({
-        name: 'officeAuth',
-        data: {
-          action: 'getPendingRegistrations'
-        }
+  onBootstrapInviteCodeInput(e) {
+    this.setData({
+      bootstrapInviteCode: e.detail.value
+    })
+  },
+
+  confirmBootstrapAdmin() {
+    if (this.data.bootstrapLoading) {
+      return
+    }
+
+    const inviteCode = String(this.data.bootstrapInviteCode || '').trim()
+    if (!inviteCode) {
+      utils.showToast({
+        title: '请输入初始化密钥',
+        icon: 'none'
       })
-      if (res.result.code === 0) {
-        return res.result.data || []
+      return
+    }
+
+    this.setData({ bootstrapLoading: true })
+    wx.showLoading({ title: '初始化中...', mask: true })
+
+    wx.cloud.callFunction({
+      name: 'bootstrapAdmin',
+      data: {
+        action: 'claimAdmin',
+        inviteCode
       }
-      return []
-    } catch (error) {
-      console.error('获取待审批注册申请失败:', error)
-      return []
-    }
-  },
+    }).then((res) => {
+      const result = res.result || {}
+      if (result.code !== 0) {
+        throw new Error(result.message || '初始化失败')
+      }
 
-  /**
-   * 处理待审批的用户注册申请
-   */
-  async processPendingRegistrations() {
-    wx.showLoading({ title: '获取待审批列表...', mask: true })
-    
-    // 获取待审批列表
-    const pendingList = await this.getPendingRegistrations()
-    wx.hideLoading()
-    
-    if (pendingList.length === 0) {
-      utils.showToast({ title: '没有待审批的注册申请', icon: 'none' })
-      return
-    }
-    
-    // 逐条处理
-    this.showApprovalModal(pendingList, 0)
-  },
+      this.hideBootstrapModal()
+      utils.showToast({
+        title: '管理员初始化成功',
+        icon: 'success'
+      })
 
-  /**
-   * 显示审批确认弹窗
-   */
-  showApprovalModal(list, index) {
-    if (index >= list.length) {
-      utils.showToast({ title: '全部申请已处理完毕', icon: 'success' })
-      return
-    }
-    
-    const item = list[index]
-    const name = item.applicantName || item.name || '未知用户'
-    
-    wx.showModal({
-      title: '用户注册审批',
-      content: `是否批准「${name}」的用户注册申请？`,
-      confirmText: '批准',
-      cancelText: '跳过',
-      success: async (res) => {
-        if (res.confirm) {
-          // 确认批准
-          wx.showLoading({ title: '审批中...', mask: true })
-          try {
-            const result = await wx.cloud.callFunction({
-              name: 'workflowEngine',
-              data: {
-                action: 'approveTask',
-                taskId: item.taskId,
-                approveAction: 'approve',
-                comment: '超级管理员审批通过',
-                operatorId: 'system',
-                operatorName: '超级管理员'
-              }
-            })
-            wx.hideLoading()
-            
-            if (result.result.code === 0) {
-              utils.showToast({ title: '已批准', icon: 'success' })
-            } else {
-              utils.showToast({ title: result.result.message || '审批失败', icon: 'none' })
-            }
-          } catch (error) {
-            wx.hideLoading()
-            utils.showToast({ title: '审批失败', icon: 'none' })
-          }
-        }
-        // 继续下一条
+      return app.checkUserRegistration({ forceRefresh: true })
+    }).then((result) => {
+      if (result && result.registered) {
         setTimeout(() => {
-          this.showApprovalModal(list, index + 1)
-        }, 300)
+          wx.switchTab({
+            url: '/pages/office/home/home'
+          })
+        }, 200)
       }
+    }).catch((error) => {
+      utils.showToast({
+        title: error.message || '初始化失败',
+        icon: 'none'
+      })
+    }).finally(() => {
+      wx.hideLoading()
+      this.setData({ bootstrapLoading: false })
+      this.refreshStatus()
     })
   }
 })

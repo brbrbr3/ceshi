@@ -7,6 +7,40 @@ page {
 .login-submit-btn{
 }
 
+/* 首个管理员初始化 */
+.auth-bootstrap-card {
+  margin-top: 30rpx;
+  padding: 30rpx;
+  background: #fff7ed;
+  border: 1rpx solid #fed7aa;
+  border-radius: 24rpx;
+}
+
+.auth-bootstrap-title {
+  font-size: 30rpx;
+  font-weight: 600;
+  color: #9a3412;
+}
+
+.auth-bootstrap-desc {
+  margin-top: 12rpx;
+  font-size: 24rpx;
+  line-height: 1.7;
+  color: #9a3412;
+}
+
+.auth-bootstrap-btn {
+  margin-top: 24rpx;
+  height: 76rpx;
+  line-height: 76rpx;
+  text-align: center;
+  border-radius: 999rpx;
+  background: #ea580c;
+  color: #fff;
+  font-size: 28rpx;
+  font-weight: 500;
+}
+
 /* 调试模式入口 */
 .auth-debug-entry {
   margin: 40rpx auto;
@@ -58,6 +92,7 @@ page {
   width: 100%;
   height: 80rpx;
   padding: 0 20rpx;
+  margin-top: 16rpx;
   border: 1rpx solid #ddd;
   border-radius: 8rpx;
   font-size: 28rpx;
