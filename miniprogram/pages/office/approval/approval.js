@@ -261,7 +261,7 @@ Page({
     mineList: [],
     doneList: [],
     currentList: [],
-    emptyText: '暂无注册申请',
+    emptyText: '暂无申请',
     showDetail: false,
     selectedRequest: null,
     currentUser: null,

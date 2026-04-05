@@ -32,17 +32,18 @@ function fail(message, code) {
 const CACHE_TTL = 15 * 60 * 1000        // 数据库缓存有效期：15分钟
 const MAX_ARTICLES_PER_SOURCE = 10       // 每个源每次最多抓取篇数
 const OLD_ARTICLE_TTL = 7 * 24 * 60 * 60 * 1000 // 旧文章保留时间：7天
-const REQUEST_TIMEOUT = 10000            // HTTP 请求超时：10秒
+const REQUEST_TIMEOUT = 10000            // HTTP 请求超时：10秒（默认）
 const DELAY_MIN = 1000                   // 请求间最小延迟（ms）
 const DELAY_MAX = 2000                   // 请求间最大延迟（ms）
 
 // ===== User-Agent 池（轮换使用，避免被封锁） =====
 const USER_AGENTS = [
-  'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/120.0.0.0 Safari/537.36',
-  'Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/120.0.0.0 Safari/537.36',
-  'Mozilla/5.0 (X11; Linux x86_64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/120.0.0.0 Safari/537.36',
-  'Mozilla/5.0 (Windows NT 10.0; Win64; x64; rv:121.0) Gecko/20100101 Firefox/121.0',
-  'Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) AppleWebKit/605.1.15 (KHTML, like Gecko) Version/17.2 Safari/605.1.15'
+  'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/131.0.0.0 Safari/537.36',
+  'Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/131.0.0.0 Safari/537.36',
+  'Mozilla/5.0 (X11; Linux x86_64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/131.0.0.0 Safari/537.36',
+  'Mozilla/5.0 (Windows NT 10.0; Win64; x64; rv:133.0) Gecko/20100101 Firefox/133.0',
+  'Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) AppleWebKit/605.1.15 (KHTML, like Gecko) Version/18.2 Safari/605.1.15',
+  'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/131.0.0.0 Safari/537.36 Edg/131.0.0.0'
 ]
 
 function getRandomUA() {
@@ -122,32 +123,80 @@ const SOURCES_REGISTRY = [
     id: 'globo',
     name: 'Globo',
     enabled: true,
-    // 使用 RSS feed（公开稳定的 XML 数据源，避免 HTML 反爬问题）
+    // Globo 对云服务器IP封锁严重，使用短超时快速失败，避免拖慢其他源
+    // 保留2个不同域名的URL作为最后尝试
+    requestTimeout: 5000,   // 5秒超时（比默认10秒快）
+    requestRetries: 0,      // 不重试（403重试无意义）
     listUrls: [
-      'https://g1.globo.com/rss/g1/economia/',
-      'https://g1.globo.com/rss/g1/mundo/',
-      'https://g1.globo.com/rss/g1/ciencia/',
-      'https://g1.globo.com/rss/g1/politica/'
+      'https://g1.globo.com/rss/g1/',
+      'https://feedproxy.google.com/g1/ultimas-noticias'
     ],
     parseList: (root, url) => {
       const articles = []
-      // RSS XML 格式：从 <item> 标签提取 <title> 和 <link>
-      const excludePatterns = ['globoplay', '/ao-vivo/', '/podcast/', '/videos/', '/imposto-de-renda/']
-      root.querySelectorAll('item').forEach(item => {
+      // RSS XML 格式：从 <item> 标签提取 <title>、<link>、<media:content>、<description>
+      const excludePatterns = [
+        'globoplay', '/ao-vivo/', '/podcast/', '/videos/', '/imposto-de-renda/',
+        'loterias', '/playlist-', 'megasena', 'lotofacil', 'quina', 'dia-de-sorte',
+        'resultados-', 'tv-globo/', 'jornal-', '/telejornais/'
+      ]
+      
+      const allItems = root.querySelectorAll('item')
+      console.log(`[parseList] 总item数: ${allItems.length}`)
+      
+      let debugStats = { noHrefOrTitle: 0, notG1Domain: 0, excluded: 0, titleTooShort: 0, titleTooLong: 0, duplicate: 0, passed: 0 }
+      
+      root.querySelectorAll('item').forEach((item, idx) => {
         const titleEl = item.querySelector('title')
         const linkEl = item.querySelector('link')
         const title = getText(titleEl)
         const href = getText(linkEl)
-        if (!href || !title) return
-        if (!href.includes('g1.globo.com/')) return
-        if (excludePatterns.some(p => href.includes(p))) return
-        if (title.length > 10 && title.length < 200) {
-          if (!articles.find(a => a.url === href)) {
-            articles.push({ url: href, title })
-          }
+        
+        // 调试：每10条输出一次
+        if (idx < 5 || idx % 20 === 0) {
+          console.log(`[parseList] item#${idx}: href=${href?.slice(0, 80)}, title="${title?.slice(0, 50)}", titleLen=${title?.length || 0}`)
         }
+        
+        if (!href || !title) { debugStats.noHrefOrTitle++; return }
+        if (!href.includes('g1.globo.com/')) { debugStats.notG1Domain++; console.log(`[parseList] ❌ 非g1域名: ${href}`); return }
+        const matchedPattern = excludePatterns.find(p => href.includes(p))
+        if (matchedPattern) { debugStats.excluded++; return }
+        if (!(title.length > 10 && title.length < 200)) { 
+          if (title.length <= 10) debugStats.titleTooShort++
+          else debugStats.titleTooLong++
+          return 
+        }
+        if (!articles.find(a => a.url === href)) {
+          // 从 <media:content> 提取图片
+          const mediaContent = item.querySelector('media\\:content') || item.querySelector('content')
+          const imageUrl = mediaContent ? getAttr(mediaContent, 'url') : ''
+          // 从 <description> 提取摘要
+          const descEl = item.querySelector('description')
+          let summary = ''
+          if (descEl) {
+            // description 可能包含 HTML，提取纯文本并截断
+            const descText = getText(parse(getText(descEl)))
+            summary = descText.slice(0, 200)
+          }
+          // 从 <pubDate> 提取发布时间
+          let publishedAt = 0
+          const pubDateEl = item.querySelector('pubDate')
+          if (pubDateEl) {
+            const pubDateStr = getText(pubDateEl)
+            // RSS标准格式: "Sat, 04 Apr 2026 22:30:00 GMT"
+            const parsed = new Date(pubDateStr)
+            if (!isNaN(parsed.getTime())) {
+              publishedAt = parsed.getTime()
+            }
+          }
+          articles.push({ url: href, title, imageUrl, summary, publishedAt })
+          debugStats.passed++
+        } else { debugStats.duplicate++ }
       })
-      return articles.slice(0, MAX_ARTICLES_PER_SOURCE)
+      
+      console.log(`[parseList] 过滤统计:`, JSON.stringify(debugStats))
+      const result = articles.slice(0, MAX_ARTICLES_PER_SOURCE)
+      console.log(`[parseList] 最终返回: ${result.length} 条（上限${MAX_ARTICLES_PER_SOURCE}）`)
+      return result
     },
     parseDetail: (root, url) => {
       let content = ''
@@ -236,8 +285,9 @@ const SOURCES_REGISTRY = [
         // 匹配包含日期路径和 .shtml 结尾的文章链接
         if (!href.match(/\/\d{4}\/\d{2}\//) && !href.match(/\.shtml$/)) return
         if (excludePatterns.some(p => href.includes(p))) return
-        const title = getText(el).trim()
-        if (title.length > 10 && title.length < 200) {
+        const title = getText(el).replace(/\\/g, '').trim()
+        // 排除包含HTML标签的"标题"（通常是匹配到了图片/广告等非文章元素）
+        if (title.length > 10 && title.length < 200 && !/<(img|svg|script|iframe|video|audio|source|button|input|select|textarea)\s/i.test(title)) {
           const fullUrl = href.startsWith('http') ? href : `https://www1.folha.uol.com.br${href}`
           if (fullUrl.includes('folha.uol.com.br') && !articles.find(a => a.url === fullUrl)) {
             articles.push({ url: fullUrl, title })
@@ -503,20 +553,60 @@ function getEnabledSources() {
 }
 
 // ===== HTTP 请求封装 =====
-async function fetchPage(url) {
-  const response = await axios.get(url, {
-    timeout: REQUEST_TIMEOUT,
-    headers: {
-      'User-Agent': getRandomUA(),
-      'Accept': 'text/html,application/xhtml+xml,application/xml;q=0.9,*/*;q=0.8',
-      'Accept-Language': 'pt-BR,pt;q=0.9,en-US;q=0.8,en;q=0.7',
-      'Cache-Control': 'no-cache'
-    },
-    responseType: 'text',
-    // 处理编码
-    responseEncoding: 'utf-8'
-  })
-  return response.data
+async function fetchPage(url, options = {}) {
+  const { retries = 1, referer = null, timeout: optTimeout } = options
+  const effectiveTimeout = optTimeout || REQUEST_TIMEOUT
+  console.log(`[fetchPage] 开始请求: ${url}${referer ? ` (Referer: ${referer})` : ''}`)
+
+  // 从 URL 自动推导 Referer（如果未手动指定）
+  const autoReferer = referer || (() => {
+    try {
+      const u = new URL(url)
+      return `${u.protocol}//${u.host}/`
+    } catch { return null }
+  })()
+
+  let lastError = null
+  for (let attempt = 0; attempt <= retries; attempt++) {
+    if (attempt > 0) {
+      console.log(`[fetchPage] 第${attempt}次重试: ${url}`)
+      await randomDelay()
+    }
+
+    let response
+    try {
+      response = await axios.get(url, {
+        timeout: effectiveTimeout,
+        headers: {
+          'User-Agent': getRandomUA(),
+          'Accept': 'text/html,application/xhtml+xml,application/xml;q=0.9,image/avif,image/webp,image/apng,*/*;q=0.8',
+          'Accept-Language': 'pt-BR,pt;q=0.9,en-US;q=0.8,en;q=0.7',
+          'Cache-Control': 'no-cache',
+          'Pragma': 'no-cache',
+          // 反爬虫：浏览器指纹头
+          ...(autoReferer ? { 'Referer': autoReferer } : {}),
+          'Sec-Fetch-Dest': 'document',
+          'Sec-Fetch-Mode': 'navigate',
+          'Sec-Fetch-Site': 'none',
+          'Sec-Fetch-User': '?1',
+          'Upgrade-Insecure-Requests': '1'
+        },
+        responseType: 'text',
+        responseEncoding: 'utf-8'
+      })
+      console.log(`[fetchPage] 请求成功: ${url}, 状态码: ${response.status}, 数据长度: ${(response.data || '').length}`)
+      return response.data
+    } catch (err) {
+      lastError = err
+      console.error(`[fetchPage] 请求失败(尝试${attempt + 1}/${retries + 1}): ${url}`, err.message)
+      if (err.response) {
+        console.error(`[fetchPage] HTTP状态码: ${err.response.status}, 响应长度: ${(err.response.data || '').length}`)
+        // 403/429 不重试（被封锁，重试也没用）
+        if ([403, 429].includes(err.response.status)) break
+      }
+    }
+  }
+  throw lastError
 }
 
 // ===== 爬取单个源 =====
@@ -524,15 +614,62 @@ async function scrapeSource(source) {
   const results = []
   const allListItems = []
 
+  // 源级请求配置（可覆盖全局默认值）
+  const srcTimeout = source.requestTimeout || REQUEST_TIMEOUT
+  const srcRetries = (source.requestRetries !== undefined) ? source.requestRetries : 1
+
+  console.log(`[scrapeSource] 开始抓取源: ${source.id} (${source.name}), listUrls数量: ${(source.listUrls || []).length}, 超时:${srcTimeout}ms, 重试:${srcRetries}`)
+
   // 1. 从所有 listUrl 获取文章链接
+  let domainBlocked = false    // 标记：当前域名是否已被403封锁
+  let blockedDomain = ''       // 被封锁的域名
+
   for (const listUrl of source.listUrls) {
+    // 域名级403跳过：如果同域名的前一个URL已返回403，直接跳过
+    if (domainBlocked) {
+      try {
+        const urlHost = new URL(listUrl).host
+        if (urlHost === blockedDomain) {
+          console.log(`[scrapeSource] ⏭️ 跳过(域名${urlHost}已被403): ${listUrl}`)
+          continue
+        }
+      } catch { /* URL解析失败，不跳过 */ }
+    }
+
+    console.log(`[scrapeSource] 正在获取列表页: ${listUrl}`)
     try {
-      const html = await fetchPage(listUrl)
+      const html = await fetchPage(listUrl, { timeout: srcTimeout, retries: srcRetries })
+      console.log(`[scrapeSource] HTML长度: ${html.length}, 是否含RSS标签: ${html.includes('<rss')}, 是否含item: ${html.includes('<item>')}`)
       const root = parse(html)
+      console.log(`[scrapeSource] 解析完成, root节点数(querySelectorAll('*').length): ${root.querySelectorAll('*').length}`)
+      console.log(`[scrapeSource] item标签数量: ${root.querySelectorAll('item').length}`)
+      
+      // 调试：输出前3个item的结构
+      const firstItems = root.querySelectorAll('item').slice(0, 3)
+      firstItems.forEach((item, idx) => {
+        const titleEl = item.querySelector('title')
+        const linkEl = item.querySelector('link')
+        console.log(`[scrapeSource] item#${idx}: title="${getText(titleEl)}", link="${getText(linkEl)}"`)
+      })
+      
       const items = source.parseList(root, listUrl)
+      console.log(`[scrapeSource] parseList返回: ${items.length} 条文章`)
+      if (items.length > 0) {
+        items.slice(0, 3).forEach((a, i) => {
+          console.log(`[scrapeSource] 文章#${i}: url=${a.url?.slice(0, 80)}, title=${a.title?.slice(0, 50)}, hasImage=!!${!!a.imageUrl}, hasSummary=!!${!!a.summary}`)
+        })
+      }
       allListItems.push(...items)
     } catch (err) {
       console.error(`[${source.id}] 获取列表页失败: ${listUrl}`, err.message)
+      // 检测403封锁并标记域名
+      if (err.response && err.response.status === 403) {
+        try {
+          blockedDomain = new URL(listUrl).host
+          domainBlocked = true
+          console.log(`[scrapeSource] 🚫 域名 ${blockedDomain} 已返回403，跳过该域名的其余URL`)
+        } catch { /* 忽略URL解析错误 */ }
+      }
     }
     await randomDelay()
   }
@@ -559,25 +696,32 @@ async function scrapeSource(source) {
       .limit(100)
       .get()
     const existingSet = new Set(existingDocs.data.map(d => d.sourceUrl))
+    const dedupSkippedCount = targetItems.filter(i => existingSet.has(i.url)).length
+    console.log(`[scrapeSource] 数据库去重: 总${targetItems.length}篇, 已存在${dedupSkippedCount}篇, 待抓取${targetItems.length - dedupSkippedCount}篇`)
 
     // 3. 逐个抓取新文章详情
+    let successCount = 0
+    let failCount = 0
     for (const item of targetItems) {
       if (existingSet.has(item.url)) continue
 
       try {
         const html = await fetchPage(item.url)
         const root = parse(html)
-        const { content, imageUrl, category, author } = source.parseDetail(root, item.url)
+        const detail = source.parseDetail(root, item.url)
 
-        // 生成摘要（纯文本，最多200字）
-        let summary = ''
-        if (content) {
-          const tempRoot = parse(content)
+        // 生成摘要（优先使用详情页正文生成，降级使用RSS的description）
+        let summary = item.summary || ''
+        if (detail.content && !summary) {
+          const tempRoot = parse(detail.content)
           summary = tempRoot.textContent.replace(/\s+/g, ' ').trim().slice(0, 200)
         }
 
-        // 提取发布时间：尝试多种 meta 标签和文本格式
-        let publishedAt = Date.now()
+        // 图片：优先使用详情页og:image，降级使用RSS media:content
+        const imageUrl = detail.imageUrl || item.imageUrl || ''
+
+        // 提取发布时间：优先使用RSS的pubDate，再尝试详情页meta标签
+        let publishedAt = item.publishedAt || 0
         const timeMeta = getAttr(root.querySelector('meta[property="article:published_time"]'), 'content') ||
           getAttr(root.querySelector('meta[name="date"]'), 'content') ||
           getAttr(root.querySelector('meta[itemprop="datePublished"]'), 'content') ||
@@ -616,25 +760,29 @@ async function scrapeSource(source) {
         const now = Date.now()
         results.push({
           title: item.title,
-          content: cleanHtml(content),
+          content: cleanHtml(detail.content),
           summary,
-          imageUrl: imageUrl || '',
+          imageUrl,
           source: source.id,
           sourceName: source.name,
           sourceUrl: item.url,
-          category: category || '',
-          author: author || '',
+          category: detail.category || '',
+          author: detail.author || '',
           publishedAt,
           scrapedAt: now,
           createdAt: now,
           updatedAt: now
         })
+        successCount++
+        console.log(`[scrapeSource] ✅ 详情成功: "${item.title?.slice(0, 40)}" (${item.url?.slice(0, 60)})`)
 
         await randomDelay()
       } catch (err) {
-        console.error(`[${source.id}] 抓取文章详情失败: ${item.url}`, err.message)
+        failCount++
+        console.error(`[scrapeSource] ❌ 详情失败: ${item.url}`, err.message)
       }
     }
+    console.log(`[scrapeSource] 详情页统计: 成功=${successCount}, 失败=${failCount}, 跳过(已存在)=${dedupSkippedCount}`)
   }
 
   return results
@@ -704,14 +852,19 @@ async function isCacheValid() {
 
 // ===== 导出 =====
 exports.main = async (event, context) => {
-  const { action } = event
+  const { action } = event || {}
+  
+  console.log(`[main] 收到请求, action="${action || '(空-默认refresh)'}", 触发方式: ${context && context.trigger_name ? context.trigger_name : '手动调用'}`)
 
   try {
-    switch (action) {
+        switch (action || 'refresh') {
       case 'list': return await handleList(event)
       case 'detail': return await handleDetail(event)
-      case 'refresh': return await handleRefresh(event)
-      default: return fail('未知操作', 400)
+      case 'refresh':
+        console.log('[main] 执行 refresh 操作')
+        return await handleRefresh(event)
+      default: // 未知操作（非空但不是已知action）
+        return fail('未知操作', 400)
     }
   } catch (error) {
     console.error('newsFetcher 错误:', error)
@@ -782,22 +935,25 @@ async function handleDetail(event) {
 // ===== Action: 强制刷新 =====
 async function handleRefresh(event) {
   const enabledSources = getEnabledSources()
+  console.log(`[handleRefresh] 开始刷新, 启用的源数量: ${enabledSources.length}, 源列表: ${enabledSources.map(s => s.id).join(',')}`)
   const allNewArticles = []
 
   for (const source of enabledSources) {
     try {
       console.log(`开始抓取: ${source.name}`)
       const articles = await scrapeSource(source)
-      console.log(`${source.name}: 新增 ${articles.length} 篇`)
+      console.log(`${source.name}: scrapeSource返回 ${articles.length} 篇, 文章URL列表: ${articles.map(a => a.sourceUrl?.slice(0, 60)).join(' | ')}`)
       allNewArticles.push(...articles)
     } catch (err) {
       console.error(`${source.name} 抓取失败:`, err.message)
+      console.error(`${source.name} 错误堆栈:`, err.stack || '无')
     }
   }
 
   // 批量写入数据库（全局去重）
   let writtenCount = 0
   if (allNewArticles.length > 0) {
+    console.log(`[handleRefresh] 准备去重, 新文章总数: ${allNewArticles.length}`)
     // 先查库中已存在的 sourceUrl，避免跨源重复
     const allUrls = allNewArticles.map(a => a.sourceUrl)
     const existingDocs = await newsArticlesCollection
@@ -805,8 +961,10 @@ async function handleRefresh(event) {
       .field({ sourceUrl: true })
       .limit(500)
       .get()
+    console.log(`[handleRefresh] 数据库已有文章数: ${existingDocs.data.length}`)
     const existingSet = new Set(existingDocs.data.map(d => d.sourceUrl))
     const deduped = allNewArticles.filter(a => !existingSet.has(a.sourceUrl))
+    console.log(`[handleRefresh] 去重后待写入: ${deduped.length} 篇`)
 
     if (deduped.length > 0) {
       const batchSize = 20
@@ -816,7 +974,11 @@ async function handleRefresh(event) {
       }
       writtenCount = deduped.length
       console.log(`共写入 ${writtenCount} 篇新文章（去重后）`)
+    } else {
+      console.log(`[handleRefresh] 所有文章均已存在，无需写入`)
     }
+  } else {
+    console.log(`[handleRefresh] 没有新文章需要处理（scrapeSource返回为空）`)
   }
 
   // 清理旧文章

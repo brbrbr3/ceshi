@@ -3,18 +3,19 @@
 }
 
 .menu-detail-header {
-  text-align: center;
-  padding-bottom: 100rpx;
+  padding-top: 60rpx;
+  text-align: left;
+  padding-bottom: 90rpx;
 }
 
 .menu-detail-title {
-  font-size: 48rpx;
-  font-weight: 700;
+  font-size: 46rpx;
+  font-weight: 600;
   color: #FFFFFF;
 }
 
 .menu-detail-meta {
-  margin-top: 8rpx;
+  margin-top: 5rpx;
   font-size: 26rpx;
   color: rgba(255, 255, 255, 0.9);
 }
@@ -67,7 +68,7 @@
 
 .menu-comment-input textarea {
   width: 100%;
-  min-height: 140rpx;
+  max-height: 180rpx;
   padding: 20rpx;
   border-radius: 16rpx;
   background: #F8FAFC;
@@ -169,4 +170,224 @@
 
 .empty-state.is-mini .empty-text {
   font-size: 24rpx;
+}
+
+/* ==================== 菜品打分模块样式 ==================== */
+.menu-ratings-card {
+  padding: 24rpx;
+}
+
+.menu-rating-list {
+  margin-bottom: 16rpx;
+}
+
+.menu-rating-item {
+  display: flex;
+  align-items: center;
+  padding: 16rpx 0;
+  border-bottom: 1rpx solid rgba(37, 99, 235, 0.06);
+}
+
+.menu-rating-item:last-child {
+  border-bottom: none;
+}
+
+.rating-dish-name {
+  width: 180rpx;
+  flex-shrink: 0;
+  font-size: 28rpx;
+  font-weight: 500;
+  color: #1E293B;
+}
+
+.rating-score-area {
+  flex: 1;
+  display: flex;
+  align-items: center;
+  gap: 8rpx;
+}
+
+.rating-stars {
+  display: flex;
+  gap: 2rpx;
+}
+
+.rating-star {
+  font-size: 26rpx;
+  color: #E2E8F0;
+}
+
+.rating-star.is-filled {
+  color: #F59E0B;
+}
+
+.rating-average {
+  font-size: 28rpx;
+  font-weight: 600;
+  color: #F59E0B;
+  margin-left: 4rpx;
+}
+
+.rating-count {
+  font-size: 22rpx;
+  color: #94A3B8;
+}
+
+.rating-tag {
+  padding: 2rpx 12rpx;
+  border-radius: 6rpx;
+  font-size: 20rpx;
+  margin-left: 8rpx;
+}
+
+.rating-tag.is-rated {
+  background: #DBEAFE;
+  color: #2563EB;
+}
+
+.menu-rating-btn-wrap {
+  display: flex;
+  justify-content: center;
+  padding: 20rpx 0 8rpx;
+}
+
+.menu-rating-open-btn {
+  display: inline-block;
+  padding: 16rpx 48rpx;
+  font-size: 28rpx;
+  border-radius: 44rpx;
+  z-index: 101;
+}
+
+.loading-text {
+  text-align: center;
+  padding: 32rpx;
+  font-size: 24rpx;
+  color: #94A3B8;
+}
+
+/* 打分弹窗样式 */
+.rating-popup-mask {
+  position: fixed;
+  top: 0;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  background: rgba(0, 0, 0, 0.5);
+  z-index: 1000;
+  display: flex;
+  align-items: flex-end;
+}
+
+.rating-popup {
+  width: 100%;
+  max-height: 80vh;
+  background: #FFFFFF;
+  border-radius: 32rpx 32rpx 0 0;
+  display: flex;
+  flex-direction: column;
+}
+
+.rating-popup-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 32rpx 32rpx 20rpx;
+  border-bottom: 1rpx solid rgba(0, 0, 0, 0.06);
+}
+
+.rating-popup-title {
+  font-size: 34rpx;
+  font-weight: 600;
+  color: #1E293B;
+}
+
+.rating-popup-close {
+  font-size: 48rpx;
+  color: #94A3B8;
+  line-height: 1;
+  padding: 0 12rpx;
+}
+
+.rating-popup-body {
+  max-height: 60vh;
+  padding: 16rpx 32rpx;
+}
+
+.rating-dish-item {
+  display: flex;
+  align-items: center;
+  padding: 20rpx 0;
+  border-bottom: 1rpx solid rgba(0, 0, 0, 0.04);
+}
+
+.rating-dish-label {
+  width: 200rpx;
+  flex-shrink: 0;
+  font-size: 28rpx;
+  color: #334155;
+}
+
+.rating-dish-stars {
+  display: flex;
+  gap: 8rpx;
+}
+
+.popup-star {
+  font-size: 44rpx;
+  color: #E2E8F0;
+  padding: 4rpx;
+  transition: transform 0.15s;
+}
+
+.popup-star.is-active {
+  color: #F59E0B;
+}
+
+.rating-dish-score {
+  font-size: 26rpx;
+  color: #F59E0B;
+  font-weight: 500;
+  min-width: 60rpx;
+  text-align: center;
+  margin-left: 12rpx;
+}
+
+.rating-already-tag {
+  font-size: 22rpx;
+  color: #94A3B8;
+  margin-left: 12rpx;
+}
+
+.rating-popup-footer {
+  display: flex;
+  gap: 24rpx;
+  padding: 24rpx 32rpx;
+  padding-bottom: calc(24rpx + env(safe-area-inset-bottom));
+  border-top: 1rpx solid rgba(0, 0, 0, 0.06);
+}
+
+.rating-popup-cancel,
+.rating-popup-submit {
+  flex: 1;
+  height: 88rpx;
+  line-height: 88rpx;
+  text-align: center;
+  border-radius: 44rpx;
+  font-size: 30rpx;
+  font-weight: 500;
+}
+
+.rating-popup-cancel {
+  background: #F1F5F9;
+  color: #64748B;
+}
+
+.rating-popup-submit {
+  background: linear-gradient(135deg, #2563EB, #3B82F6);
+  color: #FFFFFF;
+}
+
+.rating-popup-submit.is-disabled {
+  opacity: 0.5;
 }

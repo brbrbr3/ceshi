@@ -1351,6 +1351,51 @@
 
 ---
 
+### 35. menu_ratings - 菜品打分记录
+
+**用途**：存储用户对菜单中各菜品的评分（1-5星），每个用户对同一菜单的同一道菜只能打一次分。
+
+**安全规则**：`READONLY` - 所有用户可读，仅创建者可写。
+
+> **重要说明**：打分记录由 `menuManager` 云函数在用户提交评分时创建。使用 `READONLY` 规则，云函数以管理员权限写入，用户只读。
+
+**记录数**：动态
+
+**索引**：
+
+- `_id` - 记录 ID（云开发自动创建）
+- `idx_menuId_openid_dishName` - 组合索引：menuId（升序）+ openid（升序）+ dishName（升序）- 用于查询某用户对某菜单某菜品的打分及防重复校验
+- `idx_menuId_createdAt` - 组合索引：menuId（升序）+ createdAt（降序）- 用于获取某菜单的所有打分记录
+
+**字段结构**：
+```javascript
+{
+  _id: String,                    // 记录 ID（自动生成）
+  menuId: String,                 // 关联的菜单 ID（menus._id）
+  openid: String,                 // 评分人 openid
+  authorOpenid: String,           // 评分人 openid（冗余，与 openid 一致）
+  authorName: String,             // 评分人姓名
+  dishName: String,               // 菜品名称（从菜单富文本内容中提取）
+  score: Number,                  // 评分：1~5 星（整数）
+  createdAt: Number               // 提交时间戳（毫秒）
+}
+```
+
+**业务规则**：
+1. 同一 openid + menuId + dishName 组合只能有一条打分记录（唯一约束，云函数层校验）
+2. score 取值范围：1 ~ 5 的整数，提交时由云函数校验
+3. 菜品名称由前端从菜单富文本 HTML 中智能提取（去标签→按行分割→过滤停用词→去重）
+4. 已评过的菜品不可修改分数
+
+**相关云函数**：
+- `menuManager.addRating`：提交菜品评分（含防重复校验）
+- `menuManager.getRatings`：获取某菜单所有菜品的平均分、评分人数、评分分布、当前用户已评状态
+
+**控制台链接**：
+- [menu_ratings](https://tcb.cloud.tencent.com/dev?envId=cloud1-8gdftlggae64d5d0#/db/doc/collection/menu_ratings)
+
+---
+
 ## 命名规范
 
 ### 集合命名规则
@@ -1486,6 +1531,7 @@ const notificationsCollection = db.collection('notifications')  // ✅
 | 2026-04-02 | 添加 news_articles 新闻文章集合 | AI |
 | 2026-04-03 | 添加 meal_subscriptions 用户订餐状态、meal_adjustments 调整记录集合（餐食管理功能） | AI |
 | 2026-04-04 | 添加 side_dish_orders 副食征订单、side_dish_bookings 副食预订记录集合（副食预订/管理功能） | AI |
+| 2026-04-05 | 添加 menu_ratings 菜品打分记录集合（菜单详情页菜品评分功能） | AI |
 
 ---
 
@@ -1716,3 +1762,4 @@ https://tcb.cloud.tencent.com/dev?envId=cloud1-8gdftlggae64d5d0#/db/doc
 - [workflow_templates](https://tcb.cloud.tencent.com/dev?envId=cloud1-8gdftlggae64d5d0#/db/doc/collection/workflow_templates)
 - [meal_subscriptions](https://tcb.cloud.tencent.com/dev?envId=cloud1-8gdftlggae64d5d0#/db/doc/collection/meal_subscriptions)
 - [meal_adjustments](https://tcb.cloud.tencent.com/dev?envId=cloud1-8gdftlggae64d5d0#/db/doc/collection/meal_adjustments)
+- [menu_ratings](https://tcb.cloud.tencent.com/dev?envId=cloud1-8gdftlggae64d5d0#/db/doc/collection/menu_ratings)

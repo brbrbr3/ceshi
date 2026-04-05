@@ -23,11 +23,25 @@
     "miniprogram": {
       "list": [
         {
-          "name": "pages/office/help/help",
-          "pathName": "pages/office/help/help",
+          "name": "pages/office/menus/menus",
+          "pathName": "pages/office/menus/menus",
           "query": "",
           "scene": null,
           "launchMode": "default"
+        },
+        {
+          "name": "pages/office/menu-detail/menu-detail",
+          "pathName": "pages/office/menu-detail/menu-detail",
+          "query": "id=3bef321d69caee3e02471d951d3218fa",
+          "launchMode": "default",
+          "scene": null
+        },
+        {
+          "name": "pages/office/help/help",
+          "pathName": "pages/office/help/help",
+          "query": "",
+          "launchMode": "default",
+          "scene": null
         },
         {
           "name": "pages/office/meal-management/meal-management",

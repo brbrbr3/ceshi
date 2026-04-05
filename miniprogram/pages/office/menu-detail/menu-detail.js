@@ -18,7 +18,15 @@ Page({
     commentText: '',
     currentUser: null,
     canEdit: false,
-    canDelete: false
+    canDelete: false,
+    // 菜品打分相关数据
+    dishRatings: [],
+    extractedDishes: [],
+    showRatingPopup: false,
+    tempRatings: {},
+    myRatedDishes: {},
+    hasTempRatings: false,
+    ratingsLoading: false
   },
 
   onLoad(options) {
@@ -35,6 +43,7 @@ Page({
     if (this.data.menuId) {
       this.loadMenu()
       this.loadComments()
+      this.loadRatings()
     }
   },
 
@@ -72,6 +81,8 @@ Page({
             timeText: formatTime(res.data.createdAt)
           }
         })
+        // 菜单内容加载完成后，提取菜品并加载打分数据
+        this.loadRatings()
       })
       .catch(error => {
         console.error('加载菜单失败', error)
@@ -303,5 +314,222 @@ Page({
 
   goBack() {
     wx.navigateBack()
+  },
+
+  // ==================== 菜品打分相关方法 ====================
+
+  /**
+   * 从菜单内容中提取菜品名称
+   * 策略：去除HTML标签 → 按换行符/空格分词 → 过滤无效项 → 去重
+   */
+  extractDishesFromContent(content) {
+    if (!content) return []
+
+    // 单字类别词（汤、粥等，单独出现时不是菜品名）
+    const SINGLE_CHAR_CATEGORIES = new Set(['汤', '粥', '饭', '面', '粉'])
+
+    // 停用词（非菜品的标题/分类/说明文字）
+    const STOP_WORDS = new Set([
+      '菜单', '今日菜单', '本周菜单', '午餐', '晚餐', '早餐',
+      '主食', '副菜', '汤类', '甜品', '饮品', '凉菜', '热菜',
+      '荤菜', '素菜', '推荐', '特别推荐', '厨师推荐',
+      '备注', '说明', '注意', '温馨提示'
+    ])
+
+    // 日期匹配正则（排除"星期一"、"周一"、"汤星期二"等含日期标记的词）
+    const DATE_PATTERN = /星期[一二三四五六日天]|周[一二三四五六日天]/
+
+    // 1. 去除HTML标签，保留文本内容
+    let text = content.replace(/<[^>]+>/g, '')
+
+    // 2. 解码常见HTML实体
+    text = text.replace(/&nbsp;/g, ' ')
+                 .replace(/&amp;/g, '&')
+                 .replace(/&lt;/g, '<')
+                 .replace(/&gt;/g, '>')
+
+    // 3. 按换行符和空格分词
+    const tokens = text.split(/[\n\r\s]+/).map(t => t.trim()).filter(Boolean)
+
+    // 4. 过滤并提取菜品名
+    const dishes = []
+    const seen = new Set()
+
+    tokens.forEach(token => {
+      // 规则1: 长度限制（至少2字，最多20字）—— 排除"汤"、"粥"等单字
+      if (token.length < 2 || token.length > 20) return
+
+      // 规则2: 排除日期相关词汇（"星期一"、"汤星期二"、"周一"等）
+      if (DATE_PATTERN.test(token)) return
+
+      // 规则3: 排除纯数字/符号
+      if (/^[\d\-+*.=!@#$%^&()]+$/.test(token)) return
+
+      // 规则4: 排除停用词
+      if (STOP_WORDS.has(token)) return
+
+      // 规则5: 至少包含1个中文汉字
+      if (!/[\u4e00-\u9fa5]/.test(token)) return
+
+      // 规则6: 清理首尾多余字符后再次校验长度
+      const cleanToken = token.replace(/^[•·\-\*\.\s:：]+/, '').replace(/[•·\-\*\.\s:：]+$/, '')
+      if (!cleanToken || cleanToken.length < 2 || cleanToken.length > 20) return
+
+      // 规则7: 清理后的词也不能是日期或停用词
+      if (DATE_PATTERN.test(cleanToken)) return
+      if (SINGLE_CHAR_CATEGORIES.has(cleanToken)) return
+
+      // 去重
+      if (!seen.has(cleanToken)) {
+        seen.add(cleanToken)
+        dishes.push(cleanToken)
+      }
+    })
+
+    return dishes
+  },
+
+  /** 加载打分数据 */
+  loadRatings() {
+    if (!this.data.menuId || !this.data.menu.content) return
+
+    this.setData({ ratingsLoading: true })
+
+    // 提取菜品列表
+    const extractedDishes = this.extractDishesFromContent(this.data.menu.content)
+
+    wx.cloud.callFunction({
+      name: 'menuManager',
+      data: { action: 'getRatings', ratingData: { menuId: this.data.menuId } }
+    }).then(res => {
+      if (res.result.code === 0) {
+        const data = res.result.data
+        const myRatedDishes = {}
+        if (data.myRatings) {
+          data.myRatings.forEach(r => {
+            myRatedDishes[r.dishName] = r.score
+          })
+        }
+
+        this.setData({
+          dishRatings: data.ratings,
+          extractedDishes,
+          myRatedDishes,
+          ratingsLoading: false
+        })
+      } else {
+        this.setData({
+          dishRatings: [],
+          extractedDishes,
+          myRatedDishes: {},
+          ratingsLoading: false
+        })
+      }
+    }).catch(err => {
+      console.error('加载打分数据失败', err)
+      this.setData({
+        dishRatings: [],
+        extractedDishes,
+        myRatedDishes: {},
+        ratingsLoading: false
+      })
+    })
+  },
+
+  /** 打开打分弹窗 */
+  openRatingPopup() {
+    const openid = app.globalData.openid
+    if (!openid) {
+      utils.showToast({ title: '请先登录', icon: 'none' })
+      return
+    }
+
+    // 检查是否有可打分的菜品
+    const dishes = this.data.extractedDishes
+    if (!dishes || dishes.length === 0) {
+      utils.showToast({ title: '未识别到菜品，无法打分', icon: 'none' })
+      return
+    }
+
+    app.checkUserRegistration().then(result => {
+      if (!result.registered || !result.user) {
+        utils.showToast({ title: '请先登录', icon: 'none' })
+        return
+      }
+
+      // 初始化临时评分（已评过的菜品预填分数但不可修改）
+      const tempRatings = {}
+      this.setData({ showRatingPopup: true, tempRatings, hasTempRatings: false })
+    }).catch(() => {
+      utils.showToast({ title: '请先登录', icon: 'none' })
+    })
+  },
+
+  /** 关闭打分弹窗 */
+  closeRatingPopup() {
+    this.setData({ showRatingPopup: false, tempRatings: {}, hasTempRatings: false })
+  },
+
+  /** 选择星级 */
+  handleStarTap(e) {
+    const dishName = e.currentTarget.dataset.dish
+    const star = parseInt(e.currentTarget.dataset.star)
+
+    // 已评过的菜品不可再改
+    if (this.data.myRatedDishes[dishName]) {
+      utils.showToast({ title: '您已对该菜品打过分，不可修改', icon: 'none' })
+      return
+    }
+
+    const tempRatings = { ...this.data.tempRatings }
+    tempRatings[dishName] = star
+
+    // 计算是否有有效评分
+    const hasValidRating = Object.keys(tempRatings).some(k => tempRatings[k] >= 1)
+    this.setData({ tempRatings, hasTempRatings: hasValidRating })
+  },
+
+  /** 提交打分 */
+  submitRatings() {
+    const tempRatings = this.data.tempRatings
+    const keys = Object.keys(tempRatings).filter(k => tempRatings[k] >= 1)
+
+    if (keys.length === 0) {
+      utils.showToast({ title: '请至少为一道菜打分', icon: 'none' })
+      return
+    }
+
+    wx.showLoading({ title: '提交中...', mask: true })
+
+    // 逐个提交评分（串行）
+    let promiseChain = Promise.resolve()
+
+    keys.forEach(dishName => {
+      const score = tempRatings[dishName]
+      promiseChain = promiseChain.then(() => {
+        return wx.cloud.callFunction({
+          name: 'menuManager',
+          data: {
+            action: 'addRating',
+            ratingData: {
+              menuId: this.data.menuId,
+              dishName,
+              score
+            }
+          }
+        })
+      })
+    })
+
+    promiseChain.then(() => {
+      wx.hideLoading()
+      this.closeRatingPopup()
+      this.loadRatings()
+      utils.showToast({ title: `成功为${keys.length}道菜打分`, icon: 'success' })
+    }).catch(err => {
+      wx.hideLoading()
+      console.error('提交打分失败', err)
+      utils.showToast({ title: err.message || '提交失败', icon: 'none' })
+    })
   }
 })

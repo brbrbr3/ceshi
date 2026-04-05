@@ -35,7 +35,7 @@
     </view> -->
 
     <view wx:if="{{!canReview}}" class="office-card approval-note-card">
-      <view class="approval-note-title">当前账号暂无管理员权限</view>
+      <view class="approval-note-title">当前账号暂无审批权限</view>
       <view class="approval-note-desc">你仍可在"我发起的"分组中查看自己的申请状态。</view>
     </view>
 

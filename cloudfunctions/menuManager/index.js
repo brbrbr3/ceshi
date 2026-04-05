@@ -7,7 +7,7 @@ cloud.init({
 const db = cloud.database()
 
 exports.main = async (event) => {
-  const { action, menuData, menuId, commentData } = event
+  const { action, menuData, menuId, commentData, ratingData } = event
 
   const wxContext = cloud.getWXContext()
   const openid = wxContext.OPENID
@@ -165,6 +165,112 @@ exports.main = async (event) => {
         return {
           code: 0,
           message: '删除成功'
+        }
+
+      case 'addRating':
+        // 所有已登录用户可以为菜品打分
+        if (!ratingData || !ratingData.menuId || !ratingData.dishName || !ratingData.score) {
+          return {
+            code: 400,
+            message: '评分参数不完整'
+          }
+        }
+
+        if (ratingData.score < 1 || ratingData.score > 5) {
+          return {
+            code: 400,
+            message: '分数必须在1-5之间'
+          }
+        }
+
+        // 检查是否已经为该菜品打分（同一用户对同一菜单的同一道菜只能打一次）
+        const existingRating = await db.collection('menu_ratings')
+          .where({
+            menuId: ratingData.menuId,
+            openid: openid,
+            dishName: ratingData.dishName
+          })
+          .limit(1)
+          .get()
+
+        if (existingRating.data && existingRating.data.length > 0) {
+          return {
+            code: 403,
+            message: '您已经为该菜品打过分了'
+          }
+        }
+
+        const addRatingResult = await db.collection('menu_ratings').add({
+          data: {
+            menuId: ratingData.menuId,
+            openid: openid,
+            authorOpenid: openid,
+            authorName: user.name,
+            dishName: ratingData.dishName,
+            score: ratingData.score,
+            createdAt: Date.now()
+          }
+        })
+
+        return {
+          code: 0,
+          message: '打分成功',
+          data: {
+            _id: addRatingResult._id
+          }
+        }
+
+      case 'getRatings':
+        if (!ratingData || !ratingData.menuId) {
+          return {
+            code: 400,
+            message: '缺少菜单ID'
+          }
+        }
+
+        const ratingsResult = await db.collection('menu_ratings')
+          .where({
+            menuId: ratingData.menuId
+          })
+          .orderBy('createdAt', 'desc')
+          .get()
+
+        const ratings = ratingsResult.data || []
+
+        // 计算每个菜品的平均分和评分分布
+        const dishStats = {}
+        ratings.forEach(r => {
+          if (!dishStats[r.dishName]) {
+            dishStats[r.dishName] = { total: 0, sum: 0, countByScore: { 1: 0, 2: 0, 3: 0, 4: 0, 5: 0 } }
+          }
+          dishStats[r.dishName].total++
+          dishStats[r.dishName].sum += r.score
+          dishStats[r.dishName].countByScore[r.score]++
+        })
+
+        // 获取当前用户已打分的菜品列表
+        const userRatings = ratings.filter(r => r.openid === openid)
+        const ratedDishNames = userRatings.map(r => r.dishName)
+
+        const dishRatings = Object.keys(dishStats).map(dishName => {
+          const stats = dishStats[dishName]
+          return {
+            dishName,
+            averageScore: Math.round((stats.sum / stats.total) * 10) / 10,
+            totalRaters: stats.total,
+            countByScore: stats.countByScore,
+            hasRated: ratedDishNames.includes(dishName)
+          }
+        })
+
+        return {
+          code: 0,
+          message: 'ok',
+          data: {
+            ratings: dishRatings,
+            myRatings: userRatings.map(r => ({ dishName: r.dishName, score: r.score })),
+            totalRatings: ratings.length
+          }
         }
 
       default:

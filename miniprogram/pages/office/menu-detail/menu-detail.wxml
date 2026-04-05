@@ -13,12 +13,72 @@
     <view class="office-card menu-content-card">
       <view class="menu-content-title">菜单内容</view>
       <view class="menu-content-html">
-        <mp-html content="{{menu.content}}" bindlinktap="onLinkTap" />
+        <rich-text nodes="{{menu.content}}" user-select="{{true}}" />
       </view>
 
       <view class="menu-detail-actions" wx:if="{{canEdit || canDelete}}">
         <view wx:if="{{canEdit}}" class="office-btn-secondary menu-action-btn" bindtap="goEdit">修改</view>
         <view wx:if="{{canDelete}}" class="office-btn-secondary menu-action-btn is-delete" bindtap="handleDelete">删除</view>
+      </view>
+    </view>
+
+    <!-- 菜品打分模块 -->
+    <view class="office-section">
+      <view class="office-section-header">
+        <view class="office-section-title">菜品打分</view>
+        <view class="office-link" wx:if="{{dishRatings.length > 0}}">{{dishRatings.length}}道菜</view>
+      </view>
+
+      <view class="office-card menu-ratings-card">
+        <view wx:if="{{dishRatings.length > 0}}" class="menu-rating-list">
+          <view class="menu-rating-item" wx:for="{{dishRatings}}" wx:key="dishName">
+            <text class="rating-dish-name">{{item.dishName}}</text>
+            <view class="rating-score-area">
+              <view class="rating-stars">
+                <text wx:for="{{[1,2,3,4,5]}}" wx:for-item="star" wx:key="*this"
+                  class="rating-star {{star <= item.averageScore ? 'is-filled' : ''}}">★</text>
+              </view>
+              <text class="rating-average">{{item.averageScore}}</text>
+              <text class="rating-count">({{item.totalRaters}}人)</text>
+              <text wx:if="{{item.hasRated}}" class="rating-tag is-rated">已评</text>
+            </view>
+          </view>
+        </view>
+        <view wx:if="{{dishRatings.length === 0 && !ratingsLoading}}" class="empty-state is-mini">
+          <view class="empty-text">暂无打分数据</view>
+        </view>
+        <view wx:if="{{ratingsLoading}}" class="loading-text">加载中...</view>
+
+        <view class="menu-rating-btn-wrap">
+          <view class="office-btn-primary menu-rating-open-btn" bindtap="openRatingPopup">为菜品打分</view>
+        </view>
+      </view>
+    </view>
+
+    <!-- 打分弹窗 -->
+    <view class="rating-popup-mask" wx:if="{{showRatingPopup}}" bindtap="closeRatingPopup">
+      <view class="rating-popup" catchtap="">
+        <view class="rating-popup-header">
+          <text class="rating-popup-title">菜品打分</text>
+          <text class="rating-popup-close" catchtap="closeRatingPopup">×</text>
+        </view>
+        <scroll-view scroll-y class="rating-popup-body" catchtap="">
+          <view class="rating-dish-item" wx:for="{{extractedDishes}}" wx:key="*this">
+            <text class="rating-dish-label">{{item}}</text>
+            <view class="rating-dish-stars">
+              <text wx:for="{{[1,2,3,4,5]}}" wx:for-item="star" wx:key="*this"
+                class="popup-star {{star <= (tempRatings[item] || 0) ? 'is-active' : ''}}"
+                data-dish="{{item}}" data-star="{{star}}"
+                catchtap="handleStarTap">★</text>
+            </view>
+            <text class="rating-dish-score">{{tempRatings[item] || 0}}分</text>
+            <text wx:if="{{myRatedDishes[item]}}" class="rating-already-tag">已评{{myRatedDishes[item]}}星</text>
+          </view>
+        </scroll-view>
+        <view class="rating-popup-footer">
+          <view class="rating-popup-cancel" catchtap="closeRatingPopup">取消</view>
+          <view class="rating-popup-submit {{hasTempRatings ? '' : 'is-disabled'}}" catchtap="submitRatings">提交打分</view>
+        </view>
       </view>
     </view>
 
@@ -36,6 +96,7 @@
             placeholder="言语友善，共建和谐"
             placeholder-class="menu-comment-placeholder"
             maxlength="500"
+            auto-height
           ></textarea>
           <view class="menu-comment-submit">
             <text class="menu-comment-count">{{commentText.length}}/500</text>
