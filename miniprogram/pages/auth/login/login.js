@@ -58,6 +58,8 @@ Page({
     dbCollections: [],
     selectedCollections: [],
     clearDbLoading: false,
+    showClearDbKeyModal: false,
+    clearDbKey: '',
     bootstrapStatus: {
       bootstrapKeyConfigured: false,
       hasApprovedAdmin: true,
@@ -304,7 +306,9 @@ Page({
     this.setData({
       showClearDbPanel: false,
       dbCollections: [],
-      selectedCollections: []
+      selectedCollections: [],
+      showClearDbKeyModal: false,
+      clearDbKey: ''
     })
   },
 
@@ -354,7 +358,7 @@ Page({
             confirmColor: '#ff4d4f',
             success: (res2) => {
               if (res2.confirm) {
-                this.executeClearDb()
+                this.showClearDbKeyModal()
               }
             }
           })
@@ -363,7 +367,38 @@ Page({
     })
   },
 
-  async executeClearDb() {
+  showClearDbKeyModal() {
+    this.setData({
+      showClearDbKeyModal: true,
+      clearDbKey: ''
+    })
+  },
+
+  hideClearDbKeyModal() {
+    this.setData({
+      showClearDbKeyModal: false,
+      clearDbKey: ''
+    })
+  },
+
+  onClearDbKeyInput(e) {
+    this.setData({
+      clearDbKey: e.detail.value
+    })
+  },
+
+  confirmClearDb() {
+    const clearDbKey = String(this.data.clearDbKey || '').trim()
+    if (!clearDbKey) {
+      utils.showToast({ title: '请输入清库密钥', icon: 'none' })
+      return
+    }
+
+    this.hideClearDbKeyModal()
+    this.executeClearDb(clearDbKey)
+  },
+
+  async executeClearDb(clearKey) {
     const { selectedCollections } = this.data
 
     this.setData({ clearDbLoading: true })
@@ -374,7 +409,8 @@ Page({
         name: 'dbManager',
         data: {
           action: 'clearCollections',
-          collections: selectedCollections
+          collections: selectedCollections,
+          clearKey
         }
       })
 

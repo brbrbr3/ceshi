@@ -25,6 +25,10 @@ function fail(message, code) {
   return { code: code || 500, message: message || '服务异常', data: null }
 }
 
+function getClearKey() {
+  return String(process.env.DB_CLEAR_KEY || '').trim()
+}
+
 async function assertAdmin(openid) {
   if (!openid) {
     throw new Error('获取微信身份失败，请稍后重试')
@@ -173,7 +177,7 @@ async function clearCollections(collections) {
 exports.main = async (event, context) => {
   const wxContext = cloud.getWXContext()
   const openid = wxContext.OPENID
-  const { action, collections } = event
+  const { action, collections, clearKey } = event
 
   console.log(`dbManager action: ${action}`)
 
@@ -185,6 +189,12 @@ exports.main = async (event, context) => {
         return await listCollections()
 
       case 'clearCollections':
+        if (!getClearKey()) {
+          return fail('未配置 DB_CLEAR_KEY，禁止执行清库操作', 500)
+        }
+        if (String(clearKey || '').trim() !== getClearKey()) {
+          return fail('清库密钥错误', 403)
+        }
         return await clearCollections(collections)
 
       default:
