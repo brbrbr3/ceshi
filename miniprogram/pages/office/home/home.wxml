@@ -61,7 +61,7 @@
     <!--通知公告-->
     <view class="office-section">
       <view class="office-section-header">
-        <view class="office-section-title">通知公告</view>
+        <view class="office-section-title" bindtap="goAnnouncements">通知公告</view>
         <view class="office-link" bindtap="goAnnouncements">更多</view>
       </view>
       <view class="office-card home-news-card">
@@ -103,10 +103,36 @@
       </view>
     </view>
 
+    <!--活动专区-->
+    <view class="office-section">
+      <view class="office-section-header">
+        <view class="office-section-title" bindtap="goActivities">活动专区</view>
+        <view class="office-link" style="color: #7C3AED;" bindtap="goActivities">更多</view>
+      </view>
+      <view class="office-card home-news-card">
+        <view class="home-news-item" wx:for="{{activities}}" wx:key="_id" bindtap="handleActivityTap" data-id="{{item._id}}">
+          <view class="home-activity-icon">🎉</view>
+          <view class="home-news-main">
+            <view class="home-news-title">{{item.title}}</view>
+            <view class="home-news-time">{{item.creatorName}} · {{item.timeText}} · {{item.registrationCount || 0}}人已报名</view>
+          </view>
+          <view class="activity-home-tag {{item.status === 'active' ? 'tag-active' : 'tag-ended'}}">
+            {{item.status === 'active' ? '报名中' : '已结束'}}
+          </view>
+        </view>
+        <view wx:if="{{!loadingActivities && activities.length === 0}}" class="empty-announcement">
+          <text class="empty-text">暂无活动</text>
+        </view>
+        <view wx:if="{{loadingActivities}}" class="loading-schedule">
+          <text class="empty-text">加载中...</text>
+        </view>
+      </view>
+    </view>
+
     <!--学习园地-->
     <view class="office-section">
       <view class="office-section-header">
-        <view class="office-section-title">学习园地</view>
+        <view class="office-section-title" bindtap="goLearning">学习园地</view>
         <view class="office-link" style="color: #B91C1C;" bindtap="goLearning">更多</view>
       </view>
       <view class="office-card home-news-card">

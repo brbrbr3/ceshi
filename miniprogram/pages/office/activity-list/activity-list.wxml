@@ -1,0 +1,94 @@
+<view class="office-page activities-page">
+  <!-- 渐变头部 -->
+  <view class="office-gradient-header activities-header">
+    <view class="office-header-top">
+      <view>
+        <view class="activities-title">活动专区</view>
+        <view class="activities-subtitle">发现精彩活动，立即报名参与</view>
+      </view>
+      <view wx:if="{{showCreateButton}}" class="activities-add-btn" bindtap="handleCreate">
+        <text>＋ 创建活动</text>
+      </view>
+    </view>
+
+    <!-- 筛选标签 -->
+    <view class="activities-tabs-shell">
+      <view
+        class="activities-tab {{filterStatus === 'all' ? 'is-active' : ''}}"
+        bindtap="handleFilterChange"
+        data-status="all"
+      >全部</view>
+      <view
+        class="activities-tab {{filterStatus === 'active' ? 'is-active' : ''}}"
+        bindtap="handleFilterChange"
+        data-status="active"
+      >报名中</view>
+      <view
+        class="activities-tab {{filterStatus === 'ended' ? 'is-active' : ''}}"
+        bindtap="handleFilterChange"
+        data-status="ended"
+      >已结束</view>
+    </view>
+  </view>
+
+  <!-- 列表内容 -->
+  <view class="activities-content">
+    <view class="office-card activities-list" wx:if="{{list.length > 0}}">
+      <view class="swipe-wrapper" wx:for="{{list}}" wx:key="_id">
+        <!-- 操作按钮层 -->
+        <view class="swipe-actions">
+          <view class="swipe-action swipe-action-delete" bindtap="handleDelete" data-id="{{item._id}}">
+            <text>删除×</text>
+          </view>
+        </view>
+        <!-- 内容层 -->
+        <view
+          class="swipe-content"
+          style="transform: translateX({{swipeX[item._id] || 0}}px); transition: transform 0.3s;"
+          bindtouchstart="handleTouchStart"
+          bindtouchmove="handleTouchMove"
+          bindtouchend="handleTouchEnd"
+          data-id="{{item._id}}"
+        >
+          <view class="activity-item" bindtap="handleItemTap" data-id="{{item._id}}">
+            <view class="activity-item-left">
+              <view class="activity-item-icon">🎉</view>
+              <view class="activity-item-main">
+                <view class="activity-item-title">{{item.title}}</view>
+                <view class="activity-item-meta">
+                  <text class="activity-item-author">{{item.creatorName}}</text>
+                  <text class="activity-item-dot">·</text>
+                  <text class="activity-item-time">{{item.timeText}}</text>
+                </view>
+              </view>
+            </view>
+            <view class="activity-item-right">
+              <view class="activity-status-tag {{item.status === 'active' ? 'status-active' : 'status-ended'}}">
+                {{item.status === 'active' ? '报名中' : '已结束'}}
+              </view>
+              <view class="activity-reg-count" wx:if="{{item.status === 'active'}}">{{item.registrationCount || 0}}人已报名</view>
+              <view class="activity-item-arrow">›</view>
+            </view>
+          </view>
+        </view>
+      </view>
+    </view>
+
+    <!-- 分页加载状态 -->
+    <view class="pagination-loading" wx:if="{{loading}}">
+      <view class="loading-spinner"></view>
+      <text class="loading-text">加载中...</text>
+    </view>
+
+    <!-- 没有更多数据提示 -->
+    <view class="pagination-no-more" wx:elif="{{!hasMore && list.length > 0}}">
+      <text class="no-more-text">没有更多数据了</text>
+    </view>
+
+    <!-- 空状态 -->
+    <view class="empty-state" wx:elif="{{list.length === 0 && !loading}}">
+      <view class="empty-icon">🎉</view>
+      <view class="empty-text">暂无活动</view>
+    </view>
+  </view>
+</view>

@@ -1,0 +1,367 @@
+/* 创建活动页 */
+.activity-create-page {
+  background: #F8FAFC;
+}
+
+.activity-create-header {
+  background: linear-gradient(135deg, #7C3AED, #6D28D9);
+  padding-top: 80rpx;
+}
+
+.activity-create-title {
+  font-size: 48rpx;
+  font-weight: 700;
+  color: #FFFFFF;
+  padding: 0 0 30rpx;
+}
+
+.create-form-card {
+  margin-top: -16rpx;
+  padding: 32rpx 28rpx;
+  border-radius: 28rpx;
+}
+
+/* Switch 字段 */
+.switch-field {
+  padding: 28rpx 0;
+  border-bottom: 1rpx solid #F1F5F9;
+}
+
+.switch-last {
+  border-bottom: none;
+}
+
+.switch-main {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+}
+
+.switch-info {
+  flex: 1;
+  margin-right: 20rpx;
+}
+
+.switch-label {
+  font-size: 30rpx;
+  font-weight: 600;
+  color: #1E293B;
+  display: block;
+  margin-bottom: 6rpx;
+}
+
+.switch-desc {
+  font-size: 24rpx;
+  color: #94A3B8;
+  display: block;
+}
+
+/* 开关展开区域 */
+.switch-expanded {
+  margin-top: 20rpx;
+  padding: 24rpx;
+  background: #F8FAFC;
+  border-radius: 16rpx;
+}
+
+/* Stepper 调整器 */
+.stepper-row {
+  display: flex;
+  align-items: center;
+  gap: 16rpx;
+}
+
+.stepper-label {
+  font-size: 27rpx;
+  color: #475569;
+  flex-shrink: 0;
+}
+
+.stepper-control {
+  display: flex;
+  align-items: center;
+  border: 2rpx solid #E2E8F0;
+  border-radius: 12rpx;
+  overflow: hidden;
+  background: #FFFFFF;
+}
+
+.stepper-btn {
+  width: 64rpx;
+  height: 60rpx;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 36rpx;
+  color: #7C3AED;
+  background: #FAFAFA;
+  transition: background 0.2s;
+}
+
+.stepper-btn:active {
+  background: #EDE9FE;
+}
+
+.stepper-value {
+  width: 100rpx;
+  height: 60rpx;
+  text-align: center;
+  font-size: 28rpx;
+  color: #1E293B;
+  font-weight: 600;
+  border-left: 2rpx solid #E2E8F0;
+  border-right: 2rpx solid #E2E8F0;
+}
+
+.stepper-unit {
+  font-size: 26rpx;
+  color: #94A3B8;
+  flex-shrink: 0;
+}
+
+/* 角色复选框 */
+.role-checkbox-item {
+  display: inline-flex;
+  align-items: center;
+  gap: 10rpx;
+  margin-right: 28rpx;
+  margin-bottom: 14rpx;
+  font-size: 27rpx;
+  color: #334155;
+}
+
+/* 分组输入 */
+.group-input-item {
+  display: flex;
+  align-items: center;
+  gap: 12rpx;
+  margin-bottom: 14rpx;
+}
+
+.group-input {
+  flex: 1;
+  height: 72rpx;
+  padding: 0 20rpx;
+  background: #FFFFFF;
+  border: 2rpx solid #E2E8F0;
+  border-radius: 12rpx;
+  font-size: 27rpx;
+  color: #1E293B;
+}
+
+.group-placeholder {
+  color: #CBD5E1;
+}
+
+.group-remove {
+  width: 56rpx;
+  height: 56rpx;
+  border-radius: 28rpx;
+  background: #FEE2E2;
+  color: #EF4444;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 36rpx;
+  flex-shrink: 0;
+}
+
+.add-group-btn {
+  display: inline-flex;
+  align-items: center;
+  gap: 8rpx;
+  padding: 14rpx 28rpx;
+  border: 2rpx dashed #C7D2FE;
+  border-radius: 12rpx;
+  color: #7C3AED;
+  font-size: 26rpx;
+  font-weight: 500;
+  margin-top: 8rpx;
+}
+
+.add-group-btn:active {
+  background: #F5F3FF;
+}
+
+/* 提交按钮 */
+.create-buttons {
+  margin-top: 40rpx;
+  padding-bottom: 10rpx;
+}
+
+.submit-btn {
+  width: 100%;
+  height: 92rpx;
+  background: linear-gradient(135deg, #7C3AED, #6D28D9);
+  color: #FFFFFF;
+  font-size: 32rpx;
+  font-weight: 600;
+  border-radius: 24rpx;
+  border: none;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.submit-btn::after {
+  border: none;
+}
+
+/* 编辑器容器 */
+.editor-container {
+  border: 2rpx solid #E2E8F0;
+  border-radius: 16rpx;
+  overflow: hidden;
+}
+
+.editor-toolbar {
+  background: #F8FAFC;
+  border-bottom: 2rpx solid #E2E8F0;
+  padding: 12rpx 16rpx;
+}
+
+.toolbar-row {
+  display: flex;
+  align-items: center;
+  gap: 8rpx;
+}
+
+.toolbar-btn {
+  width: 56rpx;
+  height: 48rpx;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  border-radius: 8rpx;
+  transition: background 0.2s;
+}
+
+.toolbar-btn:active {
+  background: #E2E8F0;
+}
+
+.toolbar-icon-bold {
+  font-size: 28rpx;
+  font-weight: 900;
+  font-family: Georgia, serif;
+}
+
+.toolbar-icon-italic {
+  font-size: 28rpx;
+  font-style: italic;
+  font-family: Georgia, serif;
+}
+
+.toolbar-icon-underline {
+  font-size: 28rpx;
+  text-decoration: underline;
+}
+
+.toolbar-icon-strike {
+  font-size: 28rpx;
+  text-decoration: line-through;
+}
+
+.toolbar-icon-list {
+  font-size: 24rpx;
+  font-weight: 700;
+  font-family: monospace;
+}
+
+.toolbar-icon-header {
+  font-size: 22rpx;
+  font-weight: 900;
+  font-family: sans-serif;
+}
+
+.toolbar-icon-align {
+  font-size: 26rpx;
+}
+
+.toolbar-icon-divider {
+  font-size: 28rpx;
+  color: #94A3B8;
+  letter-spacing: 2rpx;
+}
+
+.toolbar-divider {
+  width: 2rpx;
+  height: 28rpx;
+  background: #E2E8F0;
+  margin: 0 4rpx;
+}
+
+.toolbar-spacer {
+  flex: 1;
+}
+
+.toolbar-btn-expand {
+  margin-left: auto;
+}
+
+.expand-icon {
+  font-size: 24rpx;
+  color: #94A3B8;
+  transition: transform 0.3s;
+  display: inline-block;
+}
+
+.expand-icon-up {
+  transform: rotate(90deg);
+}
+
+.toolbar-row-extra {
+  margin-top: 8rpx;
+  padding-top: 8rpx;
+  border-top: 1rpx solid #E2E8F0;
+}
+
+.editor-body {
+  min-height: 300rpx;
+  padding: 20rpx;
+  font-size: 28rpx;
+}
+
+/* 表单通用 */
+.auth-field {
+  margin-bottom: 8rpx;
+}
+
+.auth-field-label {
+  font-size: 28rpx;
+  font-weight: 600;
+  color: #1E293B;
+  margin-bottom: 12rpx;
+  display: flex;
+  align-items: center;
+  gap: 6rpx;
+}
+
+.auth-field-required {
+  color: #EF4444;
+  font-size: 28rpx;
+}
+
+.auth-input-shell {
+  border: 2rpx solid #E2E8F0;
+  border-radius: 14rpx;
+  padding: 0 24rpx;
+  background: #FFFFFF;
+}
+
+.auth-input-shell input {
+  height: 80rpx;
+  font-size: 29rpx;
+  color: #1E293B;
+}
+
+.auth-input-placeholder {
+  color: #CBD5E1;
+}
+
+.auth-field-count {
+  text-align: right;
+  font-size: 22rpx;
+  color: #94A3B8;
+  margin-top: 8rpx;
+}

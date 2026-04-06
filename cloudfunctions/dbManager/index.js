@@ -50,6 +50,8 @@ async function assertAdmin(openid) {
 // 项目数据库集合列表（来自 .codebuddy/docs/DATABASE_COLLECTIONS_REFERENCE.md）
 const DB_COLLECTIONS = [
   'announcements',
+  'activities',
+  'activity_registrations',
   'calendar_schedules',
   'feedback_posts',
   'feedback_replies',

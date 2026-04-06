@@ -34,7 +34,7 @@
 
 /* 头部样式 */
 .detail-header {
-  padding-bottom: 100rpx;
+  padding-bottom: 80rpx;
 }
 
 .detail-title {
@@ -43,7 +43,6 @@
 }
 
 .detail-subtitle {
-  margin-top: 12rpx;
   font-size: 42rpx;
   font-weight: 600;
   color: rgba(255, 255, 255, 0.9);

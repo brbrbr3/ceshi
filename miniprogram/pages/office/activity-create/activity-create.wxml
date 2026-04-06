@@ -1,0 +1,154 @@
+<view class="office-page activity-create-page">
+  <view class="office-gradient-header activity-create-header">
+    <view class="activity-create-title">创建活动</view>
+  </view>
+
+  <view class="office-content activity-create-content">
+    <view class="office-card create-form-card">
+      <view class="auth-form">
+        <!-- 标题 -->
+        <view class="auth-field">
+          <view class="auth-field-label">
+            标题
+            <text class="auth-field-required">*</text>
+          </view>
+          <view class="auth-input-shell">
+            <input value="{{form.title}}" bindinput="handleTitleInput" placeholder="请输入活动标题" placeholder-class="auth-input-placeholder" maxlength="50" />
+          </view>
+          <view class="auth-field-count">{{form.title.length}}/50</view>
+        </view>
+
+        <!-- 活动内容 -->
+        <view class="auth-field">
+          <view class="auth-field-label">
+            活动内容
+            <text class="auth-field-required">*</text>
+          </view>
+          <view class="editor-container">
+            <view class="editor-toolbar">
+              <view class="toolbar-row toolbar-row-common">
+                <view class="toolbar-btn" bindtap="handleFormat" data-name="bold"><text class="toolbar-icon-bold">B</text></view>
+                <view class="toolbar-btn" bindtap="handleFormat" data-name="italic"><text class="toolbar-icon-italic">I</text></view>
+                <view class="toolbar-btn" bindtap="handleFormat" data-name="underline"><text class="toolbar-icon-underline">U</text></view>
+                <view class="toolbar-divider"></view>
+                <view class="toolbar-btn" bindtap="handleFormat" data-name="list" data-value="ordered"><text class="toolbar-icon-list">1.</text></view>
+                <view class="toolbar-btn" bindtap="handleFormat" data-name="list" data-value="bullet"><text class="toolbar-icon-list">•</text></view>
+                <view class="toolbar-spacer"></view>
+                <view class="toolbar-btn toolbar-btn-expand" bindtap="handleToggleToolbar">
+                  <text class="expand-icon {{toolbarExpanded ? 'expand-icon-up' : ''}}">▸</text>
+                </view>
+              </view>
+              <view class="toolbar-row toolbar-row-extra" wx:if="{{toolbarExpanded}}">
+                <view class="toolbar-btn" bindtap="handleFormat" data-name="strike"><text class="toolbar-icon-strike">S</text></view>
+                <view class="toolbar-divider"></view>
+                <view class="toolbar-btn" bindtap="handleFormat" data-name="header" data-value="1"><text class="toolbar-icon-header">H1</text></view>
+                <view class="toolbar-btn" bindtap="handleFormat" data-name="header" data-value="2"><text class="toolbar-icon-header">H2</text></view>
+                <view class="toolbar-divider"></view>
+                <view class="toolbar-btn" bindtap="handleInsertDivider"><text class="toolbar-icon-divider">—</text></view>
+              </view>
+            </view>
+            <editor id="contentEditor" class="editor-body" placeholder="请输入活动详细内容..." show-img-size show-img-toolbar bindready="handleEditorReady" bindinput="handleEditorInput" bindstatuschange="handleStatusChange" />
+          </view>
+        </view>
+
+        <!-- 报名截止日期 -->
+        <view class="auth-field">
+          <view class="auth-field-label">
+            报名截止
+            <text class="auth-field-required">*</text>
+          </view>
+          <datetime-picker value="{{form.registrationDeadline}}" fields="{{['year', 'month', 'day', 'weekday']}}" startDatetime="{{deadlineMinDatetime}}" placeholder="请选择报名截止日期" bindchange="onDeadlineChange" />
+        </view>
+
+        <!-- Switch: 人数上限 -->
+        <view class="switch-field">
+          <view class="switch-main">
+            <view class="switch-info">
+              <text class="switch-label">人数上限</text>
+              <text class="switch-desc">开启后可设置活动报名总人数上限</text>
+            </view>
+            <switch checked="{{form.isMaxRegistrationsEnabled}}" bindchange="onMaxRegistrationsChange" color="#7C3AED" />
+          </view>
+          <view class="switch-expanded" wx:if="{{form.isMaxRegistrationsEnabled}}">
+            <view class="stepper-row">
+              <text class="stepper-label">报名上限：</text>
+              <view class="stepper-control">
+                <view class="stepper-btn" bindtap="decreaseMaxRegs">−</view>
+                <input class="stepper-value" type="number" value="{{form.maxRegistrations}}" bindinput="handleMaxRegsInput" />
+                <view class="stepper-btn" bindtap="increaseMaxRegs">+</view>
+              </view>
+              <text class="stepper-unit">人</text>
+            </view>
+          </view>
+        </view>
+
+        <!-- Switch: 分组活动 -->
+        <view class="switch-field">
+          <view class="switch-main">
+            <view class="switch-info">
+              <text class="switch-label">分组活动</text>
+              <text class="switch-desc">开启后用户可按分组报名</text>
+            </view>
+            <switch checked="{{form.isGroupedActivity}}" bindchange="onGroupedChange" color="#7C3AED" />
+          </view>
+          <view class="switch-expanded" wx:if="{{form.isGroupedActivity}}">
+            <view class="group-input-item" wx:for="{{form.groups}}" wx:key="index">
+              <input class="group-input" value="{{item.name}}" placeholder="分组名称" placeholder-class="group-placeholder" data-index="{{index}}" bindinput="handleGroupNameInput" maxlength="20" />
+              <view class="group-remove" wx:if="{{form.groups.length > 1}}" bindtap="removeGroup" data-index="{{index}}">×</view>
+            </view>
+            <view class="add-group-btn" bindtap="addGroup">
+              <text>＋ 添加分组</text>
+            </view>
+          </view>
+        </view>
+
+        <!-- Switch: 目标用户 -->
+        <view class="switch-field">
+          <view class="switch-main">
+            <view class="switch-info">
+              <text class="switch-label">目标用户</text>
+              <text class="switch-desc">开启后可指定面向的用户角色</text>
+            </view>
+            <switch checked="{{form.isTargetRoleEnabled}}" bindchange="onTargetRoleChange" color="#7C3AED" />
+          </view>
+          <view class="switch-expanded" wx:if="{{form.isTargetRoleEnabled}}">
+            <checkbox-group bindchange="handleRoleCheck">
+              <label class="role-checkbox-item" wx:for="{{roleOptions}}" wx:key="item">
+                <checkbox value="{{item}}" checked="{{roleCheckedMap[item] || false}}" />
+                <text>{{item}}</text>
+              </label>
+            </checkbox-group>
+          </view>
+        </view>
+
+
+        <!-- Switch: 只对目标用户展示 -->
+        <view class="switch-field" wx:if="{{form.isTargetRoleEnabled}}">
+          <view class="switch-main">
+            <view class="switch-info">
+              <text class="switch-label">只对目标用户展示</text>
+              <text class="switch-desc">开启后只有目标角色的用户能看到此活动</text>
+            </view>
+            <switch checked="{{form.isTargetOnlyVisible}}" bindchange="onTargetVisibleChange" color="#7C3AED" />
+          </view>
+        </view>
+
+        <!-- Switch: 报名情况对用户可见 -->
+        <view class="switch-field switch-last">
+          <view class="switch-main">
+            <view class="switch-info">
+              <text class="switch-label">报名情况对用户可见</text>
+              <text class="switch-desc">关闭后普通用户无法查看其他报名者信息</text>
+            </view>
+            <switch checked="{{form.isRegistrationVisible}}" bindchange="onRegVisibleChange" color="#7C3AED" />
+          </view>
+        </view>
+
+        <!-- 提交按钮 -->
+        <view class="create-buttons">
+          <button class="submit-btn" loading="{{submitting}}" bindtap="handleSubmit">发布活动</button>
+        </view>
+      </view>
+    </view>
+  </view>
+</view>

@@ -23,8 +23,8 @@
     "miniprogram": {
       "list": [
         {
-          "name": "pages/office/menus/menus",
-          "pathName": "pages/office/menus/menus",
+          "name": "pages/office/activity-list/activity-list",
+          "pathName": "pages/office/activity-list/activity-list",
           "query": "",
           "scene": null,
           "launchMode": "default"

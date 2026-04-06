@@ -34,7 +34,10 @@
     "pages/office/learning-list/learning-list",
     "pages/office/learning-detail/learning-detail",
     "pages/office/learning-create/learning-create",
-    "pages/office/meal-management/meal-management"
+    "pages/office/meal-management/meal-management",
+    "pages/office/activity-list/activity-list",
+    "pages/office/activity-detail/activity-detail",
+    "pages/office/activity-create/activity-create"
   ],
   "window": {
     "navigationBarTextStyle": "black",

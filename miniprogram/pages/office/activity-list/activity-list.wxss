@@ -1,0 +1,249 @@
+/* 活动列表页样式 */
+.activities-page {
+  background: #F8FAFC;
+}
+
+.activities-header {
+  background: linear-gradient(135deg, #7C3AED, #6D28D9);
+  padding: 60rpx 40rpx 50rpx;
+}
+
+.activities-title {
+  font-size: 48rpx;
+  font-weight: 600;
+}
+
+.activities-subtitle {
+  margin-top: 5rpx;
+  font-size: 26rpx;
+}
+
+.activities-add-btn {
+  padding: 12rpx 24rpx;
+  border-radius: 24rpx;
+  background: rgba(255, 255, 255, 0.2);
+  color: #FFFFFF;
+  font-size: 26rpx;
+  font-weight: 600;
+  border: 1rpx solid rgba(255, 255, 255, 0.3);
+}
+
+/* 透明胶囊标签栏 */
+.activities-tabs-shell {
+  margin-top: 15rpx;
+  margin-bottom: -10rpx;
+  padding: 6rpx;
+  border-radius: 28rpx;
+  background: rgba(255, 255, 255, 0.15);
+  display: flex;
+}
+
+.activities-tab {
+  flex: 1;
+  height: 72rpx;
+  border-radius: 22rpx;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  color: rgba(255, 255, 255, 0.78);
+  font-size: 24rpx;
+  border: none;
+}
+
+.activities-tab.is-active {
+  background: rgba(255, 255, 255, 0.95);
+  color: #7C3AED;
+  font-weight: 600;
+}
+
+.activities-content {
+  margin-top: -20rpx;
+  padding: 0 24rpx 0;
+}
+
+.activities-list {
+  margin-top: -20rpx;
+  padding: 20rpx;
+  border-radius: 28rpx;
+}
+
+.activity-item {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 24rpx 0;
+}
+
+.activity-item + .activity-item {
+  border-top: 1rpx solid rgba(124, 58, 237, 0.08);
+}
+
+.activity-item-left {
+  display: flex;
+  align-items: center;
+  gap: 18rpx;
+  flex: 1;
+  min-width: 0;
+}
+
+.activity-item-icon {
+  width: 72rpx;
+  height: 72rpx;
+  border-radius: 20rpx;
+  background: linear-gradient(135deg, #EDE9FE, #DDD6FE);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 36rpx;
+  flex-shrink: 0;
+}
+
+.activity-item-main {
+  flex: 1;
+  min-width: 0;
+}
+
+.activity-item-title {
+  font-size: 28rpx;
+  font-weight: 600;
+  color: #1E293B;
+  line-height: 1.4;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.activity-item-meta {
+  display: flex;
+  align-items: center;
+  gap: 8rpx;
+  margin-top: 10rpx;
+  font-size: 22rpx;
+  color: #94A3B8;
+}
+
+.activity-item-author {
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+  max-width: 160rpx;
+}
+
+.activity-item-time {
+  flex-shrink: 0;
+}
+
+.activity-item-right {
+  display: flex;
+  align-items: center;
+  gap: 12rpx;
+  flex-shrink: 0;
+  margin-left: 16rpx;
+}
+
+.activity-status-tag {
+  padding: 6rpx 16rpx;
+  border-radius: 16rpx;
+  font-size: 20rpx;
+  font-weight: 500;
+  white-space: nowrap;
+}
+
+.status-active {
+  background: #DCFCE7;
+  color: #16A34A;
+}
+
+.status-ended {
+  background: #F1F5F9;
+  color: #94A3B8;
+}
+
+.activity-reg-count {
+  font-size: 20rpx;
+  color: #7C3AED;
+  white-space: nowrap;
+}
+
+.activity-item-arrow {
+  font-size: 36rpx;
+  color: #CBD5E1;
+  line-height: 1;
+}
+
+/* 左划菜单 */
+.swipe-wrapper {
+  position: relative;
+  overflow: hidden;
+}
+
+.swipe-actions {
+  position: absolute;
+  right: 0;
+  top: 0;
+  bottom: 0;
+  display: flex;
+  align-items: center;
+  z-index: 1;
+}
+
+.swipe-action {
+  width: 140rpx;
+  height: 100%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  color: #FFF;
+  font-size: 26rpx;
+  font-weight: 500;
+}
+
+.swipe-action-delete {
+  background: linear-gradient(135deg, #EF4444, #DC2626);
+  border-radius: 0 16rpx 16rpx 0;
+}
+
+.swipe-content {
+  position: relative;
+  z-index: 2;
+  background: #FFFFFF;
+}
+
+/* 分页状态 */
+.pagination-loading,
+.pagination-no-more,
+.empty-state {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  padding: 60rpx 0;
+  gap: 16rpx;
+}
+
+.loading-spinner {
+  width: 48rpx;
+  height: 48rpx;
+  border: 4rpx solid #E2E8F0;
+  border-top-color: #7C3AED;
+  border-radius: 50%;
+  animation: spin 0.8s linear infinite;
+}
+
+@keyframes spin {
+  to { transform: rotate(360deg); }
+}
+
+.loading-text,
+.no-more-text {
+  font-size: 26rpx;
+  color: #94A3B8;
+}
+
+.empty-icon {
+  font-size: 80rpx;
+}
+
+.empty-text {
+  font-size: 28rpx;
+  color: #94A3B8;
+}

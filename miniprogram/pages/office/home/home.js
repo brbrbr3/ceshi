@@ -36,6 +36,9 @@ Page({
     loadingArticles: false,
     todaySchedules: [],
     loadingSchedules: false,
+    // 活动专区
+    activities: [],
+    loadingActivities: false,
     // 日程详情弹窗
     showScheduleDetail: false,
     detailSchedule: null
@@ -49,6 +52,7 @@ Page({
     this.syncNotifications()
     this.loadAnnouncements()
     this.loadArticles()
+    this.loadActivities()
     this.loadPermissionCache()
     this.loadHolidayConfig()
     this.loadTodaySchedules()  // 加载今日日程
@@ -556,5 +560,68 @@ Page({
         }
       }
     })
+  },
+
+  // ========== 活动专区 ==========
+
+  /**
+   * 加载首页活动列表（最多3条）
+   */
+  loadActivities() {
+    this.setData({ loadingActivities: true })
+
+    wx.cloud.callFunction({
+      name: 'activityManager',
+      data: {
+        action: 'list',
+        params: {
+          page: 1,
+          pageSize: 3,
+          status: 'active'
+        }
+      }
+    }).then(res => {
+      const result = res.result
+      if (result && result.code === 0) {
+        const list = (result.data.list || []).map(item => ({
+          _id: item._id,
+          title: item.title,
+          creatorName: item.creatorName,
+          timeText: formatTime(item.createdAt),
+          registrationCount: item.registrationCount || 0,
+          status: item.status
+        }))
+        this.setData({
+          activities: list,
+          loadingActivities: false
+        })
+      } else {
+        throw new Error(result.message || '加载失败')
+      }
+    }).catch(error => {
+      console.error('加载活动失败:', error)
+      this.setData({ loadingActivities: false })
+    })
+  },
+
+  /**
+   * 跳转活动列表页
+   */
+  goActivities() {
+    wx.navigateTo({
+      url: '/pages/office/activity-list/activity-list'
+    })
+  },
+
+  /**
+   * 点击活动卡片条目
+   */
+  handleActivityTap(e) {
+    const id = e.currentTarget.dataset.id
+    if (id) {
+      wx.navigateTo({
+        url: `/pages/office/activity-detail/activity-detail?id=${id}`
+      })
+    }
   }
 })

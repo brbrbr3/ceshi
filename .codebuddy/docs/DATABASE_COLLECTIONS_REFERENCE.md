@@ -1532,8 +1532,102 @@ const notificationsCollection = db.collection('notifications')  // ✅
 | 2026-04-03 | 添加 meal_subscriptions 用户订餐状态、meal_adjustments 调整记录集合（餐食管理功能） | AI |
 | 2026-04-04 | 添加 side_dish_orders 副食征订单、side_dish_bookings 副食预订记录集合（副食预订/管理功能） | AI |
 | 2026-04-05 | 添加 menu_ratings 菜品打分记录集合（菜单详情页菜品评分功能） | AI |
+| 2026-04-06 | 添加 activities 活动主表、activity_registrations 报名记录集合（活动管理模块） | AI |
 
 ---
+
+### 36. activities - 活动主表
+
+**用途**：存储活动管理模块的活动数据，支持目标用户筛选、分组报名、人数上限、可见性控制等
+
+**安全规则**：`ADMINWRITE` - 所有用户可读，仅云函数可写
+
+> **重要说明**：活动由 `activityManager` 云函数创建和管理。所有登录用户均可创建和参与活动。
+
+**记录数**：动态
+
+**索引**：
+
+- `_id` - 记录 ID（云开发自动创建）
+- `idx_status_createdAt` - 组合索引：status（升序）+ createdAt（降序）- 优化列表查询
+- `idx_creatorOpenid` - 创建者 openid 索引
+
+**字段结构**：
+```javascript
+{
+  _id: String,                    // 记录 ID（自动生成）
+  title: String,                   // 活动标题（必填，最长50字符）
+  content: String,                 // 活动内容（富文本 HTML 或纯文本）
+  // 创建者信息
+  creatorOpenid: String,            // 创建者 openid
+  creatorName: String,             // 创建者姓名
+  // 目标用户配置
+  isTargetRoleEnabled: Boolean,     // 是否启用目标用户限制（默认 false）
+  targetRoles: Array[String],      // 目标角色列表（isTargetRoleEnabled=true 时有效）
+  // 分组配置
+  isGroupedActivity: Boolean,       // 是否为分组活动（默认 false）
+  groups: Array[{                  // 分组列表
+    name: String                   // 分组名称
+  }],
+  // 人数上限配置
+  isMaxRegistrationsEnabled: Boolean, // 是否启用人数上限（默认 false）
+  maxRegistrations: Number | null,   // 报名上限人数（启用时有效，否则为 null）
+  // 可见性控制
+  isTargetOnlyVisible: Boolean,     // 只对目标用户展示（默认 false）
+  isRegistrationVisible: Boolean,   // 报名情况对用户可见（默认 true）
+  // 状态与统计
+  status: String,                  // 'active'(报名中) | 'ended'(已结束)
+  registrationCount: Number,        // 报名人数（冗余字段）
+  // 时间戳
+  createdAt: Number,               // 创建时间戳
+  updatedAt: Number                // 更新时间戳
+}
+```
+
+**业务规则**：
+1. 所有已登录用户均可创建活动和报名
+2. 活动创建者和管理员可以删除活动
+3. 同一用户对同一活动只能报名一次
+4. 开启人数上限后，报名数达到上限则不可再报名
+5. 非目标用户在「只对目标用户展示」开启时看不到该活动
+
+---
+
+### 37. activity_registrations - 活动报名记录
+
+**用途**：存储用户的报名参与记录
+
+**安全规则**：`READONLY` - 所有用户可读，仅云函数可写
+
+> **重要说明**：报名记录由 `activityManager` 云函数在用户报名/取消时创建或删除。
+
+**记录数**：动态
+
+**索引**：
+
+- `_id` - 记录 ID（云开发自动创建）
+- `idx_activityId_openid` - 组合索引：activityId（升序）+ openid（升序）- 防重复报名校验
+- `idx_activityId` - 活动 ID 索引 - 查询某活动的所有报名记录
+
+**字段结构**：
+```javascript
+{
+  _id: String,                    // 记录 ID（自动生成）
+  activityId: String,              // 关联的活动 ID（activities._id）
+  openid: String,                 // 报名人 openid
+  name: String,                    // 报名人姓名
+  groupName: String | null,        // 所选分组名（非分组活动为 null）
+  createdAt: Number               // 报名时间戳
+}
+```
+
+**相关云函数**：
+- `activityManager.create`：创建活动
+- `activityManager.list`：分页查询活动列表
+- `activityManager.get`：获取详情 + 当前用户报名状态 + 剩余名额
+- `activityManager.register`：报名参与（含人数上限校验）
+- `activityManager.cancelRegistration`：取消报名
+- `activityManager.delete`：删除活动（级联删除报名记录）
 
 ### 31. meal_subscriptions - 用户工作餐订阅状态
 
@@ -1763,3 +1857,5 @@ https://tcb.cloud.tencent.com/dev?envId=cloud1-8gdftlggae64d5d0#/db/doc
 - [meal_subscriptions](https://tcb.cloud.tencent.com/dev?envId=cloud1-8gdftlggae64d5d0#/db/doc/collection/meal_subscriptions)
 - [meal_adjustments](https://tcb.cloud.tencent.com/dev?envId=cloud1-8gdftlggae64d5d0#/db/doc/collection/meal_adjustments)
 - [menu_ratings](https://tcb.cloud.tencent.com/dev?envId=cloud1-8gdftlggae64d5d0#/db/doc/collection/menu_ratings)
+- [activities](https://tcb.cloud.tencent.com/dev?envId=cloud1-8gdftlggae64d5d0#/db/doc/collection/activities)
+- [activity_registrations](https://tcb.cloud.tencent.com/dev?envId=cloud1-8gdftlggae64d5d0#/db/doc/collection/activity_registrations)

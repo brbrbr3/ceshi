@@ -1,0 +1,157 @@
+<view class="office-page activity-detail-page">
+  <!-- 渐变头部 -->
+  <view class="office-gradient-header detail-header">
+    <view class="office-header-top">
+      <view>
+        <view class="detail-title">活动详情</view>
+        <view class="detail-subtitle">{{activity.title}}</view>
+      </view>
+    </view>
+  </view>
+
+  <!-- 详情内容 -->
+  <view class="office-content detail-content" wx:if="{{!loading}}">
+    <view class="office-card detail-card">
+      <!-- 标签行 -->
+      <view class="detail-tags">
+        <view class="detail-tag {{activity.status === 'active' ? 'tag-active' : 'tag-ended'}}">
+          {{activity.status === 'active' ? '报名中' : '已结束'}}
+        </view>
+        <view wx:if="{{activity.isTargetRoleEnabled && activity.targetRoles.length > 0}}" class="detail-tag tag-target">
+          {{targetRolesText}}
+        </view>
+        <view wx:if="{{activity.isMaxRegistrationsEnabled && activity.maxRegistrations}}" class="detail-tag tag-limit">
+          限{{activity.maxRegistrations}}人
+        </view>
+      </view>
+
+      <!-- 元信息 -->
+      <view class="detail-meta">
+        <text class="meta-label">详情：</text>
+        <text class="meta-value">{{activity.content}}</text>
+      </view>
+      <view class="detail-meta">
+        <text class="meta-label">发布者：</text>
+        <text class="meta-value">{{activity.creatorName}}</text>
+      </view>
+      <view class="detail-meta">
+        <text class="meta-label">发布时间：</text>
+        <text class="meta-value">{{timeText}}</text>
+      </view>
+      <view class="detail-meta" wx:if="{{activity.registrationDeadline}}">
+        <text class="meta-label">报名截止：</text>
+        <text class="meta-value" style="color: #DC2626;">{{deadlineText}}</text>
+      </view>
+      <view class="detail-meta">
+        <text class="meta-label">报名人数：</text>
+        <text class="meta-value">{{activity.registrationCount || 0}} 人</text>
+        <text wx:if="{{remainingSlots !== null}}" class="meta-value" style="color: #16A34A;">（剩余{{remainingSlots}}个名额）</text>
+      </view>
+
+      <!-- 分隔线 -->
+      <view class="detail-divider"></view>
+
+      <!-- 活动内容 -->
+      <view class="detail-body">
+        <mp-html content="{{activity.content}}" wx:if="{{activity.content}}" />
+        <text class="body-text" wx:else>{{activity.plainContent || '无内容'}}</text>
+      </view>
+    </view>
+
+    <!-- 分组信息卡片（分组活动时显示） -->
+    <view class="office-card group-card" wx:if="{{activity.isGroupedActivity}}">
+      <view class="group-card-title">分组报名</view>
+      <view class="group-list">
+        <view class="group-item" wx:for="{{groupStats}}" wx:key="name">
+          <view class="group-name">{{item.name}}</view>
+          <view class="group-count">{{item.count}}人</view>
+        </view>
+      </view>
+    </view>
+
+    <!-- 报名情况列表（可见时显示） -->
+    <view class="office-card reg-card" wx:if="{{activity.isRegistrationVisible && registrationList.length > 0}}">
+      <view class="reg-card-title">
+        参与者（{{registrationList.length}}人）
+      </view>
+      <view class="reg-list">
+        <view class="reg-item" wx:for="{{registrationList}}" wx:key="_id">
+          <view class="reg-avatar">{{item.name[0]}}</view>
+          <view class="reg-name">{{item.name}}</view>
+          <view class="reg-group" wx:if="{{item.groupName}}">{{item.groupName}}</view>
+          <view class="reg-time">{{item.timeText}}</view>
+        </view>
+      </view>
+    </view>
+
+    <!-- 底部操作栏占位 -->
+    <view style="height: 130rpx;"></view>
+  </view>
+
+  <!-- 底部固定操作栏 -->
+  <view class="bottom-bar" wx:if="{{!loading}}">
+    <!-- 非分组：直接报名/取消 -->
+    <block wx:if="{{!activity.isGroupedActivity}}">
+      <button
+        wx:if="{{!isRegistered && activity.status === 'active'}}"
+        class="bottom-btn btn-primary {{remainingSlots === 0 ? 'btn-disabled' : ''}}"
+        disabled="{{remainingSlots === 0}}"
+        bindtap="handleRegister"
+      >{{remainingSlots === 0 ? '报名人数已达上限' : '报名参与'}}</button>
+      <button
+        wx:elif="{{isRegistered}}"
+        class="bottom-btn btn-cancel"
+        bindtap="handleCancelRegistration"
+      >已报名 · 取消报名</button>
+      <button
+        wx:else
+        class="bottom-btn btn-disabled"
+        disabled="true"
+      >活动已结束</button>
+    </block>
+
+    <!-- 分组活动：选择分组报名 -->
+    <block wx:if="{{activity.isGroupedActivity && activity.status === 'active'}}">
+      <button
+        wx:if="{{!isRegistered}}"
+        class="bottom-btn btn-primary"
+        bindtap="showGroupPicker"
+      >选择分组报名</button>
+      <button
+        wx:elif="{{isRegistered}}"
+        class="bottom-btn btn-cancel"
+        bindtap="handleCancelRegistration"
+      >已报名（{{myRegistration.groupName || '默认组'}}）· 取消</button>
+    </block>
+    <block wx:if="{{activity.isGroupedActivity && activity.status !== 'active'}}">
+      <button class="bottom-btn btn-disabled" disabled="true">活动已结束</button>
+    </block>
+  </view>
+
+  <!-- 分组选择弹窗 -->
+  <view class="picker-mask {{showPicker ? 'is-visible' : ''}}" bindtap="hideGroupPicker"></view>
+  <view class="picker-panel {{showPicker ? 'is-visible' : ''}}">
+    <view class="picker-header">
+      <text class="picker-title">选择报名分组</text>
+      <text class="picker-close" bindtap="hideGroupPicker">×</text>
+    </view>
+    <scroll-view scroll-y class="picker-body">
+      <view
+        class="picker-option"
+        wx:for="{{activity.groups}}"
+        wx:key="name"
+        bindtap="handleSelectGroup"
+        data-group="{{item.name}}"
+      >
+        <text class="option-name">{{item.name}}</text>
+        <text class="option-count">{{item.regCount || 0}}人已报</text>
+      </view>
+    </scroll-view>
+  </view>
+
+  <!-- 加载状态 -->
+  <view class="loading-state" wx:if="{{loading}}">
+    <view class="loading-spinner"></view>
+    <text class="loading-text">加载中...</text>
+  </view>
+</view>
