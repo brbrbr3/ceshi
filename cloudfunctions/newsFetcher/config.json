@@ -3,7 +3,7 @@
     {
       "name": "newsFetcherTrigger",
       "type": "timer",
-      "config": "0 */15 * * * * *"
+      "config": "0 0 */2 * * * *"
     }
   ]
 }

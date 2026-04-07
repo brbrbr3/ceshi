@@ -48,14 +48,15 @@ Page({
     this.setData({
       currentDateText: this.getCurrentDateText()
     })
-    this.syncUserProfile()
-    this.syncNotifications()
-    this.loadAnnouncements()
-    this.loadArticles()
-    this.loadActivities()
-    this.loadPermissionCache()
-    this.loadHolidayConfig()
-    this.loadTodaySchedules()  // 加载今日日程
+    this.syncUserProfile()      //同步用户资料
+    this.syncNotifications()    //同步消息推送
+    this.loadAnnouncements()    //加载通知公告
+    this.loadArticles()         //加载学习园地
+    this.loadActivities()       //加载活动专区
+    this.loadPermissionCache()  //加载权限缓存
+    this.loadHolidayConfig()    //加载节假日配置
+    this.loadTodaySchedules()   // 加载今日日程
+    app.updateCacheVersionAndShowWhatsNew()//更新缓存版本号，展示更新说明弹窗
   },
 
   /**
@@ -583,7 +584,11 @@ Page({
     }).then(res => {
       const result = res.result
       if (result && result.code === 0) {
-        const list = (result.data.list || []).map(item => ({
+        const allList = result.data.list || []
+        // 根据当前用户角色过滤不可见活动（只对目标用户展示的活动）
+        const filteredList = this._filterActivitiesByPermission(allList)
+
+        const list = filteredList.map(item => ({
           _id: item._id,
           title: item.title,
           creatorName: item.creatorName,
@@ -610,6 +615,21 @@ Page({
   goActivities() {
     wx.navigateTo({
       url: '/pages/office/activity-list/activity-list'
+    })
+  },
+
+  /**
+   * 根据当前用户角色过滤活动（只对目标用户展示的活动对非目标用户隐藏）
+   */
+  _filterActivitiesByPermission(activityList) {
+    const user = app.globalData && app.globalData.userProfile
+
+    return activityList.filter(item => {
+      if (!item.isTargetOnlyVisible) return true
+      if (!item.isTargetRoleEnabled) return true
+      if (!item.targetRoles || item.targetRoles.length === 0) return true
+      if (!user || !user.role) return false
+      return item.targetRoles.includes(user.role)
     })
   },
 

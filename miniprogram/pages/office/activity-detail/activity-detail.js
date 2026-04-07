@@ -104,6 +104,9 @@ Page({
       return
     }
 
+    // 目标用户资格检查
+    if (!this._checkUserEligible()) return
+
     wx.showModal({
       title: '确认报名',
       content: `确定要报名参与「${this.data.activity.title}」吗？`,
@@ -117,6 +120,9 @@ Page({
 
   // 显示分组选择器
   showGroupPicker() {
+    // 目标用户资格检查
+    if (!this._checkUserEligible()) return
+
     this.setData({ showPicker: true })
   },
 
@@ -126,6 +132,9 @@ Page({
 
   // 选择分组后报名
   handleSelectGroup(e) {
+    // 目标用户资格检查（二次保险）
+    if (!this._checkUserEligible()) return
+
     const groupName = e.currentTarget.dataset.group
     this.setData({ showPicker: false })
 
@@ -163,6 +172,41 @@ Page({
       wx.hideLoading()
       utils.showToast({ title: '报名失败', icon: 'none' })
     })
+  },
+
+  /**
+   * 检查当前用户是否有资格参与此活动（目标用户校验）
+   * @returns {boolean} true=有资格，false=无资格（已弹出提示）
+   */
+  _checkUserEligible() {
+    const activity = this.data.activity
+    if (!activity) return false
+
+    // 未启用目标用户限制 → 有资格
+    if (!activity.isTargetRoleEnabled) return true
+    // 未指定目标角色 → 有资格
+    if (!activity.targetRoles || activity.targetRoles.length === 0) return true
+
+    // 从缓存获取当前用户
+    const user = app.globalData && app.globalData.userProfile
+    if (!user || !user.role) {
+      wx.showToast({ title: '无法获取用户信息', icon: 'none' })
+      return false
+    }
+
+    // 检查角色匹配
+    if (!activity.targetRoles.includes(user.role)) {
+      const roleNames = activity.targetRoles.join('、')
+      wx.showModal({
+        title: '暂无报名资格',
+        content: `该活动仅面向「${roleNames}」开放，您的身份为「${user.role}」，暂无报名资格。`,
+        showCancel: false,
+        confirmText: '我知道了'
+      })
+      return false
+    }
+
+    return true
   },
 
   // 取消报名

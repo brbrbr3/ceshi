@@ -84,6 +84,7 @@ App({
 
   /**
    * 检查缓存版本号，版本变化时清除相关缓存
+   * （但不更新缓存版本号，后续在updateCacheVersionAndShowWhatsNew函数更新缓存版本号并showModal）
    */
   checkCacheVersion() {
     const storedVersion = readStorage(CACHE_VERSION_KEY)
@@ -91,16 +92,28 @@ App({
       //清除常量、权限的内存、缓存
       this.clearConstantsCache()
       this.clearPermissionCache()
+      console.log('新版缓存为'+config.CACHE_VERSION+'，现已清除旧内存、缓存（PERMISSION_CACHE_KEY, CONSTANTS_CACHE_KEY）')
+    }
+    else{
+      console.log('缓存版本未变，为'+storedVersion)
+    }
+  },
+
+  //登录后调用，更新缓存版本号，展示更新说明modal
+  updateCacheVersionAndShowWhatsNew(){
+    const storedVersion = readStorage(CACHE_VERSION_KEY)
+    if (storedVersion !== config.CACHE_VERSION) {
       writeStorage(CACHE_VERSION_KEY, config.CACHE_VERSION)
-      console.log('缓存版本已更新为'+config.CACHE_VERSION+'，已清除旧内存、缓存（PERMISSION_CACHE_KEY, CONSTANTS_CACHE_KEY）')
+      console.log('缓存版本已更新为'+config.CACHE_VERSION)
       wx.showModal({
         title: '版本'+config.CACHE_VERSION+'更新说明',
         content: config.VERSION_DESCRIPTION,
-        showCancel: 'false'
+        showCancel: 'false',
+        confirmText: '我知道了'
       })
     }
     else{
-      console.log('缓存版本为'+storedVersion)
+      console.log('缓存版本未变，为'+storedVersion)
     }
   },
 

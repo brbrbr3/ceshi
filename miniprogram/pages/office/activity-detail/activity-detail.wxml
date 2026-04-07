@@ -132,7 +132,7 @@
   <view class="picker-mask {{showPicker ? 'is-visible' : ''}}" bindtap="hideGroupPicker"></view>
   <view class="picker-panel {{showPicker ? 'is-visible' : ''}}">
     <view class="picker-header">
-      <text class="picker-title">选择报名分组</text>
+      <text class="picker-title">选择分组报名</text>
       <text class="picker-close" bindtap="hideGroupPicker">×</text>
     </view>
     <scroll-view scroll-y class="picker-body">

@@ -27,6 +27,26 @@ function fail(message, code, data) {
 }
 
 /**
+ * 判断当前用户是否为活动的目标用户
+ * @param {string} openid 当前用户openid
+ * @param {object} activity 活动对象
+ * @returns {Promise<boolean>}
+ */
+async function isUserTarget(openid, activity) {
+  // 未启用目标用户限制 → 所有人都是目标用户
+  if (!activity.isTargetRoleEnabled) return true
+  // 启用了但没有指定角色 → 视为所有人
+  if (!activity.targetRoles || activity.targetRoles.length === 0) return true
+  // 查询用户的角色
+  const userResult = await usersCollection.where({ openid }).limit(1).get()
+  if (!userResult.data || userResult.data.length === 0) return false
+  const user = userResult.data[0]
+  const userRole = user.role || ''
+  // 检查用户角色是否匹配任一目标角色
+  return activity.targetRoles.includes(userRole)
+}
+
+/**
  * 创建活动
  */
 async function createActivity(openid, data) {
@@ -201,6 +221,15 @@ async function registerActivity(openid, data) {
 
   if (activity.status !== 'active') {
     return fail('活动已结束，无法报名', 400)
+  }
+
+  // ★ 目标用户资格检查（后端双保险）
+  if (activity.isTargetRoleEnabled) {
+    const isTarget = await isUserTarget(openid, activity)
+    if (!isTarget) {
+      const roleNames = (activity.targetRoles || []).join('、')
+      return fail(`该活动仅面向「${roleNames}」开放，您暂无报名资格`, 403)
+    }
   }
 
   // 检查是否已报名

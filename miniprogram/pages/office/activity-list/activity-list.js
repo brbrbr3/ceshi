@@ -59,7 +59,18 @@ Page({
         const result = res.result
         if (result && result.code === 0) {
           const data = result.data || {}
-          const list = (data.list || []).map(item => ({
+          // 前端过滤：根据当前用户角色隐藏不可见的活动
+          const rawList = data.list || []
+          const currentUser = app.globalData && app.globalData.userProfile
+          const filteredRawList = rawList.filter(item => {
+            if (!item.isTargetOnlyVisible) return true
+            if (!item.isTargetRoleEnabled) return true
+            if (!item.targetRoles || item.targetRoles.length === 0) return true
+            if (!currentUser || !currentUser.role) return false
+            return item.targetRoles.includes(currentUser.role)
+          })
+
+          const list = filteredRawList.map(item => ({
             ...item,
             timeText: formatTime(item.createdAt)
           }))

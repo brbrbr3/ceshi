@@ -872,17 +872,10 @@ exports.main = async (event, context) => {
   }
 }
 
-// ===== Action: 获取新闻列表 =====
+// ===== Action: 获取新闻列表（纯数据库读取，不触发爬取）=====
 async function handleList(event) {
   const { page = 1, pageSize = 15, source = '' } = event
   const skip = (page - 1) * pageSize
-
-  // 检查缓存，过期则后台刷新
-  const cacheValid = await isCacheValid()
-  if (!cacheValid) {
-    // 异步刷新，不阻塞返回
-    handleRefresh(event).catch(err => console.error('后台刷新失败:', err.message))
-  }
 
   // 构建查询条件
   let query = newsArticlesCollection
@@ -902,11 +895,6 @@ async function handleList(event) {
     .get()
 
   const hasMore = skip + listResult.data.length < total
-
-  // 当数据用完时（hasMore=false 且总数据不足），触发后台刷新以获取更多
-  if (!hasMore && total < 30) {
-    handleRefresh(event).catch(err => console.error('数据不足，后台补充刷新失败:', err.message))
-  }
 
   return success({
     list: listResult.data,
