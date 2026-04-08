@@ -345,30 +345,26 @@ Page({
     if (!dateList || dateList.length === 0) return
 
     try {
-      // 批量获取每个日期的预约数
-      const promises = dateList.map(async (dateItem) => {
-        const res = await wx.cloud.callFunction({
-          name: 'meetingRoomManager',
-          data: {
-            action: 'getMeetingRoomReservationCount',
-            params: {
-              roomId: selectedRoomId,
-              date: dateItem.dateStr
-            }
+      const dates = dateList.map(item => item.dateStr)
+      const res = await wx.cloud.callFunction({
+        name: 'meetingRoomManager',
+        data: {
+          action: 'getBatchReservationCounts',
+          params: {
+            roomId: selectedRoomId,
+            dates: dates
           }
-        })
-        return res.result.code === 0 ? res.result.data.count : 0
+        }
       })
 
-      const counts = await Promise.all(promises)
-
-      // 更新dateList
-      const updatedDateList = dateList.map((item, index) => ({
-        ...item,
-        reservationCount: counts[index] || 0
-      }))
-
-      this.setData({ dateList: updatedDateList })
+      if (res.result.code === 0) {
+        const counts = res.result.data.counts
+        const updatedDateList = dateList.map(item => ({
+          ...item,
+          reservationCount: counts[item.dateStr] || 0
+        }))
+        this.setData({ dateList: updatedDateList })
+      }
     } catch (error) {
       console.error('加载日期预约数失败:', error)
     }

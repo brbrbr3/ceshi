@@ -115,7 +115,7 @@
   border-radius: 20rpx;
   background-color: #FFFFFF;
   padding: 24rpx;
-  box-shadow: 0 4rpx 14rpx rgba(8, 145, 178, 0.3);
+  box-shadow: 4rpx 4rpx 6rpx rgba(168, 168, 168, 0.3);
   transition: all 0.2s ease;
 }
 

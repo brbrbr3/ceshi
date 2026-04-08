@@ -250,7 +250,8 @@
 
       <view class="cp-popup-actions">
         <view class="cp-detail-btn-row">
-          <button class="cp-delete-btn" catchtap="deleteRecord" data-record-id="{{selectedRecord._id}}">删除</button>
+        <!--已完成的申请不再显示删除按钮-->
+          <button wx:if="{{!(detailData.status === 'completed')}}" class="cp-delete-btn" catchtap="deleteRecord" data-record-id="{{selectedRecord._id}}">删除</button>
           <button class="cp-close-btn" bindtap="hideDetailPopup">关闭</button>
         </view>
       </view>

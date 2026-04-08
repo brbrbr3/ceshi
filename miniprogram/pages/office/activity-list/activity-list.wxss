@@ -175,6 +175,11 @@
 .swipe-wrapper {
   position: relative;
   overflow: hidden;
+  border-bottom: 1rpx solid #CBD5E1;
+}
+
+.swipe-wrapper:last-child{
+  border-bottom: none;
 }
 
 .swipe-actions {
@@ -207,7 +212,6 @@
   position: relative;
   z-index: 2;
   background: #FFFFFF;
-  border-bottom: 1rpx solid #CBD5E1;
 }
 
 .last-content{

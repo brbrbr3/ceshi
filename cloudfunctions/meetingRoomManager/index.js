@@ -26,15 +26,35 @@ function fail(message, code) {
  */
 async function getMeetingRoomReservations(roomId, date) {
   try {
-    const result = await meetingRoomReservationsCollection
+    const MAX_LIMIT = 100
+    let allData = []
+
+    let result = await meetingRoomReservationsCollection
       .where({
         roomId: roomId,
         date: date
       })
       .orderBy('startTime', 'asc')
+      .limit(MAX_LIMIT)
       .get()
 
-    return success({ list: result.data })
+    allData = result.data
+
+    // 分页获取，防止数据量超过单次返回上限
+    while (result.data.length === MAX_LIMIT) {
+      result = await meetingRoomReservationsCollection
+        .where({
+          roomId: roomId,
+          date: date
+        })
+        .orderBy('startTime', 'asc')
+        .skip(allData.length)
+        .limit(MAX_LIMIT)
+        .get()
+      allData = allData.concat(result.data)
+    }
+
+    return success({ list: allData })
   } catch (error) {
     console.error('获取预约列表失败:', error)
     return fail('获取预约列表失败')
@@ -278,6 +298,43 @@ async function getMeetingRoomReservationStats(date) {
 }
 
 /**
+ * 批量获取指定会议室多个日期的预约数量
+ * @param {string} roomId 会议室ID
+ * @param {string[]} dates 日期数组 ['YYYY-MM-DD', ...]
+ */
+async function getBatchReservationCounts(roomId, dates) {
+  try {
+    const $ = db.command.aggregate
+
+    const result = await meetingRoomReservationsCollection
+      .aggregate()
+      .match({
+        roomId: roomId,
+        date: _.in(dates)
+      })
+      .group({
+        _id: '$date',
+        count: $.sum(1)
+      })
+      .end()
+
+    // 转为 { 'YYYY-MM-DD': count } 格式，未出现的日期补0
+    const counts = {}
+    result.list.forEach(item => {
+      counts[item._id] = item.count
+    })
+    dates.forEach(d => {
+      if (!counts[d]) counts[d] = 0
+    })
+
+    return success({ counts })
+  } catch (error) {
+    console.error('批量获取预约数量失败:', error)
+    return fail('批量获取预约数量失败')
+  }
+}
+
+/**
  * 获取指定会议室、日期的预约数量
  * @param {string} roomId 会议室ID
  * @param {string} date 日期 YYYY-MM-DD
@@ -341,6 +398,9 @@ exports.main = async (event, context) => {
 
       case 'getMeetingRoomReservationCount':
         return await getMeetingRoomReservationCount(params.roomId, params.date)
+
+      case 'getBatchReservationCounts':
+        return await getBatchReservationCounts(params.roomId, params.dates)
 
       default:
         return fail(`未知的 action: ${action}`, 400)

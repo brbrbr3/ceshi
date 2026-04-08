@@ -58,8 +58,7 @@ Page({
 
     const userInfo = app.globalData.userProfile || {}
     this.setData({
-      isOfficeStaff: (userInfo.department === '办公室'),
-      currentTab: userInfo.department === '办公室' ? 'manage' : 'mine'
+      isOfficeStaff: (userInfo.department === '办公室')
     })
   },
 
