@@ -217,6 +217,10 @@ async function resolveApprovers(approverType, approverConfig, businessData) {
           } else if (roleId === 'library_leader') {
             // 馆领导角色
             userQuery.role = '馆领导'
+          } else if (roleId === 'office_dept_head') {
+            // 办公室部门负责人
+            userQuery.role = '部门负责人'
+            userQuery.department = '办公室'
           } else {
             // 其他角色，按 role 字段查询
             const roleMap = {
@@ -1517,6 +1521,30 @@ async function completeWorkflow(orderId, decision, approverId, approverName, com
     }
   }
 
+  // 特殊处理：馆内购车申请审批通过，更新 car_purchase_records 状态
+  if (order.orderType === 'car_purchase_application' && decision === 'approved') {
+    const carPurchaseCollection = db.collection('car_purchase_records')
+    const businessData = order.businessData || {}
+    const recordId = businessData.recordId
+
+    if (recordId) {
+      try {
+        await carPurchaseCollection.doc(recordId).update({
+          data: {
+            status: 'approved',
+            approvedAt: now,
+            orderId: order._id,
+            orderNo: order.orderNo,
+            updatedAt: now
+          }
+        })
+        console.log('馆内购车申请审批通过，记录状态已更新，recordId:', recordId)
+      } catch (error) {
+        console.error('更新购车申请记录状态失败:', error)
+      }
+    }
+  }
+
   // 发送完成通知给申请人
   await sendWorkflowCompletedNotification(order, decision)
 }
@@ -1851,6 +1879,26 @@ async function terminateOrder(orderId, openid, operatorName = '审批人', reaso
       { workflowStatus: ORDER_STATUS.TERMINATED, reason },
       null
     )
+
+    // 联动更新购车申请记录状态为"已中止"
+    if (order.orderType === 'car_purchase_application') {
+      const businessData = order.businessData || {}
+      const recordId = businessData.recordId
+      if (recordId) {
+        try {
+          const carPurchaseCollection = db.collection('car_purchase_records')
+          await carPurchaseCollection.doc(recordId).update({
+            data: {
+              status: 'terminated',
+              updatedAt: now
+            }
+          })
+          console.log(`工单中止，购车记录状态已同步更新: recordId=${recordId}`)
+        } catch (syncError) {
+          console.error('联动更新购车记录状态失败:', syncError.message || syncError)
+        }
+      }
+    }
 
     return success({}, '工单已中止')
 

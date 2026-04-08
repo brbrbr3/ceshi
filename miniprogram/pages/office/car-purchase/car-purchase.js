@@ -12,6 +12,17 @@ const app = getApp()
 const utils = require('../../../common/utils.js')
 const paginationBehavior = require('../../../behaviors/pagination.js')
 
+// 职别→购车标准映射常量
+const POSITION_CAR_STANDARD_MAP = [
+  { position: '副司级以上，副师职以上武官', carStandard: 45000, carMinStandard: 27000, carSubsidy: 6380 },
+  { position: '处级，文职武官、副师职副武官', carStandard: 41000, carMinStandard: 24600, carSubsidy: 5860 },
+  { position: '一秘、二秘', carStandard: 36000, carMinStandard: 21600, carSubsidy: 5100 },
+  { position: '三秘、随员、职员、试用期人员', carStandard: 31000, carMinStandard: 18600, carSubsidy: 4330 },
+  { position: '工勤人员', carStandard: 23000, carMinStandard: 6900, carSubsidy: 3310 }
+]
+
+const POSITION_OPTIONS = POSITION_CAR_STANDARD_MAP.map(item => item.position)
+
 Page({
   behaviors: [paginationBehavior],
 
@@ -28,6 +39,8 @@ Page({
     showFormPopup: false,
     showDetailPopup: false,
     showStepEditPopup: false,
+    showTypeSelector: false,
+    showPurchaseAppForm: false,
 
     // 数据列表
     recordList: [],
@@ -36,10 +49,35 @@ Page({
     selectedRecord: null,
     detailData: null,
 
-    // 表单数据
+    // 表单数据（购车流程）
     form: {
       carModel: ''
     },
+
+    // 馆内购车申请表单数据
+    purchaseAppForm: {
+      arrivalDate: '',
+      termMonths: 48,
+      position: '',
+      positionIndex: -1,
+      carStandard: 0,
+      carMinStandard: 0,
+      carSubsidy: 0,
+      plannedPurchaseDate: '',
+      saleCompany: '',
+      brand: '',
+      specModel: '',
+      displacement: '',
+      isNewCar: true,
+      usedTime: '',
+      usedMileage: '',
+      priceWithShipping: '',
+      priceInUSD: '',
+      isApplyLoan: false
+    },
+
+    // 职别选项
+    positionOptions: POSITION_OPTIONS,
 
     // 步骤编辑弹层数据
     editingStep: null,
@@ -63,7 +101,7 @@ Page({
   },
 
   async onShow() {
-    if (!this.data.showFormPopup && !this.data.showDetailPopup && !this.data.showStepEditPopup) {
+    if (!this.data.showFormPopup && !this.data.showDetailPopup && !this.data.showStepEditPopup && !this.data.showPurchaseAppForm && !this.data.showTypeSelector) {
       wx.showLoading({ title: '加载中...', mask: true })
       try {
         await this.refreshList()
@@ -129,12 +167,36 @@ Page({
   },
 
   formatRecordItem(item) {
+    const recordType = item.type || 'purchase_process'
+    const isProcess = recordType === 'purchase_process'
+    const isApplication = recordType === 'purchase_application'
+
+    let statusText = ''
+    let statusColor = '#0891B2'
+
+    if (isProcess) {
+      statusText = item.status === 'completed' ? '已完成' : `G${item.currentGroup}-${item.currentGroupName || ''}`
+      statusColor = item.status === 'completed' ? '#16A34A' : '#0891B2'
+    } else if (isApplication) {
+      const statusMap = {
+        'pending_approval': { text: '待审批', color: '#D97706' },
+        'approved': { text: '已通过', color: '#16A34A' },
+        'rejected': { text: '已驳回', color: '#DC2626' },
+        'workflow_failed': { text: '审批异常', color: '#DC2626' }
+      }
+      const mapped = statusMap[item.status] || { text: item.status, color: '#64748B' }
+      statusText = mapped.text
+      statusColor = mapped.color
+    }
+
     return {
       ...item,
+      type: recordType,
+      carModel: item.carModel || item.brand || '',
       createdAtText: item.createdAt ? utils.formatDateTime(item.createdAt) : '',
       updatedAtText: item.updatedAt ? utils.formatRelativeTime(item.updatedAt) : '',
-      statusText: item.status === 'completed' ? '已完成' : `G${item.currentGroup}-${item.currentGroupName || ''}`,
-      statusColor: item.status === 'completed' ? '#16A34A' : '#0891B2'
+      statusText,
+      statusColor
     }
   },
 
@@ -164,14 +226,58 @@ Page({
   // ========== 申请表单 ==========
 
   showApplicationForm() {
-    this.setData({
-      showFormPopup: true,
-      form: { carModel: '' }
-    })
+    this.setData({ showTypeSelector: true })
+  },
+
+  hideTypeSelector() {
+    this.setData({ showTypeSelector: false })
+  },
+
+  handleTypeSelect(e) {
+    const type = e.currentTarget.dataset.type
+    this.setData({ showTypeSelector: false })
+
+    if (type === 'purchase_process') {
+      // 原有购车流程
+      this.setData({
+        showFormPopup: true,
+        form: { carModel: '' }
+      })
+    } else if (type === 'purchase_application') {
+      // 馆内购车申请
+      this.setData({
+        showPurchaseAppForm: true,
+        purchaseAppForm: {
+          arrivalDate: '',
+          termMonths: 48,
+          position: '',
+          positionIndex: -1,
+          carStandard: 0,
+          carMinStandard: 0,
+          carSubsidy: 0,
+          plannedPurchaseDate: '',
+          saleCompany: '',
+          brand: '',
+          specModel: '',
+          displacement: '',
+          isNewCar: true,
+          usedTime: '',
+          usedMileage: '',
+          priceWithShipping: '',
+          priceInUSD: '',
+          isApplyLoan: false
+        }
+      })
+    }
+    // purchase_loan 预留，暂不处理
   },
 
   hideFormPopup() {
     this.setData({ showFormPopup: false })
+  },
+
+  hidePurchaseAppForm() {
+    this.setData({ showPurchaseAppForm: false })
   },
 
   handleCarModelInput(e) {
@@ -216,11 +322,150 @@ Page({
     }
   },
 
+  // ========== 馆内购车申请表单事件 ==========
+
+  handleArrivalDateChange(e) {
+    this.setData({ 'purchaseAppForm.arrivalDate': e.detail.value })
+  },
+
+  handleTermMonthsMinus() {
+    const current = this.data.purchaseAppForm.termMonths
+    if (current > 6) {
+      this.setData({ 'purchaseAppForm.termMonths': current - 6 })
+    }
+  },
+
+  handleTermMonthsPlus() {
+    const current = this.data.purchaseAppForm.termMonths
+    if (current < 96) {
+      this.setData({ 'purchaseAppForm.termMonths': current + 6 })
+    }
+  },
+
+  handlePositionChange(e) {
+    const index = Number(e.detail.value)
+    const position = POSITION_OPTIONS[index]
+    const standardItem = POSITION_CAR_STANDARD_MAP[index]
+    this.setData({
+      'purchaseAppForm.position': position,
+      'purchaseAppForm.positionIndex': index,
+      'purchaseAppForm.carStandard': standardItem.carStandard,
+      'purchaseAppForm.carMinStandard': standardItem.carMinStandard,
+      'purchaseAppForm.carSubsidy': standardItem.carSubsidy
+    })
+  },
+
+  handlePlannedPurchaseDateChange(e) {
+    this.setData({ 'purchaseAppForm.plannedPurchaseDate': e.detail.value })
+  },
+
+  handleSaleCompanyInput(e) {
+    this.setData({ 'purchaseAppForm.saleCompany': e.detail.value })
+  },
+
+  handleBrandInput(e) {
+    this.setData({ 'purchaseAppForm.brand': e.detail.value })
+  },
+
+  handleSpecModelInput(e) {
+    this.setData({ 'purchaseAppForm.specModel': e.detail.value })
+  },
+
+  handleDisplacementInput(e) {
+    this.setData({ 'purchaseAppForm.displacement': e.detail.value })
+  },
+
+  handleIsNewCarChange(e) {
+    const isNewCar = e.detail.value
+    this.setData({
+      'purchaseAppForm.isNewCar': isNewCar,
+      'purchaseAppForm.usedTime': isNewCar ? '无' : '',
+      'purchaseAppForm.usedMileage': isNewCar ? '无' : ''
+    })
+  },
+
+  handleUsedTimeInput(e) {
+    this.setData({ 'purchaseAppForm.usedTime': e.detail.value })
+  },
+
+  handleUsedMileageInput(e) {
+    this.setData({ 'purchaseAppForm.usedMileage': e.detail.value })
+  },
+
+  handlePriceWithShippingInput(e) {
+    this.setData({ 'purchaseAppForm.priceWithShipping': e.detail.value })
+  },
+
+  handlePriceInUSDInput(e) {
+    this.setData({ 'purchaseAppForm.priceInUSD': e.detail.value })
+  },
+
+  handleIsApplyLoanChange(e) {
+    this.setData({ 'purchaseAppForm.isApplyLoan': e.detail.value })
+  },
+
+  validatePurchaseAppForm() {
+    const f = this.data.purchaseAppForm
+    if (!f.arrivalDate) { utils.showToast({ title: '请选择到馆日期', icon: 'none' }); return false }
+    if (f.positionIndex < 0) { utils.showToast({ title: '请选择职别', icon: 'none' }); return false }
+    if (!f.plannedPurchaseDate) { utils.showToast({ title: '请选择拟购车日期', icon: 'none' }); return false }
+    if (!String(f.brand || '').trim()) { utils.showToast({ title: '请填写品牌', icon: 'none' }); return false }
+    if (!f.isNewCar && !String(f.usedTime || '').trim()) { utils.showToast({ title: '请填写已行驶时间', icon: 'none' }); return false }
+    if (!f.isNewCar && !String(f.usedMileage || '').trim()) { utils.showToast({ title: '请填写已行驶里程', icon: 'none' }); return false }
+    return true
+  },
+
+  async submitPurchaseApplication() {
+    if (this.data.submitting) return
+    if (!this.validatePurchaseAppForm()) return
+
+    this.setData({ submitting: true })
+
+    try {
+      const f = this.data.purchaseAppForm
+      const res = await wx.cloud.callFunction({
+        name: 'carPurchase',
+        data: {
+          action: 'createPurchaseApplication',
+          arrivalDate: f.arrivalDate,
+          termMonths: f.termMonths,
+          position: f.position,
+          plannedPurchaseDate: f.plannedPurchaseDate,
+          saleCompany: f.saleCompany,
+          brand: f.brand,
+          specModel: f.specModel,
+          displacement: f.displacement,
+          isNewCar: f.isNewCar,
+          usedTime: f.usedTime,
+          usedMileage: f.usedMileage,
+          priceWithShipping: f.priceWithShipping,
+          priceInUSD: f.priceInUSD,
+          isApplyLoan: f.isApplyLoan
+        }
+      })
+
+      if (res.result.code === 0) {
+        utils.showToast({ title: '申请已提交', icon: 'success' })
+        this.setData({ showPurchaseAppForm: false })
+        await this.refreshList()
+      } else {
+        utils.showToast({ title: res.result.message || '提交失败', icon: 'none' })
+      }
+    } catch (error) {
+      console.error('提交馆内购车申请失败:', error)
+      utils.showToast({ title: '提交失败，请重试', icon: 'none' })
+    } finally {
+      this.setData({ submitting: false })
+    }
+  },
+
   // ========== 详情查看 ==========
 
   async showRecordDetail(e) {
     const record = e.currentTarget.dataset.record
     if (!record || !record._id) return
+
+    const recordType = record.type || 'purchase_process'
 
     wx.showLoading({ title: '加载中...' })
     try {
@@ -231,11 +476,21 @@ Page({
 
       if (res.result.code === 0) {
         const detail = res.result.data
-        this.setData({
-          selectedRecord: record,
-          detailData: this.formatDetailData(detail),
-          showDetailPopup: true
-        })
+        if (detail.type === 'purchase_application') {
+          // 馆内购车申请详情
+          this.setData({
+            selectedRecord: record,
+            detailData: detail,
+            showDetailPopup: true
+          })
+        } else {
+          // 购车流程详情（原有逻辑）
+          this.setData({
+            selectedRecord: record,
+            detailData: this.formatDetailData(detail),
+            showDetailPopup: true
+          })
+        }
       } else {
         utils.showToast({ title: res.result.message || '获取详情失败', icon: 'none' })
       }

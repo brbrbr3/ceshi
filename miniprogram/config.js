@@ -10,9 +10,9 @@ const config = {
   host,
 
   // 缓存版本号（修改此值可强制刷新用户端缓存）
-  CACHE_VERSION: '0.36.1',
+  CACHE_VERSION: '0.36.3',
   //更新说明
-  VERSION_DESCRIPTION: '1.增加了菜品评分功能。2.增加‘活动专区’页面。3.增加‘购车管理’功能。',
+  VERSION_DESCRIPTION: '1.增加了菜品评分功能。2.增加‘活动专区’页面。3.增加‘购车管理’功能（馆内购车申请、开始购车流程）。',
 
   // 云开发环境 ID
   envId: 'cloud1-8gdftlggae64d5d0',

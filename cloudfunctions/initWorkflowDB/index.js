@@ -206,6 +206,92 @@ const EXAMPLE_TEMPLATES = [
   },
 
   {
+    name: '馆内购车申请审批',
+    code: 'car_purchase_application',
+    version: 1,
+    description: '馆内购车申请审批流程（3步：同部门负责人→办公室部门负责人→馆领导）',
+    category: 'approval',
+    steps: [
+      {
+        stepNo: 1,
+        stepName: '同部门负责人审批',
+        stepType: 'serial',
+        approverType: 'dept_head',
+        approverConfig: {},
+        approvalStrategy: 'sequential',
+        canReject: true,
+        canReturn: false,
+        returnTo: 0,
+        timeout: 72,
+        timeoutAction: 'remind'
+      },
+      {
+        stepNo: 2,
+        stepName: '办公室部门负责人审批',
+        stepType: 'serial',
+        approverType: 'role',
+        approverConfig: {
+          roleIds: ['office_dept_head']
+        },
+        approvalStrategy: 'sequential',
+        canReject: true,
+        canReturn: false,
+        returnTo: 0,
+        timeout: 72,
+        timeoutAction: 'remind'
+      },
+      {
+        stepNo: 3,
+        stepName: '馆领导审批',
+        stepType: 'serial',
+        approverType: 'role',
+        approverConfig: {
+          roleIds: ['library_leader']
+        },
+        approvalStrategy: 'sequential',
+        canReject: true,
+        canReturn: false,
+        returnTo: 0,
+        timeout: 72,
+        timeoutAction: 'remind'
+      }
+    ],
+    displayConfig: {
+      cardFields: [
+        { field: 'applicantName', label: '申请人' },
+        { field: 'brand', label: '品牌' }
+      ],
+      detailFields: [
+        { field: 'applicantName', label: '姓名' },
+        { field: 'applicantDepartment', label: '部门' },
+        { field: 'arrivalDate', label: '到馆日期' },
+        { field: 'termMonths', label: '本次任期月数' },
+        { field: 'position', label: '职别' },
+        { field: 'carStandard', label: '对应购车标准（美元）' },
+        { field: 'carMinStandard', label: '对应购车最低限额标准（美元）' },
+        { field: 'plannedPurchaseDate', label: '拟购车日期' },
+        { field: 'saleCompany', label: '售车公司' },
+        { field: 'brand', label: '品牌' },
+        { field: 'specModel', label: '规格型号' },
+        { field: 'displacement', label: '排气量' },
+        { field: 'isNewCar', label: '是否新车', type: 'boolean' },
+        { field: 'usedTime', label: '已行驶时间', condition: { field: 'isNewCar', op: 'eq', value: false } },
+        { field: 'usedMileage', label: '已行驶里程', condition: { field: 'isNewCar', op: 'eq', value: false } },
+        { field: 'priceWithShipping', label: '售价（含运费）雷亚尔' },
+        { field: 'priceInUSD', label: '折美元' },
+        { field: 'isApplyLoan', label: '是否申请购车借款', type: 'boolean' }
+      ]
+    },
+    defaultTimeout: 72,
+    notifyOnSubmit: true,
+    notifyOnComplete: true,
+    notifyOnTimeout: true,
+    status: 'active',
+    createdAt: Date.now(),
+    updatedAt: Date.now()
+  },
+
+  {
     name: '护照借用审批',
     code: 'passport_application',
     version: 2,

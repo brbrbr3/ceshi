@@ -12,7 +12,7 @@
     "useStaticServer": true,
     "useLanDebug": false,
     "showES6CompileOption": false,
-    "compileHotReLoad": true,
+    "compileHotReLoad": false,
     "bigPackageSizeSupport": false,
     "checkInvalidKey": true,
     "useIsolateContext": false,

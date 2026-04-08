@@ -34,20 +34,27 @@
     <scroll-view scroll-y class="cp-list-scroll" enhanced show-scrollbar="{{false}}">
       <view class="cp-list">
         <view class="cp-card" wx:for="{{recordList}}" wx:key="_id" bindtap="showRecordDetail" data-record="{{item}}">
-          <!-- 卡片头部：车型 + 状态标签 -->
+          <!-- 卡片头部：车型/品牌 + 类型标签 + 状态标签 -->
           <view class="cp-card-header">
-            <view class="cp-car-model">{{item.carModel}}</view>
-            <view class="cp-status-tag" style="background:{{item.status === 'completed' ? '#D1FAE5' : '#CFFAFE'}}; color:{{item.statusColor}};">
+            <view class="cp-car-model">{{item.type === 'purchase_application' ? (item.brand || '购车申请') : item.carModel}}</view>
+            <view class="cp-type-tag" wx:if="{{item.type === 'purchase_application'}}" style="background:#ECFEFF; color:#0891B2;">购车申请</view>
+            <view class="cp-status-tag" style="background:{{item.status === 'completed' || item.status === 'approved' ? '#D1FAE5' : (item.status === 'rejected' ? '#FEE2E2' : '#CFFAFE')}}; color:{{item.statusColor}};">
               {{item.statusText}}
             </view>
           </view>
 
-          <!-- 进度条 -->
-          <view class="cp-progress-bar-wrap">
+          <!-- 进度条（仅购车流程显示） -->
+          <view class="cp-progress-bar-wrap" wx:if="{{item.type !== 'purchase_application'}}">
             <view class="cp-progress-track">
               <view class="cp-progress-fill" style="width: {{item.progress}}%;"></view>
             </view>
             <view class="cp-progress-text">{{item.progress}}%</view>
+          </view>
+
+          <!-- 购车申请摘要 -->
+          <view class="cp-app-summary" wx:if="{{item.type === 'purchase_application'}}">
+            <text class="cp-app-meta-item" wx:if="{{item.position}}">职别：{{item.position}}</text>
+            <text class="cp-app-meta-item" wx:if="{{item.isApplyLoan}}">申请借款</text>
           </view>
 
           <!-- 卡片信息 -->
@@ -76,7 +83,206 @@
   </view>
 
 
-  <!-- ========== 底部弹出：申请表单 ========== -->
+  <!-- ========== 类型选择弹窗 ========== -->
+  <view class="cp-popup-mask {{showTypeSelector ? 'is-visible' : ''}}" catchtouchmove="stopPropagation" bindtap="hideTypeSelector">
+    <view class="cp-popup-container cp-type-popup" catchtap="stopPropagation">
+      <view class="cp-popup-header">
+        <view class="cp-popup-title">选择申请类型</view>
+        <view class="cp-popup-close" bindtap="hideTypeSelector">×</view>
+      </view>
+      <view class="cp-type-list">
+        <view class="cp-type-item" bindtap="handleTypeSelect" data-type="purchase_application">
+          <view class="cp-type-icon-wrap" style="background:#ECFEFF;">
+            <text class="cp-type-emoji">🚗</text>
+          </view>
+          <view class="cp-type-info">
+            <view class="cp-type-name">馆内购车申请</view>
+            <view class="cp-type-desc">提交购车申请，走审批流程</view>
+          </view>
+          <text class="cp-type-arrow">›</text>
+        </view>
+        <view class="cp-type-item cp-type-disabled" bindtap="">
+          <view class="cp-type-icon-wrap" style="background:#FEF3C7;">
+            <text class="cp-type-emoji">💰</text>
+          </view>
+          <view class="cp-type-info">
+            <view class="cp-type-name">馆内购车借款申请</view>
+            <view class="cp-type-desc">（敬请期待）</view>
+          </view>
+          <text class="cp-type-arrow" style="color:#CBD5E1;">›</text>
+        </view>
+        <view class="cp-type-item" bindtap="handleTypeSelect" data-type="purchase_process">
+          <view class="cp-type-icon-wrap" style="background:#E0F2FE;">
+            <text class="cp-type-emoji">📋</text>
+          </view>
+          <view class="cp-type-info">
+            <view class="cp-type-name">开始购车流程</view>
+            <view class="cp-type-desc">6阶段购车流程跟踪</view>
+          </view>
+          <text class="cp-type-arrow">›</text>
+        </view>
+      </view>
+    </view>
+  </view>
+
+  <!-- ========== 底部弹出：馆内购车申请表单 ========== -->
+  <view class="cp-popup-mask {{showPurchaseAppForm ? 'is-visible' : ''}}" catchtouchmove="stopPropagation" bindtap="hidePurchaseAppForm">
+    <view class="cp-popup-container cp-purchase-app-popup" catchtap="stopPropagation">
+      <view class="cp-popup-header">
+        <view class="cp-popup-title">馆内购车申请</view>
+        <view class="cp-popup-close" bindtap="hidePurchaseAppForm">×</view>
+      </view>
+
+      <scroll-view scroll-y class="cp-popup-form">
+        <view class="cp-form-main">
+          <!-- 基本信息 -->
+          <view class="cp-form-section-title">基本信息</view>
+
+          <!-- 到馆日期 -->
+          <view class="cp-field">
+            <view class="cp-field-label">到馆日期 <text class="cp-required">*</text></view>
+            <datetime-picker value="{{purchaseAppForm.arrivalDate}}" fields="{{['year', 'month', 'day']}}" placeholder="请选择到馆日期" type="border" bindchange="handleArrivalDateChange" />
+          </view>
+
+          <!-- 本次任期月数 -->
+          <view class="cp-field">
+            <view class="cp-field-label">本次任期月数</view>
+            <view class="cp-stepper">
+              <view class="cp-stepper-btn" bindtap="handleTermMonthsMinus">−</view>
+              <view class="cp-stepper-value">{{purchaseAppForm.termMonths}}</view>
+              <view class="cp-stepper-btn" bindtap="handleTermMonthsPlus">+</view>
+            </view>
+          </view>
+
+          <!-- 职别 -->
+          <view class="cp-field">
+            <view class="cp-field-label">职别 <text class="cp-required">*</text></view>
+            <picker range="{{positionOptions}}" value="{{purchaseAppForm.positionIndex}}" bindchange="handlePositionChange">
+              <view class="cp-input-wrapper cp-picker-trigger">
+                <text class="{{purchaseAppForm.position ? 'cp-input' : 'cp-placeholder'}}">{{purchaseAppForm.position || '请选择职别'}}</text>
+                <text class="cp-picker-arrow">▼</text>
+              </view>
+            </picker>
+          </view>
+
+          <!-- 对应购车标准（美元）— 自动填入 -->
+          <view class="cp-field" wx:if="{{purchaseAppForm.carStandard > 0}}">
+            <view class="cp-field-label">对应购车标准（美元）</view>
+            <view class="cp-input-wrapper cp-input-readonly">
+              <text class="cp-input cp-input-disabled">{{purchaseAppForm.carStandard}}</text>
+            </view>
+          </view>
+
+          <!-- 对应购车最低限额标准（美元）— 自动填入 -->
+          <view class="cp-field" wx:if="{{purchaseAppForm.carMinStandard > 0}}">
+            <view class="cp-field-label">对应购车最低限额标准（美元）</view>
+            <view class="cp-input-wrapper cp-input-readonly">
+              <text class="cp-input cp-input-disabled">{{purchaseAppForm.carMinStandard}}</text>
+            </view>
+          </view>
+
+          <!-- 拟购车辆简况 -->
+          <view class="cp-form-section-title">拟购车辆简况</view>
+
+          <!-- 拟购车日期 -->
+          <view class="cp-field">
+            <view class="cp-field-label">拟购车日期 <text class="cp-required">*</text></view>
+            <datetime-picker value="{{purchaseAppForm.plannedPurchaseDate}}" fields="{{['year', 'month', 'day']}}" placeholder="请选择拟购车日期" type="border" bindchange="handlePlannedPurchaseDateChange" />
+          </view>
+
+          <!-- 售车公司 -->
+          <view class="cp-field">
+            <view class="cp-field-label">售车公司</view>
+            <view class="cp-input-wrapper">
+              <input class="cp-input" value="{{purchaseAppForm.saleCompany}}" placeholder="请输入售车公司" placeholder-class="cp-placeholder" bindinput="handleSaleCompanyInput" />
+            </view>
+          </view>
+
+          <!-- 品牌 -->
+          <view class="cp-field">
+            <view class="cp-field-label">品牌 <text class="cp-required">*</text></view>
+            <view class="cp-input-wrapper">
+              <input class="cp-input" value="{{purchaseAppForm.brand}}" placeholder="请输入品牌" placeholder-class="cp-placeholder" bindinput="handleBrandInput" />
+            </view>
+          </view>
+
+          <!-- 规格型号 -->
+          <view class="cp-field">
+            <view class="cp-field-label">规格型号</view>
+            <view class="cp-input-wrapper">
+              <input class="cp-input" value="{{purchaseAppForm.specModel}}" placeholder="请输入规格型号" placeholder-class="cp-placeholder" bindinput="handleSpecModelInput" />
+            </view>
+          </view>
+
+          <!-- 排气量 -->
+          <view class="cp-field">
+            <view class="cp-field-label">排气量</view>
+            <view class="cp-input-wrapper">
+              <input class="cp-input" value="{{purchaseAppForm.displacement}}" placeholder="请输入排气量" placeholder-class="cp-placeholder" bindinput="handleDisplacementInput" />
+            </view>
+          </view>
+
+          <!-- 是否新车 -->
+          <view class="cp-field">
+            <view class="cp-field-label">是否新车</view>
+            <view class="cp-switch-row">
+              <switch checked="{{purchaseAppForm.isNewCar}}" bindchange="handleIsNewCarChange" color="#0891B2" />
+              <text class="cp-switch-label">{{purchaseAppForm.isNewCar ? '新车' : '二手车'}}</text>
+            </view>
+          </view>
+
+          <!-- 已行驶时间（二手车显示） -->
+          <view class="cp-field" wx:if="{{!purchaseAppForm.isNewCar}}">
+            <view class="cp-field-label">已行驶时间 <text class="cp-required">*</text></view>
+            <view class="cp-input-wrapper">
+              <input class="cp-input" value="{{purchaseAppForm.usedTime}}" placeholder="请输入已行驶时间" placeholder-class="cp-placeholder" bindinput="handleUsedTimeInput" />
+            </view>
+          </view>
+
+          <!-- 已行驶里程（二手车显示） -->
+          <view class="cp-field" wx:if="{{!purchaseAppForm.isNewCar}}">
+            <view class="cp-field-label">已行驶里程 <text class="cp-required">*</text></view>
+            <view class="cp-input-wrapper">
+              <input class="cp-input" value="{{purchaseAppForm.usedMileage}}" placeholder="请输入已行驶里程" placeholder-class="cp-placeholder" bindinput="handleUsedMileageInput" />
+            </view>
+          </view>
+
+          <!-- 售价（含运费） -->
+          <view class="cp-field">
+            <view class="cp-field-label">售价（含运费）</view>
+            <view class="cp-input-wrapper">
+              <input class="cp-input" value="{{purchaseAppForm.priceWithShipping}}" placeholder="雷亚尔" placeholder-class="cp-placeholder" bindinput="handlePriceWithShippingInput" type="digit" />
+            </view>
+          </view>
+
+          <!-- 折美元 -->
+          <view class="cp-field">
+            <view class="cp-field-label">折美元</view>
+            <view class="cp-input-wrapper">
+              <input class="cp-input" value="{{purchaseAppForm.priceInUSD}}" placeholder="请输入折合美元金额" placeholder-class="cp-placeholder" bindinput="handlePriceInUSDInput" type="digit" />
+            </view>
+          </view>
+
+          <!-- 是否申请购车借款 -->
+          <view class="cp-field">
+            <view class="cp-field-label">是否申请购车借款</view>
+            <view class="cp-switch-row">
+              <switch checked="{{purchaseAppForm.isApplyLoan}}" bindchange="handleIsApplyLoanChange" color="#0891B2" />
+              <text class="cp-switch-label">{{purchaseAppForm.isApplyLoan ? '是' : '否'}}</text>
+            </view>
+          </view>
+        </view>
+      </scroll-view>
+
+      <view class="cp-popup-actions">
+        <button class="cp-submit-btn" loading="{{submitting}}" disabled="{{submitting}}" bindtap="submitPurchaseApplication">
+          提交申请
+        </button>
+      </view>
+    </view>
+  </view>
+
+  <!-- ========== 底部弹出：申请表单（购车流程） ========== -->
   <view class="cp-popup-mask {{showFormPopup ? 'is-visible' : ''}}" catchtouchmove="stopPropagation" bindtap="hideFormPopup">
     <view class="cp-popup-container cp-form-popup" catchtap="stopPropagation">
       <view class="cp-popup-header">
@@ -105,8 +311,12 @@
               </view>
             </view>
             <view class="cp-flow-legend">
-              <view class="cp-legend-item"><view class="cp-legend-dot cp-dot-staff"></view><text>用户操作</text></view>
-              <view class="cp-legend-item"><view class="cp-legend-dot cp-dot-office"></view><text>办公室操作</text></view>
+              <view class="cp-legend-item">
+                <view class="cp-legend-dot cp-dot-staff"></view><text>用户操作</text>
+              </view>
+              <view class="cp-legend-item">
+                <view class="cp-legend-dot cp-dot-office"></view><text>办公室操作</text>
+              </view>
             </view>
           </view>
         </view>
@@ -120,138 +330,216 @@
     </view>
   </view>
 
-  <!-- ========== 底部弹出：详情（Checklist时间线） ========== -->
+  <!-- ========== 底部弹出：详情 ========== -->
   <view class="cp-popup-mask {{showDetailPopup ? 'is-visible' : ''}}" catchtouchmove="stopPropagation" bindtap="hideDetailPopup">
     <view class="cp-popup-container cp-detail-popup" catchtap="stopPropagation">
       <view class="cp-popup-header">
         <view class="cp-popup-header-left">
-          <view class="cp-popup-title">购车详情</view>
-          <view class="cp-detail-badge" wx:if="{{detailData.status === 'completed'}}">已完成</view>
-          <view class="cp-detail-badge cp-badge-active" wx:elif="{{detailData}}">G{{detailData.currentGroup}}进行中</view>
+          <view class="cp-popup-title">{{detailData && detailData.type === 'purchase_application' ? '购车申请详情' : '购车详情'}}</view>
+          <view class="cp-detail-badge" wx:if="{{detailData && (detailData.status === 'completed' || detailData.status === 'approved')}}">已完成</view>
+          <view class="cp-detail-badge cp-badge-active" wx:elif="{{detailData && detailData.type !== 'purchase_application'}}">G{{detailData.currentGroup}}进行中</view>
+          <view class="cp-detail-badge" wx:elif="{{detailData && detailData.status === 'pending_approval'}}" style="background:#FEF3C7;color:#92400E;">待审批</view>
+          <view class="cp-detail-badge" wx:elif="{{detailData && detailData.status === 'rejected'}}" style="background:#FEE2E2;color:#991B1B;">已驳回</view>
         </view>
         <view class="cp-popup-close" bindtap="hideDetailPopup">×</view>
       </view>
 
       <scroll-view scroll-y class="cp-detail-content" wx:if="{{detailData}}">
-        <!-- 基础信息 -->
-        <view class="cp-info-section">
-          <view class="cp-info-row">
-            <text class="cp-info-label">申请人：</text>
-            <text class="cp-info-value">{{detailData.applicantName || '-'}}</text>
-          </view>
-          <view class="cp-info-row">
-            <text class="cp-info-label">部门：</text>
-            <text class="cp-info-value">{{detailData.applicantDepartment || '-'}}</text>
-          </view>
-          <view class="cp-info-row">
-            <text class="cp-info-label">车型：</text>
-            <text class="cp-info-value cp-value-bold">{{detailData.carModel || '-'}}</text>
-          </view>
-          <view class="cp-info-row">
-            <text class="cp-info-label">整体进度：</text>
-            <view class="cp-mini-progress">
-              <view class="cp-mini-track"><view class="cp-mini-fill" style="width:{{detailData.progress}}%"></view></view>
-              <text class="cp-mini-text">{{detailData.progress}}%</text>
+        <!-- 馆内购车申请详情 -->
+        <block wx:if="{{detailData.type === 'purchase_application'}}">
+          <view class="cp-info-section">
+            <view class="cp-info-row">
+              <text class="cp-info-label">姓名：</text>
+              <text class="cp-info-value">{{detailData.applicantName || '-'}}</text>
+            </view>
+            <view class="cp-info-row">
+              <text class="cp-info-label">部门：</text>
+              <text class="cp-info-value">{{detailData.applicantDepartment || '-'}}</text>
+            </view>
+            <view class="cp-info-row">
+              <text class="cp-info-label">到馆日期：</text>
+              <text class="cp-info-value">{{detailData.arrivalDate || '-'}}</text>
+            </view>
+            <view class="cp-info-row">
+              <text class="cp-info-label">任期月数：</text>
+              <text class="cp-info-value">{{detailData.termMonths || '-'}}</text>
+            </view>
+            <view class="cp-info-row">
+              <text class="cp-info-label">职别：</text>
+              <text class="cp-info-value cp-value-bold">{{detailData.position || '-'}}</text>
+            </view>
+            <view class="cp-info-row">
+              <text class="cp-info-label">购车标准：</text>
+              <text class="cp-info-value">{{detailData.carStandard ? detailData.carStandard + ' 美元' : '-'}}</text>
+            </view>
+            <view class="cp-info-row">
+              <text class="cp-info-label">最低限额：</text>
+              <text class="cp-info-value">{{detailData.carMinStandard ? detailData.carMinStandard + ' 美元' : '-'}}</text>
             </view>
           </view>
-          <view class="cp-info-row">
-            <text class="cp-info-label">创建时间：</text>
-            <text class="cp-info-value">{{detailData.createdAtText || '-'}}</text>
-          </view>
-        </view>
-
-        <!-- Checklist 纵向时间线 -->
-        <view class="cp-timeline-section">
-          <view class="cp-timeline-title">📝 流程进度</view>
-
-          <view class="cp-timeline" wx:for="{{detailData.groups}}" wx:key="groupId">
-            <!-- 分组标题栏 -->
-            <view class="cp-group-header {{detailData.currentGroup > item.groupId ? 'group-done' : (detailData.currentGroup === item.groupId ? 'group-active' : '')}}">
-              <view class="cp-group-icon">
-                <text wx:if="{{item.groupOwner === 'staff'}}">👤</text>
-                <text wx:else>🏢</text>
-              </view>
-              <view class="cp-group-info">
-                <view class="cp-group-name">G{{item.groupId}} · {{item.groupName}}</view>
-                <view class="cp-group-owner">{{item.groupOwner === 'staff' ? '用户操作' : '办公室操作'}}</view>
-              </view>
-              <view class="cp-group-count" wx:if="{{detailData.groupSummaries[index]}}">
-                {{detailData.groupSummaries[index].doneSteps}}/{{detailData.groupSummaries[index].totalSteps}}
-              </view>
+          <view class="cp-info-section">
+            <view class="cp-section-subtitle">拟购车辆简况</view>
+            <view class="cp-info-row">
+              <text class="cp-info-label">拟购车日期：</text>
+              <text class="cp-info-value">{{detailData.plannedPurchaseDate || '-'}}</text>
             </view>
+            <view class="cp-info-row">
+              <text class="cp-info-label">售车公司：</text>
+              <text class="cp-info-value">{{detailData.saleCompany || '-'}}</text>
+            </view>
+            <view class="cp-info-row">
+              <text class="cp-info-label">品牌：</text>
+              <text class="cp-info-value cp-value-bold">{{detailData.brand || '-'}}</text>
+            </view>
+            <view class="cp-info-row">
+              <text class="cp-info-label">规格型号：</text>
+              <text class="cp-info-value">{{detailData.specModel || '-'}}</text>
+            </view>
+            <view class="cp-info-row">
+              <text class="cp-info-label">排气量：</text>
+              <text class="cp-info-value">{{detailData.displacement || '-'}}</text>
+            </view>
+            <view class="cp-info-row">
+              <text class="cp-info-label">是否新车：</text>
+              <text class="cp-info-value">{{detailData.isNewCar ? '是' : '否'}}</text>
+            </view>
+            <view class="cp-info-row" wx:if="{{!detailData.isNewCar}}">
+              <text class="cp-info-label">已行驶时间：</text>
+              <text class="cp-info-value">{{detailData.usedTime || '-'}}</text>
+            </view>
+            <view class="cp-info-row" wx:if="{{!detailData.isNewCar}}">
+              <text class="cp-info-label">已行驶里程：</text>
+              <text class="cp-info-value">{{detailData.usedMileage || '-'}}</text>
+            </view>
+            <view class="cp-info-row">
+              <text class="cp-info-label">售价（含运费）：</text>
+              <text class="cp-info-value">{{detailData.priceWithShipping ? detailData.priceWithShipping + ' 雷亚尔' : '-'}}</text>
+            </view>
+            <view class="cp-info-row">
+              <text class="cp-info-label">折美元：</text>
+              <text class="cp-info-value">{{detailData.priceInUSD ? detailData.priceInUSD + ' USD' : '-'}}</text>
+            </view>
+            <view class="cp-info-row">
+              <text class="cp-info-label">申请借款：</text>
+              <text class="cp-info-value">{{detailData.isApplyLoan ? '是' : '否'}}</text>
+            </view>
+          </view>
+        </block>
 
-            <!-- 步骤列表 -->
-            <view class="cp-timeline-body">
-              <view
-                class="cp-step-item"
-                wx:for="{{item.steps}}"
-                wx:for-item="step"
-                wx:for-index="si"
-                wx:key="stepKey"
-              >
-                <!-- 左侧节点和连线 -->
-                <view class="cp-step-left">
-                  <view class="cp-node-line" wx:if="{{si > -1}}"></view>
-                  <view class="cp-step-node {{step.status === 'done' ? 'node-done' : (detailData.currentGroup > groupId ? 'node-done' : (detailData.currentGroup === groupId ? 'node-active' : 'node-pending'))}}">
-                    <text wx:if="{{step.status === 'done'}}">✓</text>
-                    <text wx:elif="{{detailData.currentGroup > groupId}}">✓</text>
-                    <text wx:else>{{detailData.currentGroup === groupId ? '…' : ''}}</text>
-                  </view>
+        <!-- 购车流程详情（原有逻辑） -->
+        <block wx:else>
+          <!-- 基础信息 -->
+          <view class="cp-info-section">
+            <view class="cp-info-row">
+              <text class="cp-info-label">申请人：</text>
+              <text class="cp-info-value">{{detailData.applicantName || '-'}}</text>
+            </view>
+            <view class="cp-info-row">
+              <text class="cp-info-label">部门：</text>
+              <text class="cp-info-value">{{detailData.applicantDepartment || '-'}}</text>
+            </view>
+            <view class="cp-info-row">
+              <text class="cp-info-label">车型：</text>
+              <text class="cp-info-value cp-value-bold">{{detailData.carModel || '-'}}</text>
+            </view>
+            <view class="cp-info-row">
+              <text class="cp-info-label">整体进度：</text>
+              <view class="cp-mini-progress">
+                <view class="cp-mini-track">
+                  <view class="cp-mini-fill" style="width:{{detailData.progress}}%"></view>
                 </view>
+                <text class="cp-mini-text">{{detailData.progress}}%</text>
+              </view>
+            </view>
+            <view class="cp-info-row">
+              <text class="cp-info-label">创建时间：</text>
+              <text class="cp-info-value">{{detailData.createdAtText || '-'}}</text>
+            </view>
+          </view>
 
-                <!-- 右侧步骤内容卡片 -->
-                <view class="cp-step-card {{step.status === 'done' ? 'card-done' : ''}}"
-                  bindtap="handleStepAction"
-                  data-groupindex="{{index}}"
-                  data-stepindex="{{si}}"
-                >
-                  <view class="cp-step-top">
-                    <view class="cp-step-title">{{step.title}}</view>
-                    <view class="cp-step-status" wx:if="{{step.status === 'done'}}">已完成</view>
-                    <view class="cp-step-action-hint" wx:elif="{{step.inputType === 'checkbox'}}">点击打钩</view>
-                    <view class="cp-step-action-hint" wx:else>点击填写</view>
-                  </view>
+          <!-- Checklist 纵向时间线 -->
+          <view class="cp-timeline-section">
+            <view class="cp-timeline-title">📝 流程进度</view>
 
-                  <!-- 已填内容的预览 -->
-                  <!-- 文本值预览 -->
-                  <view class="cp-step-preview" wx:if="{{step.value}}">
-                    <text class="cp-preview-text">{{step.value}}</text>
-                  </view>
+            <view class="cp-timeline" wx:for="{{detailData.groups}}" wx:key="groupId">
+              <!-- 分组标题栏 -->
+              <view class="cp-group-header {{detailData.currentGroup > item.groupId ? 'group-done' : (detailData.currentGroup === item.groupId ? 'group-active' : '')}}">
+                <view class="cp-group-icon">
+                  <text wx:if="{{item.groupOwner === 'staff'}}">👤</text>
+                  <text wx:else>🏢</text>
+                </view>
+                <view class="cp-group-info">
+                  <view class="cp-group-name">G{{item.groupId}} · {{item.groupName}}</view>
+                  <view class="cp-group-owner">{{item.groupOwner === 'staff' ? '用户操作' : '办公室操作'}}</view>
+                </view>
+                <view class="cp-group-count" wx:if="{{detailData.groupSummaries[index]}}">
+                  {{detailData.groupSummaries[index].doneSteps}}/{{detailData.groupSummaries[index].totalSteps}}
+                </view>
+              </view>
 
-                  <!-- 备注预览 -->
-                  <view class="cp-step-preview" wx:if="{{step.remark}}">
-                    <text class="cp-preview-remark">{{step.remark}}</text>
-                  </view>
-
-                  <!-- 附件数badge -->
-                  <view class="cp-step-preview" wx:if="{{step.attachments.length > 0}}">
-                    <view class="cp-attachment-badge">
-                      <text>📎 {{step.attachments.length}} 个文件</text>
+              <!-- 步骤列表 -->
+              <view class="cp-timeline-body">
+                <view class="cp-step-item" wx:for="{{item.steps}}" wx:for-item="step" wx:for-index="si" wx:key="stepKey">
+                  <!-- 左侧节点和连线 -->
+                  <view class="cp-step-left">
+                    <view class="cp-node-line" wx:if="{{si > -1}}"></view>
+                    <view class="cp-step-node {{step.status === 'done' ? 'node-done' : (detailData.currentGroup > groupId ? 'node-done' : (detailData.currentGroup === groupId ? 'node-active' : 'node-pending'))}}">
+                      <text wx:if="{{step.status === 'done'}}">✓</text>
+                      <text wx:elif="{{detailData.currentGroup > groupId}}">✓</text>
+                      <text wx:else>{{detailData.currentGroup === groupId ? '…' : ''}}</text>
                     </view>
                   </view>
 
-                  <!-- 操作人+时间 -->
-                  <view class="cp-step-footer" wx:if="{{step.completedAt}}">
-                    <text class="cp-operator">{{step.operatorName || ''}}</text>
-                    <text class="cp-completed-time">{{step.completedAtText}}</text>
+                  <!-- 右侧步骤内容卡片 -->
+                  <view class="cp-step-card {{step.status === 'done' ? 'card-done' : ''}}" bindtap="handleStepAction" data-groupindex="{{index}}" data-stepindex="{{si}}">
+                    <view class="cp-step-top">
+                      <view class="cp-step-title">{{step.title}}</view>
+                      <view class="cp-step-status" wx:if="{{step.status === 'done'}}">已完成</view>
+                      <view class="cp-step-action-hint" wx:elif="{{step.inputType === 'checkbox'}}">点击打钩</view>
+                      <view class="cp-step-action-hint" wx:else>点击填写</view>
+                    </view>
+
+                    <!-- 已填内容的预览 -->
+                    <!-- 文本值预览 -->
+                    <view class="cp-step-preview" wx:if="{{step.value}}">
+                      <text class="cp-preview-text">{{step.value}}</text>
+                    </view>
+
+                    <!-- 备注预览 -->
+                    <view class="cp-step-preview" wx:if="{{step.remark}}">
+                      <text class="cp-preview-remark">{{step.remark}}</text>
+                    </view>
+
+                    <!-- 附件数badge -->
+                    <view class="cp-step-preview" wx:if="{{step.attachments.length > 0}}">
+                      <view class="cp-attachment-badge">
+                        <text>📎 {{step.attachments.length}} 个文件</text>
+                      </view>
+                    </view>
+
+                    <!-- 操作人+时间 -->
+                    <view class="cp-step-footer" wx:if="{{step.completedAt}}">
+                      <text class="cp-operator">{{step.operatorName || ''}}</text>
+                      <text class="cp-completed-time">{{step.completedAtText}}</text>
+                    </view>
                   </view>
                 </view>
               </view>
-            </view>
 
-            <!-- 组间分隔箭头 -->
-            <view class="cp-group-arrow" wx:if="{{index < detailData.groups.length - 1}}">
-              <text class="cp-arrow-line">↓</text>
-              <text class="cp-arrow-text">等待 {{detailData.groups[index + 1].groupName}}</text>
+              <!-- 组间分隔箭头 -->
+              <view class="cp-group-arrow" wx:if="{{index < detailData.groups.length - 1}}">
+                <text class="cp-arrow-line">↓</text>
+                <text class="cp-arrow-text">等待 {{detailData.groups[index + 1].groupName}}</text>
+              </view>
             </view>
           </view>
-        </view>
+        </block>
       </scroll-view>
 
       <view class="cp-popup-actions">
         <view class="cp-detail-btn-row">
-        <!--已完成的申请不再显示删除按钮-->
-          <button wx:if="{{!(detailData.status === 'completed')}}" class="cp-delete-btn" catchtap="deleteRecord" data-record-id="{{selectedRecord._id}}">删除</button>
+          <!--已完成的申请或已审批通过的不再显示删除按钮-->
+          <button wx:if="{{!(detailData.status === 'completed' || detailData.status === 'approved')}}" class="cp-delete-btn" catchtap="deleteRecord" data-record-id="{{selectedRecord._id}}">删除</button>
           <button class="cp-close-btn" bindtap="hideDetailPopup">关闭</button>
         </view>
       </view>
@@ -282,13 +570,7 @@
             <view wx:if="{{editingStep.inputType === 'text'}}" class="cp-input-wrapper">
               <input class="cp-input" value="{{stepFormValue}}" placeholder="请输入内容" placeholder-class="cp-placeholder" bindinput="handleStepValueInput" />
             </view>
-            <datetime-picker wx:elif="{{editingStep.inputType === 'date'}}"
-              value="{{stepFormValue}}"
-              fields="{{['year', 'month', 'day']}}"
-              placeholder="请选择日期"
-              type="border"
-              bindchange="handleDateChange"
-            />
+            <datetime-picker wx:elif="{{editingStep.inputType === 'date'}}" value="{{stepFormValue}}" fields="{{['year', 'month', 'day']}}" placeholder="请选择日期" type="border" bindchange="handleDateChange" />
           </view>
         </block>
 
@@ -310,20 +592,8 @@
             <!-- 已上传/已选文件网格 -->
             <view class="cp-upload-grid" wx:if="{{uploadedTempFiles.length > 0}}">
               <view class="cp-upload-item" wx:for="{{uploadedTempFiles}}" wx:key="*this" wx:for-item="file" wx:for-index="fi">
-                <image
-                  wx:if="{{!file.tempFilePath}}"
-                  class="cp-upload-thumb"
-                  src="{{file.fileID}}"
-                  mode="aspectFill"
-                  data-index="{{fi}}"
-                  bindtap="previewImage"
-                ></image>
-                <image
-                  wx:else
-                  class="cp-upload-thumb"
-                  src="{{file.tempFilePath}}"
-                  mode="aspectFill"
-                ></image>
+                <image wx:if="{{!file.tempFilePath}}" class="cp-upload-thumb" src="{{file.fileID}}" mode="aspectFill" data-index="{{fi}}" bindtap="previewImage"></image>
+                <image wx:else class="cp-upload-thumb" src="{{file.tempFilePath}}" mode="aspectFill"></image>
                 <view class="cp-upload-delete" catchtap="removeTempFile" data-index="{{fi}}">×</view>
               </view>
 

@@ -98,6 +98,44 @@ const GROUPS_TEMPLATE = [
 ]
 
 /**
+ * 职别→购车标准映射
+ */
+const POSITION_CAR_STANDARD_MAP = [
+  {
+    position: '副司级以上，副师职以上武官',
+    carStandard: 45000,
+    carMinStandard: 27000,
+    carSubsidy: 6380
+  },
+  {
+    position: '处级，文职武官、副师职副武官',
+    carStandard: 41000,
+    carMinStandard: 24600,
+    carSubsidy: 5860
+  },
+  {
+    position: '一秘、二秘',
+    carStandard: 36000,
+    carMinStandard: 21600,
+    carSubsidy: 5100
+  },
+  {
+    position: '三秘、随员、职员、试用期人员',
+    carStandard: 31000,
+    carMinStandard: 18600,
+    carSubsidy: 4330
+  },
+  {
+    position: '工勤人员',
+    carStandard: 23000,
+    carMinStandard: 6900,
+    carSubsidy: 3310
+  }
+]
+
+const POSITION_OPTIONS = POSITION_CAR_STANDARD_MAP.map(item => item.position)
+
+/**
  * 根据模板创建初始步骤状态数组
  */
 function buildInitialGroups() {
@@ -228,6 +266,7 @@ async function createRecord(openid, event) {
     applicantName: userInfo.name || '',
     applicantDepartment: userInfo.department || '',
     carModel: String(carModel).trim(),
+    type: 'purchase_process',
     status: 'active',
     currentGroup: 1,
     notifiedGroups: [],
@@ -270,15 +309,22 @@ async function getMyList(openid, event) {
     .get()
 
   const list = listRes.data.map(item => {
-    const progress = calculateProgress(item.groups, item.currentGroup)
-    const currentGroupName = (item.groups[item.currentGroup - 1] || {}).groupName || '-'
+    const recordType = item.type || 'purchase_process'
+    const isProcess = recordType === 'purchase_process'
+    const progress = isProcess ? calculateProgress(item.groups, item.currentGroup) : 0
+    const currentGroupName = isProcess ? ((item.groups[item.currentGroup - 1] || {}).groupName || '-') : ''
     return {
       _id: item._id,
-      carModel: item.carModel,
-      currentGroup: item.currentGroup,
-      currentGroupName: currentGroupName,
-      progress: progress,
+      carModel: item.carModel || item.brand || '',
+      brand: item.brand || '',
+      type: recordType,
+      currentGroup: isProcess ? item.currentGroup : undefined,
+      currentGroupName,
+      progress,
       status: item.status,
+      position: item.position || '',
+      isNewCar: item.isNewCar,
+      isApplyLoan: item.isApplyLoan,
       createdAt: item.createdAt,
       updatedAt: item.updatedAt
     }
@@ -314,17 +360,24 @@ async function getAllList(openid, event) {
     .get()
 
   const list = listRes.data.map(item => {
-    const progress = calculateProgress(item.groups, item.currentGroup)
-    const currentGroupName = (item.groups[item.currentGroup - 1] || {}).groupName || '-'
+    const recordType = item.type || 'purchase_process'
+    const isProcess = recordType === 'purchase_process'
+    const progress = isProcess ? calculateProgress(item.groups, item.currentGroup) : 0
+    const currentGroupName = isProcess ? ((item.groups[item.currentGroup - 1] || {}).groupName || '-') : ''
     return {
       _id: item._id,
       applicantName: item.applicantName,
       applicantDepartment: item.applicantDepartment,
-      carModel: item.carModel,
-      currentGroup: item.currentGroup,
-      currentGroupName: currentGroupName,
-      progress: progress,
+      carModel: item.carModel || item.brand || '',
+      brand: item.brand || '',
+      type: recordType,
+      currentGroup: isProcess ? item.currentGroup : undefined,
+      currentGroupName,
+      progress,
       status: item.status,
+      position: item.position || '',
+      isNewCar: item.isNewCar,
+      isApplyLoan: item.isApplyLoan,
       createdAt: item.createdAt,
       updatedAt: item.updatedAt
     }
@@ -360,8 +413,21 @@ async function getDetail(openid, event) {
   const isApplicant = record.applicantOpenid === openid
   const isOfficeStaff = userInfo && userInfo.department === '办公室'
 
-  // 计算每组进度
-  const groupSummaries = record.groups.map(g => ({
+  const recordType = record.type || 'purchase_process'
+
+  // 馆内购车申请类型直接返回详情，无需 groups
+  if (recordType === 'purchase_application') {
+    return success({
+      ...record,
+      type: recordType,
+      _isApplicant: isApplicant,
+      _isOfficeStaff: isOfficeStaff,
+      _canView: isApplicant || isOfficeStaff
+    })
+  }
+
+  // 购车流程类型，计算每组进度
+  const groupSummaries = (record.groups || []).map(g => ({
     groupId: g.groupId,
     groupName: g.groupName,
     groupOwner: g.groupOwner,
@@ -792,10 +858,166 @@ async function deleteRecord(openid, event) {
     }
   }
 
+  // 如果记录关联了工单，先中止该工单
+  if (record.orderId) {
+    try {
+      const terminateRes = await cloud.callFunction({
+        name: 'workflowEngine',
+        data: {
+          action: 'terminateOrder',
+          orderId: record.orderId,
+          reason: `购车申请（${record.brand || ''}）已被删除，关联工单自动中止`
+        }
+      })
+      if (terminateRes.result && terminateRes.result.code !== 0) {
+        console.warn('联动中止工单失败:', terminateRes.result.message)
+      }
+    } catch (terminateErr) {
+      console.error('联动中止工单异常:', terminateErr.message || terminateErr)
+      // 中止失败不阻止主流程继续删除
+    }
+  }
+
   // 删除数据库记录
   await recordsCollection.doc(recordId).remove()
 
   return success({}, '记录已删除')
+}
+
+/**
+ * 创建馆内购车申请记录并启动工作流
+ */
+async function createPurchaseApplication(openid, event) {
+  const {
+    arrivalDate,
+    termMonths,
+    position,
+    plannedPurchaseDate,
+    saleCompany,
+    brand,
+    specModel,
+    displacement,
+    isNewCar,
+    usedTime,
+    usedMileage,
+    priceWithShipping,
+    priceInUSD,
+    isApplyLoan
+  } = event
+
+  // 验证必填字段
+  if (!arrivalDate) return fail('请选择到馆日期', 400)
+  if (!position) return fail('请选择职别', 400)
+  if (!plannedPurchaseDate) return fail('请选择拟购车日期', 400)
+  if (!String(brand || '').trim()) return fail('请填写品牌', 400)
+
+  const userInfo = await getUserInfo(openid)
+  if (!userInfo) return fail('未找到用户信息，请联系管理员', 403)
+
+  // 根据职别查找对应的购车标准
+  const standardItem = POSITION_CAR_STANDARD_MAP.find(item => item.position === position)
+  if (!standardItem) return fail('职别信息不合法', 400)
+
+  const now = Date.now()
+
+  const recordData = {
+    applicantOpenid: openid,
+    applicantName: userInfo.name || '',
+    applicantDepartment: userInfo.department || '',
+    type: 'purchase_application',
+    // 人员信息
+    arrivalDate,
+    termMonths: Number(termMonths) || 48,
+    position,
+    carStandard: standardItem.carStandard,
+    carMinStandard: standardItem.carMinStandard,
+    carSubsidy: standardItem.carSubsidy,
+    // 拟购车辆简况
+    plannedPurchaseDate,
+    saleCompany: String(saleCompany || '').trim(),
+    brand: String(brand || '').trim(),
+    specModel: String(specModel || '').trim(),
+    displacement: String(displacement || '').trim(),
+    isNewCar: isNewCar !== false,
+    usedTime: isNewCar !== false ? '无' : (String(usedTime || '').trim() || ''),
+    usedMileage: isNewCar !== false ? '无' : (String(usedMileage || '').trim() || ''),
+    priceWithShipping: String(priceWithShipping || '').trim(),
+    priceInUSD: String(priceInUSD || '').trim(),
+    isApplyLoan: !!isApplyLoan,
+    // 审批状态
+    status: 'pending_approval',
+    // 时间戳
+    createdAt: now,
+    updatedAt: now
+  }
+
+  const res = await recordsCollection.add({ data: recordData })
+  const recordId = res._id
+
+  // 启动工作流审批
+  try {
+    const workflowRes = await cloud.callFunction({
+      name: 'workflowEngine',
+      data: {
+        action: 'submitOrder',
+        orderType: 'car_purchase_application',
+        businessData: {
+          recordId,
+          applicantId: openid,
+          applicantName: userInfo.name || '',
+          applicantDepartment: userInfo.department || '',
+          arrivalDate,
+          termMonths: recordData.termMonths,
+          position,
+          carStandard: standardItem.carStandard,
+          carMinStandard: standardItem.carMinStandard,
+          carSubsidy: standardItem.carSubsidy,
+          plannedPurchaseDate,
+          saleCompany: recordData.saleCompany,
+          brand: recordData.brand,
+          specModel: recordData.specModel,
+          displacement: recordData.displacement,
+          isNewCar: recordData.isNewCar,
+          usedTime: recordData.usedTime,
+          usedMileage: recordData.usedMileage,
+          priceWithShipping: recordData.priceWithShipping,
+          priceInUSD: recordData.priceInUSD,
+          isApplyLoan: recordData.isApplyLoan
+        }
+      }
+    })
+
+    if (workflowRes.result && workflowRes.result.code === 0) {
+      // 将工单ID回写到购车记录，用于后续联动中止
+      const orderId = workflowRes.result.data.orderId
+      await recordsCollection.doc(recordId).update({
+        data: { orderId, updatedAt: Date.now() }
+      })
+      return success({ recordId }, '馆内购车申请已提交，等待审批')
+    } else {
+      // 工作流启动失败，回滚记录状态
+      await recordsCollection.doc(recordId).update({
+        data: { status: 'workflow_failed', updatedAt: Date.now() }
+      })
+      return fail(workflowRes.result?.message || '工作流启动失败', 500)
+    }
+  } catch (error) {
+    console.error('启动工作流失败:', error)
+    await recordsCollection.doc(recordId).update({
+      data: { status: 'workflow_failed', updatedAt: Date.now() }
+    })
+    return fail('工作流启动失败，请重试', 500)
+  }
+}
+
+/**
+ * 获取职别选项列表
+ */
+async function getPositionOptions() {
+  return success({
+    positions: POSITION_OPTIONS,
+    standardMap: POSITION_CAR_STANDARD_MAP
+  })
 }
 
 // ========== 主入口 ==========
@@ -811,6 +1033,10 @@ exports.main = async (event, context) => {
     switch (action) {
       case 'create':
         return await createRecord(openid, event)
+      case 'createPurchaseApplication':
+        return await createPurchaseApplication(openid, event)
+      case 'getPositionOptions':
+        return await getPositionOptions()
       case 'getMyList':
         return await getMyList(openid, event)
       case 'getAllList':

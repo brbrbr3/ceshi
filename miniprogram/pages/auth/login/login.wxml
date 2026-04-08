@@ -89,7 +89,7 @@
         </view>
         <view wx:if="{{item.message}}" class="auth-debug-result-message">{{item.message}}</view>
         <view wx:if="{{item.data}}" class="auth-debug-result-data">
-          <text selectable="true" user-select="true">{{item.data}}</text>
+          <text user-select="true" user-select="true">{{item.data}}</text>
         </view>
       </view>
     </view>

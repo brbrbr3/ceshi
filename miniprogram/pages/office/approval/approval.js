@@ -6,7 +6,9 @@ const utils = require('../../../common/utils.js')
 const approvalTypeIcons = {
   'medical_application': { icon: '🏥', label: '就医申请', color: '#EF4444', bg: '#FEE2E2' },
   'user_registration': { icon: '📝', label: '注册申请', color: '#2563EB', bg: '#EFF6FF' },
-  'user_profile_update': { icon: '📝', label: '信息修改', color: '#2563EB', bg: '#EFF6FF' }
+  'user_profile_update': { icon: '📝', label: '信息修改', color: '#2563EB', bg: '#EFF6FF' },
+  'car_purchase_application': { icon: '🚗', label: '购车申请', color: '#0891B2', bg: '#ECFEFF' },
+  'passport_application': { icon: '📕', label: '护照借用', color: '#7C3AED', bg: '#F3E8FF' }
 }
 
 // 角色图标配置（静态配置）

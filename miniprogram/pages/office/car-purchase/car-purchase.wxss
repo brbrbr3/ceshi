@@ -322,6 +322,177 @@
 /* ========== 表单弹窗 ========== */
 .cp-form-popup { height: 62vh; }
 
+/* ========== 类型选择弹窗 ========== */
+.cp-type-popup { height: auto; max-height: 70vh; }
+
+.cp-type-list { padding: 16rpx 24rpx 32rpx; }
+
+.cp-type-item {
+  display: flex;
+  align-items: center;
+  padding: 24rpx 20rpx;
+  border-radius: 16rpx;
+  background: #F8FAFC;
+  margin-bottom: 16rpx;
+  transition: all 0.2s ease;
+}
+
+.cp-type-item:active {
+  background: #ECFEFF;
+  transform: scale(0.98);
+}
+
+.cp-type-item.cp-type-disabled {
+  opacity: 0.55;
+}
+
+.cp-type-icon-wrap {
+  width: 72rpx;
+  height: 72rpx;
+  border-radius: 16rpx;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  margin-right: 20rpx;
+  flex-shrink: 0;
+}
+
+.cp-type-emoji { font-size: 36rpx; }
+
+.cp-type-info { flex: 1; }
+
+.cp-type-name {
+  font-size: 30rpx;
+  font-weight: 600;
+  color: #0F172A;
+  margin-bottom: 4rpx;
+}
+
+.cp-type-desc {
+  font-size: 24rpx;
+  color: #64748B;
+}
+
+.cp-type-arrow {
+  font-size: 40rpx;
+  color: #94A3B8;
+  font-weight: 300;
+}
+
+/* ========== 馆内购车申请弹窗 ========== */
+.cp-purchase-app-popup { height: 88vh; }
+
+/* 表单分组标题 */
+.cp-form-section-title {
+  font-size: 28rpx;
+  font-weight: 600;
+  color: #0891B2;
+  padding: 20rpx 0 12rpx;
+  margin-bottom: 12rpx;
+  border-bottom: 2rpx solid #E0F2FE;
+}
+
+/* Stepper 步进器 */
+.cp-stepper {
+  display: flex;
+  align-items: center;
+  gap: 24rpx;
+  background: #F8FAFC;
+  border-radius: 16rpx;
+  padding: 12rpx 24rpx;
+  height: 88rpx;
+  box-sizing: border-box;
+}
+
+.cp-stepper-btn {
+  width: 56rpx;
+  height: 56rpx;
+  border-radius: 14rpx;
+  background: linear-gradient(135deg, #0891B2, #0E7490);
+  color: #FFFFFF;
+  font-size: 32rpx;
+  font-weight: 600;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  flex-shrink: 0;
+  line-height: 1;
+}
+
+.cp-stepper-btn:active {
+  opacity: 0.8;
+  transform: scale(0.95);
+}
+
+.cp-stepper-value {
+  flex: 1;
+  text-align: center;
+  font-size: 32rpx;
+  font-weight: 700;
+  color: #0F172A;
+}
+
+/* Picker 触发器 */
+.cp-picker-trigger {
+  cursor: pointer;
+}
+
+.cp-picker-arrow {
+  font-size: 22rpx;
+  color: #94A3B8;
+  margin-left: 12rpx;
+}
+
+/* 只读输入框 */
+.cp-input-readonly {
+  background: #F1F5F9 !important;
+}
+
+.cp-input-disabled {
+  color: #64748B !important;
+  font-weight: 500;
+}
+
+/* Switch 行 */
+.cp-switch-row {
+  display: flex;
+  align-items: center;
+  gap: 16rpx;
+  padding: 4rpx 0;
+}
+
+.cp-switch-label {
+  font-size: 28rpx;
+  color: #334155;
+  font-weight: 500;
+}
+
+/* 购车申请摘要 */
+.cp-app-summary {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 12rpx;
+  margin-bottom: 10rpx;
+}
+
+.cp-app-meta-item {
+  font-size: 23rpx;
+  color: #64748B;
+  background: #F8FAFC;
+  padding: 4rpx 14rpx;
+  border-radius: 8rpx;
+}
+
+/* 类型标签 */
+.cp-type-tag {
+  font-size: 20rpx;
+  padding: 4rpx 12rpx;
+  border-radius: 6rpx;
+  font-weight: 600;
+  margin-left: 8rpx;
+  flex-shrink: 0;
+}
+
 .cp-popup-form {
   flex: 1; overflow: hidden;
   padding: 24rpx 32rpx 10rpx;
@@ -573,6 +744,16 @@
 }
 
 .cp-value-bold { font-weight: 600; color: #0F172A; }
+
+/* 详情子标题 */
+.cp-section-subtitle {
+  font-size: 27rpx;
+  font-weight: 600;
+  color: #0891B2;
+  padding-bottom: 12rpx;
+  margin-bottom: 8rpx;
+  border-bottom: 1rpx solid #E0F2FE;
+}
 
 /* 小进度条 */
 .cp-mini-progress {
