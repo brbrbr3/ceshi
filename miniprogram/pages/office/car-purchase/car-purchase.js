@@ -30,6 +30,7 @@ Page({
     loading: false,
     submitting: false,
     uploading: false,
+    exporting: false,
 
     // Tab 切换
     currentTab: 'mine',       // mine | manage
@@ -1020,6 +1021,64 @@ Page({
   },
 
   stopPropagation() {},
+
+  // ========== 导出PDF ==========
+
+  async handleExportPdf() {
+    if (this.data.exporting) return
+    if (!this.data.detailData || !this.data.detailData.orderId) {
+      utils.showToast({ title: '无法导出，缺少工单信息', icon: 'none' })
+      return
+    }
+
+    this.setData({ exporting: true })
+
+    try {
+      const res = await wx.cloud.callFunction({
+        name: 'generateOrderPdf',
+        data: { orderId: this.data.detailData.orderId }
+      })
+
+      if (res.result.code === 0) {
+        const fileUrl = res.result.data.fileUrl
+        const fileName = res.result.data.fileName
+
+        wx.showLoading({ title: '正在打开文件...' })
+        const downloadResult = await new Promise((resolve, reject) => {
+          wx.downloadFile({
+            url: fileUrl,
+            success: resolve,
+            fail: reject
+          })
+        })
+
+        wx.hideLoading()
+
+        if (downloadResult.statusCode === 200) {
+          wx.openDocument({
+            filePath: downloadResult.tempFilePath,
+            fileName: fileName,
+            fileType: 'pdf',
+            showMenu: true,
+            success: () => { console.log('PDF打开成功') },
+            fail: (err) => {
+              console.error('打开PDF失败:', err)
+              utils.showToast({ title: '打开文件失败', icon: 'none' })
+            }
+          })
+        } else {
+          utils.showToast({ title: '下载文件失败', icon: 'none' })
+        }
+      } else {
+        utils.showToast({ title: res.result.message || '导出失败', icon: 'none' })
+      }
+    } catch (error) {
+      console.error('导出PDF失败:', error)
+      utils.showToast({ title: '导出失败，请重试', icon: 'none' })
+    } finally {
+      this.setData({ exporting: false })
+    }
+  },
 
   // ========== 删除购车记录 ==========
 

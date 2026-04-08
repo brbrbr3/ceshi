@@ -33,13 +33,17 @@ async function ensureFont() {
 
 /**
  * 格式化字段值
+ * - boolean 类型显示 '是'/'否'
  * - 数组用逗号拼接
  * - null/undefined/空字符串显示 '-'
  * - 其他直接 toString
  */
-function formatFieldValue(value) {
+function formatFieldValue(value, type) {
   if (value === null || value === undefined || value === '') {
     return '-'
+  }
+  if (type === 'boolean') {
+    return value ? '是' : '否'
   }
   if (Array.isArray(value)) {
     return value.length > 0 ? value.join(', ') : '-'
@@ -220,7 +224,7 @@ async function generateOrderPdf(openid, orderId) {
 
     // 动态字段列表（全部显示，不做 condition 判断）
     detailFields.forEach(fieldConfig => {
-      const value = formatFieldValue(businessData[fieldConfig.field])
+      const value = formatFieldValue(businessData[fieldConfig.field], fieldConfig.type)
       pdfDoc.text(`${fieldConfig.label}：`, 50, undefined, { continued: true })
       pdfDoc.text(value)
       pdfDoc.moveDown(0.3)

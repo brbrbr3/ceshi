@@ -685,6 +685,26 @@
 
 .cp-delete-btn::after { border: none; }
 
+.cp-export-btn {
+  flex: 1;
+  height: 88rpx;
+  background: linear-gradient(135deg, #0891B2 0%, #0E7490 100%);
+  color: #FFFFFF;
+  font-size: 30rpx;
+  font-weight: 600;
+  border-radius: 18rpx;
+  border: none;
+  padding-top: 20rpx;
+  box-shadow: 0 4rpx 12rpx rgba(8, 145, 178, 0.25);
+}
+
+.cp-export-btn::after { border: none; }
+
+.cp-export-btn[disabled] {
+  background: #94A3B8;
+  box-shadow: none;
+}
+
 .cp-detail-btn-row .cp-close-btn {
   flex: 1;
 }

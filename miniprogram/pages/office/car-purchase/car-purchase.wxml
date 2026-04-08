@@ -716,6 +716,7 @@
         <view class="cp-detail-btn-row">
           <!--已完成的申请或已审批通过的不再显示删除按钮-->
           <button wx:if="{{!(detailData.status === 'completed' || detailData.status === 'approved')}}" class="cp-delete-btn" catchtap="deleteRecord" data-record-id="{{selectedRecord._id}}">删除</button>
+          <button wx:if="{{detailData.status === 'approved' && (detailData.type === 'purchase_application' || detailData.type === 'purchase_loan')}}" class="cp-export-btn" loading="{{exporting}}" disabled="{{exporting}}" bindtap="handleExportPdf">{{exporting ? '导出中...' : '导出PDF'}}</button>
           <button class="cp-close-btn" bindtap="hideDetailPopup">关闭</button>
         </view>
       </view>
