@@ -701,6 +701,10 @@
   font-weight: 600;
 }
 
+.cp-pending-badge{
+  background: none;
+}
+
 .cp-badge-active {
   background: #CFFAFE !important;
   color: #155E75 !important;

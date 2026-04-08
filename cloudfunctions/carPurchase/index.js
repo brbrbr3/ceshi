@@ -325,6 +325,8 @@ async function getMyList(openid, event) {
       position: item.position || '',
       isNewCar: item.isNewCar,
       isApplyLoan: item.isApplyLoan,
+      isFirstResident: item.isFirstResident,
+      borrowableAmount: item.borrowableAmount,
       createdAt: item.createdAt,
       updatedAt: item.updatedAt
     }
@@ -378,6 +380,8 @@ async function getAllList(openid, event) {
       position: item.position || '',
       isNewCar: item.isNewCar,
       isApplyLoan: item.isApplyLoan,
+      isFirstResident: item.isFirstResident,
+      borrowableAmount: item.borrowableAmount,
       createdAt: item.createdAt,
       updatedAt: item.updatedAt
     }
@@ -415,8 +419,8 @@ async function getDetail(openid, event) {
 
   const recordType = record.type || 'purchase_process'
 
-  // 馆内购车申请类型直接返回详情，无需 groups
-  if (recordType === 'purchase_application') {
+  // 馆内购车申请/借款申请类型直接返回详情，无需 groups
+  if (recordType === 'purchase_application' || recordType === 'purchase_loan') {
     return success({
       ...record,
       type: recordType,
@@ -1011,6 +1015,131 @@ async function createPurchaseApplication(openid, event) {
 }
 
 /**
+ * 创建馆内购车借款申请记录并启动工作流
+ */
+async function createPurchaseLoan(openid, event) {
+  const {
+    arrivalDate,
+    position,
+    termMonths,
+    carModel,
+    priceInUSD,
+    exchangeRate,
+    isFirstResident
+  } = event
+
+  // 验证必填字段
+  if (!arrivalDate) return fail('请选择赴任日期', 400)
+  if (!position) return fail('请选择职别', 400)
+  if (!String(carModel || '').trim()) return fail('请填写拟购车型号', 400)
+  if (!Number(priceInUSD) || Number(priceInUSD) <= 0) return fail('请填写拟购车价格（美元）', 400)
+  if (!Number(exchangeRate) || Number(exchangeRate) <= 0) return fail('请填写当月美元人民币比价', 400)
+
+  const userInfo = await getUserInfo(openid)
+  if (!userInfo) return fail('未找到用户信息，请联系管理员', 403)
+
+  // 根据职别查找对应的购车补贴标准
+  const standardItem = POSITION_CAR_STANDARD_MAP.find(item => item.position === position)
+  if (!standardItem) return fail('职别信息不合法', 400)
+
+  const _termMonths = Number(termMonths) || 48
+  const _priceInUSD = Number(priceInUSD)
+  const _exchangeRate = Number(exchangeRate)
+  const _carSubsidy = standardItem.carSubsidy
+  const _totalSubsidy = _carSubsidy * _termMonths
+  const _isFirstResident = !!isFirstResident
+
+  // 计算可借金额
+  let _borrowableAmount = 0
+  if (_isFirstResident) {
+    const cap1 = _priceInUSD * 0.85
+    const cap2 = _totalSubsidy / _exchangeRate
+    _borrowableAmount = Math.min(cap1, cap2)
+  } else {
+    const cap1 = _priceInUSD * 0.50
+    const cap2 = _totalSubsidy * 0.60 / _exchangeRate
+    _borrowableAmount = Math.min(cap1, cap2)
+  }
+  // 保留两位小数
+  _borrowableAmount = Math.round(_borrowableAmount * 100) / 100
+
+  const now = Date.now()
+
+  const recordData = {
+    applicantOpenid: openid,
+    applicantName: userInfo.name || '',
+    applicantDepartment: userInfo.department || '',
+    type: 'purchase_loan',
+    // 人员信息
+    arrivalDate,
+    position,
+    carSubsidy: _carSubsidy,
+    termMonths: _termMonths,
+    totalSubsidy: _totalSubsidy,
+    // 购车信息
+    carModel: String(carModel).trim(),
+    priceInUSD: _priceInUSD,
+    exchangeRate: _exchangeRate,
+    isFirstResident: _isFirstResident,
+    borrowableAmount: _borrowableAmount,
+    // 审批状态
+    status: 'pending_approval',
+    // 时间戳
+    createdAt: now,
+    updatedAt: now
+  }
+
+  const res = await recordsCollection.add({ data: recordData })
+  const recordId = res._id
+
+  // 启动工作流审批
+  try {
+    const workflowRes = await cloud.callFunction({
+      name: 'workflowEngine',
+      data: {
+        action: 'submitOrder',
+        orderType: 'car_purchase_loan',
+        businessData: {
+          recordId,
+          applicantId: openid,
+          applicantName: userInfo.name || '',
+          applicantDepartment: userInfo.department || '',
+          arrivalDate,
+          position,
+          carSubsidy: _carSubsidy,
+          termMonths: _termMonths,
+          totalSubsidy: _totalSubsidy,
+          carModel: recordData.carModel,
+          priceInUSD: _priceInUSD,
+          exchangeRate: _exchangeRate,
+          isFirstResident: _isFirstResident,
+          borrowableAmount: _borrowableAmount
+        }
+      }
+    })
+
+    if (workflowRes.result && workflowRes.result.code === 0) {
+      const orderId = workflowRes.result.data.orderId
+      await recordsCollection.doc(recordId).update({
+        data: { orderId, updatedAt: Date.now() }
+      })
+      return success({ recordId }, '购车借款申请已提交，等待审批')
+    } else {
+      await recordsCollection.doc(recordId).update({
+        data: { status: 'workflow_failed', updatedAt: Date.now() }
+      })
+      return fail(workflowRes.result?.message || '工作流启动失败', 500)
+    }
+  } catch (error) {
+    console.error('启动工作流失败:', error)
+    await recordsCollection.doc(recordId).update({
+      data: { status: 'workflow_failed', updatedAt: Date.now() }
+    })
+    return fail('工作流启动失败，请重试', 500)
+  }
+}
+
+/**
  * 获取职别选项列表
  */
 async function getPositionOptions() {
@@ -1035,6 +1164,8 @@ exports.main = async (event, context) => {
         return await createRecord(openid, event)
       case 'createPurchaseApplication':
         return await createPurchaseApplication(openid, event)
+      case 'createPurchaseLoan':
+        return await createPurchaseLoan(openid, event)
       case 'getPositionOptions':
         return await getPositionOptions()
       case 'getMyList':

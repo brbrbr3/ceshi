@@ -1545,6 +1545,30 @@ async function completeWorkflow(orderId, decision, approverId, approverName, com
     }
   }
 
+  // 特殊处理：馆内购车借款申请审批通过，更新 car_purchase_records 状态
+  if (order.orderType === 'car_purchase_loan' && decision === 'approved') {
+    const carPurchaseCollection = db.collection('car_purchase_records')
+    const businessData = order.businessData || {}
+    const recordId = businessData.recordId
+
+    if (recordId) {
+      try {
+        await carPurchaseCollection.doc(recordId).update({
+          data: {
+            status: 'approved',
+            approvedAt: now,
+            orderId: order._id,
+            orderNo: order.orderNo,
+            updatedAt: now
+          }
+        })
+        console.log('馆内购车借款申请审批通过，记录状态已更新，recordId:', recordId)
+      } catch (error) {
+        console.error('更新购车借款申请记录状态失败:', error)
+      }
+    }
+  }
+
   // 发送完成通知给申请人
   await sendWorkflowCompletedNotification(order, decision)
 }
@@ -1881,7 +1905,7 @@ async function terminateOrder(orderId, openid, operatorName = '审批人', reaso
     )
 
     // 联动更新购车申请记录状态为"已中止"
-    if (order.orderType === 'car_purchase_application') {
+    if (order.orderType === 'car_purchase_application' || order.orderType === 'car_purchase_loan') {
       const businessData = order.businessData || {}
       const recordId = businessData.recordId
       if (recordId) {

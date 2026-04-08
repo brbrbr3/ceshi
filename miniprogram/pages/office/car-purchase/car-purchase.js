@@ -41,6 +41,7 @@ Page({
     showStepEditPopup: false,
     showTypeSelector: false,
     showPurchaseAppForm: false,
+    showPurchaseLoanForm: false,
 
     // 数据列表
     recordList: [],
@@ -79,6 +80,21 @@ Page({
     // 职别选项
     positionOptions: POSITION_OPTIONS,
 
+    // 馆内购车借款申请表单数据
+    purchaseLoanForm: {
+      arrivalDate: '',
+      position: '',
+      positionIndex: -1,
+      carSubsidy: 0,
+      termMonths: 48,
+      totalSubsidy: 0,
+      carModel: '',
+      priceInUSD: '',
+      exchangeRate: '',
+      isFirstResident: true,
+      borrowableAmount: 0
+    },
+
     // 步骤编辑弹层数据
     editingStep: null,
     editingGroupIndex: -1,
@@ -101,7 +117,7 @@ Page({
   },
 
   async onShow() {
-    if (!this.data.showFormPopup && !this.data.showDetailPopup && !this.data.showStepEditPopup && !this.data.showPurchaseAppForm && !this.data.showTypeSelector) {
+    if (!this.data.showFormPopup && !this.data.showDetailPopup && !this.data.showStepEditPopup && !this.data.showPurchaseAppForm && !this.data.showPurchaseLoanForm && !this.data.showTypeSelector) {
       wx.showLoading({ title: '加载中...', mask: true })
       try {
         await this.refreshList()
@@ -170,6 +186,7 @@ Page({
     const recordType = item.type || 'purchase_process'
     const isProcess = recordType === 'purchase_process'
     const isApplication = recordType === 'purchase_application'
+    const isLoan = recordType === 'purchase_loan'
 
     let statusText = ''
     let statusColor = '#0891B2'
@@ -177,12 +194,13 @@ Page({
     if (isProcess) {
       statusText = item.status === 'completed' ? '已完成' : `G${item.currentGroup}-${item.currentGroupName || ''}`
       statusColor = item.status === 'completed' ? '#16A34A' : '#0891B2'
-    } else if (isApplication) {
+    } else if (isApplication || isLoan) {
       const statusMap = {
         'pending_approval': { text: '待审批', color: '#D97706' },
         'approved': { text: '已通过', color: '#16A34A' },
         'rejected': { text: '已驳回', color: '#DC2626' },
-        'workflow_failed': { text: '审批异常', color: '#DC2626' }
+        'workflow_failed': { text: '审批异常', color: '#DC2626' },
+        'terminated': { text: '已中止', color: '#DC2626' }
       }
       const mapped = statusMap[item.status] || { text: item.status, color: '#64748B' }
       statusText = mapped.text
@@ -268,8 +286,25 @@ Page({
           isApplyLoan: false
         }
       })
+    } else if (type === 'purchase_loan') {
+      // 馆内购车借款申请
+      this.setData({
+        showPurchaseLoanForm: true,
+        purchaseLoanForm: {
+          arrivalDate: '',
+          position: '',
+          positionIndex: -1,
+          carSubsidy: 0,
+          termMonths: 48,
+          totalSubsidy: 0,
+          carModel: '',
+          priceInUSD: '',
+          exchangeRate: '',
+          isFirstResident: true,
+          borrowableAmount: 0
+        }
+      })
     }
-    // purchase_loan 预留，暂不处理
   },
 
   hideFormPopup() {
@@ -278,6 +313,10 @@ Page({
 
   hidePurchaseAppForm() {
     this.setData({ showPurchaseAppForm: false })
+  },
+
+  hidePurchaseLoanForm() {
+    this.setData({ showPurchaseLoanForm: false })
   },
 
   handleCarModelInput(e) {
@@ -459,6 +498,134 @@ Page({
     }
   },
 
+  // ========== 馆内购车借款申请表单事件 ==========
+
+  /** 重算借款申请的 totalSubsidy 和 borrowableAmount */
+  _recalcLoanForm(f) {
+    const _carSubsidy = Number(f.carSubsidy) || 0
+    const _termMonths = Number(f.termMonths) || 0
+    const _priceInUSD = Number(f.priceInUSD) || 0
+    const _exchangeRate = Number(f.exchangeRate) || 0
+    const _isFirstResident = f.isFirstResident
+
+    const totalSubsidy = _carSubsidy * _termMonths
+
+    let borrowableAmount = 0
+    if (_priceInUSD > 0 && _exchangeRate > 0) {
+      if (_isFirstResident) {
+        borrowableAmount = Math.min(_priceInUSD * 0.85, totalSubsidy / _exchangeRate)
+      } else {
+        borrowableAmount = Math.min(_priceInUSD * 0.50, totalSubsidy * 0.60 / _exchangeRate)
+      }
+      borrowableAmount = Math.round(borrowableAmount * 100) / 100
+    }
+
+    this.setData({
+      'purchaseLoanForm.totalSubsidy': totalSubsidy,
+      'purchaseLoanForm.borrowableAmount': borrowableAmount
+    })
+  },
+
+  handleLoanArrivalDateChange(e) {
+    this.setData({ 'purchaseLoanForm.arrivalDate': e.detail.value })
+  },
+
+  handleLoanTermMonthsMinus() {
+    const current = this.data.purchaseLoanForm.termMonths
+    if (current > 6) {
+      this.setData({ 'purchaseLoanForm.termMonths': current - 1 })
+      this._recalcLoanForm({ ...this.data.purchaseLoanForm, termMonths: current - 1 })
+    }
+  },
+
+  handleLoanTermMonthsPlus() {
+    const current = this.data.purchaseLoanForm.termMonths
+    if (current < 96) {
+      this.setData({ 'purchaseLoanForm.termMonths': current + 1 })
+      this._recalcLoanForm({ ...this.data.purchaseLoanForm, termMonths: current + 1 })
+    }
+  },
+
+  handleLoanPositionChange(e) {
+    const index = Number(e.detail.value)
+    const position = POSITION_OPTIONS[index]
+    const standardItem = POSITION_CAR_STANDARD_MAP[index]
+    const updateData = {
+      'purchaseLoanForm.position': position,
+      'purchaseLoanForm.positionIndex': index,
+      'purchaseLoanForm.carSubsidy': standardItem.carSubsidy
+    }
+    this.setData(updateData)
+    this._recalcLoanForm({ ...this.data.purchaseLoanForm, carSubsidy: standardItem.carSubsidy })
+  },
+
+  handleLoanCarModelInput(e) {
+    this.setData({ 'purchaseLoanForm.carModel': e.detail.value })
+  },
+
+  handleLoanPriceInUSDInput(e) {
+    this.setData({ 'purchaseLoanForm.priceInUSD': e.detail.value })
+    this._recalcLoanForm({ ...this.data.purchaseLoanForm, priceInUSD: e.detail.value })
+  },
+
+  handleLoanExchangeRateInput(e) {
+    this.setData({ 'purchaseLoanForm.exchangeRate': e.detail.value })
+    this._recalcLoanForm({ ...this.data.purchaseLoanForm, exchangeRate: e.detail.value })
+  },
+
+  handleLoanIsFirstResidentChange(e) {
+    const isFirstResident = e.detail.value
+    this.setData({ 'purchaseLoanForm.isFirstResident': isFirstResident })
+    this._recalcLoanForm({ ...this.data.purchaseLoanForm, isFirstResident })
+  },
+
+  validatePurchaseLoanForm() {
+    const f = this.data.purchaseLoanForm
+    if (!f.arrivalDate) { utils.showToast({ title: '请选择赴任日期', icon: 'none' }); return false }
+    if (f.positionIndex < 0) { utils.showToast({ title: '请选择职别', icon: 'none' }); return false }
+    if (!String(f.carModel || '').trim()) { utils.showToast({ title: '请填写拟购车型号', icon: 'none' }); return false }
+    if (!Number(f.priceInUSD) || Number(f.priceInUSD) <= 0) { utils.showToast({ title: '请填写拟购车价格', icon: 'none' }); return false }
+    if (!Number(f.exchangeRate) || Number(f.exchangeRate) <= 0) { utils.showToast({ title: '请填写美元人民币比价', icon: 'none' }); return false }
+    return true
+  },
+
+  async submitPurchaseLoan() {
+    if (this.data.submitting) return
+    if (!this.validatePurchaseLoanForm()) return
+
+    this.setData({ submitting: true })
+
+    try {
+      const f = this.data.purchaseLoanForm
+      const res = await wx.cloud.callFunction({
+        name: 'carPurchase',
+        data: {
+          action: 'createPurchaseLoan',
+          arrivalDate: f.arrivalDate,
+          position: f.position,
+          termMonths: f.termMonths,
+          carModel: f.carModel,
+          priceInUSD: f.priceInUSD,
+          exchangeRate: f.exchangeRate,
+          isFirstResident: f.isFirstResident
+        }
+      })
+
+      if (res.result.code === 0) {
+        utils.showToast({ title: '借款申请已提交', icon: 'success' })
+        this.setData({ showPurchaseLoanForm: false })
+        await this.refreshList()
+      } else {
+        utils.showToast({ title: res.result.message || '提交失败', icon: 'none' })
+      }
+    } catch (error) {
+      console.error('提交购车借款申请失败:', error)
+      utils.showToast({ title: '提交失败，请重试', icon: 'none' })
+    } finally {
+      this.setData({ submitting: false })
+    }
+  },
+
   // ========== 详情查看 ==========
 
   async showRecordDetail(e) {
@@ -476,7 +643,7 @@ Page({
 
       if (res.result.code === 0) {
         const detail = res.result.data
-        if (detail.type === 'purchase_application') {
+        if (detail.type === 'purchase_application' || detail.type === 'purchase_loan') {
           // 馆内购车申请详情
           this.setData({
             selectedRecord: record,

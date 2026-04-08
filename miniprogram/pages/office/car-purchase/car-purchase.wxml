@@ -36,16 +36,17 @@
         <view class="cp-card" wx:for="{{recordList}}" wx:key="_id" bindtap="showRecordDetail" data-record="{{item}}">
           <!-- 卡片头部：车型/品牌 + 类型标签 + 状态标签 -->
           <view class="cp-card-header">
-            <view class="cp-car-model">{{item.type === 'purchase_application' ? (item.brand || '购车申请') : item.carModel}}</view>
-            <view class="cp-type-tag" wx:if="{{item.type === 'purchase_application'}}" style="background:#ECFEFF; color:#0891B2;">馆内购车申请</view>
+            <view class="cp-car-model">{{item.type === 'purchase_loan' ? (item.carModel || '借款申请') : (item.type === 'purchase_application' ? (item.brand || '购车申请') : item.carModel)}}</view>
+            <view class="cp-type-tag" wx:if="{{item.type === 'purchase_loan'}}" style="background:#ECFEFF; color:#0891B2;">购车借款申请</view>
+            <view class="cp-type-tag" wx:elif="{{item.type === 'purchase_application'}}" style="background:#ECFEFF; color:#0891B2;">购车申请</view>
             <view class="cp-type-tag" wx:elif="{{item.type === 'purchase_process'}}" style="background:#ECFEFF; color:#0891B2;">购车流程</view>
-            <view class="cp-status-tag" style="background:{{item.status === 'completed' || item.status === 'approved' ? '#D1FAE5' : (item.status === 'rejected' ? '#FEE2E2' : '#CFFAFE')}}; color:{{item.statusColor}};">
+            <view class="cp-status-tag" style="background:{{item.status === 'completed' || item.status === 'approved' ? '#D1FAE5' : (item.status === 'rejected' ? '#FEE2E2' : (item.status === 'pending_approval' ? '#FEF3C7' : '#CFFAFE'))}}; color:{{item.statusColor}};">
               {{item.statusText}}
             </view>
           </view>
 
           <!-- 进度条（仅购车流程显示） -->
-          <view class="cp-progress-bar-wrap" wx:if="{{item.type !== 'purchase_application'}}">
+          <view class="cp-progress-bar-wrap" wx:if="{{item.type === 'purchase_process'}}">
             <view class="cp-progress-track">
               <view class="cp-progress-fill" style="width: {{item.progress}}%;"></view>
             </view>
@@ -56,6 +57,13 @@
           <view class="cp-app-summary" wx:if="{{item.type === 'purchase_application'}}">
             <text class="cp-app-meta-item" wx:if="{{item.position}}">职别：{{item.position}}</text>
             <text class="cp-app-meta-item" wx:if="{{item.isApplyLoan}}">申请借款</text>
+          </view>
+
+          <!-- 购车借款申请摘要 -->
+          <view class="cp-app-summary" wx:if="{{item.type === 'purchase_loan'}}">
+            <text class="cp-app-meta-item" wx:if="{{item.position}}">职别：{{item.position}}</text>
+            <text class="cp-app-meta-item" wx:if="{{item.isFirstResident}}">首次常驻</text>
+            <text class="cp-app-meta-item" wx:if="{{item.borrowableAmount}}">可借：{{item.borrowableAmount}} USD</text>
           </view>
 
           <!-- 卡片信息 -->
@@ -102,15 +110,15 @@
           </view>
           <text class="cp-type-arrow">›</text>
         </view>
-        <view class="cp-type-item cp-type-disabled" bindtap="">
+        <view class="cp-type-item" bindtap="handleTypeSelect" data-type="purchase_loan">
           <view class="cp-type-icon-wrap" style="background:#FEF3C7;">
             <text class="cp-type-emoji">💰</text>
           </view>
           <view class="cp-type-info">
             <view class="cp-type-name">馆内购车借款申请</view>
-            <view class="cp-type-desc">（敬请期待）</view>
+            <view class="cp-type-desc">购车借款申请，走审批流程</view>
           </view>
-          <text class="cp-type-arrow" style="color:#CBD5E1;">›</text>
+          <text class="cp-type-arrow">›</text>
         </view>
         <view class="cp-type-item" bindtap="handleTypeSelect" data-type="purchase_process">
           <view class="cp-type-icon-wrap" style="background:#E0F2FE;">
@@ -283,6 +291,116 @@
     </view>
   </view>
 
+  <!-- ========== 底部弹出：馆内购车借款申请表单 ========== -->
+  <view class="cp-popup-mask {{showPurchaseLoanForm ? 'is-visible' : ''}}" catchtouchmove="stopPropagation" bindtap="hidePurchaseLoanForm">
+    <view class="cp-popup-container cp-purchase-app-popup" catchtap="stopPropagation">
+      <view class="cp-popup-header">
+        <view class="cp-popup-title">馆内购车借款申请</view>
+        <view class="cp-popup-close" bindtap="hidePurchaseLoanForm">×</view>
+      </view>
+
+      <scroll-view scroll-y class="cp-popup-form">
+        <view class="cp-form-main">
+          <!-- 基本信息 -->
+          <view class="cp-form-section-title">基本信息</view>
+
+          <!-- 赴任日期 -->
+          <view class="cp-field">
+            <view class="cp-field-label">赴任日期 <text class="cp-required">*</text></view>
+            <datetime-picker value="{{purchaseLoanForm.arrivalDate}}" fields="{{['year', 'month', 'day']}}" placeholder="请选择赴任日期" type="border" bindchange="handleLoanArrivalDateChange" />
+          </view>
+
+          <!-- 职别 -->
+          <view class="cp-field">
+            <view class="cp-field-label">职别 <text class="cp-required">*</text></view>
+            <picker range="{{positionOptions}}" value="{{purchaseLoanForm.positionIndex}}" bindchange="handleLoanPositionChange">
+              <view class="cp-input-wrapper cp-picker-trigger">
+                <text class="{{purchaseLoanForm.position ? 'cp-input' : 'cp-placeholder'}}">{{purchaseLoanForm.position || '请选择职别'}}</text>
+                <text class="cp-picker-arrow">▼</text>
+              </view>
+            </picker>
+          </view>
+
+          <!-- 月购车补贴标准（人民币）— 自动填入 -->
+          <view class="cp-field" wx:if="{{purchaseLoanForm.carSubsidy > 0}}">
+            <view class="cp-field-label">月购车补贴标准（人民币）</view>
+            <view class="cp-input-wrapper cp-input-readonly">
+              <text class="cp-input cp-input-disabled">{{purchaseLoanForm.carSubsidy}}</text>
+            </view>
+          </view>
+
+          <!-- 剩余任期月数 -->
+          <view class="cp-field">
+            <view class="cp-field-label">剩余任期月数</view>
+            <view class="cp-stepper">
+              <view class="cp-stepper-btn" bindtap="handleLoanTermMonthsMinus">−</view>
+              <view class="cp-stepper-value">{{purchaseLoanForm.termMonths}}</view>
+              <view class="cp-stepper-btn" bindtap="handleLoanTermMonthsPlus">+</view>
+            </view>
+          </view>
+
+          <!-- 剩余任期内可享购车补贴金额 — 自动计算 -->
+          <view class="cp-field" wx:if="{{purchaseLoanForm.totalSubsidy > 0}}">
+            <view class="cp-field-label">剩余任期内可享购车补贴金额（人民币）</view>
+            <view class="cp-input-wrapper cp-input-readonly">
+              <text class="cp-input cp-input-disabled">{{purchaseLoanForm.totalSubsidy}}</text>
+            </view>
+          </view>
+
+          <!-- 购车信息 -->
+          <view class="cp-form-section-title">购车信息</view>
+
+          <!-- 拟购车型号 -->
+          <view class="cp-field">
+            <view class="cp-field-label">拟购车型号 <text class="cp-required">*</text></view>
+            <view class="cp-input-wrapper">
+              <input class="cp-input" value="{{purchaseLoanForm.carModel}}" placeholder="请输入拟购车型号" placeholder-class="cp-placeholder" bindinput="handleLoanCarModelInput" />
+            </view>
+          </view>
+
+          <!-- 拟购车价格（美元） -->
+          <view class="cp-field">
+            <view class="cp-field-label">拟购车价格（美元） <text class="cp-required">*</text></view>
+            <view class="cp-input-wrapper">
+              <input class="cp-input" value="{{purchaseLoanForm.priceInUSD}}" placeholder="请输入拟购车价格" placeholder-class="cp-placeholder" bindinput="handleLoanPriceInUSDInput" type="digit" />
+            </view>
+          </view>
+
+          <!-- 当月美元人民币比价 -->
+          <view class="cp-field">
+            <view class="cp-field-label">当月美元人民币比价 <text class="cp-required">*</text></view>
+            <view class="cp-input-wrapper">
+              <input class="cp-input" value="{{purchaseLoanForm.exchangeRate}}" placeholder="请输入美元人民币比价" placeholder-class="cp-placeholder" bindinput="handleLoanExchangeRateInput" type="digit" />
+            </view>
+          </view>
+
+          <!-- 是否车改后首次常驻 -->
+          <view class="cp-field">
+            <view class="cp-field-label">是否车改后首次常驻</view>
+            <view class="cp-switch-row">
+              <switch checked="{{purchaseLoanForm.isFirstResident}}" bindchange="handleLoanIsFirstResidentChange" color="#0891B2" />
+              <text class="cp-switch-label">{{purchaseLoanForm.isFirstResident ? '是' : '否'}}</text>
+            </view>
+          </view>
+
+          <!-- 可借金额（美元）— 自动计算 -->
+          <view class="cp-field" wx:if="{{purchaseLoanForm.borrowableAmount > 0}}">
+            <view class="cp-field-label">可借金额（美元）</view>
+            <view class="cp-input-wrapper cp-input-readonly" style="background:#ECFEFF;">
+              <text class="cp-input cp-input-disabled" style="color:#0891B2;font-weight:700;">{{purchaseLoanForm.borrowableAmount}}</text>
+            </view>
+          </view>
+        </view>
+      </scroll-view>
+
+      <view class="cp-popup-actions">
+        <button class="cp-submit-btn" loading="{{submitting}}" disabled="{{submitting}}" bindtap="submitPurchaseLoan">
+          提交申请
+        </button>
+      </view>
+    </view>
+  </view>
+
   <!-- ========== 底部弹出：申请表单（购车流程） ========== -->
   <view class="cp-popup-mask {{showFormPopup ? 'is-visible' : ''}}" catchtouchmove="stopPropagation" bindtap="hideFormPopup">
     <view class="cp-popup-container cp-form-popup" catchtap="stopPropagation">
@@ -336,9 +454,9 @@
     <view class="cp-popup-container cp-detail-popup" catchtap="stopPropagation">
       <view class="cp-popup-header">
         <view class="cp-popup-header-left">
-          <view class="cp-popup-title">{{detailData && detailData.type === 'purchase_application' ? '购车申请详情' : '购车流程详情'}}</view>
+          <view class="cp-popup-title">{{detailData && (detailData.type === 'purchase_application' || detailData.type === 'purchase_loan') ? (detailData.type === 'purchase_loan' ? '购车借款申请详情' : '购车申请详情') : '购车流程详情'}}</view>
           <view class="cp-detail-badge" wx:if="{{detailData && (detailData.status === 'completed' || detailData.status === 'approved')}}">已完成</view>
-          <view class="cp-detail-badge cp-badge-active" wx:elif="{{detailData && detailData.type !== 'purchase_application'}}">G{{detailData.currentGroup}}进行中</view>
+          <view class="cp-detail-badge cp-badge-active" wx:elif="{{detailData && detailData.type === 'purchase_process'}}">G{{detailData.currentGroup}}进行中</view>
           <view class="cp-detail-badge" wx:elif="{{detailData && detailData.status === 'pending_approval'}}" style="background:#FEF3C7;color:#92400E;">待审批</view>
           <view class="cp-detail-badge" wx:elif="{{detailData && detailData.status === 'rejected'}}" style="background:#FEE2E2;color:#991B1B;">已驳回</view>
         </view>
@@ -346,8 +464,65 @@
       </view>
 
       <scroll-view scroll-y class="cp-detail-content" wx:if="{{detailData}}">
+        <!-- 馆内购车借款申请详情 -->
+        <block wx:if="{{detailData.type === 'purchase_loan'}}">
+          <view class="cp-info-section">
+            <view class="cp-info-row">
+              <text class="cp-info-label">姓名：</text>
+              <text class="cp-info-value">{{detailData.applicantName || '-'}}</text>
+            </view>
+            <view class="cp-info-row">
+              <text class="cp-info-label">部门：</text>
+              <text class="cp-info-value">{{detailData.applicantDepartment || '-'}}</text>
+            </view>
+            <view class="cp-info-row">
+              <text class="cp-info-label">赴任日期：</text>
+              <text class="cp-info-value">{{detailData.arrivalDate || '-'}}</text>
+            </view>
+            <view class="cp-info-row">
+              <text class="cp-info-label">职别：</text>
+              <text class="cp-info-value cp-value-bold">{{detailData.position || '-'}}</text>
+            </view>
+            <view class="cp-info-row">
+              <text class="cp-info-label">月购车补贴：</text>
+              <text class="cp-info-value">{{detailData.carSubsidy ? detailData.carSubsidy + ' 人民币' : '-'}}</text>
+            </view>
+            <view class="cp-info-row">
+              <text class="cp-info-label">剩余任期月数：</text>
+              <text class="cp-info-value">{{detailData.termMonths || '-'}}</text>
+            </view>
+            <view class="cp-info-row">
+              <text class="cp-info-label">可享补贴金额：</text>
+              <text class="cp-info-value">{{detailData.totalSubsidy ? detailData.totalSubsidy + ' 人民币' : '-'}}</text>
+            </view>
+          </view>
+          <view class="cp-info-section">
+            <view class="cp-section-subtitle">购车借款信息</view>
+            <view class="cp-info-row">
+              <text class="cp-info-label">拟购车型号：</text>
+              <text class="cp-info-value cp-value-bold">{{detailData.carModel || '-'}}</text>
+            </view>
+            <view class="cp-info-row">
+              <text class="cp-info-label">拟购车价格：</text>
+              <text class="cp-info-value">{{detailData.priceInUSD ? detailData.priceInUSD + ' 美元' : '-'}}</text>
+            </view>
+            <view class="cp-info-row">
+              <text class="cp-info-label">美元人民币比价：</text>
+              <text class="cp-info-value">{{detailData.exchangeRate || '-'}}</text>
+            </view>
+            <view class="cp-info-row">
+              <text class="cp-info-label">车改后首次常驻：</text>
+              <text class="cp-info-value">{{detailData.isFirstResident ? '是' : '否'}}</text>
+            </view>
+            <view class="cp-info-row">
+              <text class="cp-info-label">可借金额：</text>
+              <text class="cp-info-value cp-value-bold" style="color:#0891B2;">{{detailData.borrowableAmount ? detailData.borrowableAmount + ' 美元' : '-'}}</text>
+            </view>
+          </view>
+        </block>
+
         <!-- 馆内购车申请详情 -->
-        <block wx:if="{{detailData.type === 'purchase_application'}}">
+        <block wx:elif="{{detailData.type === 'purchase_application'}}">
           <view class="cp-info-section">
             <view class="cp-info-row">
               <text class="cp-info-label">姓名：</text>

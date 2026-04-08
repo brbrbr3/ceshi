@@ -292,6 +292,73 @@ const EXAMPLE_TEMPLATES = [
   },
 
   {
+    name: '馆内购车借款申请审批',
+    code: 'car_purchase_loan',
+    version: 1,
+    description: '馆内购车借款申请审批流程（2步：财务主管→馆领导）',
+    category: 'approval',
+    steps: [
+      {
+        stepNo: 1,
+        stepName: '财务主管审批',
+        stepType: 'serial',
+        approverType: 'role',
+        approverConfig: {
+          roleIds: ['accountant_supervisor']
+        },
+        approvalStrategy: 'sequential',
+        canReject: true,
+        canReturn: false,
+        returnTo: 0,
+        timeout: 72,
+        timeoutAction: 'remind'
+      },
+      {
+        stepNo: 2,
+        stepName: '馆领导审批',
+        stepType: 'serial',
+        approverType: 'role',
+        approverConfig: {
+          roleIds: ['library_leader']
+        },
+        approvalStrategy: 'sequential',
+        canReject: true,
+        canReturn: false,
+        returnTo: 0,
+        timeout: 72,
+        timeoutAction: 'remind'
+      }
+    ],
+    displayConfig: {
+      cardFields: [
+        { field: 'applicantName', label: '申请人' },
+        { field: 'carModel', label: '拟购车型' }
+      ],
+      detailFields: [
+        { field: 'applicantName', label: '姓名' },
+        { field: 'applicantDepartment', label: '部门' },
+        { field: 'arrivalDate', label: '赴任日期' },
+        { field: 'position', label: '职别' },
+        { field: 'carSubsidy', label: '月购车补贴标准（人民币）' },
+        { field: 'termMonths', label: '剩余任期月数' },
+        { field: 'totalSubsidy', label: '剩余任期内可享购车补贴金额（人民币）' },
+        { field: 'carModel', label: '拟购车型号' },
+        { field: 'priceInUSD', label: '拟购车价格（美元）' },
+        { field: 'exchangeRate', label: '当月美元人民币比价' },
+        { field: 'isFirstResident', label: '是否车改后首次常驻', type: 'boolean' },
+        { field: 'borrowableAmount', label: '可借金额（美元）' }
+      ]
+    },
+    defaultTimeout: 72,
+    notifyOnSubmit: true,
+    notifyOnComplete: true,
+    notifyOnTimeout: true,
+    status: 'active',
+    createdAt: Date.now(),
+    updatedAt: Date.now()
+  },
+
+  {
     name: '护照借用审批',
     code: 'passport_application',
     version: 2,
