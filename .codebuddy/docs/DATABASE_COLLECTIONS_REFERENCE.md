@@ -1396,6 +1396,77 @@
 
 ---
 
+### 38. car_purchase_records - 购车记录
+
+**用途**：存储购车管理Checklist模式的购车流程记录（6组步骤：购车准备→免税审批→付款提车→上牌准备→验车上牌→后续手续）
+
+**安全规则**：`ADMINWRITE` - 所有用户可读，仅云函数可写
+
+> **重要说明**：购车记录由 `carPurchase` 云函数创建和管理。用户可读取自己的购车记录，办公室人员可查看全部记录。
+
+**记录数**：动态
+
+**索引**：
+
+- `_id` - 记录 ID（云开发自动创建）
+- `idx_applicant_status` - 组合索引：applicantOpenid（升序）+ status（升序）- 优化用户购车列表查询
+- `idx_createdat` - 创建时间索引（降序）- 优化时间排序查询
+
+**字段结构**：
+```javascript
+{
+  _id: String,                    // 记录 ID（自动生成）
+  // 申请人信息
+  applicantOpenid: String,        // 申请人 openid
+  applicantName: String,          // 申请人姓名
+  applicantRole: String,          // 申请人角色
+  // 车辆信息
+  carModel: String,               // 选定车型
+  // Checklist 步骤组（6组）
+  groups: Array[{                 // 步骤组列表
+    groupId: Number,              // 组编号（1~6）
+    groupName: String,            // 组名称
+    groupOwner: String,           // 组负责人类型：'staff'(用户) | 'office'(办公室)
+    steps: Array[{                // 该组的步骤列表
+      stepKey: String,            // 步骤键（如 '1_1', '2_3'）
+      title: String,              // 步骤标题
+      inputType: String,          // 输入类型：'text'|'checkbox'|'upload'|'date'|'remark'
+      completed: Boolean,         // 是否已完成
+      value: String|Array,        // 用户输入的值（文本/图片fileID数组/日期等）
+      remark: String,             // 备注
+      attachments: Array[String], // 上传附件 fileID 列表
+      completedAt: Number,        // 完成时间戳
+      completedBy: String         // 完成人 openid
+    }]
+  }],
+  // 状态
+  status: String,                 // 状态：'active'(进行中) | 'completed'(已完成) | 'cancelled'(已取消)
+  // 当前激活组（用于通知推送判断）
+  currentActiveGroup: Number,     // 当前待完成的组编号（1~6）
+  // 时间戳
+  createdAt: Number,              // 创建时间戳
+  updatedAt: Number               // 更新时间戳
+}
+```
+
+**业务规则**：
+1. 每个用户可创建多条购车记录（支持多次购车）
+2. 6组步骤交替由用户和办公室负责完成：
+   - G1(用户) → G2(办公室) → G3(用户) → G4(办公室) → G5(用户) → G6(办公室)
+3. 一组内所有步骤完成后，系统自动推送通知给下一组负责人
+4. 输入类型支持：text(文本)、checkbox(勾选)、upload(图片上传)、date(日期选择)、remark(备注)
+
+**相关云函数**：
+- `carPurchase.create`：创建购车记录（初始化6组步骤模板）
+- `carPurchase.getMyList`：获取当前用户的购车列表（分页）
+- `carPurchase.getAllList`：获取全部购车记录（办公室管理用，分页）
+- `carPurchase.getDetail`：获取购车详情（含完整 groups + steps）
+- `carPurchase.toggleStep`：切换步骤完成状态（打钩/取消打钩）
+- `carPurchase.uploadAttachments`：上传步骤附件图片
+- `carPurchase.updateStepRemark`：更新步骤备注或文本值
+
+---
+
 ## 命名规范
 
 ### 集合命名规则
@@ -1532,7 +1603,8 @@ const notificationsCollection = db.collection('notifications')  // ✅
 | 2026-04-03 | 添加 meal_subscriptions 用户订餐状态、meal_adjustments 调整记录集合（餐食管理功能） | AI |
 | 2026-04-04 | 添加 side_dish_orders 副食征订单、side_dish_bookings 副食预订记录集合（副食预订/管理功能） | AI |
 | 2026-04-05 | 添加 menu_ratings 菜品打分记录集合（菜单详情页菜品评分功能） | AI |
-| 2026-04-06 | 添加 activities 活动主表、activity_registrations 报名记录集合（活动管理模块） | AI |
+| 2026-04-06 |添加 activities 活动主表、activity_registrations 报名记录集合（活动管理模块） | AI |
+| 2026-04-07 | 添加 car_purchase_records 购车记录集合（购车管理Checklist功能） | AI |
 
 ---
 
@@ -1859,3 +1931,4 @@ https://tcb.cloud.tencent.com/dev?envId=cloud1-8gdftlggae64d5d0#/db/doc
 - [menu_ratings](https://tcb.cloud.tencent.com/dev?envId=cloud1-8gdftlggae64d5d0#/db/doc/collection/menu_ratings)
 - [activities](https://tcb.cloud.tencent.com/dev?envId=cloud1-8gdftlggae64d5d0#/db/doc/collection/activities)
 - [activity_registrations](https://tcb.cloud.tencent.com/dev?envId=cloud1-8gdftlggae64d5d0#/db/doc/collection/activity_registrations)
+- [car_purchase_records](https://tcb.cloud.tencent.com/dev?envId=cloud1-8gdftlggae64d5d0#/db/doc/collection/car_purchase_records)

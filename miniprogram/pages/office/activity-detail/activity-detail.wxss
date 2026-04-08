@@ -1,6 +1,8 @@
+.page{
+  background: #F8FAFC;
+}
 /* 活动详情页 */
 .activity-detail-page {
-  background: #F8FAFC;
 }
 
 .detail-header {
@@ -25,7 +27,7 @@
 }
 
 .detail-content {
-  padding: 0 28rpx 30rpx;
+  padding: 0 28rpx 130rpx;
   position: relative;
 }
 

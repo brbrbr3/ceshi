@@ -12,7 +12,7 @@
     "useStaticServer": true,
     "useLanDebug": false,
     "showES6CompileOption": false,
-    "compileHotReLoad": false,
+    "compileHotReLoad": true,
     "bigPackageSizeSupport": false,
     "checkInvalidKey": true,
     "useIsolateContext": false,
@@ -23,11 +23,18 @@
     "miniprogram": {
       "list": [
         {
-          "name": "pages/office/menus/menus",
-          "pathName": "pages/office/menus/menus",
+          "name": "pages/office/car-purchase/car-purchase",
+          "pathName": "pages/office/car-purchase/car-purchase",
           "query": "",
           "scene": null,
           "launchMode": "default"
+        },
+        {
+          "name": "pages/office/menus/menus",
+          "pathName": "pages/office/menus/menus",
+          "query": "",
+          "launchMode": "default",
+          "scene": null
         },
         {
           "name": "pages/office/activity-list/activity-list",

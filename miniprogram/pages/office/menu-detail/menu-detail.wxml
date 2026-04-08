@@ -22,10 +22,10 @@
       </view>
     </view>
 
-    <!-- 菜品打分模块 -->
+    <!-- 菜品评分模块 -->
     <view class="office-section">
       <view class="office-section-header">
-        <view class="office-section-title">菜品打分</view>
+        <view class="office-section-title">菜品评分</view>
         <view class="office-link" wx:if="{{dishRatings.length > 0}}">{{dishRatings.length}}道菜</view>
       </view>
 

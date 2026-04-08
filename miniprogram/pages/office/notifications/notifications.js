@@ -134,7 +134,7 @@ Page({
         this.loadNotifications().finally(() => {
           wx.hideLoading()
           utils.showToast({
-            title: '已全部标记为已读',
+            title: '已全部标记已读',
             icon: 'success'
           })
         })

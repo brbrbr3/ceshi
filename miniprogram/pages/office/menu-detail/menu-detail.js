@@ -411,8 +411,13 @@ Page({
           })
         }
 
+        // 按平均评分从高到低排序
+        const sortedRatings = (data.ratings || []).sort((a, b) => {
+          return (b.averageScore || 0) - (a.averageScore || 0)
+        })
+
         this.setData({
-          dishRatings: data.ratings,
+          dishRatings: sortedRatings,
           extractedDishes,
           myRatedDishes,
           ratingsLoading: false

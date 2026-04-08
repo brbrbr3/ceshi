@@ -350,16 +350,25 @@ const SYSTEM_CONFIGS = [
       'Hospital das Forças Armadas （公立综合性医院）',
       'Rita Trindade（牙科）',
       'Clínica Implanto Odontologia Especializada（牙科）',
+      'Moreti Odontologia（牙科）',
+      'Crool by Rios（牙科）',
       'CBV（眼科）',
       'Laboratório Sabin（巴西临床医学典范）',
+      'Exame Imagem e Laboratório（临床医学检查与疫苗注射）',
+      'IMEB Crispim（临床医学检查）',
       'Cote Brasília（骨科）',
       'Aluma Dermatologia e Laser（皮肤科）',
+      'Verveine（皮肤科）',
+      'Inovaderm（皮肤科）',
+      'Consultório Natasha Ferraroni（过敏）',
       'Rheos. Reumatologia e Clínica Médica（风湿科）',
       'Prodigest（消化科）',
-      'CEOL ENT-Otorhinolaryngology Clinic（耳鼻喉科）',
-      'Centro de Acupuntura Shen（针灸、艾灸）',
-      'Consultório Natasha Ferraroni（过敏）',
+      'CEOL ENT-Otorrinolaringology Clinic（耳鼻喉科）',
+      'Centro de Acupuntura Shen（针灸）',
+      'Clínica de Acupuntura Chinesa Brasília（针灸）',
+      'Maternidade Brasília（妇产科）',
       'Hospital Materno Infantil de Brasília（妇幼专科）',
+      'CRIAPP（多种专科）',
       '其他'
     ],
     description: '就医申请-医疗机构选项列表',
@@ -475,6 +484,13 @@ const PERMISSION_CONFIGS = [
     description: '工作餐订阅与管理',
     enabledRoles: ['馆领导', '部门负责人', '馆员', '工勤'],
     specialConditions: [{ role: '配偶', position: '出纳' }],
+    requireAdmin: false
+  },
+  {
+    featureKey: 'car_purchase',
+    featureName: '购车管理',
+    description: '购车流程Checklist管理（6组步骤）',
+    enabledRoles: ['馆领导', '部门负责人', '馆员', '工勤'],
     requireAdmin: false
   }
 ]

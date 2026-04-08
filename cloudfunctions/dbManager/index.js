@@ -85,7 +85,8 @@ const DB_COLLECTIONS = [
   'meal_subscriptions',
   'meal_adjustments',
   'side_dish_orders',
-  'side_dish_bookings'
+  'side_dish_bookings',
+  'car_purchase_records'
 ]
 
 /**

@@ -108,7 +108,7 @@ App({
       wx.showModal({
         title: '版本'+config.CACHE_VERSION+'更新说明',
         content: config.VERSION_DESCRIPTION,
-        showCancel: 'false',
+        showCancel: false,
         confirmText: '我知道了'
       })
     }
