@@ -32,6 +32,12 @@ page {
   color: #1E293B;
 }
 
+.meeting-subtitle {
+  font-size: 26rpx;
+  color: #384d6e;
+  font-weight: 525;
+}
+
 .meeting-add-btn {
   width: 80rpx;
   height: 80rpx;

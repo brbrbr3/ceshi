@@ -187,7 +187,7 @@ async function updateMeetingRoomReservation(meetingRoomReservationId, params, us
     // 权限检查：仅创建者或管理员可编辑
     const wxContext = cloud.getWXContext()
     const isAdmin = userInfo.role === 'admin' || userInfo.isAdmin
-    if (oldMeetingRoomReservation._openid !== wxContext.OPENID && !isAdmin) {
+    if (oldMeetingRoomReservation.creatorId !== wxContext.OPENID && !isAdmin) {
       return fail('无权限编辑此预约', 403)
     }
 
@@ -256,7 +256,7 @@ async function deleteMeetingRoomReservation(meetingRoomReservationId, userInfo) 
     // 权限检查：仅创建者或管理员可删除
     const wxContext = cloud.getWXContext()
     const isAdmin = userInfo.role === 'admin' || userInfo.isAdmin
-    if (meetingRoomReservation._openid !== wxContext.OPENID && !isAdmin) {
+    if (meetingRoomReservation.creatorId !== wxContext.OPENID && !isAdmin) {
       return fail('无权限删除此预约', 403)
     }
 

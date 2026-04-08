@@ -37,7 +37,8 @@
           <!-- 卡片头部：车型/品牌 + 类型标签 + 状态标签 -->
           <view class="cp-card-header">
             <view class="cp-car-model">{{item.type === 'purchase_application' ? (item.brand || '购车申请') : item.carModel}}</view>
-            <view class="cp-type-tag" wx:if="{{item.type === 'purchase_application'}}" style="background:#ECFEFF; color:#0891B2;">购车申请</view>
+            <view class="cp-type-tag" wx:if="{{item.type === 'purchase_application'}}" style="background:#ECFEFF; color:#0891B2;">馆内购车申请</view>
+            <view class="cp-type-tag" wx:elif="{{item.type === 'purchase_process'}}" style="background:#ECFEFF; color:#0891B2;">购车流程</view>
             <view class="cp-status-tag" style="background:{{item.status === 'completed' || item.status === 'approved' ? '#D1FAE5' : (item.status === 'rejected' ? '#FEE2E2' : '#CFFAFE')}}; color:{{item.statusColor}};">
               {{item.statusText}}
             </view>
@@ -286,7 +287,7 @@
   <view class="cp-popup-mask {{showFormPopup ? 'is-visible' : ''}}" catchtouchmove="stopPropagation" bindtap="hideFormPopup">
     <view class="cp-popup-container cp-form-popup" catchtap="stopPropagation">
       <view class="cp-popup-header">
-        <view class="cp-popup-title">添加购车申请</view>
+        <view class="cp-popup-title">开始购车流程</view>
         <view class="cp-popup-close" bindtap="hideFormPopup">×</view>
       </view>
 
@@ -335,7 +336,7 @@
     <view class="cp-popup-container cp-detail-popup" catchtap="stopPropagation">
       <view class="cp-popup-header">
         <view class="cp-popup-header-left">
-          <view class="cp-popup-title">{{detailData && detailData.type === 'purchase_application' ? '购车申请详情' : '购车详情'}}</view>
+          <view class="cp-popup-title">{{detailData && detailData.type === 'purchase_application' ? '购车申请详情' : '购车流程详情'}}</view>
           <view class="cp-detail-badge" wx:if="{{detailData && (detailData.status === 'completed' || detailData.status === 'approved')}}">已完成</view>
           <view class="cp-detail-badge cp-badge-active" wx:elif="{{detailData && detailData.type !== 'purchase_application'}}">G{{detailData.currentGroup}}进行中</view>
           <view class="cp-detail-badge" wx:elif="{{detailData && detailData.status === 'pending_approval'}}" style="background:#FEF3C7;color:#92400E;">待审批</view>
