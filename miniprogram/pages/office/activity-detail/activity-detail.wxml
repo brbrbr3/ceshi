@@ -12,14 +12,15 @@
   <!-- 详情内容 -->
   <view class="office-content detail-content" wx:if="{{!loading}}">
     <view class="office-card detail-card">
-      <!-- 标签行 -->
+      <!-- 标签行：状态完全由截止日期决定 -->
       <view class="detail-tags">
-        <view class="detail-tag {{activity.status === 'active' ? 'tag-active' : 'tag-ended'}}">
-          {{activity.status === 'active' ? '报名中' : '已结束'}}
+        <view class="detail-tag {{isDeadlinePassed ? 'tag-ended' : 'tag-active'}}">
+          {{isDeadlinePassed ? '已结束' : '报名中'}}
         </view>
         <view wx:if="{{activity.isTargetRoleEnabled && activity.targetRoles.length > 0}}" class="detail-tag tag-target">
           {{targetRolesText}}
         </view>
+        <view wx:if="{{activity.isTargetOnlyVisible}}" class="detail-tag tag-restricted">仅目标用户可见</view>
         <view wx:if="{{activity.isMaxRegistrationsEnabled && activity.maxRegistrations}}" class="detail-tag tag-limit">
           限{{activity.maxRegistrations}}人
         </view>
@@ -93,11 +94,16 @@
     <!-- 非分组：直接报名/取消 -->
     <block wx:if="{{!activity.isGroupedActivity}}">
       <button
-        wx:if="{{!isRegistered && activity.status === 'active'}}"
+        wx:if="{{!isRegistered && !isDeadlinePassed}}"
         class="bottom-btn btn-primary {{remainingSlots === 0 ? 'btn-disabled' : ''}}"
         disabled="{{remainingSlots === 0}}"
         bindtap="handleRegister"
       >{{remainingSlots === 0 ? '报名人数已达上限' : '报名参与'}}</button>
+      <button
+        wx:elif="{{isDeadlinePassed}}"
+        class="bottom-btn btn-deadline"
+        disabled="true"
+      >已过截止时间，无法报名</button>
       <button
         wx:elif="{{isRegistered}}"
         class="bottom-btn btn-cancel"
@@ -111,7 +117,7 @@
     </block>
 
     <!-- 分组活动：选择分组报名 -->
-    <block wx:if="{{activity.isGroupedActivity && activity.status === 'active'}}">
+    <block wx:if="{{activity.isGroupedActivity && !isDeadlinePassed}}">
       <button
         wx:if="{{!isRegistered}}"
         class="bottom-btn btn-primary"
@@ -123,8 +129,8 @@
         bindtap="handleCancelRegistration"
       >已报名（{{myRegistration.groupName || '默认组'}}）· 取消</button>
     </block>
-    <block wx:if="{{activity.isGroupedActivity && activity.status !== 'active'}}">
-      <button class="bottom-btn btn-disabled" disabled="true">活动已结束</button>
+    <block wx:if="{{activity.isGroupedActivity && isDeadlinePassed}}">
+      <button class="bottom-btn btn-deadline" disabled="true">已过截止时间，无法报名</button>
     </block>
   </view>
 

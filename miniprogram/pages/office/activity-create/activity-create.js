@@ -26,13 +26,15 @@ Page({
   onLoad() {
     const roles = app.getConstantSync('ROLE_OPTIONS') || []
     this.setData({ roleOptions: roles })
-    // 报名截止日期最小值 = 明天零点
-    const tomorrow = new Date()
-    tomorrow.setDate(tomorrow.getDate() + 1)
-    const y = tomorrow.getFullYear()
-    const m = String(tomorrow.getMonth() + 1).padStart(2, '0')
-    const d = String(tomorrow.getDate()).padStart(2, '0')
-    this.setData({ deadlineMinDatetime: `${y}-${m}-${d} 00:00:00` })
+    // 报名截止时间最小值 = 现在
+    const today = new Date()
+    today.setDate(today.getDate())
+    today.setHours(today.getHours()+1)
+    const y = today.getFullYear()
+    const m = String(today.getMonth()+1).padStart(2, '0')//月份从0月开始
+    const d = String(today.getDate()).padStart(2, '0')
+    const h = String(today.getHours()).padStart(2, '0')
+    this.setData({ deadlineMinDatetime: `${y}-${m}-${d} ${h}:00:00` })
   },
 
   // ========== 编辑器相关 ==========
@@ -203,11 +205,18 @@ Page({
         }
       }
 
-      // 准备提交数据
+      // 准备提交数据：截止时间转为 number 时间戳（毫秒）
+      // 注意：datetime-picker 输出 "YYYY-MM-DD HH:mm:ss"，iOS 不支持空格格式，需转为 T 分隔
+      const iosSafeStr = registrationDeadline.replace(' ', 'T')
+      const deadlineTimestamp = new Date(iosSafeStr).getTime()
+      if (!deadlineTimestamp || isNaN(deadlineTimestamp)) {
+        utils.showToast({ title: '截止时间格式无效', icon: 'none' }); return
+      }
+
       const submitData = {
         title: title.trim(),
         content: contentHtml.trim(),
-        registrationDeadline: registrationDeadline,
+        registrationDeadline: deadlineTimestamp,
         isMaxRegistrationsEnabled,
         maxRegistrations: isMaxRegistrationsEnabled ? maxRegistrations : 50,
         isTargetRoleEnabled,

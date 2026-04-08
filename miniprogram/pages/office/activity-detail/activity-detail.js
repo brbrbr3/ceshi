@@ -76,6 +76,10 @@ Page({
           })
         }
 
+        // 前端判断：已过截止时间
+        const now = Date.now()
+        const isDeadlinePassed = data.registrationDeadline && data.registrationDeadline < now
+
         this.setData({
           activity: data,
           timeText: utils.formatDateTime(data.createdAt),
@@ -86,6 +90,7 @@ Page({
           registrationList: regList,
           groupStats: groupsWithCount,
           remainingSlots: data.remainingSlots !== undefined ? data.remainingSlots : null,
+          isDeadlinePassed: isDeadlinePassed,
           loading: false
         })
       } else {
@@ -101,6 +106,11 @@ Page({
   // 非分组活动直接报名
   handleRegister() {
     if (this.data.remainingSlots === 0) {
+      return
+    }
+
+    if (this.data.isDeadlinePassed) {
+      utils.showToast({ title: '已过截止时间，无法报名', icon: 'none' })
       return
     }
 
@@ -120,6 +130,11 @@ Page({
 
   // 显示分组选择器
   showGroupPicker() {
+    if (this.data.isDeadlinePassed) {
+      utils.showToast({ title: '已过截止时间，无法报名', icon: 'none' })
+      return
+    }
+
     // 目标用户资格检查
     if (!this._checkUserEligible()) return
 

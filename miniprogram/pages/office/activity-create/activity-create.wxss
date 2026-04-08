@@ -328,7 +328,7 @@
 }
 
 .auth-field-label {
-  font-size: 28rpx;
+  font-size: 30rpx;
   font-weight: 600;
   color: #1E293B;
   margin-bottom: 12rpx;

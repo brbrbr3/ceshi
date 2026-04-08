@@ -370,8 +370,21 @@ Page({
     const date = new Date(item.departAt)
 
     // 使用 utils.js 的格式化函数（遵循编码规范：前端使用 utils 格式化时间）
-    const departTimeStr = utils.formatTime(item.departAt)
-    const returnTimeStr = item.returnAt ? utils.formatTime(item.returnAt) : '--:--'
+    const departTimeStr = utils.formatTime(item.departAt).slice(0, 5)  // HH:mm，去掉秒
+    // 返回时间：跨天时显示日期+时间，同天只显示时间
+    let returnTimeStr = '--:--'
+    if (item.returnAt) {
+      const departDate = new Date(item.departAt)
+      const returnDate = new Date(item.returnAt)
+      const sameDay = departDate.getFullYear() === returnDate.getFullYear() &&
+                       departDate.getMonth() === returnDate.getMonth() &&
+                       departDate.getDate() === returnDate.getDate()
+      if (sameDay) {
+        returnTimeStr = utils.formatTime(item.returnAt).slice(0, 5)
+      } else {
+        returnTimeStr = `${returnDate.getMonth() + 1}月${returnDate.getDate()}日 ${utils.formatTime(item.returnAt).slice(0, 5)}`
+      }
+    }
     
     // 格式化预计返回时间（不显示秒）
     let plannedReturnText = ''

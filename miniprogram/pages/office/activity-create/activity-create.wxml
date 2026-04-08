@@ -57,7 +57,7 @@
             报名截止
             <text class="auth-field-required">*</text>
           </view>
-          <datetime-picker value="{{form.registrationDeadline}}" fields="{{['year', 'month', 'day', 'weekday']}}" startDatetime="{{deadlineMinDatetime}}" placeholder="请选择报名截止日期" bindchange="onDeadlineChange" />
+          <datetime-picker value="{{form.registrationDeadline}}" fields="{{['year', 'month', 'day', 'weekday', 'hour']}}" startDatetime="{{deadlineMinDatetime}}" placeholder="请选择报名截止时间" bindchange="onDeadlineChange" />
         </view>
 
         <!-- Switch: 人数上限 -->
@@ -107,7 +107,7 @@
           <view class="switch-main">
             <view class="switch-info">
               <text class="switch-label">目标用户</text>
-              <text class="switch-desc">开启后可指定面向的用户角色</text>
+              <text class="switch-desc">开启后可指定活动面向的用户角色</text>
             </view>
             <switch checked="{{form.isTargetRoleEnabled}}" bindchange="onTargetRoleChange" color="#7C3AED" />
           </view>
@@ -122,11 +122,11 @@
         </view>
 
 
-        <!-- Switch: 只对目标用户展示 -->
+        <!-- Switch: 只对目标用户显示 -->
         <view class="switch-field" wx:if="{{form.isTargetRoleEnabled}}">
           <view class="switch-main">
             <view class="switch-info">
-              <text class="switch-label">只对目标用户展示</text>
+              <text class="switch-label">只对目标用户显示</text>
               <text class="switch-desc">开启后只有目标角色的用户能看到此活动</text>
             </view>
             <switch checked="{{form.isTargetOnlyVisible}}" bindchange="onTargetVisibleChange" color="#7C3AED" />

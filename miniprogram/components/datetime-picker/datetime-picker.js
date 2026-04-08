@@ -647,12 +647,22 @@ Component({
       }
       
       const timeParts = []
-      if (fields.includes('hour')) timeParts.push(String(selectedHour).padStart(2, '0'))
-      if (fields.includes('minute')) timeParts.push(String(selectedMinute).padStart(2, '0'))
-      if (fields.includes('second')) timeParts.push(String(selectedSecond).padStart(2, '0'))
+      const timeLabels = []
+      if (fields.includes('hour')) { timeParts.push(String(selectedHour).padStart(2, '0')); timeLabels.push('时') }
+      if (fields.includes('minute')) { timeParts.push(String(selectedMinute).padStart(2, '0')); }
+      if (fields.includes('second')) { timeParts.push(String(selectedSecond).padStart(2, '0')); }
       
       if (timeParts.length > 0) {
-        parts.push(' ' + timeParts.join(':'))
+        // 拼接带单位的时间文本：如 "18时" 或 "18:30分" 或 "18:30:00秒"
+        let timeText = ''
+        for (let i = 0; i < timeParts.length; i++) {
+          if (i === 0) {
+            timeText += ' ' + timeParts[i] + timeLabels[i]
+          } else {
+            timeText += ':' + timeParts[i] + timeLabels[i]
+          }
+        }
+        parts.push(timeText)
       }
       
       this.setData({ displayText: parts.join('') })
@@ -874,8 +884,43 @@ Component({
      * 确认选择
      */
     confirmPicker() {
-      const { fields, selectedYear, selectedMonth, selectedDay, 
-              selectedHour, selectedMinute, selectedSecond } = this.data
+      const { fields, years, months, daysWithWeekday, hours, minutes, seconds, 
+              pickerValue } = this.data
+      
+      // 直接从 picker 当前位置读取各列真实选中值（避免 selected* 缓存不同步）
+      const fieldConfigs = this.getFieldConfigs()
+      let colIdx = 0
+      let selectedYear = this.data.selectedYear
+      let selectedMonth = this.data.selectedMonth
+      let selectedDay = this.data.selectedDay
+      let selectedHour = this.data.selectedHour
+      let selectedMinute = this.data.selectedMinute
+      let selectedSecond = this.data.selectedSecond
+
+      for (const cfg of fieldConfigs) {
+        const idx = pickerValue[colIdx] || 0
+        switch (cfg.key) {
+          case 'year': selectedYear = years[idx]; break
+          case 'month': selectedMonth = months[idx]; break
+          case 'day': {
+            const dayItem = daysWithWeekday[idx]
+            selectedDay = dayItem ? dayItem.day : this.data.selectedDay
+            break
+          }
+          case 'hour': selectedHour = hours[idx]; break
+          case 'minute': selectedMinute = minutes[idx]; break
+          case 'second': selectedSecond = seconds[idx]; break
+        }
+        colIdx++
+      }
+      
+      // 同步回内部状态（供 displayText 使用）
+      const weekday = new Date(selectedYear, selectedMonth - 1, selectedDay).getDay()
+      this.setData({
+        selectedYear, selectedMonth, selectedDay,
+        selectedWeekday: weekday,
+        selectedHour, selectedMinute, selectedSecond
+      })
       
       // 生成日期时间字符串
       let result = ''
@@ -897,7 +942,7 @@ Component({
         year: selectedYear,
         month: selectedMonth,
         day: selectedDay,
-        weekday: this.data.selectedWeekday,
+        weekday: weekday,
         hour: selectedHour,
         minute: selectedMinute,
         second: selectedSecond

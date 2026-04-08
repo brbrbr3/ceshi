@@ -1,1 +1,6 @@
-{"usingComponents": {"datetime-picker": "../../../components/datetime-picker/datetime-picker"}, "navigationBarTitleText": ""}
+{
+  "usingComponents": {
+    "datetime-picker": "../../../components/datetime-picker/datetime-picker"
+  },
+  "navigationBarTitleText": "创建活动"
+}

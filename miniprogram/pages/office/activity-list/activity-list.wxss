@@ -207,6 +207,11 @@
   position: relative;
   z-index: 2;
   background: #FFFFFF;
+  border-bottom: 1rpx solid #CBD5E1;
+}
+
+.last-content{
+  border-bottom: none;
 }
 
 /* 分页状态 */

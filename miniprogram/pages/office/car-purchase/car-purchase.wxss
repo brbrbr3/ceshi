@@ -8,7 +8,7 @@
 /* ========== 头部 - 青蓝色渐变 ========== */
 .cp-header {
   background: linear-gradient(135deg, #0891B2 0%, #0E7490 40%, #06B6D4 85%, #22D3EE 100%);
-  padding: 70rpx 28rpx 44rpx;
+  padding: 40rpx 28rpx 44rpx;
 }
 
 .cp-header-content {
@@ -31,14 +31,14 @@
   margin: 0 28rpx;
   border-bottom: 2rpx solid #E0F2FE;
   position: relative;
-  top: -20rpx;
+  top: 0rpx;
   z-index: 10;
 }
 
 .cp-tab-item {
   flex: 1;
   text-align: center;
-  padding: 24rpx 0;
+  padding: 18rpx 0;
   font-size: 30rpx;
   color: #64748B;
   font-weight: 500;
@@ -65,7 +65,7 @@
 
 /* ========== 内容区 ========== */
 .cp-content {
-  padding: 16rpx 24rpx 120rpx;
+  padding: 18rpx 24rpx 120rpx;
 }
 
 /* ========== 区域标题 + 按钮 ========== */

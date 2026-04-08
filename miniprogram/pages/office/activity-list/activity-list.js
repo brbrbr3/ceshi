@@ -49,18 +49,19 @@ Page({
     const { page, pageSize } = params
 
     return new Promise((resolve, reject) => {
+      // 始终拉全量数据，不依赖后端的 status 字段筛选；由前端按截止日期分 tab
       wx.cloud.callFunction({
         name: 'activityManager',
         data: {
           action: 'list',
-          params: { page, pageSize, status: this.data.filterStatus }
+          params: { page, pageSize }
         }
       }).then(res => {
         const result = res.result
         if (result && result.code === 0) {
-          const data = result.data || {}
+          const resData = result.data || {}
           // 前端过滤：根据当前用户角色隐藏不可见的活动
-          const rawList = data.list || []
+          const rawList = resData.list || []
           const currentUser = app.globalData && app.globalData.userProfile
           const filteredRawList = rawList.filter(item => {
             if (!item.isTargetOnlyVisible) return true
@@ -70,16 +71,28 @@ Page({
             return item.targetRoles.includes(currentUser.role)
           })
 
-          const list = filteredRawList.map(item => ({
-            ...item,
-            timeText: formatTime(item.createdAt)
-          }))
+          const now = Date.now()
+          // 状态完全由截止日期决定
+          const mappedList = filteredRawList.map(item => {
+            const isEnded = !!(item.registrationDeadline && item.registrationDeadline < now)
+            return {
+              ...item,
+              status: isEnded ? 'ended' : item.status,
+              timeText: formatTime(item.createdAt)
+            }
+          })
+
+          // 按 tab 前端筛选（不再依赖后端 status）
+          const { filterStatus } = this.data
+          const list = filterStatus === 'all'
+            ? mappedList
+            : mappedList.filter(item => item.status === filterStatus)
 
           this.setData({
             list: page === 1 ? list : [...this.data.list, ...list]
           })
 
-          resolve({ data: list, hasMore: data.hasMore })
+          resolve({ data: list, hasMore: resData.hasMore })
         } else {
           reject(new Error(result.message || '加载失败'))
         }

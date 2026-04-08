@@ -65,6 +65,11 @@
   color: #7C3AED;
 }
 
+.tag-restricted {
+  background: #FEE2E2;
+  color: #DC2626;
+}
+
 .tag-limit {
   background: #FEF3C7;
   color: #D97706;
@@ -267,6 +272,15 @@
 }
 
 .btn-disabled::after {
+  border: none;
+}
+
+.btn-deadline {
+  background: #FEF2F2;
+  color: #DC2626;
+}
+
+.btn-deadline::after {
   border: none;
 }
 

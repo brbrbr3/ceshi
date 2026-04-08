@@ -592,14 +592,19 @@ Page({
         // 根据当前用户角色过滤不可见活动（只对目标用户展示的活动）
         const filteredList = this._filterActivitiesByPermission(allList)
 
-        const list = filteredList.map(item => ({
-          _id: item._id,
-          title: item.title,
-          creatorName: item.creatorName,
-          timeText: formatTime(item.createdAt),
-          registrationCount: item.registrationCount || 0,
-          status: item.status
-        }))
+        const now = Date.now()
+        const list = filteredList.map(item => {
+          // 状态完全由截止日期决定：过了截止时间就是已结束
+          const isEnded = !!(item.registrationDeadline && item.registrationDeadline < now)
+          return {
+            _id: item._id,
+            title: item.title,
+            creatorName: item.creatorName,
+            timeText: formatTime(item.createdAt),
+            registrationCount: item.registrationCount || 0,
+            status: isEnded ? 'ended' : item.status
+          }
+        })
         this.setData({
           activities: list,
           loadingActivities: false
