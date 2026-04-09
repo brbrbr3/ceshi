@@ -64,6 +64,7 @@
             <text class="cp-app-meta-item" wx:if="{{item.position}}">职别：{{item.position}}</text>
             <text class="cp-app-meta-item" wx:if="{{item.isFirstResident}}">首次常驻</text>
             <text class="cp-app-meta-item" wx:if="{{item.borrowableAmount}}">可借：{{item.borrowableAmount}} USD</text>
+            <text class="cp-app-meta-item" wx:if="{{item.requestedAmount}}">拟借：{{item.requestedAmount}} USD</text>
           </view>
 
           <!-- 卡片信息 -->
@@ -390,6 +391,14 @@
               <text class="cp-input cp-input-disabled" style="color:#0891B2;font-weight:700;">{{purchaseLoanForm.borrowableAmount}}</text>
             </view>
           </view>
+
+          <!-- 拟借金额（美元）— 用户填写 -->
+          <view class="cp-field" wx:if="{{purchaseLoanForm.borrowableAmount > 0}}">
+            <view class="cp-field-label">拟借金额（美元） <text class="cp-required">*</text></view>
+            <view class="cp-input-wrapper">
+              <input class="cp-input" value="{{purchaseLoanForm.requestedAmount}}" placeholder="不超过可借金额" placeholder-class="cp-placeholder" bindinput="handleLoanRequestedAmountInput" type="digit" />
+            </view>
+          </view>
         </view>
       </scroll-view>
 
@@ -517,6 +526,10 @@
             <view class="cp-info-row">
               <text class="cp-info-label">可借金额：</text>
               <text class="cp-info-value cp-value-bold" style="color:#0891B2;">{{detailData.borrowableAmount ? detailData.borrowableAmount + ' 美元' : '-'}}</text>
+            </view>
+            <view class="cp-info-row">
+              <text class="cp-info-label">拟借金额：</text>
+              <text class="cp-info-value cp-value-bold" style="color:#D97706;">{{detailData.requestedAmount ? detailData.requestedAmount + ' 美元' : '-'}}</text>
             </view>
           </view>
         </block>

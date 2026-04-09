@@ -1,5 +1,5 @@
 {
-  "navigationStyle": "custom",
+  "navigationBarTitleText": "学习园地",
   "enablePullDownRefresh": true,
   "onReachBottomDistance": 50,
   "backgroundColor": "#FEE2E2"

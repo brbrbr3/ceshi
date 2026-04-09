@@ -93,7 +93,8 @@ Page({
       priceInUSD: '',
       exchangeRate: '',
       isFirstResident: true,
-      borrowableAmount: 0
+      borrowableAmount: 0,
+      requestedAmount: ''
     },
 
     // 步骤编辑弹层数据
@@ -302,7 +303,8 @@ Page({
           priceInUSD: '',
           exchangeRate: '',
           isFirstResident: true,
-          borrowableAmount: 0
+          borrowableAmount: 0,
+          requestedAmount: ''
         }
       })
     }
@@ -580,6 +582,10 @@ Page({
     this._recalcLoanForm({ ...this.data.purchaseLoanForm, isFirstResident })
   },
 
+  handleLoanRequestedAmountInput(e) {
+    this.setData({ 'purchaseLoanForm.requestedAmount': e.detail.value })
+  },
+
   validatePurchaseLoanForm() {
     const f = this.data.purchaseLoanForm
     if (!f.arrivalDate) { utils.showToast({ title: '请选择赴任日期', icon: 'none' }); return false }
@@ -587,6 +593,8 @@ Page({
     if (!String(f.carModel || '').trim()) { utils.showToast({ title: '请填写拟购车型号', icon: 'none' }); return false }
     if (!Number(f.priceInUSD) || Number(f.priceInUSD) <= 0) { utils.showToast({ title: '请填写拟购车价格', icon: 'none' }); return false }
     if (!Number(f.exchangeRate) || Number(f.exchangeRate) <= 0) { utils.showToast({ title: '请填写美元人民币比价', icon: 'none' }); return false }
+    if (!Number(f.requestedAmount) || Number(f.requestedAmount) <= 0) { utils.showToast({ title: '请填写拟借金额', icon: 'none' }); return false }
+    if (f.borrowableAmount > 0 && Number(f.requestedAmount) > f.borrowableAmount) { utils.showToast({ title: `拟借金额不能超过可借金额(${f.borrowableAmount})`, icon: 'none' }); return false }
     return true
   },
 
@@ -608,7 +616,8 @@ Page({
           carModel: f.carModel,
           priceInUSD: f.priceInUSD,
           exchangeRate: f.exchangeRate,
-          isFirstResident: f.isFirstResident
+          isFirstResident: f.isFirstResident,
+          requestedAmount: f.requestedAmount
         }
       })
 
@@ -1089,7 +1098,7 @@ Page({
     const confirm = await new Promise(resolve => {
       wx.showModal({
         title: '确认删除',
-        content: '删除后不可恢复，确定要删除该购车流程吗？',
+        content: '删除后不可恢复，确定要删除该条购车记录吗？',
         confirmText: '删除',
         confirmColor: '#DC2626',
         success(res) {

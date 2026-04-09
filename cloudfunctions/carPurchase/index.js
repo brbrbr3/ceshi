@@ -245,7 +245,7 @@ async function pushNotification(targetOpenids, title, content, extra) {
 // ========== Action 实现 ==========
 
 /**
- * 创建购车申请记录
+ * 创建购车流程记录
  */
 async function createRecord(openid, event) {
   const { carModel } = event
@@ -280,7 +280,7 @@ async function createRecord(openid, event) {
   return success({
     recordId: res._id,
     carModel: recordData.carModel
-  }, '购车申请已创建')
+  }, '购车流程已创建')
 }
 
 /**
@@ -327,6 +327,7 @@ async function getMyList(openid, event) {
       isApplyLoan: item.isApplyLoan,
       isFirstResident: item.isFirstResident,
       borrowableAmount: item.borrowableAmount,
+      requestedAmount: item.requestedAmount,
       createdAt: item.createdAt,
       updatedAt: item.updatedAt
     }
@@ -382,6 +383,7 @@ async function getAllList(openid, event) {
       isApplyLoan: item.isApplyLoan,
       isFirstResident: item.isFirstResident,
       borrowableAmount: item.borrowableAmount,
+      requestedAmount: item.requestedAmount,
       createdAt: item.createdAt,
       updatedAt: item.updatedAt
     }
@@ -1025,7 +1027,8 @@ async function createPurchaseLoan(openid, event) {
     carModel,
     priceInUSD,
     exchangeRate,
-    isFirstResident
+    isFirstResident,
+    requestedAmount
   } = event
 
   // 验证必填字段
@@ -1034,6 +1037,7 @@ async function createPurchaseLoan(openid, event) {
   if (!String(carModel || '').trim()) return fail('请填写拟购车型号', 400)
   if (!Number(priceInUSD) || Number(priceInUSD) <= 0) return fail('请填写拟购车价格（美元）', 400)
   if (!Number(exchangeRate) || Number(exchangeRate) <= 0) return fail('请填写当月美元人民币比价', 400)
+  if (!Number(requestedAmount) || Number(requestedAmount) <= 0) return fail('请填写拟借金额', 400)
 
   const userInfo = await getUserInfo(openid)
   if (!userInfo) return fail('未找到用户信息，请联系管理员', 403)
@@ -1063,6 +1067,12 @@ async function createPurchaseLoan(openid, event) {
   // 保留两位小数
   _borrowableAmount = Math.round(_borrowableAmount * 100) / 100
 
+  // 校验拟借金额不超过可借金额
+  const _requestedAmount = Number(requestedAmount)
+  if (_requestedAmount > _borrowableAmount) {
+    return fail(`拟借金额(${_requestedAmount})不能超过可借金额(${_borrowableAmount})`, 400)
+  }
+
   const now = Date.now()
 
   const recordData = {
@@ -1082,6 +1092,7 @@ async function createPurchaseLoan(openid, event) {
     exchangeRate: _exchangeRate,
     isFirstResident: _isFirstResident,
     borrowableAmount: _borrowableAmount,
+    requestedAmount: _requestedAmount,
     // 审批状态
     status: 'pending_approval',
     // 时间戳
@@ -1113,7 +1124,8 @@ async function createPurchaseLoan(openid, event) {
           priceInUSD: _priceInUSD,
           exchangeRate: _exchangeRate,
           isFirstResident: _isFirstResident,
-          borrowableAmount: _borrowableAmount
+          borrowableAmount: _borrowableAmount,
+          requestedAmount: _requestedAmount
         }
       }
     })

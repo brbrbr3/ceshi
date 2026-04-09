@@ -214,7 +214,7 @@ const EXAMPLE_TEMPLATES = [
     steps: [
       {
         stepNo: 1,
-        stepName: '同部门负责人审批',
+        stepName: '部门负责人审批',
         stepType: 'serial',
         approverType: 'dept_head',
         approverConfig: {},
@@ -227,7 +227,7 @@ const EXAMPLE_TEMPLATES = [
       },
       {
         stepNo: 2,
-        stepName: '办公室部门负责人审批',
+        stepName: '办公室审批',
         stepType: 'serial',
         approverType: 'role',
         approverConfig: {
@@ -346,7 +346,8 @@ const EXAMPLE_TEMPLATES = [
         { field: 'priceInUSD', label: '拟购车价格（美元）' },
         { field: 'exchangeRate', label: '当月美元人民币比价' },
         { field: 'isFirstResident', label: '是否车改后首次常驻', type: 'boolean' },
-        { field: 'borrowableAmount', label: '可借金额（美元）' }
+        { field: 'borrowableAmount', label: '可借金额（美元）' },
+        { field: 'requestedAmount', label: '拟借金额（美元）' }
       ]
     },
     defaultTimeout: 72,

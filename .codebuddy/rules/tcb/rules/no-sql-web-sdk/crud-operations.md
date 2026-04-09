@@ -168,6 +168,32 @@ await db.collection('todos')
     });
 ```
 
+### Nested Field Updates (Important)
+
+When updating nested object fields, you **must use dot notation** if you want to preserve sibling fields.
+
+**WRONG: This replaces the entire object and deletes sibling fields:**
+```javascript
+// DANGER: If 'user' had an 'email' field, it is now deleted!
+await db.collection('profiles')
+    .doc('profile-123')
+    .update({
+        user: {
+            name: 'New Name'  // Replaces the ENTIRE 'user' object
+        }
+    });
+```
+
+**CORRECT: This only updates the specific nested field:**
+```javascript
+// SAFE: Only updates 'name', preserves 'email' and other fields in 'user'
+await db.collection('profiles')
+    .doc('profile-123')
+    .update({
+        'user.name': 'New Name'  // Use dot notation for nested fields
+    });
+```
+
 ### Update with Operators
 
 Use update operators for complex updates:
@@ -524,7 +550,7 @@ await db.runTransaction(async transaction => {
 6. **Soft deletes**: Consider soft delete for important data
 7. **Index fields**: Index frequently queried/updated fields
 8. **Limit updates**: Only update changed fields
-9. **Configure security rules**: Use `writeSecurityRule` MCP tool to set database permissions before operations. See `./security-rules.md` for details. **Note:** Security rule changes take effect after a few minutes due to caching.
+9. **Configure security rules**: Use `managePermissions(action="updateResourcePermission")` to set database permissions before operations. See `./security-rules.md` for details. **Note:** Security rule changes take effect after a few minutes due to caching.
 10. **Log operations**: Track important data changes
 
 ## Important: `_openid` Field Management
@@ -555,4 +581,3 @@ await db.collection('todos').add({
 ```
 
 **Note:** The `_openid` field is used internally by CloudBase for user identification and permission control. It is automatically populated from the authenticated user's session and cannot be manually overridden.
-
