@@ -815,7 +815,40 @@ async function updateStepRemark(openid, event) {
 }
 
 /**
- * 删除购车记录（仅申请人或办公室人员可操作），同时清理云存储中的所有附件
+ * 中止购车记录（仅申请人可操作）
+ */
+async function terminateRecord(openid, event) {
+  const { recordId } = event
+
+  if (!recordId) {
+    return fail('缺少记录ID', 400)
+  }
+
+  // 获取记录
+  const res = await recordsCollection.doc(recordId).get()
+  const record = res.data
+  if (!record) {
+    return fail('记录不存在', 404)
+  }
+
+  // 权限检查：仅申请人可中止
+  const userInfo = await getUserInfo(openid)
+  if (record.applicantOpenid !== openid) {
+    return fail('仅申请人可中止', 403)
+  }
+
+  // 修改数据库记录状态为terminated
+  await recordsCollection.doc(recordId).update({
+    data: {
+      status: 'terminated'
+    }
+  })
+
+  return success({}, '记录已中止')
+}
+
+/**
+ * 删除购车记录（仅申请人可操作），同时清理云存储中的所有附件
  */
 async function deleteRecord(openid, event) {
   const { recordId } = event
@@ -831,10 +864,10 @@ async function deleteRecord(openid, event) {
     return fail('记录不存在', 404)
   }
 
-  // 权限检查：仅申请人或办公室人员可删除
+  // 权限检查：仅申请人可删除
   const userInfo = await getUserInfo(openid)
-  if (record.applicantOpenid !== openid && (!userInfo || userInfo.department !== '办公室')) {
-    return fail('仅申请人或办公室人员可删除', 403)
+  if (record.applicantOpenid !== openid) {
+    return fail('仅申请人可删除', 403)
   }
 
   // 收集所有云存储文件ID
@@ -861,26 +894,6 @@ async function deleteRecord(openid, event) {
       } catch (delErr) {
         console.error(`删除云存储文件失败(批次${Math.floor(i / batchSize) + 1}):`, delErr.message || delErr)
       }
-    }
-  }
-
-  // 如果记录关联了工单，先中止该工单
-  if (record.orderId) {
-    try {
-      const terminateRes = await cloud.callFunction({
-        name: 'workflowEngine',
-        data: {
-          action: 'terminateOrder',
-          orderId: record.orderId,
-          reason: `购车申请（${record.brand || ''}）已被删除，关联工单自动中止`
-        }
-      })
-      if (terminateRes.result && terminateRes.result.code !== 0) {
-        console.warn('联动中止工单失败:', terminateRes.result.message)
-      }
-    } catch (terminateErr) {
-      console.error('联动中止工单异常:', terminateErr.message || terminateErr)
-      // 中止失败不阻止主流程继续删除
     }
   }
 
@@ -1194,6 +1207,8 @@ exports.main = async (event, context) => {
         return await updateStepRemark(openid, event)
       case 'deleteRecord':
         return await deleteRecord(openid, event)
+      case 'terminateRecord':
+        return await terminateRecord(openid, event)
       default:
         return fail(`未知操作: ${action}`, 400)
     }

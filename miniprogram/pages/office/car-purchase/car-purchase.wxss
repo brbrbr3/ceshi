@@ -1,14 +1,16 @@
 /* ========== 购车管理页面样式 - 青蓝色主题 ========== */
+.page{
+}
 
 .cp-page {
   min-height: 100vh;
-  background: #F0F9FF;
+  background: #FFFFFF;
 }
 
 /* ========== 头部 - 青蓝色渐变 ========== */
 .cp-header {
   background: linear-gradient(135deg, #0891B2 0%, #0E7490 40%, #06B6D4 85%, #22D3EE 100%);
-  padding: 40rpx 28rpx 44rpx;
+  padding: 60rpx 28rpx 26rpx;
 }
 
 .cp-header-content {
@@ -65,7 +67,7 @@
 
 /* ========== 内容区 ========== */
 .cp-content {
-  padding: 18rpx 24rpx 120rpx;
+  padding: 18rpx 24rpx 80rpx;
 }
 
 /* ========== 区域标题 + 按钮 ========== */
@@ -98,7 +100,7 @@
 
 /* ========== 列表滚动区 ========== */
 .cp-list-scroll {
-  max-height: calc(100vh - 420rpx);
+  max-height: calc(100vh - 480rpx);
   min-height: 400rpx;
 }
 
@@ -113,7 +115,8 @@
 /* ========== 记录卡片 ========== */
 .cp-card{
   border-radius: 20rpx;
-  background-color: #FFFFFF;
+  background: #FFFFFF;
+  border: 1rpx solid #0e749091;
   padding: 24rpx;
   box-shadow: 4rpx 4rpx 6rpx rgba(168, 168, 168, 0.3);
   transition: all 0.2s ease;
@@ -757,7 +760,7 @@
 .cp-info-label {
   font-size: 27rpx;
   color: #64748B;
-  width: 170rpx;
+  width: 220rpx;
   flex-shrink: 0;
 }
 
@@ -1193,4 +1196,51 @@
 .cp-upload-tip {
   font-size: 26rpx;
   color: #94A3B8;
+}
+
+/* ========== 审批流程说明 ========== */
+.car-purchase-note {
+  background: #EFF6FF;
+  border: 1rpx solid #BFDBFE;
+  border-radius: 16rpx;
+  padding: 24rpx;
+  margin-top: 8rpx;
+}
+
+.car-purchase-note-title {
+  font-size: 26rpx;
+  font-weight: 500;
+  color: #1E40AF;
+  margin-bottom: 16rpx;
+}
+
+.car-purchase-note-steps {
+  display: flex;
+  align-items: center;
+  gap: 16rpx;
+  flex-wrap: wrap;
+}
+
+.car-purchase-note-step {
+  display: flex;
+  align-items: center;
+  gap: 8rpx;
+}
+
+.car-purchase-step-dot {
+  width: 12rpx;
+  height: 12rpx;
+  border-radius: 50%;
+  background: #3B82F6;
+  flex-shrink: 0;
+}
+
+.car-purchase-step-text {
+  font-size: 24rpx;
+  color: #1E40AF;
+}
+
+.car-purchase-note-arrow {
+  color: #3B82F6;
+  font-size: 24rpx;
 }

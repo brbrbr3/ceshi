@@ -647,22 +647,18 @@ Component({
       }
       
       const timeParts = []
-      const timeLabels = []
-      if (fields.includes('hour')) { timeParts.push(String(selectedHour).padStart(2, '0')); timeLabels.push('时') }
-      if (fields.includes('minute')) { timeParts.push(String(selectedMinute).padStart(2, '0')); }
-      if (fields.includes('second')) { timeParts.push(String(selectedSecond).padStart(2, '0')); }
+      if (fields.includes('hour')) { timeParts.push(String(selectedHour).padStart(2, '0')) }
+      if (fields.includes('minute')) { timeParts.push(String(selectedMinute).padStart(2, '0')) }
+      if (fields.includes('second')) { timeParts.push(String(selectedSecond).padStart(2, '0')) }
       
       if (timeParts.length > 0) {
-        // 拼接带单位的时间文本：如 "18时" 或 "18:30分" 或 "18:30:00秒"
-        let timeText = ''
-        for (let i = 0; i < timeParts.length; i++) {
-          if (i === 0) {
-            timeText += ' ' + timeParts[i] + timeLabels[i]
-          } else {
-            timeText += ':' + timeParts[i] + timeLabels[i]
-          }
+        if (!fields.includes('minute')) {
+          // 仅有小时：显示 "16时"
+          parts.push(' ' + timeParts[0] + '时')
+        } else {
+          // 有分钟：显示 "16:21" 或 "16:21:35"
+          parts.push(' ' + timeParts.join(':'))
         }
-        parts.push(timeText)
       }
       
       this.setData({ displayText: parts.join('') })

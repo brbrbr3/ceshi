@@ -872,7 +872,7 @@ Page({
         if (tf.tempFilePath) {
           try {
             const ext = tf.tempFilePath.includes('.pdf') ? 'pdf' :
-                        tf.tempFilePath.includes('.png') ? 'png' : 'jpg'
+              tf.tempFilePath.includes('.png') ? 'png' : 'jpg'
             const cloudPath = `car-purchase/${recordId}/${stepKey}/${Date.now()}_${Math.random().toString(36).substr(2, 4)}.${ext}`
             const uploadRes = await wx.cloud.uploadFile({
               cloudPath,
@@ -1029,7 +1029,7 @@ Page({
     }
   },
 
-  stopPropagation() {},
+  stopPropagation() { },
 
   // ========== 导出PDF ==========
 
@@ -1089,6 +1089,55 @@ Page({
     }
   },
 
+  // ========== 中止购车记录 ==========
+  async terminateRecord(e) {
+
+    const recordId = e.currentTarget.dataset.recordId
+    if (!recordId) return
+
+    const confirm = await new Promise(resolve => {
+      wx.showModal({
+        title: '确认中止',
+        content: '中止后将停止审批流程，不可恢复，确定？',
+        confirmText: '中止',
+        confirmColor: '#DC2626',
+        success(res) {
+          resolve(res.confirm)
+        }
+      })
+    })
+
+    if (!confirm) return
+
+    this.hideDetailPopup()
+    wx.showLoading({ title: '中止中...' })
+    try {
+      // 优先中止工作流工单（workflowEngine 会自动更新 car_purchase_records 状态）
+      if (this.data.detailData && this.data.detailData.orderId) {
+        await wx.cloud.callFunction({
+          name: 'workflowEngine',
+          data: {
+            action: 'terminateOrder',
+            orderId: this.data.detailData.orderId,
+            reason: '申请人主动中止'
+          }
+        })
+      } else {
+        // 无关联工单时，仅更新记录状态
+        await wx.cloud.callFunction({
+          name: 'carPurchase',
+          data: { action: 'terminateRecord', recordId }
+        })
+      }
+      utils.showToast({ title: '已中止', icon: 'success' })
+      await this.refreshList()
+    } catch (error) {
+      console.error('中止失败:', error)
+      utils.showToast({ title: '中止失败', icon: 'none' })
+    } finally {
+      wx.hideLoading()
+    }
+  },
   // ========== 删除购车记录 ==========
 
   async deleteRecord(e) {
@@ -1112,10 +1161,22 @@ Page({
     this.hideDetailPopup()
     wx.showLoading({ title: '删除中...' })
     try {
-      await wx.cloud.callFunction({
-        name: 'carPurchase',
-        data: { action: 'deleteRecord', recordId }
-      })
+      // 优先中止工作流工单（workflowEngine 会自动更新 car_purchase_records 状态）
+      if (this.data.detailData && this.data.detailData.orderId) {
+        await wx.cloud.callFunction({
+          name: 'workflowEngine',
+          data: {
+            action: 'terminateOrder',
+            orderId: this.data.detailData.orderId,
+            reason: '申请人主动中止'
+          }
+        })
+      } else {
+        await wx.cloud.callFunction({
+          name: 'carPurchase',
+          data: { action: 'deleteRecord', recordId }
+        })
+      }
       utils.showToast({ title: '已删除', icon: 'success' })
       await this.refreshList()
     } catch (error) {

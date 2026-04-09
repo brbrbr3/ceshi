@@ -40,7 +40,7 @@
             <view class="cp-type-tag" wx:if="{{item.type === 'purchase_loan'}}" style="background:#ECFEFF; color:#0891B2;">购车借款申请</view>
             <view class="cp-type-tag" wx:elif="{{item.type === 'purchase_application'}}" style="background:#ECFEFF; color:#0891B2;">购车申请</view>
             <view class="cp-type-tag" wx:elif="{{item.type === 'purchase_process'}}" style="background:#ECFEFF; color:#0891B2;">购车流程</view>
-            <view class="cp-status-tag" style="background:{{item.status === 'completed' || item.status === 'approved' ? '#D1FAE5' : (item.status === 'rejected' ? '#FEE2E2' : (item.status === 'pending_approval' ? '#FEF3C7' : '#CFFAFE'))}}; color:{{item.statusColor}};">
+            <view class="cp-status-tag" style="background:{{item.status === 'completed' || item.status === 'approved' ? '#D1FAE5' : (item.status === 'rejected' || item.status === 'terminated' ? '#FEE2E2' : (item.status === 'pending_approval' ? '#FEF3C7' : '#CFFAFE'))}}; color:{{item.statusColor}};">
               {{item.statusText}}
             </view>
           </view>
@@ -281,6 +281,27 @@
               <text class="cp-switch-label">{{purchaseAppForm.isApplyLoan ? '是' : '否'}}</text>
             </view>
           </view>
+
+            <!-- 审批流程说明 -->
+        <view class="car-purchase-note">
+          <view class="car-purchase-note-title">📋 审批流程</view>
+          <view class="car-purchase-note-steps">
+          <view class="car-purchase-note-step">
+              <view class="car-purchase-step-dot"></view>
+              <view class="car-purchase-step-text">部门负责人审批</view>
+            </view>
+            <view class="car-purchase-note-arrow">→</view>
+            <view class="car-purchase-note-step">
+              <view class="car-purchase-step-dot"></view>
+              <view class="car-purchase-step-text">办公室审批</view>
+            </view>
+            <view class="car-purchase-note-arrow">→</view>
+            <view class="car-purchase-note-step">
+              <view class="car-purchase-step-dot"></view>
+              <view class="car-purchase-step-text">馆领导审批</view>
+            </view>
+          </view>
+        </view>
         </view>
       </scroll-view>
 
@@ -399,6 +420,22 @@
               <input class="cp-input" value="{{purchaseLoanForm.requestedAmount}}" placeholder="不超过可借金额" placeholder-class="cp-placeholder" bindinput="handleLoanRequestedAmountInput" type="digit" />
             </view>
           </view>
+
+          <!-- 审批流程说明 -->
+        <view class="car-purchase-note">
+          <view class="car-purchase-note-title">📋 审批流程</view>
+          <view class="car-purchase-note-steps">
+            <view class="car-purchase-note-step">
+              <view class="car-purchase-step-dot"></view>
+              <view class="car-purchase-step-text">财务主管审批</view>
+            </view>
+            <view class="car-purchase-note-arrow">→</view>
+            <view class="car-purchase-note-step">
+              <view class="car-purchase-step-dot"></view>
+              <view class="car-purchase-step-text">馆领导审批</view>
+            </view>
+          </view>
+        </view>
         </view>
       </scroll-view>
 
@@ -468,6 +505,7 @@
           <view class="cp-detail-badge cp-badge-active" wx:elif="{{detailData && detailData.type === 'purchase_process'}}">G{{detailData.currentGroup}}进行中</view>
           <view class="cp-detail-badge" wx:elif="{{detailData && detailData.status === 'pending_approval'}}" style="background:#FEF3C7;color:#92400E;">待审批</view>
           <view class="cp-detail-badge" wx:elif="{{detailData && detailData.status === 'rejected'}}" style="background:#FEE2E2;color:#991B1B;">已驳回</view>
+          <view class="cp-detail-badge" wx:elif="{{detailData && detailData.status === 'terminated'}}" style="background:#FEE2E2;color:#991B1B;">已中止</view>
         </view>
         <view class="cp-popup-close" bindtap="hideDetailPopup">×</view>
       </view>
@@ -728,7 +766,8 @@
       <view class="cp-popup-actions">
         <view class="cp-detail-btn-row">
           <!--已完成的申请或已审批通过的不再显示删除按钮-->
-          <button wx:if="{{!(detailData.status === 'completed' || detailData.status === 'approved')}}" class="cp-delete-btn" catchtap="deleteRecord" data-record-id="{{selectedRecord._id}}">删除</button>
+          <button wx:if="{{(detailData.status === 'rejected' || detailData.status === 'terminated') && currentTab === 'mine'}}" class="cp-delete-btn" catchtap="deleteRecord" data-record-id="{{selectedRecord._id}}">删除</button>
+          <button wx:if="{{detailData.status === 'pending_approval' && currentTab === 'mine'}}" class="cp-delete-btn" catchtap="terminateRecord" data-record-id="{{selectedRecord._id}}">中止</button>
           <button wx:if="{{detailData.status === 'approved' && (detailData.type === 'purchase_application' || detailData.type === 'purchase_loan')}}" class="cp-export-btn" loading="{{exporting}}" disabled="{{exporting}}" bindtap="handleExportPdf">{{exporting ? '导出中...' : '导出PDF'}}</button>
           <button class="cp-close-btn" bindtap="hideDetailPopup">关闭</button>
         </view>
