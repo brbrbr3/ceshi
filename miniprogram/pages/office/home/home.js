@@ -36,7 +36,7 @@ Page({
     loadingArticles: false,
     todaySchedules: [],
     loadingSchedules: false,
-    // 活动专区
+    // 群团活动
     activities: [],
     loadingActivities: false,
     // 日程详情弹窗
@@ -52,7 +52,7 @@ Page({
     this.syncNotifications()    //同步消息推送
     this.loadAnnouncements()    //加载通知公告
     this.loadArticles()         //加载学习园地
-    this.loadActivities()       //加载活动专区
+    this.loadActivities()       //加载群团活动
     this.loadPermissionCache()  //加载权限缓存
     this.loadHolidayConfig()    //加载节假日配置
     this.loadTodaySchedules()   // 加载今日日程
@@ -621,7 +621,7 @@ Page({
     })
   },
 
-  // ========== 活动专区 ==========
+  // ========== 群团活动 ==========
 
   /**
    * 加载首页活动列表（最多3条）

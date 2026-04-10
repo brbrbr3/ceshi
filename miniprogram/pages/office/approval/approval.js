@@ -260,6 +260,8 @@ Page({
       approvedCount: 0,
       rejectedCount: 0
     },
+    tabCounts: { mine: 0, pending: 0, done: 0 },
+    _countsLoaded: false, // 是否已加载过总数（用于控制tab badge只在首次进入时更新）
     pendingList: [],
     mineList: [],
     doneList: [],
@@ -389,10 +391,11 @@ Page({
       mask: true
     })
 
-    // 重置所有 tab 的分页状态
+    // 重置所有 tab 的分页状态和计数标志
     this.setData({
       currentList: [],
       loading: true,
+      _countsLoaded: false,
       'pagination.pending.page': 1,
       'pagination.pending.hasMore': true,
       'pagination.mine.page': 1,
@@ -426,8 +429,9 @@ Page({
     return '暂无待审批申请'
   },
 
-  loadApprovalData(loadMore = false) {
-    const activeTab = this.data.activeTab || 'mine'
+  loadApprovalData(loadMore = false, forceTab = null) {
+    // 优先使用传入的 forceTab（避免 setData 异步导致读到旧值）
+    const activeTab = forceTab || this.data.activeTab || 'mine'
     const { page, loading } = this.data.pagination[activeTab] || { page: 1, loading: false }
 
     if (loading && loadMore) {
@@ -444,8 +448,8 @@ Page({
       [`pagination.${activeTab}.loading`]: true
     })
 
-    const currentPage = loadMore ? page : 1
-    const pageSize = loadMore ? 10 : 20
+    const currentPage = loadMore ? (page || 1) : 1
+    const pageSize = 10
 
     return app.callOfficeAuth('getApprovalData', {
       page: currentPage,
@@ -456,51 +460,61 @@ Page({
         const mineList = (data.mineList || []).map(r => mapRequestItem(r))
         const doneList = (data.doneList || []).map(r => mapRequestItem(r))
         const canReview = !!data.canReview
-        
-        // 动态生成tabs
-        const tabs = this.generateTabs(canReview).map(tab => ({
-          ...tab,
-          count: tab.key === 'pending' ? pendingList.length : (tab.key === 'mine' ? mineList.length : doneList.length)
-        }))
-        
-        // 确定当前激活的tab
-        let finalActiveTab = this.data.activeTab
+
+        // 确定当前激活的tab（只在非 loadMore 时允许调整）
+        let targetTab = activeTab
+        let newCounts = this.data.tabCounts
+        // 只在页面首次进入（_countsLoaded=false）时从后端获取并缓存总数
+        if (!this.data._countsLoaded && data.counts) {
+          newCounts = data.counts
+        }
         if (!loadMore) {
-          // 无权限用户或当前tab不在允许列表中时，默认显示第一个允许的tab
-          const allowedTabs = tabs.map(t => t.key)
-          if (!finalActiveTab || !allowedTabs.includes(finalActiveTab)) {
-            finalActiveTab = allowedTabs[0] || 'mine'
+          // 验证当前tab是否合法
+          const tabs = this.generateTabs(canReview)
+          const allowedKeys = tabs.map(t => t.key)
+          if (!targetTab || !allowedKeys.includes(targetTab)) {
+            targetTab = allowedKeys[0] || 'mine'
           }
         }
 
+        // 动态生成tabs（count 始终用缓存值）
+        const tabs = this.generateTabs(canReview).map(tab => ({
+          ...tab,
+          count: newCounts && newCounts[tab.key] !== undefined
+            ? newCounts[tab.key]
+            : 0
+        }))
+
         const paginationInfo = data.pagination || {}
-        const hasMoreInfo = paginationInfo.hasMore || {
-          mineList: mineList.length >= pageSize,
-          pendingList: canReview ? (pendingList.length >= pageSize) : false,
-          doneList: canReview ? (doneList.length >= pageSize) : false
-        }
+        const hasMoreInfo = paginationInfo.hasMore || {}
 
         let newLists = { pendingList: this.data.pendingList, mineList: this.data.mineList, doneList: this.data.doneList }
-        
+
         if (!loadMore) {
+          // 首次加载/切换tab：替换整个列表
           newLists = { pendingList, mineList, doneList }
         } else {
+          // 触底加载：只追加当前tab的列表
           newLists[activeTab + 'List'] = [...this.data[activeTab + 'List'], ...(activeTab === 'pending' ? pendingList : (activeTab === 'mine' ? mineList : doneList))]
         }
 
+        // 更新数据——始终用 activeTab（调用方的tab），不用 finalActiveTab
         this.setData({
           canReview,
           currentUser: data.currentUser,
-          summary: data.summary || this.data.summary,
+          ...(!loadMore ? { summary: data.summary || this.data.summary, tabCounts: newCounts, activeTab: targetTab, _countsLoaded: true } : {}),
           ...newLists,
-          activeTab: finalActiveTab,
           tabs,
-          currentList: this.getListByTab(finalActiveTab, newLists),
-          emptyText: this.getEmptyText(finalActiveTab, canReview),
+          currentList: this.getListByTab(activeTab, newLists),
+          emptyText: this.getEmptyText(activeTab, canReview),
           loading: false,
-          [`pagination.${finalActiveTab}.page`]: currentPage,
-          [`pagination.${finalActiveTab}.hasMore`]: hasMoreInfo[finalActiveTab + 'List'] || (finalActiveTab === 'pending' ? pendingList.length >= pageSize : (finalActiveTab === 'mine' ? mineList.length >= pageSize : doneList.length >= pageSize)),
-          [`pagination.${finalActiveTab}.loading`]: false
+          // 分页状态写入正确的tab
+          // 非loadMore时，已加载完第1页，下次loadMore应请求第2页，所以存为2
+          [`pagination.${activeTab}.page`]: loadMore ? (currentPage + 1) : 2,
+          [`pagination.${activeTab}.hasMore`]: hasMoreInfo[activeTab + 'List'] !== undefined
+            ? hasMoreInfo[activeTab + 'List']
+            : (activeTab === 'pending' ? pendingList.length >= pageSize : (activeTab === 'mine' ? mineList.length >= pageSize : doneList.length >= pageSize)),
+          [`pagination.${activeTab}.loading`]: false
         })
       })
       .catch((error) => {
@@ -534,7 +548,8 @@ Page({
       [`pagination.${tab}.hasMore`]: true
     })
 
-    this.loadApprovalData(false).finally(() => {
+    // 直接传入 tab，避免 setData 异步导致 activeTab 未更新
+    this.loadApprovalData(false, tab).finally(() => {
       wx.hideLoading()
     })
   },

@@ -3,7 +3,7 @@
   <view class="office-gradient-header activities-header">
     <view class="office-header-top">
       <view>
-        <view class="activities-title">活动专区</view>
+        <view class="activities-title">群团活动</view>
         <view class="activities-subtitle">发现精彩活动，立即报名参与</view>
       </view>
       <view wx:if="{{showCreateButton}}" class="activities-add-btn" bindtap="handleCreate">

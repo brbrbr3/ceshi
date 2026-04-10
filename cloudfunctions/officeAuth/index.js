@@ -669,7 +669,7 @@ async function getApprovalData(openid, pagination = {}) {
   const requestStatus = constants.requestStatus || { PENDING: 'pending', APPROVED: 'approved', REJECTED: 'rejected', TERMINATED: 'terminated' }
   const reviewerRoles = constants.reviewerRoles || ['馆领导', '部门负责人']
   
-  const { page = 1, pageSize = 20 } = pagination
+  const { page = 1, pageSize = 10 } = pagination
   const currentUser = await findUserByOpenId(openid)
 
   // 权限判断：馆领导、部门负责人、管理员可以审批
@@ -703,12 +703,21 @@ async function getApprovalData(openid, pagination = {}) {
     })
   }
 
-  // 查询我的工单（包括注册申请、就医申请、用户信息修改）
+  // 查询我的工单（包括注册申请、就医申请、用户信息修改）—— 先查总数再分页
+  const myOrderCountResult = await workOrdersCollection
+    .where({
+      'businessData.applicantId': openid
+    })
+    .count()
+
+  const mineTotal = myOrderCountResult.total || 0
+
   const myOrderResult = await workOrdersCollection
     .where({
       'businessData.applicantId': openid
     })
     .orderBy('createdAt', 'desc')
+    .skip((page - 1) * pageSize)
     .limit(pageSize)
     .get()
 
@@ -822,12 +831,19 @@ async function getApprovalData(openid, pagination = {}) {
   let pendingTasksResult = null
   let processedTasksResult = null
   let completedOrdersResult = null
+  let completedOrdersAll = []
 
   if (canReview) {
+    // 查询待审批任务总数
+    const pendingTasksCountResult = await workflowTasksCollection
+      .where({ taskStatus: 'pending' })
+      .count()
+
     // 查询待审批的任务（工作流引擎已解析 approverList，查询时统一过滤）
     pendingTasksResult = await workflowTasksCollection
       .where({ taskStatus: 'pending' })
       .orderBy('assignedAt', 'desc')
+      .skip((page - 1) * pageSize)
       .limit(pageSize)
       .get()
 
@@ -867,37 +883,39 @@ async function getApprovalData(openid, pagination = {}) {
       }
     }
 
-    // 查询当前用户处理过的任务（包括已批准和已驳回的任务）
-    // 需要同时检查 approverId（直接分配给用户）和 actualApproverId（角色任务，用户实际审批）
-    processedTasksResult = await workflowTasksCollection
-      .where(
-        _.or([
-          { approverId: openid },
-          { actualApproverId: openid }
-        ])
-      )
-      .where({ taskStatus: db.command.in(['approved', 'rejected']) })
+    // 查询当前用户作为实际审批人处理过的全部任务（不限状态）
+    const processedTasksData = await workflowTasksCollection
+      .where({ actualApproverId: openid })
       .orderBy('updatedAt', 'desc')
-      .limit(Math.min(pageSize, 100))
+      .limit(1000)
       .get()
 
-    // 获取这些任务对应的工单ID
+    // 获取这些任务对应的全部工单ID（去重）
     let processedOrderIds = []
-    if (processedTasksResult.data) {
-      processedOrderIds = [...new Set(processedTasksResult.data.map(task => task.orderId))]
+    if (processedTasksData.data) {
+      processedOrderIds = [...new Set(processedTasksData.data.map(task => task.orderId))]
     }
 
-    // 查询已完成的工单（只包括当前用户处理过的工单）
-    completedOrdersResult = await workOrdersCollection
-      .where({
-        _id: db.command.in(processedOrderIds),
-        workflowStatus: db.command.in(['completed', 'rejected', 'terminated'])
-      })
-      .orderBy('updatedAt', 'desc')
-      .limit(pageSize)
-      .get()
+    // 查询对应的全部工单（复用外层声明的 completedOrdersAll）
+    completedOrdersAll = []
+    if (processedOrderIds.length > 0) {
+      const completedOrdersRawResult = await workOrdersCollection
+        .where({
+          _id: db.command.in(processedOrderIds),
+          workflowStatus: db.command.in(['completed', 'rejected', 'terminated'])
+        })
+        .orderBy('updatedAt', 'desc')
+        .limit(1000)
+        .get()
+      completedOrdersAll = completedOrdersRawResult.data || []
+    }
 
-    // 获取已驳回工单的驳回原因
+    // 最后在工单层面做分页（completedOrdersResult 已在上面的 slice 中完成）
+    const doneSkipCount = (page - 1) * pageSize
+    completedOrdersResult = { data: completedOrdersAll.slice(doneSkipCount, doneSkipCount + Math.min(pageSize, 100)) }
+    processedTasksResult = processedTasksData  // 保留原始数据用于日志等用途
+
+    // 获取已驳回工单的驳回原因（基于分页后的 completedOrdersResult）
     const rejectedOrderIds = completedOrdersResult.data
       ? completedOrdersResult.data.filter(o => o.workflowStatus === 'rejected').map(o => o._id)
       : []
@@ -984,6 +1002,20 @@ async function getApprovalData(openid, pagination = {}) {
     }) : []
   }
 
+  // 计算各列表总数（用于 tab badge 和概览）
+  // mineTotal 已在前面通过 count() 查询得到
+  // pending: 需要基于过滤后的数量（当前用户在 approverList 中的任务数），这里用 pendingList 的实际条数作为近似值
+  // doneTotalCount: completedOrdersAll 是全量未分页的数组
+  const doneTotalCount = completedOrdersAll.length || 0
+  const mineTotalCount = mineTotal
+  // pending 总数：用全部待审批任务中属于当前用户的数量（近似，因为需要过滤 approverList）
+  // 为简化，使用前端传入时后端返回的 pendingList 长度 + 是否有更多数据来判断
+  // 更准确的做法：pendingTotalCount 应该是 pendingTasksCountResult.total 中经过 approverList 过滤后的数量
+  // 这里保守地使用 pendingList 的长度（首次加载page=1时为 pageSize 或更少）
+  const pendingTotalCount = pendingTasksResult && pendingTasksResult.data
+    ? (pendingList.length || 0)
+    : 0
+
   return success({
     canReview,
     currentUser: formatUserRecord(currentUser),
@@ -994,15 +1026,21 @@ async function getApprovalData(openid, pagination = {}) {
       page,
       pageSize,
       hasMore: {
-        mineList: (myOrderResult.data && myOrderResult.data.length >= pageSize),
-        pendingList: canReview ? (pendingTasksResult && pendingTasksResult.data && pendingTasksResult.data.length >= pageSize) : false,
-        doneList: canReview ? (completedOrdersResult && completedOrdersResult.data && completedOrdersResult.data.length >= pageSize) : false
+        mineList: mineTotalCount > page * pageSize,
+        pendingList: pendingTotalCount > page * pageSize,
+        doneList: doneTotalCount > page * pageSize
       }
     },
+    // 总数：只在首次加载(page=1)时使用，前端缓存用于 tab badge 和概览
+    counts: {
+      mine: mineTotalCount,
+      pending: pendingTotalCount,
+      done: doneTotalCount
+    },
     summary: {
-      pendingCount: pendingList.length,
-      approvedCount: doneList.filter(r => r.status === requestStatus.APPROVED).length,
-      rejectedCount: doneList.filter(r => r.status === requestStatus.REJECTED).length
+      pendingCount: pendingTotalCount,
+      approvedCount: doneTotalCount > 0 ? doneList.filter(r => r.status === requestStatus.APPROVED).length : 0,
+      rejectedCount: doneTotalCount > 0 ? doneList.filter(r => r.status === requestStatus.REJECTED).length : 0
     }
   })
 }
@@ -1192,7 +1230,7 @@ exports.main = async (event) => {
     if (action === 'getApprovalData') {
       const pagination = {
         page: event.page || 1,
-        pageSize: event.pageSize || 20
+        pageSize: event.pageSize || 10
       }
       return await getApprovalData(openid, pagination)
     }

@@ -78,7 +78,8 @@ page {
 
 /* 瀑布流滚动区 */
 .greenbook-scroll {
-  flex: 1;
+  /* 用 calc 计算精确高度，替代不可靠的 flex:1 */
+  height: calc(100vh - 44px - 100px);
   width: 100%;
   padding: 16rpx;
   box-sizing: border-box;

@@ -1,6 +1,6 @@
 ---
 name: activity-zone-feature
-overview: 在 Home 页「今日日程」和「学习园地」之间新增「活动专区」模块，包含：Home 展示卡片（3条）、活动列表页、活动详情页（含报名功能）、创建活动页（含目标用户/分组/展示/报名可见性等配置），新建 activities + activity_registrations 两个集合及 activityManager 云函数。
+overview: 在 Home 页「今日日程」和「学习园地」之间新增「群团活动」模块，包含：Home 展示卡片（3条）、活动列表页、活动详情页（含报名功能）、创建活动页（含目标用户/分组/展示/报名可见性等配置），新建 activities + activity_registrations 两个集合及 activityManager 云函数。
 design:
   styleKeywords:
     - Office Clean Style, Gradient Header, Rounded Card Layout, Activity Card, Group Registration, Switch Toggle Form, Bottom Action Bar, Role Selector Checkbox, Dynamic Group Input
@@ -43,7 +43,7 @@ todos:
     dependencies:
       - setup-db
   - id: modify-home-page
-    content: 修改 home 页三件套(wxml/js/wxss)：在今日日程和学习园地之间插入活动专区卡片(最多3条)，新增 loadActivities/goActivities/handleActivityTap 方法
+    content: 修改 home 页三件套(wxml/js/wxss)：在今日日程和学习园地之间插入群团活动卡片(最多3条)，新增 loadActivities/goActivities/handleActivityTap 方法
     status: completed
   - id: create-activity-list-page
     content: 新建 activity-list 页面四件套：渐变头部+创建按钮+筛选标签(全部/报名中/已结束)+分页活动列表+左划删除，复用 paginationBehavior
@@ -61,13 +61,13 @@ todos:
 
 ## 产品概述
 
-在首页「今日日程」和「学习园地」之间新增「活动专区」模块，支持用户发布活动、浏览活动列表、查看活动详情并报名参与。功能形态参照「通知公告」模块（Home卡片+列表页+详情页+创建页），但增加目标用户筛选、分组报名、可见性控制等特色能力。
+在首页「今日日程」和「学习园地」之间新增「群团活动」模块，支持用户发布活动、浏览活动列表、查看活动详情并报名参与。功能形态参照「通知公告」模块（Home卡片+列表页+详情页+创建页），但增加目标用户筛选、分组报名、可见性控制等特色能力。
 
 ## 核心功能
 
 ### Home 首页模块
 
-- 在「今日日程」和「学习园地」之间插入「活动专区」卡片
+- 在「今日日程」和「学习园地」之间插入「群团活动」卡片
 - 最多显示 3 条活动记录，展示活动标题、时间、报名人数
 - 右侧「更多」链接跳转至活动列表页
 - 点击条目跳转至活动详情页
@@ -218,7 +218,7 @@ todos:
 miniprogram/
 ├── app.json                                    # [MODIFY] 新增3个页面路由
 ├── pages/office/home/
-│   ├── home.wxml                                # [MODIFY] 插入活动专区卡片
+│   ├── home.wxml                                # [MODIFY] 插入群团活动卡片
 │   ├── home.js                                  # [MODIFY] 新增 loadActivities + 导航方法
 │   └── home.wxss                                # [MODIFY] 新增活动卡片样式
 ├── pages/office/activity-list/                   # [NEW] 活动列表页
@@ -255,17 +255,17 @@ cloudfunctions/
 
 ## 设计风格定位
 
-采用项目统一的「办公风格」设计体系——蓝紫渐变头部(#2563EB → #7C3AED) + 白色圆角卡片布局。活动专区作为独立模块插入首页，视觉上与通知公告、学习园地保持一致的语言体系。
+采用项目统一的「办公风格」设计体系——蓝紫渐变头部(#2563EB → #7C3AED) + 白色圆角卡片布局。群团活动作为独立模块插入首页，视觉上与通知公告、学习园地保持一致的语言体系。
 
 ## 页面结构规划
 
-### Page 1: Home 首页 — 活动专区卡片（插入模块）
+### Page 1: Home 首页 — 群团活动卡片（插入模块）
 
 **位置**：今日日程区块(第82-104行) 与 学习园地区块(第106-127行) 之间
 
-#### Block 1-A: 活动专区 section header
+#### Block 1-A: 群团活动 section header
 
-- 左侧：「活动专区」标题（可点击跳转列表）
+- 左侧：「群团活动」标题（可点击跳转列表）
 - 右侧：「更多」链接文字
 
 #### Block 1-B: 活动 card（office-card 容器）
@@ -282,7 +282,7 @@ cloudfunctions/
 
 #### Block 2-1: 渐变头部
 
-- 标题：「活动专区」，副标题：「发现精彩活动，立即报名参与」
+- 标题：「群团活动」，副标题：「发现精彩活动，立即报名参与」
 - 右上角：「＋ 创建活动」按钮（半透明白色边框，权限控制显示）
 
 #### Block 2-2: 筛选标签栏

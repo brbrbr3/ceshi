@@ -486,7 +486,7 @@ page {
   line-height: 1.4;
 }
 
-/* 活动专区首页模块 */
+/* 群团活动首页模块 */
 .home-activity-icon {
   width: 48rpx;
   height: 48rpx;

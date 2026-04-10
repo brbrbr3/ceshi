@@ -103,10 +103,10 @@
       </view>
     </view>
 
-    <!--活动专区-->
+    <!--群团活动-->
     <view class="office-section">
       <view class="office-section-header">
-        <view class="office-section-title" bindtap="goActivities">活动专区</view>
+        <view class="office-section-title" bindtap="goActivities">群团活动</view>
         <view class="office-link" style="color: #7C3AED;" bindtap="goActivities">更多</view>
       </view>
       <view class="office-card home-news-card">
