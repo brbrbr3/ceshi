@@ -40,11 +40,11 @@
       <view class="dashboard-stats-grid">
         <view class="dashboard-stat-card">
           <view class="dashboard-stat-value">{{todayOverview.totalOut}}</view>
-          <view class="dashboard-stat-label">当前外出人数</view>
+          <view class="dashboard-stat-label">当前{{(selectedDepartment === 'all' ? '全体' : selectedDepartment)}}外出人数</view>
         </view>
         <view class="dashboard-stat-card">
           <view class="dashboard-stat-value">{{statistics.total}}</view>
-          <view class="dashboard-stat-label">{{statTimeRangeLabel || '本月'}}出行次数</view>
+          <view class="dashboard-stat-label">{{statTimeRangeLabel || '本月'}}{{(selectedDepartment === 'all' ? '全体' : selectedDepartment)}}出行次数</view>
         </view>
       </view>
 

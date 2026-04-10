@@ -18,53 +18,10 @@
     "useIsolateContext": false,
     "ignoreDevUnusedFiles": true
   },
-  "libVersion": "3.15.0",
+  "libVersion": "3.14.2",
   "condition": {
     "miniprogram": {
-      "list": [
-        {
-          "name": "pages/office/arrival-guide/arrival-guide",
-          "pathName": "pages/office/arrival-guide/arrival-guide",
-          "query": "",
-          "scene": null,
-          "launchMode": "default"
-        },
-        {
-          "name": "pages/office/car-purchase/car-purchase",
-          "pathName": "pages/office/car-purchase/car-purchase",
-          "query": "",
-          "launchMode": "default",
-          "scene": null
-        },
-        {
-          "name": "pages/office/menus/menus",
-          "pathName": "pages/office/menus/menus",
-          "query": "",
-          "launchMode": "default",
-          "scene": null
-        },
-        {
-          "name": "pages/office/activity-list/activity-list",
-          "pathName": "pages/office/activity-list/activity-list",
-          "query": "",
-          "launchMode": "default",
-          "scene": null
-        },
-        {
-          "name": "pages/office/help/help",
-          "pathName": "pages/office/help/help",
-          "query": "",
-          "launchMode": "default",
-          "scene": null
-        },
-        {
-          "name": "pages/office/meal-management/meal-management",
-          "pathName": "pages/office/meal-management/meal-management",
-          "query": "",
-          "launchMode": "default",
-          "scene": null
-        }
-      ]
+      "list": []
     }
   }
 }

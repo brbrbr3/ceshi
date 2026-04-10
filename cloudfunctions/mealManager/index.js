@@ -9,7 +9,7 @@
  *   - getMyAdjustments:     获取当前用户的调整历史
  *
  * 副食征订相关 action:
- *   - getSideDishOrders:        获取有效副食征订单列表
+ *   - getSideDishOrders:        获取副食征订单列表（含已截止的），附带当前用户预订状态
  *   - createSideDishOrder:     创建新副食征订单
  *   - bookSideDish:            提交/修改/取消副食预订
  *   - getSideDishBookings:     获取某征订单的所有预订记录（管理端）
@@ -351,40 +351,40 @@ function getTodayStr() {
 // ==================== 副食征订相关函数 ====================
 
 /**
- * 获取有效副食征订单列表
- * 返回所有未截止的征订单，同时附带当前用户的预订状态
+ * 获取副食征订单列表
+ * 返回所有征订单（含已截止的），同时附带当前用户的预订状态
+ * 自动将过了deadline但仍为active状态的征订单标记为expired
  */
 async function getSideDishOrders(openid) {
   try {
     const today = getTodayStr()
 
-    // 查询所有有效（未截止）或今天及以后的征订单
+    // 查询所有征订单（不限状态和截止日期）
     const listRes = await sideDishOrdersCollection
-      .where(_.or([
-        { status: 'active', deadline: _.gte(today) },
-        { status: 'active', deadline: _.gt(today) }
-      ]))
       .orderBy('createdAt', 'desc')
-      .limit(50)
+      .limit(100)
       .get()
 
     let orders = listRes.data || []
 
-    // 批量更新已过期的征订单状态
-    const expiredIds = orders.filter(o => o.deadline < today).map(o => o._id)
+    // 批量更新已过期但仍为 active 状态的征订单
+    const expiredIds = orders
+      .filter(o => o.status === 'active' && o.deadline < today)
+      .map(o => o._id)
+
     if (expiredIds.length > 0) {
       for (const id of expiredIds) {
         await sideDishOrdersCollection.doc(id).update({
           data: { status: 'expired', updatedAt: Date.now() }
         })
       }
-      // 重新查询（排除已过期的）
-      const freshRes = await sideDishOrdersCollection
-        .where({ status: 'active', deadline: _.gte(today) })
-        .orderBy('createdAt', 'desc')
-        .limit(50)
-        .get()
-      orders = freshRes.data || []
+      // 更新内存中的状态
+      orders = orders.map(o => {
+        if (expiredIds.includes(o._id)) {
+          return { ...o, status: 'expired' }
+        }
+        return o
+      })
     }
 
     // 查询当前用户的所有有效预订
@@ -395,11 +395,12 @@ async function getSideDishOrders(openid) {
     const myBookingMap = {}
     myBookings.forEach(b => { myBookingMap[b.orderId] = b })
 
-    // 组装返回数据：每个征订单附加当前用户的预订信息
+    // 组装返回数据：每个征订单附加当前用户的预订信息和过期标记
     const result = orders.map(order => {
       const myBooking = myBookingMap[order._id]
       return {
         ...order,
+        isExpired: order.status === 'expired' || order.deadline < today,
         myBookedCount: myBooking ? myBooking.count : 0,
         myBookingId: myBooking ? myBooking._id : ''
       }

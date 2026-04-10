@@ -96,12 +96,21 @@
   "sitemapLocation": "sitemap.json",
   "themeLocation": "demo.theme.json",
   "darkmode": false,
-  "resizable": true,
+  "resizable": false,
+  "pageOrientation": "portrait",
+  "debugOptions": {
+    "adaptedPCNavBar": true
+  },
   "useExtendedLib": {
     "weui": true
   },
   "frameset": true,
-  "requiredBackgroundModes": ["audio", "location"],
-  "embeddedAppIdList": ["wxfdcee92a299bcaf1"],
+  "requiredBackgroundModes": [
+    "audio",
+    "location"
+  ],
+  "embeddedAppIdList": [
+    "wxfdcee92a299bcaf1"
+  ],
   "lazyCodeLoading": "requiredComponents"
 }

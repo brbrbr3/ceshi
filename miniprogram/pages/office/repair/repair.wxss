@@ -367,7 +367,7 @@
 }
 
 .repair-picker-arrow {
-  font-size: 24rpx;
+  font-size: 40rpx;
   color: #94A3B8;
 }
 

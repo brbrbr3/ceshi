@@ -150,7 +150,7 @@
       <!-- 提示卡片 -->
       <view class="office-card side-dish-tip-card">
         <view class="side-dish-tip-icon">🍱</view>
-        <view class="side-dish-tip-text">以下为当前可预订的副食征订，点击条目即可预订</view>
+        <view class="side-dish-tip-text">以下为副食征订列表，点击条目可查看详情。已截止的征订不可修改预订</view>
       </view>
 
       <!-- 征订单列表 -->
@@ -164,7 +164,7 @@
         >
           <view class="sd-card-left">
             <view class="sd-status-tag {{item.isExpired || item.isTodayOrBefore ? 'tag-expired' : 'tag-active'}}">
-              {{item.isExpired || item.isTodayOrBefore ? '已截止' : '预订中'}}
+              {{item.isExpired || item.isTodayOrBefore ? '征订已结束' : '预订中'}}
             </view>
           </view>
           <view class="sd-card-body">
@@ -205,7 +205,7 @@
         >
           <view class="sd-card-left">
             <view class="sd-status-tag {{item.isExpired || item.isTodayOrBefore ? 'tag-expired' : 'tag-active'}}">
-              {{item.isExpired || item.isTodayOrBefore ? '已截止' : '进行中'}}
+              {{item.isExpired || item.isTodayOrBefore ? '征订已结束' : '进行中'}}
             </view>
           </view>
           <view class="sd-card-body">
@@ -424,6 +424,11 @@
       </view>
 
       <view class="modal-body">
+        <!-- 征订已结束提示 -->
+        <view wx:if="{{currentSideDishOrder.isExpired}}" class="sd-expired-notice">
+          <text class="sd-expired-notice-text">该征订已结束，无法修改预订</text>
+        </view>
+
         <!-- 征订单信息 -->
         <view class="sd-detail-section">
           <view class="sd-detail-row">
@@ -445,8 +450,8 @@
           <text>当前已预订：{{currentSideDishOrder.myBookedCount}} 份</text>
         </view>
 
-        <!-- 预订操作区 -->
-        <view class="sd-book-area">
+        <!-- 预订操作区（仅未截止时显示） -->
+        <view wx:if="{{!currentSideDishOrder.isExpired}}" class="sd-book-area">
           <text class="sd-book-label">预订份数</text>
           <view class="count-control">
             <view class="count-btn count-minus" data-action="minus" bindtap="handleSideDishCountChange">−</view>
@@ -455,15 +460,15 @@
           </view>
         </view>
 
-        <!-- 取消按钮（已预订时显示） -->
-        <view wx:if="{{currentSideDishOrder.myBookedCount > 0}}" class="sd-cancel-wrap">
+        <!-- 取消按钮（已预订且未截止时显示） -->
+        <view wx:if="{{currentSideDishOrder.myBookedCount > 0 && !currentSideDishOrder.isExpired}}" class="sd-cancel-wrap">
           <button class="btn-cancel-booking" bindtap="handleCancelSideDishBooking">取消我的预订</button>
         </view>
       </view>
 
       <view class="modal-actions">
-        <button class="btn-cancel" bindtap="closeSideDishDetail">取消</button>
-        <button class="btn-confirm" disabled="{{sideDishSubmitLoading}}" bindtap="handleSubmitSideDishBooking">
+        <button class="btn-cancel" bindtap="closeSideDishDetail">关闭</button>
+        <button wx:if="{{!currentSideDishOrder.isExpired}}" class="btn-confirm" disabled="{{sideDishSubmitLoading}}" bindtap="handleSubmitSideDishBooking">
           {{currentSideDishOrder.myBookedCount > 0 ? '修改预订' : '确认预订'}}
         </button>
       </view>

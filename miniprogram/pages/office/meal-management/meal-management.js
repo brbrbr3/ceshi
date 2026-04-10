@@ -734,7 +734,6 @@ Page({
       const list = res.result.data || []
       const formatted = list.map(item => ({
         ...item,
-        isExpired: item.status === 'expired',
         isTodayOrBefore: item.deadline && item.deadline <= utils.getLocalDateString(),
         formattedDeadline: item.deadline || '',
         formattedTime: item.createdAt ? utils.formatRelativeTime(item.createdAt) : ''
@@ -763,18 +762,11 @@ Page({
     const order = e.currentTarget.dataset.order
     if (!order) return
 
-    // 已截止不可预订
-    if (order.isExpired || order.isTodayOrBefore) {
-      utils.showToast({
-        title: '该征订已截止',
-        icon: 'none'
-      })
-      return
-    }
+    const isExpired = order.isExpired || order.isTodayOrBefore
 
     this.setData({
       showSideDishDetailModal: true,
-      currentSideDishOrder: order,
+      currentSideDishOrder: { ...order, isExpired },
       sideDishBookCount: order.myBookedCount > 0 ? order.myBookedCount : 1
     })
   },
@@ -1050,7 +1042,6 @@ Page({
       const list = res.result.data || []
       const formatted = list.map(item => ({
         ...item,
-        isExpired: item.status === 'expired',
         isTodayOrBefore: item.deadline && item.deadline <= utils.getLocalDateString(),
         formattedDeadline: item.deadline || '',
         formattedTime: item.createdAt ? utils.formatRelativeTime(item.createdAt) : ''

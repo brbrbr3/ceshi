@@ -194,32 +194,25 @@ Page({
    */
   async loadTodayOverview() {
     try {
-      // 获取今天的开始和结束时间戳
-      const today = new Date()
-      const startOfDay = new Date(today.getFullYear(), today.getMonth(), today.getDate()).getTime()
-      const endOfDay = startOfDay + 24 * 60 * 60 * 1000 - 1
-
-      const params = {
-        dateStart: startOfDay,
-        dateEnd: endOfDay
+      // 当前外出人员：查询所有 status='out' 的记录（不限日期，因为未返回人员可能是之前出发的）
+      const activeParams = {
+        status: 'out',
+        pageSize: 100
       }
-
-      // 根据权限设置部门筛选
       if (this.data.selectedDepartment !== 'all') {
-        params.department = this.data.selectedDepartment
+        activeParams.department = this.data.selectedDepartment
       }
 
-      const res = await wx.cloud.callFunction({
+      const activeRes = await wx.cloud.callFunction({
         name: 'tripReport',
         data: {
           action: 'getAllTrips',
-          params: { ...params, pageSize: 100 }
+          params: activeParams
         }
       })
 
-      if (res.result.code === 0) {
-        const trips = res.result.data.list || []
-        const activeTrips = trips.filter(t => t.status === 'out').map(t => this.formatTripItem(t))
+      if (activeRes.result.code === 0) {
+        const activeTrips = (activeRes.result.data.list || []).map(t => this.formatTripItem(t))
 
         this.setData({
           'todayOverview.totalOut': activeTrips.length,

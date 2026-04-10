@@ -323,7 +323,10 @@ Page({
    * 策略：去除HTML标签 → 按换行符/空格分词 → 过滤无效项 → 去重
    */
   extractDishesFromContent(content) {
-    if (!content) return []
+    if (!content) {
+      console.warn('[menu-debug] extractDishesFromContent: content 为空，直接返回[]')
+      return []
+    }
 
     // 单字类别词（汤、粥等，单独出现时不是菜品名）
     const SINGLE_CHAR_CATEGORIES = new Set(['汤', '粥', '饭', '面', '粉'])
@@ -339,10 +342,14 @@ Page({
     // 日期匹配正则（排除"星期一"、"周一"、"汤星期二"等含日期标记的词）
     const DATE_PATTERN = /星期[一二三四五六日天]|周[一二三四五六日天]/
 
-    // 1. 去除HTML标签，保留文本内容
-    let text = content.replace(/<[^>]+>/g, '')
+    // 1. 先将块级HTML标签替换为换行符（解决<p>标签间无空格导致文字粘连问题）
+    let text = content.replace(/<\/?(?:p|div|section|article|h[1-6]|li|tr)[^>]*>/gi, '\n')
+    text = text.replace(/<br\s*\/?>/gi, '\n')
 
-    // 2. 解码常见HTML实体
+    // 2. 再去除剩余的内联HTML标签
+    text = text.replace(/<[^>]+>/g, '')
+
+    // 3. 解码常见HTML实体
     text = text.replace(/&nbsp;/g, ' ')
                  .replace(/&amp;/g, '&')
                  .replace(/&lt;/g, '<')
@@ -350,7 +357,6 @@ Page({
 
     // 3. 按换行符和空格分词
     const tokens = text.split(/[\n\r\s]+/).map(t => t.trim()).filter(Boolean)
-
     // 4. 过滤并提取菜品名
     const dishes = []
     const seen = new Set()
@@ -391,7 +397,10 @@ Page({
 
   /** 加载打分数据 */
   loadRatings() {
-    if (!this.data.menuId || !this.data.menu.content) return
+    if (!this.data.menuId || !this.data.menu.content) {
+      console.warn('[menu-debug] loadRatings 提前返回! 原因:', !this.data.menuId ? 'menuId为空' : 'menu.content为空')
+      return
+    }
 
     this.setData({ ratingsLoading: true })
 

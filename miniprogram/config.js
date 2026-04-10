@@ -10,9 +10,9 @@ const config = {
   host,
 
   // 缓存版本号（修改此值可强制刷新用户端缓存）
-  CACHE_VERSION: '0.37',
+  CACHE_VERSION: '0.37.1',
   //更新说明
-  VERSION_DESCRIPTION: '1.增加馆内购车借款申请（2步审批：财务主管→馆领导）。2.购车申请、购车借款申请均可导出PDF。3.修复预约会议室问题。4.增加新馆员到馆指南页。',
+  VERSION_DESCRIPTION: '1.增加新馆员到馆指南页。2.问题修复。',
 
   // 云开发环境 ID
   envId: 'cloud1-8gdftlggae64d5d0',

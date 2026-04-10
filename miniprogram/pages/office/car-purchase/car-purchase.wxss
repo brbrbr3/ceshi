@@ -437,13 +437,15 @@
 
 /* Picker 触发器 */
 .cp-picker-trigger {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
   cursor: pointer;
 }
 
 .cp-picker-arrow {
   font-size: 22rpx;
   color: #94A3B8;
-  margin-left: 12rpx;
 }
 
 /* 只读输入框 */
@@ -539,7 +541,8 @@
   color: #0F172A;
 }
 
-.cp-placeholder { color: #94A3B8; }
+.cp-placeholder { 
+  font-size: 28rpx;color: #94A3B8; }
 
 /* 多行文本 */
 .cp-textarea-wrapper {

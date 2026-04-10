@@ -57,12 +57,12 @@
 
     <!-- 打分弹窗 -->
     <view class="rating-popup-mask" wx:if="{{showRatingPopup}}" bindtap="closeRatingPopup" catchtouchmove="stopPropagation">
-      <view class="rating-popup" catchtap="">
+      <view class="rating-popup" catchtap="stopPropagation">
         <view class="rating-popup-header">
           <text class="rating-popup-title">菜品打分</text>
           <text class="rating-popup-close" catchtap="closeRatingPopup">×</text>
         </view>
-        <scroll-view scroll-y class="rating-popup-body" catchtap="">
+        <scroll-view scroll-y class="rating-popup-body" catchtap="stopPropagation">
           <view class="rating-dish-item" wx:for="{{extractedDishes}}" wx:key="*this">
             <text class="rating-dish-label">{{item}}</text>
             <view class="rating-dish-stars">

@@ -269,7 +269,21 @@
             <textarea class="passport-textarea" value="{{form.reason}}" placeholder="请填写借用事由" placeholder-class="passport-input-placeholder" bindinput="handleReasonInput" maxlength="200" auto-height />
           </view>
         </view>
-
+    <!-- 审批流程说明 -->
+    <view class="passport-approval-note">
+          <view class="passport-approval-note-title">📋 审批流程</view>
+          <view class="passport-approval-note-steps">
+          <view class="passport-approval-note-step">
+              <view class="passport-approval-step-dot"></view>
+              <view class="passport-approval-step-text">部门负责人审批</view>
+            </view>
+            <view class="passport-approval-note-arrow">→</view>
+            <view class="passport-approval-note-step">
+              <view class="passport-approval-step-dot"></view>
+              <view class="passport-approval-step-text">馆领导审批</view>
+            </view>
+          </view>
+        </view>
         <button class="passport-submit-btn" loading="{{submitting}}" disabled="{{submitting}}" bindtap="submitApplication">
           提交申请
         </button>
