@@ -1,4 +1,4 @@
-/* 出行管理 Dashboard 页面样式 */
+/* 出行数据板 Dashboard 页面样式 */
 
 .dashboard-page {
   min-height: 100vh;

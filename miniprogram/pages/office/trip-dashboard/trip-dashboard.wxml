@@ -2,7 +2,7 @@
   <!-- 渐变色头部（带圆角，类似home页） -->
   <view class="office-gradient-header dashboard-header">
     <view class="dashboard-header-content">
-      <view class="dashboard-title">出行管理</view>
+      <view class="dashboard-title">出行数据板</view>
       <view class="dashboard-subtitle">查看团队出行情况</view>
     </view>
   </view>

@@ -37,7 +37,8 @@
     "pages/office/activity-list/activity-list",
     "pages/office/activity-detail/activity-detail",
     "pages/office/activity-create/activity-create",
-    "pages/office/car-purchase/car-purchase"
+    "pages/office/car-purchase/car-purchase",
+    "pages/office/arrival-guide/arrival-guide"
   ],
   "window": {
     "navigationBarTextStyle": "black",

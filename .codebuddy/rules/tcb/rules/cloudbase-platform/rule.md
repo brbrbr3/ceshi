@@ -5,6 +5,15 @@ version: 2.16.1
 alwaysApply: false
 ---
 
+## Standalone Install Note
+
+If this environment only installed the current skill, start from the CloudBase main entry and use the published `cloudbase/references/...` paths for sibling skills.
+
+- CloudBase main entry: `https://cnb.cool/tencent/cloud/cloudbase/cloudbase-skills/-/git/raw/main/skills/cloudbase/SKILL.md`
+- Current skill raw source: `https://cnb.cool/tencent/cloud/cloudbase/cloudbase-skills/-/git/raw/main/skills/cloudbase/references/cloudbase-platform/SKILL.md`
+
+Keep local `references/...` paths for files that ship with the current skill directory. When this file points to a sibling skill such as `auth-tool` or `web-development`, use the standalone fallback URL shown next to that reference.
+
 ## Activation Contract
 
 ### Use this first when
@@ -19,14 +28,14 @@ alwaysApply: false
 
 ### Then also read
 
-- Web app implementation -> `../web-development/SKILL.md`
-- Web auth and provider setup -> `../auth-tool/SKILL.md`, `../auth-web/SKILL.md`
-- Mini program development -> `../miniprogram-development/SKILL.md`
-- Cloud functions -> `../cloud-functions/SKILL.md`
-- Official HTTP API clients -> `../http-api/SKILL.md`
-- Document database -> `../no-sql-web-sdk/SKILL.md` or `../no-sql-wx-mp-sdk/SKILL.md`
-- Relational database / data modeling -> `../relational-database-tool/SKILL.md` or `../data-model-creation/SKILL.md`
-- Cloud storage -> `../cloud-storage-web/SKILL.md`
+- Web app implementation -> `../web-development/SKILL.md` (standalone fallback: `https://cnb.cool/tencent/cloud/cloudbase/cloudbase-skills/-/git/raw/main/skills/cloudbase/references/web-development/SKILL.md`)
+- Web auth and provider setup -> `../auth-tool/SKILL.md` (standalone fallback: `https://cnb.cool/tencent/cloud/cloudbase/cloudbase-skills/-/git/raw/main/skills/cloudbase/references/auth-tool/SKILL.md`), `../auth-web/SKILL.md` (standalone fallback: `https://cnb.cool/tencent/cloud/cloudbase/cloudbase-skills/-/git/raw/main/skills/cloudbase/references/auth-web/SKILL.md`)
+- Mini program development -> `../miniprogram-development/SKILL.md` (standalone fallback: `https://cnb.cool/tencent/cloud/cloudbase/cloudbase-skills/-/git/raw/main/skills/cloudbase/references/miniprogram-development/SKILL.md`)
+- Cloud functions -> `../cloud-functions/SKILL.md` (standalone fallback: `https://cnb.cool/tencent/cloud/cloudbase/cloudbase-skills/-/git/raw/main/skills/cloudbase/references/cloud-functions/SKILL.md`)
+- Official HTTP API clients -> `../http-api/SKILL.md` (standalone fallback: `https://cnb.cool/tencent/cloud/cloudbase/cloudbase-skills/-/git/raw/main/skills/cloudbase/references/http-api/SKILL.md`)
+- Document database -> `../no-sql-web-sdk/SKILL.md` (standalone fallback: `https://cnb.cool/tencent/cloud/cloudbase/cloudbase-skills/-/git/raw/main/skills/cloudbase/references/no-sql-web-sdk/SKILL.md`) or `../no-sql-wx-mp-sdk/SKILL.md` (standalone fallback: `https://cnb.cool/tencent/cloud/cloudbase/cloudbase-skills/-/git/raw/main/skills/cloudbase/references/no-sql-wx-mp-sdk/SKILL.md`)
+- Relational database / data modeling -> `../relational-database-tool/SKILL.md` (standalone fallback: `https://cnb.cool/tencent/cloud/cloudbase/cloudbase-skills/-/git/raw/main/skills/cloudbase/references/relational-database-tool/SKILL.md`) or `../data-model-creation/SKILL.md` (standalone fallback: `https://cnb.cool/tencent/cloud/cloudbase/cloudbase-skills/-/git/raw/main/skills/cloudbase/references/data-model-creation/SKILL.md`)
+- Cloud storage -> `../cloud-storage-web/SKILL.md` (standalone fallback: `https://cnb.cool/tencent/cloud/cloudbase/cloudbase-skills/-/git/raw/main/skills/cloudbase/references/cloud-storage-web/SKILL.md`)
 
 ### Do NOT use for
 
@@ -38,6 +47,7 @@ alwaysApply: false
 - Treating this general skill as the default entry point for all CloudBase development.
 - Staying here after the correct implementation skill is already clear.
 - Mixing platform overview with platform-specific API shapes or SDK details.
+- Using this overview skill as a detour in an existing application where the active auth, storage, and data files are already obvious.
 
 ## When to use this skill
 
@@ -59,6 +69,7 @@ Use this skill for **CloudBase platform knowledge** when you need to:
    - Web and Mini Program have completely different authentication approaches
    - Must strictly distinguish between platforms
    - Never mix authentication methods across platforms
+   - If the workspace is already an application with TODOs or prebuilt handlers, do not stay in platform overview mode. Move quickly to the concrete implementation skill and the existing files that own the flow.
 
 2. **Follow best practices**
    - Use SDK built-in authentication features (Web)
@@ -70,6 +81,7 @@ Use this skill for **CloudBase platform knowledge** when you need to:
    - Different platforms require different SDKs for data models
    - MySQL data models must use models SDK, not collection API
    - Use `envQuery` tool to get environment ID
+   - In an existing Web application with fixed structure, inspect the existing `src/lib/backend.*`, `src/lib/auth.*`, `src/lib/*service.*`, and bound page handlers before broad concept reading.
 
 4. **Use the canonical CloudBase MCP setup from the main `cloudbase` guideline**
    - This platform overview intentionally does **not** duplicate the full MCP / mcporter config block
@@ -155,7 +167,7 @@ Use this skill for **CloudBase platform knowledge** when you need to:
    Create collection → Configure security rules → Write code → Test
    ```
    - Use `managePermissions(action="updateResourcePermission")` to configure resource permissions
-   - Wait 2-5 minutes for cache to clear before testing
+   - If permissions were just changed, allow a short propagation window before retesting, but do not assume every failure is cache. Re-check the actual rule shape and active client write pattern first.
    - See `no-sql-web-sdk/security-rules.md` for detailed examples
 
 Compatibility note:

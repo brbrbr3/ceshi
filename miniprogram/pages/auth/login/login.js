@@ -157,9 +157,16 @@ Page({
             icon: 'success'
           })
           setTimeout(() => {
-            wx.switchTab({
-              url: '/pages/office/home/home'
-            })
+            // 待赴任馆员跳转到馆指南页，其他角色跳转首页
+            if (result.user && result.user.role === '待赴任馆员') {
+              wx.reLaunch({
+                url: '/pages/office/arrival-guide/arrival-guide'
+              })
+            } else {
+              wx.switchTab({
+                url: '/pages/office/home/home'
+              })
+            }
           }, 200)
           return
         }

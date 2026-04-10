@@ -1,6 +1,5 @@
 const app = getApp()
 const utils = require('../../../common/utils.js')
-
 // 使用统一的时间格式化函数
 const formatTime = (timestamp) => utils.formatRelativeTime(timestamp)
 
@@ -24,10 +23,10 @@ Page({
       { icon: '🍽️', label: '每周菜单', color: '#16A34A', bg: '#DCFCE7', implemented: true, featureKey: null },
       { icon: '🍱', label: '餐食管理', color: '#16A34A', bg: '#DCFCE7', implemented: true, featureKey: 'meal_management' },
       { icon: '🛴', label: '外出报备', color: '#2563EB', bg: '#EFF6FF', implemented: true, featureKey: 'trip_report' },
-      { icon: '📊', label: '出行管理', color: '#7C3AED', bg: '#F3E8FF', implemented: true, featureKey: 'trip_dashboard' },
+      { icon: '📊', label: '出行数据板', color: '#7C3AED', bg: '#F3E8FF', implemented: true, featureKey: 'trip_dashboard' },
       { icon: '🏥', label: '就医申请', color: '#EF4444', bg: '#FEE2E2', implemented: true, featureKey: 'medical_application' },
       { icon: '🏢', label: '会议室预约', color: '#7C5CFC', bg: '#E8E4FF', implemented: true, featureKey: 'meeting_room' },
-      { icon: '💇', label: '理发预约', color: '#EA580C', bg: '#FFF7ED', implemented: true, featureKey: 'haircut_appointment' },
+      { icon: '💈', label: '理发预约', color: '#EA580C', bg: '#FFF7ED', implemented: true, featureKey: 'haircut_appointment' },
       { icon: '🛂', label: '护照管理', color: '#D97706', bg: '#FEF3C7', implemented: true, featureKey: 'passport_application' },
       { icon: '🔧', label: '物业报修', color: '#8B6F47', bg: '#FDF3E1', implemented: true, featureKey: null },
       { icon: '🚗', label: '购车管理', color: '#0891B2', bg: '#ECFEFF', implemented: true, featureKey: 'car_purchase' }
@@ -42,7 +41,7 @@ Page({
     loadingActivities: false,
     // 日程详情弹窗
     showScheduleDetail: false,
-    detailSchedule: null
+    detailSchedule: null,
   },
 
   onShow() {
@@ -58,6 +57,52 @@ Page({
     this.loadHolidayConfig()    //加载节假日配置
     this.loadTodaySchedules()   // 加载今日日程
     app.updateCacheVersionAndShowWhatsNew()//更新缓存版本号，展示更新说明弹窗
+    this.loadSignature()
+  },
+
+  /**
+   * 加载用户是否有签名，没有则提示配置
+   */
+  loadSignature() {
+    // 已提示过则不再弹窗
+    if (app.globalData.signaturePrompted) return
+
+    const db = wx.cloud.database()
+    db.collection('user_signatures')
+      .orderBy('index', 'asc')
+      .limit(2)
+      .get()
+      .then(res => {
+        const signatures = (res.data || []).map(item => ({
+          ...item
+        }))
+        this.setData({
+          signatures,
+          signatureLoaded: true
+        })
+        // 仅对需要签名的角色提示，且签名数量为0且本次启动未提示过
+        const needSignatureRoles = ['馆领导', '部门负责人', '馆员', '工勤']
+        const userRole = (this.data.currentUser && this.data.currentUser.role) || (app.globalData.userProfile && app.globalData.userProfile.role) || ''
+        if (signatures.length === 0 && needSignatureRoles.includes(userRole) && !app.globalData.signaturePrompted) {
+          app.globalData.signaturePrompted = true
+          wx.showModal({
+            title: '提示',
+            content: '您还未配置签名，部分审批流程需要签名，是否前往配置？',
+            confirmText: '去配置',
+            cancelText: '稍后',
+            success: (res) => {
+              if (res.confirm) {
+                wx.navigateTo({
+                  url: '/pages/office/signature-manage/signature-manage'
+                })
+              }
+            }
+          })
+        }
+      })
+      .catch(err => {
+        console.error('加载签字失败', err)
+      })
   },
 
   /**
@@ -116,6 +161,15 @@ Page({
         }
 
         const user = result.user
+
+        // 待赴任馆员跳转到馆指南页
+        if (user.role === '待赴任馆员') {
+          wx.reLaunch({
+            url: '/pages/office/arrival-guide/arrival-guide'
+          })
+          return
+        }
+
         const roleLabel = user.isAdmin ? `${user.role} · 管理员` : user.role
 
         this.setData({
@@ -310,9 +364,9 @@ Page({
     } else if (label === '外出报备') {
       // 统一权限检查
       this.checkAndNavigate('trip_report', '/pages/office/trip-report/trip-report', '外出报备')
-    } else if (label === '出行管理') {
+    } else if (label === '出行数据板') {
       // 统一权限检查
-      this.checkAndNavigate('trip_dashboard', '/pages/office/trip-dashboard/trip-dashboard', '出行管理')
+      this.checkAndNavigate('trip_dashboard', '/pages/office/trip-dashboard/trip-dashboard', '出行数据板')
     } else if (label === '会议室预约') {
       // 统一权限检查
       this.checkAndNavigate('meeting_room', '/pages/office/meeting-room/meeting-room', '会议室预约')

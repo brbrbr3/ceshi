@@ -30,7 +30,7 @@
 
       <view class="help-card">
         <view class="card-header">
-          <view class="card-icon">🍲</view>
+          <view class="card-icon">🍱</view>
           <view class="card-title">餐食管理</view>
         </view>
         <view class="card-content">
@@ -64,7 +64,7 @@
 
       <view class="help-card">
         <view class="card-header">
-          <view class="card-icon">🚗</view>
+          <view class="card-icon">🛴</view>
           <view class="card-title">外出报备</view>
         </view>
         <view class="card-content">
@@ -79,7 +79,7 @@
       <view class="help-card">
         <view class="card-header">
           <view class="card-icon">📊</view>
-          <view class="card-title">出行管理</view>
+          <view class="card-title">出行数据板</view>
         </view>
         <view class="card-content">
           <view class="card-desc">可查看外出报备的历史记录和当前外出人员状态，支持统计分析功能。</view>

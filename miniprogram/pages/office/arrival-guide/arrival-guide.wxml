@@ -1,0 +1,88 @@
+<view class="arrival-guide-page">
+  <!-- 全屏背景 -->
+  <image class="bg-image" src="/image/br5.jpg" mode="aspectFill" />
+
+  <!-- 自定义导航栏 -->
+  <view class="custom-nav" style="padding-top: {{statusBarHeight}}px">
+    <view class="custom-nav-content">
+      <view class="nav-title">到馆指南</view>
+    </view>
+  </view>
+
+  <!-- 页面内容 -->
+  <view class="guide-content" style="padding-top: {{statusBarHeight + 44}}px">
+    <view class="welcome-text">
+      <view class="welcome-title">欢迎赴任！</view>
+      <view class="welcome-desc">请仔细阅读以下指南，做好赴任准备</view>
+    </view>
+
+    <view class="button-list">
+      <view
+        wx:for="{{buttons}}"
+        wx:key="key"
+        class="guide-button"
+        data-key="{{item.key}}"
+        bindtap="handleButtonTap"
+      >
+        <view class="guide-button-icon">{{item.icon}}</view>
+        <view class="guide-button-label">{{item.label}}</view>
+        <view class="guide-button-arrow" wx:if="{{item.key !== 'arrived'}}">›</view>
+      </view>
+    </view>
+  </view>
+
+  <!-- 底部弹窗 -->
+  <view class="popup-mask {{showPopup ? 'is-visible' : ''}}" bindtap="handleClosePopup">
+    <view class="popup-container {{showPopup ? 'is-visible' : ''}}" catchtap="stopPropagation">
+      <!-- 弹窗头部 -->
+      <view class="popup-header">
+        <view class="popup-title">{{popupTitle}}</view>
+        <view class="popup-close" bindtap="handleClosePopup">✕</view>
+      </view>
+
+      <!-- 弹窗内容 -->
+      <scroll-view class="popup-body" scroll-y enhanced show-scrollbar="{{false}}">
+        <!-- Checklist 类型 -->
+        <block wx:if="{{popupType === 'checklist'}}">
+          <view class="checklist-toolbar">
+            <view class="checklist-progress">
+              已完成 {{checkedCount}}/{{checklistItems.length}}
+            </view>
+            <view class="checklist-all" bindtap="handleCheckAll">
+              {{allChecked ? '取消全选' : '全选'}}
+            </view>
+          </view>
+          <view class="checklist-list">
+            <view
+              wx:for="{{popupContent}}"
+              wx:key="id"
+              class="checklist-item {{item.checked ? 'is-checked' : ''}}"
+              data-id="{{item.id}}"
+              bindtap="handleCheckToggle"
+            >
+              <view class="checklist-box">
+                <view wx:if="{{item.checked}}" class="checklist-check">✓</view>
+              </view>
+              <view class="checklist-card-body">
+                <view class="checklist-category">{{item.category}}</view>
+                <view class="checklist-detail">{{item.detail}}</view>
+                <view class="checklist-note" wx:if="{{item.note}}">{{item.note}}</view>
+              </view>
+            </view>
+          </view>
+        </block>
+
+        <!-- 静态内容类型 -->
+        <block wx:if="{{popupType === 'static'}}">
+          <view wx:for="{{popupContent}}" wx:key="category" class="content-section">
+            <view class="content-category">{{item.category}}</view>
+            <view wx:for="{{item.items}}" wx:for-item="subItem" wx:key="name" class="content-card">
+              <view class="content-card-name">{{subItem.name}}</view>
+              <view class="content-card-desc">{{subItem.desc}}</view>
+            </view>
+          </view>
+        </block>
+      </scroll-view>
+    </view>
+  </view>
+</view>

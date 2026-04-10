@@ -1,6 +1,6 @@
 {
   "usingComponents": {},
-  "navigationBarTitleText": "出行管理",
+  "navigationBarTitleText": "出行数据板",
   "enablePullDownRefresh": true,
   "onReachBottomDistance": 50
 }

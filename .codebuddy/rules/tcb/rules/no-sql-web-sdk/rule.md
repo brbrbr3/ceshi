@@ -5,6 +5,15 @@ version: 2.16.1
 alwaysApply: false
 ---
 
+## Standalone Install Note
+
+If this environment only installed the current skill, start from the CloudBase main entry and use the published `cloudbase/references/...` paths for sibling skills.
+
+- CloudBase main entry: `https://cnb.cool/tencent/cloud/cloudbase/cloudbase-skills/-/git/raw/main/skills/cloudbase/SKILL.md`
+- Current skill raw source: `https://cnb.cool/tencent/cloud/cloudbase/cloudbase-skills/-/git/raw/main/skills/cloudbase/references/no-sql-web-sdk/SKILL.md`
+
+Keep local `references/...` paths for files that ship with the current skill directory. When this file points to a sibling skill such as `auth-tool` or `web-development`, use the standalone fallback URL shown next to that reference.
+
 # CloudBase Document Database Web SDK
 
 ## Activation Contract
@@ -21,9 +30,9 @@ alwaysApply: false
 
 ### Then also read
 
-- Web login and caller identity -> `../auth-web/SKILL.md`
-- General Web app structure -> `../web-development/SKILL.md`
-- Mini Program database code -> `../no-sql-wx-mp-sdk/SKILL.md`
+- Web login and caller identity -> `../auth-web/SKILL.md` (standalone fallback: `https://cnb.cool/tencent/cloud/cloudbase/cloudbase-skills/-/git/raw/main/skills/cloudbase/references/auth-web/SKILL.md`)
+- General Web app structure -> `../web-development/SKILL.md` (standalone fallback: `https://cnb.cool/tencent/cloud/cloudbase/cloudbase-skills/-/git/raw/main/skills/cloudbase/references/web-development/SKILL.md`)
+- Mini Program database code -> `../no-sql-wx-mp-sdk/SKILL.md` (standalone fallback: `https://cnb.cool/tencent/cloud/cloudbase/cloudbase-skills/-/git/raw/main/skills/cloudbase/references/no-sql-wx-mp-sdk/SKILL.md`)
 
 ### Do NOT use for
 
@@ -38,6 +47,7 @@ alwaysApply: false
 - Using `wx.cloud.database()` or Node SDK patterns in browser code.
 - Initializing CloudBase lazily with dynamic imports instead of a shared synchronous app instance.
 - Treating security rules as result filters rather than request validators.
+- For CMS-style collections that need **app-level admin users** to edit/delete all records while editors can only edit/delete their own records, do not oversimplify the rule to `READONLY`. A validated pattern is a `CUSTOM` rule that reads role from `user_roles` by `auth.uid` and combines it with `doc.authorId == auth.uid`, while frontend writes can stay on `.doc(id).update()` / `.doc(id).remove()`.
 - Forgetting pagination or indexes for larger collections.
 
 ### Minimal checklist
@@ -99,10 +109,15 @@ Important rules:
 
 3. **Respect security rules**
    - Collection rules can reject requests before data is read.
+   - If the requirement is simple owner-only write access, `READONLY` can be enough.
+   - If the requirement is “app-level admin can edit/delete all, editor only own”, use a `CUSTOM` rule. A validated CMS pattern is `get('database.user_roles.' + auth.uid).role == 'admin' || doc.authorId == auth.uid`.
+   - For that CMS pattern, frontend writes can stay on `.doc(id).update()` / `.doc(id).remove()`.
+   - Reuse whichever role collection already exists and can be addressed by `_id == auth.uid`. In this CMS pattern, `user_roles` keyed by uid is acceptable.
    - If the task fails with permission issues, inspect the rule model rather than assuming the query syntax is wrong.
 
 4. **Return user-friendly errors**
    - Database errors must become readable UI or application errors, not silent failures.
+   - For writes, do not treat a resolved promise as success by default. Check write result fields such as `updated` / `deleted` or surfaced `code` / `message`.
 
 ## Quick examples
 

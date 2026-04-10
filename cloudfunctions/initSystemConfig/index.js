@@ -19,7 +19,7 @@ const SYSTEM_CONFIGS = [
   {
     type: 'role',
     key: 'ROLE_OPTIONS',
-    value: ['馆领导', '部门负责人', '馆员', '工勤', '物业', '配偶', '家属'],
+    value: ['馆领导', '部门负责人', '馆员', '工勤', '物业', '配偶', '家属', '待赴任馆员'],
     description: '角色选项列表',
     sort: 1
   },
@@ -94,7 +94,8 @@ const SYSTEM_CONFIGS = [
       '工勤': { showPosition: true, showDepartment: true, fixedDepartment: '办公室' },
       '物业': { showPosition: false, showDepartment: true, fixedDepartment: '办公室' },
       '配偶': { showPosition: true, showDepartment: false, fixedDepartment: null },
-      '家属': { showPosition: false, showDepartment: false, fixedDepartment: null }
+      '家属': { showPosition: false, showDepartment: false, fixedDepartment: null },
+      '待赴任馆员': { showPosition: false, showDepartment: false, fixedDepartment: null },
     },
     description: '角色-字段显示映射关系（控制各角色是否显示岗位、部门字段及固定部门）',
     sort: 30
@@ -436,7 +437,7 @@ const SYSTEM_CONFIGS = [
     type: 'trip',
     key: 'TRIP_DASHBOARD_ROLES',
     value: ['馆领导', '部门负责人', 'admin'],
-    description: '可访问出行管理Dashboard的角色列表',
+    description: '可访问出行数据板Dashboard的角色列表',
     sort: 105
   }
 ]
@@ -459,7 +460,7 @@ const PERMISSION_CONFIGS = [
   },
   {
     featureKey: 'trip_dashboard',
-    featureName: '出行管理',
+    featureName: '出行数据板',
     description: '查看和管理出行记录',
     enabledRoles: ['馆领导', '部门负责人'],
     requireAdmin: false
