@@ -93,14 +93,10 @@ Page({
   },
 
   onShow() {
-    // 字体缩放
-    const fontScale = app.globalData.fontScale || 1
-    if (this.data.fontScale !== fontScale) {
-      this.setData({
-        fontScale,
-        pageStyle: `--font-scale: ${fontScale}`
-      })
-    }
+    const fontStyle = app.globalData.fontStyle
+  if (this.data.fontStyle !== fontStyle) {
+    this.setData({ fontStyle })
+  }
     // 从发帖页返回时，清除当前分类缓存并刷新
     if (this._needRefresh) {
       this._needRefresh = false

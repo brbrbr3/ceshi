@@ -105,6 +105,14 @@ Page({
     this.loadComments()
   },
 
+  onShow() {
+    const app = getApp()
+    const fontStyle = app.globalData.fontStyle
+    if (this.data.fontStyle !== fontStyle) {
+      this.setData({ fontStyle })
+    }
+  },
+
   async loadPostDetail(forceRefresh = false) {
     const { postId } = this.data
     if (!postId) return

@@ -67,7 +67,7 @@
 
 /* 显示值 */
 .picker-value {
-  font-size: 28rpx;
+  font-size: var(--fs-28);
   color: #1E293B;
   font-weight: 500;
   letter-spacing: 0.5rpx;
@@ -91,7 +91,7 @@
 }
 
 .icon-arrow {
-  font-size: 20rpx;
+  font-size: var(--fs-20);
   color: #2563EB;
   transition: transform 0.3s ease;
 }
@@ -144,7 +144,7 @@
 .picker-btn {
   padding: 12rpx 24rpx;
   border-radius: 12rpx;
-  font-size: 28rpx;
+  font-size: var(--fs-28);
   transition: all 0.2s ease;
   position: relative;
   overflow: hidden;
@@ -188,7 +188,7 @@
 }
 
 .picker-title {
-  font-size: 32rpx;
+  font-size: var(--fs-32);
   font-weight: 600;
   color: #1E293B;
   letter-spacing: 1rpx;
@@ -212,7 +212,7 @@
   flex-direction: row;
   align-items: center;
   justify-content: center;
-  font-size: 32rpx;
+  font-size: var(--fs-32);
   color: #1E293B;
   font-weight: 500;
   white-space: nowrap;
@@ -225,14 +225,14 @@
 }
 
 .picker-column-num {
-  font-size: 36rpx;
+  font-size: var(--fs-36);
   font-weight: 600;
   color: #2563EB;
   text-align: center;
 }
 
 .picker-column-unit {
-  font-size: 22rpx;
+  font-size: var(--fs-22);
   color: #64748B;
   font-weight: 400;
   margin-left: 2rpx;
@@ -240,14 +240,14 @@
 
 /* 星期文本样式 */
 .picker-column-weekday {
-  font-size: 20rpx;
+  font-size: var(--fs-20);
   color:  #64748B;
   font-weight: 400;
   margin-left: 4rpx;
 }
 
 .picker-column-item--weekday {
-  font-size: 30rpx;
+  font-size: var(--fs-30);
   font-weight: 500;
   color: #1E293B;
 }

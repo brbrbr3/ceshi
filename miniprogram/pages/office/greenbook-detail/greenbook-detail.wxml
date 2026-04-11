@@ -1,4 +1,4 @@
-<view class="gb-detail-page" style="{{pageStyle}}">
+<view class="gb-detail-page" style="{{fontStyle}}">
   <!-- 顶部固定：发帖人信息 -->
   <view class="gb-detail-header" style="padding-top: {{statusBarHeight}}px;">
     <view class="gb-detail-header-inner">

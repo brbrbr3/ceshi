@@ -374,14 +374,10 @@ Page({
   },
 
   onShow() {
-    // 字体缩放
-    const fontScale = app.globalData.fontScale || 1
-    if (this.data.fontScale !== fontScale) {
-      this.setData({
-        fontScale,
-        pageStyle: `--font-scale: ${fontScale}`
-      })
-    }
+    const fontStyle = app.globalData.fontStyle
+  if (this.data.fontStyle !== fontStyle) {
+    this.setData({ fontStyle })
+  }
     // 检查是否有跳转目标（从消息中心或申请提交跳转过来）
     const targetTab = app.globalData.targetApprovalTab
     if (targetTab) {

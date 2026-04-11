@@ -1,4 +1,4 @@
-<view class="cp-page" style="{{pageStyle}}">
+<view class="cp-page" style="{{fontStyle}}">
   <!-- 渐变色头部 - 青蓝色 -->
   <view class="office-gradient-header cp-header">
     <view class="cp-header-content">

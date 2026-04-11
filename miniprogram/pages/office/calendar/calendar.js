@@ -166,14 +166,10 @@ Page({
   },
 
   onShow() {
-    // 字体缩放
-    const fontScale = app.globalData.fontScale || 1
-    if (this.data.fontScale !== fontScale) {
-      this.setData({
-        fontScale,
-        pageStyle: `--font-scale: ${fontScale}`
-      })
-    }
+    const fontStyle = app.globalData.fontStyle
+  if (this.data.fontStyle !== fontStyle) {
+    this.setData({ fontStyle })
+  }
     // 每次显示时重新加载日程列表（时间轴）
     // 注意：节假日和日程点标记已实现增量加载，不需要在 onShow 重复加载
     if (this.data.selectedDate) {

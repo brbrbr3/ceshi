@@ -100,7 +100,7 @@
   align-items: center;
   justify-content: center;
   background: rgba(255, 255, 255,0);
-  font-size: 72rpx;
+  font-size: var(--fs-72);
   margin-right: 16rpx;
 }
 
@@ -282,7 +282,7 @@
 }
 
 .trip-empty-icon {
-  font-size: 80rpx;
+  font-size: var(--fs-80);
   margin-bottom: 20rpx;
 }
 

@@ -28,7 +28,7 @@
 }
 
 .loading-text {
-  font-size: 28rpx;
+  font-size: var(--fs-28);
   color: #999;
 }
 
@@ -42,7 +42,7 @@
 }
 
 .no-more-text {
-  font-size: 24rpx;
+  font-size: var(--fs-24);
   color: #ccc;
 }
 
@@ -63,7 +63,7 @@
 }
 
 .empty-text {
-  font-size: 28rpx;
+  font-size: var(--fs-28);
   color: #999;
 }
 

@@ -215,7 +215,7 @@
 }
 
 .cp-empty-icon {
-  font-size: 96rpx;
+  font-size: var(--fs-96);
   margin-bottom: 20rpx;
 }
 

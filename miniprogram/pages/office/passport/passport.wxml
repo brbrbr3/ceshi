@@ -1,4 +1,4 @@
-<view class="passport-page" style="{{pageStyle}}">
+<view class="passport-page" style="{{fontStyle}}">
   <!-- 渐变色头部 -->
   <view class="office-gradient-header passport-header">
     <view class="passport-header-content">

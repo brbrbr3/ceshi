@@ -32,38 +32,38 @@
 }
 
 .approval-person-name {
-  font-size: 30rpx;
+  font-size: var(--fs-30);
   font-weight: 600;
   color: #1E293B;
 }
 
 .approval-person-sub {
-  font-size: 22rpx;
+  font-size: var(--fs-22);
   color: #94A3B8;
 }
 
 .approval-type-title {
   margin-top: 22rpx;
-  font-size: 30rpx;
+  font-size: var(--fs-30);
   font-weight: 600;
   color: #1E293B;
 }
 
 .approval-detail {
   margin-top: 12rpx;
-  font-size: 22rpx;
+  font-size: var(--fs-22);
   color: #4B6080;
 }
 
 .approval-meta {
   margin-top: 8rpx;
-  font-size: 22rpx;
+  font-size: var(--fs-22);
   color: #94A3B8;
 }
 
 .approval-time {
   margin-top: 10rpx;
-  font-size: 22rpx;
+  font-size: var(--fs-22);
   color: #94A3B8;
 }
 
@@ -72,7 +72,7 @@
   border-radius: 999rpx;
   background: #FFEBEE;
   color: #F44336;
-  font-size: 18rpx;
+  font-size: var(--fs-18);
 }
 
 /* 操作按钮 */
@@ -91,7 +91,7 @@
   display: flex;
   align-items: center;
   justify-content: center;
-  font-size: 24rpx;
+  font-size: var(--fs-24);
   font-weight: 600;
   transition: all 0.3s ease;
   position: relative;
@@ -153,13 +153,13 @@
 }
 
 .approval-progress-step {
-  font-size: 24rpx;
+  font-size: var(--fs-24);
   font-weight: 600;
   color: #1E293B;
 }
 
 .approval-progress-text {
-  font-size: 22rpx;
+  font-size: var(--fs-22);
   color: #9CA3AF;
 }
 

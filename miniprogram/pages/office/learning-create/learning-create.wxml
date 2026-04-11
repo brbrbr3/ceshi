@@ -1,4 +1,4 @@
-<view class="office-page learning-create-page" style="{{pageStyle}}">
+<view class="office-page learning-create-page" style="{{fontStyle}}">
   <view class="learning-create-header office-gradient-header">
     <view class="learning-create-title">发布新文章</view>
   </view>

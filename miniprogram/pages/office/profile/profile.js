@@ -90,17 +90,18 @@ Page({
       }
     ],
     fontsizeOptions: ['小', '中', '大', '特大'],
-    fontscaleValues: [1, 1.2, 1.5, 2],
+    fontscaleValues: [1, 1.1, 1.2, 1.4],
     selectedFontsizeStepperIndex: 1,
   },
 
   onShow() {
     //字体缩放，并记录设置
-    const fontScale = app.globalData.fontScale || 1
+    const fontScale = app.globalData.fontScale || 1.1
+    const fontStyle = app.globalData.fontStyle
     const scaleIndex = this.data.fontscaleValues.indexOf(fontScale)
     this.setData({
       fontScale,
-      pageStyle: `--font-scale: ${fontScale}`,
+      fontStyle,
       selectedFontsizeStepperIndex: scaleIndex >= 0 ? scaleIndex : 1
     })
     this.syncUserProfile()
@@ -122,19 +123,15 @@ Page({
 
   applyFontscaleStepper(index) {
     const scale = this.data.fontscaleValues[index]
+    const fontStyle = app.generateFontStyle(scale)
     this.setData({
       selectedFontsizeStepperIndex: index,
       fontScale: scale,
-      pageStyle: `--font-scale: ${scale}`
+      fontStyle
     })
-    // 写入 globalData（其他页面 onShow 时读取）
     app.globalData.fontScale = scale
-    // 写入缓存
-    try {
-      wx.setStorageSync('app-fontsize-cache', {
-        scale
-      })
-    } catch (e) {}
+    app.globalData.fontStyle = fontStyle
+    try { wx.setStorageSync('app-fontsize-cache', { scale }) } catch(e) {}
   },
 
   syncUserProfile() {

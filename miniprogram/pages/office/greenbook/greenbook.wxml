@@ -8,7 +8,7 @@
   </view>
 </view>
 
-<view class="greenbook-page" style="padding-top: {{statusBarHeight + 44}}px;">
+<view class="greenbook-page" style="padding-top: {{statusBarHeight + 44}}px; {{fontStyle}}">
   <!-- 分类Tab -->
   <scroll-view class="greenbook-categories" scroll-x enhanced show-scrollbar="{{false}}">
     <view class="greenbook-categories-inner">

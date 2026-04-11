@@ -163,7 +163,7 @@ page {
   display: flex;
   align-items: center;
   justify-content: center;
-  font-size: 70rpx;
+  font-size: var(--fs-70);
 }
 
 .home-calendar-title {

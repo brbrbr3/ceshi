@@ -1,4 +1,4 @@
-<view class="office-page menu-detail-page" style="{{pageStyle}}">
+<view class="office-page menu-detail-page" style="{{fontStyle}}">
   <view class="office-gradient-header menu-detail-header">
     <view>
       <view class="menu-detail-title">{{menu.title}}</view>

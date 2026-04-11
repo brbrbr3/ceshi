@@ -31,14 +31,10 @@ Page({
   },
 
   onShow() {
-    // 字体缩放
-    const fontScale = app.globalData.fontScale || 1
-    if (this.data.fontScale !== fontScale) {
-      this.setData({
-        fontScale,
-        pageStyle: `--font-scale: ${fontScale}`
-      })
-    }
+    const fontStyle = app.globalData.fontStyle
+  if (this.data.fontStyle !== fontStyle) {
+    this.setData({ fontStyle })
+  }
     // 如果列表为空或需要刷新，重新加载
     if (this.data.list.length === 0) {
       this.loadNotifications()

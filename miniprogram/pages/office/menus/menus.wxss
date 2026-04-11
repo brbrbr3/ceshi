@@ -157,7 +157,7 @@
 }
 
 .empty-icon {
-  font-size: 80rpx;
+  font-size: var(--fs-80);
 }
 
 .empty-text {

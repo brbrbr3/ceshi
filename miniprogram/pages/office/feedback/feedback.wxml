@@ -1,5 +1,5 @@
 <!-- 意见反馈页面 -->
-<view class="feedback-page" style="{{pageStyle}}">
+<view class="feedback-page" style="{{fontStyle}}">
   <!-- 渐变头部 -->
   <view class="feedback-gradient-header">
     <view class="feedback-header-top">
@@ -67,7 +67,7 @@
       class="feedback-input" 
       type="text" 
       placeholder="请输入您的意见..." 
-      placeholder-style="font-size: 36rpx;"
+      placeholder-style="font-size: var(--fs-36);"
       value="{{inputContent}}" 
       bindinput="handleInputChange"
       maxlength="1000"

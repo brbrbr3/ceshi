@@ -42,7 +42,7 @@
 }
 
 .sig-title {
-  font-size: 32rpx;
+  font-size: var(--fs-32);
   font-weight: bold;
   color: #333;
 }
@@ -55,7 +55,7 @@
 
 .sig-btn {
   padding: 8rpx 20rpx;
-  font-size: 24rpx;
+  font-size: var(--fs-24);
   color: #555;
   border-radius: 8rpx;
   background: #f5f5f5;
@@ -67,7 +67,7 @@
 
 .sig-btn-close {
   color: #999;
-  font-size: 28rpx;
+  font-size: var(--fs-28);
   padding: 8rpx 14rpx;
 }
 
@@ -105,7 +105,7 @@
 }
 
 .sig-hint-text {
-  font-size: 30rpx;
+  font-size: var(--fs-30);
   color: #ccc;
   letter-spacing: 8rpx;
 }
@@ -123,7 +123,7 @@
 }
 
 .sig-orient-hint text {
-  font-size: 26rpx;
+  font-size: var(--fs-26);
   color: #fff;
 }
 
@@ -164,7 +164,7 @@
 
 .sig-btn-cancel {
   padding: 14rpx 36rpx;
-  font-size: 26rpx;
+  font-size: var(--fs-26);
   color: #666;
   background: #f5f5f5;
   border-radius: 12rpx;
@@ -172,7 +172,7 @@
 
 .sig-btn-confirm {
   padding: 14rpx 36rpx;
-  font-size: 26rpx;
+  font-size: var(--fs-26);
   color: #fff;
   background: #16a34a;
   border-radius: 12rpx;

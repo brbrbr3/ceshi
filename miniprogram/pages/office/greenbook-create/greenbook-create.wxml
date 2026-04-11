@@ -1,4 +1,4 @@
-<view class="gb-create-page" style="{{pageStyle}}">
+<view class="gb-create-page" style="{{fontStyle}}">
   <!-- 顶部操作栏 -->
   <view class="gb-create-header">
     <view class="gb-create-cancel" bindtap="handleCancel">取消</view>

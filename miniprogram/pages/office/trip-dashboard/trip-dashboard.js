@@ -86,14 +86,10 @@ Page({
   },
 
   onShow() {
-    // 字体缩放
-    const fontScale = app.globalData.fontScale || 1
-    if (this.data.fontScale !== fontScale) {
-      this.setData({
-        fontScale,
-        pageStyle: `--font-scale: ${fontScale}`
-      })
-    }
+    const fontStyle = app.globalData.fontStyle
+  if (this.data.fontStyle !== fontStyle) {
+    this.setData({ fontStyle })
+  }
     // onShow 不再重复加载数据，避免重复请求
     // 数据已在 onLoad 中加载
   },

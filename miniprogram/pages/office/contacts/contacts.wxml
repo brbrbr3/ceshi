@@ -1,4 +1,4 @@
-<view class="office-page contacts-page" style="{{pageStyle}}">
+<view class="office-page contacts-page" style="{{fontStyle}}">
   <view class="office-gradient-header contacts-header">
     <view class="office-header-top">
       <view>

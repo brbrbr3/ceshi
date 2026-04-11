@@ -1,4 +1,4 @@
-<view class="office-page home-page" style="{{pageStyle}}">
+<view class="office-page home-page" style="{{fontStyle}}">
   <view class="office-gradient-header home-header">
    
 

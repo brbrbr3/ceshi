@@ -1,4 +1,4 @@
-<view class="office-page profile-page" style="{{pageStyle}}">
+<view class="office-page profile-page" style="{{fontStyle}}">
   <view class="office-gradient-header profile-header">
     <!-- <view class="profile-theme-switch" bindtap="showComingSoon">{{primaryTag}}</view> -->
 

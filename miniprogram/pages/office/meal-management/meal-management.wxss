@@ -101,7 +101,7 @@ page {
 }
 
 .meal-no-icon {
-  font-size: 80rpx;
+  font-size: var(--fs-80);
   margin-bottom: 20rpx;
 }
 
@@ -407,7 +407,7 @@ page {
 }
 
 .meal-empty-icon {
-  font-size: 72rpx;
+  font-size: var(--fs-72);
   margin-bottom: 20rpx;
 }
 

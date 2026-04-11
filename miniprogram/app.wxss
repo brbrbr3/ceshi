@@ -1,37 +1,5 @@
 /* reset */
 page {
-  /* 字体倍率：1=标准, 1.15=大, 1.3=特大 */
-  --font-scale: 1;
-
-  /* 令牌 = 基础值 × 倍率，用 calc 保证运行时可变 */
-  --fs-13: calc(13rpx * var(--font-scale));
-  --fs-16: calc(16rpx * var(--font-scale));
-  --fs-18: calc(18rpx * var(--font-scale));
-  --fs-20: calc(20rpx * var(--font-scale));
-  --fs-21: calc(21rpx * var(--font-scale));
-  --fs-22: calc(22rpx * var(--font-scale));
-  --fs-23: calc(23rpx * var(--font-scale));
-  --fs-24: calc(24rpx * var(--font-scale));
-  --fs-25: calc(25rpx * var(--font-scale));
-  --fs-26: calc(26rpx * var(--font-scale));
-  --fs-27: calc(27rpx * var(--font-scale));
-  --fs-28: calc(28rpx * var(--font-scale));
-  --fs-29: calc(29rpx * var(--font-scale));
-  --fs-30: calc(30rpx * var(--font-scale));
-  --fs-32: calc(32rpx * var(--font-scale));
-  --fs-34: calc(34rpx * var(--font-scale));
-  --fs-35: calc(35rpx * var(--font-scale));
-  --fs-36: calc(36rpx * var(--font-scale));
-  --fs-38: calc(38rpx * var(--font-scale));
-  --fs-40: calc(40rpx * var(--font-scale));
-  --fs-42: calc(42rpx * var(--font-scale));
-  --fs-44: calc(44rpx * var(--font-scale));
-  --fs-46: calc(46rpx * var(--font-scale));
-  --fs-48: calc(48rpx * var(--font-scale));
-  --fs-52: calc(52rpx * var(--font-scale));
-  --fs-56: calc(56rpx * var(--font-scale));
-  --fs-66: calc(66rpx * var(--font-scale));
-
   background-color: #EEF2FF;
   height: 100%;
   font-size: 16px;
@@ -120,13 +88,13 @@ input {
 }
 
 .office-section-title {
-  font-size: 32rpx;
+  font-size: var(--fs-32);
   font-weight: 600;
   color: #1E293B;
 }
 
 .office-link {
-  font-size: 24rpx;
+  font-size: var(--fs-24);
   color: #2563EB;
 }
 
@@ -143,7 +111,7 @@ input {
   border-radius: 999rpx;
   background: #FFFFFF;
   color: #4B6080;
-  font-size: 24rpx;
+  font-size: var(--fs-24);
   box-shadow: 0 8rpx 18rpx rgba(37, 99, 235, 0.06);
 }
 
@@ -159,7 +127,7 @@ input {
   justify-content: center;
   padding: 8rpx 16rpx;
   border-radius: 999rpx;
-  font-size: 20rpx;
+  font-size: var(--fs-20);
   line-height: 1;
 }
 
@@ -171,7 +139,7 @@ input {
   border-radius: 999rpx;
   background: #2563EB;
   color: #FFFFFF;
-  font-size: 24rpx;
+  font-size: var(--fs-24);
   font-weight: 600;
   box-shadow: 0 14rpx 28rpx rgba(37, 99, 235, 0.16);
 }
@@ -184,7 +152,7 @@ input {
   border-radius: 999rpx;
   background: #EFF6FF;
   color: #2563EB;
-  font-size: 24rpx;
+  font-size: var(--fs-24);
   font-weight: 600;
 }
 
@@ -196,7 +164,7 @@ input {
   align-items: center;
   justify-content: center;
   color: #FFFFFF;
-  font-size: 28rpx;
+  font-size: var(--fs-28);
   font-weight: 600;
 }
 
@@ -226,14 +194,14 @@ input {
   display: flex;
   align-items: center;
   justify-content: center;
-  font-size: 36rpx;
+  font-size: var(--fs-36);
   font-weight: 700;
   box-shadow: 0 16rpx 34rpx rgba(37, 99, 235, 0.2);
 }
 
 .auth-title {
   margin-top: 28rpx;
-  font-size: 48rpx;
+  font-size: var(--fs-48);
   line-height: 1.25;
   font-weight: 700;
   color: #0F172A;
@@ -241,7 +209,7 @@ input {
 
 .auth-subtitle {
   margin-top: 14rpx;
-  font-size: 28rpx;
+  font-size: var(--fs-28);
   line-height: 1.6;
   color: #475569;
 }
@@ -258,7 +226,7 @@ input {
   border-radius: 999rpx;
   background: rgba(37, 99, 235, 0.1);
   color: #1D4ED8;
-  font-size: 22rpx;
+  font-size: var(--fs-22);
   font-weight: 600;
 }
 
@@ -271,14 +239,14 @@ input {
 }
 
 .auth-card-title {
-  font-size: 32rpx;
+  font-size: var(--fs-32);
   font-weight: 700;
   color: #0F172A;
 }
 
 .auth-card-desc {
   margin-top: 12rpx;
-  font-size: 24rpx;
+  font-size: var(--fs-24);
   line-height: 1.7;
   color: #64748B;
 }
@@ -302,19 +270,19 @@ input {
   display: flex;
   align-items: center;
   justify-content: center;
-  font-size: 32rpx;
+  font-size: var(--fs-32);
   font-weight: 700;
 }
 
 .auth-wechat-title {
-  font-size: 28rpx;
+  font-size: var(--fs-28);
   font-weight: 600;
   color: #166534;
 }
 
 .auth-wechat-desc {
   margin-top: 8rpx;
-  font-size: 22rpx;
+  font-size: var(--fs-22);
   color: #15803D;
 }
 
@@ -325,7 +293,7 @@ input {
   border-radius: 24rpx;
   background: linear-gradient(135deg, #1D4ED8 0%, #3B82F6 100%);
   color: #FFFFFF;
-  font-size: 32rpx;
+  font-size: var(--fs-32);
   font-weight: 600;
   box-shadow: 0 16rpx 30rpx rgba(37, 99, 235, 0.18);
   padding: 24rpx 0 0;
@@ -337,7 +305,7 @@ input {
 
 .auth-note {
   margin-top: 18rpx;
-  font-size: 22rpx;
+  font-size: var(--fs-22);
   line-height: 1.7;
   color: #64748B;
   margin-bottom: 60rpx;
@@ -355,7 +323,7 @@ input {
 }
 
 .auth-status-title {
-  font-size: 30rpx;
+  font-size: var(--fs-30);
   font-weight: 700;
   color: #0F172A;
 }
@@ -363,7 +331,7 @@ input {
 .auth-status-tag {
   padding: 10rpx 18rpx;
   border-radius: 999rpx;
-  font-size: 20rpx;
+  font-size: var(--fs-20);
   font-weight: 600;
 }
 
@@ -410,7 +378,7 @@ input {
 .auth-status-extra,
 .auth-status-time {
   margin-top: 14rpx;
-  font-size: 22rpx;
+  font-size: var(--fs-22);
   line-height: 1.7;
   color: #64748B;
 }
@@ -422,7 +390,7 @@ input {
 .auth-bottom-link {
   margin-top: 24rpx;
   text-align: center;
-  font-size: 24rpx;
+  font-size: var(--fs-24);
   font-weight: 600;
   color: #2563EB;
 }
@@ -437,7 +405,7 @@ input {
 
 .auth-field-label {
   margin-bottom: 14rpx;
-  font-size: 28rpx;
+  font-size: var(--fs-28);
   font-weight: 600;
   color: #1E293B;
 }
@@ -466,19 +434,19 @@ input {
 
 .auth-input-shell input {
   width: 100%;
-  font-size: 26rpx;
+  font-size: var(--fs-26);
   color: #0F172A;
 }
 
 .auth-picker-value {
   flex: 1;
-  font-size: 26rpx;
+  font-size: var(--fs-26);
   color: #0F172A;
 }
 
 .auth-picker-arrow {
   margin-left: 16rpx;
-  font-size: 28rpx;
+  font-size: var(--fs-28);
   color: #94A3B8;
 }
 
@@ -493,7 +461,7 @@ input {
   border-radius: 24rpx;
   background: #F8FAFC;
   color: #475569;
-  font-size: 26rpx;
+  font-size: var(--fs-26);
   display: flex;
   align-items: center;
   justify-content: center;
@@ -517,12 +485,12 @@ input {
 }
 
 .auth-review-title {
-  font-size: 24rpx;
+  font-size: var(--fs-24);
   font-weight: 600;
 }
 
 .auth-review-text {
   margin-top: 10rpx;
-  font-size: 22rpx;
+  font-size: var(--fs-22);
   line-height: 1.7;
 }

@@ -1,6 +1,6 @@
 <view
   class="greenbook-card"
-  style="height: {{item.imageRatios[0] ? (cardWidth / item.imageRatios[0] + 80) : (cardWidth + 80)}}px;"
+  style="height: {{item.imageRatios[0] ? (cardWidth / item.imageRatios[0] + 90) : (cardWidth + 80)}}px; {{fontStyle}}"
   bindtap="handleCardTap"
   data-index="{{index}}"
   data-item="{{item}}"

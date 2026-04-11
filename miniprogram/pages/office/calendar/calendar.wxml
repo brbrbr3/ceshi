@@ -1,5 +1,5 @@
 <!--全馆日程页面-->
-<view class="calendar-page" style="{{pageStyle}}">
+<view class="calendar-page" style="{{fontStyle}}">
   <!-- 标准头部设计 -->
   <view class="office-gradient-header calendar-gradient-header">
     <view class="office-header-top calendar-header-top">

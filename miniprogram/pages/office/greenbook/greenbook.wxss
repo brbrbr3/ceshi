@@ -116,7 +116,7 @@ page {
 }
 
 .greenbook-empty-icon {
-  font-size: 80rpx;
+  font-size: var(--fs-80);
   margin-bottom: 16rpx;
 }
 
@@ -129,7 +129,7 @@ page {
 .greenbook-fab {
   position: fixed;
   right: 40rpx;
-  bottom: calc(120rpx + env(safe-area-inset-bottom));
+  bottom: calc(40rpx + env(safe-area-inset-bottom));
   width: 100rpx;
   height: 100rpx;
   border-radius: 50rpx;

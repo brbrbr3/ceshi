@@ -6,6 +6,97 @@ const PERMISSION_CACHE_KEY = 'app-permission-cache'
 const SUBSCRIBE_REQUEST_KEY = 'office-subscribe-requested'
 const VERSION_CACHE_KEY = 'app-cache-version'
 const FONTSIZE_CACHE_KEY = 'app-fontsize-cache'
+// 字体令牌基础值（rpx）
+const FONT_TOKENS = {
+  13: 13,
+  14: 14,
+  15: 15,
+  16: 16,
+  17: 17,
+  18: 18,
+  19: 19,
+  20: 20,
+  21: 21,
+  22: 22,
+  23: 23,
+  24: 24,
+  25: 25,
+  26: 26,
+  27: 27,
+  28: 28,
+  29: 29,
+  30: 30,
+  31: 31,
+  32: 32,
+  33: 33,
+  34: 34,
+  35: 35,
+  36: 36,
+  37: 37,
+  38: 38,
+  39: 39,
+  40: 40,
+  41: 41,
+  42: 42,
+  43: 43,
+  44: 44,
+  45: 45,
+  46: 46,
+  47: 47,
+  48: 48,
+  49: 49,
+  50: 50,
+  51: 51,
+  52: 52,
+  53: 53,
+  54: 54,
+  55: 55,
+  56: 56,
+  57: 57,
+  58: 58,
+  59: 59,
+  60: 60,
+  61: 61,
+  62: 62,
+  63: 63,
+  64: 64,
+  65: 65,
+  66: 66,
+  67: 67,
+  68: 68,
+  69: 69,
+  70: 70,
+  71: 71,
+  72: 72,
+  73: 73,
+  74: 74,
+  75: 75,
+  76: 76,
+  77: 77,
+  78: 78,
+  79: 79,
+  80: 80,
+  81: 81,
+  82: 82,
+  83: 83,
+  84: 84,
+  85: 85,
+  86: 86,
+  87: 87,
+  88: 88,
+  89: 89,
+  90: 90,
+  91: 91,
+  92: 92,
+  93: 93,
+  94: 94,
+  95: 95,
+  96: 96,
+  97: 97,
+  98: 98,
+  99: 99,
+  100: 100
+}
 
 global.isDemo = true
 
@@ -85,10 +176,21 @@ App({
   // 读取字体缩放缓存并设置
   readAndSetFontScale() {
     const cached = readStorage(FONTSIZE_CACHE_KEY)
-    const scale = cached ? cached.scale : 1
+    const scale = cached ? cached.scale : 1.1
     this.globalData.fontScale = scale
+    this.globalData.fontStyle = this.generateFontStyle(scale)
   },
 
+  // 根据 fontScale 生成所有令牌的 CSS 变量字符串
+  generateFontStyle(scale) {
+    const vars = Object.entries(FONT_TOKENS)
+      .map(([key, baseRpx]) => {
+        const scaled = Math.round(baseRpx * scale * 100) / 100
+        return `--fs-${key}: ${scaled}rpx`
+      })
+      .join('; ')
+    return vars
+  },
 
   /**
    * 检查缓存版本号，版本变化时清除常量、权限的内存、缓存
@@ -160,7 +262,8 @@ App({
     targetApprovalTab: null, // 目标审批tab（用于消息跳转：'pending'=待审批, 'mine'=我的发起）
     constantsCache: null, // 常量缓存
     permissionCache: null, // 权限缓存
-    fontScale: 1,  // ← 新增，字体缩放默认值
+    fontScale: 1.1, // ← 新增，字体缩放默认值
+    fontStyle: '', // ← 新增
   }, getDefaultAuthState()),
 
   restoreAuthState() {
@@ -927,17 +1030,17 @@ App({
       // 审批中心配置
       APPROVAL_REVIEWER_ROLES: ['馆领导', '部门负责人'],
       APPROVAL_TABS: [{
-          key: 'pending',
-          label: '待审批'
-        },
-        {
-          key: 'mine',
-          label: '我发起的'
-        },
-        {
-          key: 'done',
-          label: '已处理'
-        }
+        key: 'pending',
+        label: '待审批'
+      },
+      {
+        key: 'mine',
+        label: '我发起的'
+      },
+      {
+        key: 'done',
+        label: '已处理'
+      }
       ],
       APPROVAL_TAB_PERMISSION: {
         withReview: ['pending', 'mine', 'done'],

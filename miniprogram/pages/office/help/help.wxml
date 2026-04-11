@@ -1,4 +1,4 @@
-<view class="feedback-container">
+<view class="feedback-container" style="{{fontStyle}}">
   <!-- 头部区域 -->
   <view class="feedback-header office-gradient-header">
     <view class="feedback-header-content">

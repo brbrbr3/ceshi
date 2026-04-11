@@ -24,6 +24,14 @@ Page({
     }
   },
 
+  onShow() {
+    const app = getApp()
+    const fontStyle = app.globalData.fontStyle
+    if (this.data.fontStyle !== fontStyle) {
+      this.setData({ fontStyle })
+    }
+  },
+
   getDefaultContent() {
     return '周一：<br/><br/>周二：<br/><br/>周三：<br/><br/>周四：<br/><br/>周五：<br/><br/>'
   },

@@ -1,4 +1,4 @@
-<view class="office-page sig-page" style="{{pageStyle}}">
+<view class="office-page sig-page" style="{{fontStyle}}">
   <view class="office-gradient-header sig-header">
     <view class="office-header-top">
       <view>

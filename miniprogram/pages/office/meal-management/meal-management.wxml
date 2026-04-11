@@ -1,4 +1,4 @@
-<view class="office-page meal-page" style="{{pageStyle}}">
+<view class="office-page meal-page" style="{{fontStyle}}">
   <!-- 渐变头部 -->
   <view class="office-gradient-header meal-header">
     <view class="meal-header-top">
