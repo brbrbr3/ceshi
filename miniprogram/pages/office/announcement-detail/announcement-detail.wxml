@@ -1,4 +1,4 @@
-<view class="office-page announcement-detail-page">
+<view class="office-page announcement-detail-page" style="{{pageStyle}}">
   <!-- 渐变头部 -->
   <view class="office-gradient-header detail-header">
     <view class="office-header-top">

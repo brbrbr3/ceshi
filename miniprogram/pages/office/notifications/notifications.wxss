@@ -14,7 +14,7 @@
 }
 
 .office-header-title {
-  font-size: 36rpx;
+  font-size: var(--fs-36);
   font-weight: 600;
   color: #1F2937;
 }
@@ -41,7 +41,7 @@
 }
 
 .empty-text {
-  font-size: 28rpx;
+  font-size: var(--fs-28);
   color: #9CA3AF;
 }
 
@@ -81,7 +81,7 @@
   display: flex;
   align-items: center;
   justify-content: center;
-  font-size: 40rpx;
+  font-size: var(--fs-40);
   flex-shrink: 0;
 }
 
@@ -91,7 +91,7 @@
 }
 
 .notification-title {
-  font-size: 28rpx;
+  font-size: var(--fs-28);
   font-weight: 500;
   color: #1F2937;
   margin-bottom: 8rpx;
@@ -103,7 +103,7 @@
 }
 
 .notification-content {
-  font-size: 24rpx;
+  font-size: var(--fs-24);
   color: #6B7280;
   line-height: 1.6;
   margin-bottom: 8rpx;
@@ -115,7 +115,7 @@
 }
 
 .notification-time {
-  font-size: 22rpx;
+  font-size: var(--fs-22);
   color: #9CA3AF;
 }
 

@@ -65,7 +65,7 @@ page {
   justify-content: center;
   padding: 12rpx 28rpx;
   border-radius: 999rpx;
-  font-size: 24rpx;
+  font-size: var(--fs-24);
   color: #64748B;
   background: #F1F5F9;
 }
@@ -102,7 +102,7 @@ page {
 .greenbook-load-more {
   padding: 24rpx 0 40rpx;
   text-align: center;
-  font-size: 24rpx;
+  font-size: var(--fs-24);
   color: #94A3B8;
 }
 
@@ -121,7 +121,7 @@ page {
 }
 
 .greenbook-empty-text {
-  font-size: 28rpx;
+  font-size: var(--fs-28);
   color: #94A3B8;
 }
 
@@ -142,7 +142,7 @@ page {
 }
 
 .greenbook-fab-icon {
-  font-size: 48rpx;
+  font-size: var(--fs-48);
   color: #FFFFFF;
   font-weight: 700;
   line-height: 1;

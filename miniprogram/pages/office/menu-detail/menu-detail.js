@@ -39,6 +39,14 @@ Page({
   },
 
   onShow() {
+    // 字体缩放
+    const fontScale = app.globalData.fontScale || 1
+    if (this.data.fontScale !== fontScale) {
+      this.setData({
+        fontScale,
+        pageStyle: `--font-scale: ${fontScale}`
+      })
+    }
     // 每次显示页面时刷新数据（从编辑页返回时自动更新）
     if (this.data.menuId) {
       this.loadMenu()

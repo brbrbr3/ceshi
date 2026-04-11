@@ -144,6 +144,14 @@ Page({
   },
 
   onShow() {
+    // 字体缩放
+    const fontScale = app.globalData.fontScale || 1
+    if (this.data.fontScale !== fontScale) {
+      this.setData({
+        fontScale,
+        pageStyle: `--font-scale: ${fontScale}`
+      })
+    }
     // 每次显示时重新加载预约列表（如果已完成测量）
     if (this.actualHourHeightPx > 0) {
       this.loadReservations()

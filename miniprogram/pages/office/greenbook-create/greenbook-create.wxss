@@ -24,19 +24,19 @@ page {
 }
 
 .gb-create-cancel {
-  font-size: 28rpx;
+  font-size: var(--fs-28);
   color: #64748B;
   padding: 8rpx 16rpx;
 }
 
 .gb-create-title {
-  font-size: 32rpx;
+  font-size: var(--fs-32);
   font-weight: 600;
   color: #1E293B;
 }
 
 .gb-create-publish {
-  font-size: 28rpx;
+  font-size: var(--fs-28);
   font-weight: 600;
   color: #FFFFFF;
   background: #16A34A;
@@ -58,7 +58,7 @@ page {
 }
 
 .gb-create-label {
-  font-size: 26rpx;
+  font-size: var(--fs-26);
   font-weight: 600;
   color: #1E293B;
   margin-bottom: 16rpx;
@@ -95,7 +95,7 @@ page {
   display: flex;
   align-items: center;
   justify-content: center;
-  font-size: 24rpx;
+  font-size: var(--fs-24);
   border-bottom-left-radius: 16rpx;
 }
 
@@ -112,20 +112,20 @@ page {
 }
 
 .gb-create-image-add-icon {
-  font-size: 48rpx;
+  font-size: var(--fs-48);
   color: #94A3B8;
   font-weight: 300;
   line-height: 1;
 }
 
 .gb-create-image-add-text {
-  font-size: 20rpx;
+  font-size: var(--fs-20);
   color: #94A3B8;
 }
 
 /* 标题输入 */
 .gb-create-title-input {
-  font-size: 32rpx;
+  font-size: var(--fs-32);
   font-weight: 600;
   color: #1E293B;
   padding: 8rpx 0;
@@ -133,7 +133,7 @@ page {
 
 /* 正文输入 */
 .gb-create-content-input {
-  font-size: 28rpx;
+  font-size: var(--fs-28);
   color: #1E293B;
   width: 100%;
   min-height: 200rpx;
@@ -142,7 +142,7 @@ page {
 
 .gb-create-content-count {
   text-align: right;
-  font-size: 22rpx;
+  font-size: var(--fs-22);
   color: #94A3B8;
   margin-top: 8rpx;
 }
@@ -163,12 +163,12 @@ page {
   border-radius: 16rpx;
   background: #F0FDF4;
   color: #16A34A;
-  font-size: 24rpx;
+  font-size: var(--fs-24);
 }
 
 .gb-create-tag-delete {
   color: #94A3B8;
-  font-size: 20rpx;
+  font-size: var(--fs-20);
 }
 
 .gb-create-tag-input-row {
@@ -182,7 +182,7 @@ page {
   background: #F8FAFC;
   border-radius: 16rpx;
   padding: 0 20rpx;
-  font-size: 26rpx;
+  font-size: var(--fs-26);
 }
 
 .gb-create-tag-add {
@@ -191,7 +191,7 @@ page {
   border-radius: 16rpx;
   background: #16A34A;
   color: #FFFFFF;
-  font-size: 26rpx;
+  font-size: var(--fs-26);
   display: flex;
   align-items: center;
   font-weight: 600;
@@ -205,13 +205,13 @@ page {
   padding: 20rpx 24rpx;
   background: #F8FAFC;
   border-radius: 16rpx;
-  font-size: 28rpx;
+  font-size: var(--fs-28);
   color: #1E293B;
 }
 
 .gb-create-category-arrow {
   color: #94A3B8;
-  font-size: 28rpx;
+  font-size: var(--fs-28);
 }
 
 /* 分类弹窗 */
@@ -244,7 +244,7 @@ page {
 }
 
 .gb-create-picker-title {
-  font-size: 32rpx;
+  font-size: var(--fs-32);
   font-weight: 600;
   color: #1E293B;
   margin-bottom: 24rpx;
@@ -262,7 +262,7 @@ page {
   text-align: center;
   border-radius: 16rpx;
   background: #F8FAFC;
-  font-size: 28rpx;
+  font-size: var(--fs-28);
   color: #475569;
 }
 

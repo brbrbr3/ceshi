@@ -4,7 +4,8 @@ const USER_INFO_CACHE_KEY = 'app-user-info-cache'
 const CONSTANTS_CACHE_KEY = 'app-constants-cache'
 const PERMISSION_CACHE_KEY = 'app-permission-cache'
 const SUBSCRIBE_REQUEST_KEY = 'office-subscribe-requested'
-const CACHE_VERSION_KEY = 'app-cache-version'
+const VERSION_CACHE_KEY = 'app-cache-version'
+const FONTSIZE_CACHE_KEY = 'app-fontsize-cache'
 
 global.isDemo = true
 
@@ -75,45 +76,50 @@ App({
       })
     }
 
-    // 检查缓存版本号，版本变化时清除用户信息和权限缓存
+    // 检查缓存版本号，版本变化时清除常量、权限的内存、缓存
     this.checkCacheVersion()
 
-    this.restoreAuthState()
-    // 初始化函数改为手动调用（通过 login 页面的调试模式）
+    this.readAndSetFontScale()
   },
 
+  // 读取字体缩放缓存并设置
+  readAndSetFontScale() {
+    const cached = readStorage(FONTSIZE_CACHE_KEY)
+    const scale = cached ? cached.scale : 1
+    this.globalData.fontScale = scale
+  },
+
+
   /**
-   * 检查缓存版本号，版本变化时清除相关缓存
+   * 检查缓存版本号，版本变化时清除常量、权限的内存、缓存
    * （但不更新缓存版本号，后续在updateCacheVersionAndShowWhatsNew函数更新缓存版本号并showModal）
    */
   checkCacheVersion() {
-    const storedVersion = readStorage(CACHE_VERSION_KEY)
+    const storedVersion = readStorage(VERSION_CACHE_KEY)
     if (storedVersion !== config.CACHE_VERSION) {
       //清除常量、权限的内存、缓存
       this.clearConstantsCache()
       this.clearPermissionCache()
-      console.log('新版缓存为'+config.CACHE_VERSION+'，现已清除旧内存、缓存（PERMISSION_CACHE_KEY, CONSTANTS_CACHE_KEY）')
-    }
-    else{
-      console.log('缓存版本未变，为'+storedVersion)
+      console.log('新版缓存为' + config.CACHE_VERSION + '，现已清除旧内存、缓存（PERMISSION_CACHE_KEY, CONSTANTS_CACHE_KEY）')
+    } else {
+      console.log('缓存版本未变，为' + storedVersion)
     }
   },
 
   //登录后调用，更新缓存版本号，展示更新说明modal
-  updateCacheVersionAndShowWhatsNew(){
-    const storedVersion = readStorage(CACHE_VERSION_KEY)
+  updateCacheVersionAndShowWhatsNew() {
+    const storedVersion = readStorage(VERSION_CACHE_KEY)
     if (storedVersion !== config.CACHE_VERSION) {
-      writeStorage(CACHE_VERSION_KEY, config.CACHE_VERSION)
-      console.log('缓存版本已更新为'+config.CACHE_VERSION)
+      writeStorage(VERSION_CACHE_KEY, config.CACHE_VERSION)
+      console.log('缓存版本已更新为' + config.CACHE_VERSION)
       wx.showModal({
-        title: '版本'+config.CACHE_VERSION+'更新说明',
+        title: '版本' + config.CACHE_VERSION + '更新说明',
         content: config.VERSION_DESCRIPTION,
         showCancel: false,
         confirmText: '我知道了'
       })
-    }
-    else{
-      console.log('缓存版本未变，为'+storedVersion)
+    } else {
+      console.log('缓存版本未变，为' + storedVersion)
     }
   },
 
@@ -125,7 +131,9 @@ App({
     // App 隐藏
   },
 
-  onThemeChange({ theme }) {
+  onThemeChange({
+    theme
+  }) {
     this.globalData.theme = theme
     themeListeners.forEach((listener) => {
       listener(theme)
@@ -152,6 +160,7 @@ App({
     targetApprovalTab: null, // 目标审批tab（用于消息跳转：'pending'=待审批, 'mine'=我的发起）
     constantsCache: null, // 常量缓存
     permissionCache: null, // 权限缓存
+    fontScale: 1,  // ← 新增，字体缩放默认值
   }, getDefaultAuthState()),
 
   restoreAuthState() {
@@ -197,7 +206,7 @@ App({
   },
 
   //清除全部内存、缓存
-  clearOverallState(){
+  clearOverallState() {
     //清除用户信息缓存（内存+本地存储）
     this.clearAuthState()
     //清除常量缓存、权限缓存（内存+本地存储）
@@ -233,7 +242,9 @@ App({
   callOfficeAuth(action, payload) {
     return wx.cloud.callFunction({
       name: 'officeAuth',
-      data: Object.assign({ action }, payload || {})
+      data: Object.assign({
+        action
+      }, payload || {})
     }).then((res) => {
       const result = res.result || {}
       if (result.code !== 0) {
@@ -253,14 +264,16 @@ App({
    * @returns {Promise<Object>} 用户注册信息
    */
   checkUserRegistration(options = {}) {
-    const { forceRefresh = false } = options
+    const {
+      forceRefresh = false
+    } = options
 
     // 非强制刷新时，先检查缓存
     if (!forceRefresh) {
       const cached = readStorage(USER_INFO_CACHE_KEY)
       if (cached && cached.hasLogin) {
         // 缓存有效，直接返回
-      console.log('用户信息缓存已存在，跳过加载')
+        console.log('用户信息缓存已存在，跳过加载')
         return Promise.resolve({
           registered: cached.hasLogin,
           openid: cached.openid,
@@ -298,7 +311,9 @@ App({
   },
 
   submitRegistration(formData) {
-    return this.callOfficeAuth('submitRegistration', { formData }).then((data) => {
+    return this.callOfficeAuth('submitRegistration', {
+      formData
+    }).then((data) => {
       this.setAuthState({
         hasLogin: false,
         openid: data.openid || this.globalData.openid,
@@ -311,7 +326,9 @@ App({
   },
 
   submitProfileUpdate(formData) {
-    return this.callOfficeAuth('submitProfileUpdate', { formData }).then((data) => {
+    return this.callOfficeAuth('submitProfileUpdate', {
+      formData
+    }).then((data) => {
       return data
     })
   },
@@ -398,7 +415,9 @@ App({
       return
     }
 
-    const { page = 1, pageSize = 20 } = options || {}
+    const {
+      page = 1, pageSize = 20
+    } = options || {}
 
     const db = wx.cloud.database()
     db.collection('notifications')
@@ -415,7 +434,7 @@ App({
           data: data,
           hasMore: data.length >= pageSize
         }
-        
+
         if (callback && typeof callback === 'function') {
           callback(result)
         } else {
@@ -427,7 +446,7 @@ App({
           data: [],
           hasMore: false
         }
-        
+
         if (callback && typeof callback === 'function') {
           callback(errorResult)
         } else {
@@ -696,11 +715,11 @@ App({
       // 角色相关
       ROLE_OPTIONS: ['馆领导', '部门负责人', '馆员', '工勤', '物业', '配偶', '家属'],
       ROLE_POSITION_MAP: {
-      '馆领导': ['无', '人事主管', '会计主管'],
-      '部门负责人': ['无', '人事主管', '会计主管', '会计', '出纳', '俱乐部', '阳光课堂'],
-      '馆员': ['无', '礼宾', '会计', '出纳', '俱乐部', '阳光课堂'],
-      '工勤': ['招待员', '厨师'],
-      '配偶': ['无', '出纳', '内聘']
+        '馆领导': ['无', '人事主管', '会计主管'],
+        '部门负责人': ['无', '人事主管', '会计主管', '会计', '出纳', '俱乐部', '阳光课堂'],
+        '馆员': ['无', '礼宾', '会计', '出纳', '俱乐部', '阳光课堂'],
+        '工勤': ['招待员', '厨师'],
+        '配偶': ['无', '出纳', '内聘']
       },
       NEED_RELATIVE_ROLES: ['配偶', '家属'],
       DEFAULT_ROLE: '',
@@ -715,13 +734,41 @@ App({
 
       // 角色-字段显示映射关系
       ROLE_FIELD_VISIBILITY: {
-        '馆领导': { showPosition: true, showDepartment: false, fixedDepartment: null },
-        '部门负责人': { showPosition: true, showDepartment: true, fixedDepartment: null },
-        '馆员': { showPosition: true, showDepartment: true, fixedDepartment: null },
-        '工勤': { showPosition: true, showDepartment: true, fixedDepartment: '办公室' },
-        '物业': { showPosition: false, showDepartment: true, fixedDepartment: '办公室' },
-        '配偶': { showPosition: true, showDepartment: false, fixedDepartment: null },
-        '家属': { showPosition: false, showDepartment: false, fixedDepartment: null }
+        '馆领导': {
+          showPosition: true,
+          showDepartment: false,
+          fixedDepartment: null
+        },
+        '部门负责人': {
+          showPosition: true,
+          showDepartment: true,
+          fixedDepartment: null
+        },
+        '馆员': {
+          showPosition: true,
+          showDepartment: true,
+          fixedDepartment: null
+        },
+        '工勤': {
+          showPosition: true,
+          showDepartment: true,
+          fixedDepartment: '办公室'
+        },
+        '物业': {
+          showPosition: false,
+          showDepartment: true,
+          fixedDepartment: '办公室'
+        },
+        '配偶': {
+          showPosition: true,
+          showDepartment: false,
+          fixedDepartment: null
+        },
+        '家属': {
+          showPosition: false,
+          showDepartment: false,
+          fixedDepartment: null
+        }
       },
 
       // 性别相关
@@ -742,10 +789,22 @@ App({
         terminated: '已中止'
       },
       REQUEST_STATUS_STYLE: {
-        pending: { color: '#D97706', bg: '#FEF3C7' },
-        approved: { color: '#16A34A', bg: '#DCFCE7' },
-        rejected: { color: '#DC2626', bg: '#FEE2E2' },
-        terminated: { color: '#DC2626', bg: '#FEE2E2' }
+        pending: {
+          color: '#D97706',
+          bg: '#FEF3C7'
+        },
+        approved: {
+          color: '#16A34A',
+          bg: '#DCFCE7'
+        },
+        rejected: {
+          color: '#DC2626',
+          bg: '#FEE2E2'
+        },
+        terminated: {
+          color: '#DC2626',
+          bg: '#FEE2E2'
+        }
       },
 
       // 工作流状态
@@ -867,10 +926,18 @@ App({
 
       // 审批中心配置
       APPROVAL_REVIEWER_ROLES: ['馆领导', '部门负责人'],
-      APPROVAL_TABS: [
-        { key: 'pending', label: '待审批' },
-        { key: 'mine', label: '我发起的' },
-        { key: 'done', label: '已处理' }
+      APPROVAL_TABS: [{
+          key: 'pending',
+          label: '待审批'
+        },
+        {
+          key: 'mine',
+          label: '我发起的'
+        },
+        {
+          key: 'done',
+          label: '已处理'
+        }
       ],
       APPROVAL_TAB_PERMISSION: {
         withReview: ['pending', 'mine', 'done'],
@@ -893,9 +960,21 @@ App({
         overtime: '超时未归'
       },
       TRIP_STATUS_STYLE: {
-        out: { color: '#2563EB', bg: '#EFF6FF', icon: '🚗' },
-        returned: { color: '#16A34A', bg: '#DCFCE7', icon: '✓' },
-        overtime: { color: '#DC2626', bg: '#FEE2E2', icon: '⚠' }
+        out: {
+          color: '#2563EB',
+          bg: '#EFF6FF',
+          icon: '🚗'
+        },
+        returned: {
+          color: '#16A34A',
+          bg: '#DCFCE7',
+          icon: '✓'
+        },
+        overtime: {
+          color: '#DC2626',
+          bg: '#FEE2E2',
+          icon: '⚠'
+        }
       },
       TRIP_OVERTIME_HOURS: 1,
       TRIP_DASHBOARD_ROLES: ['馆领导', '部门负责人', 'admin']

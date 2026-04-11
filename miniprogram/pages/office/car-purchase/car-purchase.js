@@ -119,6 +119,14 @@ Page({
   },
 
   async onShow() {
+    // 字体缩放
+    const fontScale = app.globalData.fontScale || 1
+    if (this.data.fontScale !== fontScale) {
+      this.setData({
+        fontScale,
+        pageStyle: `--font-scale: ${fontScale}`
+      })
+    }
     if (!this.data.showFormPopup && !this.data.showDetailPopup && !this.data.showStepEditPopup && !this.data.showPurchaseAppForm && !this.data.showPurchaseLoanForm && !this.data.showTypeSelector) {
       wx.showLoading({ title: '加载中...', mask: true })
       try {

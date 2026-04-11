@@ -12,12 +12,12 @@
 }
 
 .detail-title {
-  font-size: 32rpx;
+  font-size: var(--fs-32);
   color: #FFFFFF;
 }
 
 .detail-subtitle {
-  font-size: 42rpx;
+  font-size: var(--fs-42);
   font-weight: 600;
   color: rgba(255, 255, 255);
   overflow: hidden;
@@ -46,7 +46,7 @@
 .detail-tag {
   padding: 8rpx 20rpx;
   border-radius: 16rpx;
-  font-size: 22rpx;
+  font-size: var(--fs-22);
   font-weight: 500;
 }
 
@@ -79,7 +79,7 @@
   display: flex;
   align-items: baseline;
   margin-top: 18rpx;
-  font-size: 26rpx;
+  font-size: var(--fs-26);
   color: #475569;
 }
 
@@ -100,14 +100,14 @@
 }
 
 .detail-body {
-  font-size: 28rpx;
+  font-size: var(--fs-28);
   color: #334155;
   line-height: 1.8;
   word-break: break-all;
 }
 
 .body-text {
-  font-size: 28rpx;
+  font-size: var(--fs-28);
   color: #64748B;
   line-height: 1.8;
 }
@@ -120,7 +120,7 @@
 }
 
 .group-card-title {
-  font-size: 28rpx;
+  font-size: var(--fs-28);
   font-weight: 600;
   color: #1E293B;
   margin-bottom: 20rpx;
@@ -143,13 +143,13 @@
 }
 
 .group-name {
-  font-size: 26rpx;
+  font-size: var(--fs-26);
   color: #334155;
   font-weight: 500;
 }
 
 .group-count {
-  font-size: 22rpx;
+  font-size: var(--fs-22);
   color: #7C3AED;
   background: #EDE9FE;
   padding: 4rpx 14rpx;
@@ -164,7 +164,7 @@
 }
 
 .reg-card-title {
-  font-size: 28rpx;
+  font-size: var(--fs-28);
   font-weight: 600;
   color: #1E293B;
   margin-bottom: 20rpx;
@@ -191,13 +191,13 @@
   display: flex;
   align-items: center;
   justify-content: center;
-  font-size: 26rpx;
+  font-size: var(--fs-26);
   font-weight: 600;
   flex-shrink: 0;
 }
 
 .reg-name {
-  font-size: 26rpx;
+  font-size: var(--fs-26);
   color: #334155;
   font-weight: 500;
   flex: 1;
@@ -208,7 +208,7 @@
 }
 
 .reg-group {
-  font-size: 22rpx;
+  font-size: var(--fs-22);
   color: #7C3AED;
   background: #EDE9FE;
   padding: 4rpx 14rpx;
@@ -217,7 +217,7 @@
 }
 
 .reg-time {
-  font-size: 20rpx;
+  font-size: var(--fs-20);
   color: #94A3B8;
   flex-shrink: 0;
 }
@@ -239,7 +239,7 @@
   width: 100% !important;
   height: 88rpx;
   border-radius: 20rpx;
-  font-size: 28rpx;
+  font-size: var(--fs-28);
   font-weight: 600;
   display: flex;
   align-items: center;
@@ -328,13 +328,13 @@
 }
 
 .picker-title {
-  font-size: 32rpx;
+  font-size: var(--fs-32);
   font-weight: 600;
   color: #1E293B;
 }
 
 .picker-close {
-  font-size: 44rpx;
+  font-size: var(--fs-44);
   color: #64748B;
   width: 52rpx;
   text-align: center;
@@ -360,13 +360,13 @@
 }
 
 .option-name {
-  font-size: 30rpx;
+  font-size: var(--fs-30);
   color: #1E293B;
   font-weight: 500;
 }
 
 .option-count {
-  font-size: 24rpx;
+  font-size: var(--fs-24);
   color: #94A3B8;
 }
 

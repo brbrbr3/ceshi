@@ -12,13 +12,13 @@
 
 /* 头部标题 */
 .calendar-title {
-  font-size: 48rpx;
+  font-size: var(--fs-48);
   font-weight: 600;
   color: #FFFFFF;
 }
 
 .calendar-subtitle {
-  font-size: 26rpx;
+  font-size: var(--fs-26);
   color: rgba(255, 255, 255, 0.8);
   margin-top: 4rpx;
 }
@@ -29,7 +29,7 @@
   border-radius: 24rpx;
   background: rgba(255, 255, 255, 0.2);
   color: #FFFFFF;
-  font-size: 24rpx;
+  font-size: var(--fs-24);
   font-weight: 600;
   border: 1rpx solid rgba(255, 255, 255, 0.3);
 }
@@ -94,13 +94,13 @@
 
 /* 弹窗标题 */
 .config-popup-title {
-  font-size: 34rpx;
+  font-size: var(--fs-34);
   font-weight: 600;
   color: #1E293B;
 }
 
 .config-popup-close {
-  font-size: 48rpx;
+  font-size: var(--fs-48);
   color: #94A3B8;
   line-height: 1;
   padding: 0 8rpx;
@@ -127,13 +127,13 @@
 }
 
 .config-field-label {
-  font-size: 28rpx;
+  font-size: var(--fs-28);
   color: #1E293B;
   font-weight: 500;
 }
 
 .config-field-label-inline {
-  font-size: 28rpx;
+  font-size: var(--fs-28);
   color: #1E293B;
   font-weight: 500;
 }
@@ -148,13 +148,13 @@
 }
 
 .config-year-picker text:first-child {
-  font-size: 28rpx;
+  font-size: var(--fs-28);
   color: #2563EB;
   font-weight: 600;
 }
 
 .config-picker-arrow {
-  font-size: 20rpx;
+  font-size: var(--fs-20);
   color: #94A3B8;
   margin-left: 8rpx;
 }
@@ -174,7 +174,7 @@
 }
 
 .config-holiday-label {
-  font-size: 26rpx;
+  font-size: var(--fs-26);
   color: #64748B;
   width: 180rpx;
   flex-shrink: 0;
@@ -192,7 +192,7 @@
 }
 
 .config-date-picker text:first-child {
-  font-size: 28rpx;
+  font-size: var(--fs-28);
   color: #1E293B;
 }
 
@@ -204,7 +204,7 @@
   justify-content: center;
   background: #FEE2E2;
   border-radius: 50%;
-  font-size: 32rpx;
+  font-size: var(--fs-32);
   color: #DC2626;
   flex-shrink: 0;
 }
@@ -215,7 +215,7 @@
   align-items: center;
   justify-content: center;
   height: 96rpx;
-  font-size: 32rpx;
+  font-size: var(--fs-32);
   font-weight: 600;
   border-radius: 16rpx;
   border: none;
@@ -225,7 +225,7 @@
 }
 
 .config-add-icon {
-  font-size: 36rpx;
+  font-size: var(--fs-36);
   font-weight: 600;
 }
 
@@ -244,7 +244,7 @@
   height: 96rpx;
   background: linear-gradient(135deg, #2563EB 0%, #4F46E5 100%);
   color: #FFFFFF;
-  font-size: 32rpx;
+  font-size: var(--fs-32);
   font-weight: 600;
   border-radius: 16rpx;
   border: none;
@@ -278,13 +278,13 @@
 }
 
 .schedule-date-title {
-  font-size: 30rpx;
+  font-size: var(--fs-30);
   font-weight: 600;
   color: #1E293B;
 }
 
 .schedule-date-count {
-  font-size: 26rpx;
+  font-size: var(--fs-26);
   color: #64748B;
 }
 
@@ -299,7 +299,7 @@
 
 .all-day-label {
   width: 80rpx;
-  font-size: 24rpx;
+  font-size: var(--fs-24);
   color: #64748B;
   flex-shrink: 0;
   padding-top: 8rpx;
@@ -320,7 +320,7 @@
 }
 
 .all-day-event-title {
-  font-size: 26rpx;
+  font-size: var(--fs-26);
   color: #1E293B;
   font-weight: 500;
 }
@@ -350,7 +350,7 @@
 
 .hour-label {
   width: 80rpx;
-  font-size: 22rpx;
+  font-size: var(--fs-22);
   color: #94A3B8;
   text-align: center;
   padding-top: 4rpx;
@@ -389,7 +389,7 @@
 }
 
 .schedule-bar-title {
-  font-size: 24rpx;
+  font-size: var(--fs-24);
   color: #FFFFFF;
   font-weight: 500;
   display: block;
@@ -400,7 +400,7 @@
 }
 
 .schedule-bar-time {
-  font-size: 20rpx;
+  font-size: var(--fs-20);
   color: rgba(255, 255, 255, 0.9);
   display: block;
   margin-top: 4rpx;
@@ -421,7 +421,7 @@
 .current-time-label {
   position: absolute;
   left: -66rpx;
-  font-size: 22rpx;
+  font-size: var(--fs-22);
   color: #EF4444;
   font-weight: 600;
   width: 72rpx;
@@ -465,7 +465,7 @@
 }
 
 .add-schedule-icon {
-  font-size: 48rpx;
+  font-size: var(--fs-48);
   color: #FFFFFF;
   font-weight: 300;
 }
@@ -525,19 +525,19 @@
 }
 
 .schedule-popup-cancel {
-  font-size: 28rpx;
+  font-size: var(--fs-28);
   color: #64748B;
   padding: 8rpx 16rpx;
 }
 
 .schedule-popup-title {
-  font-size: 32rpx;
+  font-size: var(--fs-32);
   font-weight: 600;
   color: #1E293B;
 }
 
 .schedule-popup-save {
-  font-size: 28rpx;
+  font-size: var(--fs-28);
   color: #2563EB;
   font-weight: 600;
   padding: 8rpx 16rpx;
@@ -587,7 +587,7 @@
 .schedule-field-label {
   display: flex;
   align-items: center;
-  font-size: 28rpx;
+  font-size: var(--fs-28);
   color: #1E293B;
   font-weight: 500;
 }
@@ -595,7 +595,7 @@
 .schedule-field-value {
   display: flex;
   align-items: center;
-  font-size: 28rpx;
+  font-size: var(--fs-28);
   color: #64748B;
 }
 
@@ -619,7 +619,7 @@
 .schedule-input {
   width: 100%;
   height: 80rpx;
-  font-size: 28rpx;
+  font-size: var(--fs-28);
   color: #1E293B;
   background: #F8FAFC;
   border-radius: 16rpx;
@@ -631,7 +631,7 @@
 .schedule-textarea {
   width: 100%;
   min-height: 120rpx;
-  font-size: 28rpx;
+  font-size: var(--fs-28);
   color: #1E293B;
   background: #F8FAFC;
   border-radius: 16rpx;
@@ -680,7 +680,7 @@
 }
 
 .schedule-picker text:first-child {
-  font-size: 28rpx;
+  font-size: var(--fs-28);
   color: #1E293B;
 }
 
@@ -689,7 +689,7 @@
 }
 
 .schedule-picker-arrow {
-  font-size: 28rpx;
+  font-size: var(--fs-28);
   color: #94A3B8;
 }
 
@@ -698,7 +698,7 @@
   text-align: center;
   padding: 32rpx;
   color: #EF4444;
-  font-size: 28rpx;
+  font-size: var(--fs-28);
   font-weight: 500;
 }
 
@@ -748,13 +748,13 @@
 }
 
 .type-popup-title {
-  font-size: 32rpx;
+  font-size: var(--fs-32);
   font-weight: 600;
   color: #1E293B;
 }
 
 .type-popup-close {
-  font-size: 48rpx;
+  font-size: var(--fs-48);
   color: #94A3B8;
   line-height: 1;
 }
@@ -789,12 +789,12 @@
 
 .type-item-name {
   flex: 1;
-  font-size: 30rpx;
+  font-size: var(--fs-30);
   color: #1E293B;
 }
 
 .type-item-check {
-  font-size: 32rpx;
+  font-size: var(--fs-32);
   color: #2563EB;
   font-weight: 600;
 }
@@ -850,20 +850,20 @@
 }
 
 .detail-popup-close {
-  font-size: 48rpx;
+  font-size: var(--fs-48);
   color: #94A3B8;
   line-height: 1;
   padding: 8rpx;
 }
 
 .detail-popup-title {
-  font-size: 32rpx;
+  font-size: var(--fs-32);
   font-weight: 600;
   color: #1E293B;
 }
 
 .detail-popup-edit {
-  font-size: 28rpx;
+  font-size: var(--fs-28);
   color: #2563EB;
   font-weight: 600;
 }
@@ -900,14 +900,14 @@
 }
 
 .detail-title {
-  font-size: 36rpx;
+  font-size: var(--fs-36);
   font-weight: 600;
   color: #1E293B;
   line-height: 1.4;
 }
 
 .detail-type-name {
-  font-size: 24rpx;
+  font-size: var(--fs-24);
   color: #64748B;
   background: #F1F5F9;
   padding: 8rpx 16rpx;
@@ -923,14 +923,14 @@
 }
 
 .detail-section-title {
-  font-size: 24rpx;
+  font-size: var(--fs-24);
   color: #94A3B8;
   margin-bottom: 12rpx;
   font-weight: 500;
 }
 
 .detail-section-value {
-  font-size: 28rpx;
+  font-size: var(--fs-28);
   color: #1E293B;
   line-height: 1.6;
 }
@@ -949,14 +949,14 @@
 }
 
 .detail-time-label {
-  font-size: 26rpx;
+  font-size: var(--fs-26);
   color: #64748B;
   width: 80rpx;
   flex-shrink: 0;
 }
 
 .detail-time-value {
-  font-size: 26rpx;
+  font-size: var(--fs-26);
   color: #1E293B;
 }
 
@@ -968,12 +968,12 @@
 }
 
 .detail-repeat-label {
-  font-size: 26rpx;
+  font-size: var(--fs-26);
   color: #1E293B;
 }
 
 .detail-repeat-end {
-  font-size: 24rpx;
+  font-size: var(--fs-24);
   color: #64748B;
 }
 
@@ -994,7 +994,7 @@
 }
 
 .detail-time-value {
-  font-size: 28rpx;
+  font-size: var(--fs-28);
   color: #1E293B;
   font-weight: 500;
 }
@@ -1014,7 +1014,7 @@
   border-radius: 16rpx;
   background: #2563EB;
   color: #FFFFFF;
-  font-size: 30rpx;
+  font-size: var(--fs-30);
   font-weight: 500;
   border: none;
 }

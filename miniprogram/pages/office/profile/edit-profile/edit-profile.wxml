@@ -1,4 +1,4 @@
-<view class="auth-page edit-profile-page">
+<view class="auth-page edit-profile-page" style="{{pageStyle}}">
   <view class="auth-hero">
     <view class="auth-brand">编辑</view>
     <view class="auth-title">修改个人信息</view>

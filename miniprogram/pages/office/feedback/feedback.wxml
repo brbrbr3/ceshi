@@ -1,5 +1,5 @@
 <!-- 意见反馈页面 -->
-<view class="feedback-page">
+<view class="feedback-page" style="{{pageStyle}}">
   <!-- 渐变头部 -->
   <view class="feedback-gradient-header">
     <view class="feedback-header-top">

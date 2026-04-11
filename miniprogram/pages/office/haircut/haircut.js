@@ -93,6 +93,14 @@ Page({
     },
 
     onShow() {
+        // 字体缩放
+    const fontScale = app.globalData.fontScale || 1
+    if (this.data.fontScale !== fontScale) {
+      this.setData({
+        fontScale,
+        pageStyle: `--font-scale: ${fontScale}`
+      })
+    }
         this.setData({
             todayStr: this.formatLocalDate(new Date())
         })

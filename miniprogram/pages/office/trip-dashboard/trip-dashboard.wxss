@@ -15,12 +15,12 @@
 }
 
 .dashboard-title {
-  font-size: 48rpx;
+  font-size: var(--fs-48);
   font-weight: 700;
 }
 
 .dashboard-subtitle {
-  font-size: 26rpx;
+  font-size: var(--fs-26);
   padding-top: 5rpx;
 }
 
@@ -45,13 +45,13 @@
   background: #FFFFFF;
   padding: 16rpx 24rpx;
   border-radius: 12rpx;
-  font-size: 28rpx;
+  font-size: var(--fs-28);
   color: #1E293B;
   box-shadow: 0 2rpx 8rpx rgba(0, 0, 0, 0.04);
 }
 
 .dashboard-filter-arrow {
-  font-size: 20rpx;
+  font-size: var(--fs-20);
   color: #64748B;
 }
 
@@ -69,7 +69,7 @@
   flex: 1;
   text-align: center;
   padding: 20rpx 0;
-  font-size: 28rpx;
+  font-size: var(--fs-28);
   color: #64748B;
   border-radius: 12rpx;
   transition: all 0.3s ease;
@@ -98,14 +98,14 @@
 }
 
 .dashboard-stat-value {
-  font-size: 56rpx;
+  font-size: var(--fs-56);
   font-weight: 700;
   color: #2563EB;
   margin-bottom: 8rpx;
 }
 
 .dashboard-stat-label {
-  font-size: 26rpx;
+  font-size: var(--fs-26);
   color: #64748B;
 }
 
@@ -115,7 +115,7 @@
 }
 
 .dashboard-section-title {
-  font-size: 30rpx;
+  font-size: var(--fs-30);
   font-weight: 600;
   color: #1E293B;
   margin-bottom: 16rpx;
@@ -151,14 +151,14 @@
 }
 
 .dashboard-active-name {
-  font-size: 30rpx;
+  font-size: var(--fs-30);
   font-weight: 500;
   color: #1E293B;
   margin-bottom: 4rpx;
 }
 
 .dashboard-active-dest {
-  font-size: 26rpx;
+  font-size: var(--fs-26);
   color: #64748B;
 }
 
@@ -167,13 +167,13 @@
 }
 
 .dashboard-active-mode {
-  font-size: 24rpx;
+  font-size: var(--fs-24);
   color: #64748B;
   margin-bottom: 4rpx;
 }
 
 .dashboard-active-time {
-  font-size: 24rpx;
+  font-size: var(--fs-24);
   color: #94A3B8;
 }
 
@@ -209,18 +209,18 @@
 }
 
 .dashboard-item-name {
-  font-size: 30rpx;
+  font-size: var(--fs-30);
   font-weight: 500;
   color: #1E293B;
 }
 
 .dashboard-item-dept {
-  font-size: 24rpx;
+  font-size: var(--fs-24);
   color: #94A3B8;
 }
 
 .dashboard-item-status {
-  font-size: 22rpx;
+  font-size: var(--fs-22);
   padding: 6rpx 16rpx;
   border-radius: 8rpx;
   font-weight: 500;
@@ -240,12 +240,12 @@
 }
 
 .dashboard-item-label {
-  font-size: 26rpx;
+  font-size: var(--fs-26);
   color: #64748B;
 }
 
 .dashboard-item-value {
-  font-size: 26rpx;
+  font-size: var(--fs-26);
   color: #1E293B;
 }
 
@@ -265,13 +265,13 @@
 }
 
 .dashboard-status-value {
-  font-size: 48rpx;
+  font-size: var(--fs-48);
   font-weight: 700;
   margin-bottom: 8rpx;
 }
 
 .dashboard-status-label {
-  font-size: 24rpx;
+  font-size: var(--fs-24);
   color: #64748B;
 }
 
@@ -295,7 +295,7 @@
 
 .dashboard-chart-bar-label {
   width: 120rpx;
-  font-size: 26rpx;
+  font-size: var(--fs-26);
   color: #64748B;
   flex-shrink: 0;
 }
@@ -320,7 +320,7 @@
 }
 
 .dashboard-chart-bar-value {
-  font-size: 24rpx;
+  font-size: var(--fs-24);
   color: #1E293B;
   font-weight: 500;
   min-width: 40rpx;
@@ -333,7 +333,7 @@
 }
 
 .dashboard-empty-text {
-  font-size: 28rpx;
+  font-size: var(--fs-28);
   color: #94A3B8;
 }
 
@@ -355,7 +355,7 @@
   display: flex;
   justify-content: center;
   padding: 32rpx 0;
-  font-size: 26rpx;
+  font-size: var(--fs-26);
   color: #94A3B8;
 }
 

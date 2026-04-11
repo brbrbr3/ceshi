@@ -1,4 +1,4 @@
-<view class="office-page learning-detail-page">
+<view class="office-page learning-detail-page" style="{{pageStyle}}">
   <!-- 红色渐变头部 -->
   <view class="learning-detail-header office-gradient-header">
     <view class="office-header-top">

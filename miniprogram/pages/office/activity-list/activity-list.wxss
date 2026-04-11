@@ -9,13 +9,13 @@
 }
 
 .activities-title {
-  font-size: 48rpx;
+  font-size: var(--fs-48);
   font-weight: 600;
 }
 
 .activities-subtitle {
   margin-top: 5rpx;
-  font-size: 26rpx;
+  font-size: var(--fs-26);
 }
 
 .activities-add-btn {
@@ -23,7 +23,7 @@
   border-radius: 24rpx;
   background: rgba(255, 255, 255, 0.2);
   color: #FFFFFF;
-  font-size: 26rpx;
+  font-size: var(--fs-26);
   font-weight: 600;
   border: 1rpx solid rgba(255, 255, 255, 0.3);
 }
@@ -46,7 +46,7 @@
   align-items: center;
   justify-content: center;
   color: rgba(255, 255, 255, 0.78);
-  font-size: 24rpx;
+  font-size: var(--fs-24);
   border: none;
 }
 
@@ -94,7 +94,7 @@
   display: flex;
   align-items: center;
   justify-content: center;
-  font-size: 36rpx;
+  font-size: var(--fs-36);
   flex-shrink: 0;
 }
 
@@ -104,7 +104,7 @@
 }
 
 .activity-item-title {
-  font-size: 28rpx;
+  font-size: var(--fs-28);
   font-weight: 600;
   color: #1E293B;
   line-height: 1.4;
@@ -118,7 +118,7 @@
   align-items: center;
   gap: 8rpx;
   margin-top: 10rpx;
-  font-size: 22rpx;
+  font-size: var(--fs-22);
   color: #94A3B8;
 }
 
@@ -144,7 +144,7 @@
 .activity-status-tag {
   padding: 6rpx 16rpx;
   border-radius: 16rpx;
-  font-size: 20rpx;
+  font-size: var(--fs-20);
   font-weight: 500;
   white-space: nowrap;
 }
@@ -160,13 +160,13 @@
 }
 
 .activity-reg-count {
-  font-size: 20rpx;
+  font-size: var(--fs-20);
   color: #7C3AED;
   white-space: nowrap;
 }
 
 .activity-item-arrow {
-  font-size: 36rpx;
+  font-size: var(--fs-36);
   color: #CBD5E1;
   line-height: 1;
 }
@@ -199,7 +199,7 @@
   align-items: center;
   justify-content: center;
   color: #FFF;
-  font-size: 26rpx;
+  font-size: var(--fs-26);
   font-weight: 500;
 }
 
@@ -244,7 +244,7 @@
 
 .loading-text,
 .no-more-text {
-  font-size: 26rpx;
+  font-size: var(--fs-26);
   color: #94A3B8;
 }
 
@@ -253,6 +253,6 @@
 }
 
 .empty-text {
-  font-size: 28rpx;
+  font-size: var(--fs-28);
   color: #94A3B8;
 }

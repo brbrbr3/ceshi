@@ -243,6 +243,14 @@ Page({
   },
 
   onShow() {
+    // 字体缩放
+    const fontScale = app.globalData.fontScale || 1
+    if (this.data.fontScale !== fontScale) {
+      this.setData({
+        fontScale,
+        pageStyle: `--font-scale: ${fontScale}`
+      })
+    }
     // 从其他页面返回时刷新数据（非首次加载）
     if (this.data.currentUser && !this.data.loading) {
       this.refreshCurrentTab()

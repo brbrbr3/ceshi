@@ -19,12 +19,12 @@
 }
 
 .passport-title {
-  font-size: 48rpx;
+  font-size: var(--fs-48);
   font-weight: 600;
 }
 
 .passport-subtitle {
-  font-size: 26rpx;
+  font-size: var(--fs-26);
   padding-top: 5rpx;
 }
 
@@ -37,7 +37,7 @@
 
 .passport-action-text {
   color: #FFFFFF;
-  font-size: 26rpx;
+  font-size: var(--fs-26);
   font-weight: 500;
 }
 
@@ -56,7 +56,7 @@
   flex: 1;
   text-align: center;
   padding: 28rpx 0;
-  font-size: 28rpx;
+  font-size: var(--fs-28);
   color: #64748B;
   font-weight: 500;
   position: relative;
@@ -126,7 +126,7 @@
   display: flex;
   align-items: center;
   justify-content: center;
-  font-size: 48rpx;
+  font-size: var(--fs-48);
   margin-right: 16rpx;
 }
 
@@ -135,13 +135,13 @@
 }
 
 .passport-status-label {
-  font-size: 32rpx;
+  font-size: var(--fs-32);
   font-weight: 600;
   margin-bottom: 4rpx;
 }
 
 .passport-status-detail {
-  font-size: 24rpx;
+  font-size: var(--fs-24);
   font-weight: 500;
 }
 
@@ -162,13 +162,13 @@
 }
 
 .passport-borrowed-label {
-  font-size: 24rpx;
+  font-size: var(--fs-24);
   color: #666;
   width: 140rpx;
 }
 
 .passport-borrowed-value {
-  font-size: 24rpx;
+  font-size: var(--fs-24);
   color: #333;
   flex: 1;
 }
@@ -193,7 +193,7 @@
 }
 
 .passport-section-title {
-  font-size: 30rpx;
+  font-size: var(--fs-30);
   font-weight: 600;
   color: #1E293B;
   padding-left: 8rpx;
@@ -211,7 +211,7 @@
 }
 
 .passport-month-title {
-  font-size: 26rpx;
+  font-size: var(--fs-26);
   color: #64748B;
   margin-bottom: 16rpx;
   padding-left: 8rpx;
@@ -239,14 +239,14 @@
 }
 
 .passport-item-date {
-  font-size: 32rpx;
+  font-size: var(--fs-32);
   font-weight: 600;
   color: #1E293B;
   flex: 1;
 }
 
 .passport-item-status {
-  font-size: 22rpx;
+  font-size: var(--fs-22);
   padding: 6rpx 16rpx;
   border-radius: 8rpx;
   font-weight: 500;
@@ -259,7 +259,7 @@
 }
 
 .passport-item-borrowers {
-  font-size: 28rpx;
+  font-size: var(--fs-28);
   color: #1E293B;
   font-weight: 500;
 }
@@ -270,7 +270,7 @@
 }
 
 .passport-item-reason {
-  font-size: 24rpx;
+  font-size: var(--fs-24);
   color: #64748B;
 }
 
@@ -292,13 +292,13 @@
 }
 
 .passport-info-name {
-  font-size: 32rpx;
+  font-size: var(--fs-32);
   font-weight: 600;
   color: #1E293B;
 }
 
 .passport-info-gender {
-  font-size: 24rpx;
+  font-size: var(--fs-24);
   color: #64748B;
   background: #F1F5F9;
   padding: 4rpx 12rpx;
@@ -317,13 +317,13 @@
 }
 
 .passport-info-label {
-  font-size: 26rpx;
+  font-size: var(--fs-26);
   color: #64748B;
   width: 140rpx;
 }
 
 .passport-info-value {
-  font-size: 26rpx;
+  font-size: var(--fs-26);
   color: #1E293B;
   flex: 1;
 }
@@ -341,7 +341,7 @@
 }
 
 .passport-info-action {
-  font-size: 26rpx;
+  font-size: var(--fs-26);
   color: #7C3AED;
   font-weight: 500;
 }
@@ -365,7 +365,7 @@
 }
 
 .passport-empty-text {
-  font-size: 28rpx;
+  font-size: var(--fs-28);
   color: #94A3B8;
 }
 
@@ -377,7 +377,7 @@
 }
 
 .passport-loading-text {
-  font-size: 26rpx;
+  font-size: var(--fs-26);
   color: #94A3B8;
 }
 
@@ -433,13 +433,13 @@
 }
 
 .passport-popup-title {
-  font-size: 34rpx;
+  font-size: var(--fs-34);
   font-weight: 600;
   color: #1E293B;
 }
 
 .passport-popup-close {
-  font-size: 48rpx;
+  font-size: var(--fs-48);
   color: #94A3B8;
   line-height: 1;
   padding: 0 8rpx;
@@ -456,7 +456,7 @@
 }
 
 .passport-field-label {
-  font-size: 28rpx;
+  font-size: var(--fs-28);
   color: #1E293B;
   font-weight: 500;
   margin-bottom: 12rpx;
@@ -467,7 +467,7 @@
 }
 
 .passport-field-hint {
-  font-size: 22rpx;
+  font-size: var(--fs-22);
   color: #94A3B8;
   margin-top: 8rpx;
 }
@@ -483,7 +483,7 @@
 
 .passport-input {
   flex: 1;
-  font-size: 28rpx;
+  font-size: var(--fs-28);
   color: #1E293B;
 }
 
@@ -500,7 +500,7 @@
 .passport-textarea {
   width: 100%;
   min-height: 120rpx;
-  font-size: 28rpx;
+  font-size: var(--fs-28);
   color: #1E293B;
 }
 
@@ -518,7 +518,7 @@
   justify-content: center;
   background: #F8FAFC;
   border-radius: 16rpx;
-  font-size: 28rpx;
+  font-size: var(--fs-28);
   color: #64748B;
   transition: all 0.3s ease;
 }
@@ -538,7 +538,7 @@
 }
 
 .passport-approval-note-title {
-  font-size: 26rpx;
+  font-size: var(--fs-26);
   font-weight: 500;
   color: #1E40AF;
   margin-bottom: 16rpx;
@@ -566,13 +566,13 @@
 }
 
 .passport-approval-step-text {
-  font-size: 24rpx;
+  font-size: var(--fs-24);
   color: #1E40AF;
 }
 
 .passport-approval-note-arrow {
   color: #3B82F6;
-  font-size: 24rpx;
+  font-size: var(--fs-24);
 }
 
 /* ========== 提交按钮 ========== */
@@ -581,7 +581,7 @@
   height: 96rpx;
   background: linear-gradient(135deg, #7C3AED 0%, #5B21B6 100%);
   color: #FFFFFF;
-  font-size: 32rpx;
+  font-size: var(--fs-32);
   font-weight: 600;
   border-radius: 16rpx;
   border: none;
@@ -609,14 +609,14 @@
 }
 
 .passport-detail-label {
-  font-size: 28rpx;
+  font-size: var(--fs-28);
   color: #64748B;
   width: 200rpx;
   flex-shrink: 0;
 }
 
 .passport-detail-value {
-  font-size: 28rpx;
+  font-size: var(--fs-28);
   color: #1E293B;
   flex: 1;
 }
@@ -632,7 +632,7 @@
 .passport-action-btn {
   flex: 1;
   height: 88rpx;
-  font-size: 30rpx;
+  font-size: var(--fs-30);
   font-weight: 600;
   border-radius: 16rpx;
   border: none;

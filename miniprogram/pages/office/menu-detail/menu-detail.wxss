@@ -9,14 +9,14 @@
 }
 
 .menu-detail-title {
-  font-size: 46rpx;
+  font-size: var(--fs-46);
   font-weight: 600;
   color: #FFFFFF;
 }
 
 .menu-detail-meta {
   margin-top: 5rpx;
-  font-size: 26rpx;
+  font-size: var(--fs-26);
   color: rgba(255, 255, 255, 0.9);
 }
 
@@ -30,14 +30,14 @@
 }
 
 .menu-content-title {
-  font-size: 36rpx;
+  font-size: var(--fs-36);
   font-weight: 600;
   color: #1E293B;
   margin-bottom: 20rpx;
 }
 
 .menu-content-html {
-  font-size: 30rpx;
+  font-size: var(--fs-30);
   line-height: 1.8;
   color: #475569;
 }
@@ -50,7 +50,7 @@
 
 .menu-action-btn {
   flex: 1;
-  font-size: 26rpx;
+  font-size: var(--fs-26);
 }
 
 .menu-action-btn.is-delete {
@@ -73,7 +73,7 @@
   border-radius: 16rpx;
   background: #F8FAFC;
   border: 2rpx solid transparent;
-  font-size: 26rpx;
+  font-size: var(--fs-26);
   color: #0F172A;
   box-sizing: border-box;
   margin-bottom: 16rpx;
@@ -90,13 +90,13 @@
 }
 
 .menu-comment-count {
-  font-size: 22rpx;
+  font-size: var(--fs-22);
   color: #94A3B8;
 }
 
 .menu-comment-btn {
   padding: 12rpx 32rpx;
-  font-size: 24rpx;
+  font-size: var(--fs-24);
 }
 
 .menu-comment-list {
@@ -122,7 +122,7 @@
   align-items: center;
   justify-content: center;
   color: #FFFFFF;
-  font-size: 26rpx;
+  font-size: var(--fs-26);
   font-weight: 600;
   flex-shrink: 0;
 }
@@ -140,18 +140,18 @@
 }
 
 .menu-comment-author {
-  font-size: 26rpx;
+  font-size: var(--fs-26);
   font-weight: 600;
   color: #1E293B;
 }
 
 .menu-comment-time {
-  font-size: 22rpx;
+  font-size: var(--fs-22);
   color: #94A3B8;
 }
 
 .menu-comment-text {
-  font-size: 26rpx;
+  font-size: var(--fs-26);
   line-height: 1.6;
   color: #475569;
   word-break: break-all;
@@ -160,7 +160,7 @@
 .menu-comment-delete {
   flex-shrink: 0;
   padding: 8rpx 16rpx;
-  font-size: 22rpx;
+  font-size: var(--fs-22);
   color: #DC2626;
 }
 
@@ -169,7 +169,7 @@
 }
 
 .empty-state.is-mini .empty-text {
-  font-size: 24rpx;
+  font-size: var(--fs-24);
 }
 
 /* ==================== 菜品打分模块样式 ==================== */
@@ -195,7 +195,7 @@
 .rating-dish-name {
   width: 180rpx;
   flex-shrink: 0;
-  font-size: 28rpx;
+  font-size: var(--fs-28);
   font-weight: 500;
   color: #1E293B;
 }
@@ -213,7 +213,7 @@
 }
 
 .rating-star {
-  font-size: 26rpx;
+  font-size: var(--fs-26);
   color: #E2E8F0;
 }
 
@@ -222,21 +222,21 @@
 }
 
 .rating-average {
-  font-size: 28rpx;
+  font-size: var(--fs-28);
   font-weight: 600;
   color: #F59E0B;
   margin-left: 4rpx;
 }
 
 .rating-count {
-  font-size: 22rpx;
+  font-size: var(--fs-22);
   color: #94A3B8;
 }
 
 .rating-tag {
   padding: 2rpx 12rpx;
   border-radius: 6rpx;
-  font-size: 20rpx;
+  font-size: var(--fs-20);
   margin-left: 8rpx;
 }
 
@@ -254,7 +254,7 @@
 .menu-rating-open-btn {
   display: inline-block;
   padding: 16rpx 48rpx;
-  font-size: 28rpx;
+  font-size: var(--fs-28);
   border-radius: 44rpx;
   z-index: 101;
 }
@@ -262,7 +262,7 @@
 .loading-text {
   text-align: center;
   padding: 32rpx;
-  font-size: 24rpx;
+  font-size: var(--fs-24);
   color: #94A3B8;
 }
 
@@ -297,13 +297,13 @@
 }
 
 .rating-popup-title {
-  font-size: 34rpx;
+  font-size: var(--fs-34);
   font-weight: 600;
   color: #1E293B;
 }
 
 .rating-popup-close {
-  font-size: 48rpx;
+  font-size: var(--fs-48);
   color: #94A3B8;
   line-height: 1;
   padding: 0 12rpx;
@@ -324,7 +324,7 @@
 .rating-dish-label {
   width: 200rpx;
   flex-shrink: 0;
-  font-size: 28rpx;
+  font-size: var(--fs-28);
   color: #334155;
 }
 
@@ -334,7 +334,7 @@
 }
 
 .popup-star {
-  font-size: 44rpx;
+  font-size: var(--fs-44);
   color: #E2E8F0;
   padding: 4rpx;
   transition: transform 0.15s;
@@ -345,7 +345,7 @@
 }
 
 .rating-dish-score {
-  font-size: 26rpx;
+  font-size: var(--fs-26);
   color: #F59E0B;
   font-weight: 500;
   min-width: 60rpx;
@@ -354,7 +354,7 @@
 }
 
 .rating-already-tag {
-  font-size: 22rpx;
+  font-size: var(--fs-22);
   color: #94A3B8;
   margin-left: 12rpx;
 }
@@ -374,7 +374,7 @@
   line-height: 88rpx;
   text-align: center;
   border-radius: 44rpx;
-  font-size: 30rpx;
+  font-size: var(--fs-30);
   font-weight: 500;
 }
 

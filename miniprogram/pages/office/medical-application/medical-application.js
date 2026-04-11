@@ -83,6 +83,14 @@ Page({
   },
 
   async onShow() {
+    // 字体缩放
+    const fontScale = app.globalData.fontScale || 1
+    if (this.data.fontScale !== fontScale) {
+      this.setData({
+        fontScale,
+        pageStyle: `--font-scale: ${fontScale}`
+      })
+    }
     // 如果没有在显示弹窗，则刷新列表
     if (!this.data.showFormPopup) {
       wx.showLoading({

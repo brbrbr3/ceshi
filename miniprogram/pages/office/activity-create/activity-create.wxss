@@ -9,7 +9,7 @@
 }
 
 .activity-create-title {
-  font-size: 48rpx;
+  font-size: var(--fs-48);
   font-weight: 700;
   color: #FFFFFF;
   padding: 0 0 30rpx;
@@ -43,7 +43,7 @@
 }
 
 .switch-label {
-  font-size: 30rpx;
+  font-size: var(--fs-30);
   font-weight: 600;
   color: #1E293B;
   display: block;
@@ -51,7 +51,7 @@
 }
 
 .switch-desc {
-  font-size: 24rpx;
+  font-size: var(--fs-24);
   color: #94A3B8;
   display: block;
 }
@@ -72,7 +72,7 @@
 }
 
 .stepper-label {
-  font-size: 27rpx;
+  font-size: var(--fs-27);
   color: #475569;
   flex-shrink: 0;
 }
@@ -92,7 +92,7 @@
   display: flex;
   align-items: center;
   justify-content: center;
-  font-size: 36rpx;
+  font-size: var(--fs-36);
   color: #7C3AED;
   background: #FAFAFA;
   transition: background 0.2s;
@@ -106,7 +106,7 @@
   width: 100rpx;
   height: 60rpx;
   text-align: center;
-  font-size: 28rpx;
+  font-size: var(--fs-28);
   color: #1E293B;
   font-weight: 600;
   border-left: 2rpx solid #E2E8F0;
@@ -114,7 +114,7 @@
 }
 
 .stepper-unit {
-  font-size: 26rpx;
+  font-size: var(--fs-26);
   color: #94A3B8;
   flex-shrink: 0;
 }
@@ -126,7 +126,7 @@
   gap: 10rpx;
   margin-right: 28rpx;
   margin-bottom: 14rpx;
-  font-size: 27rpx;
+  font-size: var(--fs-27);
   color: #334155;
 }
 
@@ -145,7 +145,7 @@
   background: #FFFFFF;
   border: 2rpx solid #E2E8F0;
   border-radius: 12rpx;
-  font-size: 27rpx;
+  font-size: var(--fs-27);
   color: #1E293B;
 }
 
@@ -162,7 +162,7 @@
   display: flex;
   align-items: center;
   justify-content: center;
-  font-size: 36rpx;
+  font-size: var(--fs-36);
   flex-shrink: 0;
 }
 
@@ -174,7 +174,7 @@
   border: 2rpx dashed #C7D2FE;
   border-radius: 12rpx;
   color: #7C3AED;
-  font-size: 26rpx;
+  font-size: var(--fs-26);
   font-weight: 500;
   margin-top: 8rpx;
 }
@@ -194,7 +194,7 @@
   height: 92rpx;
   background: linear-gradient(135deg, #7C3AED, #6D28D9);
   color: #FFFFFF;
-  font-size: 32rpx;
+  font-size: var(--fs-32);
   font-weight: 600;
   border-radius: 24rpx;
   border: none;
@@ -241,45 +241,45 @@
 }
 
 .toolbar-icon-bold {
-  font-size: 28rpx;
+  font-size: var(--fs-28);
   font-weight: 900;
   font-family: Georgia, serif;
 }
 
 .toolbar-icon-italic {
-  font-size: 28rpx;
+  font-size: var(--fs-28);
   font-style: italic;
   font-family: Georgia, serif;
 }
 
 .toolbar-icon-underline {
-  font-size: 28rpx;
+  font-size: var(--fs-28);
   text-decoration: underline;
 }
 
 .toolbar-icon-strike {
-  font-size: 28rpx;
+  font-size: var(--fs-28);
   text-decoration: line-through;
 }
 
 .toolbar-icon-list {
-  font-size: 24rpx;
+  font-size: var(--fs-24);
   font-weight: 700;
   font-family: monospace;
 }
 
 .toolbar-icon-header {
-  font-size: 22rpx;
+  font-size: var(--fs-22);
   font-weight: 900;
   font-family: sans-serif;
 }
 
 .toolbar-icon-align {
-  font-size: 26rpx;
+  font-size: var(--fs-26);
 }
 
 .toolbar-icon-divider {
-  font-size: 28rpx;
+  font-size: var(--fs-28);
   color: #94A3B8;
   letter-spacing: 2rpx;
 }
@@ -300,7 +300,7 @@
 }
 
 .expand-icon {
-  font-size: 24rpx;
+  font-size: var(--fs-24);
   color: #94A3B8;
   transition: transform 0.3s;
   display: inline-block;
@@ -319,7 +319,7 @@
 .editor-body {
   min-height: 300rpx;
   padding: 20rpx;
-  font-size: 28rpx;
+  font-size: var(--fs-28);
 }
 
 /* 表单通用 */
@@ -328,7 +328,7 @@
 }
 
 .auth-field-label {
-  font-size: 30rpx;
+  font-size: var(--fs-30);
   font-weight: 600;
   color: #1E293B;
   margin-bottom: 12rpx;
@@ -339,7 +339,7 @@
 
 .auth-field-required {
   color: #EF4444;
-  font-size: 28rpx;
+  font-size: var(--fs-28);
 }
 
 .auth-input-shell {
@@ -351,7 +351,7 @@
 
 .auth-input-shell input {
   height: 80rpx;
-  font-size: 29rpx;
+  font-size: var(--fs-29);
   color: #1E293B;
 }
 
@@ -361,7 +361,7 @@
 
 .auth-field-count {
   text-align: right;
-  font-size: 22rpx;
+  font-size: var(--fs-22);
   color: #94A3B8;
   margin-top: 8rpx;
 }

@@ -16,7 +16,7 @@ page {
 
 .office-search input {
   flex: 1;
-  font-size: 26rpx;
+  font-size: var(--fs-26);
   color: #1E293B;
 }
 
@@ -29,13 +29,13 @@ page {
 }
 
 .contacts-title {
-  font-size: 40rpx;
+  font-size: var(--fs-40);
   font-weight: 600;
 }
 
 .contacts-subtitle {
   margin-top: 10rpx;
-  font-size: 22rpx;
+  font-size: var(--fs-22);
   opacity: 0.76;
 }
 
@@ -43,7 +43,7 @@ page {
   padding: 12rpx 20rpx;
   border-radius: 999rpx;
   background: rgba(255, 255, 255, 0.16);
-  font-size: 22rpx;
+  font-size: var(--fs-22);
   font-weight: 600;
 }
 
@@ -59,7 +59,7 @@ page {
 
 .contacts-search-icon {
   color: rgba(255, 255, 255, 0.74);
-  font-size: 26rpx;
+  font-size: var(--fs-26);
 }
 
 .contacts-overview-card,
@@ -82,7 +82,7 @@ page {
   display: flex;
   align-items: center;
   justify-content: center;
-  font-size: 34rpx;
+  font-size: var(--fs-34);
 }
 
 .contacts-overview-main {
@@ -92,7 +92,7 @@ page {
 .contacts-overview-title,
 .contacts-item-name,
 .contacts-expand-value {
-  font-size: 28rpx;
+  font-size: var(--fs-28);
   font-weight: 600;
   color: #1E293B;
 }
@@ -101,7 +101,7 @@ page {
 .contacts-item-role,
 .contacts-group-count,
 .contacts-expand-label {
-  font-size: 22rpx;
+  font-size: var(--fs-22);
   color: #94A3B8;
 }
 
@@ -110,7 +110,7 @@ page {
 }
 
 .contacts-overview-arrow {
-  font-size: 40rpx;
+  font-size: var(--fs-40);
   color: #94A3B8;
 }
 
@@ -127,7 +127,7 @@ page {
   justify-content: space-between;
   align-items: center;
   padding: 0 6rpx 12rpx;
-  font-size: 24rpx;
+  font-size: var(--fs-24);
   font-weight: 600;
   color: #4B6080;
 }
@@ -178,7 +178,7 @@ page {
   border-radius: 999rpx;
   background: #EFF6FF;
   color: #2563EB;
-  font-size: 18rpx;
+  font-size: var(--fs-18);
 }
 
 .contacts-item-actions {
@@ -195,7 +195,7 @@ page {
   display: flex;
   align-items: center;
   justify-content: center;
-  font-size: 24rpx;
+  font-size: var(--fs-24);
 }
 
 .contacts-expand-box {
@@ -213,7 +213,7 @@ page {
 
 .contacts-expand-value {
   margin-top: 8rpx;
-  font-size: 24rpx;
+  font-size: var(--fs-24);
 }
 
 .contacts-expand-actions {
@@ -236,5 +236,5 @@ page {
   display: flex;
   align-items: center;
   justify-content: center;
-  font-size: 36rpx;
+  font-size: var(--fs-36);
 }

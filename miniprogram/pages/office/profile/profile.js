@@ -12,42 +12,129 @@ Page({
     avatarText: 'CHN',
     userAvatarUrl: '',
     isAdmin: false,
-    stats: [
-      { label: '本月出勤（占位）', value: '7天', icon: '📅' },
-      { label: '年假余额（占位）', value: '8天', icon: '🏖️' },
-      { label: '绩效得分（占位）', value: '92分', icon: '⭐' }
-    ],
-    quickInfo: [
-      { title: '今日工作时长（占位）', value: '7h 32m', desc: '08:52 上班 · 在岗中', icon: '📈', valueColor: '#2563EB' },
-      { title: '积分余额（占位）', value: '1,280', desc: '本月获得 +100', icon: '✨', valueColor: '#FF9800' }
-    ],
-    menuGroups: [
+    stats: [{
+        label: '本月出勤（占位）',
+        value: '7天',
+        icon: '📅'
+      },
       {
+        label: '年假余额（占位）',
+        value: '8天',
+        icon: '🏖️'
+      },
+      {
+        label: '绩效得分（占位）',
+        value: '92分',
+        icon: '⭐'
+      }
+    ],
+    quickInfo: [{
+        title: '今日工作时长（占位）',
+        value: '7h 32m',
+        desc: '08:52 上班 · 在岗中',
+        icon: '📈',
+        valueColor: '#2563EB'
+      },
+      {
+        title: '积分余额（占位）',
+        value: '1,280',
+        desc: '本月获得 +100',
+        icon: '✨',
+        valueColor: '#FF9800'
+      }
+    ],
+    menuGroups: [{
         title: '工作设置',
-        items: [
-          { icon: '🔔', label: '消息中心' },
-          { icon: '✍️', label: '签字管理' }
+        items: [{
+            icon: 'Aa',
+            label: '字体大小'
+          },
+          {
+            icon: '🔔',
+            label: '消息中心'
+          },
+          {
+            icon: '✍️',
+            label: '签字管理'
+          }
         ]
       },
       {
         title: '个人设置',
-        items: [
-          { icon: '👤', label: '修改个人信息' },
-          { icon: '❓', label: '帮助中心' },
-          { icon: '⭐', label: '意见反馈' }
+        items: [{
+            icon: '👤',
+            label: '修改个人信息'
+          },
+          {
+            icon: '❓',
+            label: '帮助中心'
+          },
+          {
+            icon: '⭐',
+            label: '意见反馈'
+          }
         ]
       }
     ],
-    companyInfo: [
-      { label: '出生日期', value: '未填写' },
-      { label: '角色', value: '待认证' },
-      { label: '管理员', value: '否' }
-    ]
+    companyInfo: [{
+        label: '出生日期',
+        value: '未填写'
+      },
+      {
+        label: '角色',
+        value: '待认证'
+      },
+      {
+        label: '管理员',
+        value: '否'
+      }
+    ],
+    fontsizeOptions: ['小', '中', '大', '特大'],
+    fontscaleValues: [1, 1.2, 1.5, 2],
+    selectedFontsizeStepperIndex: 1,
   },
 
   onShow() {
+    //字体缩放，并记录设置
+    const fontScale = app.globalData.fontScale || 1
+    const scaleIndex = this.data.fontscaleValues.indexOf(fontScale)
+    this.setData({
+      fontScale,
+      pageStyle: `--font-scale: ${fontScale}`,
+      selectedFontsizeStepperIndex: scaleIndex >= 0 ? scaleIndex : 1
+    })
     this.syncUserProfile()
     this.syncNotifications()
+  },
+
+  decreaseFontsizeStepper(e) {
+    // 阻止冒泡到 handleMenuTap
+    const idx = this.data.selectedFontsizeStepperIndex
+    if (idx <= 0) return
+    this.applyFontscaleStepper(idx - 1)
+  },
+
+  increaseFontsizeStepper(e) {
+    const idx = this.data.selectedFontsizeStepperIndex
+    if (idx >= this.data.fontscaleValues.length - 1) return
+    this.applyFontscaleStepper(idx + 1)
+  },
+
+  applyFontscaleStepper(index) {
+    const scale = this.data.fontscaleValues[index]
+    this.setData({
+      selectedFontsizeStepperIndex: index,
+      fontScale: scale,
+      pageStyle: `--font-scale: ${scale}`
+    })
+    // 写入 globalData（其他页面 onShow 时读取）
+    app.globalData.fontScale = scale
+    // 写入缓存
+    try {
+      wx.setStorageSync('app-fontsize-cache', {
+        scale
+      })
+    } catch (e) {}
   },
 
   syncUserProfile() {
@@ -61,25 +148,42 @@ Page({
         }
 
         const user = result.user
-        const companyInfo = [
-          { label: '出生日期', value: user.birthday || '未填写' },
-          { label: '角色', value: user.role || '未设置' },
-          { label: '管理员', value: user.isAdmin ? '是' : '否' }
+        const companyInfo = [{
+            label: '出生日期',
+            value: user.birthday || '未填写'
+          },
+          {
+            label: '角色',
+            value: user.role || '未设置'
+          },
+          {
+            label: '管理员',
+            value: user.isAdmin ? '是' : '否'
+          }
         ]
 
         // 如果有岗位信息，添加到信息卡片中
         if (user.position && user.position !== '无') {
-          companyInfo.splice(2, 0, { label: '岗位', value: user.position })
+          companyInfo.splice(2, 0, {
+            label: '岗位',
+            value: user.position
+          })
         }
 
         // 如果有部门信息，添加到信息卡片中
         if (user.department) {
-          companyInfo.splice(companyInfo.length - 1, 0, { label: '部门', value: user.department })
+          companyInfo.splice(companyInfo.length - 1, 0, {
+            label: '部门',
+            value: user.department
+          })
         }
 
         // 如果有亲属信息，添加到信息卡片中
         if (user.relativeName) {
-          companyInfo.splice(companyInfo.length - 1, 0, { label: '亲属', value: user.relativeName })
+          companyInfo.splice(companyInfo.length - 1, 0, {
+            label: '亲属',
+            value: user.relativeName
+          })
         }
 
         this.setData({
@@ -121,14 +225,21 @@ Page({
   },
 
   syncNotifications() {
-    app.getNotifications({ page: 1, pageSize: 20 }, function(result) {
+    app.getNotifications({
+      page: 1,
+      pageSize: 20
+    }, function (result) {
       const notifications = result.data || []
-      const unreadCount = notifications.filter(function(n) { return !n.read }).length
-      
+      const unreadCount = notifications.filter(function (n) {
+        return !n.read
+      }).length
+
       // 更新 menuGroups 的 badge
       const menuGroups = this.data.menuGroups
       menuGroups[0].items[0].badge = unreadCount > 0 ? unreadCount + '条未读' : ''
-      this.setData({ menuGroups: menuGroups })
+      this.setData({
+        menuGroups: menuGroups
+      })
     }.bind(this))
   },
 
@@ -154,7 +265,7 @@ Page({
       wx.navigateTo({
         url: '/pages/office/help/help'
       })
-    } else {
+    } else if (label === '字体大小') {} else {
       utils.showToast({
         title: '功能开发中，敬请期待',
         icon: 'none'

@@ -26,7 +26,14 @@ Page({
    * 生命周期函数--监听页面显示
    */
   onShow() {
-
+    // 字体缩放
+    const fontScale = app.globalData.fontScale || 1
+    if (this.data.fontScale !== fontScale) {
+      this.setData({
+        fontScale,
+        pageStyle: `--font-scale: ${fontScale}`
+      })
+    }
   },
 
   /**

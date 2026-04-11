@@ -1,4 +1,4 @@
-<view class="trip-page">
+<view class="trip-page" style="{{pageStyle}}">
   <!-- 渐变色头部（带圆角，类似home页） -->
   <view class="office-gradient-header trip-header">
     <view class="trip-header-content">

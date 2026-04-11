@@ -1,4 +1,4 @@
-<view class="haircut-page">
+<view class="haircut-page" style="{{pageStyle}}">
   <!-- 渐变色头部 -->
   <view class="office-gradient-header haircut-header">
     <view class="haircut-header-content">

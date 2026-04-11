@@ -1,5 +1,5 @@
 <!--会议室预约页面-->
-<view class="meeting-room-page">
+<view class="meeting-room-page" style="{{pageStyle}}">
   <!-- 页面头部 -->
   <view class="meeting-header">
     <view class="meeting-header-content">

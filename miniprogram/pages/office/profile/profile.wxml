@@ -1,4 +1,4 @@
-<view class="office-page profile-page">
+<view class="office-page profile-page" style="{{pageStyle}}">
   <view class="office-gradient-header profile-header">
     <!-- <view class="profile-theme-switch" bindtap="showComingSoon">{{primaryTag}}</view> -->
 
@@ -55,7 +55,12 @@
           <view class="profile-menu-icon">{{menu.icon}}</view>
           <view class="profile-menu-label">{{menu.label}}</view>
           <view wx:if="{{menu.badge}}" class="profile-menu-badge">{{menu.badge}}</view>
-          <view class="profile-menu-arrow">›</view>
+          <view wx:if="{{menu.label === '字体大小'}}" class="fontsize-stepper-control">
+            <view class="fontsize-stepper-btn" catchtap="decreaseFontsizeStepper">−</view>
+            <view class="fontsize-stepper-value">{{fontsizeOptions[selectedFontsizeStepperIndex]}}</view>
+            <view class="fontsize-stepper-btn" catchtap="increaseFontsizeStepper">+</view>
+          </view>
+          <view wx:else class="profile-menu-arrow">›</view>
         </view>
       </view>
     </view>

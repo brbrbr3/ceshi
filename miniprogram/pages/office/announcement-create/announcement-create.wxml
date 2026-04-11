@@ -1,4 +1,4 @@
-<view class="office-page announcement-create-page">
+<view class="office-page announcement-create-page" style="{{pageStyle}}">
   <view class="office-gradient-header announcement-create-header">
     <view class="announcement-create-title">发布新通知</view>
   </view>

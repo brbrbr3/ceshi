@@ -1,4 +1,4 @@
-<view class="dashboard-page">
+<view class="dashboard-page" style="{{pageStyle}}">
   <!-- 渐变色头部（带圆角，类似home页） -->
   <view class="office-gradient-header dashboard-header">
     <view class="dashboard-header-content">

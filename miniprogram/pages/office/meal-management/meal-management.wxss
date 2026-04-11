@@ -25,7 +25,7 @@ page {
 }
 
 .loading-text {
-  font-size: 28rpx;
+  font-size: var(--fs-28);
   color: #999;
 }
 
@@ -37,7 +37,7 @@ page {
 }
 
 .no-more-text {
-  font-size: 24rpx;
+  font-size: var(--fs-24);
   color: #ccc;
 }
 
@@ -48,13 +48,13 @@ page {
 }
 
 .meal-title {
-  font-size: 48rpx;
+  font-size: var(--fs-48);
   font-weight: 600;
 }
 
 .meal-subtitle {
   margin-top: 5rpx;
-  font-size: 26rpx;
+  font-size: var(--fs-26);
 }
 
 .meal-header-top {
@@ -81,7 +81,7 @@ page {
   align-items: center;
   justify-content: center;
   color: rgba(255, 255, 255, 0.78);
-  font-size: 26rpx;
+  font-size: var(--fs-26);
   font-weight: 500;
   transition: all 0.25s ease;
 }
@@ -106,14 +106,14 @@ page {
 }
 
 .meal-no-text {
-  font-size: 30rpx;
+  font-size: var(--fs-30);
   font-weight: 600;
   color: #1E293B;
   margin-bottom: 12rpx;
 }
 
 .meal-no-desc {
-  font-size: 24rpx;
+  font-size: var(--fs-24);
   color: #94A3B8;
   line-height: 1.6;
 }
@@ -166,7 +166,7 @@ page {
   display: flex;
   align-items: center;
   justify-content: center;
-  font-size: 28rpx;
+  font-size: var(--fs-28);
   font-weight: 700;
   flex-shrink: 0;
 }
@@ -182,13 +182,13 @@ page {
 }
 
 .status-text {
-  font-size: 34rpx;
+  font-size: var(--fs-34);
   font-weight: 700;
   color: #1E293B;
 }
 
 .status-count {
-  font-size: 28rpx;
+  font-size: var(--fs-28);
   font-weight: 600;
   color: #16A34A;
   margin-left: 4rpx;
@@ -206,7 +206,7 @@ page {
   border: 2rpx solid rgba(37, 99, 235, 0.2);
   background: rgba(37, 99, 235, 0.04);
   color: #2563EB;
-  font-size: 24rpx;
+  font-size: var(--fs-24);
   font-weight: 600;
   transition: all 0.2s ease;
 }
@@ -226,7 +226,7 @@ page {
 }
 
 .meal-tip-text {
-  font-size: 24rpx;
+  font-size: var(--fs-24);
   color: #475569;
   line-height: 1.6;
 }
@@ -258,7 +258,7 @@ page {
 .adjust-type-tag {
   padding: 8rpx 20rpx;
   border-radius: 10rpx;
-  font-size: 22rpx;
+  font-size: var(--fs-22);
   font-weight: 600;
   white-space: nowrap;
 }
@@ -269,7 +269,7 @@ page {
 }
 
 .adjust-name {
-  font-size: 30rpx;
+  font-size: var(--fs-30);
   font-weight: 600;
   color: #1E293B;
   margin-bottom: 12rpx;
@@ -289,12 +289,12 @@ page {
 }
 
 .detail-label {
-  font-size: 22rpx;
+  font-size: var(--fs-22);
   color: #94A3B8;
 }
 
 .detail-value {
-  font-size: 24rpx;
+  font-size: var(--fs-24);
   color: #475569;
   font-weight: 500;
 }
@@ -308,13 +308,13 @@ page {
 }
 
 .adjust-count {
-  font-size: 24rpx;
+  font-size: var(--fs-24);
   color: #2563EB;
   font-weight: 600;
 }
 
 .adjust-time {
-  font-size: 22rpx;
+  font-size: var(--fs-22);
   color: #94A3B8;
 }
 
@@ -332,13 +332,13 @@ page {
 }
 
 .section-title {
-  font-size: 30rpx;
+  font-size: var(--fs-30);
   font-weight: 700;
   color: #1E293B;
 }
 
 .section-count {
-  font-size: 22rpx;
+  font-size: var(--fs-22);
   color: #94A3B8;
 }
 
@@ -362,7 +362,7 @@ page {
   flex-shrink: 0;
   padding: 6rpx 16rpx;
   border-radius: 10rpx;
-  font-size: 22rpx;
+  font-size: var(--fs-22);
   font-weight: 600;
   white-space: nowrap;
 }
@@ -403,7 +403,7 @@ page {
   border-radius: 16rpx;
   margin-top: 24rpx;
   color: #94A3B8;
-  font-size: 26rpx;
+  font-size: var(--fs-26);
 }
 
 .meal-empty-icon {
@@ -459,7 +459,7 @@ page {
 }
 
 .modal-title {
-  font-size: 34rpx;
+  font-size: var(--fs-34);
   font-weight: 700;
   color: #0F172A;
 }
@@ -473,7 +473,7 @@ page {
   display: flex;
   align-items: center;
   justify-content: center;
-  font-size: 28rpx;
+  font-size: var(--fs-28);
   flex-shrink: 0;
 }
 
@@ -498,7 +498,7 @@ page {
   display: flex;
   align-items: center;
   justify-content: center;
-  font-size: 28rpx;
+  font-size: var(--fs-28);
   font-weight: 600;
   box-sizing: border-box;
 }
@@ -547,13 +547,13 @@ page {
 }
 
 .form-label {
-  font-size: 28rpx;
+  font-size: var(--fs-28);
   color: #334155;
   font-weight: 500;
 }
 
 .form-sublabel{
-  font-size: 24rpx;
+  font-size: var(--fs-24);
   color: #334155;
   font-weight: 500;
 }
@@ -574,7 +574,7 @@ page {
   display: flex;
   align-items: center;
   justify-content: center;
-  font-size: 38rpx;
+  font-size: var(--fs-38);
   font-weight: 300;
   color: #2563EB;
   background: #EFF6FF;
@@ -596,7 +596,7 @@ page {
 .count-num {
   min-width: 72rpx;
   text-align: center;
-  font-size: 34rpx;
+  font-size: var(--fs-34);
   font-weight: 700;
   color: #0F172A;
 }
@@ -626,13 +626,13 @@ page {
 }
 
 .radio-item text:first-of-type {
-  font-size: 28rpx;
+  font-size: var(--fs-28);
   font-weight: 500;
   color: #1E293B;
 }
 
 .radio-desc {
-  font-size: 22rpx;
+  font-size: var(--fs-22);
   color: #94A3B8;
   margin-left: auto;
 }
@@ -684,11 +684,11 @@ page {
 }
 
 .side-dish-tip-icon {
-  font-size: 40rpx;
+  font-size: var(--fs-40);
 }
 
 .side-dish-tip-text {
-  font-size: 26rpx;
+  font-size: var(--fs-26);
   color: #92400E;
   line-height: 1.5;
 }
@@ -734,7 +734,7 @@ page {
 }
 
 .sd-expired-notice-text {
-  font-size: 26rpx;
+  font-size: var(--fs-26);
   color: #92400E;
   font-weight: 600;
 }
@@ -749,7 +749,7 @@ page {
 .sd-status-tag {
   padding: 8rpx 18rpx;
   border-radius: 10rpx;
-  font-size: 22rpx;
+  font-size: var(--fs-22);
   font-weight: 600;
   white-space: nowrap;
 }
@@ -770,7 +770,7 @@ page {
 }
 
 .sd-title {
-  font-size: 30rpx;
+  font-size: var(--fs-30);
   font-weight: 600;
   color: #1E293B;
   margin-bottom: 10rpx;
@@ -780,7 +780,7 @@ page {
 }
 
 .sd-desc {
-  font-size: 24rpx;
+  font-size: var(--fs-24);
   color: #64748B;
   line-height: 1.5;
   overflow: hidden;
@@ -797,7 +797,7 @@ page {
 }
 
 .sd-meta-item {
-  font-size: 22rpx;
+  font-size: var(--fs-22);
   color: #94A3B8;
 }
 
@@ -811,13 +811,13 @@ page {
 }
 
 .sd-deadline {
-  font-size: 22rpx;
+  font-size: var(--fs-22);
   color: #F59E0B;
   font-weight: 500;
 }
 
 .sd-my-booking {
-  font-size: 22rpx;
+  font-size: var(--fs-22);
   color: #16A34A;
   font-weight: 600;
   background: #DCFCE7;
@@ -826,18 +826,18 @@ page {
 }
 
 .sd-total-info {
-  font-size: 22rpx;
+  font-size: var(--fs-22);
   color: #94A3B8;
 }
 
 .sd-stats {
-  font-size: 22rpx;
+  font-size: var(--fs-22);
   color: #2563EB;
   font-weight: 500;
 }
 
 .sd-arrow {
-  font-size: 36rpx;
+  font-size: var(--fs-36);
   color: #CBD5E1;
   font-weight: 300;
 }
@@ -871,7 +871,7 @@ page {
   border-radius: 24rpx;
   background: linear-gradient(135deg, #7C3AED 0%, #6D28D9 100%);
   color: #fff;
-  font-size: 28rpx;
+  font-size: var(--fs-28);
   font-weight: 600;
   box-shadow: 0 8rpx 24rpx rgba(124, 58, 237, 0.3);
   transition: all 0.25s ease;
@@ -883,13 +883,13 @@ page {
 }
 
 .create-btn-icon {
-  font-size: 36rpx;
+  font-size: var(--fs-36);
   font-weight: 500;
 }
 
 .empty-hint {
   display: block;
-  font-size: 24rpx;
+  font-size: var(--fs-24);
   color: #94A3B8;
   margin-top: 16rpx;
 }
@@ -916,7 +916,7 @@ page {
 }
 
 .sd-detail-label {
-  font-size: 26rpx;
+  font-size: var(--fs-26);
   color: #64748B;
   font-weight: 500;
   flex-shrink: 0;
@@ -924,7 +924,7 @@ page {
 }
 
 .sd-detail-value {
-  font-size: 26rpx;
+  font-size: var(--fs-26);
   color: #1E293B;
   font-weight: 500;
   text-align: right;
@@ -958,7 +958,7 @@ page {
 }
 
 .sd-booked-status text {
-  font-size: 26rpx;
+  font-size: var(--fs-26);
   color: #059669;
   font-weight: 600;
 }
@@ -972,7 +972,7 @@ page {
 }
 
 .sd-book-label {
-  font-size: 28rpx;
+  font-size: var(--fs-28);
   color: #334155;
   font-weight: 500;
 }
@@ -990,7 +990,7 @@ page {
   display: flex;
   align-items: center;
   justify-content: center;
-  font-size: 28rpx;
+  font-size: var(--fs-28);
   font-weight: 600;
   box-sizing: border-box;
   color: #DC2626;
@@ -1008,7 +1008,7 @@ page {
 .form-input {
   flex: 1;
   height: 68rpx;
-  font-size: 28rpx;
+  font-size: var(--fs-28);
   color: #1E293B;
   text-align: right;
   background: transparent;
@@ -1025,7 +1025,7 @@ page {
   width: 100%;
   min-height: 160rpx;
   padding: 20rpx;
-  font-size: 28rpx;
+  font-size: var(--fs-28);
   color: #1E293B;
   background: #F8FAFC;
   border-radius: 12rpx;
@@ -1062,13 +1062,13 @@ page {
 }
 
 .summary-num {
-  font-size: 44rpx;
+  font-size: var(--fs-44);
   font-weight: 700;
   color: #2563EB;
 }
 
 .summary-label {
-  font-size: 24rpx;
+  font-size: var(--fs-24);
   color: #64748B;
 }
 
@@ -1080,7 +1080,7 @@ page {
 
 /* 预订人员列表 */
 .booking-list-header {
-  font-size: 28rpx;
+  font-size: var(--fs-28);
   font-weight: 600;
   color: #1E293B;
   padding: 16rpx 0 20rpx;
@@ -1101,13 +1101,13 @@ page {
 }
 
 .booking-name {
-  font-size: 28rpx;
+  font-size: var(--fs-28);
   color: #334155;
   font-weight: 500;
 }
 
 .booking-count {
-  font-size: 28rpx;
+  font-size: var(--fs-28);
   color: #2563EB;
   font-weight: 600;
 }
@@ -1120,7 +1120,7 @@ page {
   display: flex;
   align-items: center;
   justify-content: center;
-  font-size: 28rpx;
+  font-size: var(--fs-28);
   font-weight: 600;
   box-sizing: border-box;
   background: linear-gradient(135deg, #7C3AED 0%, #6D28D9 100%);

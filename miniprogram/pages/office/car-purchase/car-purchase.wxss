@@ -18,12 +18,12 @@
 }
 
 .cp-title {
-  font-size: 48rpx;
+  font-size: var(--fs-48);
   font-weight: 600;
 }
 
 .cp-subtitle {
-  font-size: 28rpx;
+  font-size: var(--fs-28);
   color: rgba(255, 255, 255);
 }
 
@@ -41,7 +41,7 @@
   flex: 1;
   text-align: center;
   padding: 18rpx 0;
-  font-size: 30rpx;
+  font-size: var(--fs-30);
   color: #64748B;
   font-weight: 500;
   position: relative;
@@ -80,7 +80,7 @@
 }
 
 .cp-section-title {
-  font-size: 32rpx;
+  font-size: var(--fs-32);
   font-weight: 600;
   color: #0F172A;
 }
@@ -94,7 +94,7 @@
 
 .cp-add-text {
   color: #FFFFFF;
-  font-size: 26rpx;
+  font-size: var(--fs-26);
   font-weight: 500;
 }
 
@@ -135,7 +135,7 @@
 }
 
 .cp-car-model {
-  font-size: 34rpx;
+  font-size: var(--fs-34);
   font-weight: 700;
   color: #0F172A;
   flex: 1;
@@ -145,7 +145,7 @@
 }
 
 .cp-status-tag {
-  font-size: 22rpx;
+  font-size: var(--fs-22);
   padding: 6rpx 16rpx;
   border-radius: 8rpx;
   font-weight: 600;
@@ -177,7 +177,7 @@
 }
 
 .cp-progress-text {
-  font-size: 22rpx;
+  font-size: var(--fs-22);
   font-weight: 600;
   color: #0891B2;
   min-width: 56rpx;
@@ -192,7 +192,7 @@
 }
 
 .cp-applicant-name {
-  font-size: 26rpx;
+  font-size: var(--fs-26);
   color: #334155;
   font-weight: 500;
 }
@@ -202,7 +202,7 @@
 }
 
 .cp-update-time {
-  font-size: 24rpx;
+  font-size: var(--fs-24);
   color: #94A3B8;
 }
 
@@ -220,13 +220,13 @@
 }
 
 .cp-empty-text {
-  font-size: 30rpx;
+  font-size: var(--fs-30);
   color: #94A3B8;
   margin-bottom: 10rpx;
 }
 
 .cp-empty-hint {
-  font-size: 24rpx;
+  font-size: var(--fs-24);
   color: #CBD5E1;
 }
 
@@ -252,7 +252,7 @@
 }
 
 .cp-loading-text {
-  font-size: 26rpx;
+  font-size: var(--fs-26);
   color: #94A3B8;
   margin-top: 16rpx;
 }
@@ -310,13 +310,13 @@
 }
 
 .cp-popup-title {
-  font-size: 34rpx;
+  font-size: var(--fs-34);
   font-weight: 600;
   color: #0F172A;
 }
 
 .cp-popup-close {
-  font-size: 48rpx;
+  font-size: var(--fs-48);
   color: #94A3B8;
   line-height: 1;
   padding: 0 8rpx;
@@ -360,24 +360,24 @@
   flex-shrink: 0;
 }
 
-.cp-type-emoji { font-size: 36rpx; }
+.cp-type-emoji { font-size: var(--fs-36); }
 
 .cp-type-info { flex: 1; }
 
 .cp-type-name {
-  font-size: 30rpx;
+  font-size: var(--fs-30);
   font-weight: 600;
   color: #0F172A;
   margin-bottom: 4rpx;
 }
 
 .cp-type-desc {
-  font-size: 24rpx;
+  font-size: var(--fs-24);
   color: #64748B;
 }
 
 .cp-type-arrow {
-  font-size: 40rpx;
+  font-size: var(--fs-40);
   color: #94A3B8;
   font-weight: 300;
 }
@@ -387,7 +387,7 @@
 
 /* 表单分组标题 */
 .cp-form-section-title {
-  font-size: 28rpx;
+  font-size: var(--fs-28);
   font-weight: 600;
   color: #0891B2;
   padding: 20rpx 0 12rpx;
@@ -413,7 +413,7 @@
   border-radius: 14rpx;
   background: linear-gradient(135deg, #0891B2, #0E7490);
   color: #FFFFFF;
-  font-size: 32rpx;
+  font-size: var(--fs-32);
   font-weight: 600;
   display: flex;
   align-items: center;
@@ -430,7 +430,7 @@
 .cp-stepper-value {
   flex: 1;
   text-align: center;
-  font-size: 32rpx;
+  font-size: var(--fs-32);
   font-weight: 700;
   color: #0F172A;
 }
@@ -444,7 +444,7 @@
 }
 
 .cp-picker-arrow {
-  font-size: 22rpx;
+  font-size: var(--fs-22);
   color: #94A3B8;
 }
 
@@ -467,7 +467,7 @@
 }
 
 .cp-switch-label {
-  font-size: 28rpx;
+  font-size: var(--fs-28);
   color: #334155;
   font-weight: 500;
 }
@@ -481,7 +481,7 @@
 }
 
 .cp-app-meta-item {
-  font-size: 23rpx;
+  font-size: var(--fs-23);
   color: #64748B;
   background: #F8FAFC;
   padding: 4rpx 14rpx;
@@ -490,7 +490,7 @@
 
 /* 类型标签 */
 .cp-type-tag {
-  font-size: 20rpx;
+  font-size: var(--fs-20);
   padding: 4rpx 12rpx;
   border-radius: 6rpx;
   font-weight: 600;
@@ -510,7 +510,7 @@
 .cp-field { margin-bottom: 26rpx; }
 
 .cp-field-label {
-  font-size: 28rpx;
+  font-size: var(--fs-28);
   color: #0F172A;
   font-weight: 500;
   margin-bottom: 12rpx;
@@ -537,12 +537,12 @@
 
 .cp-input {
   flex: 1;
-  font-size: 28rpx;
+  font-size: var(--fs-28);
   color: #0F172A;
 }
 
 .cp-placeholder { 
-  font-size: 28rpx;color: #94A3B8; }
+  font-size: var(--fs-28);color: #94A3B8; }
 
 /* 多行文本 */
 .cp-textarea-wrapper {
@@ -560,7 +560,7 @@
 .cp-textarea {
   width: 100%;
   min-height: 120rpx;
-  font-size: 28rpx;
+  font-size: var(--fs-28);
   color: #0F172A;
   line-height: 1.6;
 }
@@ -583,7 +583,7 @@
 }
 
 .cp-flow-title {
-  font-size: 26rpx;
+  font-size: var(--fs-26);
   font-weight: 500;
   color: #155E75;
   margin-bottom: 18rpx;
@@ -613,7 +613,7 @@
 .cp-dot-office { background: #F59E0B; }
 
 .cp-flow-label {
-  font-size: 22rpx;
+  font-size: var(--fs-22);
   font-weight: 600;
   color: #334155;
 }
@@ -629,7 +629,7 @@
   display: flex;
   align-items: center;
   gap: 8rpx;
-  font-size: 22rpx;
+  font-size: var(--fs-22);
   color: #64748B;
 }
 
@@ -645,7 +645,7 @@
   height: 92rpx;
   background: linear-gradient(135deg, #0891B2 0%, #0E7490 100%);
   color: #FFFFFF;
-  font-size: 32rpx;
+  font-size: var(--fs-32);
   font-weight: 600;
   border-radius: 18rpx;
   border: none;
@@ -662,7 +662,7 @@
   height: 88rpx;
   background: #F1F5F9;
   color: #475569;
-  font-size: 30rpx;
+  font-size: var(--fs-30);
   font-weight: 500;
   border-radius: 18rpx;
   border: none;
@@ -682,7 +682,7 @@
   height: 88rpx;
   background: #FEF2F2;
   color: #DC2626;
-  font-size: 30rpx;
+  font-size: var(--fs-30);
   font-weight: 600;
   border-radius: 18rpx;
   border: none;
@@ -696,7 +696,7 @@
   height: 88rpx;
   background: linear-gradient(135deg, #0891B2 0%, #0E7490 100%);
   color: #FFFFFF;
-  font-size: 30rpx;
+  font-size: var(--fs-30);
   font-weight: 600;
   border-radius: 18rpx;
   border: none;
@@ -719,7 +719,7 @@
 .cp-detail-popup { height: 86vh; }
 
 .cp-detail-badge {
-  font-size: 20rpx;
+  font-size: var(--fs-20);
   padding: 5rpx 14rpx;
   border-radius: 8rpx;
   background: #D1FAE5;
@@ -761,14 +761,14 @@
 .cp-info-row:last-child { border-bottom: none; }
 
 .cp-info-label {
-  font-size: 27rpx;
+  font-size: var(--fs-27);
   color: #64748B;
   width: 220rpx;
   flex-shrink: 0;
 }
 
 .cp-info-value {
-  font-size: 27rpx;
+  font-size: var(--fs-27);
   color: #334155;
   flex: 1;
 }
@@ -777,7 +777,7 @@
 
 /* 详情子标题 */
 .cp-section-subtitle {
-  font-size: 27rpx;
+  font-size: var(--fs-27);
   font-weight: 600;
   color: #0891B2;
   padding-bottom: 12rpx;
@@ -808,7 +808,7 @@
 }
 
 .cp-mini-text {
-  font-size: 23rpx;
+  font-size: var(--fs-23);
   font-weight: 700;
   color: #0891B2;
   min-width: 52rpx;
@@ -818,7 +818,7 @@
 .cp-timeline-section { margin-top: 8rpx; }
 
 .cp-timeline-title {
-  font-size: 29rpx;
+  font-size: var(--fs-29);
   font-weight: 600;
   color: #0F172A;
   margin-bottom: 20rpx;
@@ -848,24 +848,24 @@
   box-shadow: 0 2rpx 10rpx rgba(8, 145, 178, 0.12);
 }
 
-.cp-group-icon { font-size: 32rpx; }
+.cp-group-icon { font-size: var(--fs-32); }
 
 .cp-group-info { flex: 1; }
 
 .cp-group-name {
-  font-size: 28rpx;
+  font-size: var(--fs-28);
   font-weight: 600;
   color: #0F172A;
 }
 
 .cp-group-owner {
-  font-size: 22rpx;
+  font-size: var(--fs-22);
   color: #64748B;
   margin-top: 2rpx;
 }
 
 .cp-group-count {
-  font-size: 24rpx;
+  font-size: var(--fs-24);
   font-weight: 600;
   padding: 4rpx 14rpx;
   border-radius: 10rpx;
@@ -922,7 +922,7 @@
   display: flex;
   align-items: center;
   justify-content: center;
-  font-size: 18rpx;
+  font-size: var(--fs-18);
   font-weight: 700;
   flex-shrink: 0;
   transition: all 0.25s ease;
@@ -983,7 +983,7 @@
 }
 
 .cp-step-title {
-  font-size: 27rpx;
+  font-size: var(--fs-27);
   font-weight: 500;
   color: #1E293B;
   flex: 1;
@@ -991,7 +991,7 @@
 }
 
 .cp-step-status {
-  font-size: 20rpx;
+  font-size: var(--fs-20);
   padding: 3rpx 12rpx;
   border-radius: 6rpx;
   background: #D1FAE5;
@@ -1002,7 +1002,7 @@
 }
 
 .cp-step-action-hint {
-  font-size: 20rpx;
+  font-size: var(--fs-20);
   color: #0891B2;
   font-weight: 500;
   flex-shrink: 0;
@@ -1016,7 +1016,7 @@
 .cp-step-preview { margin-top: 10rpx; }
 
 .cp-preview-text {
-  font-size: 25rpx;
+  font-size: var(--fs-25);
   color: #334155;
   line-height: 1.4;
   word-break: break-all;
@@ -1027,7 +1027,7 @@
 }
 
 .cp-preview-remark {
-  font-size: 24rpx;
+  font-size: var(--fs-24);
   color: #64748B;
   line-height: 1.4;
   word-break: break-all;
@@ -1039,7 +1039,7 @@
 
 .cp-attachment-badge {
   display: inline-flex;
-  font-size: 23rpx;
+  font-size: var(--fs-23);
   color: #0369A1;
   background: #E0F2FE;
   padding: 6rpx 14rpx;
@@ -1057,13 +1057,13 @@
 }
 
 .cp-operator {
-  font-size: 22rpx;
+  font-size: var(--fs-22);
   color: #0891B2;
   font-weight: 500;
 }
 
 .cp-completed-time {
-  font-size: 21rpx;
+  font-size: var(--fs-21);
   color: #94A3B8;
 }
 
@@ -1076,13 +1076,13 @@
 }
 
 .cp-arrow-line {
-  font-size: 28rpx;
+  font-size: var(--fs-28);
   color: #93C5FD;
   font-weight: bold;
 }
 
 .cp-arrow-text {
-  font-size: 21rpx;
+  font-size: var(--fs-21);
   color: #94A3B8;
   margin-top: 4rpx;
 }
@@ -1109,7 +1109,7 @@
   border-radius: 12rpx;
   padding: 16rpx 20rpx;
   margin-bottom: 20rpx;
-  font-size: 25rpx;
+  font-size: var(--fs-25);
   color: #92400E;
   line-height: 1.5;
 }
@@ -1143,7 +1143,7 @@
   height: 38rpx;
   background: rgba(220, 38, 38, 0.85);
   color: #fff;
-  font-size: 26rpx;
+  font-size: var(--fs-26);
   border-radius: 50%;
   display: flex;
   align-items: center;
@@ -1169,7 +1169,7 @@
 }
 
 .cp-upload-plus {
-  font-size: 52rpx;
+  font-size: var(--fs-52);
   color: #94A3B8;
   line-height: 1;
 }
@@ -1192,12 +1192,12 @@
 }
 
 .cp-upload-icon {
-  font-size: 56rpx;
+  font-size: var(--fs-56);
   margin-bottom: 12rpx;
 }
 
 .cp-upload-tip {
-  font-size: 26rpx;
+  font-size: var(--fs-26);
   color: #94A3B8;
 }
 
@@ -1211,7 +1211,7 @@
 }
 
 .car-purchase-note-title {
-  font-size: 26rpx;
+  font-size: var(--fs-26);
   font-weight: 500;
   color: #1E40AF;
   margin-bottom: 16rpx;
@@ -1239,11 +1239,11 @@
 }
 
 .car-purchase-step-text {
-  font-size: 24rpx;
+  font-size: var(--fs-24);
   color: #1E40AF;
 }
 
 .car-purchase-note-arrow {
   color: #3B82F6;
-  font-size: 24rpx;
+  font-size: var(--fs-24);
 }

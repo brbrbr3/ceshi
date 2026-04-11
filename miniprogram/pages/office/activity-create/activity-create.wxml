@@ -1,4 +1,4 @@
-<view class="office-page activity-create-page">
+<view class="office-page activity-create-page" style="{{pageStyle}}">
   <view class="office-gradient-header activity-create-header">
     <view class="activity-create-title">创建活动</view>
   </view>

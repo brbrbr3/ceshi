@@ -44,6 +44,14 @@ Page({
   },
 
   async onShow() {
+    // 字体缩放
+    const fontScale = app.globalData.fontScale || 1
+    if (this.data.fontScale !== fontScale) {
+      this.setData({
+        fontScale,
+        pageStyle: `--font-scale: ${fontScale}`
+      })
+    }
     // 每次显示时更新今天的日期
     const today = await utils.getTodayDate()
     this.setData({ today })
