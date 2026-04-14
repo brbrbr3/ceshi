@@ -86,6 +86,20 @@
       </view>
 
       <view class="auth-field">
+        <view class="auth-field-label">手机 <text class="auth-field-optional">（选填）</text></view>
+        <view class="auth-input-shell">
+          <input value="{{form.mobile}}" placeholder="+55 61 " placeholder-class="auth-input-placeholder" bindinput="handleMobileInput" type="text" />
+        </view>
+      </view>
+
+      <view class="auth-field">
+        <view class="auth-field-label">座机 <text class="auth-field-optional">（选填）</text></view>
+        <view class="auth-input-shell">
+          <input value="{{form.landline}}" placeholder="+55 61 " placeholder-class="auth-input-placeholder" bindinput="handleLandlineInput" type="text" />
+        </view>
+      </view>
+
+      <view class="auth-field">
         <view class="auth-field-label">是否为管理员</view>
         <view class="auth-segment">
           <view class="auth-segment-item {{form.isAdmin ? 'is-active' : ''}}" data-value="true" bindtap="selectAdmin">是</view>

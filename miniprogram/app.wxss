@@ -410,6 +410,12 @@ input {
   color: #1E293B;
 }
 
+.auth-field-optional {
+  font-weight: 400;
+  font-size: var(--fs-24);
+  color: #94A3B8;
+}
+
 .auth-input-shell,
 .auth-picker-shell {
   display: flex;

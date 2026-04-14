@@ -233,7 +233,7 @@ Page({
 
       // 更新 menuGroups 的 badge
       const menuGroups = this.data.menuGroups
-      menuGroups[0].items[0].badge = unreadCount > 0 ? unreadCount + '条未读' : ''
+      menuGroups[0].items[1].badge = unreadCount > 0 ? unreadCount + '条未读' : ''
       this.setData({
         menuGroups: menuGroups
       })

@@ -283,6 +283,8 @@ async function validateForm(formData) {
   const relativeName = String(payload.relativeName || '').trim()
   const position = String(payload.position || '').trim()
   const department = String(payload.department || '').trim()
+  const mobile = String(payload.mobile || '').trim()
+  const landline = String(payload.landline || '').trim()
 
   if (!name) {
     throw new Error('请输入姓名')
@@ -335,6 +337,8 @@ async function validateForm(formData) {
     relativeName: relativeRoles.includes(role) ? relativeName : '',
     position: showPosition ? (position || '无') : '', // 只有需要岗位的角色才设置值
     department: showDepartment ? department : '',
+    mobile,
+    landline,
     avatarText: name.slice(0, 1)
   }
 }
@@ -557,6 +561,8 @@ async function submitRegistration(openid, formData) {
           relativeName: form.relativeName || '',
           position: form.position || '',
           department: form.department || '',
+          mobile: form.mobile || '',
+          landline: form.landline || '',
           phone: formData.phone || '',
           email: formData.email || '',
           applyReason: formData.applyReason || '申请注册系统'
@@ -582,6 +588,8 @@ async function submitRegistration(openid, formData) {
         relativeName: form.relativeName || '',
         position: form.position || '',
         department: form.department || '',
+        mobile: form.mobile || '',
+        landline: form.landline || '',
         status: requestStatus.PENDING,
         submittedAt: now
       },
@@ -642,6 +650,8 @@ async function submitProfileUpdate(openid, formData) {
           relativeName: form.relativeName || '',
           position: form.position || '',
           department: form.department || '',
+          mobile: form.mobile || '',
+          landline: form.landline || '',
           userId: existingUser._id, // 关联原用户ID
           updateReason: formData.updateReason || '申请修改个人信息'
         }

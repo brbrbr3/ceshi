@@ -1393,6 +1393,8 @@ async function completeWorkflow(orderId, decision, approverId, approverName, com
       relativeName: businessData.relativeName || '',
       position: businessData.position || '',
       department: businessData.department || '',
+      mobile: businessData.mobile || '',
+      landline: businessData.landline || '',
       status: 'approved',
       sourceOrderId: order.orderId,
       approvedAt: now,
@@ -1432,6 +1434,8 @@ async function completeWorkflow(orderId, decision, approverId, approverName, com
         relativeName: businessData.relativeName || '',
         position: businessData.position || '',
         department: businessData.department || '',
+        mobile: businessData.mobile || '',
+        landline: businessData.landline || '',
         updatedAt: now
       }
 

@@ -26,7 +26,9 @@ Page({
       isAdmin: false,
       relativeName: '',
       position: '',
-      department: ''
+      department: '',
+      mobile: '',
+      landline: ''
     }
   },
 
@@ -175,7 +177,9 @@ Page({
             isAdmin: !!result.request.isAdmin,
             relativeName: result.request.relativeName || '',
             position: result.request.position || '',
-            department: department
+            department: department,
+            mobile: result.request.mobile || '',
+            landline: result.request.landline || ''
           }
         })
       })
@@ -292,6 +296,18 @@ Page({
     this.setData({
       departmentIndex,
       'form.department': this.data.departmentOptions[departmentIndex]
+    })
+  },
+
+  handleMobileInput(e) {
+    this.setData({
+      'form.mobile': e.detail.value
+    })
+  },
+
+  handleLandlineInput(e) {
+    this.setData({
+      'form.landline': e.detail.value
     })
   },
 

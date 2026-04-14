@@ -1,5 +1,5 @@
 const app = getApp()
-const departments = ['全部', '政治处', '新公处', '经商处', '科技处', '武官处', '领侨处', '文化处', '办公室', '党委办'];
+const departments = ['全部', '政治处', '新公处', '经商处', '科技处', '武官处', '领侨处', '文化处', '办公室', 'DW办'];
 const employees = [
   { id: 1, name: '刘总监', role: '产品总监', dept: '产品部', initial: '刘', color: '#7C3AED', status: 'online', phone: '138****0001' },
   { id: 2, name: '陈志远', role: '产品经理', dept: '产品部', initial: '陈', color: '#2563EB', status: 'online', phone: '138****0002', isSelf: true },
