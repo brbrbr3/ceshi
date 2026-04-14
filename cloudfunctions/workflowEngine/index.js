@@ -1395,6 +1395,7 @@ async function completeWorkflow(orderId, decision, approverId, approverName, com
       department: businessData.department || '',
       mobile: businessData.mobile || '',
       landline: businessData.landline || '',
+      userStatus: 'offline',
       status: 'approved',
       sourceOrderId: order.orderId,
       approvedAt: now,

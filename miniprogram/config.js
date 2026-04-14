@@ -10,9 +10,9 @@ const config = {
   host,
 
   // 缓存版本号（修改此值可强制刷新用户端缓存）
-  CACHE_VERSION: '0.38.1',
+  CACHE_VERSION: '0.39',
   //更新说明
-  VERSION_DESCRIPTION: '可以修改字体大小了！\n1.更新新馆员到馆指南页。2.首页底端增加“通讯录”tab页。',
+  VERSION_DESCRIPTION: '现在可在‘我的’页面修改字体大小。\n1.更新新馆员到馆指南页。\n2.首页底端增加“通讯录”tab页。',
 
   // 云开发环境 ID
   envId: 'cloud1-8gdftlggae64d5d0',

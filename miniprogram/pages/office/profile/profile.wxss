@@ -48,8 +48,23 @@ page {
   width: 24rpx;
   height: 24rpx;
   border-radius: 50%;
-  background: #4ADE80;
   border: 4rpx solid #FFFFFF;
+}
+
+.profile-avatar-status.status-online {
+  background: #4ADE80;
+}
+
+.profile-avatar-status.status-busy {
+  background: #A78BFA;
+}
+
+.profile-avatar-status.status-out {
+  background: #F9A825;
+}
+
+.profile-avatar-status.status-offline {
+  background: #94A3B8;
 }
 
 .profile-user-main {

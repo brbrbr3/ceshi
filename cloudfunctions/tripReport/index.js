@@ -209,6 +209,18 @@ async function handleDepart(openid, params) {
     }
   }
 
+  // 外出报备成功，将用户状态设为 out
+  try {
+    const userRes = await usersCollection.where({ openid }).limit(1).get()
+    if (userRes.data && userRes.data.length > 0) {
+      await usersCollection.doc(userRes.data[0]._id).update({
+        data: { userStatus: 'out', updatedAt: Date.now() }
+      })
+    }
+  } catch (e) {
+    console.warn('更新用户外出状态失败:', e)
+  }
+
   return success({
     _id: result._id,
     ...tripData,
@@ -259,6 +271,18 @@ async function handleReturn(openid, params) {
       updatedAt: now
     }
   })
+
+  // 返回报备成功，将用户状态设为 online
+  try {
+    const userRes = await usersCollection.where({ openid }).limit(1).get()
+    if (userRes.data && userRes.data.length > 0) {
+      await usersCollection.doc(userRes.data[0]._id).update({
+        data: { userStatus: 'online', updatedAt: now }
+      })
+    }
+  } catch (e) {
+    console.warn('更新用户在线状态失败:', e)
+  }
 
   return success({
     tripId,

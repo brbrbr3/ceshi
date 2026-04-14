@@ -160,6 +160,10 @@ Page({
             title: '登录成功',
             icon: 'success'
           })
+          // 登录成功，将用户状态设为 online（若当前外出则保持 out）
+          app.callOfficeAuth('updateUserStatus', { userStatus: 'online', preserveOut: true }).catch(err => {
+            console.warn('更新在线状态失败:', err)
+          })
           setTimeout(() => {
             // 待赴任馆员跳转到馆指南页，其他角色跳转首页
             if (result.user && result.user.role === '待赴任馆员') {

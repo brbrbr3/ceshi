@@ -231,7 +231,10 @@ function formatUserRecord(record) {
     updatedAt: record.updatedAt || null,
     relativeName: record.relativeName || '',
     position: record.position || '',
-    department: record.department || ''
+    department: record.department || '',
+    mobile: record.mobile || '',
+    landline: record.landline || '',
+    userStatus: record.userStatus || 'offline'
   }
 }
 
@@ -1210,6 +1213,72 @@ function formatDateTime(timestamp) {
   return `${year}-${month}-${day} ${hour}:${minute}:${second}`
 }
 
+/**
+ * 获取通讯录列表
+ * 查询所有 approved 用户，排除"家属"和"待赴任馆员"角色
+ * 仅返回公开字段，不返回 openid 等敏感信息
+ */
+async function getContactsList() {
+  // 排除的角色
+  const EXCLUDED_ROLES = ['家属', '待赴任馆员']
+
+  const result = await usersCollection
+    .where({
+      status: 'approved',
+      role: _.nin(EXCLUDED_ROLES)
+    })
+    .limit(1000)
+    .get()
+
+  const contacts = (result.data || []).map(record => ({
+    _id: record._id,
+    name: record.name,
+    role: record.role,
+    department: record.department || '',
+    position: record.position || '',
+    mobile: record.mobile || '',
+    landline: record.landline || '',
+    avatarText: record.avatarText || (record.name ? record.name.slice(0, 1) : '智'),
+    isAdmin: !!record.isAdmin,
+    userStatus: record.userStatus || 'offline'
+  }))
+
+  return success({ contacts }, '获取成功')
+}
+
+/**
+ * 更新用户在线状态
+ * @param {string} openid - 用户 openid
+ * @param {string} userStatus - 目标状态：online/busy/out/offline
+ * @param {boolean} preserveOut - 为 true 时，若用户当前状态为 out 则不覆盖
+ */
+async function updateUserStatus(openid, userStatus, preserveOut = false) {
+  const VALID_STATUSES = ['online', 'busy', 'out', 'offline']
+
+  if (!userStatus || !VALID_STATUSES.includes(userStatus)) {
+    return fail('无效的用户状态', 400)
+  }
+
+  const user = await findUserByOpenId(openid)
+  if (!user) {
+    return fail('用户不存在', 404)
+  }
+
+  // preserveOut 模式：用户当前外出中，登录/退出不覆盖 out 状态
+  if (preserveOut && user.userStatus === 'out') {
+    return success({ userStatus: 'out', preserved: true }, '用户外出中，状态保持不变')
+  }
+
+  await usersCollection.doc(user._id).update({
+    data: {
+      userStatus,
+      updatedAt: Date.now()
+    }
+  })
+
+  return success({ userStatus }, '状态更新成功')
+}
+
 exports.main = async (event) => {
   const wxContext = cloud.getWXContext()
   const openid = wxContext.OPENID
@@ -1252,6 +1321,16 @@ exports.main = async (event) => {
     // 超级管理员：获取待审批的用户注册申请列表（无需 openid 验证）
     if (action === 'getPendingRegistrations') {
       return await getPendingRegistrations(openid)
+    }
+
+    // 获取通讯录列表（排除家属和待赴任馆员）
+    if (action === 'getContactsList') {
+      return await getContactsList()
+    }
+
+    // 更新用户在线状态
+    if (action === 'updateUserStatus') {
+      return await updateUserStatus(openid, event.userStatus, event.preserveOut || false)
     }
 
     return fail('不支持的操作类型', 400)

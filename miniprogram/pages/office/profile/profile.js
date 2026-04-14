@@ -9,6 +9,7 @@ Page({
     roleLabel: '点击登录后查看资料',
     primaryTag: '微信身份',
     secondaryTag: '状态：未注册',
+    avatarStatusClass: 'status-offline',
     avatarText: 'CHN',
     userAvatarUrl: '',
     isAdmin: false,
@@ -183,12 +184,23 @@ Page({
           })
         }
 
+        // 用户状态映射
+        const userStatus = user.userStatus || 'offline'
+        const STATUS_MAP = {
+          online:  { label: '在线', cls: 'status-online' },
+          busy:    { label: '忙碌', cls: 'status-busy' },
+          out:     { label: '外出中', cls: 'status-out' },
+          offline: { label: '离线', cls: 'status-offline' }
+        }
+        const statusInfo = STATUS_MAP[userStatus] || STATUS_MAP.offline
+
         this.setData({
           userName: user.name,
           roleLabel: user.isAdmin ? `${user.role} · 管理员` : user.role,
           primaryTag: user.isAdmin ? '管理员' : '普通用户',
-          secondaryTag: '状态：已通过',
+          secondaryTag: '状态：'+statusInfo.label,
           avatarText: (user.avatarText || user.name || '智').slice(0, 1),
+          avatarStatusClass: statusInfo.cls,
           isAdmin: !!user.isAdmin,
           companyInfo
         })
@@ -202,6 +214,10 @@ Page({
   },
 
   handleLogout() {
+    // 退出登录前，将用户状态设为 offline（若当前外出则保持 out）
+    app.callOfficeAuth('updateUserStatus', { userStatus: 'offline', preserveOut: true }).catch(err => {
+      console.warn('更新离线状态失败:', err)
+    })
     app.logout()
     utils.showToast({
       title: '已退出',
