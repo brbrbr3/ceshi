@@ -89,9 +89,9 @@ Page({
         value: '否'
       }
     ],
-    fontsizeOptions: ['小', '中', '大', '特大'],
+    fontsizeOptions: ['小', '正常', '大', '特大'],
     fontscaleValues: [1, 1.1, 1.2, 1.4],
-    selectedFontsizeStepperIndex: 1,
+    selectedFontsizeStepperIndex: 1,//默认‘正常’
   },
 
   onShow() {

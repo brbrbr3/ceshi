@@ -200,6 +200,24 @@ exports.main = async (event, context) => {
 }
 
 /**
+ * 从 sys_config 读取 TIMEZONE_OFFSET（小时偏移量，默认 -3）
+ */
+async function getTimezoneOffset() {
+  try {
+    const configRes = await db.collection('sys_config')
+      .where({ type: 'timezone', key: 'TIMEZONE_OFFSET' })
+      .limit(1)
+      .get()
+    if (configRes.data && configRes.data.length > 0) {
+      return configRes.data[0].value !== undefined ? configRes.data[0].value : -3
+    }
+  } catch (e) {
+    // 降级使用默认值
+  }
+  return -3
+}
+
+/**
  * 创建日程
  */
 async function handleCreate(params, wxContext) {
@@ -604,12 +622,15 @@ async function handleCheckSubscription(params, wxContext) {
  * 获取今日订阅日程列表
  */
 async function handleGetTodaySubscriptions(params, wxContext) {
-  // 获取今日日期
-  const today = new Date()
-  const todayStr = formatDateObj(today)
+  // 获取用户本地时间
+  const timezoneOffset = await getTimezoneOffset()
+  const nowUTC = new Date()
+  const localMs = nowUTC.getTime() + timezoneOffset * 60 * 60 * 1000
+  const localDate = new Date(localMs)
+  const todayStr = formatDateObj(localDate)
 
   // 获取当年节假日配置
-  const year = today.getFullYear()
+  const year = localDate.getFullYear()
   const holidayDates = await getHolidayConfig(year)
 
   // 查询用户的所有订阅

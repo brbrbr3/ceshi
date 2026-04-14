@@ -84,9 +84,11 @@ Page({
 
   async onShow() {
     const fontStyle = app.globalData.fontStyle
-  if (this.data.fontStyle !== fontStyle) {
-    this.setData({ fontStyle })
-  }
+    if (this.data.fontStyle !== fontStyle) {
+      this.setData({
+        fontStyle
+      })
+    }
     // 如果没有在显示弹窗，则刷新列表
     if (!this.data.showFormPopup) {
       wx.showLoading({
@@ -97,6 +99,11 @@ Page({
         await this.refreshList()
       } finally {
         wx.hideLoading()
+        wx.showModal({
+          title: '温馨提示',
+          content: '1.就医当天务必携带身份证件。\n2.非葡语干部可请本处室葡语干部陪同前往。',
+          showCancel: false,
+          confirmText: '我知道了'})
       }
     }
   },
@@ -444,7 +451,8 @@ Page({
         wx.showModal({
           title: '提交成功',
           content: '提交成功，请等待审批，您可在审批中心“我的发起”中查看进度。',
-          showCancel: 'false',
+          showCancel: false,
+          confirmText: '我知道了',
           success: (modalRes) => {
             if (modalRes.confirm) {
               this.setData({

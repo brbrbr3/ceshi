@@ -8,7 +8,7 @@ Page({
     displayName: '访客',
     greetingText: '欢迎使用Embaixada办公系统',
     currentDateText: '',
-    todayTypeText: '今天是工作日',  // 动态显示日期类型
+    todayTypeText: '今天是工作日', // 动态显示日期类型
     roleLabel: '待认证用户',
     pendingApprovalCount: 0,
     unreadNotificationCount: 0,
@@ -16,20 +16,90 @@ Page({
     currentUser: null,
     // 权限缓存
     permissionCache: {},
-    stats: [
-      { label: '待审批', value: '0'}
-    ],
-    quickActions: [
-      { icon: '🍽️', label: '每周菜单', color: '#16A34A', bg: '#DCFCE7', implemented: true, featureKey: null },
-      { icon: '🍱', label: '餐食管理', color: '#16A34A', bg: '#DCFCE7', implemented: true, featureKey: 'meal_management' },
-      { icon: '🛴', label: '外出报备', color: '#2563EB', bg: '#EFF6FF', implemented: true, featureKey: 'trip_report' },
-      { icon: '📊', label: '出行数据板', color: '#7C3AED', bg: '#F3E8FF', implemented: true, featureKey: 'trip_dashboard' },
-      { icon: '🏥', label: '就医申请', color: '#EF4444', bg: '#FEE2E2', implemented: true, featureKey: 'medical_application' },
-      { icon: '🏢', label: '会议室预约', color: '#7C5CFC', bg: '#E8E4FF', implemented: true, featureKey: 'meeting_room' },
-      { icon: '💈', label: '理发预约', color: '#EA580C', bg: '#FFF7ED', implemented: true, featureKey: 'haircut_appointment' },
-      { icon: '🛂', label: '护照管理', color: '#D97706', bg: '#FEF3C7', implemented: true, featureKey: 'passport_application' },
-      { icon: '🔧', label: '物业报修', color: '#8B6F47', bg: '#FDF3E1', implemented: true, featureKey: null },
-      { icon: '🚗', label: '购车管理', color: '#0891B2', bg: '#ECFEFF', implemented: true, featureKey: 'car_purchase' }
+    stats: [{
+      label: '待审批',
+      value: '0'
+    }],
+    quickActions: [{
+        icon: '🍽️',
+        label: '每周菜单',
+        color: '#16A34A',
+        bg: '#DCFCE7',
+        implemented: true,
+        featureKey: null
+      },
+      {
+        icon: '🍱',
+        label: '餐食管理',
+        color: '#16A34A',
+        bg: '#DCFCE7',
+        implemented: true,
+        featureKey: 'meal_management'
+      },
+      {
+        icon: '🛴',
+        label: '外出报备',
+        color: '#2563EB',
+        bg: '#EFF6FF',
+        implemented: true,
+        featureKey: 'trip_report'
+      },
+      {
+        icon: '📊',
+        label: '出行数据板',
+        color: '#7C3AED',
+        bg: '#F3E8FF',
+        implemented: true,
+        featureKey: 'trip_dashboard'
+      },
+      {
+        icon: '🏥',
+        label: '就医申请',
+        color: '#EF4444',
+        bg: '#FEE2E2',
+        implemented: true,
+        featureKey: 'medical_application'
+      },
+      {
+        icon: '🏢',
+        label: '会议室预约',
+        color: '#7C5CFC',
+        bg: '#E8E4FF',
+        implemented: true,
+        featureKey: 'meeting_room'
+      },
+      {
+        icon: '💈',
+        label: '理发预约',
+        color: '#EA580C',
+        bg: '#FFF7ED',
+        implemented: true,
+        featureKey: 'haircut_appointment'
+      },
+      {
+        icon: '🛂',
+        label: '护照管理',
+        color: '#D97706',
+        bg: '#FEF3C7',
+        implemented: true,
+        featureKey: 'passport_application'
+      },
+      {
+        icon: '🔧',
+        label: '物业报修',
+        color: '#8B6F47',
+        bg: '#FDF3E1',
+        implemented: true,
+        featureKey: null
+      },
+      {
+        icon: '🚗',
+        label: '购车管理',
+        color: '#0891B2',
+        bg: '#ECFEFF',
+        implemented: true,
+        featureKey: 'car_purchase'
+      }
     ],
     announcements: [],
     articles: [],
@@ -46,21 +116,23 @@ Page({
 
   onShow() {
     const fontStyle = app.globalData.fontStyle
-  if (this.data.fontStyle !== fontStyle) {
-    this.setData({ fontStyle })
-  }
+    if (this.data.fontStyle !== fontStyle) {
+      this.setData({
+        fontStyle
+      })
+    }
     this.setData({
       currentDateText: this.getCurrentDateText()
     })
-    this.syncUserProfile()      //同步用户资料
-    this.syncNotifications()    //同步消息推送
-    this.loadAnnouncements()    //加载通知公告
-    this.loadArticles()         //加载学习园地
-    this.loadActivities()       //加载群团活动
-    this.loadPermissionCache()  //加载权限缓存
-    this.loadHolidayConfig()    //加载节假日配置
-    this.loadTodaySchedules()   // 加载今日日程
-    app.updateCacheVersionAndShowWhatsNew()//更新缓存版本号，展示更新说明弹窗
+    this.syncUserProfile() //同步用户资料
+    this.syncNotifications() //同步消息推送
+    this.loadAnnouncements() //加载通知公告
+    this.loadArticles() //加载学习园地
+    this.loadActivities() //加载群团活动
+    this.loadPermissionCache() //加载权限缓存
+    this.loadHolidayConfig() //加载节假日配置
+    this.loadTodaySchedules() // 加载今日日程
+    app.updateCacheVersionAndShowWhatsNew() //更新缓存版本号，展示更新说明弹窗
     this.loadSignature()
   },
 
@@ -117,7 +189,9 @@ Page({
     // 先检查是否已有有效缓存
     const cached = app.getPermissionCache()
     if (cached) {
-      this.setData({ permissionCache: cached })
+      this.setData({
+        permissionCache: cached
+      })
       console.log('权限缓存已存在，跳过加载')
       return
     }
@@ -133,7 +207,9 @@ Page({
     const featureKeys = ['medical_application', 'trip_report', 'trip_dashboard', 'meeting_room', 'passport_application', 'meal_management', 'car_purchase']
     app.loadPermissionCache(featureKeys)
       .then((permissions) => {
-        this.setData({ permissionCache: permissions })
+        this.setData({
+          permissionCache: permissions
+        })
         wx.hideToast()
       })
       .catch((error) => {
@@ -200,7 +276,7 @@ Page({
       .catch(() => {
         // 静默失败
       })
-      return
+    return
   },
 
   goApprovalTab() {
@@ -222,10 +298,17 @@ Page({
 
   syncNotifications() {
     // 只加载第一页数据，用于统计未读数量
-    app.getNotifications({ page: 1, pageSize: 20 }, function(result) {
+    app.getNotifications({
+      page: 1,
+      pageSize: 20
+    }, function (result) {
       const notifications = result.data || []
-      const unreadCount = notifications.filter(function(n) { return !n.read }).length
-      this.setData({ unreadNotificationCount: unreadCount })
+      const unreadCount = notifications.filter(function (n) {
+        return !n.read
+      }).length
+      this.setData({
+        unreadNotificationCount: unreadCount
+      })
     }.bind(this))
   },
 
@@ -236,7 +319,9 @@ Page({
   },
 
   loadAnnouncements() {
-    this.setData({ loading: true })
+    this.setData({
+      loading: true
+    })
 
     wx.cloud.callFunction({
       name: 'announcementManager',
@@ -282,9 +367,21 @@ Page({
 
   getAnnouncementTypeInfo(type) {
     const typeMap = {
-      'urgent': { text: '紧急', color: '#DC2626', bg: '#FEE2E2' },
-      'important': { text: '重要', color: '#D97706', bg: '#FEF3C7' },
-      'normal': { text: '通知', color: '#0284C7', bg: '#E0F2FE' }
+      'urgent': {
+        text: '紧急',
+        color: '#DC2626',
+        bg: '#FEE2E2'
+      },
+      'important': {
+        text: '重要',
+        color: '#D97706',
+        bg: '#FEF3C7'
+      },
+      'normal': {
+        text: '通知',
+        color: '#0284C7',
+        bg: '#E0F2FE'
+      }
     }
     return typeMap[type] || typeMap.normal
   },
@@ -305,7 +402,9 @@ Page({
   },
 
   loadArticles() {
-    this.setData({ loadingArticles: true })
+    this.setData({
+      loadingArticles: true
+    })
 
     wx.cloud.callFunction({
       name: 'articleManager',
@@ -335,7 +434,9 @@ Page({
       }
     }).catch(error => {
       console.error('加载学习园地失败:', error)
-      this.setData({ loadingArticles: false })
+      this.setData({
+        loadingArticles: false
+      })
     })
   },
 
@@ -411,26 +512,38 @@ Page({
     // 优先使用缓存权限
     const cachedPermission = this.data.permissionCache[featureKey]
     if (cachedPermission === true) {
-      wx.navigateTo({ url })
+      wx.navigateTo({
+        url
+      })
       return
     }
-    
+
     if (cachedPermission === false) {
       this.showPermissionDenied(featureName)
       return
     }
-    
+
     // 缓存未命中，实时检查权限
-    wx.showLoading({ title: '检查权限...', mask: true })
+    wx.showLoading({
+      title: '检查权限...',
+      mask: true
+    })
     app.checkPermission(featureKey)
       .then((allowed) => {
         wx.hideLoading()
         // 更新缓存
-        const permissionCache = { ...this.data.permissionCache, [featureKey]: allowed }
-        this.setData({ permissionCache })
-        
+        const permissionCache = {
+          ...this.data.permissionCache,
+          [featureKey]: allowed
+        }
+        this.setData({
+          permissionCache
+        })
+
         if (allowed) {
-          wx.navigateTo({ url })
+          wx.navigateTo({
+            url
+          })
         } else {
           this.showPermissionDenied(featureName)
         }
@@ -438,7 +551,10 @@ Page({
       .catch((error) => {
         wx.hideLoading()
         console.error('权限检查失败:', error)
-        utils.showToast({ title: '权限检查失败', icon: 'none' })
+        utils.showToast({
+          title: '权限检查失败',
+          icon: 'none'
+        })
       })
   },
 
@@ -480,7 +596,9 @@ Page({
         name: 'holidayManager',
         data: {
           action: 'getByYear',
-          params: { year: currentYear }
+          params: {
+            year: currentYear
+          }
         }
       })
 
@@ -491,12 +609,16 @@ Page({
 
       // 判断今天类型
       const todayType = this.getTodayType(holidayDates)
-      this.setData({ todayTypeText: todayType })
+      this.setData({
+        todayTypeText: todayType
+      })
     } catch (error) {
       console.error('加载节假日配置失败:', error)
       // 使用默认判断（只判断周末）
       const todayType = this.getTodayType([])
-      this.setData({ todayTypeText: todayType })
+      this.setData({
+        todayTypeText: todayType
+      })
     }
   },
 
@@ -529,7 +651,9 @@ Page({
    * 加载今日订阅日程
    */
   loadTodaySchedules() {
-    this.setData({ loadingSchedules: true })
+    this.setData({
+      loadingSchedules: true
+    })
 
     wx.cloud.callFunction({
       name: 'scheduleManager',
@@ -571,7 +695,9 @@ Page({
    * 隐藏日程详情弹窗
    */
   hideScheduleDetail() {
-    this.setData({ showScheduleDetail: false })
+    this.setData({
+      showScheduleDetail: false
+    })
   },
 
   /**
@@ -591,13 +717,18 @@ Page({
       content: `确定要取消订阅「${schedule.title}」吗？`,
       success: (res) => {
         if (res.confirm) {
-          wx.showLoading({ title: '取消订阅...', mask: true })
+          wx.showLoading({
+            title: '取消订阅...',
+            mask: true
+          })
 
           wx.cloud.callFunction({
             name: 'scheduleManager',
             data: {
               action: 'unsubscribe',
-              params: { scheduleId: schedule.scheduleId || schedule._id }
+              params: {
+                scheduleId: schedule.scheduleId || schedule._id
+              }
             }
           }).then(res => {
             wx.hideLoading()
@@ -611,14 +742,23 @@ Page({
                 showScheduleDetail: false,
                 detailSchedule: null
               })
-              wx.showToast({ title: '已取消订阅', icon: 'success' })
+              wx.showToast({
+                title: '已取消订阅',
+                icon: 'success'
+              })
             } else {
-              wx.showToast({ title: res.result.message, icon: 'none' })
+              wx.showToast({
+                title: res.result.message,
+                icon: 'none'
+              })
             }
           }).catch(err => {
             wx.hideLoading()
             console.error('取消订阅失败:', err)
-            wx.showToast({ title: '操作失败', icon: 'none' })
+            wx.showToast({
+              title: '操作失败',
+              icon: 'none'
+            })
           })
         }
       }
@@ -631,7 +771,9 @@ Page({
    * 加载首页活动列表（最多3条）
    */
   loadActivities() {
-    this.setData({ loadingActivities: true })
+    this.setData({
+      loadingActivities: true
+    })
 
     wx.cloud.callFunction({
       name: 'activityManager',
@@ -672,7 +814,9 @@ Page({
       }
     }).catch(error => {
       console.error('加载活动失败:', error)
-      this.setData({ loadingActivities: false })
+      this.setData({
+        loadingActivities: false
+      })
     })
   },
 

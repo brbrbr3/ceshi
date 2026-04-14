@@ -163,7 +163,8 @@ page {
   display: flex;
   align-items: center;
   justify-content: center;
-  font-size: var(--fs-70);
+  font-size: var(--fs-50);
+  margin-left: -16rpx;
 }
 
 .home-calendar-title {
@@ -177,7 +178,8 @@ page {
 }
 
 .home-calendar-tag {
-  min-width: 96rpx;
+  margin-right: -20rpx;
+  min-width: 106rpx;
   padding: 14rpx 26rpx;
   border-radius: 999rpx;
   text-align: center;

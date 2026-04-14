@@ -25,7 +25,8 @@ page {
 }
 
 .contacts-header {
-  padding-bottom: 156rpx;
+  padding-top: 120rpx;
+  padding-bottom: 50rpx;
 }
 
 .contacts-title {
@@ -34,9 +35,7 @@ page {
 }
 
 .contacts-subtitle {
-  margin-top: 10rpx;
   font-size: var(--fs-22);
-  opacity: 0.76;
 }
 
 .contacts-online-pill {
@@ -62,7 +61,11 @@ page {
   font-size: var(--fs-26);
 }
 
-.contacts-overview-card,
+.contacts-overview-card{
+  padding: 24rpx;
+  margin-top: -15rpx;
+}
+
 .contacts-list-card {
   padding: 24rpx;
 }
@@ -236,5 +239,5 @@ page {
   display: flex;
   align-items: center;
   justify-content: center;
-  font-size: var(--fs-36);
+  font-size: var(--fs-60);
 }
