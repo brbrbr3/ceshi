@@ -361,7 +361,7 @@ Page({
         utils.showToast({ title: res.result.message || '提交失败', icon: 'none' })
       }
     } catch (error) {
-      console.error('提交购车申请失败:', error)
+      console.error('开始购车流程失败:', error)
       utils.showToast({ title: '提交失败，请重试', icon: 'none' })
     } finally {
       this.setData({ submitting: false })

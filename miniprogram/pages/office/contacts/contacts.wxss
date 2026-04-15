@@ -79,18 +79,18 @@ page {
   padding: 16rpx 28rpx;
   margin-right: 16rpx;
   border-radius: 999rpx;
-  color: rgb(0, 0, 0);
   font-size: var(--fs-25);
   font-weight: 500;
   box-shadow: 8rpx 8rpx 18rpx rgba(37, 99, 235, 0.5);
   background: rgba(0, 0, 0, 0.07);
   border: 4rpx solid rgba(225, 225, 225, 0.3);
   backdrop-filter: blur(15px);
+  color: rgba(255, 255, 255, 0.733);
 }
 
 .contacts-chip.is-active {
   background: rgba(255, 255, 255, 0.07);
-  color: rgba(255, 255, 255);
+  color: rgb(0, 0, 0);
   border: 4rpx solid rgb(247, 247, 247);
   box-shadow: 8rpx 8rpx 18rpx rgba(37, 99, 235, 0.5);
 }
@@ -163,10 +163,21 @@ page {
 }
 
 .contacts-expand-box {
-  margin-top: 20rpx;
-  padding: 20rpx;
+  max-height: 0;
+  overflow: hidden;
+  opacity: 0;
+  padding: 0 20rpx;
+  margin-top: 0;
   border-radius: 24rpx;
   background: #F8FAFC;
+  transition: max-height 0.15s ease-in-out, opacity 0.15s ease-in-out, padding 0.15s ease-in-out, margin-top 0.15s ease-in-out;
+}
+
+.contacts-expand-box.is-expanded {
+  max-height: 500rpx;
+  opacity: 1;
+  padding: 20rpx;
+  margin-top: 20rpx;
 }
 
 .contacts-expand-grid {

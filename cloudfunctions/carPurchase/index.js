@@ -575,9 +575,11 @@ async function checkAndAdvanceGroup(recordId, record, changedGroupIndex, operato
 
       // 推送通知
       if (nextGroup.groupOwner === 'office') {
-        // 通知办公室所有人
+        // 通知办公室馆员（非管理员）
         const officeUsersRes = await usersCollection.where({
           department: '办公室',
+          role: '馆员',
+          isAdmin: _.neq(true),
           status: 'approved'
         }).field({ openid: true }).get()
 

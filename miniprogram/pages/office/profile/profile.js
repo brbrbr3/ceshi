@@ -92,7 +92,7 @@ Page({
     ],
     fontsizeOptions: ['小', '正常', '大', '特大'],
     fontscaleValues: [1, 1.1, 1.2, 1.4],
-    selectedFontsizeStepperIndex: 1,//默认‘正常’
+    selectedFontsizeStepperIndex: 1, //默认‘正常’
   },
 
   onShow() {
@@ -132,11 +132,17 @@ Page({
     })
     app.globalData.fontScale = scale
     app.globalData.fontStyle = fontStyle
-    try { wx.setStorageSync('app-fontsize-cache', { scale }) } catch(e) {}
+    try {
+      wx.setStorageSync('app-fontsize-cache', {
+        scale
+      })
+    } catch (e) {}
   },
 
   syncUserProfile() {
-    app.checkUserRegistration()
+    app.checkUserRegistration({
+        forceRefresh: true
+      })
       .then((result) => {
         if (!result.registered || !result.user) {
           wx.reLaunch({
@@ -187,10 +193,22 @@ Page({
         // 用户状态映射
         const userStatus = user.userStatus || 'offline'
         const STATUS_MAP = {
-          online:  { label: '在线', cls: 'status-online' },
-          busy:    { label: '忙碌', cls: 'status-busy' },
-          out:     { label: '外出中', cls: 'status-out' },
-          offline: { label: '离线', cls: 'status-offline' }
+          online: {
+            label: '在线',
+            cls: 'status-online'
+          },
+          busy: {
+            label: '忙碌',
+            cls: 'status-busy'
+          },
+          out: {
+            label: '外出中',
+            cls: 'status-out'
+          },
+          offline: {
+            label: '离线',
+            cls: 'status-offline'
+          }
         }
         const statusInfo = STATUS_MAP[userStatus] || STATUS_MAP.offline
 
@@ -198,7 +216,7 @@ Page({
           userName: user.name,
           roleLabel: user.isAdmin ? `${user.role} · 管理员` : user.role,
           primaryTag: user.isAdmin ? '管理员' : '普通用户',
-          secondaryTag: '状态：'+statusInfo.label,
+          secondaryTag: '状态：' + statusInfo.label,
           avatarText: (user.avatarText || user.name || '智').slice(0, 1),
           avatarStatusClass: statusInfo.cls,
           isAdmin: !!user.isAdmin,
@@ -213,9 +231,56 @@ Page({
       })
   },
 
+  onChangeStatus() {
+    const currentStatus = this.data.avatarStatusClass.replace('status-', '')
+    // status-out: 外出中，不允许手动切换
+    if (currentStatus === 'out') {
+      wx.showToast({
+        title: '外出中无法切换状态',
+        icon: 'none'
+      })
+      return
+    }
+    // online ↔ busy 互切
+    wx.showLoading({ title: '切换状态中...', mask: true })
+    const nextStatus = currentStatus === 'online' ? 'busy' : 'online'
+    app.callOfficeAuth('updateUserStatus', {
+      userStatus: nextStatus
+    }).then(() => {
+      // 即时更新 UI
+      const STATUS_MAP = {
+        online: {
+          label: '在线',
+          cls: 'status-online'
+        },
+        busy: {
+          label: '忙碌',
+          cls: 'status-busy'
+        }
+      }
+      const info = STATUS_MAP[nextStatus]
+      this.setData({
+        secondaryTag: '状态：' + info.label,
+        avatarStatusClass: info.cls
+      })
+    }).catch(err => {
+      console.warn('更新状态失败:', err)
+      wx.showToast({
+        title: '状态切换失败',
+        icon: 'none'
+      })
+    }).finally(() => {
+      wx.hideLoading()
+    })
+  },
+
+
   handleLogout() {
     // 退出登录前，将用户状态设为 offline（若当前外出则保持 out）
-    app.callOfficeAuth('updateUserStatus', { userStatus: 'offline', preserveOut: true }).catch(err => {
+    app.callOfficeAuth('updateUserStatus', {
+      userStatus: 'offline',
+      preserveOut: true
+    }).catch(err => {
       console.warn('更新离线状态失败:', err)
     })
     app.logout()

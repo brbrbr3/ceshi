@@ -56,19 +56,18 @@ page {
 }
 
 .approval-subtitle {
-  margin-top: 10rpx;
   font-size: var(--fs-22);
   opacity: 0.76;
 }
 
 .approval-launch-btn {
-  min-width: 96rpx;
-  margin: 50rpx 0 0 10rpx;
+  min-width: 126rpx;
+  margin: 90rpx 0 0 10rpx;
   padding: 14rpx 34rpx;
   border-radius: 999rpx;
   background: rgba(255, 255, 255, 0.16);
   font-size: var(--fs-24);
-  font-weight: 600;
+  font-weight: 400;
   text-align: center;
 }
 

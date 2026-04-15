@@ -2,20 +2,54 @@ const app = getApp()
 
 // 用户状态映射
 const userStatusMap = {
-  online: { label: '在线', color: '#22C55E', bg: '#F0FFF4' },
-  busy: { label: '忙碌', color: '#F59E0B', bg: '#FFFBEB' },
-  out: { label: '外出中', color: '#D97706', bg: '#FEF3C7' },
-  offline: { label: '离线', color: '#94A3B8', bg: '#F8FAFC' }
+  online: {
+    label: '在线',
+    color: '#22C55E',
+    bg: '#F0FFF4'
+  },
+  busy: {
+    label: '忙碌',
+    color: '#F59E0B',
+    bg: '#FFFBEB'
+  },
+  out: {
+    label: '外出中',
+    color: '#F59E0B',
+    bg: '#FFFBEB'
+  },
+  offline: {
+    label: '离线',
+    color: '#94A3B8',
+    bg: '#F8FAFC'
+  }
 }
 
 // 角色图标配色
 const roleIcons = {
-  '馆领导': { icon: '👔', color: '#7C3AED' },
-  '部门负责人': { icon: '🏛️', color: '#0891B2' },
-  '馆员': { icon: '📚', color: '#059669' },
-  '工勤': { icon: '🧰', color: '#EA580C' },
-  '物业': { icon: '🏘️', color: '#DB2777' },
-  '配偶': { icon: '💞', color: '#DC2626' }
+  '馆领导': {
+    icon: '👔',
+    color: '#7C3AED'
+  },
+  '部门负责人': {
+    icon: '🏛️',
+    color: '#0891B2'
+  },
+  '馆员': {
+    icon: '📚',
+    color: '#059669'
+  },
+  '工勤': {
+    icon: '🧰',
+    color: '#EA580C'
+  },
+  '物业': {
+    icon: '🏘️',
+    color: '#DB2777'
+  },
+  '配偶': {
+    icon: '💞',
+    color: '#DC2626'
+  }
 }
 
 // 可展示在部门分组中的角色
@@ -40,7 +74,9 @@ Page({
   onShow() {
     const fontStyle = app.globalData.fontStyle
     if (this.data.fontStyle !== fontStyle) {
-      this.setData({ fontStyle })
+      this.setData({
+        fontStyle
+      })
     }
     // 每次显示时刷新数据（状态可能变化）
     this.loadContacts()
@@ -52,7 +88,9 @@ Page({
   loadContacts() {
     wx.cloud.callFunction({
       name: 'officeAuth',
-      data: { action: 'getContactsList' }
+      data: {
+        action: 'getContactsList'
+      }
     }).then(res => {
       if (res.result.code !== 0) {
         throw new Error(res.result.message || '获取通讯录失败')
@@ -69,7 +107,10 @@ Page({
       // 为每个联系人添加显示信息
       const processed = contacts.map(c => {
         const statusInfo = userStatusMap[c.userStatus || 'offline'] || userStatusMap.offline
-        const roleInfo = roleIcons[c.role] || { icon: '👤', color: '#6B7280' }
+        const roleInfo = roleIcons[c.role] || {
+          icon: '👤',
+          color: '#6B7280'
+        }
         return {
           ...c,
           statusLabel: statusInfo.label,
@@ -90,25 +131,56 @@ Page({
       this.applyContactsFilter()
     }).catch(err => {
       console.error('加载通讯录失败:', err)
-      wx.showToast({ title: '加载失败', icon: 'none' })
+      wx.showToast({
+        title: '加载失败',
+        icon: 'none'
+      })
     })
   },
 
   onSearchInput(e) {
-    this.setData({ search: e.detail.value || '', expandedId: null }, () => {
+    this.setData({
+      search: e.detail.value || '',
+      expandedId: null
+    }, () => {
       this.applyContactsFilter()
     })
   },
 
   switchDept(e) {
-    this.setData({ selectedDept: e.currentTarget.dataset.dept, expandedId: null }, () => {
+    this.setData({
+      selectedDept: e.currentTarget.dataset.dept,
+      expandedId: null
+    }, () => {
       this.applyContactsFilter()
     })
   },
 
   toggleContact(e) {
     const id = e.currentTarget.dataset.id
-    this.setData({ expandedId: this.data.expandedId === id ? null : id })
+    this.setData({
+      expandedId: this.data.expandedId === id ? null : id
+    })
+  },
+
+  onPhoneCall(e) {
+    const mobile = e.currentTarget.dataset.mobile
+    if (!mobile) {
+      wx.showToast({
+        title: '暂无手机号码',
+        icon: 'error'
+      })
+      return
+    }
+    wx.makePhoneCall({
+      phoneNumber: mobile, // 需要拨打的号码
+      success: () => {
+        console.log('拨号界面已成功唤起');
+      },
+      fail: (err) => {
+        console.log('拨号取消', err);
+      }
+    });
   },
 
   /**
@@ -134,7 +206,7 @@ Page({
 
     // 第二步：按分组规则分类
     const leaderGroup = [] // 馆领导组
-    const deptGroups = {}  // 部门分组
+    const deptGroups = {} // 部门分组
     const propertyGroup = [] // 物业组
     const spouseGroup = [] // 配偶有岗位组
 
@@ -214,6 +286,8 @@ Page({
       })
     }
 
-    this.setData({ groupedContacts })
+    this.setData({
+      groupedContacts
+    })
   }
 })

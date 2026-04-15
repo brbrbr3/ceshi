@@ -2,7 +2,7 @@
   <view class="office-gradient-header profile-header">
     <!-- <view class="profile-theme-switch" bindtap="showComingSoon">{{primaryTag}}</view> -->
 
-    <view class="profile-user-row" bindtap="showComingSoon">
+    <view class="profile-user-row">
       <view class="profile-avatar-wrap">
         <view class="profile-avatar">{{avatarText}}</view>
         <view class="profile-avatar-status {{avatarStatusClass}}"></view>
@@ -12,7 +12,7 @@
         <view class="profile-role">{{roleLabel}}</view>
         <view class="profile-tags">
           <view class="profile-tag">{{primaryTag}}</view>
-          <view class="profile-tag is-light">{{secondaryTag}}</view>
+          <view class="profile-tag is-light" bind:tap="onChangeStatus">{{secondaryTag}}</view>
         </view>
       </view>
       <!-- <view class="profile-arrow">›</view> -->

@@ -347,7 +347,7 @@
           <view class="cp-field" wx:if="{{purchaseLoanForm.carSubsidy > 0}}">
             <view class="cp-field-label">月购车补贴标准（人民币）</view>
             <view class="cp-input-wrapper cp-input-readonly">
-              <text class="cp-input cp-input-disabled">{{purchaseLoanForm.carSubsidy}}</text>
+              <text class="cp-input cp-input-disabled">****</text>
             </view>
           </view>
 
@@ -362,10 +362,10 @@
           </view>
 
           <!-- 剩余任期内可享购车补贴金额 — 自动计算 -->
-          <view class="cp-field" wx:if="{{purchaseLoanForm.totalSubsidy > 0}}">
+          <view class="cp-field" wx:if="{{purchaseLoanForm.totalSubsidy}}">
             <view class="cp-field-label">剩余任期内可享购车补贴金额（人民币）</view>
             <view class="cp-input-wrapper cp-input-readonly">
-              <text class="cp-input cp-input-disabled">{{purchaseLoanForm.totalSubsidy}}</text>
+              <text class="cp-input cp-input-disabled">******</text>
             </view>
           </view>
 
@@ -489,7 +489,7 @@
 
       <view class="cp-popup-actions">
         <button class="cp-submit-btn" loading="{{submitting}}" disabled="{{submitting}}" bindtap="submitApplication">
-          提交申请
+          开始购车流程
         </button>
       </view>
     </view>

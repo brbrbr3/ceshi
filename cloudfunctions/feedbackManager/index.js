@@ -20,6 +20,7 @@ const _ = db.command
 const feedbackPostsCollection = db.collection('feedback_posts')
 const feedbackRepliesCollection = db.collection('feedback_replies')
 const usersCollection = db.collection('office_users')
+const notificationsCollection = db.collection('notifications')
 
 /**
  * 统一返回格式
@@ -54,6 +55,28 @@ async function getUserInfo(openid) {
 async function checkIsAdmin(openid) {
   const user = await getUserInfo(openid)
   return user && (user.isAdmin || user.role === 'admin')
+}
+
+/**
+ * 推送应用内通知
+ */
+async function pushNotification(targetOpenids, title, content, extra) {
+  try {
+    const notifications = targetOpenids.map(openid => ({
+      openid,
+      type: 'feedback',
+      title,
+      content,
+      read: false,
+      createdAt: Date.now(),
+      extra: extra || {}
+    }))
+    for (const notif of notifications) {
+      await notificationsCollection.add({ data: notif })
+    }
+  } catch (error) {
+    console.error('推送通知失败:', error)
+  }
 }
 
 /**
@@ -150,6 +173,26 @@ async function createPost(event) {
 
     const result = await feedbackPostsCollection.add({ data: postData })
 
+    // 通知所有管理员
+    try {
+      const adminsRes = await usersCollection.where({
+        isAdmin: true,
+        status: 'approved'
+      }).field({ openid: true }).get()
+
+      if (adminsRes.data && adminsRes.data.length > 0) {
+        const adminOpenids = adminsRes.data.map(u => u.openid)
+        await pushNotification(
+          adminOpenids,
+          '【意见反馈】收到新的意见反馈',
+          `${authorName}提交了一条新的意见反馈，请及时查看回复。`,
+          { type: 'feedback_new', postId: result._id }
+        )
+      }
+    } catch (notifyError) {
+      console.error('通知管理员失败:', notifyError)
+    }
+
     return success({
       _id: result._id,
       ...postData
@@ -197,6 +240,21 @@ async function createReply(event) {
     }
 
     const result = await feedbackRepliesCollection.add({ data: replyData })
+
+    // 通知反馈作者
+    try {
+      const postRes = await feedbackPostsCollection.doc(postId).get()
+      if (postRes.data && postRes.data.openid !== OPENID) {
+        await pushNotification(
+          [postRes.data.openid],
+          '【意见反馈】您的意见已收到回复',
+          `管理员回复了您的意见反馈，请及时查看。`,
+          { type: 'feedback_reply', postId }
+        )
+      }
+    } catch (notifyError) {
+      console.error('通知反馈作者失败:', notifyError)
+    }
 
     return success({
       _id: result._id,

@@ -51,21 +51,21 @@
               </view>
             </view>
 
-            <view wx:if="{{expandedId == member._id}}" class="contacts-expand-box">
+            <view class="contacts-expand-box {{expandedId == member._id ? 'is-expanded' : ''}}">
               <view class="contacts-expand-grid">
-                <!-- <view class="contacts-expand-cell">
+                <view class="contacts-expand-cell">
                   <view class="contacts-expand-label">角色</view>
                   <view class="contacts-expand-value">{{member.role}}</view>
-                </view> -->
-                <view class="contacts-expand-cell">
+                </view>
+                <!-- <view class="contacts-expand-cell">
                   <view class="contacts-expand-label">部门</view>
                   <view class="contacts-expand-value">{{member.department || '—'}}</view>
-                </view>
+                </view> -->
                 <view class="contacts-expand-cell">
                   <view class="contacts-expand-label">岗位</view>
                   <view class="contacts-expand-value">{{member.position || '—'}}</view>
                 </view>
-                <view class="contacts-expand-cell">
+                <view class="contacts-expand-cell" data-mobile="{{member.mobile}}" catch:tap="onPhoneCall">
                   <view class="contacts-expand-label">手机</view>
                   <view class="contacts-expand-value">{{member.mobile || '—'}}</view>
                 </view>

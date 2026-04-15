@@ -20,23 +20,27 @@
 .calendar-subtitle {
   font-size: var(--fs-26);
   color: rgba(255, 255, 255, 0.8);
-  margin-top: 4rpx;
 }
 
 /* 配置按钮 */
 .calendar-config-btn {
   padding: 12rpx 24rpx;
+  min-width: 190rpx;
+  margin-top: 70rpx;
   border-radius: 24rpx;
   background: rgba(255, 255, 255, 0.2);
   color: #FFFFFF;
   font-size: var(--fs-24);
-  font-weight: 600;
+  font-weight: 400;
+  display: flex;
+  align-content: center;
+  justify-content: center;
   border: 1rpx solid rgba(255, 255, 255, 0.3);
 }
 
 /* 日历容器 */
 .calendar-container {
-  padding: 10rpx 0 0;
+  padding: 2rpx 0 0;
 }
 
 /* 配置弹窗遮罩 */
@@ -260,7 +264,7 @@
 
 /* 日程区域容器 */
 .schedule-section {
-  margin: 10rpx;
+  margin: 4rpx 8rpx 0;
   background: #FFFFFF;
   border-radius: 24rpx;
   overflow: hidden;

@@ -56,7 +56,7 @@ page {
 }
 
 .profile-avatar-status.status-busy {
-  background: #A78BFA;
+  background: #F9A825;
 }
 
 .profile-avatar-status.status-out {

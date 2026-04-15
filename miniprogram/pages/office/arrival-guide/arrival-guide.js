@@ -119,12 +119,17 @@ Page({
     ],
 
     // 就医信息（原文来自"到馆指南.docx"）
-    // 根据国内规定，馆员就医实行事前审批制度。报销医院详见以下就诊医院目录：
     medicalContent: [
+      {
+        category: '',
+        items: [
+          {name: "", desc: '根据国内规定，馆员就医实行事前审批制度。报销医院详见以下就诊医院目录：'}
+        ]
+      },
       {
         category: '私立综合性医院',
         items: [
-          { name: "Hospital Sírio-Libanês", desc: '' },
+          { name: 'Hospital Sírio-Libanês', desc: '' },
           { name: 'DF Star-Rede D\'OR', desc: '' },
           { name: 'Hospital Brasília', desc: '' },
           { name: 'Hospital Daher', desc: '' },
@@ -233,13 +238,14 @@ Page({
       }
     ],
 
-    // 6个按钮配置
+    // 7个按钮配置
     buttons: [
       { key: 'preparation', label: '赴任前准备', icon: '📋' },
       { key: 'shopping', label: '购物指南', icon: '🛒' },
       { key: 'chinese', label: '中餐/华人', icon: '🥢' },
       { key: 'online', label: '网购平台', icon: '📱' },
       { key: 'medical', label: '就医信息', icon: '🏥' },
+      { key: 'school', label: '子女就学', icon: '👧' },
       { key: 'arrived', label: '我已到馆', icon: '✅' }
     ]
   },
@@ -257,6 +263,15 @@ Page({
       }
       // 非"待赴任馆员"角色也能查看，但仅"待赴任馆员"登录时自动跳转此页
     }).catch(() => {})
+  },
+
+  onShow() {
+    const fontStyle = app.globalData.fontStyle
+    if (this.data.fontStyle !== fontStyle) {
+      this.setData({
+        fontStyle
+      })
+    }
   },
 
   // 按钮点击
@@ -290,9 +305,13 @@ Page({
         content: this.data.shoppingOnlineContent
       },
       medical: {
-        title: '就医信息（报销医院目录）',
+        title: '五、就医信息（报销医院目录）',
         type: 'static',
         content: this.data.medicalContent
+      },
+      school: {
+        title: '六、子女就学',
+        type: 'richtext'
       }
     }
 

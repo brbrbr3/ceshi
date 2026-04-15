@@ -3,7 +3,7 @@
     <view class="office-header-top">
       <view>
         <view class="approval-title">审批中心</view>
-        <view class="approval-subtitle">馆领导、部门负责人及管理员可处理申请，普通用户只能查看自己提交的申请</view>
+        <view class="approval-subtitle">馆领导、部门负责人及管理员可处理申请<text>\n</text>普通用户只能查看自己提交的申请</view>
       </view>
       <view class="approval-launch-btn" bindtap="showLaunchTip">
       {{canReview ? '可审批' : '不可审批'}}
