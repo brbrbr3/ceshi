@@ -34,6 +34,7 @@
 
 /* 头部样式 */
 .detail-header {
+  padding-top: 40rpx;
   padding-bottom: 80rpx;
 }
 
@@ -44,8 +45,8 @@
 
 .detail-subtitle {
   font-size: var(--fs-42);
-  font-weight: 600;
-  color: rgba(255, 255, 255, 0.9);
+  font-weight: 500;
+  color: rgba(255, 255, 255);
 }
 
 .detail-content {

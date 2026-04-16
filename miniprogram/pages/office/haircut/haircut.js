@@ -94,9 +94,9 @@ Page({
 
     onShow() {
         const fontStyle = app.globalData.fontStyle
-  if (this.data.fontStyle !== fontStyle) {
-    this.setData({ fontStyle })
-  }
+        if (this.data.fontStyle !== fontStyle) {
+            this.setData({ fontStyle })
+        }
         this.setData({
             todayStr: this.formatLocalDate(new Date())
         })
@@ -170,20 +170,20 @@ Page({
         try {
             // 1. 本地计算应该显示的日期（基于本地时间）
             const calculatedDates = this.calculateDisplayDates()
-            
+
             // 2. 获取节假日配置（跨年处理）
             const holidaySet = await this.fetchHolidays(calculatedDates)
-            
+
             // 3. 过滤节假日，生成最终显示的日期列表
             const displayDates = []
             const nonHolidayDates = [] // 非节假日日期，用于查询预约情况
-            
+
             const now = new Date()
             const todayStr = this.formatLocalDate(now)
-            
+
             calculatedDates.forEach(calcDate => {
                 const isHoliday = holidaySet.has(calcDate.date)
-                
+
                 if (isHoliday) {
                     // 节假日：显示但标记为禁用，不传给后端
                     displayDates.push({
@@ -197,10 +197,10 @@ Page({
                 } else {
                     // 非节假日：待后续填充预约数
                     nonHolidayDates.push(calcDate.date)
-                    
+
                     // 检查该日期是否已锁定（招待员不受限制）
                     const isDayLocked = this.isDateLocked(calcDate.date) && !this.data.isReceptionist
-                    
+
                     displayDates.push({
                         ...calcDate,
                         isHoliday: false,
@@ -212,7 +212,7 @@ Page({
                     })
                 }
             })
-            
+
             // 4. 获取非节假日日期的预约情况
             if (nonHolidayDates.length > 0) {
                 const res = await wx.cloud.callFunction({
@@ -222,7 +222,7 @@ Page({
                         dates: nonHolidayDates
                     }
                 })
-                
+
                 if (res.result.code === 0) {
                     const slotsByDate = res.result.data.slotsByDate || {}
                     // 填充预约数
@@ -233,7 +233,7 @@ Page({
                     })
                 }
             }
-            
+
             // 5. 更新数据
             this.setData({ displayDates })
             // 默认选择第一个可用日期
@@ -267,18 +267,18 @@ Page({
      */
     async fetchHolidays(dates) {
         const holidaySet = new Set()
-        
+
         if (!dates || dates.length === 0) {
             return holidaySet
         }
-        
+
         // 收集需要查询的年份
         const years = new Set()
         dates.forEach(d => {
             const year = parseInt(d.date.split('-')[0])
             years.add(year)
         })
-        
+
         // 查询各年份的节假日配置
         const promises = []
         years.forEach(year => {
@@ -292,7 +292,7 @@ Page({
                 })
             )
         })
-        
+
         try {
             const results = await Promise.all(promises)
             results.forEach(res => {
@@ -306,7 +306,7 @@ Page({
         } catch (error) {
             console.error('获取节假日失败:', error)
         }
-        
+
         return holidaySet
     },
 
@@ -358,17 +358,17 @@ Page({
         const now = new Date()
         const currentDayOfWeek = now.getDay() // 0=周日, 5=周五, 6=周六
         const currentHour = now.getHours()
-        
+
         // 判断是否应该显示下周
         // 周五22:00后、周六(6)、周日(0) 都显示下周
         const shouldShowNextWeek = (currentDayOfWeek === 5 && currentHour >= 22) ||
-                                    currentDayOfWeek === 6 ||
-                                    currentDayOfWeek === 0
-        
+            currentDayOfWeek === 6 ||
+            currentDayOfWeek === 0
+
         // 计算本周的周一
         const mondayOfThisWeek = new Date(now)
         mondayOfThisWeek.setHours(0, 0, 0, 0)
-        
+
         if (currentDayOfWeek === 0) {
             // 周日，本周周一是6天前
             mondayOfThisWeek.setDate(mondayOfThisWeek.getDate() - 6)
@@ -376,27 +376,27 @@ Page({
             // 周一到周六，本周周一是 (currentDayOfWeek - 1) 天前
             mondayOfThisWeek.setDate(mondayOfThisWeek.getDate() - (currentDayOfWeek - 1))
         }
-        
+
         // 根据是否显示下周，确定基准周一
         let baseMonday = new Date(mondayOfThisWeek)
         if (shouldShowNextWeek) {
             baseMonday.setDate(baseMonday.getDate() + 7)
         }
-        
+
         // 生成周一、周三、周五的日期
         const weekDays = ['周一', '周二', '周三', '周四', '周五', '周六', '周日']
         const dayOffsets = [0, 2, 4] // 周一、周三、周五相对于周一的偏移
         const dates = []
-        
+
         for (const offset of dayOffsets) {
             const targetDate = new Date(baseMonday)
             targetDate.setDate(targetDate.getDate() + offset)
-            
+
             const year = targetDate.getFullYear()
             const month = targetDate.getMonth() + 1
             const day = targetDate.getDate()
             const dayOfWeek = targetDate.getDay()
-            
+
             dates.push({
                 date: `${year}-${String(month).padStart(2, '0')}-${String(day).padStart(2, '0')}`,
                 weekDay: weekDays[dayOfWeek === 0 ? 6 : dayOfWeek - 1],
@@ -451,21 +451,21 @@ Page({
 
             if (res.result.code === 0) {
                 const bookedData = res.result.data.slotsByDate[dateInfo.date] || []
-                
+
                 // 构建时段列表
                 const slots = TIME_SLOTS.map(slot => {
                     // 查找该时段的预约信息
                     const bookingInfo = bookedData.find(b => b.timeSlot === slot.start)
-                    
+
                     // 判断是否为我已预约
-                    const isMyBooking = bookingInfo && 
-                        bookingInfo.status === 'booked' && 
+                    const isMyBooking = bookingInfo &&
+                        bookingInfo.status === 'booked' &&
                         bookingInfo.bookerId === this.data.userOpenId
-                    
+
                     // 确定时段状态
                     let slotStatus = 'available' // 默认可预约
                     let statusLabel = '可预约'
-                    
+
                     if (bookingInfo) {
                         if (bookingInfo.status === 'unavailable') {
                             slotStatus = 'unavailable'
@@ -478,7 +478,7 @@ Page({
                             statusLabel = '已被预约'
                         }
                     }
-                    
+
                     return {
                         ...slot,
                         status: slotStatus,
@@ -487,7 +487,7 @@ Page({
                         bookingInfo: bookingInfo || null
                     }
                 })
-                
+
                 this.setData({
                     slots,
                     slotsMessage: ''
@@ -507,7 +507,7 @@ Page({
     handleSlotSelect(e) {
         const slot = e.currentTarget.dataset.slot
         if (!slot) return
-        
+
         // 当日时段已锁定（普通用户14:20后）
         if (this.data.selectedDateInfo && this.data.selectedDateInfo.isDayLocked) {
             wx.showModal({
@@ -517,16 +517,16 @@ Page({
             })
             return
         }
-        
+
         // 不可预约的时段
         if (slot.status === 'unavailable') return
-        
+
         // 已被他人预约的时段
         if (slot.status === 'booked') return
-        
+
         // 我已预约的时段 - 无操作
         if (slot.status === 'myBooked') return
-        
+
         // 可预约时段 - 弹出预约弹窗
         this.setData({
             selectedSlot: slot.start,
@@ -534,12 +534,11 @@ Page({
         })
         this.showBookingForm()
     },
-    
+
     /**
      * 取消我的预约（从时段列表）
      */
     async handleCancelMySlot(slot) {
-        // 校验：已锁定日期不允许普通用户取消
         if (!this.data.isReceptionist && this.data.selectedDateInfo && this.data.selectedDateInfo.isDayLocked) {
             wx.showToast({ title: '该日期时段已锁定，无法取消', icon: 'none' })
             return
@@ -551,23 +550,21 @@ Page({
             confirmText: '确认取消',
             confirmColor: '#DC2626'
         })
-        
+
         if (!res.confirm) return
-        
+
         try {
             const result = await wx.cloud.callFunction({
                 name: 'haircutManager',
                 data: {
                     action: 'cancelAppointment',
-                    appointmentId: slot.bookingInfo.appointmentId || slot.bookingInfo._id
+                    appointmentId: String(slot.bookingInfo._id)
                 }
             })
-            
+
             if (result.result.code === 0) {
                 wx.showToast({ title: '取消成功', icon: 'success' })
-                // 刷新时段列表
                 this.buildSlots(this.data.selectedDateInfo)
-                // 刷新日期列表
                 this.loadDisplayDates()
             } else {
                 wx.showToast({ title: result.result.message || '取消失败', icon: 'none' })
@@ -577,20 +574,21 @@ Page({
             wx.showToast({ title: '取消失败', icon: 'none' })
         }
     },
-    
+
+
     /**
      * 招待员操作时段（点击操作按钮）
      */
     async handleSlotAction(e) {
         const slot = e.currentTarget.dataset.slot
         if (!slot) return
-        
+
         // 已被他人预约 - 取消预约
         if (slot.status === 'booked') {
             this.showCancelSlotPopup(slot)
             return
         }
-        
+
         // 可预约 - 设为不可预约
         if (slot.status === 'available') {
             const res = await wx.showModal({
@@ -599,9 +597,9 @@ Page({
                 confirmText: '确认',
                 confirmColor: '#EA580C'
             })
-            
+
             if (!res.confirm) return
-            
+
             try {
                 const result = await wx.cloud.callFunction({
                     name: 'haircutManager',
@@ -612,7 +610,7 @@ Page({
                         status: 'unavailable'
                     }
                 })
-                
+
                 if (result.result.code === 0) {
                     wx.showToast({ title: '设置成功', icon: 'success' })
                     this.buildSlots(this.data.selectedDateInfo)
@@ -626,7 +624,7 @@ Page({
             }
             return
         }
-        
+
         // 不可预约 - 恢复为可预约
         if (slot.status === 'unavailable') {
             const res = await wx.showModal({
@@ -635,9 +633,9 @@ Page({
                 confirmText: '确认',
                 confirmColor: '#10B981'
             })
-            
+
             if (!res.confirm) return
-            
+
             try {
                 const result = await wx.cloud.callFunction({
                     name: 'haircutManager',
@@ -648,7 +646,7 @@ Page({
                         status: 'available'
                     }
                 })
-                
+
                 if (result.result.code === 0) {
                     wx.showToast({ title: '恢复成功', icon: 'success' })
                     this.buildSlots(this.data.selectedDateInfo)
@@ -662,28 +660,28 @@ Page({
             }
             return
         }
-        
+
         // 我已预约 - 取消我的预约
         if (slot.status === 'myBooked') {
             this.handleCancelMySlot(slot)
             return
         }
     },
-    
+
     /**
      * 显示取消预约弹窗（招待员）
      */
     showCancelSlotPopup(e) {
         const slot = e.currentTarget ? e.currentTarget.dataset.slot : e
         if (!slot || slot.status !== 'booked') return
-        
+
         this.setData({
             showCancelPopup: true,
             cancellingSlot: slot,
             cancelReason: ''
         })
     },
-    
+
     /**
      * 确认取消预约（招待员）
      */
@@ -692,10 +690,10 @@ Page({
             wx.showToast({ title: '请选择取消原因', icon: 'none' })
             return
         }
-        
+
         const slot = this.data.cancellingSlot
         if (!slot) return
-        
+
         this.setData({ cancelling: true })
         try {
             const res = await wx.cloud.callFunction({
@@ -707,7 +705,7 @@ Page({
                     cancelReason: this.data.cancelReason
                 }
             })
-            
+
             if (res.result.code === 0) {
                 wx.showToast({ title: '取消成功', icon: 'success' })
                 this.setData({ showCancelPopup: false, cancellingSlot: null, cancelReason: '' })
@@ -1023,7 +1021,7 @@ Page({
                         cancelReason: this.data.cancelReason
                     }
                 })
-                
+
                 if (res.result.code === 0) {
                     wx.showToast({ title: '取消成功', icon: 'success' })
                     this.hideCancelPopup()

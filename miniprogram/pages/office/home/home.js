@@ -99,6 +99,14 @@ Page({
         bg: '#ECFEFF',
         implemented: true,
         featureKey: 'car_purchase'
+      },
+      {
+        icon: 'ℹ️',
+        label: '常用信息',
+        color: '#0891B2',
+        bg: '#E8E4FF',
+        implemented: true,
+        featureKey: 'arrival_guide'
       }
     ],
     announcements: [],
@@ -494,6 +502,11 @@ Page({
     } else if (label === '购车管理') {
       // 统一权限检查
       this.checkAndNavigate('car_purchase', '/pages/office/car-purchase/car-purchase', '购车管理')
+    } else if (label === '常用信息') {
+      // 全体用户可用，无需权限检查
+      wx.navigateTo({
+        url: '/pages/office/arrival-guide/arrival-guide'
+      })
     } else {
       utils.showToast({
         title: '功能开发中，敬请期待',

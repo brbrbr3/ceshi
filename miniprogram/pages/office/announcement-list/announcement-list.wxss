@@ -64,8 +64,9 @@
   background: rgba(255, 255, 255, 0.2);
   color: #FFFFFF;
   font-size: var(--fs-26);
-  font-weight: 600;
+  font-weight: 400;
   border: 1rpx solid rgba(255, 255, 255, 0.3);
+  margin-top: 50rpx;
 }
 
 /* 透明标签栏样式 */

@@ -5,19 +5,19 @@
   <!-- 自定义导航栏 -->
   <view class="custom-nav" style="padding-top: {{statusBarHeight}}px">
     <view class="custom-nav-content">
-      <view class="nav-title">到馆指南</view>
+      <view class="nav-title">{{navTitle}}</view>
     </view>
   </view>
 
   <!-- 页面内容 -->
   <view class="guide-content" style="padding-top: {{statusBarHeight + 44}}px">
     <view class="welcome-text">
-      <view class="welcome-title">欢迎赴任！</view>
-      <view class="welcome-desc">请仔细阅读以下指南，做好赴任准备</view>
+      <view wx:if="{{showArrivedButton}}" class="welcome-title">欢迎赴任！</view>
+      <view wx:if="{{showArrivedButton}}" class="welcome-desc">请仔细阅读以下指南，做好赴任准备</view>
     </view>
 
     <view class="button-list">
-      <view wx:for="{{buttons}}" wx:key="key" class="guide-button" data-key="{{item.key}}" bindtap="handleButtonTap">
+      <view wx:for="{{buttons}}" wx:key="key" wx:if="{{!((item.key === 'arrived' && !showArrivedButton) || (item.key === 'preparation' && !showArrivedButton))}}" class="guide-button" data-key="{{item.key}}" bindtap="handleButtonTap">
         <view class="guide-button-icon">{{item.icon}}</view>
         <view class="guide-button-label">{{item.label}}</view>
         <view class="guide-button-arrow" wx:if="{{item.key !== 'arrived'}}">›</view>
@@ -65,14 +65,16 @@
           <view wx:for="{{popupContent}}" wx:key="category" class="content-section">
             <view class="content-category">{{item.category}}</view>
             <view wx:for="{{item.items}}" wx:for-item="subItem" wx:key="name" class="content-card">
-              <view class="content-card-name">{{subItem.name}}</view>
-              <view class="content-card-desc">{{subItem.desc}}</view>
+              <view class="content-card-name"><text user-select="true">{{subItem.name}}</text></view>
+              <view wx:if="{{subItem.desc !== ''}}" class="content-card-desc">
+                <text user-select="true">{{subItem.desc}}</text>
+              </view>
             </view>
           </view>
         </block>
 
         <!--富文本类型-->
-        <block wx:if="{{popupType === 'richtext'}}">
+        <block wx:if="{{popupType === 'richtext-school'}}">
           <text class="content-richtext" user-select="true">一、巴西当地基础教育分为公立和私立两部分。公立学校免费，但教学质量差。私立学校教学质量较好，但费用差别较大。
 
             二、当地国际学校有巴西利亚国际学校（Brasilia International School）、美国学校（American School of Brasilia）和英国学校（British School of Brasilia）、国际学校（School of Nations）等。国际学校入学一般要交赞助费、注册费等。目前，大多数馆员子女选择美国学校或英国学校就学。选择School of Nations就读的子女家长表示该学校对每一位孩子都很关心用心，性价比较高。

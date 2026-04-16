@@ -82,7 +82,7 @@
 .guide-button {
   display: flex;
   align-items: center;
-  padding: 32rpx 36rpx;
+  padding: 15rpx 36rpx;
   background: rgba(0, 0, 0, 0.1);
   backdrop-filter: blur(24px);
   -webkit-backdrop-filter: blur(24px);
@@ -108,7 +108,7 @@
   font-size: var(--fs-35);
   font-weight: 500;
   color: #ffffff;
-  text-shadow: 0 1rpx 4rpx rgba(0, 0, 0, 0.2);
+  text-shadow: 1rpx 1rpx 4rpx rgba(0, 0, 0, 0.2);
 }
 
 .guide-button-arrow {
@@ -322,15 +322,17 @@
 
 .content-card-name {
   font-size: var(--fs-28);
-  font-weight: 600;
+  font-weight: 400;
   color: #1e293b;
   margin-bottom: 8rpx;
+  word-break: break-all;
 }
 
 .content-card-desc {
   font-size: var(--fs-24);
   color: #64748b;
   line-height: 1.5;
+  word-break: break-all;
 }
 
 .content-richtext {

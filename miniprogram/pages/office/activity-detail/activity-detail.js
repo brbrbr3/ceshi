@@ -19,23 +19,29 @@ Page({
 
   onLoad(options) {
     if (options && options.id) {
-      this.setData({ activityId: options.id })
+      this.setData({
+        activityId: options.id
+      })
       this.loadDetail()
     }
   },
 
   onShow() {
     const fontStyle = app.globalData.fontStyle
-  if (this.data.fontStyle !== fontStyle) {
-    this.setData({ fontStyle })
-  }
+    if (this.data.fontStyle !== fontStyle) {
+      this.setData({
+        fontStyle
+      })
+    }
     if (this.data.activityId) {
       this.loadDetail()
     }
   },
 
   loadDetail() {
-    this.setData({ loading: true })
+    this.setData({
+      loading: true
+    })
 
     wx.cloud.callFunction({
       name: 'activityManager',
@@ -76,7 +82,10 @@ Page({
         // 如果没有统计数据但有 groups，用空 count
         if ((groupsWithCount.length === 0) && data.groups) {
           data.groups.forEach(g => {
-            groupStats.push({ name: g.name, regCount: 0 })
+            groupStats.push({
+              name: g.name,
+              regCount: 0
+            })
           })
         }
 
@@ -102,8 +111,13 @@ Page({
       }
     }).catch(err => {
       console.error('加载活动详情失败:', err)
-      this.setData({ loading: false })
-      utils.showToast({ title: err.message || '加载失败', icon: 'none' })
+      this.setData({
+        loading: false
+      })
+      utils.showToast({
+        title: err.message || '加载失败',
+        icon: 'none'
+      })
     })
   },
 
@@ -114,7 +128,10 @@ Page({
     }
 
     if (this.data.isDeadlinePassed) {
-      utils.showToast({ title: '已过截止时间，无法报名', icon: 'none' })
+      utils.showToast({
+        title: '已过截止时间，无法报名',
+        icon: 'none'
+      })
       return
     }
 
@@ -135,18 +152,25 @@ Page({
   // 显示分组选择器
   showGroupPicker() {
     if (this.data.isDeadlinePassed) {
-      utils.showToast({ title: '已过截止时间，无法报名', icon: 'none' })
+      utils.showToast({
+        title: '已过截止时间，无法报名',
+        icon: 'none'
+      })
       return
     }
 
     // 目标用户资格检查
     if (!this._checkUserEligible()) return
 
-    this.setData({ showPicker: true })
+    this.setData({
+      showPicker: true
+    })
   },
 
   hideGroupPicker() {
-    this.setData({ showPicker: false })
+    this.setData({
+      showPicker: false
+    })
   },
 
   // 选择分组后报名
@@ -155,7 +179,9 @@ Page({
     if (!this._checkUserEligible()) return
 
     const groupName = e.currentTarget.dataset.group
-    this.setData({ showPicker: false })
+    this.setData({
+      showPicker: false
+    })
 
     wx.showModal({
       title: '确认报名',
@@ -169,7 +195,10 @@ Page({
   },
 
   doRegister(groupName) {
-    wx.showLoading({ title: '报名中...', mask: true })
+    wx.showLoading({
+      title: '报名中...',
+      mask: true
+    })
     wx.cloud.callFunction({
       name: 'activityManager',
       data: {
@@ -182,14 +211,23 @@ Page({
     }).then(res => {
       wx.hideLoading()
       if (res.result && res.result.code === 0) {
-        utils.showToast({ title: '报名成功', icon: 'success' })
+        utils.showToast({
+          title: '报名成功',
+          icon: 'success'
+        })
         this.loadDetail()
       } else {
-        utils.showToast({ title: res.result.message || '报名失败', icon: 'none' })
+        utils.showToast({
+          title: res.result.message || '报名失败',
+          icon: 'none'
+        })
       }
     }).catch(err => {
       wx.hideLoading()
-      utils.showToast({ title: '报名失败', icon: 'none' })
+      utils.showToast({
+        title: '报名失败',
+        icon: 'none'
+      })
     })
   },
 
@@ -209,7 +247,10 @@ Page({
     // 从缓存获取当前用户
     const user = app.globalData && app.globalData.userProfile
     if (!user || !user.role) {
-      wx.showToast({ title: '无法获取用户信息', icon: 'none' })
+      wx.showToast({
+        title: '无法获取用户信息',
+        icon: 'none'
+      })
       return false
     }
 
@@ -235,7 +276,10 @@ Page({
       content: '确定要取消报名吗？',
       success: (res) => {
         if (res.confirm) {
-          wx.showLoading({ title: '处理中...', mask: true })
+          wx.showLoading({
+            title: '处理中...',
+            mask: true
+          })
           wx.cloud.callFunction({
             name: 'activityManager',
             data: {
@@ -245,14 +289,23 @@ Page({
           }).then(res => {
             wx.hideLoading()
             if (res.result && res.result.code === 0) {
-              utils.showToast({ title: '已取消', icon: 'success' })
+              utils.showToast({
+                title: '已取消',
+                icon: 'success'
+              })
               this.loadDetail()
             } else {
-              utils.showToast({ title: res.result.message || '操作失败', icon: 'none' })
+              utils.showToast({
+                title: res.result.message || '操作失败',
+                icon: 'none'
+              })
             }
           }).catch(err => {
             wx.hideLoading()
-            utils.showToast({ title: '操作失败', icon: 'none' })
+            utils.showToast({
+              title: '操作失败',
+              icon: 'none'
+            })
           })
         }
       }

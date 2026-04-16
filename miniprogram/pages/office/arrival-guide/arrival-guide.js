@@ -9,8 +9,10 @@ Page({
     popupType: '', // 'checklist' | 'static'
     popupContent: [],
     checkedCount: 0,
+    showArrivedButton: true,
+    navTitle: '到馆指南',
 
-    // 赴任前准备 checklist（原文来自"到馆指南.docx"表格）
+    // 行前准备 checklist（原文来自"到馆指南.docx"表格）
     // 结构：{ id, category, detail, note, checked }
     checklistItems: [
       { id: 'vaccine', category: '疫苗', detail: '请接种黄热疫苗，取得国际疫苗证（小黄本）', note: '随身携带', checked: false },
@@ -88,7 +90,7 @@ Page({
       {
         category: '华人',
         items: [
-          { name: '慧丽', desc: '微信：Jin982479165' },
+          { name: '慧莉', desc: '微信：Jin982479165' },
           { name: '岳花', desc: '微信：zhangsen2007816' }
         ]
       }
@@ -121,10 +123,7 @@ Page({
     // 就医信息（原文来自"到馆指南.docx"）
     medicalContent: [
       {
-        category: '',
-        items: [
-          {name: "", desc: '根据国内规定，馆员就医实行事前审批制度。报销医院详见以下就诊医院目录：'}
-        ]
+        category: '根据国内规定，馆员就医实行事前审批制度。报销医院详见以下就诊医院目录：',
       },
       {
         category: '私立综合性医院',
@@ -238,14 +237,40 @@ Page({
       }
     ],
 
+    websiteContent: [
+      {
+        category: '租房',
+        items: [
+          {name: 'https://www.dfimoveis.com.br/', desc: ''},
+          {name: 'https://www.wimoveis.com.br/', desc: ''},
+          {name: 'https://www.quintoandar.com.br/', desc: ''},
+          {name: 'https://www.legacydf.com.br/', desc: ''}
+        ]
+      },
+      {
+        category: '查违章',
+        items: [
+          {name: 'https://portal.detran.df.gov.br/#/servicos/detran-digital/veiculos/consulta/debitos', desc: '联邦区车管所'},
+          {name: 'https://radar.serpro.gov.br/main.html#/cidadao', desc: '联邦区交管局'}
+        ]
+      },
+      {
+        category: '缴电费',
+        items: [
+          {name: 'https://agenciavirtual.neoenergiabrasilia.com.br/', desc: ''}
+        ]
+      },
+    ],
+
     // 7个按钮配置
     buttons: [
-      { key: 'preparation', label: '赴任前准备', icon: '📋' },
+      { key: 'preparation', label: '行前准备', icon: '📋' },
       { key: 'shopping', label: '购物指南', icon: '🛒' },
       { key: 'chinese', label: '中餐/华人', icon: '🥢' },
       { key: 'online', label: '网购平台', icon: '📱' },
       { key: 'medical', label: '就医信息', icon: '🏥' },
       { key: 'school', label: '子女就学', icon: '👧' },
+      { key: 'website', label: '常用网址', icon: '🌐'},
       { key: 'arrived', label: '我已到馆', icon: '✅' }
     ]
   },
@@ -260,6 +285,14 @@ Page({
       if (!result.registered || !result.user) {
         wx.reLaunch({ url: '/pages/auth/login/login' })
         return
+      }
+      else if (result.user.role !== '待赴任馆员') {
+        this.setData({
+          //非'待赴任馆员'角色不显示‘行前准备’和‘我已到馆’按钮
+          showArrivedButton: false,
+          //导航栏文字改为‘常用信息’
+          navTitle: '常用信息'
+        })
       }
       // 非"待赴任馆员"角色也能查看，但仅"待赴任馆员"登录时自动跳转此页
     }).catch(() => {})
@@ -285,33 +318,39 @@ Page({
 
     const contentMap = {
       preparation: {
-        title: '一、赴任前准备',
+        title: '行前准备',
         type: 'checklist',
         content: this.data.checklistItems
       },
       shopping: {
-        title: '二、购物指南',
+        title: '购物指南',
         type: 'static',
         content: this.data.shoppingContent
       },
       chinese: {
-        title: '三、中餐（品类齐全、价格高于国内）',
+        title: '中餐（品类较全，价格高于国内）',
         type: 'static',
         content: this.data.chineseContent
       },
       online: {
-        title: '四、网购',
+        title: '网购',
         type: 'static',
         content: this.data.shoppingOnlineContent
       },
       medical: {
-        title: '五、就医信息（报销医院目录）',
+        title: '就医信息（报销医院目录）',
         type: 'static',
         content: this.data.medicalContent
       },
       school: {
-        title: '六、子女就学',
-        type: 'richtext'
+        title: '子女就学',
+        type: 'richtext-school',
+        content: ''
+      },
+      website: {
+        title: '常用网址',
+        type: 'static',
+        content: this.data.websiteContent
       }
     }
 

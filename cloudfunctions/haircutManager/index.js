@@ -75,17 +75,17 @@ async function getHolidays(years) {
   const db = cloud.database()
   const holidayConfigsCollection = db.collection('holiday_configs')
   const holidays = []
-  
+
   for (const year of years) {
     const result = await holidayConfigsCollection
       .where({ year: Number(year) })
       .get()
-    
+
     if (result.data && result.data.length > 0) {
       holidays.push(...result.data[0].dates)
     }
   }
-  
+
   return holidays
 }
 
@@ -107,9 +107,10 @@ async function getReservationSlots(dates) {
       date: _.in(dates),
       status: _.in(['booked', 'unavailable'])
     })
-    .field({ 
-      date: true, 
-      timeSlot: true, 
+    .field({
+      _id: true,       // 加上这行
+      date: true,
+      timeSlot: true,
       timeSlotDisplay: true,
       appointeeName: true,
       displayName: true,
@@ -129,6 +130,7 @@ async function getReservationSlots(dates) {
     bookedResult.data.forEach(item => {
       if (slotsByDate[item.date]) {
         slotsByDate[item.date].push({
+          _id: item._id,              // 加上这行
           timeSlot: item.timeSlot,
           timeSlotDisplay: item.timeSlotDisplay,
           status: item.status, // 'booked' 或 'unavailable'
@@ -149,39 +151,39 @@ async function getReservationSlots(dates) {
  */
 async function createAppointment(openid, appointmentData) {
   const { date, timeSlot, appointeeName } = appointmentData
-  
+
   // 验证必填字段
   if (!date || !timeSlot || !appointeeName) {
     throw new Error('请填写完整的预约信息')
   }
-  
+
   // 验证时段是否有效
   const slotConfig = TIME_SLOTS.find(s => s.start === timeSlot)
   if (!slotConfig) {
     throw new Error('时段无效')
   }
-  
+
   // 验证日期格式
   if (!/^\d{4}-\d{2}-\d{2}$/.test(date)) {
     throw new Error('日期格式不正确')
   }
-  
+
   // 获取用户信息
   const userResult = await usersCollection.where({ openid }).limit(1).get()
   if (!userResult.data || userResult.data.length === 0) {
     throw new Error('用户不存在')
   }
-  
+
   const user = userResult.data[0]
   if (user.status !== 'approved') {
     throw new Error('用户状态异常，请重新登录')
   }
-  
+
   const bookerName = user.name
-  
+
   // 检查是否为代约
   const isProxy = appointeeName.trim() !== bookerName.trim()
-  
+
   // 检查节假日
   const targetDate = parseLocalDate(date)
   const year = targetDate.getFullYear()
@@ -189,15 +191,15 @@ async function createAppointment(openid, appointmentData) {
   if (holidays.includes(date)) {
     throw new Error('该日期为节假日，不提供理发服务')
   }
-  
+
   // 检查是否为理发日
   const dayOfWeek = targetDate.getDay()
   if (![1, 3, 5].includes(dayOfWeek)) {
     throw new Error('该日期非理发日（仅周一、三、五提供理发服务）')
   }
-  
+
   const now = Date.now()
-  
+
   // 创建预约记录
   try {
     const result = await appointmentsCollection.add({
@@ -215,10 +217,10 @@ async function createAppointment(openid, appointmentData) {
         updatedAt: now
       }
     })
-    
+
     // 发送推送通知给招待员
     await notifyReceptionists(appointeeName.trim(), date, slotConfig.display, isProxy, bookerName)
-    
+
     return success({
       _id: result._id,
       message: '预约成功'
@@ -244,20 +246,20 @@ async function notifyReceptionists(appointeeName, date, timeSlotDisplay, isProxy
         status: 'approved'
       })
       .get()
-    
+
     if (!receptionistsRes.data || receptionistsRes.data.length === 0) {
       return
     }
-    
+
     // 发送订阅消息
-    const message = isProxy 
+    const message = isProxy
       ? `【理发预约】${appointeeName}（由${bookerName}代约）预约了 ${date} ${timeSlotDisplay} 的理发服务`
       : `【理发预约】${appointeeName} 预约了 ${date} ${timeSlotDisplay} 的理发服务`
-    
+
     // 这里可以调用微信订阅消息接口
     // 由于需要用户订阅才能发送，这里仅记录日志
     console.log('通知招待员:', message)
-    
+
     // 实际项目中可以使用 cloud.openapi.subscribeMessage.send
     // 需要先让招待员订阅消息模板
   } catch (error) {
@@ -274,36 +276,36 @@ async function cancelAppointment(openid, appointmentId, cancelReason) {
   if (!appointmentRes.data) {
     throw new Error('预约记录不存在')
   }
-  
+
   const appointment = appointmentRes.data
-  
+
   // 检查预约状态
   if (appointment.status !== 'booked') {
     throw new Error('该预约已取消或已完成')
   }
-  
+
   // 获取当前用户信息
   const userResult = await usersCollection.where({ openid }).limit(1).get()
   if (!userResult.data || userResult.data.length === 0) {
     throw new Error('用户不存在')
   }
-  
+
   const user = userResult.data[0]
   const isReceptionist = user.position === '招待员'
   const isOwner = appointment.bookerId === openid
-  
+
   // 权限检查：只有预约创建者或招待员可以取消
   if (!isOwner && !isReceptionist) {
     throw new Error('无权取消此预约')
   }
-  
+
   // 招待员取消他人预约需要填写原因
   if (!isOwner && isReceptionist && !cancelReason) {
     throw new Error('请选择取消原因')
   }
-  
+
   const now = Date.now()
-  
+
   await appointmentsCollection.doc(appointmentId).update({
     data: {
       status: 'cancelled',
@@ -313,7 +315,7 @@ async function cancelAppointment(openid, appointmentId, cancelReason) {
       updatedAt: now
     }
   })
-  
+
   return success({}, '取消成功')
 }
 
@@ -452,14 +454,14 @@ async function getMyAppointments(openid, page = 1, pageSize = 20) {
   const countRes = await appointmentsCollection
     .where({ bookerId: openid })
     .count()
-  
+
   const dataRes = await appointmentsCollection
     .where({ bookerId: openid })
     .orderBy('createdAt', 'desc')
     .skip((page - 1) * pageSize)
     .limit(pageSize)
     .get()
-  
+
   return success({
     list: dataRes.data || [],
     total: countRes.total,
@@ -639,10 +641,10 @@ exports.main = async (event) => {
     switch (action) {
       case 'getReservationSlots':
         return await getReservationSlots(event.dates)
-      
+
       case 'createAppointment':
         return await createAppointment(openid, event.appointmentData)
-      
+
       case 'cancelAppointment':
         return await cancelAppointment(openid, event.appointmentId, event.cancelReason)
 
