@@ -26,13 +26,6 @@
           "name": "pages/office/home/home",
           "pathName": "pages/office/home/home",
           "query": "",
-          "scene": null,
-          "launchMode": "default"
-        },
-        {
-          "name": "pages/office/arrival-guide/arrival-guide",
-          "pathName": "pages/office/arrival-guide/arrival-guide",
-          "query": "",
           "launchMode": "default",
           "scene": null
         }

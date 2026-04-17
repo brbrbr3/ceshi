@@ -295,7 +295,9 @@ App({
     return this.globalData
   },
 
-  //清除登录状态（用户信息缓存（内存+本地存储））
+  /* 
+   *清除登录状态（用户信息缓存（内存+本地存储））
+   */
   clearAuthState() {
     //清除用户信息内存
     const defaults = getDefaultAuthState()
@@ -308,7 +310,9 @@ App({
     this.clearUserInfoCache()
   },
 
-  //清除全部内存、缓存
+  /* 
+   *清除全部内存、缓存
+   */
   clearOverallState() {
     //清除用户信息缓存（内存+本地存储）
     this.clearAuthState()
@@ -1030,17 +1034,17 @@ App({
       // 审批中心配置
       APPROVAL_REVIEWER_ROLES: ['馆领导', '部门负责人'],
       APPROVAL_TABS: [{
-        key: 'pending',
-        label: '待审批'
-      },
-      {
-        key: 'mine',
-        label: '我发起的'
-      },
-      {
-        key: 'done',
-        label: '已处理'
-      }
+          key: 'pending',
+          label: '待审批'
+        },
+        {
+          key: 'mine',
+          label: '我发起的'
+        },
+        {
+          key: 'done',
+          label: '已处理'
+        }
       ],
       APPROVAL_TAB_PERMISSION: {
         withReview: ['pending', 'mine', 'done'],

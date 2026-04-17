@@ -215,8 +215,8 @@
               <view class="haircut-item-date">{{item.date}}</view>
               <view class="haircut-item-time">{{item.timeSlotDisplay}}</view>
             </view>
-            <view class="haircut-item-status is-{{item.status}}">
-              {{item.status === 'booked' ? '已预约' : item.status === 'cancelled' ? '已取消' : '已完成'}}
+            <view class="haircut-item-status is-{{item.displayStatus}}">
+              {{item.displayStatus === 'booked' ? '已预约' : item.displayStatus === 'cancelled' ? '已取消' : '已完成'}}
             </view>
           </view>
           <view class="haircut-item-body">

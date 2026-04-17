@@ -1087,7 +1087,8 @@ Page({
                 // 为每条预约标记是否已锁定（已过该日期的14:20）
                 const enrichedList = list.map(item => ({
                     ...item,
-                    isDateLocked: this.isDateLocked(item.date)
+                    isDateLocked: this.isDateLocked(item.date),
+                    displayStatus: item.status === 'booked' && item.date < this.data.todayStr ? 'completed' : item.status
                 }))
                 this.setData({
                     myList: this.data.myList.concat(enrichedList),

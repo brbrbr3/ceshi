@@ -94,7 +94,7 @@ input {
 }
 
 .office-link {
-  font-size: var(--fs-24);
+  font-size: var(--fs-26);
   color: #2563EB;
 }
 

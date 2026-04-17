@@ -174,7 +174,7 @@ page {
 
 .home-calendar-desc {
   margin-top: 6rpx;
-  font-size: var(--fs-22);
+  font-size: var(--fs-26);
 }
 
 .home-calendar-tag {
@@ -184,8 +184,8 @@ page {
   border-radius: 999rpx;
   text-align: center;
   background: rgba(255, 255, 255, 0.1);
-  font-size: var(--fs-22);
-  font-weight: 600;
+  font-size: var(--fs-24);
+  font-weight: 400;
   border: 1px solid rgba(0, 0, 0, 0.238);
 }
 

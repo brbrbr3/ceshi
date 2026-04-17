@@ -166,7 +166,7 @@ Page({
           authMode = 'facial'
         } else {
           // 设备未录入任何生物信息，直接走正常登录
-          this.doLogin()
+          // this.doLogin()
           return
         }
       }
@@ -188,14 +188,16 @@ Page({
         return
       }
       // 不支持/未录入，直接走正常登录
-      this.doLogin()
+      // this.doLogin()
+    } finally {
+      this.setData({ loading: false })
     }
   },
 
   // 原来的登录逻辑抽到这个方法
   doLogin() {
     this.setData({ loading: true })
-    app.checkUserRegistration({ forceRefresh: true })
+    app.checkUserRegistration()
       .then((result) => {
         if (result.registered === true) {
           utils.showToast({

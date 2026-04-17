@@ -10,7 +10,7 @@ const config = {
   host,
 
   // 缓存版本号（修改此值可强制刷新用户端缓存）
-  CACHE_VERSION: '0.39.3',
+  CACHE_VERSION: '0.39.4',
   //更新说明
   VERSION_DESCRIPTION: '现在可在‘我的’页面修改字体大小。\n1.增加‘常用信息’栏目。\n2.首页增加“通讯录”页。',
 
