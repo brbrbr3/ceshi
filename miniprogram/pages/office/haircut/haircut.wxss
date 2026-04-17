@@ -12,7 +12,7 @@ page {
 /* ========== 头部 - 渐变色背景（橙色系） ========== */
 .haircut-header {
   background: linear-gradient(135deg, #EA580C 0%, #C2410C 100%);
-  padding: 70rpx 28rpx 32rpx;
+  padding: 40rpx 28rpx 10rpx;
   display: flex;
   align-items: flex-end;
   justify-content: space-between;

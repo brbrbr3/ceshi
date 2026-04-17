@@ -72,9 +72,9 @@ Page({
 
   onShow() {
     const fontStyle = app.globalData.fontStyle
-  if (this.data.fontStyle !== fontStyle) {
-    this.setData({ fontStyle })
-  }
+    if (this.data.fontStyle !== fontStyle) {
+      this.setData({ fontStyle })
+    }
     app.clearAuthState()
     this.refreshStatus()
     app.loadConstants().catch((err) => {
@@ -146,13 +146,55 @@ Page({
     })
   },
 
-  handleWxLogin() {
-    if (this.data.loading) {
-      return
+
+  async handleWxLogin() {
+    if (this.data.loading) return
+
+    // 1. 先检查设备是否支持生物认证
+    try {
+      const checkRes = await wx.checkIsSoterEnrolledInDevice({
+        checkAuthMode: 'fingerPrint'  // 先检查指纹
+      })
+
+      // 指纹可用则用指纹，否则尝试人脸
+      let authMode = 'fingerPrint'
+      if (!checkRes.isEnrolled) {
+        const faceCheck = await wx.checkIsSoterEnrolledInDevice({
+          checkAuthMode: 'facial'
+        })
+        if (faceCheck.isEnrolled) {
+          authMode = 'facial'
+        } else {
+          // 设备未录入任何生物信息，直接走正常登录
+          this.doLogin()
+          return
+        }
+      }
+
+      // 2. 调起生物认证
+      this.setData({ loading: true })
+      await wx.startSoterAuthentication({
+        requestAuthModes: [authMode],
+        challenge: String(Date.now()),  // 随机挑战码
+        authContent: '请验证身份以登录'
+      })
+      // 认证通过，继续登录
+      this.doLogin()
+    } catch (err) {
+      // 生物认证失败或取消
+      this.setData({ loading: false })
+      if (err.errCode === 90001 || err.errCode === 90002) {
+        // 用户取消
+        return
+      }
+      // 不支持/未录入，直接走正常登录
+      this.doLogin()
     }
+  },
 
+  // 原来的登录逻辑抽到这个方法
+  doLogin() {
     this.setData({ loading: true })
-
     app.checkUserRegistration({ forceRefresh: true })
       .then((result) => {
         if (result.registered === true) {

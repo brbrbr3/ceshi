@@ -193,7 +193,7 @@
 }
 
 .rating-dish-name {
-  width: 180rpx;
+  width: 240rpx;
   flex-shrink: 0;
   font-size: var(--fs-28);
   font-weight: 500;
@@ -322,7 +322,7 @@
 }
 
 .rating-dish-label {
-  width: 200rpx;
+  width: 250rpx;
   flex-shrink: 0;
   font-size: var(--fs-28);
   color: #334155;
@@ -354,8 +354,8 @@
 }
 
 .rating-already-tag {
-  font-size: var(--fs-22);
-  color: #94A3B8;
+  font-size: var(--fs-24);
+  color: #2563EB;
   margin-left: 12rpx;
 }
 

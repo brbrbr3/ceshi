@@ -35,8 +35,7 @@
             <text class="rating-dish-name">{{item.dishName}}</text>
             <view class="rating-score-area">
               <view class="rating-stars">
-                <text wx:for="{{[1,2,3,4,5]}}" wx:for-item="star" wx:key="*this"
-                  class="rating-star {{star <= item.averageScore ? 'is-filled' : ''}}">★</text>
+                <text wx:for="{{[1,2,3,4,5]}}" wx:for-item="star" wx:key="*this" class="rating-star {{star <= item.averageScore ? 'is-filled' : ''}}">★</text>
               </view>
               <text class="rating-average">{{item.averageScore}}</text>
               <text class="rating-count">({{item.totalRaters}}人)</text>
@@ -66,12 +65,9 @@
           <view class="rating-dish-item" wx:for="{{extractedDishes}}" wx:key="*this">
             <text class="rating-dish-label">{{item}}</text>
             <view class="rating-dish-stars">
-              <text wx:for="{{[1,2,3,4,5]}}" wx:for-item="star" wx:key="*this"
-                class="popup-star {{star <= (tempRatings[item] || 0) ? 'is-active' : ''}}"
-                data-dish="{{item}}" data-star="{{star}}"
-                catchtap="handleStarTap">★</text>
+              <text wx:for="{{[1,2,3,4,5]}}" wx:for-item="star" wx:key="*this" class="popup-star {{star <= (myRatedDishes[item] || tempRatings[item] || 0) ? 'is-active' : ''}}" data-dish="{{item}}" data-star="{{star}}" catchtap="handleStarTap">★</text>
             </view>
-            <text class="rating-dish-score">{{tempRatings[item] || 0}}分</text>
+            <text wx:if="{{!myRatedDishes[item]}}" class="rating-dish-score">{{tempRatings[item] || 0}}分</text>
             <text wx:if="{{myRatedDishes[item]}}" class="rating-already-tag">已评{{myRatedDishes[item]}}星</text>
           </view>
         </scroll-view>
@@ -90,14 +86,7 @@
 
       <view class="office-card menu-comments-card">
         <view class="menu-comment-input">
-          <textarea
-            value="{{commentText}}"
-            bindinput="onCommentInput"
-            placeholder="言语友善，共建和谐"
-            placeholder-class="menu-comment-placeholder"
-            maxlength="500"
-            auto-height
-          ></textarea>
+          <textarea value="{{commentText}}" bindinput="onCommentInput" placeholder="言语友善，共建和谐" placeholder-class="menu-comment-placeholder" maxlength="500" auto-height></textarea>
           <view class="menu-comment-submit">
             <text class="menu-comment-count">{{commentText.length}}/500</text>
             <view class="office-btn-primary menu-comment-btn" bindtap="submitComment">发布</view>
@@ -127,4 +116,3 @@
     </view>
   </view>
 </view>
-

@@ -202,6 +202,48 @@ async function createAppointment(openid, appointmentData) {
 
   // 创建预约记录
   try {
+    // 先查询该时段是否已有记录（包括已取消的）
+    const existingRes = await appointmentsCollection
+      .where({ date, timeSlot })
+      .limit(1)
+      .get()
+    
+    if (existingRes.data && existingRes.data.length > 0) {
+      // 已有记录，更新为新的预约（复用已取消/已完成的记录）
+      const existing = existingRes.data[0]
+      
+      if (existing.status === 'booked') {
+        throw new Error('该时段已被预约')
+      }
+      if (existing.status === 'unavailable') {
+        throw new Error('该时段不可预约')
+      }
+      
+      // status 为 cancelled 或 completed，更新为新预约
+      await appointmentsCollection.doc(existing._id).update({
+        data: {
+          appointeeName: appointeeName.trim(),
+          bookerId: openid,
+          bookerName,
+          isProxy,
+          displayName: isProxy ? `${appointeeName.trim()}（${bookerName}）` : appointeeName.trim(),
+          status: 'booked',
+          cancelReason: _.remove(),    // 清除旧的取消信息
+          cancelledAt: _.remove(),
+          cancelledBy: _.remove(),
+          updatedAt: now
+        }
+      })
+      
+      await notifyReceptionists(appointeeName.trim(), date, slotConfig.display, isProxy, bookerName)
+      
+      return success({
+        _id: existing._id,
+        message: '预约成功'
+      }, '预约成功')
+    }
+    
+    // 没有已有记录，新建
     const result = await appointmentsCollection.add({
       data: {
         date,
@@ -217,16 +259,14 @@ async function createAppointment(openid, appointmentData) {
         updatedAt: now
       }
     })
-
-    // 发送推送通知给招待员
+    
     await notifyReceptionists(appointeeName.trim(), date, slotConfig.display, isProxy, bookerName)
-
+    
     return success({
       _id: result._id,
       message: '预约成功'
     }, '预约成功')
   } catch (error) {
-    // 检查是否为唯一索引冲突
     if (error.message && error.message.includes('duplicate key')) {
       throw new Error('该时段已被预约，请选择其他时段')
     }

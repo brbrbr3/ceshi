@@ -49,12 +49,11 @@
 
 .menus-title {
   font-size: var(--fs-48);
-  font-weight: 700;
+  font-weight: 600;
   color: #FFFFFF;
 }
 
 .menus-subtitle {
-  margin-top: 5rpx;
   font-size: var(--fs-26);
   color: rgba(255, 255, 255);
 }
@@ -66,7 +65,7 @@
   background: rgba(255, 255, 255, 0.2);
   color: #FFFFFF;
   font-size: var(--fs-26);
-  font-weight: 600;
+  font-weight: 400;
   border: 1rpx solid rgba(255, 255, 255, 0.3);
 }
 
