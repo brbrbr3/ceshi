@@ -242,7 +242,18 @@ Page({
 
   getGreeting(name) {
     const hour = new Date().getHours()
-    const prefix = hour < 12 ? '早上好' : hour < 14 ? '中午好' : hour < 18 ? '下午好' : hour < 22 ? '晚上好' : '夜深了~早点休息'
+    let prefix
+    if (hour >= 22 || hour <= 5) {
+      prefix = '夜深了~早点休息'
+    } else if (hour < 12) {
+      prefix = '早上好'
+    } else if (hour < 14) {
+      prefix = '中午好'
+    } else if (hour < 18) {
+      prefix = '下午好'
+    } else {
+      prefix = '晚上好'
+    }
     return `${prefix}，${name}`
   },
 
