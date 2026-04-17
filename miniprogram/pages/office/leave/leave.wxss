@@ -1,0 +1,484 @@
+/* ========== 休假申请页面样式 - 深绿主题 ========== */
+.page {
+  background: #FFFFFF;
+}
+
+.leave-page {
+  min-height: 100vh;
+}
+
+/* ========== 头部 - 深绿渐变背景 ========== */
+.leave-header {
+  background: linear-gradient(135deg, #065F46 0%, #047857 50%, #059669 100%);
+  padding: 70rpx 28rpx 40rpx;
+}
+
+.leave-header-content {
+  color: #FFFFFF;
+}
+
+.leave-title {
+  font-size: var(--fs-48);
+  font-weight: 700;
+}
+
+.leave-subtitle {
+  font-size: var(--fs-26);
+  padding-top: 5rpx;
+  color: rgba(255, 255, 255, 0.85);
+}
+
+/* ========== 内容区 ========== */
+.leave-content {
+  padding: 24rpx;
+  padding-bottom: 100rpx;
+}
+
+/* ========== Tab栏 ========== */
+.leave-tabs {
+  display: flex;
+  background: #FFFFFF;
+  border-radius: 20rpx;
+  margin-bottom: 20rpx;
+  overflow: hidden;
+  box-shadow: 0 2rpx 12rpx rgba(6, 95, 70, 0.08);
+}
+
+.leave-tab {
+  flex: 1;
+  text-align: center;
+  padding: 24rpx 0;
+  font-size: var(--fs-28);
+  color: #6B7280;
+  position: relative;
+  transition: all 0.3s ease;
+}
+
+.leave-tab.is-active {
+  color: #065F46;
+  font-weight: 600;
+}
+
+.leave-tab.is-active::after {
+  content: '';
+  position: absolute;
+  bottom: 0;
+  left: 25%;
+  right: 25%;
+  height: 4rpx;
+  background: linear-gradient(90deg, #065F46, #10B981);
+  border-radius: 2rpx;
+}
+
+/* ========== 区域 ========== */
+.leave-section {
+  margin-top: 16rpx;
+}
+
+.leave-section-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 20rpx;
+  padding: 0 8rpx;
+}
+
+.leave-section-title {
+  font-size: var(--fs-30);
+  font-weight: 600;
+  color: #1E293B;
+  padding-left: 8rpx;
+}
+
+/* ========== 休假类型选择器（横向滚动标签）========== */
+.leave-type-scroll {
+  white-space: nowrap;
+  padding: 8rpx 0 20rpx;
+}
+
+.leave-type-tag {
+  display: inline-flex;
+  align-items: center;
+  padding: 14rpx 28rpx;
+  border-radius: 40rpx;
+  font-size: var(--fs-26);
+  color: #64748B;
+  background: #F8FAFC;
+  border: 2rpx solid transparent;
+  margin-right: 16rpx;
+  transition: all 0.3s ease;
+}
+
+.leave-type-tag:last-child { margin-right: 0; }
+
+.leave-type-tag.is-active {
+  background: linear-gradient(135deg, #065F46 0%, #047857 100%);
+  color: #FFFFFF;
+  box-shadow: 0 4rpx 12rpx rgba(6, 95, 70, 0.3);
+}
+
+/* ========== 日期范围选择 ========== */
+.leave-date-range {
+  display: flex;
+  gap: 16rpx;
+  align-items: center;
+}
+
+.leave-date-item {
+  flex: 1;
+}
+
+.leave-date-arrow {
+  font-size: var(--fs-32);
+  color: #065F46;
+  font-weight: 600;
+  padding-top: 24rpx;
+}
+
+/* ========== 天数预览卡片 ========== */
+.leave-days-preview {
+  background: linear-gradient(135deg, #ECFDF5 0%, #D1FAE5 100%);
+  border: 1rpx solid #A7F3D0;
+  border-radius: 16rpx;
+  padding: 20rpx 24rpx;
+  margin-bottom: 20rpx;
+}
+
+.leave-days-row {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+}
+
+.leave-days-label {
+  font-size: var(--fs-26);
+  color: #065F46;
+  font-weight: 500;
+}
+
+.leave-days-value {
+  font-size: var(--fs-36);
+  color: #065F46;
+  font-weight: 700;
+}
+
+/* ========== 余额提示卡片 ========== */
+.leave-quota-card {
+  background: #FFFFFF;
+  border-radius: 16rpx;
+  padding: 20rpx 24rpx;
+  box-shadow: 0 2rpx 8rpx rgba(6, 95, 70, 0.06);
+  margin-bottom: 20rpx;
+}
+
+.leave-quota-title {
+  font-size: var(--fs-26);
+  color: #64748B;
+  margin-bottom: 12rpx;
+}
+
+.leave-quota-info {
+  display: flex;
+  justify-content: space-between;
+  align-items: baseline;
+}
+
+.leave-quota-available {
+  font-size: var(--fs-34);
+  color: #065F46;
+  font-weight: 700;
+}
+
+.leave-quota-total {
+  font-size: var(--fs-24);
+  color: #94A3B8;
+}
+
+.leave-quota-warning {
+  background: #FEF2F2;
+  border: 1rpx solid #FECACA;
+  border-radius: 12rpx;
+  padding: 16rpx 20rpx;
+  margin-top: 12rpx;
+}
+
+.leave-warning-text {
+  font-size: var(--fs-24);
+  color: #DC2626;
+}
+
+/* ========== 任期假选项 ========== */
+.leave-term-options {
+  display: flex;
+  gap: 16rpx;
+  flex-wrap: wrap;
+  margin-top: 12rpx;
+}
+
+.leave-term-option {
+  height: 64rpx;
+  padding: 0 24rpx;
+  display: flex;
+  align-items: center;
+  background: #F8FAFC;
+  border-radius: 16rpx;
+  font-size: var(--fs-26);
+  color: #64748B;
+  transition: all 0.3s ease;
+  border: 2rpx solid transparent;
+}
+
+.leave-term-option.is-active {
+  background: linear-gradient(135deg, #065F46 0%, #047857 100%);
+  color: #FFFFFF;
+  box-shadow: 0 4rpx 12rpx rgba(6, 95, 70, 0.25);
+}
+
+/* ========== Switch 样式 ========== */
+.leave-switch-row {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding: 8rpx 0;
+}
+
+.leave-switch-label {
+  font-size: var(--fs-28);
+  color: #1E293B;
+}
+
+/* ========== Stepper ========== */
+.leave-stepper-row {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding: 12rpx 0;
+}
+
+.leave-stepper-label {
+  font-size: var(--fs-28);
+  color: #1E293B;
+}
+
+/* ========== 提交按钮 ========== */
+.leave-submit-btn {
+  width: 100%;
+  height: 96rpx;
+  background: linear-gradient(135deg, #065F46 0%, #047857 100%);
+  color: #FFFFFF;
+  font-size: var(--fs-32);
+  font-weight: 600;
+  border-radius: 16rpx;
+  border: none;
+  margin-top: 20rpx;
+  box-shadow: 0 8rpx 24rpx rgba(6, 95, 70, 0.2);
+  padding-top: 22rpx;
+}
+
+.leave-submit-btn::after { border: none; }
+
+.leave-submit-btn[disabled] {
+  background: #94A3B8;
+  box-shadow: none;
+}
+
+/* ========== 记录列表 ========== */
+.leave-month-group { margin-bottom: 24rpx; }
+.leave-month-title {
+  font-size: var(--fs-26); color: #64748B; margin-bottom: 16rpx; padding-left: 8rpx;
+}
+.leave-list { display: flex; flex-direction: column; gap: 16rpx; }
+
+.leave-item {
+  background: #FFFFFF;
+  border-radius: 20rpx;
+  padding: 24rpx;
+  box-shadow: 0 2rpx 12rpx rgba(0, 0, 0, 0.04);
+  transition: all 0.2s ease;
+  position: relative;
+}
+
+.leave-item:active { transform: scale(0.98); }
+.leave-item-header {
+  display: flex; align-items: center; margin-bottom: 16rpx;
+}
+.leave-item-type {
+  font-size: var(--fs-30); font-weight: 600; color: #1E293B; flex: 1;
+}
+.leave-item-status {
+  font-size: var(--fs-22); padding: 6rpx 16rpx; border-radius: 8rpx; font-weight: 500;
+}
+.status-approved { background: #DCFCE7; color: #166534; }
+.status-pending_approval { background: #FEF3C7; color: #92400E; }
+.status-rejected { background: #FEE2E2; color: #991B1B; }
+.status-supplemented { background: #EDE9FE; color: #5B21B6; }
+.status-cancelled { background: #F1F5F9; color: #64748B; }
+
+.leave-supplement-badge {
+  position: absolute; top: 16rpx; right: 80rpx;
+  background: linear-gradient(135deg, #8B5CF6 0%, #7C3AED 100%);
+  color: #FFF; font-size: var(--fs-18); padding: 2rpx 10rpx;
+  border-radius: 6rpx; font-weight: 500;
+}
+
+.leave-item-body {
+  display: flex; flex-direction: column; gap: 8rpx;
+}
+.leave-item-dates {
+  font-size: var(--fs-28); color: #1E293B; font-weight: 500;
+}
+.leave-item-meta { display: flex; gap: 20rpx; }
+.leave-item-days, .leave-item-expense {
+  font-size: var(--fs-24); color: #64748B;
+}
+
+/* 空状态 */
+.leave-empty { display: flex; flex-direction: column; align-items: center; padding: 80rpx 0; }
+.leave-empty-icon { font-size: var(--fs-80); margin-bottom: 20rpx; }
+.leave-empty-text { font-size: var(--fs-28); color: #94A3B8; margin-bottom: 8rpx; }
+.leave-empty-hint { font-size: var(--fs-24); color: #CBD5E1; }
+.leave-loading { display: flex; justify-content: center; padding: 32rpx 0; }
+.leave-loading-text { font-size: var(--fs-26); color: #94A3B8; }
+
+/* ========== 首次配置弹窗 ========== */
+.leave-setup-mask {
+  position: fixed; top: 0; left: 0; right: 0; bottom: 0;
+  background: rgba(0, 0, 0, 0.55); z-index: 200;
+  opacity: 0; visibility: hidden; transition: all 0.3s ease;
+}
+.leave-setup-mask.is-visible { opacity: 1; visibility: visible; }
+.leave-setup-container {
+  position: absolute; bottom: 0; left: 0; right: 0;
+  background: #FFFFFF; border-radius: 32rpx 32rpx 0 0;
+  transform: translateY(100%); transition: transform 0.3s ease;
+  height: 88vh; overflow: hidden; display: flex; flex-direction: column;
+  margin: 0 28rpx 0;
+}
+.leave-setup-mask.is-visible .leave-setup-container { transform: translateY(0); }
+
+.leave-popup-header {
+  display: flex; align-items: center; justify-content: space-between;
+  padding: 32rpx; border-bottom: 1rpx solid #F1F5F9; flex-shrink: 0;
+}
+.leave-popup-title { font-size: var(--fs-34); font-weight: 600; color: #1E293B; }
+.leave-popup-close { font-size: var(--fs-48); color: #94A3B8; line-height: 1; padding: 0 8rpx; }
+.leave-popup-form { flex: 1; overflow: hidden; padding: 32rpx; box-sizing: border-box; }
+.leave-form-scroll-main { padding-bottom: 15rpx; }
+
+/* 表单字段通用样式 */
+.leave-field { margin-bottom: 28rpx; }
+.leave-field-label {
+  font-size: var(--fs-28); color: #1E293B; font-weight: 500; margin-bottom: 12rpx;
+}
+.leave-required { color: #DC2626; }
+.leave-input-wrapper {
+  background: #F8FAFC; border-radius: 16rpx; padding: 0 24rpx;
+  height: 88rpx; display: flex; align-items: center;
+}
+.leave-input { flex: 1; font-size: var(--fs-28); color: #1E293B; }
+.leave-input-placeholder { color: #94A3B8; }
+.leave-textarea-wrapper { background: #F8FAFC; border-radius: 16rpx; padding: 24rpx; }
+.leave-textarea {
+  width: 100%; min-height: 120rpx; font-size: var(--fs-28); color: #1E293B; line-height: 1.6;
+}
+
+/* 选择组 */
+.leave-select-group { display: flex; gap: 16rpx; flex-wrap: wrap; }
+.leave-select-item {
+  height: 72rpx; padding: 0 28rpx; display: flex; align-items: center;
+  background: #F8FAFC; border-radius: 16rpx; font-size: var(--fs-26);
+  color: #64748B; transition: all 0.3s ease; border: 2rpx solid transparent;
+}
+.leave-select-item.is-active {
+  background: linear-gradient(135deg, #065F46 0%, #047857 100%);
+  color: #FFFFFF; box-shadow: 0 4rpx 12rpx rgba(6, 95, 70, 0.25);
+}
+
+/* datetime-picker 在弹窗内的适配 */
+.leave-field .picker-trigger--border {
+  height: 88rpx; background: #F8FAFC; border-radius: 16rpx; padding: 0 24rpx;
+}
+
+/* 弹窗操作按钮 */
+.leave-popup-actions {
+  padding: 0 32rpx; padding-bottom: env(safe-area-inset-bottom);
+  display: flex; gap: 16rpx; flex-shrink: 0;
+}
+.leave-cancel-btn {
+  flex: 1; height: 88rpx; font-size: var(--fs-30); font-weight: 600;
+  border-radius: 16rpx; border: none; background: #F1F5F9; color: #64748B;
+  padding-top: 20rpx;
+}
+.leave-confirm-btn {
+  flex: 1; height: 88rpx; font-size: var(--fs-30); font-weight: 600;
+  border-radius: 16rpx; border: none;
+  background: linear-gradient(135deg, #065F46 0%, #047857 100%);
+  color: #FFFFFF; box-shadow: 0 4rpx 12rpx rgba(6, 95, 70, 0.25);
+  padding-top: 20rpx;
+}
+.leave-confirm-btn::after, .leave-cancel-btn::after { border: none; }
+
+/* ========== 详情弹窗 ========== */
+.leave-detail-content {
+  flex: 1; overflow: hidden; padding: 5rpx 32rpx; box-sizing: border-box;
+}
+.leave-detail-row {
+  display: flex; padding: 16rpx 0; border-bottom: 1rpx solid #F1F5F9;
+}
+.leave-detail-row:last-child { border-bottom: none; }
+.leave-detail-label { font-size: var(--fs-28); color: #64748B; width: 200rpx; flex-shrink: 0; }
+.leave-detail-value { font-size: var(--fs-28); color: #1E293B; flex: 1; }
+
+/* 审批日志 */
+.leave-detail-logs { margin-top: 0; padding-top: 16rpx; }
+.leave-logs-title { font-size: var(--fs-28); font-weight: 600; color: #1E293B; margin-bottom: 16rpx; }
+.leave-log-item { display: flex; gap: 16rpx; padding: 12rpx 0; }
+.leave-log-dot {
+  width: 16rpx; height: 16rpx; border-radius: 50%; background: #065F46; flex-shrink: 0; margin-top: 8rpx;
+}
+.leave-log-content { flex: 1; }
+.leave-log-action { font-size: var(--fs-26); font-weight: 500; color: #1E293B; margin-bottom: 4rpx; }
+.leave-log-info { font-size: var(--fs-24); color: #64748B; margin-bottom: 4rpx; }
+.leave-log-time { font-size: var(--fs-22); color: #94A3B8; }
+
+/* ========== 补填弹窗 ========== */
+.leave-action-btn {
+  flex: 1; height: 88rpx; font-size: var(--fs-30); font-weight: 600;
+  border-radius: 16rpx; border: none; padding-top: 20rpx;
+}
+.leave-action-btn.is-submit {
+  background: linear-gradient(135deg, #065F46 0%, #047857 100%);
+  color: #FFFFFF; box-shadow: 0 4rpx 12rpx rgba(6, 95, 70, 0.25);
+}
+.leave-action-btn.is-export {
+  background: linear-gradient(135deg, #2563EB 0%, #1D4ED8 100%);
+  color: #FFFFFF; box-shadow: 0 4rpx 12rpx rgba(37, 99, 235, 0.25);
+}
+.leave-action-btn::after { border: none; }
+.leave-action-btn[disabled] { background: #94A3B8; color: #FFF; box-shadow: none; }
+
+/* 审批流程说明 */
+.leave-note {
+  background: #ECFDF5; border: 1rpx solid #A7F3D0; border-radius: 16rpx; padding: 24rpx; margin-top: 8rpx;
+}
+.leave-note-title { font-size: var(--fs-26); font-weight: 500; color: #065F46; margin-bottom: 16rpx; }
+.leave-note-steps { display: flex; align-items: center; gap: 12rpx; flex-wrap: wrap; }
+.leave-note-step { display: flex; align-items: center; gap: 8rpx; }
+.leave-step-dot { width: 12rpx; height: 12rpx; border-radius: 50%; background: #059669; flex-shrink: 0; }
+.leave-step-text { font-size: var(--fs-24); color: #065F46; }
+.leave-note-arrow { color: #059669; font-size: var(--fs-24); }
+
+/* ========== 按钮组 ========== */
+.leave-header-actions {
+  display: flex; align-items: center; gap: 16rpx;
+}
+.leave-quota-btn {
+  background: rgba(255, 255, 255, 0.2); border-radius: 24rpx;
+  padding: 10rpx 24rpx; font-size: var(--fs-24); color: #FFFFFF;
+}
+.leave-add-btn {
+  background: linear-gradient(135deg, #065F46 0%, #047857 100%);
+  border-radius: 24rpx; padding: 12rpx 24rpx;
+  box-shadow: 0 4rpx 12rpx rgba(6, 95, 70, 0.25);
+}
+.leave-add-text { color: #FFFFFF; font-size: var(--fs-26); font-weight: 500; }

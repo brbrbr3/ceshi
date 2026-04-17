@@ -101,6 +101,14 @@ Page({
         featureKey: 'car_purchase'
       },
       {
+        icon: '🏖️',
+        label: '休假申请',
+        color: '#065F46',
+        bg: '#D1FAE5',
+        implemented: true,
+        featureKey: 'leave_application'
+      },
+      {
         icon: 'ℹ️',
         label: '常用信息',
         color: '#0891B2',
@@ -212,7 +220,7 @@ Page({
     })
 
     // 批量检查权限
-    const featureKeys = ['medical_application', 'trip_report', 'trip_dashboard', 'meeting_room', 'passport_application', 'meal_management', 'car_purchase']
+    const featureKeys = ['medical_application', 'trip_report', 'trip_dashboard', 'meeting_room', 'passport_application', 'meal_management', 'car_purchase', 'leave_application']
     app.loadPermissionCache(featureKeys)
       .then((permissions) => {
         this.setData({
@@ -502,6 +510,9 @@ Page({
     } else if (label === '购车管理') {
       // 统一权限检查
       this.checkAndNavigate('car_purchase', '/pages/office/car-purchase/car-purchase', '购车管理')
+    } else if (label === '休假申请') {
+      // 统一权限检查
+      this.checkAndNavigate('leave_application', '/pages/office/leave/leave', '休假申请')
     } else if (label === '常用信息') {
       // 全体用户可用，无需权限检查
       wx.navigateTo({

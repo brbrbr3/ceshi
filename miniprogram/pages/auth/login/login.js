@@ -150,48 +150,62 @@ Page({
   async handleWxLogin() {
     if (this.data.loading) return
 
-    // 1. 先检查设备是否支持生物认证
     try {
-      const checkRes = await wx.checkIsSoterEnrolledInDevice({
-        checkAuthMode: 'fingerPrint'  // 先检查指纹
-      })
+      // 1. 检测设备支持哪种生物认证
+      let authMode = null
 
-      // 指纹可用则用指纹，否则尝试人脸
-      let authMode = 'fingerPrint'
-      if (!checkRes.isEnrolled) {
+      // 先尝试人脸（iOS Face ID 优先）
+      try {
         const faceCheck = await wx.checkIsSoterEnrolledInDevice({
           checkAuthMode: 'facial'
         })
         if (faceCheck.isEnrolled) {
           authMode = 'facial'
-        } else {
-          // 设备未录入任何生物信息，直接走正常登录
-          // this.doLogin()
-          return
         }
+      } catch (e) {
+        // 不支持人脸，继续检查指纹
+      }
+
+      // 人脸不可用，再尝试指纹
+      if (!authMode) {
+        try {
+          const fingerCheck = await wx.checkIsSoterEnrolledInDevice({
+            checkAuthMode: 'fingerPrint'
+          })
+          if (fingerCheck.isEnrolled) {
+            authMode = 'fingerPrint'
+          }
+        } catch (e) {
+          // 不支持指纹
+        }
+      }
+
+      // 没有任何生物认证可用，直接走正常登录
+      if (!authMode) {
+        //this.doLogin()
+        return
       }
 
       // 2. 调起生物认证
       this.setData({ loading: true })
       await wx.startSoterAuthentication({
         requestAuthModes: [authMode],
-        challenge: String(Date.now()),  // 随机挑战码
+        challenge: String(Date.now()),
         authContent: '请验证身份以登录'
       })
       // 认证通过，继续登录
       this.doLogin()
     } catch (err) {
       // 生物认证失败或取消
-      this.setData({ loading: false })
       if (err.errCode === 90001 || err.errCode === 90002) {
-        // 用户取消
+        // 用户取消，不继续登录
         return
       }
-      // 不支持/未录入，直接走正常登录
-      // this.doLogin()
-    } finally {
-      this.setData({ loading: false })
+      // 其他错误（如认证失败），回退到正常登录
+      //this.doLogin()
     }
+    // 注意：不要在这里 finally 里 setData loading: false，
+    // 因为 doLogin 内部会自己管理 loading 状态
   },
 
   // 原来的登录逻辑抽到这个方法

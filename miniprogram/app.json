@@ -38,6 +38,7 @@
     "pages/office/activity-detail/activity-detail",
     "pages/office/activity-create/activity-create",
     "pages/office/car-purchase/car-purchase",
+    "pages/office/leave/leave",
     "pages/office/arrival-guide/arrival-guide"
   ],
   "window": {

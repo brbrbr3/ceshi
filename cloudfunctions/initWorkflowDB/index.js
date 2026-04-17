@@ -364,6 +364,120 @@ const EXAMPLE_TEMPLATES = [
   },
 
   {
+    name: '休假申请审批',
+    code: 'leave_application',
+    version: 1,
+    description: '休假申请审批流程（5步：本部门负责人→会计→会计主管→人事主管→馆领导）',
+    category: 'approval',
+    steps: [
+      {
+        stepNo: 1,
+        stepName: '本部门负责人审批',
+        stepType: 'serial',
+        approverType: 'dept_head',
+        approverConfig: {},
+        approvalStrategy: 'sequential',
+        canReject: true,
+        canReturn: false,
+        returnTo: 0,
+        timeout: 72,
+        timeoutAction: 'remind'
+      },
+      {
+        stepNo: 2,
+        stepName: '会计审批',
+        stepType: 'serial',
+        approverType: 'role',
+        approverConfig: {
+          roleIds: ['accountant']
+        },
+        approvalStrategy: 'sequential',
+        canReject: true,
+        canReturn: false,
+        returnTo: 0,
+        timeout: 72,
+        timeoutAction: 'remind'
+      },
+      {
+        stepNo: 3,
+        stepName: '会计主管审批',
+        stepType: 'serial',
+        approverType: 'role',
+        approverConfig: {
+          roleIds: ['accountant_supervisor']
+        },
+        approvalStrategy: 'sequential',
+        canReject: true,
+        canReturn: false,
+        returnTo: 0,
+        timeout: 72,
+        timeoutAction: 'remind'
+      },
+      {
+        stepNo: 4,
+        stepName: '人事主管审批',
+        stepType: 'serial',
+        approverType: 'role',
+        approverConfig: {
+          roleIds: ['hr_supervisor']
+        },
+        approvalStrategy: 'sequential',
+        canReject: true,
+        canReturn: false,
+        returnTo: 0,
+        timeout: 72,
+        timeoutAction: 'remind'
+      },
+      {
+        stepNo: 5,
+        stepName: '馆领导审批',
+        stepType: 'serial',
+        approverType: 'role',
+        approverConfig: {
+          roleIds: ['library_leader']
+        },
+        approvalStrategy: 'sequential',
+        canReject: true,
+        canReturn: false,
+        returnTo: 0,
+        timeout: 72,
+        timeoutAction: 'remind'
+      }
+    ],
+    displayConfig: {
+      cardFields: [
+        { field: 'applicantName', label: '申请人' },
+        { field: 'leaveTypeName', label: '休假类型' }
+      ],
+      detailFields: [
+        { field: 'applicantName', label: '申请人' },
+        { field: 'applicantDepartment', label: '部门' },
+        { field: 'leaveTypeName', label: '休假类型' },
+        { field: 'startDate', label: '开始日期' },
+        { field: 'endDate', label: '结束日期' },
+        { field: 'totalDays', label: '总天数' },
+        { field: 'workDays', label: '工作日天数' },
+        { field: 'isReturnToHome', label: '是否回国（任期假）', type: 'boolean', condition: { field: 'leaveType', op: 'in', value: ['term', 'combo_annual_term', 'combo_term_annual'] } },
+        { field: 'leaveLocation', label: '休假地点', condition: { field: 'leaveLocation', op: '!=', value: '' } },
+        { field: 'expenseType', label: '费用性质', condition: { field: 'expenseType', op: '!=', value: '' } },
+        { field: 'leaveRoute', label: '休假路线', condition: { field: 'leaveRoute', op: '!=', value: '' } },
+        { field: 'proposedFlights', label: '拟定航班', condition: { field: 'proposedFlights', op: '!=', value: '' } },
+        { field: 'isTransferringBenefit', label: '是否申请公费待遇转让', type: 'boolean', condition: { field: 'isTransferringBenefit', op: 'eq', value: true } },
+        { field: 'transferredCount', label: '已转让公费待遇次数', condition: { field: 'transferredCount', op: '>', value: 0 } },
+        { field: 'needsVisaAssistance', label: '是否需协助办理签证', type: 'boolean', condition: { field: 'needsVisaAssistance', op: 'eq', value: true } },
+        { field: 'otherNotes', label: '其他说明', condition: { field: 'otherNotes', op: '!=', value: '' } }
+      ]
+    },
+    defaultTimeout: 72,
+    notifyOnSubmit: true,
+    notifyOnComplete: true,
+    notifyOnTimeout: true,
+    status: 'active',
+    createdAt: Date.now(),
+    updatedAt: Date.now()
+  },
+
+  {
     name: '护照借用审批',
     code: 'passport_application',
     version: 2,

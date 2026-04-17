@@ -1020,6 +1020,16 @@ App({
         ORDER_TERMINATED: 'order_terminated'
       },
 
+      // 休假申请类型选项
+      LEAVE_TYPE_OPTIONS: [
+        { value: 'annual', name: '年休假' },
+        { value: 'term', name: '任期假' },
+        { value: 'combo_annual_term', name: '年休假+任期假' },
+        { value: 'combo_term_annual', name: '任期假+年休假' },
+        { value: 'holiday', name: '法定节假日' },
+        { value: 'other', name: '其他' }
+      ],
+
       // 通知消息类型与跳转tab映射
       NOTIFICATION_TARGET_TAB: {
         menu: 'none',

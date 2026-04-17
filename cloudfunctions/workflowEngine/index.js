@@ -1150,6 +1150,7 @@ async function getOrderTypeName(orderType, templateName = null) {
   // 3. fallback: 硬编码映射（兼容旧数据）
   const typeMap = {
     'medical_application': '就医',
+    'leave_application': '休假',
     'user_registration': '注册',
     'user_profile_update': '信息修改',
     'notification_publish': '公告发布',
@@ -1571,6 +1572,86 @@ async function completeWorkflow(orderId, decision, approverId, approverName, com
       } catch (error) {
         console.error('更新购车借款申请记录状态失败:', error)
       }
+    }
+  }
+
+  // 特殊处理：休假申请审批通过，扣减配额
+  if (order.orderType === 'leave_application' && decision === 'approved') {
+    const leaveRecordsCollection = db.collection('leave_records')
+    const quotasCollection = db.collection('leave_quotas')
+    const businessData = order.businessData || {}
+    const recordId = businessData.recordId
+
+    try {
+      if (recordId) {
+        // 1. 更新 leave_records 状态为 approved
+        await leaveRecordsCollection.doc(recordId).update({
+          data: { status: 'approved', updatedAt: now }
+        })
+
+        // 2. 如果有子记录（组合假），也更新状态
+        if (businessData.subRecordId) {
+          await leaveRecordsCollection.doc(businessData.subRecordId).update({
+            data: { status: 'approved', updatedAt: now }
+          })
+        }
+
+        // 3. 扣减配额
+        const openid = businessData.applicantOpenid || order.openid
+        if (openid) {
+          const quotaRes = await quotasCollection.where({ openid }).limit(1).get()
+          if (quotaRes.data && quotaRes.data.length > 0) {
+            const quota = quotaRes.data[0]
+            const leaveType = businessData.leaveType
+            const totalDays = businessData.totalDays || 0
+            const workDays = businessData.workDays || 0
+
+            // 扣减年休假
+            if ((leaveType === 'annual' || leaveType === 'combo_annual_term' || leaveType === 'combo_term_annual') && workDays > 0) {
+              if (quota.annualLeaves) {
+                let remaining = workDays
+                for (const annual of quota.annualLeaves) {
+                  if (remaining <= 0) break
+                  if (annual.status === 'active' && annual.availableDays > 0) {
+                    const deduct = Math.min(remaining, annual.availableDays)
+                    annual.usedDays += deduct
+                    annual.availableDays -= deduct
+                    remaining -= deduct
+                  }
+                }
+                quota.totalAnnualUsed = (quota.totalAnnualUsed || 0) + (workDays - remaining)
+              }
+            }
+
+            // 扣减任期假次数
+            if ((leaveType === 'term' || leaveType === 'combo_annual_term' || leaveType === 'combo_term_annual') &&
+                businessData.termLeaveRound && quota.termLeaves) {
+              for (const term of quota.termLeaves) {
+                if (!term.used && term.round === businessData.termLeaveRound) {
+                  term.used = true
+                  term.isReturnToHome = !!businessData.isReturnToHome
+                  term.usedRecordId = recordId
+                  quota.totalTermUsed = (quota.totalTermUsed || 0) + 1
+                  break
+                }
+              }
+            }
+
+            await quotasCollection.doc(quota._id).update({
+              data: {
+                annualLeaves: quota.annualLeaves,
+                termLeaves: quota.termLeaves,
+                totalAnnualUsed: quota.totalAnnualUsed,
+                totalTermUsed: quota.totalTermUsed,
+                updatedAt: now
+              }
+            })
+            console.log('休假申请审批通过，配额已扣减，recordId:', recordId)
+          }
+        }
+      }
+    } catch (error) {
+      console.error('处理休假申请审批失败:', error)
     }
   }
 

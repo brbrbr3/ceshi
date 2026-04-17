@@ -1,0 +1,1 @@
+{"name": "leaveManager", "version": "1.0.0", "description": "休假管理云函数：首次配置、配额计算、天数计算、申请提交、补填记录、记录查询、到期作废", "main": "index.js", "dependencies": {"wx-server-sdk": "~2.6.3"}}

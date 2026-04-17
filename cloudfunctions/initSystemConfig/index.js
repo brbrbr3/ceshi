@@ -439,6 +439,20 @@ const SYSTEM_CONFIGS = [
     value: ['馆领导', '部门负责人', 'admin'],
     description: '可访问出行数据板Dashboard的角色列表',
     sort: 105
+  },
+  {
+    type: 'leave',
+    key: 'LEAVE_TYPE_OPTIONS',
+    value: [
+      { value: 'annual', name: '年休假' },
+      { value: 'term', name: '任期假' },
+      { value: 'combo_annual_term', name: '年休假+任期假' },
+      { value: 'combo_term_annual', name: '任期假+年休假' },
+      { value: 'holiday', name: '法定节假日' },
+      { value: 'other', name: '其他' }
+    ],
+    description: '休假申请类型选项列表',
+    sort: 110
   }
 ]
 
@@ -491,6 +505,13 @@ const PERMISSION_CONFIGS = [
     featureKey: 'car_purchase',
     featureName: '购车管理',
     description: '购车流程Checklist管理（6组步骤）',
+    enabledRoles: ['馆领导', '部门负责人', '馆员', '工勤'],
+    requireAdmin: false
+  },
+  {
+    featureKey: 'leave_application',
+    featureName: '休假申请',
+    description: '提交休假申请（年休假、任期假、组合假等）',
     enabledRoles: ['馆领导', '部门负责人', '馆员', '工勤'],
     requireAdmin: false
   }

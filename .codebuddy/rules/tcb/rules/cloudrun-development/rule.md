@@ -1,7 +1,7 @@
 ---
 name: cloudrun-development
 description: CloudBase Run backend development rules (Function mode/Container mode). Use this skill when deploying backend services that require long connections, multi-language support, custom environments, or AI agent development.
-version: 2.16.1
+version: 2.18.0
 alwaysApply: false
 ---
 
@@ -110,8 +110,9 @@ Use CloudBase Run when the task needs a deployed backend service rather than a s
 ### Read operations
 
 - `queryCloudRun(action="list")` -> list services
-- `queryCloudRun(action="detail")` -> inspect one service
+- `queryCloudRun(action="detail")` -> inspect one service and its latest deploy status when available
 - `queryCloudRun(action="templates")` -> see available starters
+- `queryCloudRun(action="getDeployLog")` -> retrieve the latest deploy log or a specified `buildId`
 
 ### Write operations
 
