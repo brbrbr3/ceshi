@@ -3,8 +3,9 @@
  *
  * 支持的 action：
  *   - initSetup         首次配置（填写日期+剩余配额，初始化 leave_quotas）
- *   - getMyQuotas       获取我的假期配额
- *   - calculateDays     计算休假天数（前端实时预览）
+ *   - getMyQuotas       获取我的假期配额（含 annualLeaveUsageByYear、任期假有效期）
+ *   - calculateDays     计算休假天数（前端实时预览，兼容"其他"类型）
+ *   - calculatePlans    计算两种休假方案（先用年休假 / 先用任期假）
  *   - submit            提交休假申请（校验配额+创建记录+启动工作流）
  *   - supplementRecord  补填过往休假记录（直接创建+立即扣减配额）
  *   - getMyRecords      获取我的休假记录（分页）
@@ -198,7 +199,7 @@ function buildAnnualLeaveQuotas(workStartDateStr, arrivalDateStr, nowYear) {
   }
 
   // 处理跨年度延期：如果当前在Q1（1-3月），上一年度可能还有未过期的配额
-  const currentMonth = new Date(nowYear, 1 /* Feb=month index 1*/, 0).getMonth() + 1
+  const currentMonth = new Date().getMonth() + 1
   if (currentMonth <= 3 && nowYear > arrivalYear + 1) {
     const prevYearIndex = annualLeaves.findIndex(a => a.year === nowYear - 1)
     if (prevYearIndex >= 0) {
@@ -218,12 +219,325 @@ function buildTermLeaveQuotas(arrivalDateStr) {
     termLeaves.push({
       round: rule.round,
       eligibleDate: '', // 由 initSetup 时根据 arrivalDate 计算
+      totalDays: TERM_LEAVE_DAYS_PER_ROUND,
+      usedDays: 0,
+      availableDays: TERM_LEAVE_DAYS_PER_ROUND,
       used: false,
       usedRecordId: null,
-      isReturnToHome: null
+      isReturnToHome: null,
+      expiryDate: '',          // [NEW] 有效期截止
+      publicExpenseUsed: false, // [NEW] 该轮次是否已使用过公费机会
+      returnToHomeUsed: false   // [NEW] 该轮次是否已使用过回国+2天机会
     })
   })
   return termLeaves
+}
+
+/**
+ * 计算任期假有效期
+ * 规则：第N次任期假最迟在第N+1任期年的最后一天休完
+ * 例如：到任2020-06-01，第1次eligibleDate=2020-12-01，第2任期年=2021年，expiryDate=2021-12-31
+ */
+function buildExpiryDate(arrivalDateStr, round) {
+  const arrival = parseLocalDate(arrivalDateStr)
+  if (!arrival) return ''
+  // 找到对应轮次的规则，计算 eligibleDate
+  const rule = TERM_LEAVE_RULES.find(r => r.round === round)
+  if (!rule) return ''
+  const eligible = new Date(arrival)
+  eligible.setMonth(eligible.getMonth() + rule.monthsAfterArrival)
+  // 第N+1任期年的12月31日
+  // 第N次任期假的"第N任期年"就是 eligibleDate 所在年
+  // 第N+1任期年 = 下一次任期假的 eligibleDate 所在年
+  const nextRule = TERM_LEAVE_RULES.find(r => r.round === round + 1)
+  if (nextRule) {
+    const nextEligible = new Date(arrival)
+    nextEligible.setMonth(nextEligible.getMonth() + nextRule.monthsAfterArrival)
+    return `${nextEligible.getFullYear()}-12-31`
+  }
+  // 最后一轮（第5次），没有下一轮，有效期 = 第6年任期的年份的12月31日
+  // 即到任日期 + 72个月所在年的12月31日
+  const lastEligible = new Date(arrival)
+  lastEligible.setMonth(lastEligible.getMonth() + 72) // 6年
+  return `${lastEligible.getFullYear()}-12-31`
+}
+
+/**
+ * 获取某年已使用年休假/任期假的休假次数
+ * 统计口径：以休假开始日期的年份统计
+ */
+function getLeaveUsageCountForYear(quota, year) {
+  if (!quota.annualLeaveUsageByYear) return 0
+  const record = quota.annualLeaveUsageByYear[String(year)]
+  return record ? record.count : 0
+}
+
+/**
+ * 获取活跃的年休假配额列表（按年份升序，未过期且有余额）
+ */
+function getActiveAnnualLeaves(quota) {
+  if (!quota.annualLeaves) return []
+  const today = formatDateObj(new Date())
+  return quota.annualLeaves
+    .filter(a => a.availableDays > 0 && a.extendedTo >= today)
+    .sort((a, b) => a.year - b.year)
+}
+
+/**
+ * 获取活跃的任期假配额列表（按轮次升序，未过期且有余额）
+ */
+function getActiveTermLeaves(quota) {
+  if (!quota.termLeaves) return []
+  const today = formatDateObj(new Date())
+  return quota.termLeaves
+    .filter(t => {
+      if (t.used) return false
+      const avail = t.availableDays !== undefined ? t.availableDays : TERM_LEAVE_DAYS_PER_ROUND
+      if (avail <= 0) return false
+      // 检查是否过期
+      if (t.expiryDate && t.expiryDate < today) return false
+      // 检查是否已到可申请日期
+      if (t.eligibleDate && t.eligibleDate > today) return false
+      return true
+    })
+    .sort((a, b) => a.round - b.round)
+}
+
+/**
+ * 计算年休假配额消耗覆盖的日历天数
+ * 从 currentCursor 日期开始，消耗 workDaysCount 个工作日配额，
+ * 返回覆盖的日历天数和新的日期游标
+ * @param {string} startCursor - 开始日期 YYYY-MM-DD
+ * @param {number} workDaysCount - 要消耗的工作日配额天数
+ * @param {Set} holidayDatesSet - 节假日日期集合
+ * @returns {{ coveredCalendarDays: number, endCursor: string }}
+ */
+function calculateAnnualCoverage(startCursor, workDaysCount, holidayDatesSet) {
+  let cursor = parseLocalDate(startCursor)
+  let remaining = workDaysCount
+  let coveredDays = 0
+
+  while (remaining > 0) {
+    const dayOfWeek = cursor.getDay()
+    const dateStr = formatDateObj(cursor)
+    const isWeekend = dayOfWeek === 0 || dayOfWeek === 6
+    const isHoliday = holidayDatesSet.has(dateStr)
+
+    if (!isWeekend && !isHoliday) {
+      remaining--
+    }
+    coveredDays++
+    cursor.setDate(cursor.getDate() + 1)
+  }
+
+  // cursor 现在指向最后一个工作日的下一天，回退一天得到实际覆盖的最后日期
+  cursor.setDate(cursor.getDate() - 1)
+  return {
+    coveredCalendarDays: coveredDays,
+    endCursor: formatDateObj(cursor)
+  }
+}
+
+/**
+ * 核心算法：计算两种方案的配额消耗
+ * 
+ * 方案A（先用年休假）：去年年假 → 今年年假 → 前一次任期假 → 当次任期假
+ * 方案B（先用任期假）：前一次任期假 → 当次任期假 → 去年年假 → 今年年假
+ * 
+ * 关键规则：
+ * - 年休假按工作日消耗，1配额日=1个日历工作日，但跳过周末和节假日
+ * - 任期假按自然日连续消耗
+ * - 第2次休假必须消耗所有剩余配额
+ * - 任期假回国+2天和公费使用受"机会制"限制
+ */
+async function calculatePlanConsumption(startDate, endDate, isReturnToHome, quota) {
+  const neededCalendarDays = countCalendarDays(startDate, endDate)
+  if (neededCalendarDays <= 0) return { planA: null, planB: null }
+
+  // 获取节假日数据
+  const startY = parseLocalDate(startDate).getFullYear()
+  const endY = parseLocalDate(endDate).getFullYear()
+  const years = []
+  for (let y = startY; y <= endY; y++) years.push(y)
+  const holidayDatesSet = await fetchHolidayDates(years)
+
+  // 获取活跃配额
+  const activeAnnual = getActiveAnnualLeaves(quota)
+  const activeTerm = getActiveTermLeaves(quota)
+
+  // 检查是否为第2次（必须全部用完）
+  const startYear = parseLocalDate(startDate).getFullYear()
+  const usageCount = getLeaveUsageCountForYear(quota, startYear)
+  const isSecondLeave = usageCount >= 1 // 已有1次，本次为第2次
+
+  // 计算从 startCursor 到 endDate 之间剩余的工作日数
+  function countWorkDaysBetween(startStr, endStr, holidaySet) {
+    let cursor = parseLocalDate(startStr)
+    const end = parseLocalDate(endStr)
+    if (!cursor || !end || cursor > end) return 0
+    let count = 0
+    while (cursor <= end) {
+      const dow = cursor.getDay()
+      const dStr = formatDateObj(cursor)
+      if (dow !== 0 && dow !== 6 && !holidaySet.has(dStr)) {
+        count++
+      }
+      cursor.setDate(cursor.getDate() + 1)
+    }
+    return count
+  }
+
+  // 计算单个方案
+  function computePlan(poolOrder) {
+    const consumed = []
+    let currentCursor = startDate
+    let totalCoveredDays = 0
+
+    // 计算用户选择的日期范围总日历天数
+    const totalCalendarDays = countCalendarDays(startDate, endDate)
+
+    for (const item of poolOrder) {
+      // 检查游标是否已超过用户选择的结束日期
+      if (parseLocalDate(currentCursor) > parseLocalDate(endDate)) break
+
+      if (item.type === 'annual') {
+        // 计算从当前游标到用户选择的 endDate 之间还有多少工作日
+        const remainingWorkDays = countWorkDaysBetween(currentCursor, endDate, holidayDatesSet)
+        if (remainingWorkDays <= 0) break
+
+        const consumeDays = Math.min(item.availableDays, remainingWorkDays)
+        if (consumeDays <= 0) continue
+
+        // 计算年休假消耗 consumeDays 个工作日覆盖的日历天数
+        const coverage = calculateAnnualCoverage(currentCursor, consumeDays, holidayDatesSet)
+        consumed.push({
+          type: 'annual',
+          year: item.year,
+          consumeDays,           // 消耗的配额天数（工作日）
+          coveredCalendarDays: coverage.coveredCalendarDays,
+          startDate: currentCursor,
+          endDate: coverage.endCursor
+        })
+        totalCoveredDays += coverage.coveredCalendarDays
+        // 更新游标：指向覆盖结束日期的下一天
+        const nextCursor = parseLocalDate(coverage.endCursor)
+        nextCursor.setDate(nextCursor.getDate() + 1)
+        currentCursor = formatDateObj(nextCursor)
+      } else if (item.type === 'term') {
+        // 任期假天数：包含回国+2天机会
+        let availableTermDays = item.availableDays
+        const canUseReturnBonus = !item.returnToHomeUsed && isReturnToHome
+        if (canUseReturnBonus) {
+          availableTermDays += TERM_LEAVE_RETURN_BONUS_DAYS
+        }
+
+        // 计算从当前游标到用户选择的 endDate 之间还有多少日历天
+        const remainingCalendarDays = countCalendarDays(currentCursor, endDate)
+        if (remainingCalendarDays <= 0) break
+
+        const consumeDays = Math.min(availableTermDays, remainingCalendarDays)
+        if (consumeDays <= 0) continue
+
+        // 任期假从 currentCursor 开始，按自然日连续消耗
+        const termStartCursor = parseLocalDate(currentCursor)
+        const termEndDate = new Date(termStartCursor)
+        termEndDate.setDate(termEndDate.getDate() + consumeDays - 1)
+
+        // 判断本次消耗中是否使用了回国+2天
+        const usedReturnBonus = canUseReturnBonus && consumeDays > item.availableDays
+        const actualTermQuotaConsumed = usedReturnBonus
+          ? Math.min(item.availableDays, consumeDays) // 不含+2天的配额消耗
+          : consumeDays
+
+        consumed.push({
+          type: 'term',
+          round: item.round,
+          consumeDays: actualTermQuotaConsumed,
+          coveredCalendarDays: consumeDays,
+          startDate: currentCursor,
+          endDate: formatDateObj(termEndDate),
+          usedReturnBonus,
+          canUsePublicExpense: !item.publicExpenseUsed // 公费是否可用
+        })
+        totalCoveredDays += consumeDays
+        // 更新游标
+        const nextCursor = new Date(termEndDate)
+        nextCursor.setDate(nextCursor.getDate() + 1)
+        currentCursor = formatDateObj(nextCursor)
+      }
+    }
+
+    // canCover: currentCursor 已超过 endDate，或者从 currentCursor 到 endDate 之间没有更多工作日需要覆盖
+    const canCover = currentCursor > endDate ||
+                     countWorkDaysBetween(currentCursor, endDate, holidayDatesSet) === 0
+
+    // 如果是第2次休假，校验是否消耗了所有剩余配额
+    let mustUseAllSatisfied = true
+    if (isSecondLeave && canCover) {
+      // 计算方案中未消耗的年休假和任期假剩余
+      let remainingAnnual = 0
+      let remainingTerm = 0
+      const consumedAnnualYears = new Set(consumed.filter(c => c.type === 'annual').map(c => c.year))
+      const consumedTermRounds = new Set(consumed.filter(c => c.type === 'term').map(c => c.round))
+
+      activeAnnual.forEach(a => {
+        const consumedItem = consumed.find(c => c.type === 'annual' && c.year === a.year)
+        const left = consumedItem ? a.availableDays - consumedItem.consumeDays : a.availableDays
+        remainingAnnual += left
+      })
+      activeTerm.forEach(t => {
+        const consumedItem = consumed.find(c => c.type === 'term' && c.round === t.round)
+        const left = consumedItem ? t.availableDays - consumedItem.consumeDays : t.availableDays
+        remainingTerm += left
+      })
+
+      if (remainingAnnual > 0 || remainingTerm > 0) {
+        mustUseAllSatisfied = false
+      }
+    }
+
+    // 计算实际覆盖的日历范围
+    let actualCoveredDays = 0
+    if (consumed.length > 0) {
+      const firstStart = consumed[0].startDate
+      const lastEnd = consumed[consumed.length - 1].endDate
+      actualCoveredDays = countCalendarDays(firstStart, lastEnd)
+    }
+
+    return {
+      canCover,
+      mustUseAllSatisfied: isSecondLeave ? mustUseAllSatisfied : true,
+      consumed,
+      totalCoveredDays: actualCoveredDays,
+      uncoveredDays: canCover ? 0 : countCalendarDays(consumed.length > 0 ? consumed[consumed.length - 1].endDate : startDate, endDate) - 1
+    }
+  }
+
+  // 构建有序配额池
+  const poolA = [
+    ...activeAnnual.map(a => ({ type: 'annual', ...a })),
+    ...activeTerm.map(t => ({ type: 'term', ...t }))
+  ]
+  const poolB = [
+    ...activeTerm.map(t => ({ type: 'term', ...t })),
+    ...activeAnnual.map(a => ({ type: 'annual', ...a }))
+  ]
+
+  const planA = computePlan(poolA)
+  // 当没有可用任期假时，方案B等同于方案A，不生成
+  const planB = activeTerm.length > 0 ? computePlan(poolB) : null
+
+  // 添加方案标签
+  if (planA) {
+    planA.label = '先用年休假，再用任期假'
+    planA.planKey = 'A'
+  }
+  if (planB) {
+    planB.label = '先用任期假，再用年休假'
+    planB.planKey = 'B'
+  }
+
+  return { planA, planB, isSecondLeave, usageCount }
 }
 
 exports.main = async (event, context) => {
@@ -238,58 +552,108 @@ exports.main = async (event, context) => {
 
       // ========== initSetup: 首次配置 ==========
       case 'initSetup': {
-        const { workStartDate, arrivalDate, initialAnnualRemaining, initialTermRemaining } = params || {}
+        const {
+          workStartDate, arrivalDate,
+          annualRemainingCurrent, annualRemainingPrev,
+          termRemainingCurrent, termRemainingPrev,
+          maxTermRound, needPrevAnnual, needPrevTerm
+        } = params || {}
         if (!workStartDate || !arrivalDate) return fail('请填写参加工作日期和到任日期', 400)
 
         const userInfo = await getUserInfo(openid)
         if (!userInfo) return fail('未找到用户信息', 403)
 
         const nowYear = new Date().getFullYear()
+        const arrivalYear = parseInt(arrivalDate.substring(0, 4), 10)
 
         // 构建年休假配额
         const annualQuotas = buildAnnualLeaveQuotas(workStartDate, arrivalDate, nowYear)
 
-        // 总应休天数
-        const totalShouldHave = annualQuotas.reduce((sum, a) => sum + a.totalDays, 0)
-        // 已用天数 = 应有 - 剩余
-        const usedFromInput = Math.max(0, totalShouldHave - (initialAnnualRemaining || 0))
-
-        // 分配已用天数到各年度（从最早的年度开始扣除）
-        let remainingUsed = usedFromInput
-        annualQuotas.forEach((a, i) => {
-          if (remainingUsed > 0 && a.status === 'active') {
-            const deduct = Math.min(remainingUsed, a.availableDays)
-            a.usedDays = deduct
-            a.availableDays -= deduct
-            remainingUsed -= deduct
-          } else if (a.status === 'expired') {
-            // 过期年度如果还有剩余，说明之前没休完，标记为 expired
-            a.expiredDays = a.availableDays
-            a.usedDays += a.availableDays
-            a.availableDays = 0
+        // 如果到任今年，年休假配额为空，不需要处理
+        if (arrivalYear === nowYear) {
+          // 到任当年无年休假，annualQuotas 应为空
+        } else {
+          // 按年度精确分配剩余天数
+          // 如果 needPrevAnnual（Q1 + 到任年份 <= x-2），分别设置 x-1 和 x 年
+          if (needPrevAnnual) {
+            const prevYearQuota = annualQuotas.find(a => a.year === nowYear - 1)
+            const currentYearQuota = annualQuotas.find(a => a.year === nowYear)
+            if (prevYearQuota) {
+              const prevRemaining = Math.min(annualRemainingPrev || 0, prevYearQuota.totalDays)
+              prevYearQuota.usedDays = prevYearQuota.totalDays - prevRemaining
+              prevYearQuota.availableDays = prevRemaining
+            }
+            if (currentYearQuota) {
+              const curRemaining = Math.min(annualRemainingCurrent || 0, currentYearQuota.totalDays)
+              currentYearQuota.usedDays = currentYearQuota.totalDays - curRemaining
+              currentYearQuota.availableDays = curRemaining
+            }
+          } else {
+            // 只需填写 x 年剩余
+            const currentYearQuota = annualQuotas.find(a => a.year === nowYear)
+            if (currentYearQuota) {
+              const curRemaining = Math.min(annualRemainingCurrent || 0, currentYearQuota.totalDays)
+              currentYearQuota.usedDays = currentYearQuota.totalDays - curRemaining
+              currentYearQuota.availableDays = curRemaining
+            }
           }
-        })
+
+          // 处理已过期年度：标记为 expired
+          annualQuotas.forEach(a => {
+            if (a.status === 'expired' && a.availableDays > 0) {
+              a.expiredDays = a.availableDays
+              a.usedDays += a.availableDays
+              a.availableDays = 0
+            }
+          })
+        }
 
         // 构建任期假配额
-        const termQuotas = buildTermLeaveQuotas(arrivalDateStr)
+        const termQuotas = buildTermLeaveQuotas(arrivalDate)
 
-        // 根据到任日期计算每个任期假的 eligibleDate
+        // 根据到任日期计算每个任期假的 eligibleDate 和 expiryDate
         const arrival = parseLocalDate(arrivalDate)
         TERM_LEAVE_RULES.forEach((rule, i) => {
           if (termQuotas[i]) {
             const eligible = new Date(arrival)
             eligible.setMonth(eligible.getMonth() + rule.monthsAfterArrival)
             termQuotas[i].eligibleDate = formatDateObj(eligible)
-
-            // 如果已经超过该轮次的 eligibleDate 且用户填了剩余次数
-            // 则标记前面的轮次为已使用
-            const remainingRounds = initialTermRemaining || 0
-            if (i < (TERM_LEAVE_RULES.length - remainingRounds)) {
-              termQuotas[i].used = true
-              termQuotas[i].isReturnToHome = false
-            }
+            termQuotas[i].expiryDate = buildExpiryDate(arrivalDate, rule.round)
           }
         })
+
+        // 按天数初始化任期假
+        const effectiveMaxRound = maxTermRound || 0
+        for (let i = 0; i < termQuotas.length; i++) {
+          const round = termQuotas[i].round
+          if (round > effectiveMaxRound) {
+            // 还未到任满对应月数，保持默认可用
+            continue
+          }
+          if (needPrevTerm && round === effectiveMaxRound - 1) {
+            // 第 y-1 次任期假：用户填写剩余天数
+            const prevRemaining = Math.min(termRemainingPrev || 0, TERM_LEAVE_DAYS_PER_ROUND)
+            termQuotas[i].usedDays = TERM_LEAVE_DAYS_PER_ROUND - prevRemaining
+            termQuotas[i].availableDays = prevRemaining
+            if (prevRemaining <= 0) {
+              termQuotas[i].used = true
+            }
+          } else if (round === effectiveMaxRound) {
+            // 第 y 次任期假：用户填写剩余天数
+            const curRemaining = Math.min(termRemainingCurrent || 0, TERM_LEAVE_DAYS_PER_ROUND)
+            termQuotas[i].usedDays = TERM_LEAVE_DAYS_PER_ROUND - curRemaining
+            termQuotas[i].availableDays = curRemaining
+            if (curRemaining <= 0) {
+              termQuotas[i].used = true
+            }
+          } else if (round < effectiveMaxRound - 1) {
+            // 更早的任期假轮次（round < y-1），标记为已用完
+            termQuotas[i].used = true
+            termQuotas[i].usedDays = TERM_LEAVE_DAYS_PER_ROUND
+            termQuotas[i].availableDays = 0
+            termQuotas[i].isReturnToHome = false
+          }
+        }
 
         const now = Date.now()
         const quotaData = {
@@ -298,12 +662,11 @@ exports.main = async (event, context) => {
           workStartDate,
           arrivalDate,
           isConfigured: true,
-          initialAnnualRemaining: initialAnnualRemaining || 0,
-          initialTermRemaining: initialTermRemaining || 0,
           annualLeaves: annualQuotas,
           termLeaves: termQuotas,
-          totalAnnualUsed: usedFromInput,
-          totalTermUsed: Math.max(0, (TERM_LEAVE_RULES.length) - (initialTermRemaining || 0)),
+          annualLeaveUsageByYear: {},  // [NEW] 每年使用次数追踪，按需填充
+          totalAnnualUsed: annualQuotas.reduce((sum, a) => sum + a.usedDays, 0),
+          totalTermUsed: termQuotas.filter(t => t.used).length,
           createdAt: now,
           updatedAt: now
         }
@@ -323,10 +686,72 @@ exports.main = async (event, context) => {
       case 'getMyQuotas': {
         const quota = await getOrCreateQuotaDoc(openid, {})
         if (!quota) return success(null)
-        return success(quota)
+
+        // 补充任期假 expiryDate（兼容旧数据）
+        if (quota.termLeaves && quota.arrivalDate) {
+          quota.termLeaves.forEach(t => {
+            if (!t.expiryDate) {
+              t.expiryDate = buildExpiryDate(quota.arrivalDate, t.round)
+            }
+            if (t.publicExpenseUsed === undefined) {
+              t.publicExpenseUsed = false
+            }
+            if (t.returnToHomeUsed === undefined) {
+              t.returnToHomeUsed = false
+            }
+          })
+        }
+
+        // 确保 annualLeaveUsageByYear 存在
+        if (!quota.annualLeaveUsageByYear) {
+          quota.annualLeaveUsageByYear = {}
+        }
+
+        // 构建余额卡片信息
+        const nowYear = new Date().getFullYear()
+        const activeAnnual = getActiveAnnualLeaves(quota)
+        const activeTerm = getActiveTermLeaves(quota)
+
+        const annualTotalAvailable = activeAnnual.reduce((sum, a) => sum + a.availableDays, 0)
+        const termTotalAvailable = activeTerm.reduce((sum, t) => sum + (t.availableDays || 0), 0)
+
+        // 当前年份已使用次数
+        const usageCountThisYear = getLeaveUsageCountForYear(quota, nowYear)
+
+        const quotaSummary = {
+          year: nowYear,
+          annual: {
+            totalAvailable: annualTotalAvailable,
+            details: activeAnnual.map(a => ({
+              year: a.year,
+              availableDays: a.availableDays,
+              totalDays: a.totalDays,
+              extendedTo: a.extendedTo,
+              status: a.status
+            }))
+          },
+          term: {
+            totalAvailable: termTotalAvailable,
+            details: activeTerm.map(t => ({
+              round: t.round,
+              availableDays: t.availableDays,
+              totalDays: t.totalDays,
+              expiryDate: t.expiryDate || '',
+              publicExpenseUsed: !!t.publicExpenseUsed,
+              returnToHomeUsed: !!t.returnToHomeUsed,
+              canUsePublicExpense: !t.publicExpenseUsed,
+              canUseReturnBonus: !t.returnToHomeUsed
+            }))
+          },
+          usageCountThisYear,
+          canApplyThisYear: usageCountThisYear < 2,
+          isSecondMustUseAll: usageCountThisYear >= 1
+        }
+
+        return success({ quota, quotaSummary })
       }
 
-      // ========== calculateDays: 计算休假天数（前端预览）==========
+      // ========== calculateDays: 计算休假天数（前端预览，兼容"其他"类型）==========
       case 'calculateDays': {
         const { startDate, endDate, leaveType, isReturnToHome } = params || {}
         if (!startDate || !endDate) return fail('请选择起止日期', 400)
@@ -343,22 +768,80 @@ exports.main = async (event, context) => {
           isReturnToHome: !!isReturnToHome
         }
 
-        // 组合假特殊处理
-        if (leaveType === LEAVE_TYPES.COMBO_ANNUAL_TERM ||
-            leaveType === LEAVE_TYPES.COMBO_TERM_ANNUAL) {
-          result.comboHint = leaveType === LEAVE_TYPES.COMBO_ANNUAL_TERM
-            ? `先休${workDays}个工作日年休假，再连续${calendarDays}自然日任期假`
-            : `先连续${calendarDays}自然日任期假，再休${workDays}个工作日年休假`
-        }
-
         // 任期假天数（含回国路程假）
-        if (leaveType === LEAVE_TYPES.TERM ||
-            leaveType === LEAVE_TYPES.COMBO_ANNUAL_TERM ||
-            leaveType === LEAVE_TYPES.COMBO_TERM_ANNUAL) {
+        if (leaveType === LEAVE_TYPES.TERM) {
           result.termTotalDays = isReturnToHome ? (calendarDays + TERM_LEAVE_RETURN_BONUS_DAYS) : calendarDays
         }
 
         return success(result)
+      }
+
+      // ========== calculatePlans: 计算两种休假方案 ==========
+      case 'calculatePlans': {
+        const { startDate, endDate, isReturnToHome } = params || {}
+        if (!startDate || !endDate) return fail('请选择起止日期', 400)
+
+        const quota = await getOrCreateQuotaDoc(openid, {})
+        if (!quota || !quota.isConfigured) return fail('请先完成休假信息首次配置', 403)
+
+        // 检查每年两次限制
+        const startYear = parseLocalDate(startDate).getFullYear()
+        const usageCount = getLeaveUsageCountForYear(quota, startYear)
+        if (usageCount >= 2) {
+          return fail(`${startYear}年已使用${usageCount}次年休假/任期假，无法再申请`, 400)
+        }
+
+        // 计算两种方案
+        const { planA, planB, isSecondLeave } = await calculatePlanConsumption(
+          startDate, endDate, !!isReturnToHome, quota
+        )
+
+        // 只返回能覆盖的方案
+        const availablePlans = []
+        if (planA && planA.canCover && planA.mustUseAllSatisfied) {
+          availablePlans.push(planA)
+        }
+        if (planB && planB.canCover && planB.mustUseAllSatisfied) {
+          availablePlans.push(planB)
+        }
+
+        // 如果是第2次休假但不满足"全部用完"要求，也要返回那些方案但标记问题
+        if (isSecondLeave) {
+          if (planA && planA.canCover && !planA.mustUseAllSatisfied) {
+            planA.secondLeaveWarning = '第2次休假必须消耗所有剩余年休假和任期假'
+            availablePlans.push(planA)
+          }
+          if (planB && planB.canCover && !planB.mustUseAllSatisfied) {
+            planB.secondLeaveWarning = '第2次休假必须消耗所有剩余年休假和任期假'
+            availablePlans.push(planB)
+          }
+        }
+
+        // 自动选中逻辑：只有一个方案时自动选中
+        const autoSelected = availablePlans.length === 1 ? availablePlans[0].planKey : null
+
+        // 任期假公费和回国+2天可用性提示
+        const activeTermLeaves = getActiveTermLeaves(quota)
+        const termAvailability = activeTermLeaves.map(t => ({
+          round: t.round,
+          availableDays: t.availableDays,
+          expiryDate: t.expiryDate || '',
+          publicExpenseUsed: !!t.publicExpenseUsed,
+          returnToHomeUsed: !!t.returnToHomeUsed,
+          canUsePublicExpense: !t.publicExpenseUsed,
+          canUseReturnBonus: !t.returnToHomeUsed
+        }))
+
+        return success({
+          availablePlans,
+          autoSelected,
+          isSecondLeave,
+          usageCount,
+          termAvailability,
+          startDate,
+          endDate,
+          isReturnToHome: !!isReturnToHome
+        })
       }
 
       // ========== submit: 提交休假申请 ==========
@@ -367,156 +850,302 @@ exports.main = async (event, context) => {
         const quota = await getOrCreateQuotaDoc(openid, {})
         if (!quota || !quota.isConfigured) return fail('请先完成休假信息首次配置', 403)
 
-        // 校验配额
-        const validationResult = validateAndCalculateQuota(formData, quota)
-        if (!validationResult.valid) return fail(validationResult.reason, 400)
+        // === 分支1：方案提交（selectedPlan 存在时） ===
+        if (formData.selectedPlan) {
+          const { startDate, endDate, isReturnToHome, selectedPlan, expenseType } = formData
+          if (!startDate || !endDate) return fail('请选择起止日期', 400)
+          if (!selectedPlan) return fail('请选择休假方案', 400)
 
-        const userInfo = await getUserInfo(openid)
-        if (!userInfo) return fail('未找到用户信息', 403)
+          // 检查每年两次限制
+          const startYear = parseLocalDate(startDate).getFullYear()
+          const usageCount = getLeaveUsageCountForYear(quota, startYear)
+          if (usageCount >= 2) {
+            return fail(`${startYear}年已使用${usageCount}次年休假/任期假，无法再申请`, 400)
+          }
 
-        const now = Date.now()
-        const leaveTypeNameMap = {
-          [LEAVE_TYPES.ANNUAL]: '年休假',
-          [LEAVE_TYPES.TERM]: '任期假',
-          [LEAVE_TYPES.COMBO_ANNUAL_TERM]: '组合假（年休假+任期假）',
-          [LEAVE_TYPES.COMBO_TERM_ANUAL]: '组合假（任期假+年休假）',
-          [LEAVE_TYPES.HOLIDAY]: '法定节假日',
-          [LEAVE_TYPES.OTHER]: formData.otherTypeName || '其他'
-        }
+          // 重新计算方案确保数据一致性
+          const { planA, planB, isSecondLeave } = await calculatePlanConsumption(
+            startDate, endDate, !!isReturnToHome, quota
+          )
 
-        // 查询所有过往休假记录（用于工单携带）
-        const pastRecordsRes = await recordsCollection
-          .where({
-            applicantOpenid: openid,
-            status: _.in(['approved', 'supplemented'])
-          })
-          .orderBy('createdAt', 'asc')
-          .limit(50)
-          .get()
-        const pastLeaveRecords = (pastRecordsRes.data || []).map(r => ({
-          leaveType: r.leaveTypeName || '-',
-          startDate: r.startDate,
-          endDate: r.endDate,
-          days: r.totalDays,
-          expenseType: r.expenseType === 'public' ? '公费' : '自费',
-          location: r.leaveLocation || ''
-        }))
+          // 找到选中的方案
+          let selectedPlanData = null
+          if (selectedPlan === 'A' && planA && planA.canCover) selectedPlanData = planA
+          if (selectedPlan === 'B' && planB && planB.canCover) selectedPlanData = planB
 
-        // 创建 leave_record
-        const recordData = {
-          applicantOpenid: openid,
-          applicantName: userInfo.name || '',
-          applicantDepartment: userInfo.department || '',
-          recordSource: 'application',
-          leaveType: formData.leaveType,
-          leaveTypeName: leaveTypeNameMap[formData.leaveType] || '其他',
-          otherTypeName: formData.otherTypeName || '',
-          startDate: formData.startDate,
-          endDate: formData.endDate,
-          totalDays: formData.totalDays || countCalendarDays(formData.startDate, formData.endDate),
-          workDays: formData.workDays || 0,
-          isReturnToHome: !!formData.isReturnToHome,
-          termLeaveRound: formData.termLeaveRound || null,
-          parentId: null,
-          comboOrder: null,
-          expenseType: formData.expenseType || 'public',
-          leaveLocation: formData.leaveLocation || '',
-          leaveRoute: formData.leaveRoute || '',
-          proposedFlights: formData.proposedFlights || '',
-          isTransferringBenefit: !!formData.isTransferringBenefit,
-          transferredCount: formData.transferredCount || 0,
-          needsVisaAssistance: !!formData.needsVisaAssistance,
-          otherNotes: formData.otherNotes || '',
-          orderId: '',
-          orderNo: '',
-          status: 'pending_approval',
-          reason: formData.reason || '',
-          remark: '',
-          createdAt: now,
-          updatedAt: now
-        }
+          if (!selectedPlanData) {
+            return fail('所选方案无法覆盖休假日期，请重新选择', 400)
+          }
 
-        const addRes = await recordsCollection.add({ data: recordData })
-        const recordId = addRes._id
+          // 第2次休假必须全部用完校验
+          if (isSecondLeave && !selectedPlanData.mustUseAllSatisfied) {
+            return fail('第2次休假必须消耗所有剩余年休假和任期假', 400)
+          }
 
-        // 组合假：创建第二条子记录
-        let subRecordId = null
-        if ((formData.leaveType === LEAVE_TYPES.COMBO_ANNUAL_TERM ||
-             formData.leaveType === LEAVE_TYPES.COMBO_TERM_ANNUAL) &&
-            formData.comboEndDate && formData.comboStartDate) {
-          const subRecord = { ...recordData }
-          subRecord.parentId = recordId
-          subRecord.comboOrder = 2
-          subRecord.startDate = formData.comboStartDate
-          subRecord.endDate = formData.comboEndDate
-          subRecord.totalDays = countCalendarDays(formData.comboStartDate, formData.comboEndDate)
-          delete subRecord._id
-
-          const subAddRes = await recordsCollection.add({ data: subRecord })
-          subRecordId = subAddRes._id
-
-          // 更新主记录
-          await recordsCollection.doc(recordId).update({
-            data: {
-              parentId: recordId, // 主记录指向自身
-              comboOrder: 1,
-              updatedAt: now
+          // 公费校验：只有涉及任期假且该轮次公费未使用时才能选公费
+          const termConsumed = selectedPlanData.consumed.filter(c => c.type === 'term')
+          const isPublicExpense = expenseType === 'public'
+          if (isPublicExpense && termConsumed.length > 0) {
+            // 检查方案中消耗的任期假轮次是否可用公费
+            const canUsePublic = termConsumed.some(c => c.canUsePublicExpense)
+            if (!canUsePublic) {
+              return fail('所涉及的任期假轮次已使用过公费机会，无法再选公费', 400)
             }
-          })
+          } else if (isPublicExpense && termConsumed.length === 0) {
+            return fail('只有涉及任期假的休假才能选公费', 400)
+          }
 
-          // 更新子记录 parentId
-          await recordsCollection.doc(subRecordId).update({
-            data: { parentId: recordId }
-          })
-        }
-
-        // 启动工作流审批
-        try {
-          const workflowRes = await cloud.callFunction({
-            name: 'workflowEngine',
-            data: {
-              action: 'submitOrder',
-              orderType: 'leave_application',
-              businessData: {
-                recordId,
-                subRecordId,
-                applicantOpenid: openid,
-                applicantName: userInfo.name || '',
-                applicantDepartment: userInfo.department || '',
-                ...formData,
-                pastLeaveRecords
-              }
-            }
-          })
-
-          if (workflowRes.result && workflowRes.result.code === 0) {
-            const orderId = workflowRes.result.data.orderId
-            await recordsCollection.doc(recordId).update({
-              data: { orderId, orderNo: workflowRes.result.data.orderNo || '', updatedAt: now }
-            })
-            return success({ recordId, orderId }, '提交成功，等待审批')
+          // 判断休假类型
+          const hasAnnual = selectedPlanData.consumed.some(c => c.type === 'annual')
+          const hasTerm = selectedPlanData.consumed.some(c => c.type === 'term')
+          let leaveType, leaveTypeName
+          if (hasAnnual && hasTerm) {
+            leaveType = selectedPlan === 'A' ? LEAVE_TYPES.COMBO_ANNUAL_TERM : LEAVE_TYPES.COMBO_TERM_ANNUAL
+            leaveTypeName = selectedPlan === 'A' ? '组合假（年休假+任期假）' : '组合假（任期假+年休假）'
+          } else if (hasAnnual) {
+            leaveType = LEAVE_TYPES.ANNUAL
+            leaveTypeName = '年休假'
+          } else if (hasTerm) {
+            leaveType = LEAVE_TYPES.TERM
+            leaveTypeName = '任期假'
           } else {
-            // 回滚
+            return fail('无法确定休假类型', 400)
+          }
+
+          const userInfo = await getUserInfo(openid)
+          if (!userInfo) return fail('未找到用户信息', 403)
+          const now = Date.now()
+
+          // 查询过往休假记录
+          const pastRecordsRes = await recordsCollection
+            .where({
+              applicantOpenid: openid,
+              status: _.in(['approved', 'supplemented'])
+            })
+            .orderBy('createdAt', 'asc')
+            .limit(50)
+            .get()
+          const pastLeaveRecords = (pastRecordsRes.data || []).map(r => ({
+            leaveType: r.leaveTypeName || '-',
+            startDate: r.startDate,
+            endDate: r.endDate,
+            days: r.totalDays,
+            expenseType: r.expenseType === 'public' ? '公费' : '自费',
+            location: r.leaveLocation || ''
+          }))
+
+          // 计算总天数
+          const calendarDays = countCalendarDays(startDate, endDate)
+          const workDays = hasAnnual ? selectedPlanData.consumed.filter(c => c.type === 'annual').reduce((s, c) => s + c.consumeDays, 0) : 0
+
+          // 创建主记录
+          const recordData = {
+            applicantOpenid: openid,
+            applicantName: userInfo.name || '',
+            applicantDepartment: userInfo.department || '',
+            recordSource: 'application',
+            leaveType,
+            leaveTypeName,
+            otherTypeName: '',
+            startDate,
+            endDate,
+            totalDays: calendarDays,
+            workDays,
+            isReturnToHome: !!isReturnToHome,
+            termLeaveRound: hasTerm ? termConsumed[0].round : null,
+            parentId: null,
+            comboOrder: null,
+            expenseType: isPublicExpense ? 'public' : 'self',
+            leaveLocation: formData.leaveLocation || '',
+            leaveRoute: formData.leaveRoute || '',
+            proposedFlights: formData.proposedFlights || '',
+            isTransferringBenefit: !!formData.isTransferringBenefit,
+            transferredCount: formData.transferredCount || 0,
+            needsVisaAssistance: !!formData.needsVisaAssistance,
+            otherNotes: formData.otherNotes || '',
+            orderId: '',
+            orderNo: '',
+            status: 'pending_approval',
+            reason: formData.reason || '',
+            remark: '',
+            selectedPlan,          // [NEW] 选中的方案
+            planConsumedQuota: selectedPlanData.consumed,  // [NEW] 方案配额消耗明细
+            createdAt: now,
+            updatedAt: now
+          }
+
+          const addRes = await recordsCollection.add({ data: recordData })
+          const recordId = addRes._id
+
+          // 启动工作流审批
+          try {
+            const workflowRes = await cloud.callFunction({
+              name: 'workflowEngine',
+              data: {
+                action: 'submitOrder',
+                orderType: 'leave_application',
+                businessData: {
+                  recordId,
+                  applicantId: openid,
+                  applicantName: userInfo.name || '',
+                  applicantDepartment: userInfo.department || '',
+                  leaveType,
+                  leaveTypeName,
+                  startDate,
+                  endDate,
+                  totalDays: calendarDays,
+                  workDays,
+                  selectedPlan,
+                  planConsumedQuota: selectedPlanData.consumed,
+                  isReturnToHome: !!isReturnToHome,
+                  expenseType: isPublicExpense ? 'public' : 'self',
+                  leaveLocation: formData.leaveLocation || '',
+                  leaveRoute: formData.leaveRoute || '',
+                  proposedFlights: formData.proposedFlights || '',
+                  reason: formData.reason || '',
+                  pastLeaveRecords
+                }
+              }
+            })
+
+            if (workflowRes.result && workflowRes.result.code === 0) {
+              const orderId = workflowRes.result.data.orderId
+              await recordsCollection.doc(recordId).update({
+                data: { orderId, orderNo: workflowRes.result.data.orderNo || '', updatedAt: now }
+              })
+              return success({ recordId, orderId }, '提交成功，等待审批')
+            } else {
+              await recordsCollection.doc(recordId).update({
+                data: { status: 'workflow_failed', updatedAt: now }
+              })
+              return fail(workflowRes.result?.message || '工作流启动失败', 500)
+            }
+          } catch (error) {
+            console.error('[leaveManager] 工作流启动失败:', error)
             await recordsCollection.doc(recordId).update({
               data: { status: 'workflow_failed', updatedAt: now }
             })
-            return fail(workflowRes.result?.message || '工作流启动失败', 500)
+            return fail('工作流启动失败，请重试', 500)
           }
-        } catch (error) {
-          console.error('[leaveManager] 工作流启动失败:', error)
-          await recordsCollection.doc(recordId).update({
-            data: { status: 'workflow_failed', updatedAt: now }
-          })
-          return fail('工作流启动失败，请重试', 500)
         }
+
+        // === 分支2："其他"类型提交（无 selectedPlan） ===
+        if (formData.leaveType === LEAVE_TYPES.OTHER || formData.leaveType === LEAVE_TYPES.HOLIDAY) {
+          const validationResult = validateAndCalculateQuota(formData, quota)
+          if (!validationResult.valid) return fail(validationResult.reason, 400)
+
+          const userInfo = await getUserInfo(openid)
+          if (!userInfo) return fail('未找到用户信息', 403)
+          const now = Date.now()
+
+          const leaveTypeNameMap = {
+            [LEAVE_TYPES.HOLIDAY]: '法定节假日',
+            [LEAVE_TYPES.OTHER]: formData.otherTypeName || '其他'
+          }
+
+          // 查询过往休假记录
+          const pastRecordsRes = await recordsCollection
+            .where({
+              applicantOpenid: openid,
+              status: _.in(['approved', 'supplemented'])
+            })
+            .orderBy('createdAt', 'asc')
+            .limit(50)
+            .get()
+          const pastLeaveRecords = (pastRecordsRes.data || []).map(r => ({
+            leaveType: r.leaveTypeName || '-',
+            startDate: r.startDate,
+            endDate: r.endDate,
+            days: r.totalDays,
+            expenseType: r.expenseType === 'public' ? '公费' : '自费',
+            location: r.leaveLocation || ''
+          }))
+
+          const recordData = {
+            applicantOpenid: openid,
+            applicantName: userInfo.name || '',
+            applicantDepartment: userInfo.department || '',
+            recordSource: 'application',
+            leaveType: formData.leaveType,
+            leaveTypeName: leaveTypeNameMap[formData.leaveType] || '其他',
+            otherTypeName: formData.otherTypeName || '',
+            startDate: formData.startDate,
+            endDate: formData.endDate,
+            totalDays: formData.totalDays || countCalendarDays(formData.startDate, formData.endDate),
+            workDays: formData.workDays || 0,
+            isReturnToHome: false,
+            termLeaveRound: null,
+            parentId: null,
+            comboOrder: null,
+            expenseType: formData.expenseType || 'self',
+            leaveLocation: formData.leaveLocation || '',
+            leaveRoute: formData.leaveRoute || '',
+            proposedFlights: formData.proposedFlights || '',
+            isTransferringBenefit: false,
+            transferredCount: 0,
+            needsVisaAssistance: false,
+            otherNotes: formData.otherNotes || '',
+            orderId: '',
+            orderNo: '',
+            status: 'pending_approval',
+            reason: formData.reason || '',
+            remark: '',
+            createdAt: now,
+            updatedAt: now
+          }
+
+          const addRes = await recordsCollection.add({ data: recordData })
+          const recordId = addRes._id
+
+          // 启动工作流审批
+          try {
+            const workflowRes = await cloud.callFunction({
+              name: 'workflowEngine',
+              data: {
+                action: 'submitOrder',
+                orderType: 'leave_application',
+                businessData: {
+                  recordId,
+                  applicantId: openid,
+                  applicantName: userInfo.name || '',
+                  applicantDepartment: userInfo.department || '',
+                  ...formData,
+                  pastLeaveRecords
+                }
+              }
+            })
+
+            if (workflowRes.result && workflowRes.result.code === 0) {
+              const orderId = workflowRes.result.data.orderId
+              await recordsCollection.doc(recordId).update({
+                data: { orderId, orderNo: workflowRes.result.data.orderNo || '', updatedAt: now }
+              })
+              return success({ recordId, orderId }, '提交成功，等待审批')
+            } else {
+              await recordsCollection.doc(recordId).update({
+                data: { status: 'workflow_failed', updatedAt: now }
+              })
+              return fail(workflowRes.result?.message || '工作流启动失败', 500)
+            }
+          } catch (error) {
+            console.error('[leaveManager] 工作流启动失败:', error)
+            await recordsCollection.doc(recordId).update({
+              data: { status: 'workflow_failed', updatedAt: now }
+            })
+            return fail('工作流启动失败，请重试', 500)
+          }
+        }
+
+        // 既没有 selectedPlan 也不是 其他/法定节假日 类型
+        return fail('请先选择休假方案', 400)
       }
 
       // ========== supplementRecord: 补填过往记录 ==========
       case 'supplementRecord': {
-        const { startDate, endDate, leaveType, expenseType, leaveLocation, remark } = params || {}
+        const { startDate, endDate, leaveComposition, expenseType, leaveLocation, remark } = params || {}
 
         if (!startDate || !endDate) return fail('请选择休假日期', 400)
-        if (!leaveType) return fail('请选择假期类型', 400)
+        if (!leaveComposition) return fail('请填写假期构成', 400)
 
         const quota = await getOrCreateQuotaDoc(openid, {})
         if (!quota || !quota.isConfigured) return fail('请先完成休假信息首次配置', 403)
@@ -540,8 +1169,8 @@ exports.main = async (event, context) => {
           applicantName: userInfo.name || '',
           applicantDepartment: userInfo.department || '',
           recordSource: 'supplemented',
-          leaveType: leaveType,
-          leaveTypeName: leaveTypeNameMap[leaveType] || '其他',
+          leaveType: 'other',
+          leaveTypeName: leaveComposition || '补填记录',
           otherTypeName: '',
           startDate,
           endDate,
@@ -571,11 +1200,7 @@ exports.main = async (event, context) => {
 
         await recordsCollection.add({ data: supplementData })
 
-        // 立即扣减配额
-        await deductQuotaForSupplement(openid, leaveType, calendarDays, workDays)
-
-        // 更新 quota 的 updatedAt
-        await updateQuotaTimestamp(openid)
+        // 补填记录仅作记录保存，不自动扣减配额
 
         return success(null, '补填成功')
       }
@@ -743,11 +1368,24 @@ function validateAndCalculateQuota(formData, quota) {
     }
     case LEAVE_TYPES.TERM: {
       const availableTermRounds = getAvailableTermRounds(quota)
-      const neededRounds = 1
-      if (availableTermRounds < neededRounds) {
+      if (availableTermRounds < 1) {
         return { valid: false, reason: '不符合休假天数：任期假次数不足' }
       }
-      // 检查连休限制
+      // 检查天数是否足够
+      let termAvailable = 0
+      if (quota.termLeaves) {
+        quota.termLeaves.forEach(t => {
+          if (!t.used) {
+            const avail = t.availableDays !== undefined ? t.availableDays : TERM_LEAVE_DAYS_PER_ROUND
+            termAvailable += avail
+          }
+        })
+      }
+      const neededDays = isReturnToHome ? calendarDays + TERM_LEAVE_RETURN_BONUS_DAYS : calendarDays
+      if (neededDays > termAvailable) {
+        return { valid: false, reason: '不符合休假天数：任期假天数不足' }
+      }
+      // 检查单次天数限制
       if (isReturnToHome && calendarDays > (TERM_LEAVE_DAYS_PER_ROUND + TERM_LEAVE_RETURN_BONUS_DAYS)) {
         return { valid: false, reason: '不符合休假天数：超出单次任期假最大天数' }
       }
@@ -775,10 +1413,16 @@ function getAvailableAnnualDays(quota) {
   return quota.annualLeaves.reduce((sum, a) => sum + (a.availableDays || 0), 0)
 }
 
-/** 获取可用任期假次数 */
+/** 获取可用任期假次数（兼容新旧数据结构） */
 function getAvailableTermRounds(quota) {
   if (!quota.termLeaves) return 0
-  return quota.termLeaves.filter(t => !t.used).length
+  return quota.termLeaves.filter(t => {
+    if (t.used) return false
+    // 新结构：检查 availableDays
+    if (t.availableDays !== undefined) return t.availableDays > 0
+    // 旧结构：used=false 即可用
+    return true
+  }).length
 }
 
 /** 补填记录时扣减配额 */
@@ -804,13 +1448,22 @@ async function deductQuotaForSupplement(openid, leaveType, calendarDays, workDay
       quota.totalAnnualUsed += (workDays - remaining)
     }
   } else if (leaveType === LEAVE_TYPES.TERM) {
-    // 扣减一次任期假
+    // 扣减任期假天数
     if (quota.termLeaves) {
+      let remaining = calendarDays
       for (const term of quota.termLeaves) {
-        if (!term.used) {
-          term.used = true
-          quota.totalTermUsed++
-          break
+        if (remaining <= 0) break
+        if (term.used) continue
+        const avail = term.availableDays !== undefined ? term.availableDays : TERM_LEAVE_DAYS_PER_ROUND
+        if (avail > 0) {
+          const deduct = Math.min(remaining, avail)
+          term.usedDays = (term.usedDays || 0) + deduct
+          term.availableDays = avail - deduct
+          if (term.availableDays <= 0) {
+            term.used = true
+            quota.totalTermUsed++
+          }
+          remaining -= deduct
         }
       }
     }

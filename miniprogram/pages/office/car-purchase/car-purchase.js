@@ -103,7 +103,9 @@ Page({
     editingStepIndex: -1,
     stepFormValue: '',
     stepFormRemark: '',
-    uploadedTempFiles: []   // 临时已选择的文件列表
+    uploadedTempFiles: [],   // 临时已选择的文件列表
+
+    today: ''
   },
 
   async onLoad() {
@@ -114,7 +116,8 @@ Page({
 
     const userInfo = app.globalData.userProfile || {}
     this.setData({
-      isOfficeStaff: (userInfo.department === '办公室')
+      isOfficeStaff: (userInfo.department === '办公室'),
+      today: utils.getLocalDateString()
     })
   },
 

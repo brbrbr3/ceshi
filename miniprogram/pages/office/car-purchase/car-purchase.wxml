@@ -151,7 +151,7 @@
           <!-- 到馆日期 -->
           <view class="cp-field">
             <view class="cp-field-label">到馆日期 <text class="cp-required">*</text></view>
-            <datetime-picker value="{{purchaseAppForm.arrivalDate}}" fields="{{['year', 'month', 'day']}}" placeholder="请选择到馆日期" type="border" bindchange="handleArrivalDateChange" />
+            <datetime-picker value="{{purchaseAppForm.arrivalDate}}" fields="{{['year', 'month', 'day']}}" placeholder="请选择到馆日期" type="border" endDate="{{today}}" bindchange="handleArrivalDateChange" />
           </view>
 
           <!-- 本次任期月数 -->
@@ -329,7 +329,7 @@
           <!-- 赴任日期 -->
           <view class="cp-field">
             <view class="cp-field-label">赴任日期 <text class="cp-required">*</text></view>
-            <datetime-picker value="{{purchaseLoanForm.arrivalDate}}" fields="{{['year', 'month', 'day']}}" placeholder="请选择赴任日期" type="border" bindchange="handleLoanArrivalDateChange" />
+            <datetime-picker value="{{purchaseLoanForm.arrivalDate}}" fields="{{['year', 'month', 'day']}}" placeholder="请选择赴任日期" type="border" endDate="{{today}}" bindchange="handleLoanArrivalDateChange" />
           </view>
 
           <!-- 职别 -->
@@ -532,7 +532,7 @@
             </view>
             <view class="cp-info-row">
               <text class="cp-info-label">月购车补贴：</text>
-              <text class="cp-info-value">{{detailData.carSubsidy ? detailData.carSubsidy + ' 人民币' : '-'}}</text>
+              <text class="cp-info-value">{{detailData.carSubsidy ? '**** 人民币' : '-'}}</text>
             </view>
             <view class="cp-info-row">
               <text class="cp-info-label">剩余任期月数：</text>
@@ -540,7 +540,7 @@
             </view>
             <view class="cp-info-row">
               <text class="cp-info-label">可享补贴金额：</text>
-              <text class="cp-info-value">{{detailData.totalSubsidy ? detailData.totalSubsidy + ' 人民币' : '-'}}</text>
+              <text class="cp-info-value">{{detailData.totalSubsidy ? '****** 人民币' : '-'}}</text>
             </view>
           </view>
           <view class="cp-info-section">

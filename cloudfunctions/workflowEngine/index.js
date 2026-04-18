@@ -1597,7 +1597,7 @@ async function completeWorkflow(orderId, decision, approverId, approverName, com
         }
 
         // 3. 扣减配额
-        const openid = businessData.applicantOpenid || order.openid
+        const openid = businessData.applicantId || order.openid
         if (openid) {
           const quotaRes = await quotasCollection.where({ openid }).limit(1).get()
           if (quotaRes.data && quotaRes.data.length > 0) {

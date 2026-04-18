@@ -180,7 +180,7 @@ Page({
         }
       }
 
-      // 没有任何生物认证可用，直接走正常登录
+      // 没有任何生物认证可用，返回
       if (!authMode) {
         //this.doLogin()
         return
@@ -201,11 +201,14 @@ Page({
         // 用户取消，不继续登录
         return
       }
-      // 其他错误（如认证失败），回退到正常登录
+      // 其他错误（如认证失败），返回
       //this.doLogin()
+    } finally {
+      // 只有在 doLogin 没有被调用时才重置 loading
+      if (this.data.loading) {
+        this.setData({ loading: false })
+      }
     }
-    // 注意：不要在这里 finally 里 setData loading: false，
-    // 因为 doLogin 内部会自己管理 loading 状态
   },
 
   // 原来的登录逻辑抽到这个方法

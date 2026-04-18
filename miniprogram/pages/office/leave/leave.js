@@ -4,9 +4,8 @@
  * 功能：
  * - 首次配置（仿餐食管理入伙配置弹窗）
  * - 双Tab（申请 / 我的记录）
- * - 申请：类型选择、日期选择、天数预览、配额校验、扩展表单、提交工作流
+ * - 申请：余额卡片 → 选日期 → 系统算方案 → 选方案 → 填表单 → 提交
  * - 记录：分页列表、补填按钮、详情弹窗
- * - 余额查看弹窗
  */
 const app = getApp()
 const utils = require('../../../common/utils.js')
@@ -14,16 +13,7 @@ const paginationBehavior = require('../../../behaviors/pagination.js')
 
 // 常量
 const TERM_LEAVE_RETURN_BONUS_DAYS = 2
-
-// 休假类型选项
-const LEAVE_TYPE_OPTIONS = [
-  { value: 'annual', name: '年休假' },
-  { value: 'term', name: '任期假' },
-  { value: 'combo_annual_term', name: '年休假+任期假' },
-  { value: 'combo_term_annual', name: '任期假+年休假' },
-  { value: 'holiday', name: '法定节假日' },
-  { value: 'other', name: '其他' }
-]
+const TERM_LEAVE_DAYS_PER_ROUND = 20
 
 Page({
   behaviors: [paginationBehavior],
@@ -40,20 +30,30 @@ Page({
     setupForm: {
       workStartDate: '',
       arrivalDate: '',
-      initialAnnualRemaining: '',
-      initialTermRemaining: ''
+      annualRemainingCurrent: '',
+      annualRemainingPrev: '',
+      termRemainingCurrent: '',
+      termRemainingPrev: ''
     },
     setupSubmitting: false,
+    setupWorkYearHint: '',
+    setupTermHint: '',
+    setupNeedPrevAnnual: false,
+    setupNeedAnnual: false,
+    setupNeedPrevTerm: false,
+    setupCurrentYear: '',
+    setupPrevYear: '',
+    setupMaxTermRound: 0,
+    setupPrevTermRound: 0,
+    setupAnnualDaysPerYear: 0,
 
     // ========== 申请表单 ==========
     form: {
-      leaveType: '',           // 当前选中的类型
       startDate: '',
       endDate: '',
-      isReturnToHome: false,   // 任期假是否回国
-      termLeaveRound: null,   // 第几次任期假
-      otherTypeName: '',       // 其他类型名称
-      expenseType: 'public',
+      isReturnToHome: false,
+      otherTypeName: '',
+      expenseType: 'self',
       leaveLocation: '',
       leaveRoute: '',
       proposedFlights: '',
@@ -64,30 +64,27 @@ Page({
       reason: ''
     },
 
-    // 天数预览
-    calculatedDays: {
-      totalDays: 0,
-      workDays: 0,
-      termTotalDays: 0,
-      comboHint: ''
-    },
-
-    // 配额相关
+    // 余额卡片
+    quotaSummary: null,
     myQuota: null,
-    quotaHintText: '',
-    quotaDisplayAvailable: '',
-    quotaDisplayTotal: '',
-    quotaWarning: '',
-    quotaOverLimit: false,
-    availableTermRounds: [],
 
-    showQuotaPopup: false,
-    quotaDetail: null,
+    // 方案相关
+    calculatedPlans: [],
+    selectedPlan: null,
+    plansLoading: false,
+    showOtherTypeForm: false,
+    showTermOptions: false,
+    showExpenseTypeSelect: false,
+    selectedPlanHasTerm: false,
+    canSubmit: false,
+
+    // 常量
+    TERM_LEAVE_RETURN_BONUS_DAYS: TERM_LEAVE_RETURN_BONUS_DAYS,
 
     // ========== 记录列表 ==========
     recordList: [],
     groupedRecords: [],
-    list: [], // for pagination behavior
+    list: [],
 
     // ========== 详情弹窗 ==========
     showDetailPopup: false,
@@ -100,18 +97,14 @@ Page({
     supplementForm: {
       startDate: '',
       endDate: '',
-      supplementType: '',
+      leaveComposition: '',
       expenseType: 'self',
       leaveLocation: '',
       remark: ''
     },
     supplementSubmitting: false,
 
-    today: '',
-
-    // 常量
-    TERM_LEAVE_RETURN_BONUS_DAYS: TERM_LEAVE_RETURN_BONUS_DAYS,
-    leaveTypeOptions: LEAVE_TYPE_OPTIONS
+    today: ''
   },
 
   onLoad(options) {
@@ -152,23 +145,10 @@ Page({
   },
 
   /**
-   * 加载系统常量
+   * 加载系统常量（不再需要 LEAVE_TYPE_OPTIONS）
    */
   loadConstants() {
-    const LEAVE_TYPE_FROM_CONFIG = app.getConstantSync('LEAVE_TYPE_OPTIONS') || []
-    if (LEAVE_TYPE_FROM_CONFIG.length > 0) {
-      this.setData({
-        leaveTypeOptions: LEAVE_TYPE_FROM_CONFIG.map(item =>
-          typeof item === 'string' ? { name: item, value: this.normalizeLeaveTypeKey(item) } : item
-        )
-      })
-    }
-  },
-
-  /** 将中文名转key */
-  normalizeLeaveTypeKey(name) {
-    const map = { '年休假': 'annual', '任期假': 'term', '组合假(年+任)': 'combo_annual_term', '组合假(任+年)': 'combo_term_annual', '法定节假日': 'holiday', '其他': 'other' }
-    return map[name] || name.toLowerCase().replace(/[^a-z]/g, '_')
+    // 保留空方法以防其他地方调用
   },
 
   // ==================== 首次配置检查与加载 ====================
@@ -182,26 +162,20 @@ Page({
       })
 
       if (result.result.code === 0) {
-        const quota = result.result.data
+        const { quota, quotaSummary } = result.result.data
         if (!quota) {
-          // 无记录 → 弹出首次配置弹窗
-          this.setData({
-            myQuota: null,
-            showFirstSetup: true,
-            loading: false
-          })
+          this.setData({ myQuota: null, showFirstSetup: true, loading: false })
           wx.hideLoading()
           return
         }
 
         this.setData({
           myQuota: quota,
+          quotaSummary,
           showFirstSetup: false,
-          loading: false,
-          availableTermRounds: this.buildAvailableTermRounds(quota)
+          loading: false
         })
 
-        // 加载记录列表
         await this.loadRecordData()
       } else {
         throw new Error(result.result.message)
@@ -214,29 +188,130 @@ Page({
     }
   },
 
-  buildAvailableTermRounds(quota) {
-    if (!quota || !quota.termLeaves) return []
-    return quota.termLeaves
-      .filter(t => !t.used)
-      .map(t => ({ round: t.round, eligibleDate: t.eligibleDate, isReturnToHome: t.isReturnToHome }))
-  },
-
   // ==================== 首次配置操作 ====================
 
   handleSetupWorkStartDateChange(e) {
     this.setData({ 'setupForm.workStartDate': e.detail.value })
+    this.calcSetupHints()
   },
 
   handleSetupArrivalDateChange(e) {
     this.setData({ 'setupForm.arrivalDate': e.detail.value })
+    this.calcSetupHints()
   },
 
-  handleSetupAnnualInput(e) {
-    this.setData({ 'setupForm.initialAnnualRemaining': e.detail.value })
+  handleSetupAnnualCurrentInput(e) {
+    this.setData({ 'setupForm.annualRemainingCurrent': e.detail.value })
   },
 
-  handleSetupTermInput(e) {
-    this.setData({ 'setupForm.initialTermRemaining': e.detail.value })
+  handleSetupAnnualPrevInput(e) {
+    this.setData({ 'setupForm.annualRemainingPrev': e.detail.value })
+  },
+
+  handleSetupTermCurrentInput(e) {
+    this.setData({ 'setupForm.termRemainingCurrent': e.detail.value })
+  },
+
+  handleSetupTermPrevInput(e) {
+    this.setData({ 'setupForm.termRemainingPrev': e.detail.value })
+  },
+
+  /** 根据选择的日期自动计算提示和需要填写的字段 */
+  calcSetupHints() {
+    const { workStartDate, arrivalDate } = this.data.setupForm
+    const now = new Date()
+    const currentYear = now.getFullYear()
+    const currentMonth = now.getMonth() + 1
+    const isInQ1 = currentMonth <= 3
+
+    let setupWorkYearHint = ''
+    let setupAnnualDaysPerYear = 0
+    let setupNeedPrevAnnual = false
+    let setupNeedAnnual = false
+    let setupTermHint = ''
+    let setupMaxTermRound = 0
+    let setupPrevTermRound = 0
+    let setupNeedPrevTerm = false
+
+    // === 年休假提示 ===
+    if (workStartDate) {
+      const endOfYear = new Date(currentYear, 11, 31)
+      const workStart = new Date(workStartDate)
+      const workYears = (endOfYear.getTime() - workStart.getTime()) / (365.25 * 24 * 3600 * 1000)
+
+      if (workYears < 10) {
+        setupWorkYearHint = '您工作未满10年，每年年休假为5天'
+        setupAnnualDaysPerYear = 5
+      } else if (workYears < 20) {
+        setupWorkYearHint = '您工作已满10年未满20年，每年年休假为10天'
+        setupAnnualDaysPerYear = 10
+      } else {
+        setupWorkYearHint = '您工作已满20年，每年年休假为15天'
+        setupAnnualDaysPerYear = 15
+      }
+    }
+
+    // === 年休假：是否需要填写 x-1 年剩余 ===
+    if (arrivalDate) {
+      const arrivalYear = parseInt(arrivalDate.substring(0, 4), 10)
+      // 到任当年无年休假，从到任第二年起才有
+      // 到任今年则无需填写任何年休假剩余
+      setupNeedAnnual = arrivalYear !== currentYear
+      // Q1 时需要填写 x-1 年条件：到任年份 <= x-2（即 x-1 年有配额且在 Q1 还未过期）
+      if (arrivalYear === currentYear) {
+        setupNeedPrevAnnual = false
+      } else {
+        setupNeedPrevAnnual = isInQ1 && arrivalYear <= currentYear - 2
+      }
+    }
+
+    // === 任期假提示 ===
+    if (arrivalDate) {
+      const arrival = new Date(arrivalDate)
+      const monthsSinceArrival = (now.getFullYear() - arrival.getFullYear()) * 12
+        + (now.getMonth() - arrival.getMonth())
+
+      // 按规则计算可休次数
+      const TERM_RULES = [
+        { round: 1, months: 6, desc: '6个月' },
+        { round: 2, months: 24, desc: '2年' },
+        { round: 3, months: 36, desc: '3年' },
+        { round: 4, months: 48, desc: '4年' },
+        { round: 5, months: 60, desc: '5年' }
+      ]
+
+      for (const rule of TERM_RULES) {
+        if (monthsSinceArrival >= rule.months) {
+          setupMaxTermRound = rule.round
+        }
+      }
+
+      if (setupMaxTermRound === 0) {
+        setupTermHint = '您到任未满6个月，尚不可休任期假'
+      } else {
+        const matchedRule = TERM_RULES.find(r => r.round === setupMaxTermRound)
+        setupTermHint = `您到任已满${matchedRule.desc}，可以休第${setupMaxTermRound}次任期假`
+      }
+
+      // 是否需要填写第 y-1 次任期假剩余天数
+      if (setupMaxTermRound > 1) {
+        setupNeedPrevTerm = true
+        setupPrevTermRound = setupMaxTermRound - 1
+      }
+    }
+
+    this.setData({
+      setupWorkYearHint,
+      setupAnnualDaysPerYear,
+      setupNeedPrevAnnual,
+      setupNeedAnnual,
+      setupTermHint,
+      setupMaxTermRound,
+      setupPrevTermRound,
+      setupNeedPrevTerm,
+      setupCurrentYear: String(currentYear),
+      setupPrevYear: String(currentYear - 1)
+    })
   },
 
   handleSetupCancel() {
@@ -248,11 +323,32 @@ Page({
     const form = this.data.setupForm
     if (!form.workStartDate) return utils.showToast({ title: '请选择参加工作日期', icon: 'none' })
     if (!form.arrivalDate) return utils.showToast({ title: '请选择到任日期', icon: 'none' })
-    if (form.initialAnnualRemaining === '' || isNaN(Number(form.initialAnnualRemaining))) {
-      return utils.showToast({ title: '请填写剩余年休假天数', icon: 'none' })
+
+    const arrivalYear = parseInt(form.arrivalDate.substring(0, 4), 10)
+    const currentYear = new Date().getFullYear()
+
+    // 到任今年无需填写年休假
+    if (arrivalYear !== currentYear) {
+      if (form.annualRemainingCurrent === '' || isNaN(Number(form.annualRemainingCurrent)) || Number(form.annualRemainingCurrent) < 0) {
+        return utils.showToast({ title: `请填写${this.data.setupCurrentYear}年年休假剩余天数`, icon: 'none' })
+      }
+      if (this.data.setupNeedPrevAnnual) {
+        if (form.annualRemainingPrev === '' || isNaN(Number(form.annualRemainingPrev)) || Number(form.annualRemainingPrev) < 0) {
+          return utils.showToast({ title: `请填写${this.data.setupPrevYear}年年休假剩余天数`, icon: 'none' })
+        }
+      }
     }
-    if (form.initialTermRemaining === '' || isNaN(Number(form.initialTermRemaining))) {
-      return utils.showToast({ title: '请填写剩余任期假次数', icon: 'none' })
+
+    // 任期假填写校验
+    if (this.data.setupMaxTermRound > 0) {
+      if (form.termRemainingCurrent === '' || isNaN(Number(form.termRemainingCurrent)) || Number(form.termRemainingCurrent) < 0) {
+        return utils.showToast({ title: `请填写第${this.data.setupMaxTermRound}次任期假剩余天数`, icon: 'none' })
+      }
+      if (this.data.setupNeedPrevTerm) {
+        if (form.termRemainingPrev === '' || isNaN(Number(form.termRemainingPrev)) || Number(form.termRemainingPrev) < 0) {
+          return utils.showToast({ title: `请填写第${this.data.setupPrevTermRound}次任期假剩余天数`, icon: 'none' })
+        }
+      }
     }
 
     this.setData({ setupSubmitting: true })
@@ -264,8 +360,13 @@ Page({
           params: {
             workStartDate: form.workStartDate,
             arrivalDate: form.arrivalDate,
-            initialAnnualRemaining: Number(form.initialAnnualRemaining),
-            initialTermRemaining: Number(form.initialTermRemaining)
+            annualRemainingCurrent: arrivalYear === currentYear ? 0 : Number(form.annualRemainingCurrent || 0),
+            annualRemainingPrev: this.data.setupNeedPrevAnnual ? Number(form.annualRemainingPrev || 0) : 0,
+            termRemainingCurrent: this.data.setupMaxTermRound > 0 ? Number(form.termRemainingCurrent || 0) : 0,
+            termRemainingPrev: this.data.setupNeedPrevTerm ? Number(form.termRemainingPrev || 0) : 0,
+            maxTermRound: this.data.setupMaxTermRound,
+            needPrevAnnual: this.data.setupNeedPrevAnnual,
+            needPrevTerm: this.data.setupNeedPrevTerm
           }
         }
       })
@@ -277,9 +378,17 @@ Page({
           myQuota: quota,
           showFirstSetup: false,
           setupSubmitting: false,
-          availableTermRounds: this.buildAvailableTermRounds(quota),
-          setupForm: { workStartDate: '', arrivalDate: '', initialAnnualRemaining: '', initialTermRemaining: '' }
+          setupForm: {
+            workStartDate: '', arrivalDate: '',
+            annualRemainingCurrent: '', annualRemainingPrev: '',
+            termRemainingCurrent: '', termRemainingPrev: ''
+          },
+          setupWorkYearHint: '', setupTermHint: '',
+          setupNeedPrevAnnual: false, setupNeedAnnual: false, setupNeedPrevTerm: false,
+          setupMaxTermRound: 0, setupPrevTermRound: 0
         })
+        // 重新加载配额摘要
+        this.loadMyQuotas()
       } else {
         utils.showToast({ title: res.result.message || '配置失败', icon: 'none' })
       }
@@ -314,73 +423,109 @@ Page({
     }
   },
 
-  // ==================== 休假类型选择 ====================
-
-  handleLeaveTypeSelect(e) {
-    const value = e.currentTarget.dataset.value
-    this.setData({
-      'form.leaveType': value,
-      // 重置日期和计算
-      calculatedDays: { totalDays: 0, workDays: 0, termTotalDays: 0, comboHint: '' },
-      // 重置任期假特有字段
-      'form.termLeaveRound': null,
-      'form.isReturnToHome': false
-    })
-
-    // 更新余额提示
-    this.updateQuotaDisplay(value)
-
-    // 如果是其他类型，重置otherTypeName
-    if (value !== 'other') {
-      this.setData({ 'form.otherTypeName': '' })
-    }
-
-    // 重新触发天数计算（如果已有日期）
-    if (this.data.form.startDate && this.data.form.endDate) {
-      this.recalcDaysPreview()
-    }
-  },
-
-  // ==================== 日期选择处理 ====================
+  // ==================== 日期选择与方案计算 ====================
 
   handleStartDateChange(e) {
     this.setData({ 'form.startDate': e.detail.value })
     if (e.detail.value > this.data.form.endDate) {
       this.setData({ 'form.endDate': e.detail.value })
     }
-    this.recalcDaysPreview()
+    this.recalculatePlans()
   },
 
   handleEndDateChange(e) {
     this.setData({ 'form.endDate': e.detail.value })
-    this.recalcDaysPreview()
+    this.recalculatePlans()
   },
 
-  /** 调用云函数计算天数预览 */
-  async recalcDaysPreview() {
-    const { leaveType, startDate, endDate, isReturnToHome } = this.data.form
-    if (!startDate || !endDate || !leaveType) {
-      this.setData({ calculatedDays: { totalDays: 0, workDays: 0, termTotalDays: 0, comboHint: '' } })
-      return
-    }
+  /** 防抖调用 calculatePlans */
+  _plansTimer: null,
+  recalculatePlans() {
+    const { startDate, endDate } = this.data.form
+    // 清除旧方案
+    this.setData({ calculatedPlans: [], selectedPlan: null, canSubmit: false, showTermOptions: false, showExpenseTypeSelect: false, selectedPlanHasTerm: false })
 
+    if (!startDate || !endDate) return
+
+    clearTimeout(this._plansTimer)
+    this._plansTimer = setTimeout(() => {
+      this.doCalculatePlans()
+    }, 500)
+  },
+
+  /** 调用云函数计算方案 */
+  async doCalculatePlans() {
+    const { startDate, endDate, isReturnToHome } = this.data.form
+    if (!startDate || !endDate) return
+
+    this.setData({ plansLoading: true })
     try {
       const res = await wx.cloud.callFunction({
         name: 'leaveManager',
         data: {
-          action: 'calculateDays',
-          params: { leaveType, startDate, endDate, isReturnToHome }
+          action: 'calculatePlans',
+          params: { startDate, endDate, isReturnToHome }
         }
       })
 
       if (res.result.code === 0) {
-        const calcData = res.result.data
-        this.setData({ calculatedDays: calcData })
-        // 同时更新余额警告
-        this.updateQuotaWarning(calcData)
+        const data = res.result.data
+        const plans = data.availablePlans || []
+        const autoSelected = data.autoSelected
+
+        // 判断是否涉及任期假（用于显示回国选项和公费选项）
+        const hasTermInPlans = plans.some(p => p.consumed && p.consumed.some(c => c.type === 'term'))
+
+        this.setData({
+          calculatedPlans: plans,
+          selectedPlan: autoSelected,
+          plansLoading: false,
+          showTermOptions: hasTermInPlans,
+          showExpenseTypeSelect: hasTermInPlans || this.data.showOtherTypeForm,
+          selectedPlanHasTerm: false
+        })
+
+        // 如果有自动选中，更新相关状态
+        if (autoSelected) {
+          this.onPlanSelected(autoSelected)
+        }
+      } else {
+        this.setData({ plansLoading: false })
+        if (res.result.code === 400) {
+          utils.showToast({ title: res.result.message, icon: 'none' })
+        }
       }
     } catch (err) {
-      console.error('天数计算失败:', err)
+      console.error('方案计算失败:', err)
+      this.setData({ plansLoading: false })
+    }
+  },
+
+  /** 用户选择方案 */
+  handlePlanSelect(e) {
+    const planKey = e.currentTarget.dataset.plan
+    this.setData({ selectedPlan: planKey })
+    this.onPlanSelected(planKey)
+  },
+
+  /** 方案选中后的联动 */
+  onPlanSelected(planKey) {
+    const plan = this.data.calculatedPlans.find(p => p.planKey === planKey)
+    if (!plan) return
+
+    const hasTerm = plan.consumed && plan.consumed.some(c => c.type === 'term')
+    const canUsePublic = hasTerm && plan.consumed.some(c => c.type === 'term' && c.canUsePublicExpense)
+
+    this.setData({
+      showTermOptions: hasTerm,
+      showExpenseTypeSelect: hasTerm,
+      selectedPlanHasTerm: hasTerm,
+      canSubmit: true
+    })
+
+    // 如果涉及任期假但公费不可用，自动选自费
+    if (hasTerm && !canUsePublic) {
+      this.setData({ 'form.expenseType': 'self' })
     }
   },
 
@@ -388,11 +533,23 @@ Page({
 
   handleSwitchReturnToHome(e) {
     this.setData({ 'form.isReturnToHome': e.detail.value })
-    this.recalcDaysPreview()
+    // 重新计算方案（回国+2天影响覆盖天数）
+    this.recalculatePlans()
   },
 
-  handleTermRoundSelect(e) {
-    this.setData({ 'form.termLeaveRound': e.currentTarget.dataset.round })
+  // ==================== "其他"类型入口 ====================
+
+  handleOtherTypeEntry() {
+    const willShow = !this.data.showOtherTypeForm
+    this.setData({
+      showOtherTypeForm: willShow,
+      showExpenseTypeSelect: willShow,
+      canSubmit: willShow ? false : !!this.data.selectedPlan // 展开时需填写类型名后才可提交，关闭时恢复方案状态
+    })
+    // 关闭时重置
+    if (!willShow) {
+      this.setData({ 'form.otherTypeName': '', 'form.expenseType': 'self' })
+    }
   },
 
   // ==================== 扩展表单字段 ====================
@@ -406,7 +563,14 @@ Page({
   },
 
   handleOtherTypeNameInput(e) {
-    this.setData({ 'form.otherTypeName': e.detail.value })
+    const value = e.detail.value
+    this.setData({ 'form.otherTypeName': value })
+    // "其他"类型：填写类型名+日期+原因后可提交
+    if (this.data.showOtherTypeForm) {
+      const hasName = String(value || '').trim().length > 0
+      const hasDates = this.data.form.startDate && this.data.form.endDate
+      this.setData({ canSubmit: hasName && hasDates })
+    }
   },
 
   handleLeaveLocationInput(e) {
@@ -444,100 +608,12 @@ Page({
     this.setData({ 'form.reason': e.detail.value })
   },
 
-  // ==================== 配额显示逻辑 ====================
-
-  updateQuotaDisplay(leaveType) {
-    const quota = this.data.myQuota
-    if (!quota) {
-      this.setData({ quotaHintText: '暂无配额信息' })
-      return
-    }
-
-    switch (leaveType) {
-      case 'annual':
-      case 'combo_annual_term':
-      case 'combo_term_annual': {
-        let available = 0
-        let total = 0
-        if (quota.annualLeaves) {
-          quota.annualLeaves.forEach(a => {
-            if (a.status === 'active') {
-              available += (a.availableDays || 0)
-              total += a.totalDays
-            }
-          })
-        }
-        this.setData({
-          quotaHintText: '年休假余额',
-          quotaDisplayAvailable: `${available}天`,
-          quotaDisplayTotal: `年度总计${total}天`
-        })
-        break
-      }
-      case 'term': {
-        const used = quota.totalTermUsed || 0
-        const total = TERM_LEAVE_RULES_COUNT || 5
-        this.setData({
-          quotaHintText: '任期假可用次数',
-          quotaDisplayAvailable: `${total - used}次`,
-          quotaDisplayTotal: `共${total}次（每期${TERM_LEAVE_DAYS_PER_ROUND}天，回国+${TERM_LEAVE_RETURN_BONUS_DAYS}天）`
-        })
-        break
-      }
-      case 'holiday':
-      case 'other':
-        this.setData({
-          quotaHintText: '此类型不占用配额',
-          quotaDisplayAvailable: '-',
-          quotaDisplayTotal: ''
-        })
-        break
-      default:
-        this.setData({ quotaHintText: '', quotaDisplayAvailable: '', quotaDisplayTotal: '' })
-    }
-  },
-
-  updateQuotaWarning(calcData) {
-    const { leaveType } = this.data.form
-    const quota = this.data.myQuota
-    let warning = ''
-    let overLimit = false
-
-    if (!quota) return
-
-    if ((leaveType === 'annual' || leaveType === 'combo_annual_term') && calcData.workDays > 0) {
-      let availableAnnual = 0
-      if (quota.annualLeaves) {
-        quota.annualLeaves.forEach(a => {
-          if (a.status === 'active') availableAnnual += (a.availableDays || 0)
-        })
-      }
-      if (calcData.workDays > availableAnnual) {
-        warning = `不符合休假天数：年休假不足${calcData.workDays - availableAnnual}天`
-        overLimit = true
-      }
-    }
-
-    if (leaveType === 'term' && this.data.availableTermRounds.length === 0) {
-      warning = '不符合休假次数：无可用任期假'
-      overLimit = true
-    }
-
-    this.setData({ quotaWarning: warning, quotaOverLimit: overLimit })
-  },
-
   async loadMyQuotas() {
     try {
       const res = await wx.cloud.callFunction({ name: 'leaveManager', data: { action: 'getMyQuotas' } })
       if (res.result.code === 0) {
-        const quota = res.result.data
-        this.setData({
-          myQuota: quota,
-          availableTermRounds: this.buildAvailableTermRounds(quota)
-        })
-        if (this.data.form.leaveType) {
-          this.updateQuotaDisplay(this.data.form.leaveType)
-        }
+        const { quota, quotaSummary } = res.result.data
+        this.setData({ myQuota: quota, quotaSummary })
       }
     } catch (e) { console.error('加载配额失败:', e) }
   },
@@ -546,17 +622,20 @@ Page({
 
   validateApplicationForm() {
     const f = this.data.form
-    if (!f.leaveType) { utils.showToast({ title: '请选择休假类型', icon: 'none' }); return false; }
-    if (!f.startDate) { utils.showToast({ title: '请选择开始日期', icon: 'none' }); return false; }
-    if (!f.endDate) { utils.showToast({ title: '请选择结束日期', icon: 'none' }); return false; }
-    if (f.leaveType === 'term' || f.leaveType === 'combo_annual_term' || f.leaveType === 'combo_term_annual') {
-      if (!f.termLeaveRound) { utils.showToast({ title: '请选择第几次任期假', icon: 'none' }); return false; }
-    }
-    if (f.leaveType === 'other' && !String(f.otherTypeName || '').trim()) {
-      utils.showToast({ title: '请输入自定义类型名', icon: 'none' }); return false;
+    if (this.data.showOtherTypeForm) {
+      // "其他"类型提交
+      if (!f.startDate) { utils.showToast({ title: '请选择开始日期', icon: 'none' }); return false; }
+      if (!f.endDate) { utils.showToast({ title: '请选择结束日期', icon: 'none' }); return false; }
+      if (!String(f.otherTypeName || '').trim()) {
+        utils.showToast({ title: '请输入自定义类型名', icon: 'none' }); return false;
+      }
+    } else {
+      // 方案提交
+      if (!f.startDate) { utils.showToast({ title: '请选择开始日期', icon: 'none' }); return false; }
+      if (!f.endDate) { utils.showToast({ title: '请选择结束日期', icon: 'none' }); return false; }
+      if (!this.data.selectedPlan) { utils.showToast({ title: '请选择休假方案', icon: 'none' }); return false; }
     }
     if (!String(f.reason || '').trim()) { utils.showToast({ title: '请填写休假原因', icon: 'none' }); return false; }
-    if (this.data.quotaOverLimit) { utils.showToast({ title: '不符合休假天数', icon: 'none' }); return false; }
     return true;
   },
 
@@ -568,9 +647,44 @@ Page({
     this.setData({ submitting: true })
 
     try {
-      const submitParams = { ...f }
-      submitParams.totalDays = this.data.calculatedDays.totalDays
-      submitParams.workDays = this.data.calculatedDays.workDays
+      let submitParams
+
+      if (this.data.showOtherTypeForm) {
+        // === "其他"类型提交 ===
+        submitParams = {
+          leaveType: 'other',
+          otherTypeName: f.otherTypeName,
+          startDate: f.startDate,
+          endDate: f.endDate,
+          expenseType: f.expenseType,
+          leaveLocation: f.leaveLocation,
+          leaveRoute: f.leaveRoute,
+          proposedFlights: f.proposedFlights,
+          isTransferringBenefit: f.isTransferringBenefit,
+          transferredCount: f.transferredCount,
+          needsVisaAssistance: f.needsVisaAssistance,
+          otherNotes: f.otherNotes,
+          reason: f.reason
+        }
+      } else {
+        // === 方案提交 ===
+        const plan = this.data.calculatedPlans.find(p => p.planKey === this.data.selectedPlan)
+        submitParams = {
+          startDate: f.startDate,
+          endDate: f.endDate,
+          isReturnToHome: f.isReturnToHome,
+          selectedPlan: this.data.selectedPlan,
+          expenseType: f.expenseType,
+          leaveLocation: f.leaveLocation,
+          leaveRoute: f.leaveRoute,
+          proposedFlights: f.proposedFlights,
+          isTransferringBenefit: f.isTransferringBenefit,
+          transferredCount: f.transferredCount,
+          needsVisaAssistance: f.needsVisaAssistance,
+          otherNotes: f.otherNotes,
+          reason: f.reason
+        }
+      }
 
       const res = await wx.cloud.callFunction({
         name: 'leaveManager',
@@ -588,9 +702,7 @@ Page({
           confirmText: '我知道了',
           success: (modalRes) => {
             if (modalRes.confirm) {
-              // 重置表单
               this.resetForm()
-              // 切换到记录tab
               this.setData({ activeTab: 'records' }, () => {
                 this.loadRecordData(true)
               })
@@ -611,15 +723,23 @@ Page({
   resetForm() {
     this.setData({
       form: {
-        leaveType: '', startDate: '', endDate: '', isReturnToHome: false,
-        termLeaveRound: null, otherTypeName: '', expenseType: 'public',
+        startDate: '', endDate: '', isReturnToHome: false,
+        otherTypeName: '', expenseType: 'self',
         leaveLocation: '', leaveRoute: '', proposedFlights: '',
         isTransferringBenefit: false, transferredCount: 0,
         needsVisaAssistance: false, otherNotes: '', reason: ''
       },
-      calculatedDays: { totalDays: 0, workDays: 0, termTotalDays: 0, comboHint: '' },
-      quotaWarning: '', quotaOverLimit: false
+      calculatedPlans: [],
+      selectedPlan: null,
+      plansLoading: false,
+      showOtherTypeForm: false,
+      showTermOptions: false,
+      showExpenseTypeSelect: false,
+      selectedPlanHasTerm: false,
+      canSubmit: false
     })
+    // 刷新配额
+    this.loadMyQuotas()
   },
 
   // ==================== 记录列表（分页）====================
@@ -746,7 +866,7 @@ Page({
       supplementForm: {
         startDate: '',
         endDate: '',
-        supplementType: '',
+        leaveComposition: '',
         expenseType: 'self',
         leaveLocation: '',
         remark: ''
@@ -758,7 +878,7 @@ Page({
 
   handleSupplementStartChange(e) { this.setData({ 'supplementForm.startDate': e.detail.value }) },
   handleSupplementEndChange(e) { this.setData({ 'supplementForm.endDate': e.detail.value }) },
-  handleSupplementTypeSelect(e) { this.setData({ 'supplementForm.supplementType': e.currentTarget.dataset.value }) },
+  handleSupplementCompositionInput(e) { this.setData({ 'supplementForm.leaveComposition': e.detail.value }) },
   handleSupplementExpenseSelect(e) { this.setData({ 'supplementForm.expenseType': e.currentTarget.dataset.value }) },
   handleSupplementLocationInput(e) { this.setData({ 'supplementForm.leaveLocation': e.detail.value }) },
   handleSupplementRemarkInput(e) { this.setData({ 'supplementForm.remark': e.detail.value }) },
@@ -766,7 +886,7 @@ Page({
   async handleSubmitSupplement() {
     const sf = this.data.supplementForm
     if (!sf.startDate || !sf.endDate) { return utils.showToast({ title: '请选择休假日期', icon: 'none' }) }
-    if (!sf.supplementType) { return utils.showToast({ title: '请选择假期构成', icon: 'none' }) }
+    if (!sf.leaveComposition || !sf.leaveComposition.trim()) { return utils.showToast({ title: '请填写假期构成', icon: 'none' }) }
 
     this.setData({ supplementSubmitting: true })
     try {
@@ -774,7 +894,15 @@ Page({
         name: 'leaveManager',
         data: {
           action: 'supplementRecord',
-          params: sf
+          params: {
+            startDate: sf.startDate,
+            endDate: sf.endDate,
+            leaveType: 'other',
+            leaveComposition: sf.leaveComposition,
+            expenseType: sf.expenseType,
+            leaveLocation: sf.leaveLocation,
+            remark: sf.remark
+          }
         }
       })
 
@@ -796,7 +924,3 @@ Page({
     }
   }
 })
-
-// 本地常量
-const TERM_LEAVE_RULES_COUNT = 5
-const TERM_LEAVE_DAYS_PER_ROUND = 20

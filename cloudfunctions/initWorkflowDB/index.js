@@ -367,12 +367,12 @@ const EXAMPLE_TEMPLATES = [
     name: '休假申请审批',
     code: 'leave_application',
     version: 1,
-    description: '休假申请审批流程（5步：本部门负责人→会计→会计主管→人事主管→馆领导）',
+    description: '休假申请审批流程（5步：部门负责人→会计→会计主管→人事主管→馆领导）',
     category: 'approval',
     steps: [
       {
         stepNo: 1,
-        stepName: '本部门负责人审批',
+        stepName: '部门负责人审批',
         stepType: 'serial',
         approverType: 'dept_head',
         approverConfig: {},

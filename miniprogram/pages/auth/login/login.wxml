@@ -1,28 +1,30 @@
 <view class="auth-page login-page" style="{{fontStyle}}">
   <view class="auth-hero">
-    <view class="auth-brand">登录</view>
+    <view class="auth-brand">v1.0</view>
     <view class="auth-title">Embaixada da China</view>
     <view class="auth-subtitle">欢迎使用Embaixada da China办公小程序！</view>
     <view class="auth-tip-row">
       <view class="auth-tip-pill">微信身份校验</view>
-      <view class="auth-tip-pill">审批后可登录</view>
+      <view class="auth-tip-pill">管理员审批</view>
+      <view class="auth-tip-pill">人脸/指纹登录</view>
     </view>
   </view>
 
   <view class="auth-card">
-    <view class="auth-card-title">微信一键登录</view>
-    <text class="auth-card-desc">已注册用户：点击下方按钮直接进入首页
-    未注册用户：将跳转到注册页面填写基础资料</text>
-
-    <view class="auth-wechat-panel">
-      <view class="auth-wechat-icon">微</view>
+    <view class="auth-wechat-panel login-wechat-panel">
+      <view class="auth-wechat-icon login-wechat-icon">生物特征</view>
       <view>
-        <view class="auth-wechat-title">当前登录方式</view>
-        <view class="auth-wechat-desc">使用微信身份识别当前用户，无需手动输入用户名或密码。</view>
+        <view class="auth-wechat-desc">当前登录方式：</view>
+        <view class="auth-wechat-title">使用微信身份识别当前用户</view>
+        <view class="auth-wechat-title">需验证用户人脸/指纹特征</view>
       </view>
     </view>
+    <view class="auth-card-title"></view>
+    <text class="auth-card-desc">已注册用户：点击下方按钮，验证人脸/指纹后登录
+      未注册用户：将跳转到注册页面填写基础资料</text>
 
-    <button class="auth-submit-btn login-submit-btn" loading="{{loading}}" bindtap="handleWxLogin">微信一键登录</button>
+
+    <button class="auth-submit-btn login-submit-btn" loading="{{loading}}" bindtap="handleWxLogin">人脸/指纹登录</button>
   </view>
 
   <view wx:if="{{statusCard}}" class="auth-card auth-status-card {{statusCard.className}}">
@@ -56,15 +58,15 @@
       <view class="auth-debug-btn auth-debug-btn-danger" bindtap="showClearDbPanel">清除数据库数据</view>
     </view>
     <view class="auth-debug-close" bindtap="hideDebugPanel">关闭调试面板</view>
-<!-- 清除数据库面板 -->
-<view wx:if="{{showClearDbPanel}}" class="auth-clear-db-panel">
+    <!-- 清除数据库面板 -->
+    <view wx:if="{{showClearDbPanel}}" class="auth-clear-db-panel">
       <view class="auth-clear-db-header">
         <view class="auth-clear-db-title">选择要清理的集合</view>
         <view class="auth-clear-db-select-all" bindtap="toggleSelectAll">
           {{selectedCollections.length === dbCollections.length ? '取消全选' : '全选'}}
         </view>
       </view>
-      
+
       <checkbox-group class="auth-clear-db-list" bindchange="onCollectionChange">
         <label class="auth-clear-db-item" wx:for="{{dbCollections}}" wx:key="name">
           <checkbox value="{{item.name}}" checked="{{item.checked}}" color="#1890ff" />
@@ -94,7 +96,7 @@
       </view>
     </view>
 
-    
+
   </view>
 
   <!-- 清库密钥弹窗 -->

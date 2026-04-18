@@ -7,6 +7,14 @@ page {
 .login-submit-btn{
 }
 
+.login-wechat-panel{
+  margin: 5rpx 0 32rpx;
+}
+
+.login-wechat-icon{
+  width: 160rpx;
+}
+
 /* 首个管理员初始化 */
 .auth-bootstrap-card {
   margin-top: 30rpx;
