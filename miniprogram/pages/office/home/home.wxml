@@ -16,7 +16,7 @@
 
     <!-- 背景装饰图片 -->
     <view class="home-bg-image-wrapper">
-      <image class="home-bg-image" src="/image/br1.jpg" mode="widthFix" />
+      <image class="home-bg-image" src="{{bgImageUrl}}" mode="widthFix" />
     </view>
   </view>
 

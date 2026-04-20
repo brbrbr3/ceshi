@@ -46,6 +46,123 @@ function getMaxRepeatEndDate() {
   return `${year}-12-31`
 }
 
+// ==================== 巴西法定节假日 ====================
+
+/**
+ * 计算复活节日期（高斯算法）
+ * @param {number} year 年份
+ * @returns {{ month: number, day: number }}
+ */
+function computeEaster(year) {
+  const a = year % 19
+  const b = Math.floor(year / 100)
+  const c = year % 100
+  const d = Math.floor(b / 4)
+  const e = b % 4
+  const f = Math.floor((b + 8) / 25)
+  const g = Math.floor((b - f + 1) / 3)
+  const h = (19 * a + b - d - g + 15) % 30
+  const i = Math.floor(c / 4)
+  const k = c % 4
+  const l = (32 + 2 * e + 2 * i - h - k) % 7
+  const m = Math.floor((a + 11 * h + 22 * l) / 451)
+  const month = Math.floor((h + l - 7 * m + 114) / 31)
+  const day = ((h + l - 7 * m + 114) % 31) + 1
+  return { month, day }
+}
+
+/**
+ * 根据复活节计算偏移日期
+ * @param {number} year 年份
+ * @param {number} offset 偏移天数（正数往后，负数往前）
+ * @returns {{ year: number, month: number, day: number }}
+ */
+function easterOffset(year, offset) {
+  const easter = computeEaster(year)
+  const date = new Date(year, easter.month - 1, easter.day)
+  date.setDate(date.getDate() + offset)
+  return { year: date.getFullYear(), month: date.getMonth() + 1, day: date.getDate() }
+}
+
+/**
+ * 获取指定年份的巴西法定节假日
+ * 返回 Map: key = 'YYYY-MM-DD', value = { pt: '葡萄牙语名称', zh: '中文名称' }
+ * @param {number} year 年份
+ * @returns {Map<string, {pt: string, zh: string}>}
+ */
+function getBrazilHolidays(year) {
+  const holidays = new Map()
+
+  // 固定日期节假日
+  const fixedHolidays = [
+    { month: 1, day: 1, pt: 'Confraternização Universal', zh: '元旦' },
+    { month: 4, day: 21, pt: 'Tiradentes', zh: '拔牙者纪念日' },
+    { month: 5, day: 1, pt: 'Dia do Trabalho', zh: '劳动节' },
+    { month: 9, day: 7, pt: 'Independência do Brasil', zh: '巴西独立日' },
+    { month: 10, day: 12, pt: 'Nossa Senhora Aparecida', zh: '圣母显灵日' },
+    { month: 11, day: 2, pt: 'Finados', zh: '亡灵节' },
+    { month: 11, day: 15, pt: 'Proclamação da República', zh: '共和国宣告日' },
+    { month: 12, day: 25, pt: 'Natal', zh: '圣诞节' }
+  ]
+
+  fixedHolidays.forEach(h => {
+    const key = `${year}-${String(h.month).padStart(2, '0')}-${String(h.day).padStart(2, '0')}`
+    holidays.set(key, { pt: h.pt, zh: h.zh })
+  })
+
+  // 浮动日期节假日（基于复活节）
+  // 瀑布节（狂欢节周一）：复活节前47天
+  const carnivalMon = easterOffset(year, -47)
+  const carnivalMonKey = `${carnivalMon.year}-${String(carnivalMon.month).padStart(2, '0')}-${String(carnivalMon.day).padStart(2, '0')}`
+  holidays.set(carnivalMonKey, { pt: 'Carnaval', zh: '狂欢节' })
+
+  // 瀑布节（狂欢节周二）：复活节前46天
+  const carnivalTue = easterOffset(year, -46)
+  const carnivalTueKey = `${carnivalTue.year}-${String(carnivalTue.month).padStart(2, '0')}-${String(carnivalTue.day).padStart(2, '0')}`
+  holidays.set(carnivalTueKey, { pt: 'Carnaval', zh: '狂欢节' })
+
+  // 耶稣受难日：复活节前2天
+  const goodFriday = easterOffset(year, -2)
+  const goodFridayKey = `${goodFriday.year}-${String(goodFriday.month).padStart(2, '0')}-${String(goodFriday.day).padStart(2, '0')}`
+  holidays.set(goodFridayKey, { pt: 'Sexta-feira Santa', zh: '耶稣受难日' })
+
+  // 圣体节：复活节后60天
+  const corpusChristi = easterOffset(year, 60)
+  const corpusChristiKey = `${corpusChristi.year}-${String(corpusChristi.month).padStart(2, '0')}-${String(corpusChristi.day).padStart(2, '0')}`
+  holidays.set(corpusChristiKey, { pt: 'Corpus Christi', zh: '圣体节' })
+
+  return holidays
+}
+
+/**
+ * 获取巴西法定节假日 festival marks
+ * @param {number} year 年份
+ * @returns {Array} marks 数组
+ */
+function getBrazilHolidayMarks(year) {
+  const holidays = getBrazilHolidays(year)
+  const marks = []
+
+  holidays.forEach((info, dateKey) => {
+    const parts = dateKey.split('-')
+    const y = parseInt(parts[0])
+    const m = parseInt(parts[1])
+    const d = parseInt(parts[2])
+    // festival 类型 text 为节日简称（取第一个单词或缩写）
+    const shortName = info.pt.split(' ').length > 2
+      ? info.pt.split(' ').slice(0, 2).join(' ')
+      : info.pt
+    marks.push({
+      year: y, month: m, day: d,
+      type: 'festival',
+      text: shortName,
+      style: { color: '#2563EB' }
+    })
+  })
+
+  return marks
+}
+
 // 时间轴配置
 const HOUR_HEIGHT = 100 // 每小时高度 rpx
 const START_HOUR = 0 // 起始小时 0:00
@@ -124,7 +241,10 @@ Page({
 
     // 类型/重复选择弹窗
     showTypePopup: false,
-    showRepeatPopup: false
+    showRepeatPopup: false,
+
+    // 巴西节假日提示
+    brazilHolidayInfo: null  // { pt: '葡萄牙语名称', zh: '中文名称' } 或 null
   },
 
   async onLoad() {
@@ -201,7 +321,8 @@ Page({
       selectedDate: defaultDate,
       selectedDateText: dateStr,
       'scheduleForm.startDate': todayStr,
-      'scheduleForm.endDate': todayStr
+      'scheduleForm.endDate': todayStr,
+      brazilHolidayInfo: this.getBrazilHolidayInfo(defaultDate)
     })
 
     // 加载今日日程
@@ -434,6 +555,10 @@ Page({
       })
     }
 
+    // 添加巴西法定节假日 festival 标记（替换日期下方农历文字）
+    const brazilMarks = getBrazilHolidayMarks(this.data.currentYear)
+    marks.push(...brazilMarks)
+
     // 添加日程圆点标记（遍历 Set 中所有已加载的日期）
     if (scheduleDatesSet && scheduleDatesSet.size > 0) {
       scheduleDatesSet.forEach(date => {
@@ -470,8 +595,9 @@ Page({
   async refreshCalendarMarks() {
     const year = this.data.currentYear
 
-    // 已加载过该年份，跳过
+    // 已加载过该年份，只需重新生成 marks（巴西节假日需要按新年份重新计算）
     if (this.loadedHolidayYearsSet.has(year)) {
+      this.updateMarks()
       return
     }
 
@@ -536,7 +662,8 @@ Page({
       selectedDate: checked,
       selectedDateText: dateText,
       'scheduleForm.startDate': dateStr,
-      'scheduleForm.endDate': dateStr
+      'scheduleForm.endDate': dateStr,
+      brazilHolidayInfo: this.getBrazilHolidayInfo(checked)
     })
 
     this.loadSchedules(checked)
@@ -555,7 +682,8 @@ Page({
       selectedDate: checked,
       selectedDateText: dateText,
       'scheduleForm.startDate': dateStr,
-      'scheduleForm.endDate': dateStr
+      'scheduleForm.endDate': dateStr,
+      brazilHolidayInfo: this.getBrazilHolidayInfo(checked)
     })
 
     this.loadSchedules(checked)
@@ -599,6 +727,19 @@ Page({
     if (view === 'week' && this.data.selectedDate) {
       this.loadSchedules(this.data.selectedDate)
     }
+  },
+
+  /**
+   * 获取选中日期的巴西节假日信息
+   * @param {{ year: number, month: number, day: number }} date 日期对象
+   * @returns {{ pt: string, zh: string } | null}
+   */
+  getBrazilHolidayInfo(date) {
+    if (!date) return null
+    const year = date.year
+    const holidays = getBrazilHolidays(year)
+    const key = `${year}-${String(date.month).padStart(2, '0')}-${String(date.day).padStart(2, '0')}`
+    return holidays.get(key) || null
   },
 
   /**

@@ -7,15 +7,32 @@ Page({
     contentHtml: '',
     type: 'normal',
     typeIndex: -1,
-    typeOptions: [
-      { label: '普通', value: 'normal' },
-      { label: '紧急', value: 'urgent' },
-      { label: '重要', value: 'important' }
+    typeOptions: [{
+        label: '普通',
+        value: 'normal'
+      },
+      {
+        label: '紧急',
+        value: 'urgent'
+      },
+      {
+        label: '重要',
+        value: 'important'
+      }
     ],
     submitting: false,
     toolbarExpanded: false,
     editorCtx: null,
     formats: {}
+  },
+
+  onShow() {
+    const fontStyle = app.globalData.fontStyle
+    if (this.data.fontStyle !== fontStyle) {
+      this.setData({
+        fontStyle
+      })
+    }
   },
 
   /**
@@ -45,7 +62,9 @@ Page({
    * 编辑器格式状态变化
    */
   handleStatusChange(e) {
-    this.setData({ formats: e.detail })
+    this.setData({
+      formats: e.detail
+    })
   },
 
   /**
@@ -87,7 +106,9 @@ Page({
     this.editorCtx.getContents({
       success: (res) => {
         const delta = res.html || ''
-        this.setData({ contentHtml: delta })
+        this.setData({
+          contentHtml: delta
+        })
       }
     })
   },
@@ -117,16 +138,24 @@ Page({
    * 提交通知公告
    */
   handleSubmit() {
-    const { title } = this.data
+    const {
+      title
+    } = this.data
 
     // 验证表单
     if (!title || title.trim() === '') {
-      utils.showToast({ title: '请输入标题', icon: 'none' })
+      utils.showToast({
+        title: '请输入标题',
+        icon: 'none'
+      })
       return
     }
 
     if (title.length > 100) {
-      utils.showToast({ title: '标题不能超过100个字符', icon: 'none' })
+      utils.showToast({
+        title: '标题不能超过100个字符',
+        icon: 'none'
+      })
       return
     }
 
@@ -135,16 +164,24 @@ Page({
 
     // 用 setTimeout 等待内容同步
     setTimeout(() => {
-      const { contentHtml } = this.data
+      const {
+        contentHtml
+      } = this.data
       const plainText = contentHtml.replace(/<[^>]+>/g, '').trim()
 
       if (!plainText) {
-        utils.showToast({ title: '请输入内容', icon: 'none' })
+        utils.showToast({
+          title: '请输入内容',
+          icon: 'none'
+        })
         return
       }
 
       if (plainText.length > 1000) {
-        utils.showToast({ title: '内容不能超过1000个字符', icon: 'none' })
+        utils.showToast({
+          title: '内容不能超过1000个字符',
+          icon: 'none'
+        })
         return
       }
 
@@ -156,9 +193,13 @@ Page({
    * 提交通知公告
    */
   submitAnnouncement() {
-    this.setData({ submitting: true })
+    this.setData({
+      submitting: true
+    })
 
-    wx.showLoading({ title: '发布中...' })
+    wx.showLoading({
+      title: '发布中...'
+    })
 
     wx.cloud.callFunction({
       name: 'announcementManager',
@@ -174,7 +215,10 @@ Page({
       wx.hideLoading()
       const result = res.result
       if (result && result.code === 0) {
-        utils.showToast({ title: '发布成功', icon: 'success' })
+        utils.showToast({
+          title: '发布成功',
+          icon: 'success'
+        })
         setTimeout(() => {
           wx.navigateBack()
         }, 1500)
@@ -184,8 +228,13 @@ Page({
     }).catch(error => {
       wx.hideLoading()
       console.error('发布通知公告失败:', error)
-      utils.showToast({ title: error.message || '发布失败', icon: 'none' })
-      this.setData({ submitting: false })
+      utils.showToast({
+        title: error.message || '发布失败',
+        icon: 'none'
+      })
+      this.setData({
+        submitting: false
+      })
     })
   },
 

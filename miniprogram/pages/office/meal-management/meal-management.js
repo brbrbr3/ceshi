@@ -122,7 +122,10 @@ Page({
     bookingDetailOrder: null, // 查看详情的征订单
     bookingDetailList: [], // 预订人员列表
     bookingSummary: null, // 预订统计
-    sideDishSubmitLoading: false // 副食操作提交loading
+    sideDishSubmitLoading: false, // 副食操作提交loading
+
+    // ========== 弹窗动画状态 ==========
+    modalAnimating: false // true = 退出动画播放中，此时不可重复关闭
   },
 
   onLoad() {
@@ -378,17 +381,12 @@ Page({
   },
 
   closeAdjustModal() {
-    this.setData({
-      showAdjustModal: false
-    })
+    this._closeModal('showAdjustModal')
   },
 
   closeFirstSetup() {
-    this.setData({
-      showFirstSetup: false
-    })
-    wx.navigateBack({
-      delta: 1
+    this._closeModal('showFirstSetup', () => {
+      wx.navigateBack({ delta: 1 })
     })
   },
 
@@ -500,10 +498,8 @@ Page({
         title: '保存成功',
         icon: 'success'
       })
-      this.setData({
-        showFirstSetup: false,
-        mealStatus: res.result.data
-      })
+      this.setData({ mealStatus: res.result.data })
+      this._closeModal('showFirstSetup')
       // 刷新历史列表
       this.loadMyAdjustHistory()
     }).catch(err => {
@@ -591,9 +587,7 @@ Page({
         title: '提交成功',
         icon: 'success'
       })
-      this.setData({
-        showAdjustModal: false
-      })
+      this._closeModal('showAdjustModal')
       // 同时刷新状态和历史
       this.loadMyMealData()
     }).catch(err => {
@@ -782,9 +776,8 @@ Page({
   },
 
   closeSideDishDetail() {
-    this.setData({
-      showSideDishDetailModal: false,
-      currentSideDishOrder: null
+    this._closeModal('showSideDishDetailModal', () => {
+      this.setData({ currentSideDishOrder: null })
     })
   },
 
@@ -840,9 +833,8 @@ Page({
         title: '预订成功',
         icon: 'success'
       })
-      this.setData({
-        showSideDishDetailModal: false,
-        currentSideDishOrder: null
+      this._closeModal('showSideDishDetailModal', () => {
+        this.setData({ currentSideDishOrder: null })
       })
       // 刷新列表
       this.loadSideDishOrders()
@@ -890,9 +882,8 @@ Page({
             title: '已取消预订',
             icon: 'success'
           })
-          this.setData({
-            showSideDishDetailModal: false,
-            currentSideDishOrder: null
+          this._closeModal('showSideDishDetailModal', () => {
+            this.setData({ currentSideDishOrder: null })
           })
           this.loadSideDishOrders()
         }).catch(err => {
@@ -927,9 +918,7 @@ Page({
   },
 
   closeCreateSideDishModal() {
-    this.setData({
-      showCreateSideDishModal: false
-    })
+    this._closeModal('showCreateSideDishModal')
   },
 
   /** 新建征订表单 - 字段变更 */
@@ -1018,9 +1007,7 @@ Page({
         title: '发布成功',
         icon: 'success'
       })
-      this.setData({
-        showCreateSideDishModal: false
-      })
+      this._closeModal('showCreateSideDishModal')
       // 刷新管理端列表 + 预订列表
       this.loadSideDishManageList(false)
     }).catch(err => {
@@ -1118,11 +1105,12 @@ Page({
   },
 
   closeBookingDetail() {
-    this.setData({
-      showBookingDetailModal: false,
-      bookingDetailOrder: null,
-      bookingDetailList: [],
-      bookingSummary: null
+    this._closeModal('showBookingDetailModal', () => {
+      this.setData({
+        bookingDetailOrder: null,
+        bookingDetailList: [],
+        bookingSummary: null
+      })
     })
   },
 
@@ -1165,5 +1153,28 @@ Page({
     } finally {
       wx.hideLoading()
     }
-  }
+  },
+
+  // ==================== 弹窗动画通用方法 ====================
+
+  /**
+   * 带退出动画的弹窗关闭
+   * @param {string} modalKey - data 中控制弹窗显示的键名（如 'showAdjustModal'）
+   * @param {Function} [onAfterClose] - 动画结束后的回调（如清理关联数据）
+   */
+  _closeModal(modalKey, onAfterClose) {
+    if (this.data.modalAnimating) return
+    this.setData({ modalAnimating: true })
+
+    // 触发退出动画（CSS 通过 .modal-closing 类控制）
+    // 动画时长 250ms，见 wxss 中定义
+    setTimeout(() => {
+      const resetData = { [modalKey]: false, modalAnimating: false }
+      this.setData(resetData)
+      if (onAfterClose) onAfterClose()
+    }, 250)
+  },
+
+  /** 阻止事件冒泡（弹窗内容区点击不关闭） */
+  stopPropagation() {}
 })

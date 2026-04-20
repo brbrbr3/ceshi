@@ -11,7 +11,8 @@
 }
 
 .announcement-create-header {
-  padding-bottom: 100rpx;
+  padding-bottom: 70rpx;
+  padding-top: 40rpx;
 }
 
 .announcement-create-title {

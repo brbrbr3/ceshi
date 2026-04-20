@@ -30,15 +30,35 @@
   height: 44px;
   display: flex;
   align-items: center;
+  padding: 0 24rpx;
+  position: relative;
+}
+
+.nav-back {
+  width: 60rpx;
+  height: 60rpx;
+  display: flex;
+  align-items: center;
   justify-content: center;
+  font-size: 52rpx;
+  color: #ffffff;
+  font-weight: 300;
+  line-height: 1;
+  position: relative;
+  z-index: 1;
 }
 
 .nav-title {
+  position: absolute;
+  left: 50%;
+  transform: translateX(-50%);
   font-size: var(--fs-34);
   font-weight: 600;
   color: #ffffff;
   letter-spacing: 2rpx;
 }
+
+/* 删除 .nav-placeholder */
 
 /* 页面内容 */
 .guide-content {

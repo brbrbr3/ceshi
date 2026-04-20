@@ -1,10 +1,11 @@
 <view class="arrival-guide-page" style="{{fontStyle}}">
   <!-- 全屏背景 -->
-  <image class="bg-image" src="/image/br5.jpg" mode="aspectFill" />
+  <image class="bg-image" src="{{bgImageUrl}}" mode="aspectFill" />
 
   <!-- 自定义导航栏 -->
   <view class="custom-nav" style="padding-top: {{statusBarHeight}}px">
     <view class="custom-nav-content">
+      <view wx:if="{{!showArrivedButton}}" class="nav-back" bindtap="handleGoBack">‹</view>
       <view class="nav-title">{{navTitle}}</view>
     </view>
   </view>

@@ -319,7 +319,7 @@
 .passport-info-label {
   font-size: var(--fs-26);
   color: #64748B;
-  width: 140rpx;
+  width: 160rpx;
 }
 
 .passport-info-value {

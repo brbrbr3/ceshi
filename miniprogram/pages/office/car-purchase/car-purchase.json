@@ -4,5 +4,5 @@
     "datetime-picker": "../../../components/datetime-picker/datetime-picker"
   },
   "navigationBarTitleText": "购车管理",
-  "enablePullDownRefresh": true
+  "enablePullDownRefresh": false
 }

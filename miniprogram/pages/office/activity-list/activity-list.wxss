@@ -19,12 +19,13 @@
 }
 
 .activities-add-btn {
+  margin-top: 50rpx;
   padding: 12rpx 24rpx;
   border-radius: 24rpx;
   background: rgba(255, 255, 255, 0.2);
   color: #FFFFFF;
   font-size: var(--fs-26);
-  font-weight: 600;
+  font-weight: 400;
   border: 1rpx solid rgba(255, 255, 255, 0.3);
 }
 

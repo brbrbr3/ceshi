@@ -16,6 +16,8 @@ Page({
     currentUser: null,
     // 权限缓存
     permissionCache: {},
+    // 背景图片云存储链接
+    bgImageUrl: '',
     stats: [{
       label: '待审批',
       value: '0'
@@ -140,6 +142,7 @@ Page({
     this.setData({
       currentDateText: this.getCurrentDateText()
     })
+    this.loadBgImage()
     this.syncUserProfile() //同步用户资料
     this.syncNotifications() //同步消息推送
     this.loadAnnouncements() //加载通知公告
@@ -889,5 +892,20 @@ Page({
         url: `/pages/office/activity-detail/activity-detail?id=${id}`
       })
     }
+  },
+
+  /**
+   * 加载背景图片（优先使用本地持久缓存）
+   */
+  loadBgImage() {
+    if (this.data.bgImageUrl) return
+    utils.loadCachedCloudImage(
+      this,
+      'bgImageUrl',
+      'cloud://cloud1-8gdftlggae64d5d0.636c-cloud1-8gdftlggae64d5d0-1390912780/images/br1.jpg',
+      'bg_home.jpg'
+    ).catch(err => {
+      console.error('加载背景图片失败:', err)
+    })
   }
 })

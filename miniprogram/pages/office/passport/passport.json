@@ -3,6 +3,6 @@
     "datetime-picker": "/components/datetime-picker/datetime-picker"
   },
   "navigationBarTitleText": "护照管理",
-  "enablePullDownRefresh": true,
+  "enablePullDownRefresh": false,
   "backgroundTextStyle": "dark"
 }

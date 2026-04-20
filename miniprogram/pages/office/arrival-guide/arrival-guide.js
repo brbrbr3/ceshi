@@ -1,4 +1,5 @@
 const app = getApp()
+const utils = require('../../../common/utils.js')
 
 Page({
   data: {
@@ -12,6 +13,8 @@ Page({
     checkedCount: 0,
     showArrivedButton: true,
     navTitle: '到馆指南',
+    // 背景图片云存储链接
+    bgImageUrl: '',
 
     // 行前准备 checklist（原文来自"到馆指南.docx"表格）
     // 结构：{ id, category, detail, note, checked }
@@ -280,6 +283,7 @@ Page({
     // 获取状态栏高度（自定义导航栏需要）
     const systemInfo = wx.getWindowInfo()
     this.setData({ statusBarHeight: systemInfo.statusBarHeight || 20 })
+    this.loadBgImage()
 
     // 验证用户角色
     app.checkUserRegistration().then((result) => {
@@ -406,10 +410,34 @@ Page({
   // 阻止冒泡
   stopPropagation() {},
 
+  // 返回上一页
+  handleGoBack() {
+    wx.navigateBack({
+      fail: () => {
+        wx.switchTab({ url: '/pages/office/home/home' })
+      }
+    })
+  },
+
   // 我已到馆
   handleArrived() {
     wx.navigateTo({
       url: '/pages/office/profile/edit-profile/edit-profile'
+    })
+  },
+
+  /**
+   * 加载背景图片（优先使用本地持久缓存）
+   */
+  loadBgImage() {
+    if (this.data.bgImageUrl) return
+    utils.loadCachedCloudImage(
+      this,
+      'bgImageUrl',
+      'cloud://cloud1-8gdftlggae64d5d0.636c-cloud1-8gdftlggae64d5d0-1390912780/images/br5.jpg',
+      'bg_arrival.jpg'
+    ).catch(err => {
+      console.error('加载背景图片失败:', err)
     })
   }
 })

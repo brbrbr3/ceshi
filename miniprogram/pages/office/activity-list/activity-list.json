@@ -1,6 +1,6 @@
 {
     "usingComponents": {},
     "navigationBarTitleText": "群团活动",
-    "enablePullDownRefresh": true,
+    "enablePullDownRefresh": false,
     "onReachBottomDistance": 50
 }

@@ -53,7 +53,6 @@ page {
 }
 
 .meal-subtitle {
-  margin-top: 5rpx;
   font-size: var(--fs-26);
 }
 
@@ -430,6 +429,16 @@ page {
   to { opacity: 1; }
 }
 
+@keyframes fadeOut {
+  from { opacity: 1; }
+  to { opacity: 0; }
+}
+
+/* 退出动画遮罩 */
+.modal-mask.modal-closing {
+  animation: fadeOut 0.25s ease forwards;
+}
+
 .modal-sheet {
   width: 100%;
   max-height: 85vh;
@@ -449,6 +458,20 @@ page {
 @keyframes slideUp {
   from { transform: translateY(100%); }
   to { transform: translateY(0); }
+}
+
+@keyframes slideDown {
+  from { transform: translateY(0); }
+  to { transform: translateY(100%); }
+}
+
+/* 退出动画弹窗 */
+.modal-closing .modal-sheet {
+  animation: slideDown 0.25s cubic-bezier(0.25, 0.1, 0.25, 1) forwards;
+}
+
+.modal-closing .modal-sheet-large {
+  animation: slideDown 0.25s cubic-bezier(0.25, 0.1, 0.25, 1) forwards;
 }
 
 .modal-head {

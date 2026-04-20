@@ -543,6 +543,86 @@ function getPositionOptionsByRole(role) {
   }
 }
 
+// ==================== 云存储图片缓存 ====================
+
+/**
+ * 加载云存储图片（优先使用本地持久缓存）
+ * 
+ * 核心流程：检查本地缓存 → 有效则直接使用 → 无效则从云存储下载 → saveFile 持久保存 → 兜底使用临时链接
+ * 
+ * 版本控制：通过 config.CACHE_VERSION 管理缓存失效。
+ *           当 CACHE_VERSION 变更时，本地缓存路径会变化，自动触发重新下载。
+ * 
+ * @param {Object} page - Page 实例（this）
+ * @param {string} dataKey - data 中存储图片路径的键名（如 'bgImageUrl'）
+ * @param {string} cloudFileID - 云存储文件 ID（如 'cloud://xxx/images/br1.jpg'）
+ * @param {string} cacheFileName - 本地缓存文件名（如 'bg_home.jpg'），不同图片必须不同
+ * @returns {Promise<string>} 最终使用的图片路径
+ */
+function loadCachedCloudImage(page, dataKey, cloudFileID, cacheFileName) {
+  const config = require('../config.js')
+  // 版本号纳入路径，CACHE_VERSION 变更时自动失效旧缓存
+  const version = config.CACHE_VERSION || '1'
+  const cacheDir = `${wx.env.USER_DATA_PATH}/cache`
+  const versionDir = `${cacheDir}/${version}`
+  const cachePath = `${versionDir}/${cacheFileName}`
+
+  const fs = wx.getFileSystemManager()
+
+  // 1. 检查本地缓存文件是否存在且有效
+  try {
+    const stat = fs.statSync(cachePath)
+    if (stat.size > 0) {
+      page.setData({ [dataKey]: cachePath })
+      return Promise.resolve(cachePath)
+    }
+  } catch (e) {
+    // 文件不存在，继续下载流程
+  }
+
+  // 2. 确保版本目录存在
+  try { fs.mkdirSync(versionDir, true) } catch (e) {}
+
+  // 3. 从云存储下载到临时文件，再保存为持久文件
+  return new Promise((resolve, reject) => {
+    wx.cloud.downloadFile({
+      fileID: cloudFileID,
+      success: (downloadRes) => {
+        try {
+          fs.saveFileSync(downloadRes.tempFilePath, cachePath)
+          page.setData({ [dataKey]: cachePath })
+          resolve(cachePath)
+        } catch (saveErr) {
+          console.error('保存缓存文件失败:', saveErr)
+          // saveFile 失败，尝试直接使用临时文件
+          page.setData({ [dataKey]: downloadRes.tempFilePath })
+          resolve(downloadRes.tempFilePath)
+        }
+      },
+      fail: (downloadErr) => {
+        console.error('下载云存储图片失败:', downloadErr)
+        // 4. 兜底：使用 getTempFileURL 临时链接
+        wx.cloud.getTempFileURL({
+          fileList: [cloudFileID],
+          success: (urlRes) => {
+            if (urlRes.fileList && urlRes.fileList[0] && urlRes.fileList[0].tempFileURL) {
+              const tempURL = urlRes.fileList[0].tempFileURL
+              page.setData({ [dataKey]: tempURL })
+              resolve(tempURL)
+            } else {
+              reject(new Error('获取临时链接失败'))
+            }
+          },
+          fail: (urlErr) => {
+            console.error('获取临时链接兜底失败:', urlErr)
+            reject(urlErr)
+          }
+        })
+      }
+    })
+  })
+}
+
 // ==================== 导出模块 ====================
 
 module.exports = {
@@ -580,5 +660,8 @@ module.exports = {
   // 角色判断
   needDepartmentField,
   needRelativeField,
-  getPositionOptionsByRole
+  getPositionOptionsByRole,
+
+  // 云存储图片缓存
+  loadCachedCloudImage
 }

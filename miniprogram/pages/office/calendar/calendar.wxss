@@ -43,6 +43,40 @@
   padding: 2rpx 0 0;
 }
 
+/* 巴西节假日提示 */
+.brazil-holiday-tip {
+  display: flex;
+  align-items: center;
+  gap: 16rpx;
+  margin: 8rpx 24rpx 0;
+  padding: 20rpx 28rpx;
+  background: linear-gradient(135deg, #EFF6FF 0%, #DBEAFE 100%);
+  border-radius: 16rpx;
+  border: 1rpx solid #BFDBFE;
+}
+
+.brazil-holiday-flag {
+  font-size: var(--fs-40);
+  flex-shrink: 0;
+}
+
+.brazil-holiday-text {
+  display: flex;
+  flex-direction: column;
+  gap: 4rpx;
+}
+
+.brazil-holiday-pt {
+  font-size: var(--fs-28);
+  font-weight: 600;
+  color: #1E40AF;
+}
+
+.brazil-holiday-zh {
+  font-size: var(--fs-24);
+  color: #3B82F6;
+}
+
 /* 配置弹窗遮罩 */
 .config-popup-mask {
   position: fixed;

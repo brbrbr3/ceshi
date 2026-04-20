@@ -3,6 +3,6 @@
     "datetime-picker": "/components/datetime-picker/datetime-picker"
   },
   "navigationBarTitleText": "就医申请",
-  "enablePullDownRefresh": true,
+  "enablePullDownRefresh": false,
   "onReachBottomDistance": 50
 }

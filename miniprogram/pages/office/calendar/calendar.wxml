@@ -5,7 +5,7 @@
     <view class="office-header-top calendar-header-top">
       <view>
         <view class="calendar-title">全馆日历</view>
-        <view class="calendar-subtitle">查看本馆法定节假日安排</view>
+        <view class="calendar-subtitle">查看本馆法定节假日、巴西节假日</view>
       </view>
       <view class="calendar-config-btn" bindtap="handleConfigHolidayTap">配置节假日</view>
     </view>
@@ -14,6 +14,15 @@
   <!-- 日历区域 -->
   <view class="calendar-container">
     <calendar id="calendar" view="{{calendarView}}" weekstart="{{0}}" marks="{{marks}}" custom-nav-bar="{{true}}" bindload="handleCalendarLoad" bindclick="handleCalendarClick" bindchange="handleCalendarChange" bindviewchange="handleViewChange" style="--wc-primary: #2563EB; --wc-bg-light: #FFFFFF;" />
+  </view>
+
+  <!-- 巴西节假日提示 -->
+  <view class="brazil-holiday-tip" wx:if="{{brazilHolidayInfo}}">
+    <view class="brazil-holiday-flag">🇧🇷</view>
+    <view class="brazil-holiday-text">
+      <text class="brazil-holiday-pt">{{brazilHolidayInfo.pt}}</text>
+      <text class="brazil-holiday-zh">{{brazilHolidayInfo.zh}}</text>
+    </view>
   </view>
 
   <!-- 时间轴日程列表（仅周视图显示，且当前用户不被隐藏） -->

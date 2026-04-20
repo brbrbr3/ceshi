@@ -3,6 +3,6 @@
     "datetime-picker": "/components/datetime-picker/datetime-picker"
   },
   "navigationBarTitleText": "理发预约",
-  "enablePullDownRefresh": true,
+  "enablePullDownRefresh": false,
   "backgroundTextStyle": "dark"
 }

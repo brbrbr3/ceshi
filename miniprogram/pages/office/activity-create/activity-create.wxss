@@ -5,7 +5,7 @@
 
 .activity-create-header {
   background: linear-gradient(135deg, #7C3AED, #6D28D9);
-  padding-top: 80rpx;
+  padding-top: 40rpx;
 }
 
 .activity-create-title {

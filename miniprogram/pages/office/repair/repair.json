@@ -1,6 +1,6 @@
 {
   "usingComponents": {},
   "navigationBarTitleText": "物业报修",
-  "enablePullDownRefresh": true,
+  "enablePullDownRefresh": false,
   "backgroundTextStyle": "dark"
 }

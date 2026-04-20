@@ -35,7 +35,7 @@
     <block wx:if="{{activeTab === 'myMeal' && !noPermission}}">
 
       <!-- 首次设置弹窗（覆盖层） -->
-      <view wx:if="{{showFirstSetup}}" class="modal-mask" catchtap="closeFirstSetup"></view>
+      <view wx:if="{{showFirstSetup && !modalAnimating}}" class="modal-mask" catchtap="closeFirstSetup"></view>
 
       <!-- 状态气泡 + 调整按钮区域 -->
       <view wx:if="{{!showFirstSetup}}" class="meal-status-area">
@@ -233,7 +233,7 @@
   </view>
 
   <!-- ==================== 首次设置弹窗 ==================== -->
-  <view wx:if="{{showFirstSetup}}" class="modal-mask" catchtap="closeFirstSetup">
+  <view wx:if="{{showFirstSetup}}" class="modal-mask {{modalAnimating ? 'modal-closing' : ''}}" catchtap="closeFirstSetup">
     <view class="modal-sheet" catchtap stopPropagation>
       <view class="modal-head">
         <text class="modal-title">首次设置当前工作餐情况</text>
@@ -270,7 +270,7 @@
   </view>
 
   <!-- ==================== 调整操作弹窗 ==================== -->
-  <view wx:if="{{showAdjustModal}}" class="modal-mask" catchtap="closeAdjustModal">
+  <view wx:if="{{showAdjustModal}}" class="modal-mask {{modalAnimating ? 'modal-closing' : ''}}" catchtap="closeAdjustModal">
     <view class="modal-sheet modal-sheet-large" catchtap stopPropagation>
       <view class="modal-head">
         <text class="modal-title">工作餐调整</text>
@@ -416,7 +416,7 @@
   </view>
 
   <!-- ==================== 副食预订详情弹窗 ==================== -->
-  <view wx:if="{{showSideDishDetailModal}}" class="modal-mask" catchtap="closeSideDishDetail">
+  <view wx:if="{{showSideDishDetailModal}}" class="modal-mask {{modalAnimating ? 'modal-closing' : ''}}" catchtap="closeSideDishDetail">
     <view class="modal-sheet" catchtap stopPropagation>
       <view class="modal-head">
         <text class="modal-title">{{currentSideDishOrder.title || '副食预订'}}</text>
@@ -476,7 +476,7 @@
   </view>
 
   <!-- ==================== 新建副食征订表单弹窗 ==================== -->
-  <view wx:if="{{showCreateSideDishModal}}" class="modal-mask" catchtap="closeCreateSideDishModal">
+  <view wx:if="{{showCreateSideDishModal}}" class="modal-mask {{modalAnimating ? 'modal-closing' : ''}}" catchtap="closeCreateSideDishModal">
     <view class="modal-sheet modal-sheet-large" catchtap stopPropagation>
       <view class="modal-head">
         <text class="modal-title">发布副食征订</text>
@@ -541,7 +541,7 @@
   </view>
 
   <!-- ==================== 管理端预订详情弹窗 ==================== -->
-  <view wx:if="{{showBookingDetailModal}}" class="modal-mask" catchtap="closeBookingDetail">
+  <view wx:if="{{showBookingDetailModal}}" class="modal-mask {{modalAnimating ? 'modal-closing' : ''}}" catchtap="closeBookingDetail">
     <view class="modal-sheet modal-sheet-large booking-detail-sheet" catchtap stopPropagation>
       <view class="modal-head">
         <text class="modal-title">预订名单 - {{bookingDetailOrder.title}}</text>

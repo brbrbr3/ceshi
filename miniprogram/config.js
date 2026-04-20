@@ -10,9 +10,9 @@ const config = {
   host,
 
   // 缓存版本号（修改此值可强制刷新用户端缓存）
-  CACHE_VERSION: '0.40',
+  CACHE_VERSION: '0.40.3',
   //更新说明
-  VERSION_DESCRIPTION: '新增‘休假申请’功能。\n现在可在‘我的’页面修改字体大小。\n1.增加‘常用信息’栏目。\n2.首页增加“通讯录”页。',
+  VERSION_DESCRIPTION: '1.‘休假申请’功能可自动计算假期组成。\n2.现在可在‘我的’页面修改字体大小。\n3.增加‘常用信息’栏目。\n4.首页增加“通讯录”页。',
 
   // 云开发环境 ID
   envId: 'cloud1-8gdftlggae64d5d0',
