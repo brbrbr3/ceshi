@@ -512,7 +512,7 @@ const PERMISSION_CONFIGS = [
     featureKey: 'leave_application',
     featureName: '休假申请',
     description: '提交休假申请（年休假、任期假、组合假等）',
-    enabledRoles: ['馆领导', '部门负责人', '馆员', '工勤'],
+    enabledRoles: ['馆领导', '部门负责人', '馆员', '工勤', '配偶'],
     requireAdmin: false
   }
 ]

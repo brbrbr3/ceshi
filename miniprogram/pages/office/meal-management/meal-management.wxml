@@ -312,7 +312,7 @@
           <view class="form-row">
             <view class="form-row-left">
             <text class="form-label">开始日期\n</text>
-            <text class="form-sublabel">（最早可调整下周起的工作餐）</text></view>
+            <text class="form-sublabel">最早可调整下周起的工作餐</text></view>
             <datetime-picker
               value="{{adjustData.startDate}}"
               startDate="{{minStartDate}}"
@@ -337,7 +337,7 @@
           <view class="form-row">
           <view class="form-row-left">
             <text class="form-label">开始日期\n</text>
-            <text class="form-sublabel">（最早可调整下周起的工作餐）</text></view>
+            <text class="form-sublabel">最早可调整下周起的工作餐</text></view>
             <datetime-picker
               value="{{adjustData.startDate}}"
               startDate="{{minStartDate}}"
@@ -373,7 +373,7 @@
           <view class="form-row">
             <view class="form-row-left">
             <text class="form-label">退伙日期\n</text>
-            <text class="form-sublabel">（最早可调整下周起的工作餐）</text></view>
+            <text class="form-sublabel">最早可调整下周起的工作餐</text></view>
             <datetime-picker
               value="{{adjustData.startDate}}"
               startDate="{{minStartDate}}"

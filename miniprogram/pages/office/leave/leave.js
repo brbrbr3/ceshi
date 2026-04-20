@@ -162,12 +162,14 @@ Page({
       })
 
       if (result.result.code === 0) {
-        const { quota, quotaSummary } = result.result.data
-        if (!quota) {
+        const resData = result.result.data
+        if (!resData || !resData.quota) {
           this.setData({ myQuota: null, showFirstSetup: true, loading: false })
           wx.hideLoading()
           return
         }
+
+        const { quota, quotaSummary } = resData
 
         this.setData({
           myQuota: quota,
@@ -539,12 +541,12 @@ Page({
 
   // ==================== "其他"类型入口 ====================
 
-  handleOtherTypeEntry() {
-    const willShow = !this.data.showOtherTypeForm
+  handleOtherTypeSwitch(e) {
+    const willShow = e.detail.value
     this.setData({
       showOtherTypeForm: willShow,
       showExpenseTypeSelect: willShow,
-      canSubmit: willShow ? false : !!this.data.selectedPlan // 展开时需填写类型名后才可提交，关闭时恢复方案状态
+      canSubmit: willShow ? false : !!this.data.selectedPlan
     })
     // 关闭时重置
     if (!willShow) {
@@ -643,9 +645,47 @@ Page({
     if (this.data.submitting) return
     if (!this.validateApplicationForm()) return
 
-    const f = this.data.form
+    // 检查用户是否有休假记录
+    try {
+      const checkRes = await wx.cloud.callFunction({
+        name: 'leaveManager',
+        data: { action: 'getMyRecords', params: { page: 1, pageSize: 1 } }
+      })
+      if (checkRes.result.code === 0) {
+        const hasRecords = (checkRes.result.data.list || []).length > 0
+        if (!hasRecords) {
+          wx.showModal({
+            title: '提示',
+            content: '您还没有休假记录，建议先补填过往休假记录以便系统正确扣减配额。',
+            cancelText: '前往补填',
+            confirmText: '仍然提交',
+            success: (res) => {
+              if (res.confirm) {
+                // 仍然提交
+                this.doSubmitApplication()
+              } else {
+                // 前往补填：切换到记录tab
+                this.setData({ activeTab: 'records' })
+                this.loadRecordData()
+              }
+            }
+          })
+          return
+        }
+      }
+    } catch (e) {
+      console.error('[leave] 检查休假记录失败:', e)
+      // 检查失败时不阻止提交
+    }
+
+    this.doSubmitApplication()
+  },
+
+  async doSubmitApplication() {
+    if (this.data.submitting) return
     this.setData({ submitting: true })
 
+    const f = this.data.form
     try {
       let submitParams
 
@@ -668,7 +708,6 @@ Page({
         }
       } else {
         // === 方案提交 ===
-        const plan = this.data.calculatedPlans.find(p => p.planKey === this.data.selectedPlan)
         submitParams = {
           startDate: f.startDate,
           endDate: f.endDate,
@@ -773,7 +812,7 @@ Page({
   },
 
   formatRecordItem(item) {
-    const createdAt = new Date(item.createdAt)
+    const createdAt = utils.toLocalTime(item.createdAt)
     return {
       ...item,
       createdAtText: utils.formatDateTime(item.createdAt),
@@ -833,8 +872,15 @@ Page({
           ? startLog.timeText
           : (record.createdAt ? utils.formatDateTime(record.createdAt) : '-')
 
+        const detail = res.result.data
+        // 前端用时区偏移重新格式化创建时间，覆盖后端的服务器时区格式化结果
+        if (detail.createdAt) {
+          detail.createdAtText = utils.formatDateTime(detail.createdAt)
+          detail.updatedAtText = utils.formatDateTime(detail.updatedAt)
+        }
+
         this.setData({
-          selectedRecord: res.result.data,
+          selectedRecord: detail,
           detailLogs: logs,
           submittedAtText,
           showDetailPopup: true

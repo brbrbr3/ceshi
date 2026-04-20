@@ -29,15 +29,7 @@
             <!-- 参加工作日期 -->
             <view class="leave-field">
               <view class="leave-field-label">参加工作日期 <text class="leave-required">*</text></view>
-              <datetime-picker
-                value="{{setupForm.workStartDate}}"
-                fields="{{['year', 'month', 'day']}}"
-                placeholder="请选择参加工作日期"
-                type="border"
-                startDate="1985-01-01"
-                endDate="{{today}}"
-                bindchange="handleSetupWorkStartDateChange"
-              />
+              <datetime-picker value="{{setupForm.workStartDate}}" fields="{{['year', 'month', 'day']}}" placeholder="请选择参加工作日期" type="border" startDate="1985-01-01" endDate="{{today}}" bindchange="handleSetupWorkStartDateChange" />
               <!-- 工作年限提示 -->
               <view class="leave-setup-hint" wx:if="{{setupWorkYearHint}}">
                 {{setupWorkYearHint}}
@@ -47,15 +39,7 @@
             <!-- 到任日期 -->
             <view class="leave-field">
               <view class="leave-field-label">到任日期 <text class="leave-required">*</text></view>
-              <datetime-picker
-                value="{{setupForm.arrivalDate}}"
-                fields="{{['year', 'month', 'day']}}"
-                placeholder="请选择到任日期"
-                type="border"
-                startDate="2018-01-01"
-                endDate="{{today}}"
-                bindchange="handleSetupArrivalDateChange"
-              />
+              <datetime-picker value="{{setupForm.arrivalDate}}" fields="{{['year', 'month', 'day']}}" placeholder="请选择到任日期" type="border" startDate="2018-01-01" endDate="{{today}}" bindchange="handleSetupArrivalDateChange" />
               <!-- 任期假提示 -->
               <view class="leave-setup-hint" wx:if="{{setupTermHint}}">
                 {{setupTermHint}}
@@ -68,14 +52,7 @@
               <view class="leave-field" wx:if="{{setupNeedPrevAnnual}}">
                 <view class="leave-field-label">{{setupPrevYear}}年年休假剩余天数 <text class="leave-required">*</text></view>
                 <view class="leave-input-wrapper">
-                  <input
-                    class="leave-input"
-                    type="digit"
-                    value="{{setupForm.annualRemainingPrev}}"
-                    placeholder="请输入{{setupPrevYear}}年剩余年休假天数"
-                    placeholder-class="leave-input-placeholder"
-                    bindinput="handleSetupAnnualPrevInput"
-                  />
+                  <input class="leave-input" type="digit" value="{{setupForm.annualRemainingPrev}}" placeholder="请输入{{setupPrevYear}}年剩余年休假天数" placeholder-class="leave-input-placeholder" bindinput="handleSetupAnnualPrevInput" />
                   <text style="font-size:var(--fs-26);color:#94A3B8;padding-right:8rpx;">天</text>
                 </view>
               </view>
@@ -84,14 +61,7 @@
               <view class="leave-field">
                 <view class="leave-field-label">{{setupCurrentYear}}年年休假剩余天数 <text class="leave-required">*</text></view>
                 <view class="leave-input-wrapper">
-                  <input
-                    class="leave-input"
-                    type="digit"
-                    value="{{setupForm.annualRemainingCurrent}}"
-                    placeholder="请输入{{setupCurrentYear}}年剩余年休假天数"
-                    placeholder-class="leave-input-placeholder"
-                    bindinput="handleSetupAnnualCurrentInput"
-                  />
+                  <input class="leave-input" type="digit" value="{{setupForm.annualRemainingCurrent}}" placeholder="请输入{{setupCurrentYear}}年剩余年休假天数" placeholder-class="leave-input-placeholder" bindinput="handleSetupAnnualCurrentInput" />
                   <text style="font-size:var(--fs-26);color:#94A3B8;padding-right:8rpx;">天</text>
                 </view>
               </view>
@@ -103,14 +73,7 @@
               <view class="leave-field" wx:if="{{setupNeedPrevTerm}}">
                 <view class="leave-field-label">第{{setupPrevTermRound}}次任期假剩余天数 <text class="leave-required">*</text></view>
                 <view class="leave-input-wrapper">
-                  <input
-                    class="leave-input"
-                    type="digit"
-                    value="{{setupForm.termRemainingPrev}}"
-                    placeholder="请输入第{{setupPrevTermRound}}次任期假剩余天数（0-20）"
-                    placeholder-class="leave-input-placeholder"
-                    bindinput="handleSetupTermPrevInput"
-                  />
+                  <input class="leave-input" type="digit" value="{{setupForm.termRemainingPrev}}" placeholder="请输入第{{setupPrevTermRound}}次任期假剩余天数（0-20）" placeholder-class="leave-input-placeholder" bindinput="handleSetupTermPrevInput" />
                   <text style="font-size:var(--fs-26);color:#94A3B8;padding-right:8rpx;">天</text>
                 </view>
               </view>
@@ -119,14 +82,7 @@
               <view class="leave-field">
                 <view class="leave-field-label">第{{setupMaxTermRound}}次任期假剩余天数 <text class="leave-required">*</text></view>
                 <view class="leave-input-wrapper">
-                  <input
-                    class="leave-input"
-                    type="digit"
-                    value="{{setupForm.termRemainingCurrent}}"
-                    placeholder="请输入第{{setupMaxTermRound}}次任期假剩余天数（0-20）"
-                    placeholder-class="leave-input-placeholder"
-                    bindinput="handleSetupTermCurrentInput"
-                  />
+                  <input class="leave-input" type="digit" value="{{setupForm.termRemainingCurrent}}" placeholder="请输入第{{setupMaxTermRound}}次任期假剩余天数（0-20）" placeholder-class="leave-input-placeholder" bindinput="handleSetupTermCurrentInput" />
                   <text style="font-size:var(--fs-26);color:#94A3B8;padding-right:8rpx;">天</text>
                 </view>
               </view>
@@ -141,28 +97,15 @@
 
         <view class="leave-popup-actions">
           <button class="leave-cancel-btn" bindtap="handleSetupCancel">取消返回</button>
-          <button
-            class="leave-confirm-btn"
-            loading="{{setupSubmitting}}"
-            disabled="{{setupSubmitting}}"
-            bindtap="handleSetupConfirm"
-          >确定保存</button>
+          <button class="leave-confirm-btn" loading="{{setupSubmitting}}" disabled="{{setupSubmitting}}" bindtap="handleSetupConfirm">确定保存</button>
         </view>
       </view>
     </view>
 
     <!-- Tab栏 -->
     <view class="leave-tabs" wx:if="{{!showFirstSetup}}">
-      <view
-        class="leave-tab {{activeTab === 'apply' ? 'is-active' : ''}}"
-        data-tab="apply"
-        bindtap="handleTabSwitch"
-      >申请</view>
-      <view
-        class="leave-tab {{activeTab === 'records' ? 'is-active' : ''}}"
-        data-tab="records"
-        bindtap="handleTabSwitch"
-      >我的休假记录</view>
+      <view class="leave-tab {{activeTab === 'apply' ? 'is-active' : ''}}" data-tab="apply" bindtap="handleTabSwitch">申请</view>
+      <view class="leave-tab {{activeTab === 'records' ? 'is-active' : ''}}" data-tab="records" bindtap="handleTabSwitch">我的休假记录</view>
     </view>
 
     <!-- ========== 申请 Tab ========== -->
@@ -188,6 +131,7 @@
               <view class="quota-card-detail">
                 <text wx:for="{{quotaSummary.annual.details}}" wx:key="year" wx:for-item="item">
                   {{item.year}}年 {{item.availableDays}}天
+                  <text wx:if="{{item.extendedTo}}" style="color:#D97706;"> (有效期至{{item.extendedTo}})</text>
                 </text>
               </view>
             </view>
@@ -223,8 +167,11 @@
         </view>
 
         <!-- ===== "其他"类型入口 ===== -->
-        <view class="other-type-entry" bindtap="handleOtherTypeEntry">
-          <view class="other-type-dashed">+ 申请其他类型假期（事假、病假等）</view>
+        <view class="leave-field">
+          <view class="leave-switch-row">
+            <text class="leave-switch-label">申请其他类型假期（事假、病假等）</text>
+            <switch checked="{{showOtherTypeForm}}" color="#065F46" bindchange="handleOtherTypeSwitch" />
+          </view>
         </view>
 
         <!-- ===== 日期选择区 ===== -->
@@ -232,25 +179,11 @@
           <view class="leave-field-label">休假日期 <text class="leave-required">*</text></view>
           <view class="leave-date-range">
             <view class="leave-date-item">
-              <datetime-picker
-                value="{{form.startDate}}"
-                fields="{{['year', 'month', 'day', 'weekday']}}"
-                placeholder="开始日期"
-                type="border"
-                startDate="{{today}}"
-                bindchange="handleStartDateChange"
-              />
+              <datetime-picker value="{{form.startDate}}" fields="{{['year', 'month', 'day', 'weekday']}}" placeholder="开始日期" type="border" startDate="{{today}}" bindchange="handleStartDateChange" />
             </view>
             <view class="leave-date-arrow">→</view>
             <view class="leave-date-item">
-              <datetime-picker
-                value="{{form.endDate}}"
-                fields="{{['year', 'month', 'day', 'weekday']}}"
-                placeholder="结束日期"
-                type="border"
-                startDate="{{form.startDate || today}}"
-                bindchange="handleEndDateChange"
-              />
+              <datetime-picker value="{{form.endDate}}" fields="{{['year', 'month', 'day', 'weekday']}}" placeholder="结束日期" type="border" startDate="{{form.startDate || today}}" bindchange="handleEndDateChange" />
             </view>
           </view>
         </view>
@@ -270,13 +203,7 @@
         <view class="plan-section" wx:if="{{calculatedPlans.length > 0}}">
           <view class="plan-section-title">请选择休假方案</view>
 
-          <view
-            wx:for="{{calculatedPlans}}"
-            wx:key="planKey"
-            class="plan-card {{selectedPlan === item.planKey ? 'is-selected' : ''}}"
-            data-plan="{{item.planKey}}"
-            bindtap="handlePlanSelect"
-          >
+          <view wx:for="{{calculatedPlans}}" wx:key="planKey" class="plan-card {{selectedPlan === item.planKey ? 'is-selected' : ''}}" data-plan="{{item.planKey}}" bindtap="handlePlanSelect">
             <view class="plan-card-header">
               <view class="plan-card-label">方案{{item.planKey}}</view>
               <view class="plan-card-desc">{{item.label}}</view>
@@ -303,7 +230,10 @@
 
             <!-- 覆盖总览 -->
             <view class="plan-coverage">
-              共覆盖 {{item.totalCoveredDays}} 天（{{form.startDate}} ~ {{form.endDate}}）
+              <text wx:if="{{item.consumed.length > 0}}">共覆盖 {{item.totalCoveredDays}} 天（{{form.startDate}} ~ {{form.endDate}}）</text>
+              <text wx:else>覆盖 {{item.totalCoveredDays}} 天（{{form.startDate}} ~ {{form.endDate}}）</text>
+              <text wx:if="{{item.holidayCoveredDays > 0}}" style="color:#68778c;font-size:var(--fs-24);display:block;margin-top:4rpx;">其中法定节假日 {{item.holidayCoveredDays}} 天</text>
+              <text wx:if="{{item.weekendCoveredDays > 0}}" style="color:#68778c;font-size:var(--fs-24);display:block;">其中公休日 {{item.weekendCoveredDays}} 天</text>
             </view>
 
             <!-- 第2次休假警告 -->
@@ -337,16 +267,8 @@
         <view class="leave-field" wx:if="{{showExpenseTypeSelect}}">
           <view class="leave-field-label">费用性质 <text class="leave-required">*</text></view>
           <view class="leave-select-group">
-            <view
-              class="leave-select-item {{form.expenseType === 'public' ? 'is-active' : ''}}"
-              data-value="public"
-              bindtap="handleExpenseTypeSelect"
-            >公费</view>
-            <view
-              class="leave-select-item {{form.expenseType === 'self' ? 'is-active' : ''}}"
-              data-value="self"
-              bindtap="handleExpenseTypeSelect"
-            >自费</view>
+            <view class="leave-select-item {{form.expenseType === 'public' ? 'is-active' : ''}}" data-value="public" bindtap="handleExpenseTypeSelect">公费</view>
+            <view class="leave-select-item {{form.expenseType === 'self' ? 'is-active' : ''}}" data-value="self" bindtap="handleExpenseTypeSelect">自费</view>
           </view>
           <text style="font-size:var(--fs-22);color:#94A3B8;display:block;margin-top:4rpx;" wx:if="{{selectedPlanHasTerm}}">
             每次任期假只有一次公费机会，串联休假时可用下一轮机会
@@ -421,26 +343,36 @@
         <view class="leave-note">
           <view class="leave-note-title">📋 审批流程</view>
           <view class="leave-note-steps">
-            <view class="leave-note-step"><view class="leave-step-dot"></view><view class="leave-step-text">部门负责人</view></view>
+            <view class="leave-note-step">
+              <view class="leave-step-dot"></view>
+              <view class="leave-step-text">部门负责人</view>
+            </view>
             <view class="leave-note-arrow">→</view>
-            <view class="leave-note-step"><view class="leave-step-dot"></view><view class="leave-step-text">会计</view></view>
+            <view class="leave-note-step">
+              <view class="leave-step-dot"></view>
+              <view class="leave-step-text">会计</view>
+            </view>
             <view class="leave-note-arrow">→</view>
-            <view class="leave-note-step"><view class="leave-step-dot"></view><view class="leave-step-text">会计主管</view></view>
+            <view class="leave-note-step">
+              <view class="leave-step-dot"></view>
+              <view class="leave-step-text">会计主管</view>
+            </view>
             <view class="leave-note-arrow">→</view>
-            <view class="leave-note-step"><view class="leave-step-dot"></view><view class="leave-step-text">人事主管</view></view>
+            <view class="leave-note-step">
+              <view class="leave-step-dot"></view>
+              <view class="leave-step-text">人事主管</view>
+            </view>
             <view class="leave-note-arrow">→</view>
-            <view class="leave-note-step"><view class="leave-step-dot"></view><view class="leave-step-text">馆领导</view></view>
+            <view class="leave-note-step">
+              <view class="leave-step-dot"></view>
+              <view class="leave-step-text">馆领导</view>
+            </view>
           </view>
         </view>
 
         <!-- 提交按钮 -->
-        <button
-          class="leave-submit-btn"
-          loading="{{submitting}}"
-          disabled="{{submitting || !canSubmit}}"
-          bindtap="handleSubmitApplication"
-        >
-          {{submitting ? '提交中...' : (!canSubmit ? '请选择休假方案' : '提交申请')}}
+        <button class="leave-submit-btn" loading="{{submitting}}" disabled="{{submitting || !canSubmit}}" bindtap="handleSubmitApplication">
+          {{submitting ? '提交中...' : (!canSubmit ? '请选择休假方案' : '提交休假申请')}}
         </button>
       </view>
     </block>
@@ -460,15 +392,8 @@
           <view class="leave-month-group">
             <view class="leave-month-title">{{item.monthText}}</view>
             <view class="leave-list">
-              <view
-                class="leave-item"
-                wx:for="{{item.records}}"
-                wx:for-item="record"
-                wx:key="_id"
-                bindtap="showRecordDetail"
-                data-record="{{record}}"
-              >
-               <!--  <view class="leave-supplement-badge" wx:if="{{record.recordSource === 'supplemented'}}">补填</view> -->
+              <view class="leave-item" wx:for="{{item.records}}" wx:for-item="record" wx:key="_id" bindtap="showRecordDetail" data-record="{{record}}">
+                <!--  <view class="leave-supplement-badge" wx:if="{{record.recordSource === 'supplemented'}}">补填</view> -->
                 <view class="leave-item-header">
                   <view class="leave-item-type">{{record.leaveTypeName}}</view>
                   <view class="leave-item-status status-{{record.status}}">{{record.statusText}}</view>
@@ -551,7 +476,7 @@
             <text class="leave-detail-value">
               <text wx:if="{{c.type === 'annual'}}">{{c.consumeDays}}个工作日</text>
               <text wx:if="{{c.type === 'term'}}">{{c.consumeDays}}个自然日<text wx:if="{{c.usedReturnBonus}}" style="color:#1D4ED8;">(含+2天)</text></text>
-              <text style="color:#94A3B8;font-size:var(--fs-22);margin-left:8rpx;">{{c.startDate}}~{{c.endDate}}</text>
+              <text style="color:#94A3B8;font-size:var(--fs-26);margin-left:8rpx;">\n{{c.startDate}}~{{c.endDate}}</text>
             </text>
           </view>
         </block>
@@ -628,6 +553,10 @@
           <text class="leave-detail-label">创建时间：</text>
           <text class="leave-detail-value">{{selectedRecord.createdAtText}}</text>
         </view>
+        <view class="leave-detail-row">
+          <text class="leave-detail-label">通过时间：</text>
+          <text class="leave-detail-value">{{selectedRecord.updatedAtText}}</text>
+        </view>
         <view class="leave-detail-row" wx:if="{{selectedRecord.recordSource === 'supplemented'}}">
           <text class="leave-detail-label">来源：</text>
           <text class="leave-detail-value" style="color:#7C3AED;">补填记录</text>
@@ -668,25 +597,11 @@
             <view class="leave-field-label">休假日期 <text class="leave-required">*</text></view>
             <view class="leave-date-range">
               <view class="leave-date-item">
-                <datetime-picker
-                  value="{{supplementForm.startDate}}"
-                  fields="{{['year', 'month', 'day']}}"
-                  placeholder="开始日期"
-                  type="border"
-                  endDate="{{today}}"
-                  bindchange="handleSupplementStartChange"
-                />
+                <datetime-picker value="{{supplementForm.startDate}}" fields="{{['year', 'month', 'day']}}" placeholder="开始日期" type="border" endDate="{{today}}" bindchange="handleSupplementStartChange" />
               </view>
               <view class="leave-date-arrow">→</view>
               <view class="leave-date-item">
-                <datetime-picker
-                  value="{{supplementForm.endDate}}"
-                  fields="{{['year', 'month', 'day']}}"
-                  placeholder="结束日期"
-                  type="border"
-                  endDate="{{today}}"
-                  bindchange="handleSupplementEndChange"
-                />
+                <datetime-picker value="{{supplementForm.endDate}}" fields="{{['year', 'month', 'day']}}" placeholder="结束日期" type="border" endDate="{{today}}" bindchange="handleSupplementEndChange" />
               </view>
             </view>
           </view>
@@ -703,16 +618,8 @@
           <view class="leave-field">
             <view class="leave-field-label">费用性质 <text class="leave-required">*</text></view>
             <view class="leave-select-group">
-              <view
-                class="leave-select-item {{supplementForm.expenseType === 'public' ? 'is-active' : ''}}"
-                data-value="public"
-                bindtap="handleSupplementExpenseSelect"
-              >公费</view>
-              <view
-                class="leave-select-item {{supplementForm.expenseType === 'self' ? 'is-active' : ''}}"
-                data-value="self"
-                bindtap="handleSupplementExpenseSelect"
-              >自费</view>
+              <view class="leave-select-item {{supplementForm.expenseType === 'public' ? 'is-active' : ''}}" data-value="public" bindtap="handleSupplementExpenseSelect">公费</view>
+              <view class="leave-select-item {{supplementForm.expenseType === 'self' ? 'is-active' : ''}}" data-value="self" bindtap="handleSupplementExpenseSelect">自费</view>
             </view>
           </view>
 
@@ -736,12 +643,7 @@
 
       <view class="leave-popup-actions">
         <button class="leave-cancel-btn" bindtap="hideSupplementPopup">取消</button>
-        <button
-          class="leave-confirm-btn"
-          loading="{{supplementSubmitting}}"
-          disabled="{{supplementSubmitting}}"
-          bindtap="handleSubmitSupplement"
-        >确认补填</button>
+        <button class="leave-confirm-btn" loading="{{supplementSubmitting}}" disabled="{{supplementSubmitting}}" bindtap="handleSubmitSupplement">确认补填</button>
       </view>
     </view>
   </view>

@@ -4,7 +4,7 @@
  * 工作餐相关 action:
  *   - getMyMealStatus:      获取当前用户工作餐订阅状态
  *   - saveMealStatus:       保存/更新首次入伙信息
- *   - submitMealAdjustment: 提交工作餐调整（停餐/退伙/入伙）
+ *   - submitMealAdjustment: 提交工作餐调整（停餐/退伙/入伙/加餐）
  *   - getAdjustmentList:    获取调整记录列表（管理端）
  *   - getMyAdjustments:     获取当前用户的调整历史
  *
@@ -157,11 +157,11 @@ async function submitMealAdjustment(openid, userInfo, params) {
   try {
     const { adjustmentType, startDate, endDate, count } = params
 
-    if (!['suspend', 'withdraw', 'enroll'].includes(adjustmentType)) {
+    if (!['suspend', 'withdraw', 'enroll', 'extra'].includes(adjustmentType)) {
       return fail('无效的调整类型', 400)
     }
 
-    if (!startDate && adjustmentType !== 'enroll') {
+    if (!startDate && adjustmentType !== 'enroll' && adjustmentType !== 'extra') {
       return fail('请选择开始日期', 400)
     }
 
@@ -173,8 +173,8 @@ async function submitMealAdjustment(openid, userInfo, params) {
     const subRes = await subscriptionsCollection.where({ openid }).get()
     const subscription = subRes.data && subRes.data.length > 0 ? subRes.data[0] : null
 
-    // 非 enroll 类型必须有现有记录
-    if (!subscription && adjustmentType !== 'enroll') {
+    // 非 enroll/extra 类型必须有现有记录
+    if (!subscription && adjustmentType !== 'enroll' && adjustmentType !== 'extra') {
       return fail('请先设置工作餐状态', 400)
     }
 
@@ -235,6 +235,15 @@ async function submitMealAdjustment(openid, userInfo, params) {
       case 'enroll':
         // 未入伙→入伙，无需额外校验
         break
+
+      case 'extra':
+        if (!subscription.isEnrolled) {
+          return fail('当前未入伙，无法加餐', 400)
+        }
+        if (count < 1) {
+          return fail('加餐份数至少为1', 400)
+        }
+        break
     }
 
     // 创建调整记录
@@ -268,6 +277,11 @@ async function submitMealAdjustment(openid, userInfo, params) {
         newStatus = 'active'
         updateData.isEnrolled = true
         updateData.mealCount = count
+        break
+
+      case 'extra':
+        newStatus = 'active'
+        updateData.mealCount = subscription.mealCount + count
         break
     }
     updateData.status = newStatus

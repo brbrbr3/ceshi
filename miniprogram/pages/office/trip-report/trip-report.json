@@ -3,6 +3,6 @@
     "datetime-picker": "/components/datetime-picker/datetime-picker"
   },
   "navigationBarTitleText": "外出报备",
-  "enablePullDownRefresh": true,
+  "enablePullDownRefresh": false,
   "onReachBottomDistance": 50
 }

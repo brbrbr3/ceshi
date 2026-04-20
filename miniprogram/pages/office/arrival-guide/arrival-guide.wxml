@@ -26,8 +26,8 @@
   </view>
 
   <!-- 底部弹窗 -->
-  <view class="popup-mask {{showPopup ? 'is-visible' : ''}}" bindtap="handleClosePopup">
-    <view class="popup-container {{showPopup ? 'is-visible' : ''}}" catchtap="stopPropagation">
+  <view wx:if="{{showPopup}}" class="popup-mask {{popupAnimating ? 'is-visible' : ''}}" bindtap="handleClosePopup">
+    <view class="popup-container {{popupAnimating ? 'is-visible' : ''}}" catchtap="stopPropagation">
       <!-- 弹窗头部 -->
       <view class="popup-header">
         <view class="popup-title">{{popupTitle}}</view>

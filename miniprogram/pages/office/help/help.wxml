@@ -162,7 +162,7 @@
       <view class="help-card">
         <view class="card-header">
           <view class="card-icon">📅</view>
-          <view class="card-title">全馆日程</view>
+          <view class="card-title">全馆日历</view>
         </view>
         <view class="card-content">
           <view class="card-desc">以日历视图展示馆内日程及节假日安排，方便规划工作和活动。支持订阅感兴趣的日程，已订阅的今日日程会显示在首页"今日日程"模块。</view>
@@ -200,6 +200,81 @@
           </view>
         </view>
       </view>
+
+      <view class="help-card">
+        <view class="card-header">
+          <view class="card-icon">🚗</view>
+          <view class="card-title">购车管理</view>
+        </view>
+        <view class="card-content">
+          <view class="card-desc">提交购车相关申请，追踪购车流程进度。支持以下功能：</view>
+          <view class="card-features">
+            <view class="feature-item">• 馆内购车申请：填写职别、车辆信息等，提交审批流程。系统根据职别自动匹配购车标准和最低限额。</view>
+            <view class="feature-item">• 馆内购车借款申请：填写赴任信息、车型价格，系统自动计算可借金额。</view>
+            <view class="feature-item">• 购车流程：6阶段纵向Checklist时间线，支持打钩、填写文本、上传文件、选择日期等操作，追踪购车全流程。</view>
+            <view class="feature-item">• 我的购车：查看个人购车记录和进度。购车管理（办公室人员）：查看全员购车记录。</view>
+          </view>
+          <view class="card-permission">
+            <view class="permission-label">权限要求：</view>
+            <view class="permission-value">供在编馆员使用。办公室人员可查看全员记录并操作办公室步骤；申请人可操作个人步骤。</view>
+          </view>
+        </view>
+      </view>
+
+      <view class="help-card">
+        <view class="card-header">
+          <view class="card-icon">🏖️</view>
+          <view class="card-title">休假申请</view>
+        </view>
+        <view class="card-content">
+          <view class="card-desc">在线提交休假申请，系统自动计算可用方案。支持以下功能：</view>
+          <view class="card-features">
+            <view class="feature-item">• 首次配置：填写参加工作日期、到任日期，系统自动计算年休假和任期假情况。</view>
+            <view class="feature-item">• 休假申请：选择日期后系统自动计算可用方案，支持年休假、任期假、组合假，可选回国（+2天）、公费/自费等。</view>
+            <view class="feature-item">• 补填记录：补填历史休假记录，供审批参考。</view>
+            <view class="feature-item">• 我的记录：按月分组查看休假记录，查看审批进度和详情。</view>
+          </view>
+          <view class="card-permission">
+            <view class="permission-label">权限要求：</view>
+            <view class="permission-value">需权限方可使用。</view>
+          </view>
+        </view>
+      </view>
+
+      <view class="help-card">
+        <view class="card-header">
+          <view class="card-icon">📖</view>
+          <view class="card-title">常用信息</view>
+        </view>
+        <view class="card-content">
+          <view class="card-desc">馆内常驻人员生活参考信息</view>
+          <view class="card-permission">
+            <view class="permission-label">权限要求：</view>
+            <view class="permission-value">全体用户可用。待赴任馆员额外显示"行前准备"和"我已到馆"按钮。</view>
+          </view>
+        </view>
+      </view>
+
+      <view class="help-card">
+        <view class="card-header">
+          <view class="card-icon">📒</view>
+          <view class="card-title">通讯录</view>
+        </view>
+        <view class="card-content">
+          <view class="card-desc">馆内联系人信息查询，按角色和部门分组展示。支持以下功能：</view>
+          <view class="card-features">
+            <view class="feature-item">• 搜索：按姓名搜索联系人。</view>
+            <view class="feature-item">• 部门筛选：横向滚动，按部门快速筛选。</view>
+            <view class="feature-item">• 分组展示：馆领导、各部门、物业、配偶分组，组内排序显示。</view>
+            <view class="feature-item">• 联系人详情：点击展开查看角色、岗位、手机号（可直接拨号）、座机号。</view>
+            <view class="feature-item">• 在线状态：在线、忙碌、外出中、离线状态标签。</view>
+          </view>
+          <view class="card-permission">
+            <view class="permission-label">权限要求：</view>
+            <view class="permission-value">所有用户可用。</view>
+          </view>
+        </view>
+      </view>
     </view>
 
     <!-- ========== 审批中心 ========== -->
@@ -216,25 +291,6 @@
           <view class="card-permission">
             <view class="permission-label">权限要求：</view>
             <view class="permission-value">无特定权限要求，根据用户角色显示不同内容</view>
-          </view>
-        </view>
-      </view>
-    </view>
-
-    <!-- ========== 新闻 ========== -->
-    <view class="help-section">
-      <view class="section-title">新闻</view>
-
-      <view class="help-card">
-        <view class="card-header">
-          <view class="card-icon">📰</view>
-          <view class="card-title">新闻资讯</view>
-        </view>
-        <view class="card-content">
-          <view class="card-desc">浏览各类新闻资讯内容，支持按来源筛选。</view>
-          <view class="card-permission">
-            <view class="permission-label">权限要求：</view>
-            <view class="permission-value">无限制，所有用户可查看</view>
           </view>
         </view>
       </view>

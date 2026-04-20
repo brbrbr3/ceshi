@@ -1,11 +1,11 @@
-<!--全馆日程页面-->
+<!--全馆日历页面-->
 <view class="calendar-page" style="{{fontStyle}}">
   <!-- 标准头部设计 -->
   <view class="office-gradient-header calendar-gradient-header">
     <view class="office-header-top calendar-header-top">
       <view>
-        <view class="calendar-title">全馆日程</view>
-        <view class="calendar-subtitle">查看全馆日程（周视图）与节假日安排</view>
+        <view class="calendar-title">全馆日历</view>
+        <view class="calendar-subtitle">查看本馆法定节假日安排</view>
       </view>
       <view class="calendar-config-btn" bindtap="handleConfigHolidayTap">配置节假日</view>
     </view>

@@ -559,6 +559,7 @@ function getRoleDisplayName(roleId) {
     'admin': '管理员',
     'department_head': '部门负责人',
     'accountant_supervisor': '会计主管',
+    'hr_supervisor': '人事主管',
     'library_leader': '馆领导'
   }
   return roleNames[roleId] || roleId
@@ -932,19 +933,44 @@ async function handleApproval(task, order, approverId, approverName, comment) {
 // 处理审批驳回
 async function handleRejection(task, order, approverId, approverName, comment) {
   try {
+    const now = Date.now()
+
     // 更新工单状态为已驳回
     await ordersCollection.doc(order._id).update({
       data: {
         workflowStatus: ORDER_STATUS.REJECTED,
         finalDecision: 'rejected',
-        completedAt: Date.now(),
-        totalDuration: Date.now() - (order.startedAt || order.submittedAt),
-        updatedAt: Date.now()
+        completedAt: now,
+        totalDuration: now - (order.startedAt || order.submittedAt),
+        updatedAt: now
       }
     })
 
     // 取消所有待处理任务
     await cancelPendingTasks(order._id)
+
+    // 联动更新休假记录状态为已驳回
+    if (order.orderType === 'leave_application') {
+      const businessData = order.businessData || {}
+      const recordId = businessData.recordId
+      if (recordId) {
+        try {
+          const leaveRecordsCollection = db.collection('leave_records')
+          await leaveRecordsCollection.doc(recordId).update({
+            data: { status: 'rejected', updatedAt: now }
+          })
+          // 如果有子记录（组合假），也更新状态
+          if (businessData.subRecordId) {
+            await leaveRecordsCollection.doc(businessData.subRecordId).update({
+              data: { status: 'rejected', updatedAt: now }
+            })
+          }
+          console.log(`休假申请驳回，记录状态已同步更新: recordId=${recordId}`)
+        } catch (syncError) {
+          console.error('联动更新休假记录状态失败:', syncError.message || syncError)
+        }
+      }
+    }
 
     // 发送驳回通知给申请人（包含驳回人信息）
     await sendTaskCompletedNotification(order, 'rejected', comment, approverName)
@@ -1323,6 +1349,28 @@ async function autoTerminateOrder(order, reason) {
   // 取消所有待处理任务
   await cancelPendingTasks(order._id)
   
+  // 联动更新休假记录状态为"已中止"
+  if (order.orderType === 'leave_application') {
+    const businessData = order.businessData || {}
+    const recordId = businessData.recordId
+    if (recordId) {
+      try {
+        const leaveRecordsCollection = db.collection('leave_records')
+        await leaveRecordsCollection.doc(recordId).update({
+          data: { status: 'terminated', updatedAt: now }
+        })
+        if (businessData.subRecordId) {
+          await leaveRecordsCollection.doc(businessData.subRecordId).update({
+            data: { status: 'terminated', updatedAt: now }
+          })
+        }
+        console.log(`休假申请自动中止，记录状态已同步更新: recordId=${recordId}`)
+      } catch (syncError) {
+        console.error('联动更新休假记录状态失败:', syncError.message || syncError)
+      }
+    }
+  }
+  
   // 记录日志（操作人为"系统"）
   await logWorkflowAction(
     order._id,
@@ -1596,46 +1644,63 @@ async function completeWorkflow(orderId, decision, approverId, approverName, com
           })
         }
 
-        // 3. 扣减配额
+        // 3. 基于 planConsumedQuota 精确扣减配额
         const openid = businessData.applicantId || order.openid
         if (openid) {
           const quotaRes = await quotasCollection.where({ openid }).limit(1).get()
           if (quotaRes.data && quotaRes.data.length > 0) {
             const quota = quotaRes.data[0]
-            const leaveType = businessData.leaveType
-            const totalDays = businessData.totalDays || 0
-            const workDays = businessData.workDays || 0
+            const planConsumedQuota = businessData.planConsumedQuota || []
+            let totalAnnualDeducted = 0
 
-            // 扣减年休假
-            if ((leaveType === 'annual' || leaveType === 'combo_annual_term' || leaveType === 'combo_term_annual') && workDays > 0) {
-              if (quota.annualLeaves) {
-                let remaining = workDays
-                for (const annual of quota.annualLeaves) {
-                  if (remaining <= 0) break
-                  if (annual.status === 'active' && annual.availableDays > 0) {
-                    const deduct = Math.min(remaining, annual.availableDays)
-                    annual.usedDays += deduct
-                    annual.availableDays -= deduct
-                    remaining -= deduct
+            // 按方案消耗明细精确扣减
+            for (const item of planConsumedQuota) {
+              if (item.type === 'annual' && quota.annualLeaves) {
+                // 按年份精确扣减年休假
+                const annualQuota = quota.annualLeaves.find(a => a.year === item.year)
+                if (annualQuota && annualQuota.availableDays > 0) {
+                  const deduct = Math.min(item.consumeDays, annualQuota.availableDays)
+                  annualQuota.usedDays += deduct
+                  annualQuota.availableDays -= deduct
+                  totalAnnualDeducted += deduct
+                }
+              } else if (item.type === 'term' && quota.termLeaves) {
+                // 按轮次精确扣减任期假天数
+                const termQuota = quota.termLeaves.find(t => t.round === item.round)
+                if (termQuota && !termQuota.used) {
+                  const availableBefore = termQuota.availableDays !== undefined ? termQuota.availableDays : 20
+                  const deduct = Math.min(item.consumeDays, availableBefore)
+                  termQuota.usedDays = (termQuota.usedDays || 0) + deduct
+                  termQuota.availableDays = availableBefore - deduct
+                  termQuota.isReturnToHome = !!businessData.isReturnToHome
+                  termQuota.usedRecordId = recordId
+                  // 标记公费和回国+2天使用情况
+                  if (businessData.expenseType === 'public') {
+                    termQuota.publicExpenseUsed = true
                   }
+                  if (item.usedReturnBonus) {
+                    termQuota.returnToHomeUsed = true
+                  }
+                  if (termQuota.availableDays <= 0) {
+                    termQuota.used = true
+                  }
+                  quota.totalTermUsed = (quota.totalTermUsed || 0) + (termQuota.used ? 1 : 0)
                 }
-                quota.totalAnnualUsed = (quota.totalAnnualUsed || 0) + (workDays - remaining)
               }
             }
 
-            // 扣减任期假次数
-            if ((leaveType === 'term' || leaveType === 'combo_annual_term' || leaveType === 'combo_term_annual') &&
-                businessData.termLeaveRound && quota.termLeaves) {
-              for (const term of quota.termLeaves) {
-                if (!term.used && term.round === businessData.termLeaveRound) {
-                  term.used = true
-                  term.isReturnToHome = !!businessData.isReturnToHome
-                  term.usedRecordId = recordId
-                  quota.totalTermUsed = (quota.totalTermUsed || 0) + 1
-                  break
-                }
-              }
+            quota.totalAnnualUsed = (quota.totalAnnualUsed || 0) + totalAnnualDeducted
+
+            // 更新 annualLeaveUsageByYear（每年休假次数追踪）
+            if (!quota.annualLeaveUsageByYear) {
+              quota.annualLeaveUsageByYear = {}
             }
+            const startYear = businessData.startDate ? parseInt(businessData.startDate.substring(0, 4), 10) : new Date().getFullYear()
+            const yearKey = String(startYear)
+            if (!quota.annualLeaveUsageByYear[yearKey]) {
+              quota.annualLeaveUsageByYear[yearKey] = { count: 0 }
+            }
+            quota.annualLeaveUsageByYear[yearKey].count += 1
 
             await quotasCollection.doc(quota._id).update({
               data: {
@@ -1643,10 +1708,11 @@ async function completeWorkflow(orderId, decision, approverId, approverName, com
                 termLeaves: quota.termLeaves,
                 totalAnnualUsed: quota.totalAnnualUsed,
                 totalTermUsed: quota.totalTermUsed,
+                annualLeaveUsageByYear: quota.annualLeaveUsageByYear,
                 updatedAt: now
               }
             })
-            console.log('休假申请审批通过，配额已扣减，recordId:', recordId)
+            console.log('休假申请审批通过，配额已精确扣减，recordId:', recordId)
           }
         }
       }
@@ -1912,6 +1978,28 @@ async function cancelOrder(orderId, openid) {
     // 取消所有待处理任务
     await cancelPendingTasks(orderId)
 
+    // 联动更新休假记录状态为已取消
+    if (order.orderType === 'leave_application') {
+      const businessData = order.businessData || {}
+      const recordId = businessData.recordId
+      if (recordId) {
+        try {
+          const leaveRecordsCollection = db.collection('leave_records')
+          await leaveRecordsCollection.doc(recordId).update({
+            data: { status: 'cancelled', updatedAt: now }
+          })
+          if (businessData.subRecordId) {
+            await leaveRecordsCollection.doc(businessData.subRecordId).update({
+              data: { status: 'cancelled', updatedAt: now }
+            })
+          }
+          console.log(`休假申请撤回，记录状态已同步更新: recordId=${recordId}`)
+        } catch (syncError) {
+          console.error('联动更新休假记录状态失败:', syncError.message || syncError)
+        }
+      }
+    }
+
     // 记录日志
     await logWorkflowAction(
       orderId,
@@ -1989,6 +2077,28 @@ async function terminateOrder(orderId, openid, operatorName = '审批人', reaso
       { workflowStatus: ORDER_STATUS.TERMINATED, reason },
       null
     )
+
+    // 联动更新休假记录状态为"已中止"
+    if (order.orderType === 'leave_application') {
+      const businessData = order.businessData || {}
+      const recordId = businessData.recordId
+      if (recordId) {
+        try {
+          const leaveRecordsCollection = db.collection('leave_records')
+          await leaveRecordsCollection.doc(recordId).update({
+            data: { status: 'terminated', updatedAt: now }
+          })
+          if (businessData.subRecordId) {
+            await leaveRecordsCollection.doc(businessData.subRecordId).update({
+              data: { status: 'terminated', updatedAt: now }
+            })
+          }
+          console.log(`休假申请中止，记录状态已同步更新: recordId=${recordId}`)
+        } catch (syncError) {
+          console.error('联动更新休假记录状态失败:', syncError.message || syncError)
+        }
+      }
+    }
 
     // 联动更新购车申请记录状态为"已中止"
     if (order.orderType === 'car_purchase_application' || order.orderType === 'car_purchase_loan') {

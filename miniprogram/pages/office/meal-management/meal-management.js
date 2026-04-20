@@ -49,11 +49,17 @@ const ADJUST_TYPE_META = {
   }
 }
 
-/** 获取下个周一的日期字符串 YYYY-MM-DD */
+/** 获取下个周一的日期字符串 YYYY-MM-DD
+ *  周一~周五：获取下一个周一
+ *  周六、周日：获取下下个周一
+ */
 function getNextMonday() {
   const now = new Date()
   const dayOfWeek = now.getDay()
-  const daysToAdd = dayOfWeek === 0 ? 1 : (8 - dayOfWeek) % 7 || 7
+  // 周一(1)~周五(5): 距下个周一 8-dayOfWeek 天; 周六(6)/周日(0): 再多加7天
+  const daysToAdd = (dayOfWeek === 0 || dayOfWeek === 6)
+    ? (8 - dayOfWeek) % 7 + 7
+    : 8 - dayOfWeek
   now.setDate(now.getDate() + daysToAdd)
   return utils.formatDateObj(now)
 }

@@ -26,20 +26,6 @@
           "name": "pages/office/leave/leave",
           "pathName": "pages/office/leave/leave",
           "query": "",
-          "scene": null,
-          "launchMode": "default"
-        },
-        {
-          "name": "pages/office/leave/leave",
-          "pathName": "pages/office/leave/leave",
-          "query": "",
-          "launchMode": "default",
-          "scene": null
-        },
-        {
-          "name": "pages/office/home/home",
-          "pathName": "pages/office/home/home",
-          "query": "",
           "launchMode": "default",
           "scene": null
         }

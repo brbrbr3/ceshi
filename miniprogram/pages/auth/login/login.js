@@ -150,6 +150,13 @@ Page({
   async handleWxLogin() {
     if (this.data.loading) return
 
+    // 调试环境跳过生物认证（开发者工具不支持生物认证API）
+    if (this.isDevEnvironment()) {
+      console.warn('[login] 开发环境，跳过生物认证')
+      this.doLogin()
+      return
+    }
+
     try {
       // 1. 检测设备支持哪种生物认证
       let authMode = null
@@ -208,6 +215,16 @@ Page({
       if (this.data.loading) {
         this.setData({ loading: false })
       }
+    }
+  },
+
+  // 判断是否为开发环境（开发者工具）
+  isDevEnvironment() {
+    try {
+      const accountInfo = wx.getAccountInfoSync()
+      return accountInfo.miniProgram.envVersion === 'develop'
+    } catch (e) {
+      return false
     }
   },
 

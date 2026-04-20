@@ -5,6 +5,7 @@ Page({
     statusBarHeight: 20,
     // 弹窗控制
     showPopup: false,
+    popupAnimating: false,
     popupTitle: '',
     popupType: '', // 'checklist' | 'static'
     popupContent: [],
@@ -359,9 +360,13 @@ Page({
 
     this.setData({
       showPopup: true,
+      popupAnimating: false,
       popupTitle: config.title,
       popupType: config.type,
       popupContent: config.content
+    })
+    wx.nextTick(() => {
+      this.setData({ popupAnimating: true })
     })
   },
 
@@ -392,7 +397,10 @@ Page({
 
   // 关闭弹窗
   handleClosePopup() {
-    this.setData({ showPopup: false })
+    this.setData({ popupAnimating: false })
+    setTimeout(() => {
+      this.setData({ showPopup: false })
+    }, 300)
   },
 
   // 阻止冒泡

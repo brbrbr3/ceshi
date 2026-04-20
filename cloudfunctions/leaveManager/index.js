@@ -339,6 +339,35 @@ function calculateAnnualCoverage(startCursor, workDaysCount, holidayDatesSet) {
 }
 
 /**
+ * 根据方案的实际消耗类型动态生成标签
+ * - 只用年休假 → "使用年休假"
+ * - 只用任期假 → "使用任期假"
+ * - 二者都用 → "先用年休假，再用任期假" 或 "先用任期假，再用年休假"
+ * - 二者都没用 → "使用法定节假日和公休日" 等
+ */
+function buildPlanLabel(plan) {
+  const hasAnnual = plan.consumed && plan.consumed.some(c => c.type === 'annual')
+  const hasTerm = plan.consumed && plan.consumed.some(c => c.type === 'term')
+  const hasConsumed = plan.consumed && plan.consumed.length > 0
+
+  if (hasConsumed && hasAnnual && hasTerm) {
+    // 两者都用了，根据消耗顺序决定标签
+    const firstType = plan.consumed[0].type
+    if (firstType === 'annual') return '先用年休假，再用任期假'
+    return '先用任期假，再用年休假'
+  }
+  if (hasConsumed && hasAnnual && !hasTerm) return '使用年休假'
+  if (hasConsumed && hasTerm && !hasAnnual) return '使用任期假'
+
+  // 没有消耗配额，只用法定节假日和/或公休日
+  const parts = []
+  if (plan.holidayCoveredDays > 0) parts.push('法定节假日')
+  if (plan.weekendCoveredDays > 0) parts.push('公休日')
+  if (parts.length > 0) return '使用' + parts.join('和')
+  return '无需配额'
+}
+
+/**
  * 核心算法：计算两种方案的配额消耗
  * 
  * 方案A（先用年休假）：去年年假 → 今年年假 → 前一次任期假 → 当次任期假
@@ -496,12 +525,43 @@ async function calculatePlanConsumption(startDate, endDate, isReturnToHome, quot
       }
     }
 
-    // 计算实际覆盖的日历范围
+    // 计算实际覆盖的日历天数
+    // 当 canCover 为 true 时，整个日期范围都被覆盖（配额+法定节假日+公休日）
+    // 当 canCover 为 false 时，只计算配额消耗覆盖的范围
     let actualCoveredDays = 0
-    if (consumed.length > 0) {
+    if (canCover) {
+      actualCoveredDays = neededCalendarDays
+    } else if (consumed.length > 0) {
       const firstStart = consumed[0].startDate
       const lastEnd = consumed[consumed.length - 1].endDate
       actualCoveredDays = countCalendarDays(firstStart, lastEnd)
+    }
+
+    // 统计未被年休假/任期假覆盖的日期中，法定节假日和公休日的天数
+    let holidayCoveredDays = 0
+    let weekendCoveredDays = 0
+    // 确定"未被配额覆盖"的日期范围
+    let uncoveredStart = startDate
+    let uncoveredEnd = endDate
+    if (consumed.length > 0) {
+      // consumed 中的配额覆盖范围：从 consumed[0].startDate 到 consumed[consumed.length-1].endDate
+      // 需要统计 consumed 覆盖范围内以及之外的法定节假日/公休日
+      // 简化：统计整个日期范围内的法定节假日和公休日天数
+    }
+    // 统计整个日期范围内的法定节假日天数和公休日天数
+    let rangeCursor = parseLocalDate(startDate)
+    const rangeEnd = parseLocalDate(endDate)
+    while (rangeCursor <= rangeEnd) {
+      const dow = rangeCursor.getDay()
+      const dStr = formatDateObj(rangeCursor)
+      const isWeekend = dow === 0 || dow === 6
+      const isHoliday = holidayDatesSet.has(dStr)
+      if (isHoliday) {
+        holidayCoveredDays++
+      } else if (isWeekend) {
+        weekendCoveredDays++
+      }
+      rangeCursor.setDate(rangeCursor.getDate() + 1)
     }
 
     return {
@@ -509,6 +569,8 @@ async function calculatePlanConsumption(startDate, endDate, isReturnToHome, quot
       mustUseAllSatisfied: isSecondLeave ? mustUseAllSatisfied : true,
       consumed,
       totalCoveredDays: actualCoveredDays,
+      holidayCoveredDays,
+      weekendCoveredDays,
       uncoveredDays: canCover ? 0 : countCalendarDays(consumed.length > 0 ? consumed[consumed.length - 1].endDate : startDate, endDate) - 1
     }
   }
@@ -527,13 +589,13 @@ async function calculatePlanConsumption(startDate, endDate, isReturnToHome, quot
   // 当没有可用任期假时，方案B等同于方案A，不生成
   const planB = activeTerm.length > 0 ? computePlan(poolB) : null
 
-  // 添加方案标签
+  // 添加方案标签（根据实际消耗类型动态生成）
   if (planA) {
-    planA.label = '先用年休假，再用任期假'
+    planA.label = buildPlanLabel(planA)
     planA.planKey = 'A'
   }
   if (planB) {
-    planB.label = '先用任期假，再用年休假'
+    planB.label = buildPlanLabel(planB)
     planB.planKey = 'B'
   }
 
@@ -1252,6 +1314,23 @@ exports.main = async (event, context) => {
           }
         }
 
+        // 查询审批日志（通过 orderId 关联 workflow_logs）
+        let logs = []
+        if (record.orderId) {
+          try {
+            const logsCollection = db.collection('workflow_logs')
+            const logsRes = await logsCollection
+              .where({ orderId: record.orderId })
+              .orderBy('createdAt', 'asc')
+              .limit(100)
+              .get()
+            logs = logsRes.data || []
+          } catch (logError) {
+            console.error('查询审批日志失败:', logError.message || logError)
+          }
+        }
+        record.logs = logs
+
         return success(record)
       }
 
@@ -1321,8 +1400,10 @@ function formatRecordItem(item) {
     approved: '已通过',
     rejected: '已驳回',
     cancelled: '已取消',
+    terminated: '已中止',
     expired: '已过期',
-    supplemented: '补填'
+    supplemented: '补填',
+    workflow_failed: '提交失败'
   }
   return {
     ...item,

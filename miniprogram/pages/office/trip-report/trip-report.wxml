@@ -94,14 +94,15 @@
   </view>
 
   <!-- 底部弹出表单 -->
-  <view class="trip-popup-mask {{showFormPopup ? 'is-visible' : ''}}" catchtouchmove="stopPropagation" bindtap="hideFormPopup">
+  <view class="trip-popup-mask {{showFormPopup ? 'is-visible' : ''}}" bindtap="hideFormPopup" catchtouchmove="stopPropagation">
     <view class="trip-popup-container" catchtap="stopPropagation">
       <view class="trip-popup-header">
         <view class="trip-popup-title">外出报备</view>
         <view class="trip-popup-close" bindtap="hideFormPopup">×</view>
       </view>
 
-      <view class="trip-popup-form">
+      <scroll-view class="trip-popup-body" scroll-y enhanced show-scrollbar="{{false}}">
+        <view class="trip-popup-form">
         <view class="trip-field">
           <view class="trip-field-label">目的地 <text class="trip-required">*</text></view>
           <view class="trip-input-wrapper">
@@ -174,6 +175,7 @@
           确认报备
         </button>
       </view>
+      </scroll-view>
     </view>
   </view>
 </view>
