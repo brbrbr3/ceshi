@@ -49,7 +49,11 @@ Page({
     relations: [],
 
     // 日期限制
-    today: ''
+    today: '',
+
+    // 弹窗滚动位置
+    formScrollTop: 0,
+    detailScrollTop: 0
   },
 
   async onLoad(options) {
@@ -239,6 +243,7 @@ Page({
   showApplicationForm() {
     this.setData({
       showFormPopup: true,
+      formScrollTop: 0,
       form: {
         patientName: this.data.form.patientName || '',
         relation: this.data.form.relation || '',
@@ -293,6 +298,7 @@ Page({
           selectedRecord: record,
           detailLogs: logs,
           submittedAtText,
+          detailScrollTop: 0,
           showDetailPopup: true
         })
       }

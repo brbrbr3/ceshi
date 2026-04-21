@@ -33,7 +33,11 @@ Page({
       annualRemainingCurrent: '',
       annualRemainingPrev: '',
       termRemainingCurrent: '',
-      termRemainingPrev: ''
+      termRemainingPrev: '',
+      prevTermReturnToHome: false,
+      prevTermPublicExpense: false,
+      currentTermReturnToHome: false,
+      currentTermPublicExpense: false
     },
     setupSubmitting: false,
     setupWorkYearHint: '',
@@ -104,7 +108,10 @@ Page({
     },
     supplementSubmitting: false,
 
-    today: ''
+    today: '',
+
+    // 详情弹窗滚动位置
+    detailScrollTop: 0
   },
 
   onLoad(options) {
@@ -113,7 +120,9 @@ Page({
       loadMorePageSize: 15
     })
 
-    this.setData({ today: utils.getLocalDateString() })
+    this.setData({
+      today: utils.getLocalDateString()
+    })
     this.loadConstants()
 
     // 检查首次配置状态
@@ -123,7 +132,9 @@ Page({
   onShow() {
     const fontStyle = app.globalData.fontStyle
     if (this.data.fontStyle !== fontStyle) {
-      this.setData({ fontStyle })
+      this.setData({
+        fontStyle
+      })
     }
     if (!this.data.showFirstSetup && !this.data.showDetailPopup && !this.data.showSupplementPopup) {
       // 从其他页面返回时刷新数据（非弹窗状态）
@@ -154,22 +165,34 @@ Page({
   // ==================== 首次配置检查与加载 ====================
 
   async checkFirstSetupAndLoad() {
-    wx.showLoading({ title: '加载中...', mask: true })
+    wx.showLoading({
+      title: '加载中...',
+      mask: true
+    })
     try {
       const result = await wx.cloud.callFunction({
         name: 'leaveManager',
-        data: { action: 'getMyQuotas' }
+        data: {
+          action: 'getMyQuotas'
+        }
       })
 
       if (result.result.code === 0) {
         const resData = result.result.data
         if (!resData || !resData.quota) {
-          this.setData({ myQuota: null, showFirstSetup: true, loading: false })
+          this.setData({
+            myQuota: null,
+            showFirstSetup: true,
+            loading: false
+          })
           wx.hideLoading()
           return
         }
 
-        const { quota, quotaSummary } = resData
+        const {
+          quota,
+          quotaSummary
+        } = resData
 
         this.setData({
           myQuota: quota,
@@ -184,7 +207,9 @@ Page({
       }
     } catch (error) {
       console.error('[leave] 初始化失败:', error)
-      this.setData({ loading: false })
+      this.setData({
+        loading: false
+      })
     } finally {
       wx.hideLoading()
     }
@@ -193,34 +218,89 @@ Page({
   // ==================== 首次配置操作 ====================
 
   handleSetupWorkStartDateChange(e) {
-    this.setData({ 'setupForm.workStartDate': e.detail.value })
+    this.setData({
+      'setupForm.workStartDate': e.detail.value
+    })
     this.calcSetupHints()
   },
 
   handleSetupArrivalDateChange(e) {
-    this.setData({ 'setupForm.arrivalDate': e.detail.value })
+    this.setData({
+      'setupForm.arrivalDate': e.detail.value
+    })
     this.calcSetupHints()
   },
 
   handleSetupAnnualCurrentInput(e) {
-    this.setData({ 'setupForm.annualRemainingCurrent': e.detail.value })
+    const val = e.detail.value
+    this.setData({
+      'setupForm.annualRemainingCurrent': val
+    })
+    const num = Number(val)
+    if (val !== '' && !isNaN(num) && (num < 0 || num > this.data.setupAnnualDaysPerYear)) {
+      utils.showToast({
+        title: `年休假剩余天数应在0~${this.data.setupAnnualDaysPerYear}之间`,
+        icon: 'none'
+      })
+    }
   },
 
   handleSetupAnnualPrevInput(e) {
-    this.setData({ 'setupForm.annualRemainingPrev': e.detail.value })
+    const val = e.detail.value
+    this.setData({
+      'setupForm.annualRemainingPrev': val
+    })
+    const num = Number(val)
+    if (val !== '' && !isNaN(num) && (num < 0 || num > this.data.setupAnnualDaysPerYear)) {
+      utils.showToast({
+        title: `年休假剩余天数应在0~${this.data.setupAnnualDaysPerYear}之间`,
+        icon: 'none'
+      })
+    }
   },
 
   handleSetupTermCurrentInput(e) {
-    this.setData({ 'setupForm.termRemainingCurrent': e.detail.value })
+    this.setData({
+      'setupForm.termRemainingCurrent': e.detail.value
+    })
   },
 
   handleSetupTermPrevInput(e) {
-    this.setData({ 'setupForm.termRemainingPrev': e.detail.value })
+    this.setData({
+      'setupForm.termRemainingPrev': e.detail.value
+    })
+  },
+
+  handleSetupPrevTermReturnSelect(e) {
+    this.setData({
+      'setupForm.prevTermReturnToHome': e.currentTarget.dataset.value === 'true'
+    })
+  },
+
+  handleSetupPrevTermPublicExpenseSelect(e) {
+    this.setData({
+      'setupForm.prevTermPublicExpense': e.currentTarget.dataset.value === 'true'
+    })
+  },
+
+  handleSetupCurrentTermReturnSelect(e) {
+    this.setData({
+      'setupForm.currentTermReturnToHome': e.currentTarget.dataset.value === 'true'
+    })
+  },
+
+  handleSetupCurrentTermPublicExpenseSelect(e) {
+    this.setData({
+      'setupForm.currentTermPublicExpense': e.currentTarget.dataset.value === 'true'
+    })
   },
 
   /** 根据选择的日期自动计算提示和需要填写的字段 */
   calcSetupHints() {
-    const { workStartDate, arrivalDate } = this.data.setupForm
+    const {
+      workStartDate,
+      arrivalDate
+    } = this.data.setupForm
     const now = new Date()
     const currentYear = now.getFullYear()
     const currentMonth = now.getMonth() + 1
@@ -270,16 +350,50 @@ Page({
     // === 任期假提示 ===
     if (arrivalDate) {
       const arrival = new Date(arrivalDate)
-      const monthsSinceArrival = (now.getFullYear() - arrival.getFullYear()) * 12
-        + (now.getMonth() - arrival.getMonth())
+      const monthsSinceArrival = (now.getFullYear() - arrival.getFullYear()) * 12 +
+        (now.getMonth() - arrival.getMonth())
 
       // 按规则计算可休次数
-      const TERM_RULES = [
-        { round: 1, months: 6, desc: '6个月' },
-        { round: 2, months: 24, desc: '2年' },
-        { round: 3, months: 36, desc: '3年' },
-        { round: 4, months: 48, desc: '4年' },
-        { round: 5, months: 60, desc: '5年' }
+      const TERM_RULES = [{
+          round: 1,
+          months: 6,
+          desc: '6个月'
+        },
+        {
+          round: 2,
+          months: 24,
+          desc: '2年'
+        },
+        {
+          round: 3,
+          months: 36,
+          desc: '3年'
+        },
+        {
+          round: 4,
+          months: 48,
+          desc: '4年'
+        },
+        {
+          round: 5,
+          months: 60,
+          desc: '5年'
+        },
+        {
+          round: 6,
+          months: 72,
+          desc: '6年'
+        },
+        {
+          round: 7,
+          months: 84,
+          desc: '7年'
+        },
+        {
+          round: 8,
+          months: 96,
+          desc: '8年'
+        }
       ]
 
       for (const rule of TERM_RULES) {
@@ -312,19 +426,31 @@ Page({
       setupPrevTermRound,
       setupNeedPrevTerm,
       setupCurrentYear: String(currentYear),
-      setupPrevYear: String(currentYear - 1)
+      setupPrevYear: String(currentYear - 1),
+      setupPrevAnnualPlaceholder: `请输入${currentYear - 1}年剩余年休假天数（0-${setupAnnualDaysPerYear}）`,
+      setupCurrentAnnualPlaceholder: `请输入${currentYear}年剩余年休假天数（0-${setupAnnualDaysPerYear}）`
     })
   },
 
   handleSetupCancel() {
-    this.setData({ showFirstSetup: false })
-    wx.navigateBack({ delta: 1 })
+    this.setData({
+      showFirstSetup: false
+    })
+    wx.navigateBack({
+      delta: 1
+    })
   },
 
   async handleSetupConfirm() {
     const form = this.data.setupForm
-    if (!form.workStartDate) return utils.showToast({ title: '请选择参加工作日期', icon: 'none' })
-    if (!form.arrivalDate) return utils.showToast({ title: '请选择到任日期', icon: 'none' })
+    if (!form.workStartDate) return utils.showToast({
+      title: '请选择参加工作日期',
+      icon: 'none'
+    })
+    if (!form.arrivalDate) return utils.showToast({
+      title: '请选择到任日期',
+      icon: 'none'
+    })
 
     const arrivalYear = parseInt(form.arrivalDate.substring(0, 4), 10)
     const currentYear = new Date().getFullYear()
@@ -332,11 +458,29 @@ Page({
     // 到任今年无需填写年休假
     if (arrivalYear !== currentYear) {
       if (form.annualRemainingCurrent === '' || isNaN(Number(form.annualRemainingCurrent)) || Number(form.annualRemainingCurrent) < 0) {
-        return utils.showToast({ title: `请填写${this.data.setupCurrentYear}年年休假剩余天数`, icon: 'none' })
+        return utils.showToast({
+          title: `请填写${this.data.setupCurrentYear}年年休假剩余天数`,
+          icon: 'none'
+        })
+      }
+      if (Number(form.annualRemainingCurrent) > this.data.setupAnnualDaysPerYear) {
+        return utils.showToast({
+          title: `${this.data.setupCurrentYear}年年休假剩余天数不能超过${this.data.setupAnnualDaysPerYear}`,
+          icon: 'none'
+        })
       }
       if (this.data.setupNeedPrevAnnual) {
         if (form.annualRemainingPrev === '' || isNaN(Number(form.annualRemainingPrev)) || Number(form.annualRemainingPrev) < 0) {
-          return utils.showToast({ title: `请填写${this.data.setupPrevYear}年年休假剩余天数`, icon: 'none' })
+          return utils.showToast({
+            title: `请填写${this.data.setupPrevYear}年年休假剩余天数`,
+            icon: 'none'
+          })
+        }
+        if (Number(form.annualRemainingPrev) > this.data.setupAnnualDaysPerYear) {
+          return utils.showToast({
+            title: `${this.data.setupPrevYear}年年休假剩余天数不能超过${this.data.setupAnnualDaysPerYear}`,
+            icon: 'none'
+          })
         }
       }
     }
@@ -344,16 +488,36 @@ Page({
     // 任期假填写校验
     if (this.data.setupMaxTermRound > 0) {
       if (form.termRemainingCurrent === '' || isNaN(Number(form.termRemainingCurrent)) || Number(form.termRemainingCurrent) < 0) {
-        return utils.showToast({ title: `请填写第${this.data.setupMaxTermRound}次任期假剩余天数`, icon: 'none' })
+        return utils.showToast({
+          title: `请填写第${this.data.setupMaxTermRound}次任期假剩余天数`,
+          icon: 'none'
+        })
+      }
+      if (Number(form.termRemainingCurrent) > 20) {
+        return utils.showToast({
+          title: `第${this.data.setupMaxTermRound}次任期假剩余天数不能超过20`,
+          icon: 'none'
+        })
       }
       if (this.data.setupNeedPrevTerm) {
         if (form.termRemainingPrev === '' || isNaN(Number(form.termRemainingPrev)) || Number(form.termRemainingPrev) < 0) {
-          return utils.showToast({ title: `请填写第${this.data.setupPrevTermRound}次任期假剩余天数`, icon: 'none' })
+          return utils.showToast({
+            title: `请填写第${this.data.setupPrevTermRound}次任期假剩余天数`,
+            icon: 'none'
+          })
+        }
+        if (Number(form.termRemainingPrev) > 20) {
+          return utils.showToast({
+            title: `第${this.data.setupPrevTermRound}次任期假剩余天数不能超过20`,
+            icon: 'none'
+          })
         }
       }
     }
 
-    this.setData({ setupSubmitting: true })
+    this.setData({
+      setupSubmitting: true
+    })
     try {
       const res = await wx.cloud.callFunction({
         name: 'leaveManager',
@@ -368,37 +532,63 @@ Page({
             termRemainingPrev: this.data.setupNeedPrevTerm ? Number(form.termRemainingPrev || 0) : 0,
             maxTermRound: this.data.setupMaxTermRound,
             needPrevAnnual: this.data.setupNeedPrevAnnual,
-            needPrevTerm: this.data.setupNeedPrevTerm
+            needPrevTerm: this.data.setupNeedPrevTerm,
+            prevTermReturnToHome: form.prevTermReturnToHome,
+            prevTermPublicExpense: form.prevTermPublicExpense,
+            currentTermReturnToHome: form.currentTermReturnToHome,
+            currentTermPublicExpense: form.currentTermPublicExpense
           }
         }
       })
 
       if (res.result.code === 0) {
-        utils.showToast({ title: '配置成功', icon: 'success' })
+        utils.showToast({
+          title: '配置成功',
+          icon: 'success'
+        })
         const quota = res.result.data
         this.setData({
           myQuota: quota,
           showFirstSetup: false,
           setupSubmitting: false,
           setupForm: {
-            workStartDate: '', arrivalDate: '',
-            annualRemainingCurrent: '', annualRemainingPrev: '',
-            termRemainingCurrent: '', termRemainingPrev: ''
+            workStartDate: '',
+            arrivalDate: '',
+            annualRemainingCurrent: '',
+            annualRemainingPrev: '',
+            termRemainingCurrent: '',
+            termRemainingPrev: '',
+            prevTermReturnToHome: false,
+            prevTermPublicExpense: false,
+            currentTermReturnToHome: false,
+            currentTermPublicExpense: false
           },
-          setupWorkYearHint: '', setupTermHint: '',
-          setupNeedPrevAnnual: false, setupNeedAnnual: false, setupNeedPrevTerm: false,
-          setupMaxTermRound: 0, setupPrevTermRound: 0
+          setupWorkYearHint: '',
+          setupTermHint: '',
+          setupNeedPrevAnnual: false,
+          setupNeedAnnual: false,
+          setupNeedPrevTerm: false,
+          setupMaxTermRound: 0,
+          setupPrevTermRound: 0
         })
         // 重新加载配额摘要
         this.loadMyQuotas()
       } else {
-        utils.showToast({ title: res.result.message || '配置失败', icon: 'none' })
+        utils.showToast({
+          title: res.result.message || '配置失败',
+          icon: 'none'
+        })
       }
     } catch (error) {
       console.error('首次配置失败:', error)
-      utils.showToast({ title: '配置失败，请重试', icon: 'none' })
+      utils.showToast({
+        title: '配置失败，请重试',
+        icon: 'none'
+      })
     } finally {
-      this.setData({ setupSubmitting: false })
+      this.setData({
+        setupSubmitting: false
+      })
     }
   },
 
@@ -409,7 +599,9 @@ Page({
   handleTabSwitch(e) {
     const tab = e.currentTarget.dataset.tab
     if (tab === this.data.activeTab) return
-    this.setData({ activeTab: tab })
+    this.setData({
+      activeTab: tab
+    })
 
     if (tab === 'records' && this.data.list.length === 0) {
       this.loadRecordData()
@@ -428,24 +620,40 @@ Page({
   // ==================== 日期选择与方案计算 ====================
 
   handleStartDateChange(e) {
-    this.setData({ 'form.startDate': e.detail.value })
+    this.setData({
+      'form.startDate': e.detail.value
+    })
     if (e.detail.value > this.data.form.endDate) {
-      this.setData({ 'form.endDate': e.detail.value })
+      this.setData({
+        'form.endDate': e.detail.value
+      })
     }
     this.recalculatePlans()
   },
 
   handleEndDateChange(e) {
-    this.setData({ 'form.endDate': e.detail.value })
+    this.setData({
+      'form.endDate': e.detail.value
+    })
     this.recalculatePlans()
   },
 
   /** 防抖调用 calculatePlans */
   _plansTimer: null,
   recalculatePlans() {
-    const { startDate, endDate } = this.data.form
+    const {
+      startDate,
+      endDate
+    } = this.data.form
     // 清除旧方案
-    this.setData({ calculatedPlans: [], selectedPlan: null, canSubmit: false, showTermOptions: false, showExpenseTypeSelect: false, selectedPlanHasTerm: false })
+    this.setData({
+      calculatedPlans: [],
+      selectedPlan: null,
+      canSubmit: false,
+      showTermOptions: false,
+      showExpenseTypeSelect: false,
+      selectedPlanHasTerm: false
+    })
 
     if (!startDate || !endDate) return
 
@@ -457,16 +665,26 @@ Page({
 
   /** 调用云函数计算方案 */
   async doCalculatePlans() {
-    const { startDate, endDate, isReturnToHome } = this.data.form
+    const {
+      startDate,
+      endDate,
+      isReturnToHome
+    } = this.data.form
     if (!startDate || !endDate) return
 
-    this.setData({ plansLoading: true })
+    this.setData({
+      plansLoading: true
+    })
     try {
       const res = await wx.cloud.callFunction({
         name: 'leaveManager',
         data: {
           action: 'calculatePlans',
-          params: { startDate, endDate, isReturnToHome }
+          params: {
+            startDate,
+            endDate,
+            isReturnToHome
+          }
         }
       })
 
@@ -492,21 +710,30 @@ Page({
           this.onPlanSelected(autoSelected)
         }
       } else {
-        this.setData({ plansLoading: false })
+        this.setData({
+          plansLoading: false
+        })
         if (res.result.code === 400) {
-          utils.showToast({ title: res.result.message, icon: 'none' })
+          utils.showToast({
+            title: res.result.message,
+            icon: 'none'
+          })
         }
       }
     } catch (err) {
       console.error('方案计算失败:', err)
-      this.setData({ plansLoading: false })
+      this.setData({
+        plansLoading: false
+      })
     }
   },
 
   /** 用户选择方案 */
   handlePlanSelect(e) {
     const planKey = e.currentTarget.dataset.plan
-    this.setData({ selectedPlan: planKey })
+    this.setData({
+      selectedPlan: planKey
+    })
     this.onPlanSelected(planKey)
   },
 
@@ -527,14 +754,19 @@ Page({
 
     // 如果涉及任期假但公费不可用，自动选自费
     if (hasTerm && !canUsePublic) {
-      this.setData({ 'form.expenseType': 'self' })
+      this.setData({
+        'form.expenseType': 'self'
+      })
     }
   },
 
   // ==================== 任期假选项 ====================
 
   handleSwitchReturnToHome(e) {
-    this.setData({ 'form.isReturnToHome': e.detail.value })
+    this.setData({
+      'form.isReturnToHome': e.detail.value,
+      isReturnToHome: e.detail.value
+    })
     // 重新计算方案（回国+2天影响覆盖天数）
     this.recalculatePlans()
   },
@@ -550,74 +782,117 @@ Page({
     })
     // 关闭时重置
     if (!willShow) {
-      this.setData({ 'form.otherTypeName': '', 'form.expenseType': 'self' })
+      this.setData({
+        'form.otherTypeName': '',
+        'form.expenseType': 'self'
+      })
     }
   },
 
   // ==================== 扩展表单字段 ====================
 
   handleExpenseTypeSelect(e) {
-    this.setData({ 'form.expenseType': e.currentTarget.dataset.value })
+    this.setData({
+      'form.expenseType': e.currentTarget.dataset.value
+    })
     // 关闭公费待遇转让
     if (e.currentTarget.dataset.value === 'self') {
-      this.setData({ 'form.isTransferringBenefit': false, 'form.transferredCount': 0 })
+      this.setData({
+        'form.isTransferringBenefit': false,
+        'form.transferredCount': 0
+      })
     }
   },
 
   handleOtherTypeNameInput(e) {
     const value = e.detail.value
-    this.setData({ 'form.otherTypeName': value })
+    this.setData({
+      'form.otherTypeName': value
+    })
     // "其他"类型：填写类型名+日期+原因后可提交
     if (this.data.showOtherTypeForm) {
       const hasName = String(value || '').trim().length > 0
       const hasDates = this.data.form.startDate && this.data.form.endDate
-      this.setData({ canSubmit: hasName && hasDates })
+      this.setData({
+        canSubmit: hasName && hasDates
+      })
     }
   },
 
   handleLeaveLocationInput(e) {
-    this.setData({ 'form.leaveLocation': e.detail.value })
+    this.setData({
+      'form.leaveLocation': e.detail.value
+    })
   },
 
   handleLeaveRouteInput(e) {
-    this.setData({ 'form.leaveRoute': e.detail.value })
+    this.setData({
+      'form.leaveRoute': e.detail.value
+    })
   },
 
   handleProposedFlightsInput(e) {
-    this.setData({ 'form.proposedFlights': e.detail.value })
+    this.setData({
+      'form.proposedFlights': e.detail.value
+    })
   },
 
   handleSwitchTransferringBenefit(e) {
-    this.setData({ 'form.isTransferringBenefit': e.detail.value })
+    this.setData({
+      'form.isTransferringBenefit': e.detail.value
+    })
     if (!e.detail.value) {
-      this.setData({ 'form.transferredCount': 0 })
+      this.setData({
+        'form.transferredCount': 0
+      })
     }
   },
 
   handleTransferredCountChange(e) {
-    this.setData({ 'form.transferredCount': e.detail.value })
+    this.setData({
+      'form.transferredCount': e.detail.value
+    })
   },
 
   handleSwitchVisaAssistance(e) {
-    this.setData({ 'form.needsVisaAssistance': e.detail.value })
+    this.setData({
+      'form.needsVisaAssistance': e.detail.value
+    })
   },
 
   handleOtherNotesInput(e) {
-    this.setData({ 'form.otherNotes': e.detail.value })
+    this.setData({
+      'form.otherNotes': e.detail.value
+    })
   },
 
   handleReasonInput(e) {
-    this.setData({ 'form.reason': e.detail.value })
+    this.setData({
+      'form.reason': e.detail.value
+    })
   },
 
   async loadMyQuotas() {
     try {
-      const res = await wx.cloud.callFunction({ name: 'leaveManager', data: { action: 'getMyQuotas' } })
+      const res = await wx.cloud.callFunction({
+        name: 'leaveManager',
+        data: {
+          action: 'getMyQuotas'
+        }
+      })
       if (res.result.code === 0) {
-        const { quota, quotaSummary } = res.result.data
-        this.setData({ myQuota: quota, quotaSummary })
+        const {
+          quota,
+          quotaSummary
+        } = res.result.data
+        this.setData({
+          myQuota: quota,
+          quotaSummary
+        })
       }
-    } catch (e) { console.error('加载配额失败:', e) }
+    } catch (e) {
+      console.error('加载配额失败:', e)
+    }
   },
 
   // ==================== 提交申请 ====================
@@ -626,18 +901,58 @@ Page({
     const f = this.data.form
     if (this.data.showOtherTypeForm) {
       // "其他"类型提交
-      if (!f.startDate) { utils.showToast({ title: '请选择开始日期', icon: 'none' }); return false; }
-      if (!f.endDate) { utils.showToast({ title: '请选择结束日期', icon: 'none' }); return false; }
+      if (!f.startDate) {
+        utils.showToast({
+          title: '请选择开始日期',
+          icon: 'none'
+        });
+        return false;
+      }
+      if (!f.endDate) {
+        utils.showToast({
+          title: '请选择结束日期',
+          icon: 'none'
+        });
+        return false;
+      }
       if (!String(f.otherTypeName || '').trim()) {
-        utils.showToast({ title: '请输入自定义类型名', icon: 'none' }); return false;
+        utils.showToast({
+          title: '请输入自定义类型名',
+          icon: 'none'
+        });
+        return false;
       }
     } else {
       // 方案提交
-      if (!f.startDate) { utils.showToast({ title: '请选择开始日期', icon: 'none' }); return false; }
-      if (!f.endDate) { utils.showToast({ title: '请选择结束日期', icon: 'none' }); return false; }
-      if (!this.data.selectedPlan) { utils.showToast({ title: '请选择休假方案', icon: 'none' }); return false; }
+      if (!f.startDate) {
+        utils.showToast({
+          title: '请选择开始日期',
+          icon: 'none'
+        });
+        return false;
+      }
+      if (!f.endDate) {
+        utils.showToast({
+          title: '请选择结束日期',
+          icon: 'none'
+        });
+        return false;
+      }
+      if (!this.data.selectedPlan) {
+        utils.showToast({
+          title: '请选择休假方案',
+          icon: 'none'
+        });
+        return false;
+      }
     }
-    if (!String(f.reason || '').trim()) { utils.showToast({ title: '请填写休假原因', icon: 'none' }); return false; }
+    if (!String(f.reason || '').trim()) {
+      utils.showToast({
+        title: '请填写休假原因',
+        icon: 'none'
+      });
+      return false;
+    }
     return true;
   },
 
@@ -649,7 +964,13 @@ Page({
     try {
       const checkRes = await wx.cloud.callFunction({
         name: 'leaveManager',
-        data: { action: 'getMyRecords', params: { page: 1, pageSize: 1 } }
+        data: {
+          action: 'getMyRecords',
+          params: {
+            page: 1,
+            pageSize: 1
+          }
+        }
       })
       if (checkRes.result.code === 0) {
         const hasRecords = (checkRes.result.data.list || []).length > 0
@@ -665,7 +986,9 @@ Page({
                 this.doSubmitApplication()
               } else {
                 // 前往补填：切换到记录tab
-                this.setData({ activeTab: 'records' })
+                this.setData({
+                  activeTab: 'records'
+                })
                 this.loadRecordData()
               }
             }
@@ -683,7 +1006,9 @@ Page({
 
   async doSubmitApplication() {
     if (this.data.submitting) return
-    this.setData({ submitting: true })
+    this.setData({
+      submitting: true
+    })
 
     const f = this.data.form
     try {
@@ -742,31 +1067,49 @@ Page({
           success: (modalRes) => {
             if (modalRes.confirm) {
               this.resetForm()
-              this.setData({ activeTab: 'records' }, () => {
+              this.setData({
+                activeTab: 'records'
+              }, () => {
                 this.loadRecordData(true)
               })
             }
           }
         })
       } else {
-        utils.showToast({ title: res.result.message || '提交失败', icon: 'none' })
+        utils.showToast({
+          title: res.result.message || '提交失败',
+          icon: 'none'
+        })
       }
     } catch (error) {
       console.error('提交申请失败:', error)
-      utils.showToast({ title: '提交失败，请重试', icon: 'none' })
+      utils.showToast({
+        title: '提交失败，请重试',
+        icon: 'none'
+      })
     } finally {
-      this.setData({ submitting: false })
+      this.setData({
+        submitting: false
+      })
     }
   },
 
   resetForm() {
     this.setData({
       form: {
-        startDate: '', endDate: '', isReturnToHome: false,
-        otherTypeName: '', expenseType: 'self',
-        leaveLocation: '', leaveRoute: '', proposedFlights: '',
-        isTransferringBenefit: false, transferredCount: 0,
-        needsVisaAssistance: false, otherNotes: '', reason: ''
+        startDate: '',
+        endDate: '',
+        isReturnToHome: false,
+        otherTypeName: '',
+        expenseType: 'self',
+        leaveLocation: '',
+        leaveRoute: '',
+        proposedFlights: '',
+        isTransferringBenefit: false,
+        transferredCount: 0,
+        needsVisaAssistance: false,
+        otherNotes: '',
+        reason: ''
       },
       calculatedPlans: [],
       selectedPlan: null,
@@ -784,11 +1127,20 @@ Page({
   // ==================== 记录列表（分页）====================
 
   async loadData(params) {
-    const { page, pageSize } = params
+    const {
+      page,
+      pageSize
+    } = params
     return new Promise((resolve, reject) => {
       wx.cloud.callFunction({
         name: 'leaveManager',
-        data: { action: 'getMyRecords', params: { page, pageSize } }
+        data: {
+          action: 'getMyRecords',
+          params: {
+            page,
+            pageSize
+          }
+        }
       }).then(res => {
         if (res.result.code === 0) {
           const data = res.result.data
@@ -799,13 +1151,19 @@ Page({
           })
           this.updateGroupedRecords()
 
-          resolve({ data: recordList, hasMore: data.hasMore !== false })
+          resolve({
+            data: recordList,
+            hasMore: data.hasMore !== false
+          })
         } else {
           reject(new Error(res.result.message))
         }
       }).catch(error => {
         console.error('加载记录失败:', error)
-        utils.showToast({ title: '加载失败', icon: 'none' })
+        utils.showToast({
+          title: '加载失败',
+          icon: 'none'
+        })
         reject(error)
       })
     })
@@ -852,11 +1210,18 @@ Page({
 
   async showRecordDetail(e) {
     const record = e.currentTarget.dataset.record
-    wx.showLoading({ title: '加载中...' })
+    wx.showLoading({
+      title: '加载中...'
+    })
     try {
       const res = await wx.cloud.callFunction({
         name: 'leaveManager',
-        data: { action: 'getRecordDetail', params: { recordId: record._id } }
+        data: {
+          action: 'getRecordDetail',
+          params: {
+            recordId: record._id
+          }
+        }
       })
 
       if (res.result.code === 0) {
@@ -868,9 +1233,9 @@ Page({
         }))
 
         const startLog = logs.find(l => l.action === 'start')
-        const submittedAtText = startLog
-          ? startLog.timeText
-          : (record.createdAt ? utils.formatDateTime(record.createdAt) : '-')
+        const submittedAtText = startLog ?
+          startLog.timeText :
+          (record.createdAt ? utils.formatDateTime(record.createdAt) : '-')
 
         const detail = res.result.data
         // 前端用时区偏移重新格式化创建时间，覆盖后端的服务器时区格式化结果
@@ -883,24 +1248,39 @@ Page({
           selectedRecord: detail,
           detailLogs: logs,
           submittedAtText,
+          detailScrollTop: 0,
           showDetailPopup: true
         })
       }
     } catch (error) {
       console.error('获取详情失败:', error)
-      utils.showToast({ title: '获取详情失败', icon: 'none' })
+      utils.showToast({
+        title: '获取详情失败',
+        icon: 'none'
+      })
     } finally {
       wx.hideLoading()
     }
   },
 
-  hideDetailPopup() { this.setData({ showDetailPopup: false }) },
+  hideDetailPopup() {
+    this.setData({
+      showDetailPopup: false
+    })
+  },
 
-  hideQuotaPopup() { this.setData({ showQuotaPopup: false }) },
+  hideQuotaPopup() {
+    this.setData({
+      showQuotaPopup: false
+    })
+  },
 
   showQuotaDetail() {
     if (this.data.myQuota) {
-      this.setData({ quotaDetail: this.data.myQuota, showQuotaPopup: true })
+      this.setData({
+        quotaDetail: this.data.myQuota,
+        showQuotaPopup: true
+      })
     }
   },
 
@@ -920,21 +1300,61 @@ Page({
     })
   },
 
-  hideSupplementPopup() { this.setData({ showSupplementPopup: false }) },
+  hideSupplementPopup() {
+    this.setData({
+      showSupplementPopup: false
+    })
+  },
 
-  handleSupplementStartChange(e) { this.setData({ 'supplementForm.startDate': e.detail.value }) },
-  handleSupplementEndChange(e) { this.setData({ 'supplementForm.endDate': e.detail.value }) },
-  handleSupplementCompositionInput(e) { this.setData({ 'supplementForm.leaveComposition': e.detail.value }) },
-  handleSupplementExpenseSelect(e) { this.setData({ 'supplementForm.expenseType': e.currentTarget.dataset.value }) },
-  handleSupplementLocationInput(e) { this.setData({ 'supplementForm.leaveLocation': e.detail.value }) },
-  handleSupplementRemarkInput(e) { this.setData({ 'supplementForm.remark': e.detail.value }) },
+  handleSupplementStartChange(e) {
+    this.setData({
+      'supplementForm.startDate': e.detail.value
+    })
+  },
+  handleSupplementEndChange(e) {
+    this.setData({
+      'supplementForm.endDate': e.detail.value
+    })
+  },
+  handleSupplementCompositionInput(e) {
+    this.setData({
+      'supplementForm.leaveComposition': e.detail.value
+    })
+  },
+  handleSupplementExpenseSelect(e) {
+    this.setData({
+      'supplementForm.expenseType': e.currentTarget.dataset.value
+    })
+  },
+  handleSupplementLocationInput(e) {
+    this.setData({
+      'supplementForm.leaveLocation': e.detail.value
+    })
+  },
+  handleSupplementRemarkInput(e) {
+    this.setData({
+      'supplementForm.remark': e.detail.value
+    })
+  },
 
   async handleSubmitSupplement() {
     const sf = this.data.supplementForm
-    if (!sf.startDate || !sf.endDate) { return utils.showToast({ title: '请选择休假日期', icon: 'none' }) }
-    if (!sf.leaveComposition || !sf.leaveComposition.trim()) { return utils.showToast({ title: '请填写假期构成', icon: 'none' }) }
+    if (!sf.startDate || !sf.endDate) {
+      return utils.showToast({
+        title: '请选择休假日期',
+        icon: 'none'
+      })
+    }
+    if (!sf.leaveComposition || !sf.leaveComposition.trim()) {
+      return utils.showToast({
+        title: '请填写假期构成',
+        icon: 'none'
+      })
+    }
 
-    this.setData({ supplementSubmitting: true })
+    this.setData({
+      supplementSubmitting: true
+    })
     try {
       const res = await wx.cloud.callFunction({
         name: 'leaveManager',
@@ -953,20 +1373,31 @@ Page({
       })
 
       if (res.result.code === 0) {
-        utils.showToast({ title: '补填成功', icon: 'success' })
+        utils.showToast({
+          title: '补填成功',
+          icon: 'success'
+        })
         this.hideSupplementPopup()
         // 刷新记录列表
         this.loadRecordData(true)
         // 刷新配额
         this.loadMyQuotas()
       } else {
-        utils.showToast({ title: res.result.message || '补填失败', icon: 'none' })
+        utils.showToast({
+          title: res.result.message || '补填失败',
+          icon: 'none'
+        })
       }
     } catch (error) {
       console.error('补填失败:', error)
-      utils.showToast({ title: '补填失败，请重试', icon: 'none' })
+      utils.showToast({
+        title: '补填失败，请重试',
+        icon: 'none'
+      })
     } finally {
-      this.setData({ supplementSubmitting: false })
+      this.setData({
+        supplementSubmitting: false
+      })
     }
   }
 })

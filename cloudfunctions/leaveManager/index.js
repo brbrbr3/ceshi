@@ -58,11 +58,14 @@ function getAnnualQuotaByWorkYears(workStartDateStr, targetYear) {
 
 /** 任期假规则：按到任月数计算可申请次数 */
 const TERM_LEAVE_RULES = [
-  { round: 1, monthsAfterArrival: 6 },
+  { round: 1, monthsAfterArrival: 6 },   // 6个月
   { round: 2, monthsAfterArrival: 24 },  // 2年
   { round: 3, monthsAfterArrival: 36 },  // 3年
   { round: 4, monthsAfterArrival: 48 },  // 4年
-  { round: 5, monthsAfterArrival: 60 }   // 5年
+  { round: 5, monthsAfterArrival: 60 },  // 5年
+  { round: 6, monthsAfterArrival: 72 },  // 6年
+  { round: 7, monthsAfterArrival: 84 },  // 7年
+  { round: 8, monthsAfterArrival: 96 }   // 8年
 ]
 
 /** 任期假每次天数 */
@@ -235,31 +238,21 @@ function buildTermLeaveQuotas(arrivalDateStr) {
 
 /**
  * 计算任期假有效期
- * 规则：第N次任期假最迟在第N+1任期年的最后一天休完
- * 例如：到任2020-06-01，第1次eligibleDate=2020-12-01，第2任期年=2021年，expiryDate=2021-12-31
+ * 规则：第X次任期假有效期至第X+1任期年的最后一天
+ * 例如：比如一个人2019-10-06到任，那他第1次任期假有效期是第2任期年（2020-10-06~2021-10-05）的最后一天（即2021-10-05）
  */
 function buildExpiryDate(arrivalDateStr, round) {
   const arrival = parseLocalDate(arrivalDateStr)
   if (!arrival) return ''
-  // 找到对应轮次的规则，计算 eligibleDate
-  const rule = TERM_LEAVE_RULES.find(r => r.round === round)
-  if (!rule) return ''
-  const eligible = new Date(arrival)
-  eligible.setMonth(eligible.getMonth() + rule.monthsAfterArrival)
-  // 第N+1任期年的12月31日
-  // 第N次任期假的"第N任期年"就是 eligibleDate 所在年
-  // 第N+1任期年 = 下一次任期假的 eligibleDate 所在年
-  const nextRule = TERM_LEAVE_RULES.find(r => r.round === round + 1)
-  if (nextRule) {
-    const nextEligible = new Date(arrival)
-    nextEligible.setMonth(nextEligible.getMonth() + nextRule.monthsAfterArrival)
-    return `${nextEligible.getFullYear()}-12-31`
-  }
-  // 最后一轮（第5次），没有下一轮，有效期 = 第6年任期的年份的12月31日
-  // 即到任日期 + 72个月所在年的12月31日
-  const lastEligible = new Date(arrival)
-  lastEligible.setMonth(lastEligible.getMonth() + 72) // 6年
-  return `${lastEligible.getFullYear()}-12-31`
+  // 第X次任期假有效期至第X+1任期年的最后一天
+  // 第X+1任期年 = 到任日期 + (X+1)*12个月 - 1天
+  const expiry = new Date(arrival)
+  expiry.setMonth(expiry.getMonth() + (round + 1) * 12)
+  expiry.setDate(expiry.getDate() - 1)  // 减1天=任期年最后一天
+  const y = expiry.getFullYear()
+  const m = String(expiry.getMonth() + 1).padStart(2, '0')
+  const d = String(expiry.getDate()).padStart(2, '0')
+  return `${y}-${m}-${d}`
 }
 
 /**
@@ -421,6 +414,7 @@ async function calculatePlanConsumption(startDate, endDate, isReturnToHome, quot
     const consumed = []
     let currentCursor = startDate
     let totalCoveredDays = 0
+    let returnBonusUsedInThisLeave = false // 同一次休假中，+2天机会只能使用一次
 
     // 计算用户选择的日期范围总日历天数
     const totalCalendarDays = countCalendarDays(startDate, endDate)
@@ -454,9 +448,11 @@ async function calculatePlanConsumption(startDate, endDate, isReturnToHome, quot
         currentCursor = formatDateObj(nextCursor)
       } else if (item.type === 'term') {
         // 任期假天数：包含回国+2天机会
+        // 规则：同一次休假中+2天机会只能使用一次，优先使用轮次较小的（y-1次优先于y次）
         let availableTermDays = item.availableDays
-        const canUseReturnBonus = !item.returnToHomeUsed && isReturnToHome
-        if (canUseReturnBonus) {
+        let canUseReturnBonus = false
+        if (!item.returnToHomeUsed && isReturnToHome && !returnBonusUsedInThisLeave) {
+          canUseReturnBonus = true
           availableTermDays += TERM_LEAVE_RETURN_BONUS_DAYS
         }
 
@@ -474,6 +470,9 @@ async function calculatePlanConsumption(startDate, endDate, isReturnToHome, quot
 
         // 判断本次消耗中是否使用了回国+2天
         const usedReturnBonus = canUseReturnBonus && consumeDays > item.availableDays
+        if (usedReturnBonus) {
+          returnBonusUsedInThisLeave = true // 标记+2天机会已在本休假中使用
+        }
         const actualTermQuotaConsumed = usedReturnBonus
           ? Math.min(item.availableDays, consumeDays) // 不含+2天的配额消耗
           : consumeDays
@@ -618,7 +617,9 @@ exports.main = async (event, context) => {
           workStartDate, arrivalDate,
           annualRemainingCurrent, annualRemainingPrev,
           termRemainingCurrent, termRemainingPrev,
-          maxTermRound, needPrevAnnual, needPrevTerm
+          maxTermRound, needPrevAnnual, needPrevTerm,
+          prevTermReturnToHome, prevTermPublicExpense,
+          currentTermReturnToHome, currentTermPublicExpense
         } = params || {}
         if (!workStartDate || !arrivalDate) return fail('请填写参加工作日期和到任日期', 400)
 
@@ -700,6 +701,10 @@ exports.main = async (event, context) => {
             if (prevRemaining <= 0) {
               termQuotas[i].used = true
             }
+            // 设置回国+2天和公费使用状态
+            termQuotas[i].isReturnToHome = !!prevTermReturnToHome
+            termQuotas[i].returnToHomeUsed = !!prevTermReturnToHome
+            termQuotas[i].publicExpenseUsed = !!prevTermPublicExpense
           } else if (round === effectiveMaxRound) {
             // 第 y 次任期假：用户填写剩余天数
             const curRemaining = Math.min(termRemainingCurrent || 0, TERM_LEAVE_DAYS_PER_ROUND)
@@ -708,12 +713,18 @@ exports.main = async (event, context) => {
             if (curRemaining <= 0) {
               termQuotas[i].used = true
             }
+            // 设置回国+2天和公费使用状态
+            termQuotas[i].isReturnToHome = !!currentTermReturnToHome
+            termQuotas[i].returnToHomeUsed = !!currentTermReturnToHome
+            termQuotas[i].publicExpenseUsed = !!currentTermPublicExpense
           } else if (round < effectiveMaxRound - 1) {
             // 更早的任期假轮次（round < y-1），标记为已用完
             termQuotas[i].used = true
             termQuotas[i].usedDays = TERM_LEAVE_DAYS_PER_ROUND
             termQuotas[i].availableDays = 0
-            termQuotas[i].isReturnToHome = false
+            termQuotas[i].isReturnToHome = true
+            termQuotas[i].returnToHomeUsed = true
+            termQuotas[i].publicExpenseUsed = true
           }
         }
 

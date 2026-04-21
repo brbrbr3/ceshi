@@ -64,7 +64,7 @@
         <view class="medical-popup-close" bindtap="hideFormPopup">×</view>
       </view>
 
-      <scroll-view scroll-y class="medical-popup-form">
+      <scroll-view scroll-y scroll-top="{{formScrollTop}}" class="medical-popup-form">
       <view class="medical-form-scroll-main">
         <view class="medical-field">
           <view class="medical-field-label">就医人姓名 <text class="medical-required">*</text></view>
@@ -164,7 +164,7 @@
         <view class="medical-popup-close" bindtap="hideDetailPopup">×</view>
       </view>
 
-      <scroll-view scroll-y class="medical-detail-content" wx:if="{{selectedRecord}}">
+      <scroll-view scroll-y scroll-top="{{detailScrollTop}}" class="medical-detail-content" wx:if="{{selectedRecord}}">
         <view class="medical-detail-row">
           <text class="medical-detail-label">就医人姓名：</text>
           <text class="medical-detail-value">{{selectedRecord.patientName}}</text>
