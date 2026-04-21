@@ -55,7 +55,7 @@
     </view>
 
     <!-- 打分弹窗 -->
-    <view class="rating-popup-mask" wx:if="{{showRatingPopup}}" bindtap="closeRatingPopup" catchtouchmove="stopPropagation">
+    <view class="rating-popup-mask {{modalAnimating ? 'is-closing' : ''}}" wx:if="{{showRatingPopup}}" bindtap="closeRatingPopup" catchtouchmove="stopPropagation">
       <view class="rating-popup" catchtap="stopPropagation">
         <view class="rating-popup-header">
           <text class="rating-popup-title">菜品打分</text>

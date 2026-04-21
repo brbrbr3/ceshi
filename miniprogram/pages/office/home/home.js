@@ -1,5 +1,6 @@
 const app = getApp()
 const utils = require('../../../common/utils.js')
+// home 页面弹窗使用 CSS transition 模式，已有退出动画，无需 modalAnimation
 // 使用统一的时间格式化函数
 const formatTime = (timestamp) => utils.formatRelativeTime(timestamp)
 

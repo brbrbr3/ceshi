@@ -1,5 +1,6 @@
 const app = getApp()
 const utils = require('../../../common/utils.js')
+const modalAnimation = require('../../../behaviors/modalAnimation.js')
 
 function formatTime(timestamp) {
   if (!timestamp) {
@@ -11,6 +12,8 @@ function formatTime(timestamp) {
 }
 
 Page({
+  behaviors: [modalAnimation],
+
   data: {
     menuId: '',
     menu: {},
@@ -485,7 +488,9 @@ Page({
 
   /** 关闭打分弹窗 */
   closeRatingPopup() {
-    this.setData({ showRatingPopup: false, tempRatings: {}, hasTempRatings: false })
+    this._closeModal('showRatingPopup', () => {
+      this.setData({ tempRatings: {}, hasTempRatings: false })
+    })
   },
 
   /** 选择星级 */

@@ -14,28 +14,48 @@ Page({
   onLoad(options) {
     const id = options.id
     if (!id) {
-      utils.showToast({ title: '参数错误', icon: 'none' })
-      setTimeout(() => { wx.navigateBack() }, 1500)
+      utils.showToast({
+        title: '参数错误',
+        icon: 'none'
+      })
+      setTimeout(() => {
+        wx.navigateBack()
+      }, 1500)
       return
     }
 
-    this.setData({ articleId: id })
+    this.setData({
+      articleId: id
+    })
     this.loadCurrentUser()
     this.loadArticle()
+  },
+
+  onShow() {
+    const fontStyle = app.globalData.fontStyle
+    if (this.data.fontStyle !== fontStyle) {
+      this.setData({
+        fontStyle
+      })
+    }
   },
 
   loadCurrentUser() {
     app.checkUserRegistration()
       .then((result) => {
         if (result.registered && result.user) {
-          this.setData({ currentUser: result.user })
+          this.setData({
+            currentUser: result.user
+          })
         }
       })
       .catch(() => {})
   },
 
   loadArticle() {
-    this.setData({ loading: true })
+    this.setData({
+      loading: true
+    })
 
     wx.cloud.callFunction({
       name: 'articleManager',
@@ -68,8 +88,13 @@ Page({
       }
     }).catch(error => {
       console.error('加载文章失败:', error)
-      utils.showToast({ title: error.message || '加载失败', icon: 'none' })
-      this.setData({ loading: false })
+      utils.showToast({
+        title: error.message || '加载失败',
+        icon: 'none'
+      })
+      this.setData({
+        loading: false
+      })
     })
   },
 
@@ -87,7 +112,9 @@ Page({
   },
 
   deleteArticle() {
-    wx.showLoading({ title: '删除中...' })
+    wx.showLoading({
+      title: '删除中...'
+    })
 
     wx.cloud.callFunction({
       name: 'articleManager',
@@ -99,14 +126,22 @@ Page({
       wx.hideLoading()
       const result = res.result
       if (result && result.code === 0) {
-        utils.showToast({ title: '删除成功', icon: 'success' })
-        setTimeout(() => { wx.navigateBack() }, 1500)
+        utils.showToast({
+          title: '删除成功',
+          icon: 'success'
+        })
+        setTimeout(() => {
+          wx.navigateBack()
+        }, 1500)
       } else {
         throw new Error(result.message || '删除失败')
       }
     }).catch(error => {
       wx.hideLoading()
-      utils.showToast({ title: error.message || '删除失败', icon: 'none' })
+      utils.showToast({
+        title: error.message || '删除失败',
+        icon: 'none'
+      })
     })
   },
 
@@ -116,7 +151,10 @@ Page({
     wx.setClipboardData({
       data: url,
       success() {
-        wx.showToast({ title: '链接已复制，请在浏览器中打开', icon: 'none' })
+        wx.showToast({
+          title: '链接已复制，请在浏览器中打开',
+          icon: 'none'
+        })
       }
     })
   },

@@ -983,7 +983,7 @@ App({
       TIMEZONE_NAME: 'America/Sao_Paulo',
 
       // 就医申请相关
-      RELATION_OPTIONS: ['本人', '配偶', '子女', '父母', '其他'],
+      RELATION_OPTIONS: ['本人', '配偶', '未成年子女'],
       MEDICAL_INSTITUTIONS: [
         'Hospital Sírio-Libanês（私立综合性医院）',
         'DF Star-Rede D\'OR（私立综合性医院）',
@@ -996,16 +996,25 @@ App({
         'Hospital das Forças Armadas （公立综合性医院）',
         'Rita Trindade（牙科）',
         'Clínica Implanto Odontologia Especializada（牙科）',
+        'Moreti Odontologia（牙科）',
+        'Crool by Rios（牙科）',
         'CBV（眼科）',
         'Laboratório Sabin（巴西临床医学典范）',
+        'Exame Imagem e Laboratório（临床医学检查与疫苗注射）',
+        'IMEB Crispim（临床医学检查）',
         'Cote Brasília（骨科）',
         'Aluma Dermatologia e Laser（皮肤科）',
+        'Verveine（皮肤科）',
+        'Inovaderm（皮肤科）',
+        'Consultório Natasha Ferraroni（过敏）',
         'Rheos. Reumatologia e Clínica Médica（风湿科）',
         'Prodigest（消化科）',
-        'CEOL ENT-Otorhinolaryngology Clinic（耳鼻喉科）',
-        'Centro de Acupuntura Shen（针灸、艾灸）',
-        'Consultório Natasha Ferraroni（过敏）',
+        'CEOL ENT-Otorrinolaringology Clinic（耳鼻喉科）',
+        'Centro de Acupuntura Shen（针灸）',
+        'Clínica de Acupuntura Chinesa Brasília（针灸）',
+        'Maternidade Brasília（妇产科）',
         'Hospital Materno Infantil de Brasília（妇幼专科）',
+        'CRIAPP（多种专科）',
         '其他'
       ],
 

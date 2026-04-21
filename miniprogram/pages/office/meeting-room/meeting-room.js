@@ -13,7 +13,9 @@ const END_HOUR = 24 // 结束小时 24:00
 // 会议室列表
 const MEETING_ROOMS = [
   { id: 'room_260', name: '260会议室' },
-  { id: 'room_3f', name: '3楼会议室' }
+  { id: 'room_3f', name: '3楼会议室' },
+  { id: 'room_meet1', name: '对外会议室1' },
+  { id: 'room_meet2', name: '对外会议室2' }
 ]
 
 // 权限角色常量

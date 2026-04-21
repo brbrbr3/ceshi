@@ -17,8 +17,8 @@
 }
 
 .detail-subtitle {
-  font-size: var(--fs-42);
-  font-weight: 500;
+  font-size: var(--fs-40);
+  font-weight: 600;
   color: rgba(255, 255, 255);
   overflow: hidden;
   text-overflow: ellipsis;

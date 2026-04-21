@@ -788,6 +788,115 @@ await mcp_call_tool({
 
 ---
 
+## 13. 弹窗动画规范
+
+### 13.1 核心原则
+
+**所有弹窗关闭时必须有退出动画**，禁止直接 `setData({ showXxx: false })` 瞬间消失。
+
+### 13.2 实现方案
+
+采用 `_closeModal()` + `modalAnimating` 状态 + CSS `.is-closing` 类模式：
+
+1. 关闭弹窗时先设 `modalAnimating: true`，触发 CSS 退出动画
+2. 250ms 后再设弹窗变量 `false` + `modalAnimating: false`，真正隐藏 DOM
+3. 使用 `behaviors/modalAnimation.js` 统一提供 `_closeModal()` 方法
+
+### 13.3 JS 规范
+
+```javascript
+// 1. 引入 behavior
+const modalAnimation = require('../../../behaviors/modalAnimation.js')
+
+Page({
+  behaviors: [modalAnimation],
+
+  // 2. 关闭弹窗改用 _closeModal
+  hideFormPopup() {
+    this._closeModal('showFormPopup')
+  },
+
+  hideDetailPopup() {
+    this._closeModal('showDetailPopup', () => {
+      // 动画结束后的数据清理
+      this.setData({ selectedRecord: null })
+    })
+  },
+
+  // 3. 提交成功后也走动画关闭
+  handleSubmit() {
+    // ... 业务逻辑
+    this._closeModal('showFormPopup')
+  }
+})
+```
+
+### 13.4 WXML 规范
+
+遮罩层添加 `is-closing` 条件类：
+
+```xml
+<!-- 退出动画遮罩 -->
+<view class="xxx-mask {{modalAnimating ? 'is-closing' : ''}}" catchtap="hideXxx">
+  <view class="xxx-container" catchtap="stopPropagation">
+    <!-- 弹窗内容 -->
+  </view>
+</view>
+```
+
+**关键点**：
+- 遮罩使用 `catchtap` 绑定关闭方法
+- 弹窗内容区使用 `catchtap="stopPropagation"` 阻止冒泡
+- 不要用 `wx:if` 控制遮罩显示/隐藏（除非有特殊性能需求），否则退出动画期间 DOM 会被提前移除
+
+### 13.5 WXSS 规范
+
+```css
+/* 遮罩 - 入场 */
+.xxx-mask {
+  position: fixed;
+  top: 0; left: 0; right: 0; bottom: 0;
+  background: rgba(0, 0, 0, 0.5);
+  z-index: 100;
+  animation: fadeIn 0.2s ease;
+}
+
+/* 遮罩 - 退出动画 */
+.xxx-mask.is-closing {
+  animation: fadeOut 0.25s ease forwards;
+}
+
+/* 弹窗容器 - 入场 */
+.xxx-container {
+  animation: slideUp 0.3s cubic-bezier(0.25, 0.1, 0.25, 1);
+}
+
+/* 弹窗容器 - 退出动画 */
+.is-closing .xxx-container {
+  animation: slideDown 0.25s cubic-bezier(0.25, 0.1, 0.25, 1) forwards;
+}
+
+/* 关键帧 */
+@keyframes fadeIn { from { opacity: 0; } to { opacity: 1; } }
+@keyframes fadeOut { from { opacity: 1; } to { opacity: 0; } }
+@keyframes slideUp { from { transform: translateY(100%); } to { transform: translateY(0); } }
+@keyframes slideDown { from { transform: translateY(0); } to { transform: translateY(100%); } }
+```
+
+### 13.6 动画时长标准
+
+| 阶段 | 遮罩 | 弹窗 |
+|------|------|------|
+| 入场 | fadeIn 0.2s | slideUp 0.3s |
+| 退出 | fadeOut 0.25s | slideDown 0.25s |
+
+### 13.7 参考实现
+
+- `meal-management` 页面：5 个弹窗，使用 `modal-closing` + `@keyframes` 方案
+- `arrival-guide` 页面：1 个弹窗，使用 `transition` + `popupAnimating` 方案（DOM 常驻模式）
+
+---
+
 ## 参考文档
 
 1. `DATABASE_COLLECTIONS_REFERENCE.md` - 数据库集合参考

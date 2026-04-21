@@ -110,7 +110,7 @@ page {
 }
 
 .date-item {
-  width: 120rpx;
+  width: 140rpx;
   padding: 20rpx 0;
   border-radius: 24rpx;
   background: #F8FAFC;
@@ -129,6 +129,10 @@ page {
 .date-weekday {
   font-size: var(--fs-24);
   color: #94A3B8;
+}
+
+.date-item.is-active .date-weekday {
+  color: #1E293B;
 }
 
 .date-day {
@@ -378,7 +382,7 @@ page {
 
 .current-time-dot {
   position: absolute;
-  left: 95rpx;
+  left: 110rpx;
   top: 0;
   width: 16rpx;
   height: 16rpx;
@@ -390,7 +394,7 @@ page {
 
 .current-time-bar {
   position: absolute;
-  left: 100rpx;
+  left: 110rpx;
   right: -30rpx;
   top: 0;
   height: 2rpx;

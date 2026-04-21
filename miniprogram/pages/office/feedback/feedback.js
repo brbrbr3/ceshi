@@ -10,9 +10,10 @@
 const app = getApp()
 const utils = require('../../../common/utils.js')
 const paginationBehavior = require('../../../behaviors/pagination.js')
+const modalAnimation = require('../../../behaviors/modalAnimation.js')
 
 Page({
-  behaviors: [paginationBehavior],
+  behaviors: [paginationBehavior, modalAnimation],
 
   data: {
     // 权限
@@ -128,10 +129,8 @@ Page({
    * 隐藏回复弹窗
    */
   hideReplyModal() {
-    this.setData({
-      showReplyModal: false,
-      currentFeedbackId: '',
-      replyContent: ''
+    this._closeModal('showReplyModal', () => {
+      this.setData({ currentFeedbackId: '', replyContent: '' })
     })
   },
 

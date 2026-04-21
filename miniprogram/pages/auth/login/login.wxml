@@ -45,8 +45,8 @@
     <view class="auth-bootstrap-btn" bindtap="showBootstrapModal">开始初始化</view>
   </view>
 
-  <!-- 调试模式入口（仅管理员可见） -->
-  <view wx:if="{{isAdmin}}" class="auth-debug-entry" bindtap="toggleDebugPanel">{{showDebugPanel ? '收起调试面板' : '打开调试面板'}}</view>
+  <!-- 调试模式入口（仅管理员且为开发环境时可见） -->
+  <view wx:if="{{isAdmin && isDevEnv}}" class="auth-debug-entry" bindtap="toggleDebugPanel">{{showDebugPanel ? '收起调试面板' : '打开调试面板'}}</view>
 
   <!-- 调试面板 -->
   <view wx:if="{{showDebugPanel}}" class="auth-debug-panel">
@@ -100,8 +100,8 @@
   </view>
 
   <!-- 清库密钥弹窗 -->
-  <view wx:if="{{showClearDbKeyModal}}" class="auth-modal-overlay" bindtap="hideClearDbKeyModal">
-    <view class="auth-modal" catchtap>
+  <view wx:if="{{showClearDbKeyModal}}" class="auth-modal-overlay {{modalAnimating ? 'is-closing' : ''}}" bindtap="hideClearDbKeyModal">
+    <view class="auth-modal" catchtap="stopPropagation">
       <view class="auth-modal-title">输入清库密钥</view>
       <view class="auth-modal-desc">清空数据库前需要再次输入后端配置的 DB_CLEAR_KEY。</view>
       <input class="auth-modal-input" type="password" password="{{true}}" placeholder="请输入清库密钥" value="{{clearDbKey}}" bindinput="onClearDbKeyInput" />
@@ -113,8 +113,8 @@
   </view>
 
   <!-- 首个管理员初始化弹窗 -->
-  <view wx:if="{{showBootstrapModal}}" class="auth-modal-overlay" bindtap="hideBootstrapModal">
-    <view class="auth-modal" catchtap>
+  <view wx:if="{{showBootstrapModal}}" class="auth-modal-overlay {{modalAnimating ? 'is-closing' : ''}}" bindtap="hideBootstrapModal">
+    <view class="auth-modal" catchtap="stopPropagation">
       <view class="auth-modal-title">首个管理员初始化</view>
       <view class="auth-modal-desc">请输入后端配置的初始化密钥。此入口只会在系统尚无已审批管理员时开放。</view>
       <input class="auth-modal-input" type="password" password="{{true}}" placeholder="请输入初始化密钥" value="{{bootstrapInviteCode}}" bindinput="onBootstrapInviteCodeInput" />

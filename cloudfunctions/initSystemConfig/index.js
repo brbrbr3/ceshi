@@ -300,7 +300,7 @@ const SYSTEM_CONFIGS = [
   {
     type: 'medical',
     key: 'RELATION_OPTIONS',
-    value: ['本人', '配偶', '子女', '父母', '其他'],
+    value: ['本人', '配偶', '未成年子女'],
     description: '就医申请-与申请人关系选项',
     sort: 80
   },

@@ -79,8 +79,8 @@
   </view>
 
   <!-- 回复弹窗 -->
-  <view wx:if="{{showReplyModal}}" class="reply-modal-overlay" bindtap="hideReplyModal">
-    <view class="reply-modal" catchtap>
+  <view wx:if="{{showReplyModal}}" class="reply-modal-overlay {{modalAnimating ? 'is-closing' : ''}}" bindtap="hideReplyModal">
+    <view class="reply-modal" catchtap="stopPropagation">
       <view class="reply-modal-title">回复意见</view>
       <textarea 
         class="reply-modal-input" 

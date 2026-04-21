@@ -1,5 +1,6 @@
 const app = getApp()
 const utils = require('../../../common/utils.js')
+const modalAnimation = require('../../../behaviors/modalAnimation.js')
 
 function formatTime(timestamp) {
   if (!timestamp) {
@@ -47,11 +48,14 @@ function buildStatusCard(request) {
 }
 
 Page({
+  behaviors: [modalAnimation],
+
   data: {
     loading: false,
     statusCard: null,
     showRegisterLink: true,
     isAdmin: false,
+    isDevEnv: false,
     showDebugPanel: false,
     debugResults: [],
     showClearDbPanel: false,
@@ -73,12 +77,17 @@ Page({
   onShow() {
     const fontStyle = app.globalData.fontStyle
     if (this.data.fontStyle !== fontStyle) {
-      this.setData({ fontStyle })
+      this.setData({
+        fontStyle
+      })
     }
     app.clearAuthState()
     this.refreshStatus()
     app.loadConstants().catch((err) => {
       console.warn('预加载常量失败:', err)
+    })
+    this.setData({
+      isDevEnv: this.checkDevEnv()
     })
   },
 
@@ -101,7 +110,9 @@ Page({
         throw new Error(result.message || '获取初始化状态失败')
       }
       const bootstrapStatus = result.data || {}
-      this.setData({ bootstrapStatus })
+      this.setData({
+        bootstrapStatus
+      })
       return bootstrapStatus
     }).catch((error) => {
       console.warn('获取首个管理员引导状态失败:', error)
@@ -110,7 +121,9 @@ Page({
         hasApprovedAdmin: true,
         canBootstrap: false
       }
-      this.setData({ bootstrapStatus: fallback })
+      this.setData({
+        bootstrapStatus: fallback
+      })
       return fallback
     })
   },
@@ -120,9 +133,11 @@ Page({
       app.checkUserRegistration(),
       this.loadBootstrapStatus()
     ]).then(([result]) => {
-      const statusCard = result.registered
-        ? buildStatusCard({ status: 'approved' })
-        : buildStatusCard(result.request)
+      const statusCard = result.registered ?
+        buildStatusCard({
+          status: 'approved'
+        }) :
+        buildStatusCard(result.request)
 
       const isAdmin = result.registered && result.user && result.user.isAdmin === true
 
@@ -151,7 +166,7 @@ Page({
     if (this.data.loading) return
 
     // 调试环境跳过生物认证（开发者工具不支持生物认证API）
-    if (this.isDevEnvironment()) {
+    if (this.checkDevEnv()) {
       console.warn('[login] 开发环境，跳过生物认证')
       this.doLogin()
       return
@@ -194,7 +209,9 @@ Page({
       }
 
       // 2. 调起生物认证
-      this.setData({ loading: true })
+      this.setData({
+        loading: true
+      })
       await wx.startSoterAuthentication({
         requestAuthModes: [authMode],
         challenge: String(Date.now()),
@@ -213,13 +230,15 @@ Page({
     } finally {
       // 只有在 doLogin 没有被调用时才重置 loading
       if (this.data.loading) {
-        this.setData({ loading: false })
+        this.setData({
+          loading: false
+        })
       }
     }
   },
 
   // 判断是否为开发环境（开发者工具）
-  isDevEnvironment() {
+  checkDevEnv() {
     try {
       const accountInfo = wx.getAccountInfoSync()
       return accountInfo.miniProgram.envVersion === 'develop'
@@ -230,7 +249,9 @@ Page({
 
   // 原来的登录逻辑抽到这个方法
   doLogin() {
-    this.setData({ loading: true })
+    this.setData({
+      loading: true
+    })
     app.checkUserRegistration()
       .then((result) => {
         if (result.registered === true) {
@@ -239,7 +260,10 @@ Page({
             icon: 'success'
           })
           // 登录成功，将用户状态设为 online（若当前外出则保持 out）
-          app.callOfficeAuth('updateUserStatus', { userStatus: 'online', preserveOut: true }).catch(err => {
+          app.callOfficeAuth('updateUserStatus', {
+            userStatus: 'online',
+            preserveOut: true
+          }).catch(err => {
             console.warn('更新在线状态失败:', err)
           })
           setTimeout(() => {
@@ -270,9 +294,9 @@ Page({
         }
 
         wx.navigateTo({
-          url: result.request && result.request.status === 'rejected'
-            ? '/pages/auth/register/register?mode=reapply'
-            : '/pages/auth/register/register'
+          url: result.request && result.request.status === 'rejected' ?
+            '/pages/auth/register/register?mode=reapply' :
+            '/pages/auth/register/register'
         })
       })
       .catch((error) => {
@@ -282,7 +306,9 @@ Page({
         })
       })
       .finally(() => {
-        this.setData({ loading: false })
+        this.setData({
+          loading: false
+        })
         this.refreshStatus()
       })
   },
@@ -294,7 +320,7 @@ Page({
   },
 
   toggleDebugPanel() {
-    if (!this.data.isAdmin) {
+    if (!this.data.isAdmin || !this.checkDevEnv()) {
       return
     }
 
@@ -324,7 +350,10 @@ Page({
   },
 
   callInitSystemConfig() {
-    wx.showLoading({ title: '执行中...', mask: true })
+    wx.showLoading({
+      title: '执行中...',
+      mask: true
+    })
     wx.cloud.callFunction({
       name: 'initSystemConfig',
       data: {}
@@ -344,7 +373,10 @@ Page({
   },
 
   callInitWorkflowDB() {
-    wx.showLoading({ title: '执行中...', mask: true })
+    wx.showLoading({
+      title: '执行中...',
+      mask: true
+    })
     wx.cloud.callFunction({
       name: 'initWorkflowDB',
       data: {}
@@ -370,11 +402,16 @@ Page({
       selectedCollections: []
     })
 
-    wx.showLoading({ title: '获取集合列表...', mask: true })
+    wx.showLoading({
+      title: '获取集合列表...',
+      mask: true
+    })
     try {
       const res = await wx.cloud.callFunction({
         name: 'dbManager',
-        data: { action: 'listCollections' }
+        data: {
+          action: 'listCollections'
+        }
       })
       wx.hideLoading()
 
@@ -383,14 +420,22 @@ Page({
           name,
           checked: false
         }))
-        this.setData({ dbCollections: collections })
+        this.setData({
+          dbCollections: collections
+        })
       } else {
-        utils.showToast({ title: res.result.message || '获取失败', icon: 'none' })
+        utils.showToast({
+          title: res.result.message || '获取失败',
+          icon: 'none'
+        })
         this.hideClearDbPanel()
       }
     } catch (error) {
       wx.hideLoading()
-      utils.showToast({ title: error.message || '获取集合列表失败', icon: 'none' })
+      utils.showToast({
+        title: error.message || '获取集合列表失败',
+        icon: 'none'
+      })
       this.hideClearDbPanel()
     }
   },
@@ -399,9 +444,12 @@ Page({
     this.setData({
       showClearDbPanel: false,
       dbCollections: [],
-      selectedCollections: [],
-      showClearDbKeyModal: false,
-      clearDbKey: ''
+      selectedCollections: []
+    })
+    this._closeModal('showClearDbKeyModal', () => {
+      this.setData({
+        clearDbKey: ''
+      })
     })
   },
 
@@ -420,20 +468,37 @@ Page({
   toggleSelectAll() {
     const allSelected = this.data.selectedCollections.length === this.data.dbCollections.length
     if (allSelected) {
-      const collections = this.data.dbCollections.map((item) => ({ ...item, checked: false }))
-      this.setData({ dbCollections: collections, selectedCollections: [] })
+      const collections = this.data.dbCollections.map((item) => ({
+        ...item,
+        checked: false
+      }))
+      this.setData({
+        dbCollections: collections,
+        selectedCollections: []
+      })
     } else {
-      const collections = this.data.dbCollections.map((item) => ({ ...item, checked: true }))
+      const collections = this.data.dbCollections.map((item) => ({
+        ...item,
+        checked: true
+      }))
       const allNames = collections.map((item) => item.name)
-      this.setData({ dbCollections: collections, selectedCollections: allNames })
+      this.setData({
+        dbCollections: collections,
+        selectedCollections: allNames
+      })
     }
   },
 
   doClearDb() {
-    const { selectedCollections } = this.data
+    const {
+      selectedCollections
+    } = this.data
 
     if (selectedCollections.length === 0) {
-      utils.showToast({ title: '请先选择要清理的集合', icon: 'none' })
+      utils.showToast({
+        title: '请先选择要清理的集合',
+        icon: 'none'
+      })
       return
     }
 
@@ -468,9 +533,10 @@ Page({
   },
 
   hideClearDbKeyModal() {
-    this.setData({
-      showClearDbKeyModal: false,
-      clearDbKey: ''
+    this._closeModal('showClearDbKeyModal', () => {
+      this.setData({
+        clearDbKey: ''
+      })
     })
   },
 
@@ -483,7 +549,10 @@ Page({
   confirmClearDb() {
     const clearDbKey = String(this.data.clearDbKey || '').trim()
     if (!clearDbKey) {
-      utils.showToast({ title: '请输入清库密钥', icon: 'none' })
+      utils.showToast({
+        title: '请输入清库密钥',
+        icon: 'none'
+      })
       return
     }
 
@@ -492,10 +561,17 @@ Page({
   },
 
   async executeClearDb(clearKey) {
-    const { selectedCollections } = this.data
+    const {
+      selectedCollections
+    } = this.data
 
-    this.setData({ clearDbLoading: true })
-    wx.showLoading({ title: '清理中...', mask: true })
+    this.setData({
+      clearDbLoading: true
+    })
+    wx.showLoading({
+      title: '清理中...',
+      mask: true
+    })
 
     try {
       const res = await wx.cloud.callFunction({
@@ -508,10 +584,15 @@ Page({
       })
 
       wx.hideLoading()
-      this.setData({ clearDbLoading: false })
+      this.setData({
+        clearDbLoading: false
+      })
 
       if (res.result.code === 0) {
-        const { summary, results } = res.result.data
+        const {
+          summary,
+          results
+        } = res.result.data
         this.addDebugResult(
           '清除数据库',
           summary.failed === 0,
@@ -529,13 +610,21 @@ Page({
         })
       } else {
         this.addDebugResult('清除数据库', false, res.result.message)
-        utils.showToast({ title: res.result.message || '清理失败', icon: 'none' })
+        utils.showToast({
+          title: res.result.message || '清理失败',
+          icon: 'none'
+        })
       }
     } catch (error) {
       wx.hideLoading()
-      this.setData({ clearDbLoading: false })
+      this.setData({
+        clearDbLoading: false
+      })
       this.addDebugResult('清除数据库', false, error.message || '清理失败')
-      utils.showToast({ title: error.message || '清理失败', icon: 'none' })
+      utils.showToast({
+        title: error.message || '清理失败',
+        icon: 'none'
+      })
     }
   },
 
@@ -547,9 +636,10 @@ Page({
   },
 
   hideBootstrapModal() {
-    this.setData({
-      showBootstrapModal: false,
-      bootstrapInviteCode: ''
+    this._closeModal('showBootstrapModal', () => {
+      this.setData({
+        bootstrapInviteCode: ''
+      })
     })
   },
 
@@ -573,8 +663,13 @@ Page({
       return
     }
 
-    this.setData({ bootstrapLoading: true })
-    wx.showLoading({ title: '初始化中...', mask: true })
+    this.setData({
+      bootstrapLoading: true
+    })
+    wx.showLoading({
+      title: '初始化中...',
+      mask: true
+    })
 
     wx.cloud.callFunction({
       name: 'bootstrapAdmin',
@@ -594,7 +689,9 @@ Page({
         icon: 'success'
       })
 
-      return app.checkUserRegistration({ forceRefresh: true })
+      return app.checkUserRegistration({
+        forceRefresh: true
+      })
     }).then((result) => {
       if (result && result.registered) {
         setTimeout(() => {
@@ -610,7 +707,9 @@ Page({
       })
     }).finally(() => {
       wx.hideLoading()
-      this.setData({ bootstrapLoading: false })
+      this.setData({
+        bootstrapLoading: false
+      })
       this.refreshStatus()
     })
   }

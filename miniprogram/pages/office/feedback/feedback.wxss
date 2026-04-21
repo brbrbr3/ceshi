@@ -279,6 +279,15 @@
   display: flex;
   align-items: flex-end;
   z-index: 200;
+  animation: fadeIn 0.2s ease;
+}
+
+.reply-modal-overlay.is-closing {
+  animation: fadeOut 0.25s ease forwards;
+}
+
+.reply-modal-overlay.is-closing .reply-modal {
+  animation: slideDown 0.25s ease forwards;
 }
 
 .reply-modal {
@@ -287,7 +296,13 @@
   border-radius: 32rpx 32rpx 0 0;
   padding: 32rpx;
   padding-bottom: calc(32rpx + env(safe-area-inset-bottom));
+  animation: slideUp 0.3s cubic-bezier(0.25, 0.1, 0.25, 1);
 }
+
+@keyframes fadeIn { from { opacity: 0; } to { opacity: 1; } }
+@keyframes fadeOut { from { opacity: 1; } to { opacity: 0; } }
+@keyframes slideUp { from { transform: translateY(100%); } to { transform: translateY(0); } }
+@keyframes slideDown { from { transform: translateY(0); } to { transform: translateY(100%); } }
 
 .reply-modal-title {
   font-size: var(--fs-32);

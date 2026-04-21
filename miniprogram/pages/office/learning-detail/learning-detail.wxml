@@ -14,9 +14,9 @@
     <view class="office-card ld-card">
       <!-- 作者信息 -->
       <view class="ld-author-row">
-        <image class="ld-author-avatar" src="{{article.authorAvatar || '/image/default-avatar.png'}}" mode="aspectFill" />
+        <!-- <image class="ld-author-avatar" src="{{article.authorAvatar || '/image/default-avatar.png'}}" mode="aspectFill" /> -->
         <view class="ld-author-info">
-          <view class="ld-author-name">{{article.authorName}}</view>
+          <view class="ld-author-name">发布人：{{article.authorName}}</view>
           <view class="ld-author-meta">
             <text>{{article.timeText}}</text>
             <text class="ld-meta-dot">·</text>
