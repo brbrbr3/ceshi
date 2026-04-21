@@ -127,7 +127,7 @@ input {
   justify-content: center;
   padding: 8rpx 16rpx;
   border-radius: 999rpx;
-  font-size: var(--fs-20);
+  font-size: var(--fs-22);
   line-height: 1;
 }
 
@@ -226,7 +226,7 @@ input {
   border-radius: 999rpx;
   background: rgba(37, 99, 235, 0.1);
   color: #1D4ED8;
-  font-size: var(--fs-22);
+  font-size: var(--fs-24);
   font-weight: 600;
 }
 
@@ -282,7 +282,7 @@ input {
 
 .auth-wechat-desc {
   margin-top: 8rpx;
-  font-size: var(--fs-22);
+  font-size: var(--fs-24);
   color: #15803D;
 }
 
@@ -305,7 +305,7 @@ input {
 
 .auth-note {
   margin-top: 18rpx;
-  font-size: var(--fs-22);
+  font-size: var(--fs-24);
   line-height: 1.7;
   color: #64748B;
   margin-bottom: 60rpx;
@@ -331,7 +331,7 @@ input {
 .auth-status-tag {
   padding: 10rpx 18rpx;
   border-radius: 999rpx;
-  font-size: var(--fs-20);
+  font-size: var(--fs-22);
   font-weight: 600;
 }
 
@@ -378,7 +378,7 @@ input {
 .auth-status-extra,
 .auth-status-time {
   margin-top: 14rpx;
-  font-size: var(--fs-22);
+  font-size: var(--fs-24);
   line-height: 1.7;
   color: #64748B;
 }
@@ -497,6 +497,6 @@ input {
 
 .auth-review-text {
   margin-top: 10rpx;
-  font-size: var(--fs-22);
+  font-size: var(--fs-24);
   line-height: 1.7;
 }

@@ -137,7 +137,7 @@
 }
 
 .toolbar-icon-header {
-  font-size: var(--fs-22);
+  font-size: var(--fs-24);
   font-weight: 700;
   color: #B91C1C;
 }
@@ -168,7 +168,7 @@
 
 .auth-field-count {
   text-align: right;
-  font-size: var(--fs-22);
+  font-size: var(--fs-24);
   color: #94A3B8;
   margin-top: 10rpx;
 }

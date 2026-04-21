@@ -465,7 +465,15 @@ const EXAMPLE_TEMPLATES = [
         { field: 'isTransferringBenefit', label: '是否申请公费待遇转让', type: 'boolean', condition: { field: 'isTransferringBenefit', op: 'eq', value: true } },
         { field: 'transferredCount', label: '已转让公费待遇次数', condition: { field: 'transferredCount', op: '>', value: 0 } },
         { field: 'needsVisaAssistance', label: '是否需协助办理签证', type: 'boolean', condition: { field: 'needsVisaAssistance', op: 'eq', value: true } },
-        { field: 'otherNotes', label: '其他说明', condition: { field: 'otherNotes', op: '!=', value: '' } }
+        { field: 'otherNotes', label: '其他说明', condition: { field: 'otherNotes', op: '!=', value: '' } },
+        { field: 'pastLeaveRecords', label: '过往休假记录', type: 'table', condition: { field: 'pastLeaveRecords', op: 'notEmpty' }, columns: [
+          { field: 'leaveType', label: '类型' },
+          { field: 'startDate', label: '开始日期' },
+          { field: 'endDate', label: '结束日期' },
+          { field: 'days', label: '天数' },
+          { field: 'expenseType', label: '费用' },
+          { field: 'location', label: '地点' }
+        ]}
       ]
     },
     defaultTimeout: 72,

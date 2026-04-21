@@ -70,7 +70,7 @@ page {
 
 .sig-card-loading,
 .sig-card-error {
-  font-size: var(--fs-22);
+  font-size: var(--fs-24);
   color: #94A3B8;
 }
 
@@ -87,7 +87,7 @@ page {
 
 .sig-card-time {
   margin-top: 8rpx;
-  font-size: var(--fs-22);
+  font-size: var(--fs-24);
   color: #94A3B8;
 }
 
@@ -173,7 +173,7 @@ page {
 
 .sig-add-hint {
   text-align: center;
-  font-size: var(--fs-22);
+  font-size: var(--fs-24);
   color: #94A3B8;
   margin-top: 12rpx;
 }

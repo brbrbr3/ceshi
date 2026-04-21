@@ -253,12 +253,12 @@ view, scroll-view, page, image {
 }
 
 .gb-detail-comment-time {
-  font-size: var(--fs-22);
+  font-size: var(--fs-24);
   color: #94A3B8;
 }
 
 .gb-detail-comment-reply-btn {
-  font-size: var(--fs-22);
+  font-size: var(--fs-24);
   color: #94A3B8;
 }
 
@@ -281,7 +281,7 @@ view, scroll-view, page, image {
 }
 
 .gb-detail-comment-like-count {
-  font-size: var(--fs-20);
+  font-size: var(--fs-22);
   color: #94A3B8;
 }
 
@@ -323,7 +323,7 @@ view, scroll-view, page, image {
 }
 
 .gb-detail-more-replies {
-  font-size: var(--fs-22);
+  font-size: var(--fs-24);
   color: #16A34A;
   padding-top: 8rpx;
 }
@@ -351,7 +351,7 @@ view, scroll-view, page, image {
 
 .gb-detail-reply-hint {
   padding: 8rpx 24rpx;
-  font-size: var(--fs-22);
+  font-size: var(--fs-24);
   color: #16A34A;
   background: #F0FDF4;
 }

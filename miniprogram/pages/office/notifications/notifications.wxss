@@ -115,7 +115,7 @@
 }
 
 .notification-time {
-  font-size: var(--fs-22);
+  font-size: var(--fs-24);
   color: #9CA3AF;
 }
 

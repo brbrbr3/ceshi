@@ -119,7 +119,7 @@
   align-items: center;
   gap: 8rpx;
   margin-top: 10rpx;
-  font-size: var(--fs-22);
+  font-size: var(--fs-24);
   color: #94A3B8;
 }
 
@@ -145,7 +145,7 @@
 .activity-status-tag {
   padding: 6rpx 16rpx;
   border-radius: 16rpx;
-  font-size: var(--fs-20);
+  font-size: var(--fs-22);
   font-weight: 500;
   white-space: nowrap;
 }
@@ -161,7 +161,7 @@
 }
 
 .activity-reg-count {
-  font-size: var(--fs-20);
+  font-size: var(--fs-22);
   color: #7C3AED;
   white-space: nowrap;
 }

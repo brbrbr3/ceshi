@@ -46,7 +46,7 @@
 .detail-tag {
   padding: 8rpx 20rpx;
   border-radius: 16rpx;
-  font-size: var(--fs-22);
+  font-size: var(--fs-24);
   font-weight: 500;
 }
 
@@ -149,7 +149,7 @@
 }
 
 .group-count {
-  font-size: var(--fs-22);
+  font-size: var(--fs-24);
   color: #7C3AED;
   background: #EDE9FE;
   padding: 4rpx 14rpx;
@@ -208,7 +208,7 @@
 }
 
 .reg-group {
-  font-size: var(--fs-22);
+  font-size: var(--fs-24);
   color: #7C3AED;
   background: #EDE9FE;
   padding: 4rpx 14rpx;
@@ -217,7 +217,7 @@
 }
 
 .reg-time {
-  font-size: var(--fs-20);
+  font-size: var(--fs-22);
   color: #94A3B8;
   flex-shrink: 0;
 }

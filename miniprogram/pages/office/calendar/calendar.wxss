@@ -192,7 +192,7 @@
 }
 
 .config-picker-arrow {
-  font-size: var(--fs-20);
+  font-size: var(--fs-22);
   color: #94A3B8;
   margin-left: 8rpx;
 }
@@ -388,7 +388,7 @@
 
 .hour-label {
   width: 80rpx;
-  font-size: var(--fs-22);
+  font-size: var(--fs-24);
   color: #94A3B8;
   text-align: center;
   padding-top: 4rpx;
@@ -438,7 +438,7 @@
 }
 
 .schedule-bar-time {
-  font-size: var(--fs-20);
+  font-size: var(--fs-22);
   color: rgba(255, 255, 255, 0.9);
   display: block;
   margin-top: 4rpx;
@@ -459,7 +459,7 @@
 .current-time-label {
   position: absolute;
   left: -66rpx;
-  font-size: var(--fs-22);
+  font-size: var(--fs-24);
   color: #EF4444;
   font-weight: 600;
   width: 72rpx;

@@ -170,7 +170,7 @@ page {
 }
 
 .news-card-source {
-  font-size: var(--fs-20);
+  font-size: var(--fs-22);
   padding: 4rpx 12rpx;
   border-radius: 6rpx;
   font-weight: 500;
@@ -192,7 +192,7 @@ page {
 }
 
 .news-card-time {
-  font-size: var(--fs-22);
+  font-size: var(--fs-24);
   color: #94A3B8;
 }
 

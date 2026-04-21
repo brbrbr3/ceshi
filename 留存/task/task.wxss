@@ -13,7 +13,7 @@ page {
 
 .work-subtitle {
   margin-top: 10rpx;
-  font-size: var(--fs-22);
+  font-size: var(--fs-24);
   opacity: 0.76;
 }
 
@@ -88,7 +88,7 @@ page {
 .work-event-location,
 .work-project-members,
 .work-group-title {
-  font-size: var(--fs-22);
+  font-size: var(--fs-24);
   color: #94A3B8;
 }
 
@@ -148,7 +148,7 @@ page {
   align-items: center;
   justify-content: center;
   color: #FFFFFF;
-  font-size: var(--fs-20);
+  font-size: var(--fs-22);
   font-weight: 600;
   margin-right: -10rpx;
   border: 4rpx solid #FFFFFF;
@@ -180,7 +180,7 @@ page {
 
 .work-week-item {
   text-align: center;
-  font-size: var(--fs-20);
+  font-size: var(--fs-22);
   color: #94A3B8;
 }
 
@@ -190,7 +190,7 @@ page {
   display: flex;
   align-items: center;
   justify-content: center;
-  font-size: var(--fs-22);
+  font-size: var(--fs-24);
   color: #1E293B;
 }
 

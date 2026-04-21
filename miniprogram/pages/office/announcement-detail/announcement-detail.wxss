@@ -69,7 +69,7 @@
 .detail-tag {
   padding: 6rpx 20rpx;
   border-radius: 6rpx;
-  font-size: var(--fs-22);
+  font-size: var(--fs-24);
   font-weight: 500;
 }
 
@@ -91,7 +91,7 @@
 .status-tag {
   padding: 6rpx 20rpx;
   border-radius: 6rpx;
-  font-size: var(--fs-22);
+  font-size: var(--fs-24);
   font-weight: 500;
   background-color: #F3F4F6;
   color: #6B7280;

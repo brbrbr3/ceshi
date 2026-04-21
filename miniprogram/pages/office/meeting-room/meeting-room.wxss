@@ -158,7 +158,7 @@ page {
 }
 
 .date-count-badge text {
-  font-size: var(--fs-20);
+  font-size: var(--fs-22);
   color: #FFFFFF;
   font-weight: 500;
 }
@@ -198,7 +198,7 @@ page {
 
 .hour-label {
   width: 88rpx;
-  font-size: var(--fs-22);
+  font-size: var(--fs-24);
   color: #94A3B8;
   text-align: center;
   padding-top: 4rpx;
@@ -369,7 +369,7 @@ page {
   position: absolute;
   left: 5rpx;
   top: 0rpx;
-  font-size: var(--fs-22);
+  font-size: var(--fs-24);
   color: #EF4444;
   font-weight: 600;
   background: rgba(255, 255, 255, 0.8);

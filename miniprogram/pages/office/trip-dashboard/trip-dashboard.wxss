@@ -51,7 +51,7 @@
 }
 
 .dashboard-filter-arrow {
-  font-size: var(--fs-20);
+  font-size: var(--fs-22);
   color: #64748B;
 }
 
@@ -220,7 +220,7 @@
 }
 
 .dashboard-item-status {
-  font-size: var(--fs-22);
+  font-size: var(--fs-24);
   padding: 6rpx 16rpx;
   border-radius: 8rpx;
   font-weight: 500;

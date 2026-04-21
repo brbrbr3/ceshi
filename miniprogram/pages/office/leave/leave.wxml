@@ -84,7 +84,7 @@
                   <view class="leave-select-item {{setupForm.prevTermReturnToHome ? 'is-active' : ''}}" data-value="true" bindtap="handleSetupPrevTermReturnSelect">是</view>
                   <view class="leave-select-item {{!setupForm.prevTermReturnToHome ? 'is-active' : ''}}" data-value="false" bindtap="handleSetupPrevTermReturnSelect">否</view>
                 </view>
-                <text style="font-size:var(--fs-22);color:#94A3B8;display:block;margin-top:4rpx;">
+                <text style="font-size:var(--fs-24);color:#94A3B8;display:block;margin-top:4rpx;">
                   回国则该次任期假使用了+2天机会
                 </text>
               </view>
@@ -95,7 +95,7 @@
                   <view class="leave-select-item {{setupForm.prevTermPublicExpense ? 'is-active' : ''}}" data-value="true" bindtap="handleSetupPrevTermPublicExpenseSelect">是</view>
                   <view class="leave-select-item {{!setupForm.prevTermPublicExpense ? 'is-active' : ''}}" data-value="false" bindtap="handleSetupPrevTermPublicExpenseSelect">否</view>
                 </view>
-                <text style="font-size:var(--fs-22);color:#94A3B8;display:block;margin-top:4rpx;">
+                <text style="font-size:var(--fs-24);color:#94A3B8;display:block;margin-top:4rpx;">
                   使用公费则该次任期假的公费机会已使用
                 </text>
               </view>
@@ -115,7 +115,7 @@
                   <view class="leave-select-item {{setupForm.currentTermReturnToHome ? 'is-active' : ''}}" data-value="true" bindtap="handleSetupCurrentTermReturnSelect">是</view>
                   <view class="leave-select-item {{!setupForm.currentTermReturnToHome ? 'is-active' : ''}}" data-value="false" bindtap="handleSetupCurrentTermReturnSelect">否</view>
                 </view>
-                <text style="font-size:var(--fs-22);color:#94A3B8;display:block;margin-top:4rpx;">
+                <text style="font-size:var(--fs-24);color:#94A3B8;display:block;margin-top:4rpx;">
                   回国则该次任期假使用了+2天机会
                 </text>
               </view>
@@ -126,7 +126,7 @@
                   <view class="leave-select-item {{setupForm.currentTermPublicExpense ? 'is-active' : ''}}" data-value="true" bindtap="handleSetupCurrentTermPublicExpenseSelect">是</view>
                   <view class="leave-select-item {{!setupForm.currentTermPublicExpense ? 'is-active' : ''}}" data-value="false" bindtap="handleSetupCurrentTermPublicExpenseSelect">否</view>
                 </view>
-                <text style="font-size:var(--fs-22);color:#94A3B8;display:block;margin-top:4rpx;">
+                <text style="font-size:var(--fs-24);color:#94A3B8;display:block;margin-top:4rpx;">
                   使用公费则该次任期假的公费机会已使用
                 </text>
               </view>
@@ -314,8 +314,8 @@
             <view class="leave-select-item {{form.expenseType === 'public' ? 'is-active' : ''}}" data-value="public" bindtap="handleExpenseTypeSelect">公费</view>
             <view class="leave-select-item {{form.expenseType === 'self' ? 'is-active' : ''}}" data-value="self" bindtap="handleExpenseTypeSelect">自费</view>
           </view>
-          <text style="font-size:var(--fs-22);color:#94A3B8;display:block;margin-top:4rpx;" wx:if="{{selectedPlanHasTerm}}">
-            每次任期假只有一次公费机会，串联休假时可用下一轮机会
+          <text style="font-size:var(--fs-24);color:#94A3B8;display:block;margin-top:4rpx;" wx:if="{{selectedPlanHasTerm}}">
+            每次任期假只有一次公费机会，串联下一次任期假休假时可用下一轮机会
           </text>
         </view>
 
@@ -355,7 +355,11 @@
         <view class="leave-field" wx:if="{{form.isTransferringBenefit && form.expenseType === 'public'}}">
           <view class="leave-stepper-row">
             <text class="leave-stepper-label">已转让公费待遇次数</text>
-            <stepper value="{{form.transferredCount}}" min="0" max="99" step="1" bindchange="handleTransferredCountChange" />
+            <view class="leave-stepper-control">
+              <view class="leave-stepper-btn" bindtap="handleTransferredCountMinus">−</view>
+              <input class="leave-stepper-value" type="number" value="{{form.transferredCount}}" bindinput="handleTransferredCountInput" />
+              <view class="leave-stepper-btn" bindtap="handleTransferredCountPlus">+</view>
+            </view>
           </view>
         </view>
 
@@ -705,7 +709,7 @@
           <view class="leave-quota-card" style="margin-bottom:16rpx;">
             <view class="leave-quota-title" style="display:flex;justify-content:space-between;">
               <text>{{item.year}}年年休假</text>
-              <text style="font-size:var(--fs-22);color:{{item.status === 'active' ? '#065F46' : '#94A3B8'}};">{{item.status === 'active' ? '有效' : '过期'}}</text>
+              <text style="font-size:var(--fs-24);color:{{item.status === 'active' ? '#065F46' : '#94A3B8'}};">{{item.status === 'active' ? '有效' : '过期'}}</text>
             </view>
             <view style="margin-top:12rpx;">
               <view style="display:flex;justify-content:space-between;margin-bottom:6rpx;">
@@ -724,8 +728,8 @@
                 <view style="background:linear-gradient(90deg,#065F46,#10B981);height:100%;border-radius:4rpx;width:{{(item.usedDays + item.expiredDays) * 100 / (item.totalDays || 1)}}%;"></view>
               </view>
               <view style="display:flex;justify-content:space-between;margin-top:4rpx;">
-                <text style="font-size:var(--fs-20);color:#94A3B8;">总计 {{item.totalDays}} 天</text>
-                <text style="font-size:var(--fs-20);color:#94A3B8;" wx:if="{{item.extendedTo}}">有效期至 {{item.extendedTo}}</text>
+                <text style="font-size:var(--fs-22);color:#94A3B8;">总计 {{item.totalDays}} 天</text>
+                <text style="font-size:var(--fs-22);color:#94A3B8;" wx:if="{{item.extendedTo}}">有效期至 {{item.extendedTo}}</text>
               </view>
             </view>
           </view>

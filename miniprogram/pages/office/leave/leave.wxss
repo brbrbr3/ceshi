@@ -140,6 +140,41 @@
   color: #1E293B;
 }
 
+.leave-stepper-control {
+  display: flex;
+  align-items: center;
+  gap: 16rpx;
+}
+
+.leave-stepper-btn {
+  width: 56rpx;
+  height: 56rpx;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  border: 1rpx solid #CBD5E1;
+  border-radius: 8rpx;
+  font-size: var(--fs-36);
+  font-weight: 600;
+  color: #ffffff;
+  background: linear-gradient(135deg, #065F46 0%, #047857 100%);
+}
+
+.leave-stepper-btn:active {
+  background: #E2E8F0;
+}
+
+.leave-stepper-value {
+  width: 80rpx;
+  height: 56rpx;
+  text-align: center;
+  font-size: var(--fs-28);
+  color: #1E293B;
+  border: 1rpx solid #CBD5E1;
+  border-radius: 8rpx;
+  background: #FFFFFF;
+}
+
 /* ========== 提交按钮 ========== */
 .leave-submit-btn {
   width: 100%;
@@ -209,7 +244,7 @@
 }
 
 .leave-item-status {
-  font-size: var(--fs-22);
+  font-size: var(--fs-24);
   padding: 6rpx 16rpx;
   border-radius: 8rpx;
   font-weight: 500;
@@ -601,7 +636,7 @@
 }
 
 .leave-log-time {
-  font-size: var(--fs-22);
+  font-size: var(--fs-24);
   color: #94A3B8;
 }
 
@@ -976,7 +1011,7 @@
   display: inline-block;
   background: #DBEAFE;
   color: #1D4ED8;
-  font-size: var(--fs-20);
+  font-size: var(--fs-22);
   padding: 2rpx 10rpx;
   border-radius: 6rpx;
   margin-left: 8rpx;

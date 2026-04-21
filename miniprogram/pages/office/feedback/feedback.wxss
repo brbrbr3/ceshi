@@ -171,7 +171,7 @@
   display: inline-block;
   background: linear-gradient(135deg, #2563EB 0%, #1D4ED8 100%);
   color: #FFFFFF;
-  font-size: var(--fs-22);
+  font-size: var(--fs-24);
   padding: 4rpx 16rpx;
   border-radius: 20rpx;
   margin-bottom: 12rpx;
@@ -185,7 +185,7 @@
 }
 
 .reply-time {
-  font-size: var(--fs-22);
+  font-size: var(--fs-24);
   color: #9CA3AF;
 }
 

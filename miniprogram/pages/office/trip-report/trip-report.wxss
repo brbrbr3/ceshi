@@ -134,7 +134,7 @@
 }
 
 .trip-status-item-label {
-  font-size: var(--fs-22);
+  font-size: var(--fs-24);
 }
 
 .trip-status-item-value {
@@ -243,7 +243,7 @@
 }
 
 .trip-item-status {
-  font-size: var(--fs-22);
+  font-size: var(--fs-24);
   padding: 6rpx 16rpx;
   border-radius: 8rpx;
   font-weight: 500;
@@ -394,7 +394,7 @@
 }
 
 .trip-field-hint {
-  font-size: var(--fs-22);
+  font-size: var(--fs-24);
   color: #94A3B8;
   margin-top: 8rpx;
 }
@@ -427,7 +427,7 @@
 }
 
 .trip-history-title {
-  font-size: var(--fs-22);
+  font-size: var(--fs-24);
   color: #94A3B8;
   margin-bottom: 12rpx;
 }

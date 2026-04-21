@@ -848,10 +848,24 @@ Page({
     }
   },
 
-  handleTransferredCountChange(e) {
-    this.setData({
-      'form.transferredCount': e.detail.value
-    })
+  handleTransferredCountMinus() {
+    const val = this.data.form.transferredCount || 0;
+    if (val > 0) {
+      this.setData({ 'form.transferredCount': val - 1 });
+    }
+  },
+
+  handleTransferredCountPlus() {
+    const val = this.data.form.transferredCount || 0;
+    if (val < 99) {
+      this.setData({ 'form.transferredCount': val + 1 });
+    }
+  },
+
+  handleTransferredCountInput(e) {
+    let val = parseInt(e.detail.value) || 0;
+    val = Math.max(0, Math.min(99, val));
+    this.setData({ 'form.transferredCount': val });
   },
 
   handleSwitchVisaAssistance(e) {

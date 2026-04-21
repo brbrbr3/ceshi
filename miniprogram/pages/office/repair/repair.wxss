@@ -159,7 +159,7 @@
 }
 
 .repair-item-status {
-  font-size: var(--fs-22);
+  font-size: var(--fs-24);
   padding: 6rpx 16rpx;
   border-radius: 8rpx;
   font-weight: 500;
@@ -208,7 +208,7 @@
 }
 
 .repair-item-time {
-  font-size: var(--fs-22);
+  font-size: var(--fs-24);
   color: #94A3B8;
 }
 
@@ -336,7 +336,7 @@
 }
 
 .repair-field-hint {
-  font-size: var(--fs-22);
+  font-size: var(--fs-24);
   color: #94A3B8;
   margin-top: 8rpx;
 }
@@ -413,7 +413,7 @@
 }
 
 .repair-suggestion-title {
-  font-size: var(--fs-22);
+  font-size: var(--fs-24);
   color: #94A3B8;
   padding: 12rpx 20rpx;
   border-bottom: 1rpx solid #F1EDE4;
@@ -484,7 +484,7 @@
 }
 
 .repair-image-add-text {
-  font-size: var(--fs-22);
+  font-size: var(--fs-24);
   color: #94A3B8;
 }
 

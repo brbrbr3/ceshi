@@ -90,7 +90,7 @@
 }
 
 .menu-comment-count {
-  font-size: var(--fs-22);
+  font-size: var(--fs-24);
   color: #94A3B8;
 }
 
@@ -146,7 +146,7 @@
 }
 
 .menu-comment-time {
-  font-size: var(--fs-22);
+  font-size: var(--fs-24);
   color: #94A3B8;
 }
 
@@ -160,7 +160,7 @@
 .menu-comment-delete {
   flex-shrink: 0;
   padding: 8rpx 16rpx;
-  font-size: var(--fs-22);
+  font-size: var(--fs-24);
   color: #DC2626;
 }
 
@@ -229,14 +229,14 @@
 }
 
 .rating-count {
-  font-size: var(--fs-22);
+  font-size: var(--fs-24);
   color: #94A3B8;
 }
 
 .rating-tag {
   padding: 2rpx 12rpx;
   border-radius: 6rpx;
-  font-size: var(--fs-20);
+  font-size: var(--fs-22);
   margin-left: 8rpx;
 }
 

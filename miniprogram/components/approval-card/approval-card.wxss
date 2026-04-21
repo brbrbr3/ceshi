@@ -38,7 +38,7 @@
 }
 
 .approval-person-sub {
-  font-size: var(--fs-22);
+  font-size: var(--fs-24);
   color: #94A3B8;
 }
 
@@ -51,19 +51,19 @@
 
 .approval-detail {
   margin-top: 12rpx;
-  font-size: var(--fs-22);
+  font-size: var(--fs-24);
   color: #4B6080;
 }
 
 .approval-meta {
   margin-top: 8rpx;
-  font-size: var(--fs-22);
+  font-size: var(--fs-24);
   color: #94A3B8;
 }
 
 .approval-time {
   margin-top: 10rpx;
-  font-size: var(--fs-22);
+  font-size: var(--fs-24);
   color: #94A3B8;
 }
 
@@ -159,7 +159,7 @@
 }
 
 .approval-progress-text {
-  font-size: var(--fs-22);
+  font-size: var(--fs-24);
   color: #9CA3AF;
 }
 

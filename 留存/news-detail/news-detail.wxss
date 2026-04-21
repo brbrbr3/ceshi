@@ -81,7 +81,7 @@ page {
 }
 
 .nd-meta-source {
-  font-size: var(--fs-22);
+  font-size: var(--fs-24);
   padding: 6rpx 16rpx;
   border-radius: 8rpx;
   font-weight: 500;

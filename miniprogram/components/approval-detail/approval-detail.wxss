@@ -66,7 +66,7 @@
 }
 
 .approval-modal-sub {
-  font-size: var(--fs-22);
+  font-size: var(--fs-24);
   color: #94A3B8;
 }
 
@@ -99,7 +99,7 @@
 }
 
 .approval-modal-label {
-  font-size: var(--fs-22);
+  font-size: var(--fs-24);
   color: #94A3B8;
 }
 
@@ -107,6 +107,61 @@
   font-size: var(--fs-24);
   color: #1E293B;
   font-weight: 600;
+}
+
+/* 表格类型字段样式 */
+.approval-modal-table-section {
+  margin-top: 24rpx;
+}
+
+.approval-modal-table-title {
+  font-size: var(--fs-24);
+  color: #94A3B8;
+  margin-bottom: 12rpx;
+  display: block;
+}
+
+.approval-modal-table {
+  width: 100%;
+  border-radius: 12rpx;
+  overflow: hidden;
+  border: 1rpx solid #E2E8F0;
+}
+
+.approval-modal-table-header {
+  display: flex;
+  background: #F1F5F9;
+}
+
+.approval-modal-table-header .approval-modal-table-cell {
+  font-size: var(--fs-22);
+  font-weight: 600;
+  color: #475569;
+  padding: 14rpx 8rpx;
+  text-align: center;
+}
+
+.approval-modal-table-row {
+  display: flex;
+  border-top: 1rpx solid #F1F5F9;
+}
+
+.approval-modal-table-row + .approval-modal-table-row {
+  border-top: 1rpx solid #F1F5F9;
+}
+
+.approval-modal-table-row .approval-modal-table-cell {
+  font-size: var(--fs-22);
+  color: #334155;
+  padding: 12rpx 8rpx;
+  text-align: center;
+}
+
+.approval-modal-table-empty {
+  font-size: var(--fs-24);
+  color: #9CA3AF;
+  text-align: center;
+  padding: 24rpx 0;
 }
 
 .approval-detail-status-value{
@@ -119,7 +174,7 @@
   border-radius: 24rpx;
   background: #F8FAFC;
   color: #475569;
-  font-size: var(--fs-22);
+  font-size: var(--fs-24);
   line-height: 1.7;
 }
 
@@ -152,7 +207,7 @@
 }
 
 .approval-modal-progress-text {
-  font-size: var(--fs-22);
+  font-size: var(--fs-24);
   color: #9CA3AF;
 }
 
@@ -234,7 +289,7 @@
 }
 
 .approval-modal-logs-time {
-  font-size: var(--fs-22);
+  font-size: var(--fs-24);
   color: #9CA3AF;
 }
 

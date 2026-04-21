@@ -131,7 +131,7 @@
   display: flex;
   align-items: center;
   gap: 12rpx;
-  font-size: var(--fs-22);
+  font-size: var(--fs-24);
   color: #94A3B8;
 }
 

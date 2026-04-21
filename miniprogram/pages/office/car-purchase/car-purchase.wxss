@@ -145,7 +145,7 @@
 }
 
 .cp-status-tag {
-  font-size: var(--fs-22);
+  font-size: var(--fs-24);
   padding: 6rpx 16rpx;
   border-radius: 8rpx;
   font-weight: 600;
@@ -177,7 +177,7 @@
 }
 
 .cp-progress-text {
-  font-size: var(--fs-22);
+  font-size: var(--fs-24);
   font-weight: 600;
   color: #0891B2;
   min-width: 56rpx;
@@ -444,7 +444,7 @@
 }
 
 .cp-picker-arrow {
-  font-size: var(--fs-22);
+  font-size: var(--fs-24);
   color: #94A3B8;
 }
 
@@ -490,7 +490,7 @@
 
 /* 类型标签 */
 .cp-type-tag {
-  font-size: var(--fs-20);
+  font-size: var(--fs-22);
   padding: 4rpx 12rpx;
   border-radius: 6rpx;
   font-weight: 600;
@@ -613,7 +613,7 @@
 .cp-dot-office { background: #F59E0B; }
 
 .cp-flow-label {
-  font-size: var(--fs-22);
+  font-size: var(--fs-24);
   font-weight: 600;
   color: #334155;
 }
@@ -629,7 +629,7 @@
   display: flex;
   align-items: center;
   gap: 8rpx;
-  font-size: var(--fs-22);
+  font-size: var(--fs-24);
   color: #64748B;
 }
 
@@ -719,7 +719,7 @@
 .cp-detail-popup { height: 86vh; }
 
 .cp-detail-badge {
-  font-size: var(--fs-20);
+  font-size: var(--fs-22);
   padding: 5rpx 14rpx;
   border-radius: 8rpx;
   background: #D1FAE5;
@@ -859,7 +859,7 @@
 }
 
 .cp-group-owner {
-  font-size: var(--fs-22);
+  font-size: var(--fs-24);
   color: #64748B;
   margin-top: 2rpx;
 }
@@ -991,7 +991,7 @@
 }
 
 .cp-step-status {
-  font-size: var(--fs-20);
+  font-size: var(--fs-22);
   padding: 3rpx 12rpx;
   border-radius: 6rpx;
   background: #D1FAE5;
@@ -1002,7 +1002,7 @@
 }
 
 .cp-step-action-hint {
-  font-size: var(--fs-20);
+  font-size: var(--fs-22);
   color: #0891B2;
   font-weight: 500;
   flex-shrink: 0;
@@ -1057,7 +1057,7 @@
 }
 
 .cp-operator {
-  font-size: var(--fs-22);
+  font-size: var(--fs-24);
   color: #0891B2;
   font-weight: 500;
 }

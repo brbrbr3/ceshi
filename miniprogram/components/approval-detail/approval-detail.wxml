@@ -15,10 +15,32 @@
     <view class="approval-modal-body">
       <!-- 动态字段列表 -->
       <block wx:for="{{detailFields}}" wx:key="field">
-        <view class="approval-modal-row">
-          <text class="approval-modal-label">{{item.label}}</text>
-          <text class="approval-modal-value">{{item.value}}</text>
-        </view>
+        <!-- 表格类型字段 -->
+        <block wx:if="{{item.type === 'table'}}">
+          <view class="approval-modal-table-section">
+            <text class="approval-modal-table-title">{{item.label}}</text>
+            <view class="approval-modal-table">
+              <view class="approval-modal-table-header">
+                <view class="approval-modal-table-cell" wx:for="{{item.columns}}" wx:key="field" wx:for-item="col" style="width: {{100 / item.columns.length}}%;">
+                  {{col.label}}
+                </view>
+              </view>
+              <view class="approval-modal-table-row" wx:for="{{item.value}}" wx:key="index" wx:for-item="row">
+                <view class="approval-modal-table-cell" wx:for="{{item.columns}}" wx:key="field" wx:for-item="col" style="width: {{100 / item.columns.length}}%;">
+                  {{row[col.field] || '-'}}
+                </view>
+              </view>
+            </view>
+            <view wx:if="{{!item.value || item.value.length === 0}}" class="approval-modal-table-empty">暂无记录</view>
+          </view>
+        </block>
+        <!-- 普通文本/布尔字段 -->
+        <block wx:else>
+          <view class="approval-modal-row">
+            <text class="approval-modal-label">{{item.label}}</text>
+            <text class="approval-modal-value">{{item.value}}</text>
+          </view>
+        </block>
       </block>
 
       <!-- 当前状态 -->

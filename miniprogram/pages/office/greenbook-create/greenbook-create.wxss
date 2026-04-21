@@ -119,7 +119,7 @@ page {
 }
 
 .gb-create-image-add-text {
-  font-size: var(--fs-20);
+  font-size: var(--fs-22);
   color: #94A3B8;
 }
 
@@ -142,7 +142,7 @@ page {
 
 .gb-create-content-count {
   text-align: right;
-  font-size: var(--fs-22);
+  font-size: var(--fs-24);
   color: #94A3B8;
   margin-top: 8rpx;
 }
@@ -168,7 +168,7 @@ page {
 
 .gb-create-tag-delete {
   color: #94A3B8;
-  font-size: var(--fs-20);
+  font-size: var(--fs-22);
 }
 
 .gb-create-tag-input-row {

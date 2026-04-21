@@ -85,6 +85,7 @@ Component({
           label: f.label,
           condition: f.condition,
           type: f.type || 'text',
+          columns: f.columns || [],
           value: this.formatFieldValueByConfig(f, request)
         }))
       }
@@ -162,6 +163,21 @@ Component({
         if (op === '!=' && fieldValue !== condition.value) {
           return true
         }
+        if (op === 'notEmpty' && Array.isArray(fieldValue) && fieldValue.length > 0) {
+          return true
+        }
+        if (op === 'notEmpty' && typeof fieldValue === 'string' && fieldValue !== '') {
+          return true
+        }
+        if (op === '>' && typeof fieldValue === 'number' && fieldValue > condition.value) {
+          return true
+        }
+        if (op === 'in' && Array.isArray(condition.value) && condition.value.includes(fieldValue)) {
+          return true
+        }
+        if (op === 'eq' && fieldValue === condition.value) {
+          return true
+        }
         return false
       }
       return true
@@ -175,6 +191,10 @@ Component({
       
       if (fieldConfig.type === 'boolean') {
         return value ? '是' : '否'
+      }
+      
+      if (fieldConfig.type === 'table') {
+        return Array.isArray(value) ? value : []
       }
       
       return value || ''

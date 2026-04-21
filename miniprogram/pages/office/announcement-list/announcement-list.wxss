@@ -180,7 +180,7 @@
   display: flex;
   align-items: center;
   gap: 12rpx;
-  font-size: var(--fs-22);
+  font-size: var(--fs-24);
   color: #94A3B8;
 }
 
@@ -270,7 +270,7 @@
 /* ========== 置顶标签 ========== */
 .pinned-badge {
   display: inline-block;
-  font-size: var(--fs-20);
+  font-size: var(--fs-22);
   color: #FFFFFF;
   background: linear-gradient(135deg, #F59E0B, #D97706);
   padding: 2rpx 10rpx;

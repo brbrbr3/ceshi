@@ -56,7 +56,7 @@ page {
 }
 
 .approval-subtitle {
-  font-size: var(--fs-22);
+  font-size: var(--fs-24);
   opacity: 0.76;
 }
 
@@ -99,7 +99,7 @@ page {
 }
 
 .approval-tab-count {
-  font-size: var(--fs-20);
+  font-size: var(--fs-22);
 }
 
 .approval-type-card,
@@ -135,7 +135,7 @@ page {
   margin-top: 14rpx;
   text-align: center;
   line-height: 1.4;
-  font-size: var(--fs-22);
+  font-size: var(--fs-24);
   color: #4B6080;
 }
 
@@ -152,7 +152,7 @@ page {
 
 .approval-note-desc {
   margin-top: 10rpx;
-  font-size: var(--fs-22);
+  font-size: var(--fs-24);
   line-height: 1.7;
   color: #64748B;
 }
@@ -187,7 +187,7 @@ page {
 .approval-time,
 .approval-filter,
 .approval-meta {
-  font-size: var(--fs-22);
+  font-size: var(--fs-24);
   color: #94A3B8;
 }
 
@@ -199,7 +199,7 @@ page {
 }
 
 .approval-summary-value text {
-  font-size: var(--fs-22);
+  font-size: var(--fs-24);
   font-weight: 400;
 }
 
@@ -371,7 +371,7 @@ page {
 
 .approval-modal-sub,
 .approval-modal-label {
-  font-size: var(--fs-22);
+  font-size: var(--fs-24);
   color: #94A3B8;
 }
 
@@ -407,7 +407,7 @@ page {
   border-radius: 24rpx;
   background: #F8FAFC;
   color: #475569;
-  font-size: var(--fs-22);
+  font-size: var(--fs-24);
   line-height: 1.7;
 }
 
@@ -448,7 +448,7 @@ page {
 }
 
 .approval-modal-progress-text {
-  font-size: var(--fs-22);
+  font-size: var(--fs-24);
   color: #9CA3AF;
 }
 
@@ -488,7 +488,7 @@ page {
 }
 
 .approval-progress-text {
-  font-size: var(--fs-22);
+  font-size: var(--fs-24);
   color: #9CA3AF;
 }
 
@@ -591,7 +591,7 @@ page {
 }
 
 .approval-modal-logs-time {
-  font-size: var(--fs-22);
+  font-size: var(--fs-24);
   color: #9CA3AF;
 }
 

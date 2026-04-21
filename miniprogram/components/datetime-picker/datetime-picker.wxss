@@ -91,7 +91,7 @@
 }
 
 .icon-arrow {
-  font-size: var(--fs-20);
+  font-size: var(--fs-22);
   color: #2563EB;
   transition: transform 0.3s ease;
 }
@@ -232,7 +232,7 @@
 }
 
 .picker-column-unit {
-  font-size: var(--fs-22);
+  font-size: var(--fs-24);
   color: #64748B;
   font-weight: 400;
   margin-left: 2rpx;
@@ -240,7 +240,7 @@
 
 /* 星期文本样式 */
 .picker-column-weekday {
-  font-size: var(--fs-20);
+  font-size: var(--fs-22);
   color:  #64748B;
   font-weight: 400;
   margin-left: 4rpx;

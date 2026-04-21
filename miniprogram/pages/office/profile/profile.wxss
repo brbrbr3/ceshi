@@ -15,7 +15,7 @@ page {
   display: flex;
   align-items: center;
   justify-content: center;
-  font-size: var(--fs-22);
+  font-size: var(--fs-24);
 }
 
 .profile-user-row {
@@ -92,7 +92,7 @@ page {
   padding: 8rpx 16rpx;
   border-radius: 999rpx;
   background: rgba(255, 255, 255, 0.18);
-  font-size: var(--fs-20);
+  font-size: var(--fs-22);
 }
 
 /* .profile-tag.is-light {
@@ -131,7 +131,7 @@ page {
 
 .profile-stat-label {
   margin-top: 6rpx;
-  font-size: var(--fs-20);
+  font-size: var(--fs-22);
   opacity: 0.7;
 }
 
@@ -169,7 +169,7 @@ page {
 
 .profile-reward-sub {
   margin-top: 8rpx;
-  font-size: var(--fs-22);
+  font-size: var(--fs-24);
   opacity: 0.8;
 }
 
@@ -182,7 +182,7 @@ page {
   display: flex;
   align-items: center;
   justify-content: center;
-  font-size: var(--fs-22);
+  font-size: var(--fs-24);
 }
 
 .profile-info-grid {
@@ -239,7 +239,7 @@ page {
 .profile-group-title,
 .profile-company-address,
 .profile-company-label {
-  font-size: var(--fs-22);
+  font-size: var(--fs-24);
   color: #94A3B8;
 }
 
@@ -268,7 +268,7 @@ page {
 
 .profile-menu-badge {
   color: #2563EB;
-  font-size: var(--fs-20);
+  font-size: var(--fs-22);
 }
 .fontsize-stepper-control {
   display: flex;
@@ -338,7 +338,7 @@ page {
 
 .profile-company-value {
   margin-top: 8rpx;
-  font-size: var(--fs-22);
+  font-size: var(--fs-24);
   color: #1E293B;
 }
 
@@ -353,7 +353,7 @@ page {
 .profile-version {
   margin: 24rpx 0 20rpx;
   text-align: center;
-  font-size: var(--fs-20);
+  font-size: var(--fs-22);
   letter-spacing: 2rpx;
   color: #94A3B8;
 }

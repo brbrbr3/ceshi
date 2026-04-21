@@ -433,6 +433,26 @@ async function calculatePlanConsumption(startDate, endDate, isReturnToHome, quot
 
         // 计算年休假消耗 consumeDays 个工作日覆盖的日历天数
         const coverage = calculateAnnualCoverage(currentCursor, consumeDays, holidayDatesSet)
+
+        // 年休假覆盖延伸：消耗完工作日配额后，继续覆盖紧邻的公休日/法定节假日
+        let extendCursor = parseLocalDate(coverage.endCursor)
+        extendCursor.setDate(extendCursor.getDate() + 1)
+        let extendDays = 0
+        while (formatDateObj(extendCursor) <= endDate) {
+          const extDow = extendCursor.getDay()
+          const extDateStr = formatDateObj(extendCursor)
+          const extIsWeekend = extDow === 0 || extDow === 6
+          const extIsHoliday = holidayDatesSet.has(extDateStr)
+          if (!extIsWeekend && !extIsHoliday) break
+          extendDays++
+          extendCursor.setDate(extendCursor.getDate() + 1)
+        }
+        if (extendDays > 0) {
+          extendCursor.setDate(extendCursor.getDate() - 1)
+          coverage.endCursor = formatDateObj(extendCursor)
+          coverage.coveredCalendarDays += extendDays
+        }
+
         consumed.push({
           type: 'annual',
           year: item.year,
@@ -460,6 +480,10 @@ async function calculatePlanConsumption(startDate, endDate, isReturnToHome, quot
         const remainingCalendarDays = countCalendarDays(currentCursor, endDate)
         if (remainingCalendarDays <= 0) break
 
+        // 任期假消耗前检查：如果剩余日期中没有工作日需要覆盖，则不需要使用任期假
+        const remainingWorkDaysForTerm = countWorkDaysBetween(currentCursor, endDate, holidayDatesSet)
+        if (remainingWorkDaysForTerm <= 0) break
+
         const consumeDays = Math.min(availableTermDays, remainingCalendarDays)
         if (consumeDays <= 0) continue
 
@@ -468,13 +492,13 @@ async function calculatePlanConsumption(startDate, endDate, isReturnToHome, quot
         const termEndDate = new Date(termStartCursor)
         termEndDate.setDate(termEndDate.getDate() + consumeDays - 1)
 
-        // 判断本次消耗中是否使用了回国+2天
-        const usedReturnBonus = canUseReturnBonus && consumeDays > item.availableDays
+        // 判断本次消耗中是否使用了回国+2天（选了回国，强制使用+2天）
+        const usedReturnBonus = canUseReturnBonus
         if (usedReturnBonus) {
           returnBonusUsedInThisLeave = true // 标记+2天机会已在本休假中使用
         }
         const actualTermQuotaConsumed = usedReturnBonus
-          ? Math.min(item.availableDays, consumeDays) // 不含+2天的配额消耗
+          ? Math.max(0, consumeDays - TERM_LEAVE_RETURN_BONUS_DAYS) // 实际消耗配额 = 覆盖天数 - 2
           : consumeDays
 
         consumed.push({

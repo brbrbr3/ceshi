@@ -257,7 +257,7 @@ page {
 .adjust-type-tag {
   padding: 8rpx 20rpx;
   border-radius: 10rpx;
-  font-size: var(--fs-22);
+  font-size: var(--fs-24);
   font-weight: 600;
   white-space: nowrap;
 }
@@ -288,7 +288,7 @@ page {
 }
 
 .detail-label {
-  font-size: var(--fs-22);
+  font-size: var(--fs-24);
   color: #94A3B8;
 }
 
@@ -313,7 +313,7 @@ page {
 }
 
 .adjust-time {
-  font-size: var(--fs-22);
+  font-size: var(--fs-24);
   color: #94A3B8;
 }
 
@@ -337,7 +337,7 @@ page {
 }
 
 .section-count {
-  font-size: var(--fs-22);
+  font-size: var(--fs-24);
   color: #94A3B8;
 }
 
@@ -361,7 +361,7 @@ page {
   flex-shrink: 0;
   padding: 6rpx 16rpx;
   border-radius: 10rpx;
-  font-size: var(--fs-22);
+  font-size: var(--fs-24);
   font-weight: 600;
   white-space: nowrap;
 }
@@ -659,7 +659,7 @@ page {
 }
 
 .radio-desc {
-  font-size: var(--fs-22);
+  font-size: var(--fs-24);
   color: #94A3B8;
   margin-left: auto;
 }
@@ -776,7 +776,7 @@ page {
 .sd-status-tag {
   padding: 8rpx 18rpx;
   border-radius: 10rpx;
-  font-size: var(--fs-22);
+  font-size: var(--fs-24);
   font-weight: 600;
   white-space: nowrap;
 }
@@ -824,7 +824,7 @@ page {
 }
 
 .sd-meta-item {
-  font-size: var(--fs-22);
+  font-size: var(--fs-24);
   color: #94A3B8;
 }
 
@@ -838,13 +838,13 @@ page {
 }
 
 .sd-deadline {
-  font-size: var(--fs-22);
+  font-size: var(--fs-24);
   color: #F59E0B;
   font-weight: 500;
 }
 
 .sd-my-booking {
-  font-size: var(--fs-22);
+  font-size: var(--fs-24);
   color: #16A34A;
   font-weight: 600;
   background: #DCFCE7;
@@ -853,12 +853,12 @@ page {
 }
 
 .sd-total-info {
-  font-size: var(--fs-22);
+  font-size: var(--fs-24);
   color: #94A3B8;
 }
 
 .sd-stats {
-  font-size: var(--fs-22);
+  font-size: var(--fs-24);
   color: #2563EB;
   font-weight: 500;
 }

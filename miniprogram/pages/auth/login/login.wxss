@@ -255,7 +255,7 @@ page {
 
 .auth-debug-result-data {
   margin-top: 10rpx;
-  font-size: var(--fs-22);
+  font-size: var(--fs-24);
   color: #999;
   word-break: break-all;
   white-space: pre-wrap;

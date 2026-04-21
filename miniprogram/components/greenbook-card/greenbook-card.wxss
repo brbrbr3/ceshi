@@ -24,7 +24,7 @@
   border-radius: 16rpx;
   background: rgba(0, 0, 0, 0.5);
   color: #FFFFFF;
-  font-size: var(--fs-20);
+  font-size: var(--fs-22);
   display: flex;
   align-items: center;
   gap: 4rpx;
@@ -50,7 +50,7 @@
 .greenbook-card-footer {
   display: flex;
   align-items: center;
-  font-size: var(--fs-22);
+  font-size: var(--fs-24);
   color: #64748B;
 }
 
@@ -70,7 +70,7 @@
   display: flex;
   align-items: center;
   justify-content: center;
-  font-size: var(--fs-20);
+  font-size: var(--fs-22);
   font-weight: 600;
   flex-shrink: 0;
 }
@@ -96,5 +96,5 @@
 }
 
 .greenbook-card-like text {
-  font-size: var(--fs-22);
+  font-size: var(--fs-24);
 }
