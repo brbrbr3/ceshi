@@ -1,6 +1,6 @@
 <view class="auth-page edit-profile-page" style="{{fontStyle}}">
   <view class="auth-hero">
-    <view class="auth-brand">编辑</view>
+    <!-- <view class="auth-brand">编辑</view> -->
     <view class="auth-title">修改个人信息</view>
     <view class="auth-subtitle">请填写需要修改的个人信息。提交后，管理员将收到修改申请并进行审核。</view>
   </view>

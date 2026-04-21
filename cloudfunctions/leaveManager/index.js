@@ -238,16 +238,16 @@ function buildTermLeaveQuotas(arrivalDateStr) {
 
 /**
  * 计算任期假有效期
- * 规则：第X次任期假有效期至第X+1任期年的最后一天
- * 例如：比如一个人2019-10-06到任，那他第1次任期假有效期是第2任期年（2020-10-06~2021-10-05）的最后一天（即2021-10-05）
+ * 规则：第X次任期假有效期至第X+2任期年的最后一天
+ * 例如：比如一个人2019-10-06到任，那他第1次任期假有效期是第3任期年（2021-10-06~2022-10-05）的最后一天（即2022-10-05）
  */
 function buildExpiryDate(arrivalDateStr, round) {
   const arrival = parseLocalDate(arrivalDateStr)
   if (!arrival) return ''
-  // 第X次任期假有效期至第X+1任期年的最后一天
-  // 第X+1任期年 = 到任日期 + (X+1)*12个月 - 1天
+  // 第X次任期假有效期至第X+2任期年的最后一天
+  // 第X+2任期年 = 到任日期 + (X+2)*12个月 - 1天
   const expiry = new Date(arrival)
-  expiry.setMonth(expiry.getMonth() + (round + 1) * 12)
+  expiry.setMonth(expiry.getMonth() + (round + 2) * 12)
   expiry.setDate(expiry.getDate() - 1)  // 减1天=任期年最后一天
   const y = expiry.getFullYear()
   const m = String(expiry.getMonth() + 1).padStart(2, '0')
@@ -521,7 +521,7 @@ async function calculatePlanConsumption(startDate, endDate, isReturnToHome, quot
 
     // canCover: currentCursor 已超过 endDate，或者从 currentCursor 到 endDate 之间没有更多工作日需要覆盖
     const canCover = currentCursor > endDate ||
-                     countWorkDaysBetween(currentCursor, endDate, holidayDatesSet) === 0
+      countWorkDaysBetween(currentCursor, endDate, holidayDatesSet) === 0
 
     // 如果是第2次休假，校验是否消耗了所有剩余配额
     let mustUseAllSatisfied = true
@@ -610,7 +610,11 @@ async function calculatePlanConsumption(startDate, endDate, isReturnToHome, quot
 
   const planA = computePlan(poolA)
   // 当没有可用任期假时，方案B等同于方案A，不生成
-  const planB = activeTerm.length > 0 ? computePlan(poolB) : null
+  // 当方案A和方案B消耗的配额完全相同时（如纯法定节假日/公休日覆盖），也只保留方案A
+  let planB = activeTerm.length > 0 ? computePlan(poolB) : null
+  if (planB && planA.consumed.length === 0 && planB.consumed.length === 0) {
+    planB = null // 两个方案都不消耗配额，等价，只保留A
+  }
 
   // 添加方案标签（根据实际消耗类型动态生成）
   if (planA) {
