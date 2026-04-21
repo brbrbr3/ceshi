@@ -387,7 +387,7 @@ page {
 }
 
 .home-news-title {
-  font-size: var(--fs-26);
+  font-size: var(--fs-28);
   color: #1E293B;
   line-height: 1.45;
 }
@@ -442,7 +442,7 @@ page {
 }
 
 .home-schedule-title {
-  font-size: var(--fs-24);
+  font-size: var(--fs-28);
   color: #1E293B;
 }
 
@@ -458,7 +458,7 @@ page {
 }
 
 .empty-text {
-  font-size: var(--fs-26);
+  font-size: var(--fs-28);
   color: #94A3B8;
 }
 

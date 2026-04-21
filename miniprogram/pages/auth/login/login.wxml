@@ -1,6 +1,6 @@
 <view class="auth-page login-page" style="{{fontStyle}}">
   <view class="auth-hero">
-    <view class="auth-brand">v1.0</view>
+    <view wx:if="{{isDevEnv}}" class="auth-brand">DevEnv</view>
     <view class="auth-title">Embaixada da China</view>
     <view class="auth-subtitle">欢迎使用Embaixada da China办公小程序！</view>
     <view class="auth-tip-row">

@@ -66,7 +66,44 @@
           <view wx:for="{{popupContent}}" wx:key="category" class="content-section">
             <view class="content-category"><text user-select="true">{{item.category}}</text></view>
             <view wx:for="{{item.items}}" wx:for-item="subItem" wx:key="name" class="content-card">
-              <view class="content-card-name"><text user-select="true">{{subItem.name}}</text></view>
+              <!-- 链接类型 -->
+              <view wx:if="{{subItem.type === 'link' || (!subItem.type && (subItem.name.indexOf('http') === 0 || subItem.name.indexOf('www.') === 0))}}" 
+                    class="content-card-name content-card-link" 
+                    data-name="{{subItem.name}}" 
+                    data-type="link" 
+                    bindtap="handleItemTap">
+                <text user-select="true">{{subItem.name}}</text>
+              </view>
+              <!-- 电话类型 -->
+              <view wx:elif="{{subItem.type === 'phone'}}" 
+                    class="content-card-name content-card-phone" 
+                    data-name="{{subItem.name}}" 
+                    data-type="phone" 
+                    bindtap="handleItemTap">
+                <text user-select="true">📞 {{subItem.name}}</text>
+              </view>
+              <!-- 邮箱类型 -->
+              <view wx:elif="{{subItem.type === 'email'}}" 
+                    class="content-card-name content-card-email" 
+                    data-name="{{subItem.name}}" 
+                    data-type="email" 
+                    bindtap="handleItemTap">
+                <text user-select="true">✉️ {{subItem.name}}</text>
+              </view>
+              <!-- 地址类型 -->
+              <view wx:elif="{{subItem.type === 'address'}}" 
+                    class="content-card-name content-card-address" 
+                    data-name="{{subItem.name}}" 
+                    data-type="address" 
+                    data-latitude="{{subItem.latitude}}" 
+                    data-longitude="{{subItem.longitude}}" 
+                    bindtap="handleItemTap">
+                <text user-select="true">📍 {{subItem.name}}</text>
+              </view>
+              <!-- 普通文本 -->
+              <view wx:else class="content-card-name">
+                <text user-select="true">{{subItem.name}}</text>
+              </view>
               <view wx:if="{{subItem.desc !== ''}}" class="content-card-desc">
                 <text user-select="true">{{subItem.desc}}</text>
               </view>
@@ -74,83 +111,7 @@
           </view>
         </block>
 
-        <!--富文本类型-->
-        <block wx:if="{{popupType === 'richtext-school'}}">
-          <text class="content-richtext" user-select="true">            一、巴西当地基础教育分为公立和私立两部分。公立学校免费，但教学质量差。私立学校教学质量较好，但费用差别较大。
 
-            二、当地国际学校有巴西利亚国际学校（Brasilia International School）、美国学校（American School of Brasilia）和英国学校（British School of Brasilia）、国际学校（School of Nations）等。国际学校入学一般要交赞助费、注册费等。目前，大多数馆员子女选择美国学校或英国学校就学，少量就读于School of Nations等当地国际学校。具体学费报销按现行财务制度办理，详情请询会计室。
-
-            　　注：当地国际学校学位紧张，非即报即入学，多数情况需排队等待空余学位名额，建议家长参阅官网详细报名流程并尽早联系学校招生办（联系方式附后），表明入学意愿、告知拟入学儿童相关信息。
-
-            各学校联系方式、官网、地址：
-
-            美国学校：
-            admissions@eabdf.br
-            +55 (61)3442-9700
-            https://www.eabdf.br/
-            SGAS II SGAS 605 Conjunto E Lotes 34/37 - Asa Sul, Brasília - DF, 70200-650
-
-            英国学校：
-            admissions@britishschoolbrasilia.org
-            +55 (61)98277-0054
-            https://www.britishschoolbrasilia.org/
-            St. de Habitações Individuais Sul EQI 7/9 Conjunto 17 LOTE F - Lago Sul, Brasília - DF, 71615-370
-
-            国际学校：
-            lucas.costa@edn.org.br
-            +55 (61)3366-1800
-            https://www.schoolofthenations.com.br/
-            St. de Habitações Individuais Sul QI 21 Área Especial Conjunto C1 - Lago Sul, Brasília - DF, 71655-600
-
-            巴西利亚国际学校：
-            office@biseagles.com
-            +55(61) 3246-1306
-            https://www.brasiliainternationalschool.com/pt
-            Conjunto C Lotes 67/68, SGAS 914 - Asa Sul, Brasília - DF, 70390-140
-
-            巴西利亚美国学校（EAB）简介：
-            　　1、学制：
-            　　分为Lower school（K3，K4，K5,Grade 1-5）和Upper school。Lower school相当于国内的幼儿园和小学。Upper school相当于国内的初中和高中。该学校没有大学阶段课程。
-            　　2、学费：
-            每年会根据通胀率等因素略有上涨。一年交12个月学费。每学年学费为约为112416-117756雷亚尔。若孩子为学期中插班生（非从学年伊始开始报名），需另交一笔相当于一个月学费金额的插班费。如加上注册费，就学总费用将可能超出报销上限，详询会计室。
-            　　3、主要课程：
-            　　K3和K4的主要课程有艺术、科学、音乐、体育、图书馆课，K5开始每天都有葡语课。小学开设课程主要有英语、数学、体育、艺术和葡语等。
-            　　4、考试情况：
-            　　K3至K5阶段没有考试。小学有在线测评。
-            　　5、入学要求或限制：
-            　　入K3要求年满3岁，具体可询admissions@eabdf.br。美国学校入学名额比较紧张，需要提前向负责注册的老师登记排队，且需缴纳注册费。缴纳注册费的馆员子女可享受优先入学待遇。申请入学需携带出生证明、疫苗接种证书（如疫苗本上没有英文，需事先在国内在出国人员体检中心将疫苗本换成英文版本）、护照及复印件、血型证明（当地可以验血出证明）、上一个学校的推荐信（如有）等。
-            　　6、午餐费、在校时间、托管班情况：
-            　　午餐费学年为每天18-22雷亚尔，Upper school阶段可自愿选择在校午餐或外出午餐。
-            　　在校时间：
-            　　周一、二、四、五：早上8:00到下午3:00
-            　　周三：早上9:00到下午3:00
-            　　K5及之后，学校设置了各种各样的课外活动（Club）,一般从下午3:00-4:00，课外活动额外收费。
-            　　美国学校不设托管班，但父母如果临时有事不能接孩子，K3-K5阶段的孩子可以在低年级校长秘书办公室等候父母。
-            　　7、位置及交通：
-            　　位于南翼使馆区，距我馆车程5分钟，交通便利。
-
-            三、幼儿园阶段自费比例较高，可选择当地私立葡语学校如Marista，也可选择当地私立双语学校，包括Eleva、Mackenzie、Affinity Arts等。
-            Escola International Affinity Arts幼儿园简介：
-            　　1、学制：
-            　　该学校只有幼儿园阶段课程，分为Maternal I e II（年满2-3岁儿童）、Jardim I（年满4岁儿童）和Jardim II（年满5岁儿童）三个阶段，每学年从1月开始，12月结束。每班12人。
-            　　2、费用：
-            　　每阶段都需缴纳基础费和学费，费用每年会根据通胀率等因素有所调整。全年学费约为40000-50000雷亚尔。
-            　　3、主要课程：
-            　　绘画、手工、音乐、英语、葡语等，无考试。
-            　　4、入学需准备材料：
-            　　居住证明、健康卡、出生证明、疫苗注射证明、血型证明、上一个学校的推荐信（如有）等。
-            　　5、午餐、在校时间、托管班情况：
-            　　学费含午餐餐费。Maternal I和II阶段每天在校时间为8:00-12:00；Jardim I阶段为8:00-13:30；Jardim II阶段为8:00-15:00。
-            　　6、位置及交通：
-            　　地址：SHIS, QI09, Conjunto 16, nº07，学校位于南湖区，距使馆车程15-20分钟，交通便利。
-            　　联系电话：0055-61-32482966
-            　　网址：www.affinityarts.com.br
-            　　邮箱：affinityarts@gmail.com
-
-            四、学费报销
-            按现行财务制度办理。
-          </text>
-        </block>
       </scroll-view>
     </view>
   </view>

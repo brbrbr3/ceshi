@@ -71,7 +71,7 @@ Page({
             label: '帮助中心'
           },
           {
-            icon: '⭐',
+            icon: '💬',
             label: '意见反馈'
           }
         ]

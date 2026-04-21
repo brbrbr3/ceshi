@@ -126,7 +126,7 @@
 .detail-body {
   background-color: #fff;
   border-radius: 12rpx;
-  padding: 32rpx 24rpx;
+  padding: 32rpx 10rpx;
   margin-bottom: 24rpx;
 }
 

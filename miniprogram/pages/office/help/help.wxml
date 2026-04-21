@@ -255,6 +255,30 @@
         </view>
       </view>
 
+    </view>
+
+    <!-- ========== 审批中心 ========== -->
+    <view class="help-section">
+      <view class="section-title">审批中心</view>
+
+      <view class="help-card">
+        <view class="card-header">
+          <view class="card-icon">📋</view>
+          <view class="card-title">审批中心</view>
+        </view>
+        <view class="card-content">
+          <view class="card-desc">处理审批任务和查看已提交申请。分为"待审批"、"我发起的"、"已处理"三个Tab页，根据用户角色显示相应的内容。</view>
+          <view class="card-permission">
+            <view class="permission-label">权限要求：</view>
+            <view class="permission-value">无特定权限要求，根据用户角色显示不同内容</view>
+          </view>
+        </view>
+      </view>
+    </view>
+
+    <!-- ========== 通讯录 ========== -->
+    <view class="help-section">
+      <view class="section-title">通讯录</view>
       <view class="help-card">
         <view class="card-header">
           <view class="card-icon">📒</view>
@@ -272,25 +296,6 @@
           <view class="card-permission">
             <view class="permission-label">权限要求：</view>
             <view class="permission-value">所有用户可用。</view>
-          </view>
-        </view>
-      </view>
-    </view>
-
-    <!-- ========== 审批中心 ========== -->
-    <view class="help-section">
-      <view class="section-title">审批中心</view>
-
-      <view class="help-card">
-        <view class="card-header">
-          <view class="card-icon">📋</view>
-          <view class="card-title">审批中心</view>
-        </view>
-        <view class="card-content">
-          <view class="card-desc">处理审批任务和查看已提交申请。分为"待审批"、"我发起的"、"已处理"三个Tab页，根据用户角色显示相应的内容。</view>
-          <view class="card-permission">
-            <view class="permission-label">权限要求：</view>
-            <view class="permission-value">无特定权限要求，根据用户角色显示不同内容</view>
           </view>
         </view>
       </view>

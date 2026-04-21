@@ -322,7 +322,7 @@
 
 .content-category {
   font-size: var(--fs-28);
-  font-weight: 700;
+  font-weight: 500;
   color: #1e293b;
   margin-bottom: 16rpx;
   padding-left: 4rpx;
@@ -348,6 +348,46 @@
   word-break: break-all;
 }
 
+/* 可点击链接样式 */
+.content-card-link {
+  color: #2563eb;
+  text-decoration: underline;
+}
+
+.content-card-link:active {
+  opacity: 0.7;
+}
+
+/* 可点击电话样式 */
+.content-card-phone {
+  color: #16a34a;
+  font-weight: 500;
+}
+
+.content-card-phone:active {
+  opacity: 0.7;
+}
+
+/* 可点击邮箱样式 */
+.content-card-email {
+  color: #7c3aed;
+  font-weight: 500;
+}
+
+.content-card-email:active {
+  opacity: 0.7;
+}
+
+/* 可点击地址样式 */
+.content-card-address {
+  color: #ea580c;
+  font-weight: 500;
+}
+
+.content-card-address:active {
+  opacity: 0.7;
+}
+
 .content-card-desc {
   font-size: var(--fs-26);
   color: #64748b;
@@ -355,10 +395,3 @@
   word-break: break-all;
 }
 
-.content-richtext {
-  font-size: var(--fs-28);
-  color: #1e293b;
-  margin-bottom: 16rpx;
-  line-height: 1.6;
-  word-break: break-all;  /* 或 word-wrap: break-word; 确保长文本/URL换行 */
-}
