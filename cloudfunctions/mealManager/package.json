@@ -1,1 +1,1 @@
-{"name": "mealManager", "version": "1.0.0", "description": "餐食管理云函数", "main": "index.js", "scripts": {"test": "echo \"Error: no test specified\" && exit 1"}, "author": "", "license": "ISC", "dependencies": {"wx-server-sdk": "latest"}}
+{"name": "mealManager", "version": "1.0.0", "description": "工作餐与副食云函数", "main": "index.js", "scripts": {"test": "echo \"Error: no test specified\" && exit 1"}, "author": "", "license": "ISC", "dependencies": {"wx-server-sdk": "latest"}}

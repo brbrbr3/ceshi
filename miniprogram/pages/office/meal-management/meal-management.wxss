@@ -978,6 +978,7 @@ page {
   display: flex;
   align-items: center;
   justify-content: center;
+  flex-wrap: wrap;
   padding: 16rpx;
   background: #ECFDF5;
   border-radius: 12rpx;
@@ -990,18 +991,56 @@ page {
   font-weight: 600;
 }
 
-/* 预订操作区 */
-.sd-book-area {
+/* 按类别预订列表 */
+.sd-book-area-list {
+  padding: 16rpx 0;
+}
+
+.sd-book-area-header {
+  font-size: var(--fs-28);
+  font-weight: 600;
+  color: #1E293B;
+  margin-bottom: 16rpx;
+}
+
+.sd-book-item {
   display: flex;
   align-items: center;
   justify-content: space-between;
-  padding: 24rpx 0;
+  padding: 16rpx 0;
+  border-bottom: 1rpx solid #F1F5F9;
 }
 
-.sd-book-label {
+.sd-book-item:last-child {
+  border-bottom: none;
+}
+
+.sd-book-item-name {
   font-size: var(--fs-28);
   color: #334155;
   font-weight: 500;
+  flex-shrink: 0;
+  max-width: 180rpx;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.sd-book-item-limit {
+  font-size: var(--fs-22);
+  color: #94A3B8;
+  flex-shrink: 0;
+  margin-left: 12rpx;
+}
+
+.sd-book-total {
+  margin-top: 16rpx;
+  padding-top: 12rpx;
+  border-top: 1rpx solid #E2E8F0;
+  font-size: var(--fs-28);
+  font-weight: 600;
+  color: #2563EB;
+  text-align: right;
 }
 
 /* 取消预订按钮 */
@@ -1160,4 +1199,144 @@ page {
 .btn-export-pdf[disabled] {
   opacity: 0.45;
   pointer-events: none;
+}
+
+/* ==================== 类别列表样式（新建征订） ==================== */
+
+.category-list-section {
+  padding: 16rpx 0;
+  border-bottom: 1rpx solid #F1F5F9;
+}
+
+.category-list-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  margin-bottom: 16rpx;
+}
+
+.category-add-btn {
+  display: flex;
+  align-items: center;
+  padding: 8rpx 20rpx;
+  border-radius: 999rpx;
+  background: rgba(37, 99, 235, 0.06);
+  color: #2563EB;
+  font-size: var(--fs-24);
+  font-weight: 500;
+  transition: all 0.2s ease;
+}
+
+.category-add-btn:active {
+  background: rgba(37, 99, 235, 0.15);
+}
+
+.category-item {
+  margin-bottom: 12rpx;
+  padding: 16rpx;
+  background: #F8FAFC;
+  border-radius: 12rpx;
+}
+
+.category-item-row {
+  display: flex;
+  align-items: center;
+  gap: 16rpx;
+}
+
+.category-name-input {
+  flex: 1;
+  height: 64rpx;
+  font-size: var(--fs-28);
+  color: #1E293B;
+  padding: 0 16rpx;
+  background: #FFFFFF;
+  border-radius: 10rpx;
+  border: 1rpx solid #E2E8F0;
+  box-sizing: border-box;
+}
+
+.category-count-area {
+  display: flex;
+  align-items: center;
+  gap: 8rpx;
+  flex-shrink: 0;
+}
+
+.category-count-label {
+  font-size: var(--fs-22);
+  color: #94A3B8;
+  white-space: nowrap;
+}
+
+.category-remove-btn {
+  width: 48rpx;
+  height: 48rpx;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  border-radius: 50%;
+  background: #FEE2E2;
+  color: #DC2626;
+  font-size: var(--fs-24);
+  flex-shrink: 0;
+  transition: all 0.2s ease;
+}
+
+.category-remove-btn:active {
+  background: #FECACA;
+}
+
+/* ==================== 管理端类别统计样式 ==================== */
+
+.category-summary-section {
+  margin-bottom: 20rpx;
+  padding: 16rpx 20rpx;
+  background: #EFF6FF;
+  border-radius: 12rpx;
+}
+
+.category-summary-header {
+  font-size: var(--fs-26);
+  font-weight: 600;
+  color: #1E40AF;
+  margin-bottom: 12rpx;
+}
+
+.category-summary-list {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 16rpx;
+}
+
+.category-summary-item {
+  display: flex;
+  align-items: center;
+  gap: 8rpx;
+  padding: 6rpx 16rpx;
+  background: #FFFFFF;
+  border-radius: 8rpx;
+}
+
+.category-summary-name {
+  font-size: var(--fs-24);
+  color: #334155;
+  font-weight: 500;
+}
+
+.category-summary-count {
+  font-size: var(--fs-24);
+  color: #2563EB;
+  font-weight: 600;
+}
+
+/* 预订人员按类别明细 */
+.booking-item-detail {
+  flex-shrink: 0;
+}
+
+.booking-category-detail {
+  font-size: var(--fs-24);
+  color: #2563EB;
+  font-weight: 500;
 }

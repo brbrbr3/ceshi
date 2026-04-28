@@ -1600,11 +1600,12 @@ const notificationsCollection = db.collection('notifications')  // ✅
 | 2026-04-01 | 添加 greenbook_posts、greenbook_comments、greenbook_likes 小绿书集合 | AI |
 | 2026-04-01 | 添加 repair_orders 物业报修记录集合 | AI |
 | 2026-04-02 | 添加 news_articles 新闻文章集合 | AI |
-| 2026-04-03 | 添加 meal_subscriptions 用户订餐状态、meal_adjustments 调整记录集合（餐食管理功能） | AI |
+| 2026-04-03 | 添加 meal_subscriptions 用户订餐状态、meal_adjustments 调整记录集合（工作餐与副食功能） | AI |
 | 2026-04-04 | 添加 side_dish_orders 副食征订单、side_dish_bookings 副食预订记录集合（副食预订/管理功能） | AI |
 | 2026-04-05 | 添加 menu_ratings 菜品打分记录集合（菜单详情页菜品评分功能） | AI |
 | 2026-04-06 |添加 activities 活动主表、activity_registrations 报名记录集合（活动管理模块） | AI |
 | 2026-04-07 | 添加 car_purchase_records 购车记录集合（购车管理Checklist功能） | AI |
+| 2026-04-28 | 更新 side_dish_orders/side_dish_bookings 支持多类别征订（categories/items） | AI |
 
 ---
 
@@ -1802,7 +1803,7 @@ none ──(入伙)──→ active ──(停餐)──→ suspended ──(恢
 
 ### 33. side_dish_orders - 副食征订单
 
-**用途**：存储副食征订信息，由管理岗位人员创建，供普通用户预订
+**用途**：存储副食征订信息，由管理岗位人员创建，供普通用户预订。支持多类别征订，每个类别有独立的名称和最大预订份数/人。
 
 **安全规则**：`ADMINWRITE` - 所有用户可读，仅云函数可写
 
@@ -1822,7 +1823,12 @@ none ──(入伙)──→ active ──(停餐)──→ suspended ──(恢
   _id: String,                    // 记录 ID（自动生成）
   title: String,                   // 征订标题
   description: String,             // 副食详情描述
-  maxCount: Number,                // 最大预订份数（每人最多可订份数，实际上限为 maxCount*2）
+  maxCount: Number,                // 总最大预订份数/人（= 各类别 maxCount 之和，冗余字段便于列表展示）
+  categories: Array[{              // 类别列表（支持多类别征订）
+    id: String,                    // 类别 ID（如 'cat_1745800000000_0'）
+    name: String,                  // 类别名称（如 '粽子'、'月饼'）
+    maxCount: Number               // 该类别每人最大预订份数
+  }],
   deadline: String,                // 截止日期 YYYY-MM-DD（纯字符串，避免时区问题）
   creatorOpenid: String,           // 创建者 openid
   creatorName: String,             // 创建者姓名
@@ -1835,19 +1841,21 @@ none ──(入伙)──→ active ──(停餐)──→ suspended ──(恢
 
 **业务规则**：
 1. 截止日期过后，status 自动变为 expired（前端和云端双重判断）
-2. 每人预订上限为 maxCount * 2（允许超额预订以应对需求波动）
-3. totalBookedCount 在每次 book/cancel 操作时重新统计更新
+2. categories 至少包含1个类别，每个类别有独立的 maxCount
+3. maxCount 为所有类别 maxCount 之和，用于列表摘要展示
+4. 每人每个类别预订上限为 category.maxCount * 2（允许超额预订以应对需求波动）
+5. totalBookedCount 在每次 book/cancel 操作时重新统计更新
 
 **相关云函数**：
-- `mealManager.createSideDishOrder`：创建新征订单
-- `mealManager.getSideDishOrders`：获取有效征订单列表
-- `mealManager.getSideDishBookings`：获取某征订单的预订明细
+- `mealManager.createSideDishOrder`：创建新征订单（含 categories）
+- `mealManager.getSideDishOrders`：获取有效征订单列表（含 myBookedItems）
+- `mealManager.getSideDishBookings`：获取某征订单的预订明细（含按类别统计）
 
 ---
 
 ### 34. side_dish_bookings - 副食预订记录
 
-**用途**：存储用户的副食预订记录，每人对每份征订单仅一条有效记录
+**用途**：存储用户的副食预订记录，每人对每份征订单仅一条有效记录。支持按类别预订，items 数组记录每个类别的份数。
 
 **安全规则**：`ADMINWRITE` - 所有用户可读，仅云函数可写
 
@@ -1869,7 +1877,12 @@ none ──(入伙)──→ active ──(停餐)──→ suspended ──(恢
   orderId: String,                 // 关联的征订单 ID（side_dish_orders._id）
   openid: String,                  // 预订人 openid
   name: String,                    // 预订人姓名
-  count: Number,                   // 预订份数（1 ~ maxCount*2）
+  count: Number,                   // 预订总份数（= 各 items count 之和，冗余字段）
+  items: Array[{                   // 按类别预订明细
+    categoryId: String,            // 关联 categories.id
+    categoryName: String,          // 类别名称（冗余存储，避免关联查询）
+    count: Number                  // 该类别预订份数（1 ~ category.maxCount*2）
+  }],
   status: String,                  // 状态: 'booked'(已预订) | 'cancelled'(已取消)
   createdAt: Number,               // 创建时间戳
   updatedAt: Number                // 更新时间戳
@@ -1879,12 +1892,14 @@ none ──(入伙)──→ active ──(停餐)──→ suspended ──(恢
 **业务规则**：
 1. 幂等性：同一用户对同一征订单只有一条有效 booking（status='booked'），重复提交为 update
 2. 取消预订时将 status 改为 cancelled，而非删除记录
-3. count 范围：1 ≤ count ≤ maxCount*2（maxCount 来自关联的征订单）
+3. items 中每个类别的 count 范围：1 ≤ count ≤ category.maxCount*2
+4. count 为所有 items 的 count 之和，用于统计汇总
+5. categoryName 冗余存储类别名称，避免关联查询
 
 **相关云函数**：
-- `mealManager.bookSideDish`：提交/修改/取消预订（支持幂等更新）
+- `mealManager.bookSideDish`：提交/修改/取消预订（支持按类别 items 提交）
 - `mealManager.getMySideDishBookings`：获取当前用户的预订汇总
-- `mealManager.getSideDishBookings`：获取某征订单的所有预订记录（管理端用）
+- `mealManager.getSideDishBookings`：获取某征订单的所有预订记录（管理端用，含按类别统计）
 
 ---
 

@@ -33,7 +33,7 @@ Page({
       },
       {
         icon: '🍱',
-        label: '餐食管理',
+        label: '工作餐与副食',
         color: '#16A34A',
         bg: '#DCFCE7',
         implemented: true,
@@ -509,9 +509,9 @@ Page({
     } else if (label === '护照管理') {
       // 统一权限检查
       this.checkAndNavigate('passport_application', '/pages/office/passport/passport', '护照管理')
-    } else if (label === '餐食管理') {
+    } else if (label === '工作餐与副食') {
       // 统一权限检查
-      this.checkAndNavigate('meal_management', '/pages/office/meal-management/meal-management', '餐食管理')
+      this.checkAndNavigate('meal_management', '/pages/office/meal-management/meal-management', '工作餐与副食')
     } else if (label === '理发预约') {
       // 全体用户可用，无需权限检查
       wx.navigateTo({

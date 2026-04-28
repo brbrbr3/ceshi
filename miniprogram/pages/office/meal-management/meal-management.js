@@ -105,7 +105,8 @@ Page({
     sideDishOrderList: [], // 征订单列表
     showSideDishDetailModal: false, // 预订详情弹窗
     currentSideDishOrder: null, // 当前查看的征订单
-    sideDishBookCount: 1, // 预订弹窗中的份数
+    sideDishBookItems: [], // 预订弹窗中按类别的份数 [{ categoryId, categoryName, count, maxCount }]
+    sideDishBookTotalCount: 0, // 预订弹窗中合计份数
 
     // ========== 副食管理数据（Tab4）==========
     sideDishManageList: [], // 管理端征订单列表
@@ -115,7 +116,7 @@ Page({
     createSideDishData: { // 新建表单数据
       title: '',
       description: '',
-      maxCount: 1,
+      categories: [{ name: '', maxCount: 1 }], // 多类别列表
       deadline: ''
     },
     showBookingDetailModal: false, // 管理端预订详情弹窗
@@ -767,11 +768,30 @@ Page({
     if (!order) return
 
     const isExpired = order.isExpired || order.isTodayOrBefore
+    const categories = order.categories || []
+
+    // 构建按类别的预订数据
+    const bookedItems = order.myBookedItems || []
+    const bookItems = categories.map(cat => {
+      const booked = bookedItems.find(b => b.categoryId === cat.id)
+      return {
+        categoryId: cat.id,
+        categoryName: cat.name,
+        count: booked ? booked.count : 0,
+        maxCount: cat.maxCount
+      }
+    })
+
+    // 如果没有任何预订且未过期，默认每个类别为1份
+    if (bookedItems.length === 0 && !isExpired) {
+      bookItems.forEach(item => { item.count = 1 })
+    }
 
     this.setData({
       showSideDishDetailModal: true,
       currentSideDishOrder: { ...order, isExpired },
-      sideDishBookCount: order.myBookedCount > 0 ? order.myBookedCount : 1
+      sideDishBookItems: bookItems,
+      sideDishBookTotalCount: bookItems.reduce((s, i) => s + i.count, 0)
     })
   },
 
@@ -781,20 +801,31 @@ Page({
     })
   },
 
-  /** 副食预订份数调整 */
+  /** 副食预订份数调整（按类别） */
   handleSideDishCountChange(e) {
     const action = e.currentTarget.dataset.action
-    let count = this.data.sideDishBookCount
-    const maxCount = (this.data.currentSideDishOrder && this.data.currentSideDishOrder.maxCount || 1) * 2
+    const categoryId = e.currentTarget.dataset.categoryid
+    if (!categoryId) return
+
+    const items = this.data.sideDishBookItems
+    const idx = items.findIndex(i => i.categoryId === categoryId)
+    if (idx === -1) return
+
+    const item = items[idx]
+    let count = item.count
+    const maxAllowed = item.maxCount * 2
 
     if (action === 'add') {
-      if (count < maxCount) count++
+      if (count < maxAllowed) count++
     } else {
-      if (count > 1) count--
+      if (count > 0) count--
     }
 
+    const newItems = [...this.data.sideDishBookItems]
+    newItems[idx] = { ...newItems[idx], count }
     this.setData({
-      sideDishBookCount: count
+      [`sideDishBookItems[${idx}].count`]: count,
+      sideDishBookTotalCount: newItems.reduce((s, i) => s + i.count, 0)
     })
   },
 
@@ -803,13 +834,22 @@ Page({
     const order = this.data.currentSideDishOrder
     if (!order) return
 
+    // 过滤出 count > 0 的类别
+    const validItems = this.data.sideDishBookItems.filter(i => i.count > 0)
+    if (validItems.length === 0) {
+      utils.showToast({ title: '请至少预订一个类别', icon: 'none' })
+      return
+    }
+
     if (this.data.sideDishSubmitLoading) return
     this.data.sideDishSubmitLoading = true
 
-    wx.showLoading({
-      title: '提交中...',
-      mask: true
-    })
+    wx.showLoading({ title: '提交中...', mask: true })
+
+    const items = validItems.map(i => ({
+      categoryId: i.categoryId,
+      count: i.count
+    }))
 
     wx.cloud.callFunction({
       name: 'mealManager',
@@ -818,7 +858,7 @@ Page({
         params: {
           orderId: order._id,
           action: 'book',
-          count: this.data.sideDishBookCount
+          items
         },
         userInfo: {
           name: this.data.currentUser.name,
@@ -829,20 +869,13 @@ Page({
     }).then(res => {
       if (res.result.code !== 0) throw new Error(res.result.message)
 
-      utils.showToast({
-        title: '预订成功',
-        icon: 'success'
-      })
+      utils.showToast({ title: '预订成功', icon: 'success' })
       this._closeModal('showSideDishDetailModal', () => {
-        this.setData({ currentSideDishOrder: null })
+        this.setData({ currentSideDishOrder: null, sideDishBookItems: [], sideDishBookTotalCount: 0 })
       })
-      // 刷新列表
       this.loadSideDishOrders()
     }).catch(err => {
-      utils.showToast({
-        title: err.message || '预订失败',
-        icon: 'none'
-      })
+      utils.showToast({ title: err.message || '预订失败', icon: 'none' })
     }).finally(() => {
       wx.hideLoading()
       this.data.sideDishSubmitLoading = false
@@ -911,7 +944,7 @@ Page({
       createSideDishData: {
         title: '',
         description: '',
-        maxCount: 1,
+        categories: [{ name: '', maxCount: 1 }],
         deadline: defaultDeadline
       }
     })
@@ -930,14 +963,46 @@ Page({
     })
   },
 
-  /** 新建征订表单 - 份数调整 */
-  handleCreateCountChange(e) {
+  /** 新建征订表单 - 类别名称变更 */
+  handleCategoryNameChange(e) {
+    const index = e.currentTarget.dataset.index
+    const value = e.detail.value
+    this.setData({
+      [`createSideDishData.categories[${index}].name`]: value
+    })
+  },
+
+  /** 新建征订表单 - 类别份数调整 */
+  handleCategoryCountChange(e) {
+    const index = e.currentTarget.dataset.index
     const action = e.currentTarget.dataset.action
-    let count = this.data.createSideDishData.maxCount
+    let count = this.data.createSideDishData.categories[index].maxCount
     if (action === 'add') count++
     else if (action === 'minus' && count > 1) count--
     this.setData({
-      'createSideDishData.maxCount': count
+      [`createSideDishData.categories[${index}].maxCount`]: count
+    })
+  },
+
+  /** 新建征订表单 - 添加类别 */
+  handleAddCategory() {
+    const categories = [...this.data.createSideDishData.categories, { name: '', maxCount: 1 }]
+    this.setData({
+      'createSideDishData.categories': categories
+    })
+  },
+
+  /** 新建征订表单 - 删除类别 */
+  handleRemoveCategory(e) {
+    const index = e.currentTarget.dataset.index
+    const categories = [...this.data.createSideDishData.categories]
+    if (categories.length <= 1) {
+      utils.showToast({ title: '至少保留一个类别', icon: 'none' })
+      return
+    }
+    categories.splice(index, 1)
+    this.setData({
+      'createSideDishData.categories': categories
     })
   },
 
@@ -953,36 +1018,48 @@ Page({
     const data = this.data.createSideDishData
 
     if (!data.title || !data.title.trim()) {
-      utils.showToast({
-        title: '请输入标题',
-        icon: 'none'
-      })
+      utils.showToast({ title: '请输入标题', icon: 'none' })
       return
     }
 
     if (!data.description || !data.description.trim()) {
-      utils.showToast({
-        title: '请输入副食详情',
-        icon: 'none'
-      })
+      utils.showToast({ title: '请输入副食详情', icon: 'none' })
       return
     }
 
+    // 校验类别
+    if (!data.categories || data.categories.length === 0) {
+      utils.showToast({ title: '请至少添加一个类别', icon: 'none' })
+      return
+    }
+
+    const nameSet = new Set()
+    for (let i = 0; i < data.categories.length; i++) {
+      const cat = data.categories[i]
+      if (!cat.name || !cat.name.trim()) {
+        utils.showToast({ title: `第${i + 1}个类别名称不能为空`, icon: 'none' })
+        return
+      }
+      if (nameSet.has(cat.name.trim())) {
+        utils.showToast({ title: `类别名称"${cat.name.trim()}"重复`, icon: 'none' })
+        return
+      }
+      nameSet.add(cat.name.trim())
+      if (!cat.maxCount || cat.maxCount < 1) {
+        utils.showToast({ title: `类别"${cat.name.trim()}"份数至少为1`, icon: 'none' })
+        return
+      }
+    }
+
     if (!data.deadline) {
-      utils.showToast({
-        title: '请选择截止日期',
-        icon: 'none'
-      })
+      utils.showToast({ title: '请选择截止日期', icon: 'none' })
       return
     }
 
     if (this.data.sideDishSubmitLoading) return
     this.data.sideDishSubmitLoading = true
 
-    wx.showLoading({
-      title: '发布中...',
-      mask: true
-    })
+    wx.showLoading({ title: '发布中...', mask: true })
 
     wx.cloud.callFunction({
       name: 'mealManager',
@@ -991,7 +1068,7 @@ Page({
         params: {
           title: data.title.trim(),
           description: data.description.trim(),
-          maxCount: data.maxCount,
+          categories: data.categories.map(c => ({ name: c.name.trim(), maxCount: c.maxCount })),
           deadline: data.deadline
         },
         userInfo: {
@@ -1003,18 +1080,11 @@ Page({
     }).then(res => {
       if (res.result.code !== 0) throw new Error(res.result.message)
 
-      utils.showToast({
-        title: '发布成功',
-        icon: 'success'
-      })
+      utils.showToast({ title: '发布成功', icon: 'success' })
       this._closeModal('showCreateSideDishModal')
-      // 刷新管理端列表 + 预订列表
       this.loadSideDishManageList(false)
     }).catch(err => {
-      utils.showToast({
-        title: err.message || '发布失败',
-        icon: 'none'
-      })
+      utils.showToast({ title: err.message || '发布失败', icon: 'none' })
     }).finally(() => {
       wx.hideLoading()
       this.data.sideDishSubmitLoading = false

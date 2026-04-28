@@ -1,5 +1,5 @@
 /**
- * 餐食管理云函数
+ * 工作餐与副食云函数
  *
  * 工作餐相关 action:
  *   - getMyMealStatus:      获取当前用户工作餐订阅状态
@@ -416,6 +416,7 @@ async function getSideDishOrders(openid) {
         ...order,
         isExpired: order.status === 'expired' || order.deadline < today,
         myBookedCount: myBooking ? myBooking.count : 0,
+        myBookedItems: myBooking ? (myBooking.items || []) : [],
         myBookingId: myBooking ? myBooking._id : ''
       }
     })
@@ -429,11 +430,12 @@ async function getSideDishOrders(openid) {
 
 /**
  * 创建新的副食征订单
- * params: { title, description, maxCount, deadline }
+ * params: { title, description, categories: [{ name, maxCount }], deadline }
+ * categories 支持多类别征订，每个类别有独立的名称和最大预订份数/人
  */
 async function createSideDishOrder(openid, userInfo, params) {
   try {
-    const { title, description, maxCount, deadline } = params
+    const { title, description, categories, deadline } = params
 
     if (!title || !title.trim()) {
       return fail('请输入征订标题', 400)
@@ -443,8 +445,24 @@ async function createSideDishOrder(openid, userInfo, params) {
       return fail('请输入副食详情', 400)
     }
 
-    if (!maxCount || maxCount < 1) {
-      return fail('最大预订份数至少为1', 400)
+    if (!categories || !Array.isArray(categories) || categories.length === 0) {
+      return fail('请至少添加一个类别', 400)
+    }
+
+    // 校验每个类别
+    const nameSet = new Set()
+    for (let i = 0; i < categories.length; i++) {
+      const cat = categories[i]
+      if (!cat.name || !cat.name.trim()) {
+        return fail(`第${i + 1}个类别名称不能为空`, 400)
+      }
+      if (nameSet.has(cat.name.trim())) {
+        return fail(`类别名称"${cat.name.trim()}"重复`, 400)
+      }
+      nameSet.add(cat.name.trim())
+      if (!cat.maxCount || cat.maxCount < 1) {
+        return fail(`类别"${cat.name.trim()}"的最大预订份数至少为1`, 400)
+      }
     }
 
     if (!deadline) {
@@ -457,11 +475,20 @@ async function createSideDishOrder(openid, userInfo, params) {
       return fail('截止日期不能早于今天', 400)
     }
 
+    // 生成带 id 的 categories，计算总 maxCount
     const now = Date.now()
+    const processedCategories = categories.map((cat, index) => ({
+      id: `cat_${now}_${index}`,
+      name: cat.name.trim(),
+      maxCount: cat.maxCount
+    }))
+    const maxCount = processedCategories.reduce((sum, cat) => sum + cat.maxCount, 0)
+
     const newOrder = {
       title: title.trim(),
       description: description.trim(),
       maxCount,
+      categories: processedCategories,
       deadline,
       creatorOpenid: openid,
       creatorName: userInfo.name || '',
@@ -483,13 +510,14 @@ async function createSideDishOrder(openid, userInfo, params) {
 
 /**
  * 提交/修改/取消副食预订
- * params: { orderId, action: 'book'|'cancel', count? }
- * - book: 提交或修改预订份数（幂等：同一用户对同一征订单只有一条有效记录）
+ * params: { orderId, action: 'book'|'cancel', items?: [{ categoryId, count }] }
+ * - book: 提交或修改预订（幂等：同一用户对同一征订单只有一条有效记录）
  * - cancel: 取消预订（将 status 改为 cancelled）
+ * items: 按类别预订，每个类别独立的份数
  */
 async function bookSideDish(openid, params) {
   try {
-    const { orderId, action, count } = params
+    const { orderId, action, items } = params
 
     if (!orderId) {
       return fail('缺少征订单ID', 400)
@@ -514,14 +542,45 @@ async function bookSideDish(openid, params) {
     }
 
     if (action === 'book') {
-      if (!count || count < 1) {
-        return fail('预订份数至少为1', 400)
+      // 校验 items
+      if (!items || !Array.isArray(items) || items.length === 0) {
+        return fail('请至少预订一个类别', 400)
       }
 
-      const maxAllowed = order.maxCount * 2
-      if (count > maxAllowed) {
-        return fail(`每人最多可预订${maxAllowed}份`, 400)
+      const orderCategories = order.categories || []
+      const categoryMap = {}
+      orderCategories.forEach(cat => { categoryMap[cat.id] = cat })
+
+      const seenCategoryIds = new Set()
+      for (const item of items) {
+        if (!item.categoryId) {
+          return fail('缺少类别ID', 400)
+        }
+        if (!categoryMap[item.categoryId]) {
+          return fail(`类别ID ${item.categoryId} 不存在于该征订单中`, 400)
+        }
+        if (seenCategoryIds.has(item.categoryId)) {
+          return fail('同一类别不可重复提交', 400)
+        }
+        seenCategoryIds.add(item.categoryId)
+
+        if (!item.count || item.count < 1) {
+          return fail(`类别"${categoryMap[item.categoryId].name}"的预订份数至少为1`, 400)
+        }
+        const maxAllowed = categoryMap[item.categoryId].maxCount * 2
+        if (item.count > maxAllowed) {
+          return fail(`类别"${categoryMap[item.categoryId].name}"每人最多可预订${maxAllowed}份`, 400)
+        }
       }
+
+      const totalCount = items.reduce((sum, item) => sum + item.count, 0)
+
+      // 构建 items 数组（含 categoryName 冗余）
+      const enrichedItems = items.map(item => ({
+        categoryId: item.categoryId,
+        categoryName: categoryMap[item.categoryId].name,
+        count: item.count
+      }))
 
       // 查询是否已有有效预订
       const existingRes = await sideDishBookingsCollection
@@ -534,7 +593,7 @@ async function bookSideDish(openid, params) {
       if (existing) {
         // 更新现有预订
         await sideDishBookingsCollection.doc(existing._id).update({
-          data: { count, updatedAt: now }
+          data: { count: totalCount, items: enrichedItems, updatedAt: now }
         })
       } else {
         // 新建预订记录
@@ -543,7 +602,8 @@ async function bookSideDish(openid, params) {
             orderId,
             openid,
             name: params.bookerName || '',
-            count,
+            count: totalCount,
+            items: enrichedItems,
             status: 'booked',
             createdAt: now,
             updatedAt: now
@@ -554,7 +614,7 @@ async function bookSideDish(openid, params) {
       // 更新征订单的 totalBookedCount 冗余字段
       await refreshTotalBookedCount(orderId)
 
-      return success({ orderId, count, action: 'booked' })
+      return success({ orderId, count: totalCount, items: enrichedItems, action: 'booked' })
     } else if (action === 'cancel') {
       // 查找有效预订
       const existingRes = await sideDishBookingsCollection
@@ -635,12 +695,32 @@ async function getSideDishBookings(params) {
     const bookings = bookingsRes.data || []
     const totalCount = bookings.reduce((sum, b) => sum + (b.count || 0), 0)
 
+    // 按类别汇总
+    const categorySummaries = []
+    if (orderRes.data && orderRes.data.categories) {
+      orderRes.data.categories.forEach(cat => {
+        let catCount = 0
+        bookings.forEach(b => {
+          if (b.items && Array.isArray(b.items)) {
+            const item = b.items.find(i => i.categoryId === cat.id)
+            if (item) catCount += item.count
+          }
+        })
+        categorySummaries.push({
+          categoryId: cat.id,
+          categoryName: cat.name,
+          count: catCount
+        })
+      })
+    }
+
     return success({
       order: orderRes.data,
       bookings,
       summary: {
         totalPeople: bookings.length,
-        totalCount
+        totalCount,
+        categorySummaries
       }
     })
   } catch (error) {

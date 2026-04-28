@@ -495,7 +495,7 @@ const PERMISSION_CONFIGS = [
   },
   {
     featureKey: 'meal_management',
-    featureName: '餐食管理',
+    featureName: '工作餐与副食',
     description: '工作餐订阅与管理',
     enabledRoles: ['馆领导', '部门负责人', '馆员', '工勤'],
     specialConditions: [{ role: '配偶', position: '出纳' }],

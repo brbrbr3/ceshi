@@ -3,7 +3,7 @@
   <view class="office-gradient-header meal-header">
     <view class="meal-header-top">
       <view>
-        <view class="meal-title">餐食管理</view>
+        <view class="meal-title">工作餐与副食</view>
         <view class="meal-subtitle">{{subtitle}}</view>
       </view>
     </view>
@@ -28,7 +28,7 @@
     <view wx:if="{{noPermission}}" class="office-card meal-no-permission">
       <view class="meal-no-icon">🔒</view>
       <view class="meal-no-text">暂无访问权限</view>
-      <view class="meal-no-desc">餐食管理功能仅对特定角色/岗位开放</view>
+      <view class="meal-no-desc">工作餐与副食功能仅对特定角色/岗位开放</view>
     </view>
 
     <!-- ==================== 我的工作餐 Tab ==================== -->
@@ -55,7 +55,7 @@
 
         <!-- 提示信息 -->
         <view class="meal-tip-card office-card">
-          <view class="meal-tip-text">点击「工作餐调整」可进行临时停餐、退伙或重新入伙操作</view>
+          <view class="meal-tip-text">点击「工作餐调整」可进行加餐、临时停餐、退伙或重新入伙操作</view>
         </view>
       </view>
 
@@ -173,6 +173,7 @@
             <view class="sd-card-bottom">
               <view class="sd-deadline">截止：{{item.formattedDeadline}}</view>
               <view wx:if="{{item.myBookedCount > 0}}" class="sd-my-booking">您已预订{{item.myBookedCount}}份</view>
+              <view wx:elif="{{item.categories && item.categories.length > 0}}" class="sd-total-info">共{{item.categories.length}}类 · 上限{{item.maxCount}}份/人</view>
               <view wx:else class="sd-total-info">上限{{item.maxCount}}份/人</view>
             </view>
           </view>
@@ -215,7 +216,7 @@
               <text class="sd-meta-item">征订截止：{{item.formattedDeadline}}</text>
             </view>
             <view class="sd-card-bottom">
-              <view class="sd-stats">已订{{item.totalBookedCount}}份 | 上限{{item.maxCount}}份/人</view>
+              <view class="sd-stats">已订{{item.totalBookedCount}}份 | {{item.categories ? item.categories.length : 0}}类</view>
               <view class="sd-arrow"></view>
             </view>
           </view>
@@ -440,24 +441,31 @@
             <text class="sd-detail-value">{{currentSideDishOrder.deadline}}</text>
           </view>
           <view class="sd-detail-row">
-            <text class="sd-detail-label">每人上限</text>
-            <text class="sd-detail-value">{{currentSideDishOrder.maxCount}} 份</text>
+            <text class="sd-detail-label">类别数</text>
+            <text class="sd-detail-value">{{currentSideDishOrder.categories ? currentSideDishOrder.categories.length : 0}} 类</text>
           </view>
         </view>
 
-        <!-- 已预订状态（条件显示） -->
+        <!-- 已预订状态（按类别显示） -->
         <view wx:if="{{currentSideDishOrder.myBookedCount > 0}}" class="sd-booked-status">
-          <text>当前已预订：{{currentSideDishOrder.myBookedCount}} 份</text>
+          <text>已预订：{{currentSideDishOrder.myBookedCount}} 份（</text>
+          <text wx:for="{{currentSideDishOrder.myBookedItems}}" wx:key="categoryId">{{item.categoryName}}{{item.count}}份{{index < currentSideDishOrder.myBookedItems.length - 1 ? '、' : ''}}</text>
+          <text>）</text>
         </view>
 
-        <!-- 预订操作区（仅未截止时显示） -->
-        <view wx:if="{{!currentSideDishOrder.isExpired}}" class="sd-book-area">
-          <text class="sd-book-label">预订份数</text>
-          <view class="count-control">
-            <view class="count-btn count-minus" data-action="minus" bindtap="handleSideDishCountChange">−</view>
-            <text class="count-num">{{sideDishBookCount}}</text>
-            <view class="count-btn count-plus" data-action="add" bindtap="handleSideDishCountChange">+</view>
+        <!-- 预订操作区（按类别选份数，仅未截止时显示） -->
+        <view wx:if="{{!currentSideDishOrder.isExpired}}" class="sd-book-area-list">
+          <view class="sd-book-area-header">按类别预订</view>
+          <view wx:for="{{sideDishBookItems}}" wx:key="categoryId" class="sd-book-item">
+            <text class="sd-book-item-name">{{item.categoryName}}</text>
+            <view class="count-control">
+              <view class="count-btn count-minus" data-action="minus" data-categoryid="{{item.categoryId}}" bindtap="handleSideDishCountChange">−</view>
+              <text class="count-num">{{item.count}}</text>
+              <view class="count-btn count-plus" data-action="add" data-categoryid="{{item.categoryId}}" bindtap="handleSideDishCountChange">+</view>
+            </view>
+            <text class="sd-book-item-limit">上限{{item.maxCount}}份</text>
           </view>
+          <view class="sd-book-total">合计：{{sideDishBookTotalCount}} 份</view>
         </view>
 
         <!-- 取消按钮（已预订且未截止时显示） -->
@@ -509,12 +517,34 @@
           />
         </view>
 
-        <view class="form-row form-row-count">
-          <text class="form-label required-field">最大预订份数/人</text>
-          <view class="count-control">
-            <view class="count-btn count-minus" data-action="minus" bindtap="handleCreateCountChange">−</view>
-            <text class="count-num">{{createSideDishData.maxCount}}</text>
-            <view class="count-btn count-plus" data-action="add" bindtap="handleCreateCountChange">+</view>
+        <!-- 类别列表 -->
+        <view class="category-list-section">
+          <view class="category-list-header">
+            <text class="form-label required-field">征订类别及最大份数</text>
+            <view class="category-add-btn" bindtap="handleAddCategory">
+              <text>+ 添加类别</text>
+            </view>
+          </view>
+          <view wx:for="{{createSideDishData.categories}}" wx:key="index" class="category-item">
+            <view class="category-item-row">
+              <input
+                class="category-name-input"
+                placeholder="类别名称"
+                value="{{item.name}}"
+                data-index="{{index}}"
+                bindinput="handleCategoryNameChange"
+                maxlength="20"
+              />
+              <view class="category-count-area">
+                <view class="count-control">
+                  <view class="count-btn count-minus" data-index="{{index}}" data-action="minus" bindtap="handleCategoryCountChange">−</view>
+                  <text class="count-num">{{item.maxCount}}</text>
+                  <view class="count-btn count-plus" data-index="{{index}}" data-action="add" bindtap="handleCategoryCountChange">+</view>
+                </view>
+                <text class="category-count-label">份/人</text>
+              </view>
+              <view wx:if="{{createSideDishData.categories.length > 1}}" class="category-remove-btn" data-index="{{index}}" bindtap="handleRemoveCategory">✕</view>
+            </view>
           </view>
         </view>
 
@@ -562,6 +592,17 @@
           </view>
         </view>
 
+        <!-- 按类别统计 -->
+        <view wx:if="{{bookingSummary && bookingSummary.categorySummaries && bookingSummary.categorySummaries.length > 0}}" class="category-summary-section">
+          <view class="category-summary-header">按类别统计</view>
+          <view class="category-summary-list">
+            <view wx:for="{{bookingSummary.categorySummaries}}" wx:key="categoryId" class="category-summary-item">
+              <text class="category-summary-name">{{item.categoryName}}</text>
+              <text class="category-summary-count">{{item.count}} 份</text>
+            </view>
+          </view>
+        </view>
+
         <!-- 截止信息 -->
         <view class="sd-detail-row sd-deadline-info">
           <text class="sd-detail-value">截止日期：{{bookingDetailOrder.deadline}}</text>
@@ -573,7 +614,12 @@
           <view class="booking-list-header">预订人员明细</view>
           <view wx:for="{{bookingDetailList}}" wx:key="_id" class="booking-item">
             <text class="booking-name">{{index + 1}}. {{item.name}}</text>
-            <text class="booking-count">{{item.count}} 份</text>
+            <view class="booking-item-detail">
+              <text wx:if="{{item.items && item.items.length > 0}}" class="booking-category-detail">
+                <block wx:for="{{item.items}}" wx:for-item="cat" wx:key="categoryId">{{cat.categoryName}}×{{cat.count}} </block>
+              </text>
+              <text wx:else class="booking-count">{{item.count}} 份</text>
+            </view>
           </view>
         </view>
 
