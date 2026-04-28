@@ -281,7 +281,7 @@ Page({
     if (spouseGroup.length > 0) {
       groupedContacts.push({
         groupKey: 'spouse',
-        groupTitle: '配偶',
+        groupTitle: '内聘配偶',
         members: spouseGroup
       })
     }

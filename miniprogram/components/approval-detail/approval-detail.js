@@ -187,17 +187,29 @@ Component({
      * 格式化字段值（新格式配置）
      */
     formatFieldValueByConfig(fieldConfig, request) {
-      const value = request[fieldConfig.field]
-      
+      let value = request[fieldConfig.field]
+
+      // valueMap 值映射
+      if (fieldConfig.valueMap && value in fieldConfig.valueMap) {
+        value = fieldConfig.valueMap[value]
+      }
+
+      // 兼容：expenseType 英文值自动转中文（旧数据可能仍为英文）
+      if (fieldConfig.field === 'expenseType' && typeof value === 'string') {
+        const expenseMap = { public: '公费', self: '自费' }
+        if (value in expenseMap) value = expenseMap[value]
+      }
+
       if (fieldConfig.type === 'boolean') {
         return value ? '是' : '否'
       }
-      
+
       if (fieldConfig.type === 'table') {
         return Array.isArray(value) ? value : []
       }
-      
-      return value || ''
+
+      // 避免数字 0 被 || 误判为空
+      return (value !== undefined && value !== null && value !== '') ? value : ''
     }
   }
 })

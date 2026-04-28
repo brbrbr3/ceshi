@@ -519,9 +519,11 @@ async function calculatePlanConsumption(startDate, endDate, isReturnToHome, quot
       }
     }
 
-    // canCover: currentCursor 已超过 endDate，或者从 currentCursor 到 endDate 之间没有更多工作日需要覆盖
+    // canCover: currentCursor 已超过 endDate（所有日期被实际覆盖），
+    // 或者在没有任何配额消耗的情况下，剩余区间全是公休日/法定节假日
+    // 注意：任期假不像年休假有延伸逻辑，到期即结束，剩余的公休日不算覆盖
     const canCover = currentCursor > endDate ||
-      countWorkDaysBetween(currentCursor, endDate, holidayDatesSet) === 0
+      (consumed.length === 0 && countWorkDaysBetween(currentCursor, endDate, holidayDatesSet) === 0)
 
     // 如果是第2次休假，校验是否消耗了所有剩余配额
     let mustUseAllSatisfied = true
@@ -1099,7 +1101,7 @@ exports.main = async (event, context) => {
                   selectedPlan,
                   planConsumedQuota: selectedPlanData.consumed,
                   isReturnToHome: !!isReturnToHome,
-                  expenseType: isPublicExpense ? 'public' : 'self',
+                  expenseType: isPublicExpense ? '公费' : '自费',
                   leaveLocation: formData.leaveLocation || '',
                   leaveRoute: formData.leaveRoute || '',
                   proposedFlights: formData.proposedFlights || '',
@@ -1210,7 +1212,22 @@ exports.main = async (event, context) => {
                   applicantId: openid,
                   applicantName: userInfo.name || '',
                   applicantDepartment: userInfo.department || '',
-                  ...formData,
+                  leaveType: formData.leaveType,
+                  leaveTypeName: leaveTypeNameMap[formData.leaveType] || '其他',
+                  startDate: formData.startDate,
+                  endDate: formData.endDate,
+                  totalDays: formData.totalDays || countCalendarDays(formData.startDate, formData.endDate),
+                  workDays: formData.workDays || 0,
+                  isReturnToHome: false,
+                  expenseType: formData.expenseType === 'public' ? '公费' : '自费',
+                  leaveLocation: formData.leaveLocation || '',
+                  leaveRoute: formData.leaveRoute || '',
+                  proposedFlights: formData.proposedFlights || '',
+                  reason: formData.reason || '',
+                  isTransferringBenefit: false,
+                  transferredCount: 0,
+                  needsVisaAssistance: false,
+                  otherNotes: formData.otherNotes || '',
                   pastLeaveRecords
                 }
               }

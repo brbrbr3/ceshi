@@ -106,12 +106,13 @@
 .approval-modal-value {
   font-size: var(--fs-24);
   color: #1E293B;
-  font-weight: 600;
+  font-weight: 500;
 }
 
 /* 表格类型字段样式 */
 .approval-modal-table-section {
   margin-top: 24rpx;
+  margin-right: 4rpx;
 }
 
 .approval-modal-table-title {
@@ -134,11 +135,12 @@
 }
 
 .approval-modal-table-header .approval-modal-table-cell {
-  font-size: var(--fs-22);
+  font-size: var(--fs-24);
   font-weight: 600;
   color: #475569;
   padding: 14rpx 8rpx;
   text-align: center;
+  overflow-wrap: break-word;
 }
 
 .approval-modal-table-row {
@@ -151,10 +153,11 @@
 }
 
 .approval-modal-table-row .approval-modal-table-cell {
-  font-size: var(--fs-22);
+  font-size: var(--fs-24);
   color: #334155;
   padding: 12rpx 8rpx;
   text-align: center;
+  overflow-wrap: break-word;
 }
 
 .approval-modal-table-empty {

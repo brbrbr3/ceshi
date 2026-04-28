@@ -459,7 +459,7 @@ const EXAMPLE_TEMPLATES = [
         { field: 'workDays', label: '工作日天数' },
         { field: 'isReturnToHome', label: '是否回国（任期假）', type: 'boolean', condition: { field: 'leaveType', op: 'in', value: ['term', 'combo_annual_term', 'combo_term_annual'] } },
         { field: 'leaveLocation', label: '休假地点', condition: { field: 'leaveLocation', op: '!=', value: '' } },
-        { field: 'expenseType', label: '费用性质', condition: { field: 'expenseType', op: '!=', value: '' } },
+        { field: 'expenseType', label: '费用性质', condition: { field: 'expenseType', op: '!=', value: '' }, valueMap: { '公费': '公费', '自费': '自费', public: '公费', self: '自费' } },
         { field: 'leaveRoute', label: '休假路线', condition: { field: 'leaveRoute', op: '!=', value: '' } },
         { field: 'proposedFlights', label: '拟定航班', condition: { field: 'proposedFlights', op: '!=', value: '' } },
         { field: 'isTransferringBenefit', label: '是否申请公费待遇转让', type: 'boolean', condition: { field: 'isTransferringBenefit', op: 'eq', value: true } },

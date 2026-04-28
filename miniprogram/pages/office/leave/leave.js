@@ -623,7 +623,7 @@ Page({
     this.setData({
       'form.startDate': e.detail.value
     })
-    if (e.detail.value > this.data.form.endDate) {
+    if (this.data.form.endDate != '' && e.detail.value > this.data.form.endDate) {
       this.setData({
         'form.endDate': e.detail.value
       })
@@ -645,6 +645,16 @@ Page({
       startDate,
       endDate
     } = this.data.form
+
+    // 选择"其他假期类型"时，不计算休假方案，只更新可提交状态
+    if (this.data.showOtherTypeForm) {
+      const hasName = String(this.data.form.otherTypeName || '').trim().length > 0
+      this.setData({
+        canSubmit: hasName && !!startDate && !!endDate
+      })
+      return
+    }
+
     // 清除旧方案
     this.setData({
       calculatedPlans: [],
@@ -778,7 +788,11 @@ Page({
     this.setData({
       showOtherTypeForm: willShow,
       showExpenseTypeSelect: willShow,
-      canSubmit: willShow ? false : !!this.data.selectedPlan
+      canSubmit: willShow ? false : !!this.data.selectedPlan,
+      // 切换到"其他"时，清空方案相关数据
+      calculatedPlans: willShow ? [] : this.data.calculatedPlans,
+      selectedPlan: willShow ? null : this.data.selectedPlan,
+      plansLoading: false
     })
     // 关闭时重置
     if (!willShow) {
@@ -786,6 +800,10 @@ Page({
         'form.otherTypeName': '',
         'form.expenseType': 'self'
       })
+      // 切回正常模式时，如果有日期则重新计算方案
+      if (this.data.form.startDate && this.data.form.endDate) {
+        this.recalculatePlans()
+      }
     }
   },
 

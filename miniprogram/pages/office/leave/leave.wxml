@@ -21,7 +21,7 @@
             <!-- 提示信息 -->
             <view class="leave-note" style="margin-bottom:28rpx;">
               <view class="leave-note-title">请填写您的休假相关信息</view>
-              <view style="font-size:var(--fs-24);color:#065F66;line-height:1.6;">
+              <view style="font-size:var(--fs-26);color:#065F66;line-height:1.6;">
                 选择参加工作日期和到任日期后，系统将自动计算您的年休假和任期假配额。剩余天数用于初始化您已使用的历史天数。
               </view>
             </view>
@@ -84,7 +84,7 @@
                   <view class="leave-select-item {{setupForm.prevTermReturnToHome ? 'is-active' : ''}}" data-value="true" bindtap="handleSetupPrevTermReturnSelect">是</view>
                   <view class="leave-select-item {{!setupForm.prevTermReturnToHome ? 'is-active' : ''}}" data-value="false" bindtap="handleSetupPrevTermReturnSelect">否</view>
                 </view>
-                <text style="font-size:var(--fs-24);color:#94A3B8;display:block;margin-top:4rpx;">
+                <text style="font-size:var(--fs-26);color:#94A3B8;display:block;margin-top:4rpx;">
                   回国则该次任期假使用了+2天机会
                 </text>
               </view>
@@ -95,7 +95,7 @@
                   <view class="leave-select-item {{setupForm.prevTermPublicExpense ? 'is-active' : ''}}" data-value="true" bindtap="handleSetupPrevTermPublicExpenseSelect">是</view>
                   <view class="leave-select-item {{!setupForm.prevTermPublicExpense ? 'is-active' : ''}}" data-value="false" bindtap="handleSetupPrevTermPublicExpenseSelect">否</view>
                 </view>
-                <text style="font-size:var(--fs-24);color:#94A3B8;display:block;margin-top:4rpx;">
+                <text style="font-size:var(--fs-26);color:#94A3B8;display:block;margin-top:4rpx;">
                   使用公费则该次任期假的公费机会已使用
                 </text>
               </view>
@@ -115,7 +115,7 @@
                   <view class="leave-select-item {{setupForm.currentTermReturnToHome ? 'is-active' : ''}}" data-value="true" bindtap="handleSetupCurrentTermReturnSelect">是</view>
                   <view class="leave-select-item {{!setupForm.currentTermReturnToHome ? 'is-active' : ''}}" data-value="false" bindtap="handleSetupCurrentTermReturnSelect">否</view>
                 </view>
-                <text style="font-size:var(--fs-24);color:#94A3B8;display:block;margin-top:4rpx;">
+                <text style="font-size:var(--fs-26);color:#94A3B8;display:block;margin-top:4rpx;">
                   回国则该次任期假使用了+2天机会
                 </text>
               </view>
@@ -126,7 +126,7 @@
                   <view class="leave-select-item {{setupForm.currentTermPublicExpense ? 'is-active' : ''}}" data-value="true" bindtap="handleSetupCurrentTermPublicExpenseSelect">是</view>
                   <view class="leave-select-item {{!setupForm.currentTermPublicExpense ? 'is-active' : ''}}" data-value="false" bindtap="handleSetupCurrentTermPublicExpenseSelect">否</view>
                 </view>
-                <text style="font-size:var(--fs-24);color:#94A3B8;display:block;margin-top:4rpx;">
+                <text style="font-size:var(--fs-26);color:#94A3B8;display:block;margin-top:4rpx;">
                   使用公费则该次任期假的公费机会已使用
                 </text>
               </view>
@@ -218,6 +218,27 @@
           </view>
         </view>
 
+        <!-- ===== "其他"类型独立表单（展开时显示） ===== -->
+        <block wx:if="{{showOtherTypeForm}}">
+          <view class="leave-field">
+            <view class="leave-field-label">其他假期类型 <text class="leave-required">*</text></view>
+            <view class="leave-input-wrapper">
+              <input class="leave-input" value="{{form.otherTypeName}}" placeholder="如：事假、病假等" placeholder-class="leave-input-placeholder" bindinput="handleOtherTypeNameInput" />
+            </view>
+          </view>
+        </block>
+
+        <!-- ===== 是否回国 回国不属于term option（任何类型假期都可以回国） ===== -->
+        <view class="leave-field">
+          <view class="leave-switch-row">
+            <text class="leave-switch-label">是否回国？</text>
+            <switch checked="{{form.isReturnToHome}}" color="#065F46" bindchange="handleSwitchReturnToHome" />
+          </view>
+          <text wx:if="{{isReturnToHome && !showOtherTypeForm}}" style="font-size:var(--fs-26);color:#94A3B8;display:block;margin-top:4rpx;">
+            每次任期假，回国时只有一次+2天机会，串联下一次任期假休假时可用下一轮机会
+          </text>
+        </view>
+
         <!-- ===== 日期选择区 ===== -->
         <view class="leave-field">
           <view class="leave-field-label">休假日期 <text class="leave-required">*</text></view>
@@ -232,16 +253,6 @@
           </view>
         </view>
 
-        <!-- ===== 任期假选项（回国+公费） ===== -->
-        <view class="leave-field" wx:if="{{showTermOptions}}">
-          <view class="leave-switch-row">
-            <text class="leave-switch-label">是否回国？</text>
-            <switch checked="{{form.isReturnToHome}}" color="#065F46" bindchange="handleSwitchReturnToHome" />
-          </view>
-          <text wx:if="{{isReturnToHome}}" style="font-size:var(--fs-24);color:#94A3B8;display:block;margin-top:4rpx;">
-            每次任期假，回国时只有一次+2天机会，串联下一次任期假休假时可用下一轮机会
-          </text>
-        </view>
 
         <!-- ===== 方案选择区（日期选完后显示） ===== -->
         <view class="plan-section" wx:if="{{calculatedPlans.length > 0}}">
@@ -276,8 +287,8 @@
             <view class="plan-coverage">
               <text wx:if="{{item.consumed.length > 0}}">共覆盖 {{item.totalCoveredDays}} 天（{{form.startDate}} ~ {{form.endDate}}）</text>
               <text wx:else>覆盖 {{item.totalCoveredDays}} 天（{{form.startDate}} ~ {{form.endDate}}）</text>
-              <text wx:if="{{item.holidayCoveredDays > 0}}" style="color:#68778c;font-size:var(--fs-24);display:block;margin-top:4rpx;">其中法定节假日 {{item.holidayCoveredDays}} 天</text>
-              <text wx:if="{{item.weekendCoveredDays > 0}}" style="color:#68778c;font-size:var(--fs-24);display:block;">其中公休日 {{item.weekendCoveredDays}} 天</text>
+              <text wx:if="{{item.holidayCoveredDays > 0}}" style="color:#68778c;font-size:var(--fs-26);display:block;margin-top:4rpx;">其中法定节假日 {{item.holidayCoveredDays}} 天</text>
+              <text wx:if="{{item.weekendCoveredDays > 0}}" style="color:#68778c;font-size:var(--fs-26);display:block;">其中公休日 {{item.weekendCoveredDays}} 天</text>
             </view>
 
             <!-- 第2次休假警告 -->
@@ -288,7 +299,7 @@
         </view>
 
         <!-- 无方案提示 -->
-        <view class="plan-no-result" wx:if="{{form.startDate && form.endDate && calculatedPlans.length === 0 && !plansLoading}}">
+        <view class="plan-no-result" wx:if="{{form.startDate && form.endDate && !showOtherTypeForm && calculatedPlans.length === 0 && !plansLoading}}">
           <text>配额不足以覆盖所选日期，请调整日期或检查余额</text>
         </view>
 
@@ -297,16 +308,6 @@
           <text>正在计算方案...</text>
         </view>
 
-        <!-- ===== "其他"类型独立表单（展开时显示） ===== -->
-        <block wx:if="{{showOtherTypeForm}}">
-          <view class="leave-field">
-            <view class="leave-field-label">自定义类型名 <text class="leave-required">*</text></view>
-            <view class="leave-input-wrapper">
-              <input class="leave-input" value="{{form.otherTypeName}}" placeholder="如：事假、病假等" placeholder-class="leave-input-placeholder" bindinput="handleOtherTypeNameInput" />
-            </view>
-          </view>
-        </block>
-
         <!-- ===== 费用性质（仅涉及任期假方案或"其他"类型时显示） ===== -->
         <view class="leave-field" wx:if="{{showExpenseTypeSelect}}">
           <view class="leave-field-label">费用性质 <text class="leave-required">*</text></view>
@@ -314,7 +315,7 @@
             <view class="leave-select-item {{form.expenseType === 'public' ? 'is-active' : ''}}" data-value="public" bindtap="handleExpenseTypeSelect">公费</view>
             <view class="leave-select-item {{form.expenseType === 'self' ? 'is-active' : ''}}" data-value="self" bindtap="handleExpenseTypeSelect">自费</view>
           </view>
-          <text style="font-size:var(--fs-24);color:#94A3B8;display:block;margin-top:4rpx;" wx:if="{{selectedPlanHasTerm}}">
+          <text style="font-size:var(--fs-26);color:#94A3B8;display:block;margin-top:4rpx;" wx:if="{{selectedPlanHasTerm && !showOtherTypeForm}}">
             每次任期假只有一次公费机会，串联下一次任期假休假时可用下一轮机会
           </text>
         </view>
@@ -709,20 +710,20 @@
           <view class="leave-quota-card" style="margin-bottom:16rpx;">
             <view class="leave-quota-title" style="display:flex;justify-content:space-between;">
               <text>{{item.year}}年年休假</text>
-              <text style="font-size:var(--fs-24);color:{{item.status === 'active' ? '#065F46' : '#94A3B8'}};">{{item.status === 'active' ? '有效' : '过期'}}</text>
+              <text style="font-size:var(--fs-26);color:{{item.status === 'active' ? '#065F46' : '#94A3B8'}};">{{item.status === 'active' ? '有效' : '过期'}}</text>
             </view>
             <view style="margin-top:12rpx;">
               <view style="display:flex;justify-content:space-between;margin-bottom:6rpx;">
-                <text style="font-size:var(--fs-24);color:#64748B;">可用</text>
+                <text style="font-size:var(--fs-26);color:#64748B;">可用</text>
                 <text style="font-size:var(--fs-28);color:#065F46;font-weight:600;">{{item.availableDays}} 天</text>
               </view>
               <view style="display:flex;justify-content:space-between;margin-bottom:6rpx;">
-                <text style="font-size:var(--fs-24);color:#64748B;">已休</text>
-                <text style="font-size:var(--fs-24);color:#DC2626;">{{item.usedDays}} 天</text>
+                <text style="font-size:var(--fs-26);color:#64748B;">已休</text>
+                <text style="font-size:var(--fs-26);color:#DC2626;">{{item.usedDays}} 天</text>
               </view>
               <view style="display:flex;justify-content:space-between;" wx:if="{{item.expiredDays > 0}}">
-                <text style="font-size:var(--fs-24);color:#64748B;">作废</text>
-                <text style="font-size:var(--fs-24);color:#94A3B8;">{{item.expiredDays}} 天</text>
+                <text style="font-size:var(--fs-26);color:#64748B;">作废</text>
+                <text style="font-size:var(--fs-26);color:#94A3B8;">{{item.expiredDays}} 天</text>
               </view>
               <view style="background:#E5E7EB;height:8rpx;border-radius:4rpx;margin-top:12rpx;overflow:hidden;">
                 <view style="background:linear-gradient(90deg,#065F46,#10B981);height:100%;border-radius:4rpx;width:{{(item.usedDays + item.expiredDays) * 100 / (item.totalDays || 1)}}%;"></view>

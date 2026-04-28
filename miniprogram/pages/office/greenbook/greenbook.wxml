@@ -2,9 +2,9 @@
 <view class="greenbook-navbar" style="padding-top: {{statusBarHeight}}px;">
   <view class="greenbook-navbar-inner">
     <view class="greenbook-navbar-title">小绿书</view>
-    <view class="greenbook-navbar-search">
+    <!-- <view class="greenbook-navbar-search">
       <input class="greenbook-search-input" placeholder="搜索帖子" placeholder-style="color:rgba(255,255,255,0.6)" bindinput="handleSearchInput" bindconfirm="handleSearchConfirm" value="{{searchKeyword}}" />
-    </view>
+    </view> -->
   </view>
 </view>
 
