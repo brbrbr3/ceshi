@@ -152,6 +152,11 @@ page {
   background: linear-gradient(180deg, #94A3B8, #64748B);
 }
 
+.meal-status-card-left {
+  display: flex;
+  flex-direction: column;
+}
+
 .status-bubble-inner {
   display: flex;
   align-items: center;
@@ -197,8 +202,31 @@ page {
   color: #64748B;
 }
 
+/* 停餐状态指示器 */
+.suspend-info {
+  margin-top: 8rpx;
+  display: flex;
+  align-items: center;
+  flex-wrap: wrap;
+  gap: 8rpx;
+}
+
+.suspend-badge {
+  font-size: var(--fs-24);
+  color: #92400E;
+  background: #FEF3C7;
+  padding: 4rpx 16rpx;
+  border-radius: 8rpx;
+}
+
+.suspend-detail {
+  font-size: var(--fs-22);
+  color: #78716C;
+}
+
 /* 调整按钮 */
 .adjust-btn {
+  margin-top: -150rpx;
   flex-shrink: 0;
   padding: 16rpx 32rpx;
   border-radius: 999rpx;
@@ -231,6 +259,98 @@ page {
 }
 
 /* ==================== 调整列表（管理端） ==================== */
+
+/* 统计卡片 */
+.meal-stats-card {
+  display: flex;
+  align-items: center;
+  justify-content: space-around;
+  padding: 32rpx 16rpx;
+  background: linear-gradient(135deg, #EEF2FF 0%, #E0E7FF 100%);
+  border: 2rpx solid #2564eb6e;
+  border-radius: 20rpx;
+  margin-top: 24rpx;
+}
+
+.meal-stats-item {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 8rpx;
+}
+
+.meal-stats-num {
+  font-size: var(--fs-40);
+  font-weight: 700;
+  color: #2563EB;
+}
+
+.meal-suspend-num {
+  color: #F59E0B;
+}
+
+.meal-stats-label {
+  font-size: var(--fs-22);
+  color: #000000;
+  white-space: nowrap;
+}
+
+.meal-stats-divider {
+  width: 1rpx;
+  height: 60rpx;
+  background: #CBD5E1;
+  flex-shrink: 0;
+}
+
+/* 筛选器 */
+.management-filter-bar {
+  display: flex;
+  gap: 16rpx;
+  padding: 24rpx 0 8rpx;
+  overflow-x: auto;
+  -webkit-overflow-scrolling: touch;
+}
+
+.filter-tag {
+  flex-shrink: 0;
+  padding: 12rpx 28rpx;
+  border-radius: 999rpx;
+  font-size: var(--fs-24);
+  font-weight: 500;
+  color: #64748B;
+  background: #F1F5F9;
+  transition: all 0.2s ease;
+  border: 1rpx solid #2564eb6e;
+}
+
+.filter-tag:active {
+  transform: scale(0.96);
+}
+
+.filter-tag.is-active {
+  color: #FFFFFF;
+  background: linear-gradient(135deg, #2563EB 0%, #1D4ED8 100%);
+  font-weight: 600;
+  box-shadow: 0 4rpx 12rpx rgba(37, 99, 235, 0.25);
+  border: none;
+}
+
+/* 工作日标签 */
+.workday-info {
+  margin-top: 8rpx;
+  margin-bottom: 4rpx;
+}
+
+.workday-label {
+  display: inline-block;
+  padding: 4rpx 14rpx;
+  border-radius: 8rpx;
+  font-size: var(--fs-22);
+  font-weight: 500;
+  color: #92400E;
+  background: #FEF3C7;
+}
+
 .meal-list-container {
   display: flex;
   flex-direction: column;
@@ -285,6 +405,10 @@ page {
   display: flex;
   align-items: center;
   gap: 8rpx;
+}
+
+.adjust-detail-item-suspend + .adjust-detail-item-suspend {
+  margin-top: -25rpx; /* 将 32rpx gap 视觉缩减到约 12rpx */
 }
 
 .detail-label {
@@ -828,6 +952,10 @@ page {
   color: #94A3B8;
 }
 
+.sd-meta-item + .sd-meta-item {
+  margin-top: -25rpx;
+}
+
 .sd-card-bottom {
   display: flex;
   justify-content: space-between;
@@ -950,11 +1078,17 @@ page {
   width: 160rpx;
 }
 
+.sd-detail-item {
+  display: flex;
+  flex-direction: row;
+}
+
 .sd-detail-value {
+  min-width: 180rpx;
   font-size: var(--fs-26);
   color: #1E293B;
   font-weight: 500;
-  text-align: right;
+  text-align: left;
   word-break: break-all;
 }
 

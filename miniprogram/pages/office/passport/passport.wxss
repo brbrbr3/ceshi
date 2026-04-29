@@ -8,7 +8,7 @@
 /* ========== 头部 - 渐变色背景 ========== */
 .passport-header {
   background: linear-gradient(135deg, #7C3AED 0%, #5B21B6 100%);
-  padding: 70rpx 28rpx 32rpx;
+  padding: 30rpx 28rpx 32rpx;
   display: flex;
   align-items: flex-end;
   justify-content: space-between;
@@ -25,7 +25,6 @@
 
 .passport-subtitle {
   font-size: var(--fs-26);
-  padding-top: 5rpx;
 }
 
 .passport-header-action {

@@ -5,20 +5,19 @@
 
 /* 红色渐变头部 */
 .learning-header {
-  padding: 40rpx 40rpx 60rpx;
+  padding: 30rpx 28rpx 42rpx;
   background: linear-gradient(135deg, #B91C1C 0%, #DC2626 50%, #EF4444 100%) !important;
 }
 
 .learning-title {
   font-size: var(--fs-48);
-  font-weight: 700;
+  font-weight: 600;
   color: #FFFFFF;
 }
 
 .learning-subtitle {
-  margin-top: 5rpx;
   font-size: var(--fs-26);
-  color: rgba(255, 255, 255, 0.8);
+  color: rgba(255, 255, 255);
 }
 
 .learning-add-btn {
@@ -167,7 +166,9 @@
 }
 
 @keyframes spin {
-  to { transform: rotate(360deg); }
+  to {
+    transform: rotate(360deg);
+  }
 }
 
 .loading-text {
@@ -214,7 +215,7 @@
 
 /* 左划菜单 */
 .swipe-wrapper {
-  
+
   border-radius: 24rpx;
   position: relative;
   overflow: hidden;

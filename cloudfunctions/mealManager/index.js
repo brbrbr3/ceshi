@@ -1,10 +1,16 @@
 /**
  * 工作餐与副食云函数
  *
+ * 工作餐状态管理架构（事件溯源 + 缓存）：
+ *   - meal_adjustments 是状态真相（source of truth）
+ *   - meal_subscriptions 是花名册 + 状态缓存，由 computeCurrentStatus 推导写入
+ *   - 未来日期的调整不会提前生效，只在实际日期到达后影响状态
+ *   - suspend 结束后自动恢复（无需定时器，推导时自动判断）
+ *
  * 工作餐相关 action:
- *   - getMyMealStatus:      获取当前用户工作餐订阅状态
- *   - saveMealStatus:       保存/更新首次入伙信息
- *   - submitMealAdjustment: 提交工作餐调整（停餐/退伙/入伙/加餐）
+ *   - getMyMealStatus:      获取当前用户工作餐订阅状态（从调整记录推导）
+ *   - saveMealStatus:       保存/更新首次入伙信息（创建花名册 + 调整记录）
+ *   - submitMealAdjustment: 提交工作餐调整（仅写调整记录，缓存自动刷新）
  *   - getAdjustmentList:    获取调整记录列表（管理端）
  *   - getMyAdjustments:     获取当前用户的调整历史
  *
@@ -30,6 +36,7 @@ const subscriptionsCollection = db.collection('meal_subscriptions')
 const adjustmentsCollection = db.collection('meal_adjustments')
 const sideDishOrdersCollection = db.collection('side_dish_orders')
 const sideDishBookingsCollection = db.collection('side_dish_bookings')
+const holidayConfigsCollection = db.collection('holiday_configs')
 
 // 统一返回格式
 function success(data, message) {
@@ -43,14 +50,22 @@ function fail(message, code) {
 /**
  * 获取当前用户的工作餐订阅状态
  * 返回 null 表示从未设置过（需弹首次入伙窗）
+ * 通过事件溯源从调整记录推导真实状态，同时刷新缓存
  */
 async function getMyMealStatus(openid) {
   try {
-    const res = await subscriptionsCollection.where({ openid }).get()
-    if (res.data && res.data.length > 0) {
-      return success(res.data[0])
+    const derived = await refreshSubscriptionCache(openid)
+    if (!derived._subscription) {
+      return success(null)
     }
-    return success(null)
+
+    // 返回推导后的状态（合并到花名册上）
+    return success({
+      ...derived._subscription,
+      status: derived.status,
+      isEnrolled: derived.isEnrolled,
+      mealCount: derived.mealCount
+    })
   } catch (error) {
     console.error('获取餐食状态失败:', error)
     return fail(error.message || '获取餐食状态失败')
@@ -60,6 +75,7 @@ async function getMyMealStatus(openid) {
 /**
  * 保存/更新首次入伙状态
  * params: { isEnrolled: boolean, mealCount: number }
+ * 创建花名册记录 + 调整记录，然后刷新缓存
  */
 async function saveMealStatus(openid, userInfo, params) {
   try {
@@ -82,17 +98,20 @@ async function saveMealStatus(openid, userInfo, params) {
     const now = Date.now()
 
     if (existing.data && existing.data.length > 0) {
-      // 更新现有记录
-      const updateData = {
-        isEnrolled,
-        mealCount: isEnrolled ? (mealCount || 1) : 0,
-        status: isEnrolled ? 'active' : 'none',
-        updatedAt: now
-      }
-      await subscriptionsCollection.doc(existing.data[0]._id).update({ data: updateData })
+      const prevIsEnrolled = existing.data[0].isEnrolled
+      const prevMealCount = existing.data[0].mealCount || 0
 
-      // 如果是重新入伙，记录一条调整
-      if (isEnrolled) {
+      // 更新花名册（入伙信息 + 基本信息）
+      await subscriptionsCollection.doc(existing.data[0]._id).update({
+        data: {
+          isEnrolled,
+          mealCount: isEnrolled ? (mealCount || 1) : 0,
+          updatedAt: now
+        }
+      })
+
+      // 入伙状态变化时，记录调整（保持事件溯源一致性）
+      if (isEnrolled && !prevIsEnrolled) {
         await adjustmentsCollection.add({
           data: {
             openid,
@@ -105,12 +124,32 @@ async function saveMealStatus(openid, userInfo, params) {
             createdAt: now
           }
         })
+      } else if (!isEnrolled && prevIsEnrolled) {
+        await adjustmentsCollection.add({
+          data: {
+            openid,
+            name: userInfo.name || '',
+            adjustmentType: 'withdraw',
+            startDate: '',
+            endDate: null,
+            count: prevMealCount,
+            monthKey: formatMonthKey(now),
+            createdAt: now
+          }
+        })
       }
 
-      const updated = await subscriptionsCollection.doc(existing.data[0]._id).get()
-      return success(updated.data)
+      // 刷新缓存：从调整记录推导真实状态
+      const derived = await refreshSubscriptionCache(openid)
+      return success({
+        ...existing.data[0],
+        status: derived.status,
+        isEnrolled: derived.isEnrolled,
+        mealCount: derived.mealCount,
+        updatedAt: now
+      })
     } else {
-      // 新建记录
+      // 新建花名册记录
       const newRecord = {
         openid,
         name: userInfo.name || '',
@@ -125,7 +164,7 @@ async function saveMealStatus(openid, userInfo, params) {
       const addRes = await subscriptionsCollection.add({ data: newRecord })
       newRecord._id = addRes._id
 
-      // 记录首次入伙调整
+      // 首次入伙，记录调整
       if (isEnrolled) {
         await adjustmentsCollection.add({
           data: {
@@ -152,6 +191,7 @@ async function saveMealStatus(openid, userInfo, params) {
 /**
  * 提交工作餐调整
  * params: { adjustmentType, startDate, endDate?, count }
+ * 仅写入 meal_adjustments 记录，真实状态由 computeCurrentStatus 推导
  */
 async function submitMealAdjustment(openid, userInfo, params) {
   try {
@@ -169,19 +209,12 @@ async function submitMealAdjustment(openid, userInfo, params) {
       return fail('份数必须大于0', 400)
     }
 
-    // 查询当前订阅状态（enroll 类型允许无记录，会自动创建）
-    const subRes = await subscriptionsCollection.where({ openid }).get()
-    const subscription = subRes.data && subRes.data.length > 0 ? subRes.data[0] : null
+    // 推导当前真实状态（用于业务校验）
+    const derived = await computeCurrentStatus(openid)
 
-    // 非 enroll/extra 类型必须有现有记录
-    if (!subscription && adjustmentType !== 'enroll' && adjustmentType !== 'extra') {
-      return fail('请先设置工作餐状态', 400)
-    }
-
-    const now = Date.now()
-
-    // enroll 且无记录时，直接创建订阅记录
-    if (!subscription && adjustmentType === 'enroll') {
+    // enroll 且无订阅记录时，先创建花名册
+    if (!derived._subscription && adjustmentType === 'enroll') {
+      const now = Date.now()
       const newSubRecord = {
         openid,
         name: userInfo.name || '',
@@ -209,26 +242,34 @@ async function submitMealAdjustment(openid, userInfo, params) {
       }
       const addAdjRes = await adjustmentsCollection.add({ data: record })
       record._id = addAdjRes._id
+
+      // 刷新缓存
+      await refreshSubscriptionCache(openid)
       return success(record)
     }
 
-    // 根据类型做业务校验（不含时间判断，由前端处理）
+    // 非 enroll/extra 类型必须有现有订阅记录
+    if (!derived._subscription) {
+      return fail('请先设置工作餐状态', 400)
+    }
+
+    // 根据推导状态做业务校验
     switch (adjustmentType) {
       case 'suspend':
-        if (!subscription.isEnrolled) {
+        if (!derived.isEnrolled) {
           return fail('当前未入伙，无法停餐', 400)
         }
-        if (count > subscription.mealCount) {
-          return fail(`停餐份数不能超过已订餐份数(${subscription.mealCount})`, 400)
+        if (count > derived.mealCount) {
+          return fail(`停餐份数不能超过已订餐份数(${derived.mealCount})`, 400)
         }
         break
 
       case 'withdraw':
-        if (!subscription.isEnrolled) {
+        if (!derived.isEnrolled) {
           return fail('当前未入伙，无法退伙', 400)
         }
-        if (count > subscription.mealCount) {
-          return fail(`退伙份数不能超过已订餐份数(${subscription.mealCount})`, 400)
+        if (count > derived.mealCount) {
+          return fail(`退伙份数不能超过已订餐份数(${derived.mealCount})`, 400)
         }
         break
 
@@ -237,7 +278,7 @@ async function submitMealAdjustment(openid, userInfo, params) {
         break
 
       case 'extra':
-        if (!subscription.isEnrolled) {
+        if (!derived.isEnrolled) {
           return fail('当前未入伙，无法加餐', 400)
         }
         if (count < 1) {
@@ -246,7 +287,9 @@ async function submitMealAdjustment(openid, userInfo, params) {
         break
     }
 
-    // 创建调整记录
+    const now = Date.now()
+
+    // 创建调整记录（仅写入 meal_adjustments，不直接更新订阅状态）
     const record = {
       openid,
       name: userInfo.name || '',
@@ -260,33 +303,8 @@ async function submitMealAdjustment(openid, userInfo, params) {
     const addRes = await adjustmentsCollection.add({ data: record })
     record._id = addRes._id
 
-    // 更新订阅状态
-    let newStatus = subscription.status
-    let updateData = { updatedAt: now }
-
-    switch (adjustmentType) {
-      case 'suspend':
-        newStatus = 'suspended'
-        break
-      case 'withdraw':
-        newStatus = 'withdrawn'
-        updateData.isEnrolled = false
-        updateData.mealCount = 0
-        break
-      case 'enroll':
-        newStatus = 'active'
-        updateData.isEnrolled = true
-        updateData.mealCount = count
-        break
-
-      case 'extra':
-        newStatus = 'active'
-        updateData.mealCount = subscription.mealCount + count
-        break
-    }
-    updateData.status = newStatus
-
-    await subscriptionsCollection.doc(subscription._id).update({ data: updateData })
+    // 刷新订阅缓存（从调整记录推导最新状态）
+    await refreshSubscriptionCache(openid)
 
     return success(record)
   } catch (error) {
@@ -313,10 +331,12 @@ async function getAdjustmentList(params) {
         .get()
     ])
 
+    const enriched = await enrichSuspendWorkdayCount(listRes.data)
+
     return success({
-      list: listRes.data,
+      list: enriched,
       total: countRes.total,
-      hasMore: skip + listRes.data.length < countRes.total
+      hasMore: skip + enriched.length < countRes.total
     })
   } catch (error) {
     console.error('获取调整列表失败:', error)
@@ -334,8 +354,10 @@ async function getMyAdjustments(openid) {
       adjustmentsCollection.where({ openid }).orderBy('createdAt', 'desc').limit(20).get()
     ])
 
+    const enriched = await enrichSuspendWorkdayCount(listRes.data || [])
+
     return success({
-      list: listRes.data || [],
+      list: enriched,
       total: countRes.total,
       hasMore: countRes.total > 20
     })
@@ -344,6 +366,33 @@ async function getMyAdjustments(openid) {
     return fail(error.message || '获取调整历史失败')
   }
 }
+
+/**
+ * 获取工作餐统计信息（管理端）
+ * 统计当前订餐人数/份数、临时停餐人数/份数
+ */
+async function getMealStats() {
+  try {
+    const [enrolledRes, suspendedRes] = await Promise.all([
+      subscriptionsCollection.where({ isEnrolled: true }).get(),
+      subscriptionsCollection.where({ status: 'suspended' }).get()
+    ])
+
+    const enrolledList = enrolledRes.data || []
+    const suspendedList = suspendedRes.data || []
+
+    return success({
+      enrolledPeople: enrolledList.length,
+      enrolledCount: enrolledList.reduce((sum, s) => sum + (s.mealCount || 0), 0),
+      suspendedPeople: suspendedList.length,
+      suspendedCount: suspendedList.reduce((sum, s) => sum + (s.mealCount || 0), 0)
+    })
+  } catch (error) {
+    console.error('获取餐食统计失败:', error)
+    return fail(error.message || '获取统计失败')
+  }
+}
+
 function formatMonthKey(timestamp) {
   const d = new Date(timestamp)
   const y = d.getFullYear()
@@ -360,6 +409,194 @@ function getTodayStr() {
   const m = String(d.getMonth() + 1).padStart(2, '0')
   const day = String(d.getDate()).padStart(2, '0')
   return `${y}-${m}-${day}`
+}
+
+/**
+ * 获取指定年份的节假日配置
+ * 返回 { year: [dates] } 映射
+ */
+async function getHolidayConfigs(years) {
+  if (!years || years.length === 0) return {}
+  const res = await holidayConfigsCollection
+    .where({ year: _.in(years) })
+    .get()
+  const map = {}
+  ;(res.data || []).forEach(doc => {
+    map[doc.year] = doc.dates || []
+  })
+  return map
+}
+
+/**
+ * 将 Date 对象格式化为 YYYY-MM-DD
+ */
+function formatDateStr(date) {
+  const y = date.getFullYear()
+  const m = String(date.getMonth() + 1).padStart(2, '0')
+  const d = String(date.getDate()).padStart(2, '0')
+  return `${y}-${m}-${d}`
+}
+
+/**
+ * 计算日期区间内的工作日数量
+ * 工作日 = 非周末 且 不在节假日集合中
+ */
+function countWorkdays(startDate, endDate, holidayDatesSet) {
+  if (!startDate || !endDate) return 0
+  let count = 0
+  const current = new Date(startDate + 'T00:00:00')
+  const end = new Date(endDate + 'T00:00:00')
+  while (current <= end) {
+    const dayOfWeek = current.getDay()
+    const dateStr = formatDateStr(current)
+    if (dayOfWeek !== 0 && dayOfWeek !== 6 && !holidayDatesSet.has(dateStr)) {
+      count++
+    }
+    current.setDate(current.getDate() + 1)
+  }
+  return count
+}
+
+/**
+ * 为 suspend 类型的调整记录补充 workdayCount 字段
+ * 从 holiday_configs 查询节假日，计算停餐区间内的工作日数量
+ */
+async function enrichSuspendWorkdayCount(list) {
+  const suspendRecords = list.filter(
+    item => item.adjustmentType === 'suspend' && item.startDate && item.endDate
+  )
+  if (suspendRecords.length === 0) return list
+
+  // 收集涉及的年份
+  const years = new Set()
+  suspendRecords.forEach(r => {
+    years.add(r.startDate.substring(0, 4))
+    years.add(r.endDate.substring(0, 4))
+  })
+
+  const holidayMap = await getHolidayConfigs([...years])
+
+  // 构建节假日集合
+  const allHolidayDates = new Set()
+  Object.values(holidayMap).forEach(dates => {
+    dates.forEach(d => allHolidayDates.add(d))
+  })
+
+  return list.map(item => {
+    if (item.adjustmentType === 'suspend' && item.startDate && item.endDate) {
+      return { ...item, workdayCount: countWorkdays(item.startDate, item.endDate, allHolidayDates) }
+    }
+    return item
+  })
+}
+
+/**
+ * 从调整记录推导用户当前真实状态（事件溯源）
+ * meal_adjustments 是状态真相，meal_subscriptions 仅缓存花名册
+ *
+ * 核心逻辑：
+ * 1. 以订阅记录的初始入伙信息为起点
+ * 2. 按 createdAt 顺序回放所有已生效的调整记录
+ * 3. suspend 特殊处理：只有今天在 [startDate, endDate] 区间内才标记为 suspended
+ * 4. 未来日期的调整（startDate > 今天）被跳过，不会提前生效
+ */
+async function computeCurrentStatus(openid) {
+  // 获取花名册记录
+  const subRes = await subscriptionsCollection.where({ openid }).get()
+  const subscription = subRes.data && subRes.data.length > 0 ? subRes.data[0] : null
+
+  if (!subscription) {
+    return { status: 'none', isEnrolled: false, mealCount: 0, _subscription: null }
+  }
+
+  // 获取所有调整记录，按创建时间排序
+  const adjRes = await adjustmentsCollection
+    .where({ openid })
+    .orderBy('createdAt', 'asc')
+    .limit(100)
+    .get()
+  const adjustments = adjRes.data || []
+
+  const today = getTodayStr()
+
+  // 初始状态：来自花名册的入伙信息
+  let currentStatus = subscription.isEnrolled ? 'active' : 'none'
+  let currentMealCount = subscription.mealCount || 0
+  let currentIsEnrolled = subscription.isEnrolled || false
+
+  // 回放所有调整记录
+  for (const adj of adjustments) {
+    const effectiveDate = adj.startDate || ''
+
+    // 跳过尚未生效的未来调整
+    if (effectiveDate && effectiveDate > today) continue
+
+    switch (adj.adjustmentType) {
+      case 'enroll':
+        currentStatus = 'active'
+        currentIsEnrolled = true
+        currentMealCount = adj.count
+        break
+
+      case 'withdraw':
+        currentStatus = 'withdrawn'
+        currentIsEnrolled = false
+        currentMealCount = 0
+        break
+
+      case 'extra':
+        currentStatus = 'active'
+        currentIsEnrolled = true
+        currentMealCount += adj.count
+        break
+
+      case 'suspend':
+        // 只有今天在停餐区间内才标记为 suspended
+        if (adj.startDate <= today && (!adj.endDate || adj.endDate >= today)) {
+          currentStatus = 'suspended'
+          // isEnrolled 和 mealCount 保留（暂停语义，不改变基础状态）
+        }
+        // 停餐期已过或未开始 → 不影响当前状态
+        break
+    }
+  }
+
+  return {
+    status: currentStatus,
+    isEnrolled: currentIsEnrolled,
+    mealCount: currentMealCount,
+    _subscription: subscription
+  }
+}
+
+/**
+ * 刷新订阅缓存：从调整记录推导当前状态，同步写入 meal_subscriptions
+ * meal_subscriptions 的 status/isEnrolled/mealCount 仅供快速查询使用
+ * 真实状态始终由 computeCurrentStatus 从 meal_adjustments 推导
+ */
+async function refreshSubscriptionCache(openid) {
+  const derived = await computeCurrentStatus(openid)
+  if (!derived._subscription) return derived
+
+  const subscription = derived._subscription
+
+  // 仅在缓存与推导结果不一致时更新
+  if (subscription.status !== derived.status ||
+      subscription.isEnrolled !== derived.isEnrolled ||
+      subscription.mealCount !== derived.mealCount) {
+    const now = Date.now()
+    await subscriptionsCollection.doc(subscription._id).update({
+      data: {
+        status: derived.status,
+        isEnrolled: derived.isEnrolled,
+        mealCount: derived.mealCount,
+        cachedAt: now,
+        updatedAt: now
+      }
+    })
+  }
+
+  return derived
 }
 
 // ==================== 副食征订相关函数 ====================
@@ -775,6 +1012,9 @@ exports.main = async (event, context) => {
 
     case 'submitMealAdjustment':
       return await submitMealAdjustment(openid, userInfo, params)
+
+    case 'getMealStats':
+      return await getMealStats()
 
     case 'getAdjustmentList':
       return await getAdjustmentList(params)

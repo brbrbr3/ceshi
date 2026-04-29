@@ -7,7 +7,7 @@
 
 /* 头部 - 使用圆角渐变 */
 .dashboard-header {
-  padding: 60rpx 40rpx 20rpx;
+  padding: 30rpx 28rpx 32rpx;
 }
 
 .dashboard-header-content {
@@ -16,12 +16,11 @@
 
 .dashboard-title {
   font-size: var(--fs-48);
-  font-weight: 700;
+  font-weight: 600;
 }
 
 .dashboard-subtitle {
   font-size: var(--fs-26);
-  padding-top: 5rpx;
 }
 
 /* 内容区 */

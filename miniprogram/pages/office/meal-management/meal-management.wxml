@@ -10,13 +10,7 @@
 
     <!-- Tab 切换栏 -->
     <view class="meal-tabs-shell">
-      <view
-        wx:for="{{tabs}}"
-        wx:key="key"
-        class="meal-tab {{activeTab == item.key ? 'is-active' : ''}}"
-        data-tab="{{item.key}}"
-        bindtap="switchTab"
-      >
+      <view wx:for="{{tabs}}" wx:key="key" class="meal-tab {{activeTab == item.key ? 'is-active' : ''}}" data-tab="{{item.key}}" bindtap="switchTab">
         <text>{{item.label}}</text>
       </view>
     </view>
@@ -40,15 +34,20 @@
       <!-- 状态气泡 + 调整按钮区域 -->
       <view wx:if="{{!showFirstSetup}}" class="meal-status-area">
         <view class="meal-status-card {{mealStatus.isEnrolled ? 'is-enrolled' : 'is-not-enrolled'}}">
-          <view class="status-bubble-inner">
-            <view class="status-icon">{{mealStatus.isEnrolled ? '✓' : '○'}}</view>
-            <view class="status-text">{{mealStatus.isEnrolled ? '我已入伙' : '我未入伙'}}</view>
-            <view wx:if="{{mealStatus.isEnrolled}}" class="status-count">· {{mealStatus.mealCount}} 份</view>
+          <view class="meal-status-card-left">
+            <view class="status-bubble-inner">
+              <view class="status-icon">{{mealStatus.isEnrolled ? '✓' : '○'}}</view>
+              <view class="status-text">{{mealStatus.isEnrolled ? '我已入伙' : '我未入伙'}}</view>
+              <view wx:if="{{mealStatus.isEnrolled}}" class="status-count">· {{mealStatus.mealCount}} 份</view>
+            </view>
+            <view class="status-bubble-inner suspend-info" wx:if="{{mealStatus.status === 'suspended'}}">
+              <view class="suspend-badge">⏸ 当前临时停餐</view>
+              <view class="suspend-detail" wx:if="{{activeSuspension}}">
+                {{activeSuspension.startDate}} ~ {{activeSuspension.endDate}} · 停{{activeSuspension.count}}份<text wx:if="{{activeSuspension.workdayCount}}">\n共{{activeSuspension.workdayCount}}个工作日</text>
+              </view>
+            </view>
           </view>
-          <view
-            class="adjust-btn"
-            bindtap="openAdjustModal"
-          >
+          <view class="adjust-btn" bindtap="openAdjustModal">
             工作餐调整
           </view>
         </view>
@@ -66,22 +65,20 @@
           <text class="section-count">共 {{myAdjustmentList.length}} 条</text>
         </view>
         <view class="my-history-list">
-          <view
-            wx:for="{{myAdjustmentList}}"
-            wx:key="_id"
-            class="my-adjust-card"
-          >
+          <view wx:for="{{myAdjustmentList}}" wx:key="_id" class="my-adjust-card">
             <view class="adjust-type-tag" style="background: {{item.bg}}; color: {{item.textColor}};">{{item.label}}</view>
             <view class="my-adjust-body">
               <view class="my-adjust-row" wx:if="{{item.startDate}}">
-                <text class="detail-label">日期</text>
-                <text class="detail-value">
-                  {{item.startDate}}{{item.endDate ? ' ~ ' + item.endDate : ''}}
-                </text>
+                <text class="detail-label">日期：</text>
+                <text class="detail-value">{{item.startDate}}{{item.endDate ? ' ~ ' + item.endDate : ''}}</text>
+              </view>
+              <view class="my-adjust-row" wx:if="{{item.adjustmentType === 'suspend' && item.workdayCount}}">
+                <text class="detail-label">工作日：</text>
+                <text class="detail-value">共 {{item.workdayCount}} 个工作日</text>
               </view>
               <view class="my-adjust-bottom">
                 <view class="adjust-count">份数：{{item.count}}</view>
-                <view class="adjust-time">{{item.formattedTime}}</view>
+                <view class="adjust-time">提交日期：{{item.formattedTime}}</view>
               </view>
             </view>
           </view>
@@ -97,39 +94,74 @@
     <!-- ==================== 工作餐管理 Tab ==================== -->
     <block wx:if="{{activeTab === 'management' && !noPermission}}">
 
-      <view wx:if="{{adjustmentList.length > 0}}" class="meal-list-container">
-        <view
-          wx:for="{{adjustmentList}}"
-          wx:key="_id"
-          class="meal-adjust-card"
-        >
+      <!-- 统计卡片 -->
+      <view class="meal-stats-card">
+        <view class="meal-stats-item">
+          <text class="meal-stats-num">{{mealStats.enrolledPeople}}</text>
+          <text class="meal-stats-label">当前订餐人数</text>
+        </view>
+        <view class="meal-stats-divider"></view>
+        <view class="meal-stats-item">
+          <text class="meal-stats-num">{{mealStats.enrolledCount - mealStats.suspendedCount}}</text>
+          <text class="meal-stats-label">当前订餐份数</text>
+        </view>
+        <view class="meal-stats-divider"></view>
+        <view class="meal-stats-item">
+          <text class="meal-stats-num meal-suspend-num">{{mealStats.suspendedPeople}}</text>
+          <text class="meal-stats-label">当前停餐人数</text>
+        </view>
+        <view class="meal-stats-divider"></view>
+        <view class="meal-stats-item">
+          <text class="meal-stats-num meal-suspend-num">{{mealStats.suspendedCount}}</text>
+          <text class="meal-stats-label">当前停餐份数</text>
+        </view>
+      </view>
+
+      <!-- 筛选器 -->
+      <view class="management-filter-bar">
+        <view class="filter-tag {{managementFilter === 'all' ? 'is-active' : ''}}" data-filter="all" bindtap="handleManagementFilter">全部</view>
+        <view class="filter-tag {{managementFilter === 'suspend' ? 'is-active' : ''}}" data-filter="suspend" bindtap="handleManagementFilter">临时停餐</view>
+        <view class="filter-tag {{managementFilter === 'withdraw' ? 'is-active' : ''}}" data-filter="withdraw" bindtap="handleManagementFilter">退伙</view>
+        <view class="filter-tag {{managementFilter === 'extra' ? 'is-active' : ''}}" data-filter="extra" bindtap="handleManagementFilter">加餐</view>
+      </view>
+
+      <view wx:if="{{filteredAdjustmentList.length > 0}}" class="meal-list-container">
+        <view wx:for="{{filteredAdjustmentList}}" wx:key="_id" class="meal-adjust-card">
           <view class="adjust-card-left">
             <view class="adjust-type-tag" style="background: {{item.bg}}; color: {{item.textColor}};">{{item.label}}</view>
           </view>
           <view class="adjust-card-body">
             <view class="adjust-name">{{item.name || '-'}}</view>
             <view class="adjust-detail-row">
-              <view class="adjust-detail-item">
-                <text class="detail-label">开始日期</text>
+              <view class="adjust-detail-item adjust-detail-item-suspend">
+                <text class="detail-label">开始日期：</text>
                 <text class="detail-value">{{item.startDate || '-'}}</text>
               </view>
-              <view wx:if="{{item.endDate}}" class="adjust-detail-item">
-                <text class="detail-label">结束日期</text>
+              <view wx:if="{{item.endDate}}" class="adjust-detail-item adjust-detail-item-suspend">
+                <text class="detail-label">结束日期：</text>
                 <text class="detail-value">{{item.endDate}}</text>
               </view>
             </view>
+            <view wx:if="{{item.adjustmentType === 'suspend' && item.workdayCount}}" class="workday-info">
+              <text class="workday-label">共 {{item.workdayCount}} 个工作日</text>
+            </view>
             <view class="adjust-bottom">
               <view class="adjust-count">份数：{{item.count}}</view>
-              <view class="adjust-time">{{item.formattedTime}}</view>
+              <view class="adjust-time">提交日期：{{item.formattedTime}}</view>
             </view>
           </view>
         </view>
       </view>
 
-      <!-- 空状态 -->
-      <view wx:else class="office-card meal-empty">
+      <!-- 无数据空状态 -->
+      <view wx:elif="{{adjustmentList.length === 0}}" class="office-card meal-empty">
         <view class="meal-empty-icon">🍽️</view>
         <view>暂无调整记录</view>
+      </view>
+
+      <!-- 筛选后空状态 -->
+      <view wx:elif="{{filteredAdjustmentList.length === 0 && adjustmentList.length > 0}}" class="office-card meal-empty-small">
+        <text>该筛选条件下暂无记录</text>
       </view>
 
       <!-- 分页加载状态 -->
@@ -139,7 +171,7 @@
       </view>
 
       <!-- 没有更多数据 -->
-      <view class="pagination-no-more" wx:elif="{{!hasMore && adjustmentList.length > 0}}">
+      <view class="pagination-no-more" wx:elif="{{!hasMore && filteredAdjustmentList.length > 0}}">
         <text class="no-more-text">没有更多数据了</text>
       </view>
     </block>
@@ -155,13 +187,7 @@
 
       <!-- 征订单列表 -->
       <view wx:if="{{sideDishOrderList.length > 0}}" class="side-dish-list">
-        <view
-          wx:for="{{sideDishOrderList}}"
-          wx:key="_id"
-          class="side-dish-order-card {{item.isExpired || item.isTodayOrBefore ? 'is-expired' : ''}}"
-          data-order="{{item}}"
-          bindtap="openSideDishDetail"
-        >
+        <view wx:for="{{sideDishOrderList}}" wx:key="_id" class="side-dish-order-card {{item.isExpired || item.isTodayOrBefore ? 'is-expired' : ''}}" data-order="{{item}}" bindtap="openSideDishDetail">
           <view class="sd-card-left">
             <view class="sd-status-tag {{item.isExpired || item.isTodayOrBefore ? 'tag-expired' : 'tag-active'}}">
               {{item.isExpired || item.isTodayOrBefore ? '征订已结束' : '预订中'}}
@@ -197,13 +223,7 @@
 
       <!-- 征订单管理列表 -->
       <view wx:if="{{sideDishManageList.length > 0}}" class="side-dish-list">
-        <view
-          wx:for="{{sideDishManageList}}"
-          wx:key="_id"
-          class="side-dish-order-card sd-manage-card"
-          data-id="{{item._id}}"
-          bindtap="openBookingDetail"
-        >
+        <view wx:for="{{sideDishManageList}}" wx:key="_id" class="side-dish-order-card sd-manage-card" data-id="{{item._id}}" bindtap="openBookingDetail">
           <view class="sd-card-left">
             <view class="sd-status-tag {{item.isExpired || item.isTodayOrBefore ? 'tag-expired' : 'tag-active'}}">
               {{item.isExpired || item.isTodayOrBefore ? '征订已结束' : '进行中'}}
@@ -245,11 +265,7 @@
         <!-- 入伙开关 -->
         <view class="form-row">
           <text class="form-label">当前是否已入伙</text>
-          <switch
-            checked="{{setupData.isEnrolled}}"
-            color="#2563EB"
-            bindchange="handleSwitchChange"
-          />
+          <switch checked="{{setupData.isEnrolled}}" color="#2563EB" bindchange="handleSwitchChange" />
         </view>
 
         <!-- 订餐份数（已入伙时显示） -->
@@ -312,16 +328,10 @@
         <view wx:if="{{adjustData.type === 'extra'}}" class="form-section">
           <view class="form-row">
             <view class="form-row-left">
-            <text class="form-label">开始日期\n</text>
-            <text class="form-sublabel">最早可调整下周起的工作餐</text></view>
-            <datetime-picker
-              value="{{adjustData.startDate}}"
-              startDate="{{minStartDate}}"
-              fields="{{['year','month','day']}}"
-              placeholder="选择开始日期"
-              type="card"
-              bind:change="onStartDateChange"
-            />
+              <text class="form-label">开始日期\n</text>
+              <text class="form-sublabel">最早可调整下周起的工作餐</text>
+            </view>
+            <datetime-picker value="{{adjustData.startDate}}" startDate="{{minStartDate}}" fields="{{['year','month','day']}}" placeholder="选择开始日期" type="card" bind:change="onStartDateChange" />
           </view>
           <view class="form-row form-row-count">
             <text class="form-label">加餐份数</text>
@@ -336,28 +346,15 @@
         <!-- 临时停餐表单 -->
         <view wx:if="{{adjustData.type === 'suspend'}}" class="form-section">
           <view class="form-row">
-          <view class="form-row-left">
-            <text class="form-label">开始日期\n</text>
-            <text class="form-sublabel">最早可调整下周起的工作餐</text></view>
-            <datetime-picker
-              value="{{adjustData.startDate}}"
-              startDate="{{minStartDate}}"
-              fields="{{['year','month','day']}}"
-              placeholder="选择开始日期"
-              type="card"
-              bind:change="onStartDateChange"
-            />
+            <view class="form-row-left">
+              <text class="form-label">开始日期\n</text>
+              <text class="form-sublabel">最早可调整下周起的工作餐</text>
+            </view>
+            <datetime-picker value="{{adjustData.startDate}}" startDate="{{minStartDate}}" fields="{{['year','month','day']}}" placeholder="选择开始日期" type="card" bind:change="onStartDateChange" />
           </view>
           <view class="form-row">
             <text class="form-label">结束日期</text>
-            <datetime-picker
-              value="{{adjustData.endDate}}"
-              startDate="{{minStartDate}}"
-              fields="{{['year','month','day']}}"
-              placeholder="选择结束日期"
-              type="card"
-              bind:change="onEndDateChange"
-            />
+            <datetime-picker value="{{adjustData.endDate}}" startDate="{{minStartDate}}" fields="{{['year','month','day']}}" placeholder="选择结束日期" type="card" bind:change="onEndDateChange" />
           </view>
           <view class="form-row form-row-count">
             <text class="form-label">停餐份数</text>
@@ -373,16 +370,10 @@
         <view wx:if="{{adjustData.type === 'withdraw'}}" class="form-section">
           <view class="form-row">
             <view class="form-row-left">
-            <text class="form-label">退伙日期\n</text>
-            <text class="form-sublabel">最早可调整下周起的工作餐</text></view>
-            <datetime-picker
-              value="{{adjustData.startDate}}"
-              startDate="{{minStartDate}}"
-              fields="{{['year','month','day']}}"
-              placeholder="选择退伙日期"
-              type="card"
-              bind:change="onStartDateChange"
-            />
+              <text class="form-label">退伙日期\n</text>
+              <text class="form-sublabel">最早可调整下周起的工作餐</text>
+            </view>
+            <datetime-picker value="{{adjustData.startDate}}" startDate="{{minStartDate}}" fields="{{['year','month','day']}}" placeholder="选择退伙日期" type="card" bind:change="onStartDateChange" />
           </view>
           <view class="form-row form-row-count">
             <text class="form-label">退伙份数</text>
@@ -451,8 +442,8 @@
         <!-- 已预订状态（按类别显示） -->
         <view wx:if="{{currentSideDishOrder.myBookedCount > 0}}" class="sd-booked-status">
           <text>已预订 {{currentSideDishOrder.myBookedCount}} 份（</text>
-          <text wx:for="{{currentSideDishOrder.myBookedItems}}" wx:key="categoryId">{{item.categoryName}}{{item.count}}份{{index < currentSideDishOrder.myBookedItems.length - 1 ? '、' : ''}}</text>
-          <text>）</text>
+          <text wx:for="{{currentSideDishOrder.myBookedItems}}" wx:key="categoryId">{{item.categoryName}}{{item.count}}份{{index < currentSideDishOrder.myBookedItems.length - 1 ? '、' : '' }}</text>
+              <text>）</text>
         </view>
 
         <!-- 预订操作区（按类别选份数，仅未截止时显示） -->
@@ -496,27 +487,12 @@
       <view class="modal-body">
         <view class="form-row">
           <text class="form-label required-field">标题</text>
-          <input
-            class="form-input"
-            placeholder="如：端午节粽子预订"
-            value="{{createSideDishData.title}}"
-            data-field="title"
-            bindinput="handleCreateFieldChange"
-            maxlength="30"
-          />
+          <input class="form-input" placeholder="如：端午节粽子预订" value="{{createSideDishData.title}}" data-field="title" bindinput="handleCreateFieldChange" maxlength="30" />
         </view>
 
         <view class="form-row form-row-textarea">
           <text class="form-label required-field">副食详情</text>
-          <textarea
-            class="form-textarea"
-            placeholder="请描述副食的品种、规格、价格等信息..."
-            value="{{createSideDishData.description}}"
-            data-field="description"
-            bindinput="handleCreateFieldChange"
-            maxlength="500"
-            auto-height
-          />
+          <textarea class="form-textarea" placeholder="请描述副食的品种、规格、价格等信息..." value="{{createSideDishData.description}}" data-field="description" bindinput="handleCreateFieldChange" maxlength="500" auto-height />
         </view>
 
         <!-- 类别列表 -->
@@ -529,14 +505,7 @@
           </view>
           <view wx:for="{{createSideDishData.categories}}" wx:key="index" class="category-item">
             <view class="category-item-row">
-              <input
-                class="category-name-input"
-                placeholder="类别名称"
-                value="{{item.name}}"
-                data-index="{{index}}"
-                bindinput="handleCategoryNameChange"
-                maxlength="20"
-              />
+              <input class="category-name-input" placeholder="类别名称" value="{{item.name}}" data-index="{{index}}" bindinput="handleCategoryNameChange" maxlength="20" />
               <view class="category-count-area">
                 <view class="count-control">
                   <view class="count-btn count-minus" data-index="{{index}}" data-action="minus" bindtap="handleCategoryCountChange">−</view>
@@ -552,14 +521,7 @@
 
         <view class="form-row">
           <text class="form-label required-field">截止日期</text>
-          <datetime-picker
-            value="{{createSideDishData.deadline}}"
-            startDate="{{dateToday}}"
-            fields="{{['year','month','day']}}"
-            placeholder="选择截止日期"
-            type="card"
-            bind:change="handleCreateDeadlineChange"
-          />
+          <datetime-picker value="{{createSideDishData.deadline}}" startDate="{{dateToday}}" fields="{{['year','month','day']}}" placeholder="选择截止日期" type="card" bind:change="handleCreateDeadlineChange" />
         </view>
       </view>
 
@@ -576,11 +538,28 @@
   <view wx:if="{{showBookingDetailModal}}" class="modal-mask {{modalAnimating ? 'modal-closing' : ''}}" catchtap="closeBookingDetail">
     <view class="modal-sheet modal-sheet-large booking-detail-sheet" catchtap stopPropagation>
       <view class="modal-head">
-        <text class="modal-title">预订名单 - {{bookingDetailOrder.title}}</text>
+        <text class="modal-title">征订详情 - {{bookingDetailOrder.title}}</text>
         <view class="modal-close" bindtap="closeBookingDetail">✕</view>
       </view>
 
       <view class="modal-body">
+
+        <!-- 截止信息 -->
+        <view class="sd-detail-row sd-deadline-info">
+          <view class="sd-detail-item">
+            <view class="sd-detail-value">副食详情：</view>
+            <view class="sd-detail-value">{{bookingDetailOrder.description}}</view>
+          </view>
+          <view class="sd-detail-item">
+            <view class="sd-detail-value">副食类别：</view>
+            <view class="sd-detail-value-row">
+              <view class="sd-detail-value" wx:for="{{bookingDetailOrder.categories}}" wx:key="categoryId">{{item.name}} · 每人最多可订{{item.maxCount}}份</view>
+            </view>
+          </view>
+          <text class="sd-detail-value">截止日期：{{bookingDetailOrder.deadline}}</text>
+          <text class="sd-detail-value">创建者：{{bookingDetailOrder.creatorName}}</text>
+        </view>
+
         <!-- 统计概览 -->
         <view class="booking-summary-card office-card">
           <view class="summary-item">
@@ -603,12 +582,6 @@
               <text class="category-summary-count">{{item.count}} 份</text>
             </view>
           </view>
-        </view>
-
-        <!-- 截止信息 -->
-        <view class="sd-detail-row sd-deadline-info">
-          <text class="sd-detail-value">截止日期：{{bookingDetailOrder.deadline}}</text>
-          <text class="sd-detail-value">创建者：{{bookingDetailOrder.creatorName}}</text>
         </view>
 
         <!-- 预订人员列表 -->

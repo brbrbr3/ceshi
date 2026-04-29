@@ -45,24 +45,28 @@ Page({
       }
     ],
     menuGroups: [{
-        title: '工作设置',
+        title: '系统设置',
         items: [{
             icon: 'Aa',
             label: '字体大小'
           },
           {
-            icon: '🔔',
-            label: '消息中心'
-          },
-          {
-            icon: '✍️',
-            label: '签字管理'
+            icon: '⚙️',
+            label: '人员配置'
           }
         ]
       },
       {
         title: '个人设置',
         items: [{
+            icon: '🔔',
+            label: '消息中心'
+          },
+          {
+            icon: '✍️',
+            label: '签字管理'
+          },
+          {
             icon: '👤',
             label: '修改个人信息'
           },
@@ -314,7 +318,7 @@ Page({
 
       // 更新 menuGroups 的 badge
       const menuGroups = this.data.menuGroups
-      menuGroups[0].items[1].badge = unreadCount > 0 ? unreadCount + '条未读' : ''
+      menuGroups[1].items[0].badge = unreadCount > 0 ? unreadCount + '条未读' : ''
       this.setData({
         menuGroups: menuGroups
       })

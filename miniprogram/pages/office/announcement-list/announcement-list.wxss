@@ -45,7 +45,7 @@
 }
 
 .announcements-header {
-  padding: 60rpx 40rpx 50rpx;
+  padding: 30rpx 28rpx 50rpx;
 }
 
 .announcements-title {
@@ -54,7 +54,6 @@
 }
 
 .announcements-subtitle {
-  margin-top: 5rpx;
   font-size: var(--fs-26);
 }
 

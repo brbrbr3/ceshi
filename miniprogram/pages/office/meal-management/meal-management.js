@@ -36,7 +36,7 @@ const ADJUST_TYPE_META = {
     textColor: '#991B1B'
   },
   suspend: {
-    label: '停餐',
+    label: '临时停餐',
     color: '#F59E0B',
     bg: '#FEF3C7',
     textColor: '#92400E'
@@ -91,9 +91,18 @@ Page({
     // ========== 我的调整历史 ==========
     myAdjustmentList: [], // 当前用户的调整记录（Tab1 展示）
     hasMoreAdjustments: false,
+    activeSuspension: null, // 当前生效的临时停餐记录
 
     // ========== 工作餐管理数据（管理端）==========
+    mealStats: {
+      enrolledPeople: 0,
+      enrolledCount: 0,
+      suspendedPeople: 0,
+      suspendedCount: 0
+    },
+    managementFilter: 'all',
     adjustmentList: [],
+    filteredAdjustmentList: [],
     hasMore: false,
     page: 1,
 
@@ -223,8 +232,10 @@ Page({
           // 加载我的工作餐状态 + 历史记录
           this.loadMyMealData()
         } else if (defaultTab === 'management') {
-          this.loadAdjustmentList(false)
-            .finally(() => {
+          Promise.all([
+            this.loadAdjustmentList(false),
+            this.loadMealStats()
+          ]).finally(() => {
               wx.hideLoading()
               this.setData({
                 loading: false
@@ -272,7 +283,10 @@ Page({
     if (this.data.activeTab === 'myMeal') {
       return this.loadMyMealData()
     } else if (this.data.activeTab === 'management') {
-      return this.loadAdjustmentList(false)
+      return Promise.all([
+        this.loadAdjustmentList(false),
+        this.loadMealStats()
+      ])
     } else if (this.data.activeTab === 'sideOrder') {
       return this.loadSideDishOrders()
     } else {
@@ -338,9 +352,18 @@ Page({
         formattedTime: item.createdAt ? utils.formatRelativeTime(item.createdAt) : ''
       }))
 
+      // 计算当前生效的临时停餐
+      const today = utils.getLocalDateString()
+      const activeSuspension = formattedList.find(item =>
+        item.adjustmentType === 'suspend' &&
+        item.startDate <= today &&
+        (!item.endDate || item.endDate >= today)
+      ) || null
+
       this.setData({
         myAdjustmentList: formattedList,
         hasMoreAdjustments: hasMore,
+        activeSuspension,
         loading: false
       })
 
@@ -660,7 +683,11 @@ Page({
       this.loadMyMealData()
     } else if (tab === 'management') {
       this.page = 1
-      this.loadAdjustmentList(false).finally(() => wx.hideLoading())
+      this.setData({ managementFilter: 'all' })
+      Promise.all([
+        this.loadAdjustmentList(false),
+        this.loadMealStats()
+      ]).finally(() => wx.hideLoading())
     } else if (tab === 'sideOrder') {
       this.loadSideDishOrders()
     } else if (tab === 'sideManage') {
@@ -698,11 +725,13 @@ Page({
         formattedTime: item.createdAt ? utils.formatRelativeTime(item.createdAt) : ''
       }))
 
+      const fullList = loadMore ? [...this.data.adjustmentList, ...formattedList] : formattedList
       this.setData({
-        adjustmentList: loadMore ? [...this.data.adjustmentList, ...formattedList] : formattedList,
+        adjustmentList: fullList,
         hasMore,
         loading: false
       })
+      this.applyManagementFilter(fullList)
     }).catch(err => {
       console.error('加载调整列表失败:', err)
       utils.showToast({
@@ -713,6 +742,39 @@ Page({
         loading: false
       })
     })
+  },
+
+  /** 加载工作餐统计信息 */
+  loadMealStats() {
+    return wx.cloud.callFunction({
+      name: 'mealManager',
+      data: {
+        action: 'getMealStats'
+      }
+    }).then(res => {
+      if (res.result.code !== 0) throw new Error(res.result.message)
+      this.setData({ mealStats: res.result.data })
+    }).catch(err => {
+      console.error('加载餐食统计失败:', err)
+    })
+  },
+
+  /** 管理端筛选器切换 */
+  handleManagementFilter(e) {
+    const filter = e.currentTarget.dataset.filter
+    if (filter === this.data.managementFilter) return
+    this.setData({ managementFilter: filter })
+    this.applyManagementFilter()
+  },
+
+  /** 根据当前筛选条件过滤调整记录 */
+  applyManagementFilter(list) {
+    const source = list || this.data.adjustmentList
+    const filter = this.data.managementFilter
+    const filtered = filter === 'all'
+      ? source
+      : source.filter(item => item.adjustmentType === filter)
+    this.setData({ filteredAdjustmentList: filtered })
   },
 
   onReachBottom() {

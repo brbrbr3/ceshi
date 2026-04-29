@@ -3,19 +3,18 @@ page {
 }
 
 .sig-header {
-  padding: 60rpx 40rpx 40rpx;
+  padding: 30rpx 28rpx 32rpx;
 }
 
 .sig-title {
   font-size: var(--fs-48);
-  font-weight: 700;
+  font-weight: 600;
   color: #FFFFFF;
 }
 
 .sig-subtitle {
-  margin-top: 8rpx;
   font-size: var(--fs-26);
-  color: rgba(255, 255, 255, 0.82);
+  color: rgba(255, 255, 255);
 }
 
 .sig-content {

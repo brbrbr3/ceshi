@@ -5,7 +5,7 @@
   background: #EEF2FF;
 }
 .calendar-gradient-header{
-  padding: 60rpx 40rpx 40rpx;
+  padding: 30rpx 28rpx 32rpx;
 }
 .calendar-header-top{
 }
@@ -19,7 +19,7 @@
 
 .calendar-subtitle {
   font-size: var(--fs-26);
-  color: rgba(255, 255, 255, 0.8);
+  color: rgba(255, 255, 255);
 }
 
 /* 配置按钮 */
