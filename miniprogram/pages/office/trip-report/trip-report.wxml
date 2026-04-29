@@ -28,8 +28,8 @@
       </view>
       <view wx:if="{{activeTrip}}" class="trip-status-detail">
         <view class="trip-status-item">
-          <text class="trip-status-item-label">计划返回</text>
-          <text class="trip-status-item-value">{{activeTrip.plannedReturnText}}</text>
+          <text class="trip-status-item-label">已外出</text>
+          <text class="trip-status-item-value">{{activeTrip.elapsedTimeText}}</text>
         </view>
         <view class="trip-status-item">
           <text class="trip-status-item-label">出行方式</text>
@@ -45,9 +45,14 @@
   
     <!-- 主操作按钮 -->
     <view class="trip-action-section">
-      <button class="trip-action-btn {{activeTrip ? 'trip-action-btn-return' : 'trip-action-btn-depart'}}" bindtap="handleMainButton">
-        <text wx:if="{{activeTrip}}">🏠 返回报备</text>
-        <text wx:else>🚗 外出报备</text>
+      <button wx:if="{{activeTrip}}" class="trip-action-btn trip-action-btn-return" bindtap="handleReturn">
+        🏠 返回报备
+      </button>
+      <button wx:else class="trip-action-btn trip-action-btn-depart" bindtap="handleDepartBtn">
+        🚗 外出报备
+      </button>
+      <button class="trip-action-btn trip-action-btn-retro {{activeTrip ? 'is-disabled' : ''}}" bindtap="showRetroForm" disabled="{{!!activeTrip}}">
+        📝 补填外出报备
       </button>
     </view>
 
@@ -149,19 +154,6 @@
         </view>
 
         <view class="trip-field">
-          <view class="trip-field-label">计划返回时间 <text class="trip-required">*</text></view>
-          <datetime-picker 
-            value="{{form.plannedReturnAt}}"
-            fields="{{['year', 'month', 'day', 'hour', 'minute']}}"
-            start-datetime="{{minReturnDatetime}}"
-            end-datetime="{{maxReturnDatetime}}"
-            placeholder="请选择计划返回时间"
-            bind:change="handleReturnDateTimeChange"
-          />
-          <view class="trip-field-hint">仅可选择今日或明日返回</view>
-        </view>
-
-        <view class="trip-field">
           <view class="trip-field-label">出行方式 <text class="trip-required">*</text></view>
           <picker mode="selector" range="{{travelModes}}" value="{{travelModeIndex >= 0 ? travelModeIndex : 0}}" bindchange="handleTravelModeChange">
             <view class="trip-picker-wrapper {{form.travelMode ? '' : 'is-placeholder'}}">
@@ -173,6 +165,99 @@
 
         <button class="trip-submit-btn" loading="{{submitting}}" disabled="{{submitting}}" bindtap="submitDepart">
           确认报备
+        </button>
+      </view>
+      </scroll-view>
+    </view>
+  </view>
+
+  <!-- 补填外出报备弹窗 -->
+  <view class="trip-popup-mask {{showRetroFormPopup ? 'is-visible' : ''}}" bindtap="hideRetroFormPopup" catchtouchmove="stopPropagation">
+    <view class="trip-popup-container" catchtap="stopPropagation">
+      <view class="trip-popup-header">
+        <view class="trip-popup-title">补填外出报备</view>
+        <view class="trip-popup-close" bindtap="hideRetroFormPopup">×</view>
+      </view>
+
+      <scroll-view class="trip-popup-body" scroll-y enhanced show-scrollbar="{{false}}">
+        <view class="trip-popup-form">
+        <view class="trip-field">
+          <view class="trip-field-label">目的地 <text class="trip-required">*</text></view>
+          <view class="trip-input-wrapper">
+            <input 
+              class="trip-input" 
+              value="{{retroForm.destination}}" 
+              placeholder="请输入目的地" 
+              placeholder-class="trip-input-placeholder"
+              bindinput="handleRetroDestinationInput"
+            />
+          </view>
+          <!-- 历史记录快捷选择 -->
+          <view wx:if="{{showRetroDestinationHistory && destinationHistory.length > 0}}" class="trip-history-list">
+            <view class="trip-history-title">最近使用</view>
+            <view class="trip-history-items">
+              <view wx:for="{{destinationHistory}}" wx:key="index" class="trip-history-item" bindtap="selectRetroDestinationHistory" data-value="{{item}}">
+                {{item}}
+              </view>
+            </view>
+          </view>
+        </view>
+
+        <view class="trip-field">
+          <view class="trip-field-label">同行人</view>
+          <view class="trip-input-wrapper">
+            <input 
+              class="trip-input" 
+              value="{{retroForm.companions}}" 
+              placeholder="请输入同行人（选填）" 
+              placeholder-class="trip-input-placeholder"
+              bindinput="handleRetroCompanionsInput"
+            />
+          </view>
+          <view class="trip-field-hint">多个同行人用空格分隔</view>
+          <!-- 历史记录快捷选择 -->
+          <view wx:if="{{showRetroCompanionsHistory && companionsHistory.length > 0}}" class="trip-history-list">
+            <view class="trip-history-title">最近使用</view>
+            <view class="trip-history-items">
+              <view wx:for="{{companionsHistory}}" wx:key="index" class="trip-history-item" bindtap="selectRetroCompanionsHistory" data-value="{{item}}">
+                {{item}}
+              </view>
+            </view>
+          </view>
+        </view>
+
+        <view class="trip-field">
+          <view class="trip-field-label">出发时间 <text class="trip-required">*</text></view>
+          <datetime-picker 
+            value="{{retroForm.departAt}}"
+            fields="{{['year', 'month', 'day', 'hour', 'minute']}}"
+            placeholder="请选择出发时间"
+            bind:change="handleRetroDepartAtChange"
+          />
+        </view>
+
+        <view class="trip-field">
+          <view class="trip-field-label">返回时间 <text class="trip-required">*</text></view>
+          <datetime-picker 
+            value="{{retroForm.returnAt}}"
+            fields="{{['year', 'month', 'day', 'hour', 'minute']}}"
+            placeholder="请选择返回时间"
+            bind:change="handleRetroReturnAtChange"
+          />
+        </view>
+
+        <view class="trip-field">
+          <view class="trip-field-label">出行方式 <text class="trip-required">*</text></view>
+          <picker mode="selector" range="{{travelModes}}" value="{{retroTravelModeIndex >= 0 ? retroTravelModeIndex : 0}}" bindchange="handleRetroTravelModeChange">
+            <view class="trip-picker-wrapper {{retroForm.travelMode ? '' : 'is-placeholder'}}">
+              <view class="trip-picker-value">{{retroForm.travelMode || '请选择出行方式'}}</view>
+              <view class="trip-picker-arrow">›</view>
+            </view>
+          </picker>
+        </view>
+
+        <button class="trip-submit-btn" loading="{{submitting}}" disabled="{{submitting}}" bindtap="submitRetroDepart">
+          确认补填
         </button>
       </view>
       </scroll-view>

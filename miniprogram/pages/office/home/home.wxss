@@ -133,6 +133,65 @@ page {
   box-shadow: 0 2rpx 8rpx rgba(244, 67, 54, 0.3);
 }
 
+/* 外出状态栏 */
+.home-trip-status {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  margin-top: 20rpx;
+  padding: 24rpx 28rpx;
+  background: #FEF3C7;
+  border: 1rpx solid #92400E;
+  border-radius: 20rpx;
+}
+
+.home-trip-status-info {
+  display: flex;
+  align-items: center;
+  gap: 16rpx;
+  flex: 1;
+  min-width: 0;
+}
+
+.home-trip-status-icon {
+  font-size: var(--fs-48);
+  flex-shrink: 0;
+}
+
+.home-trip-status-text {
+  flex: 1;
+  min-width: 0;
+}
+
+.home-trip-status-label {
+  font-size: var(--fs-28);
+  font-weight: 600;
+  color: #92400E;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.home-trip-status-sub {
+  font-size: var(--fs-24);
+  color: #B45309;
+  margin-top: 4rpx;
+}
+
+.home-trip-return-btn {
+  flex-shrink: 0;
+  padding: 12rpx 28rpx;
+  background: linear-gradient(135deg, #16A34A 0%, #059669 100%);
+  color: #FFFFFF;
+  font-size: var(--fs-26);
+  font-weight: 600;
+  border-radius: 12rpx;
+}
+
+.home-trip-return-btn:active {
+  opacity: 0.8;
+}
+
 .home-greeting {
   font-size: var(--fs-40);
   font-weight: 600;

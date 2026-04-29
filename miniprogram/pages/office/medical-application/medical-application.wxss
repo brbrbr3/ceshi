@@ -8,7 +8,7 @@
 /* ========== 头部 - 蓝色渐变背景 ========== */
 .medical-header {
   background: linear-gradient(135deg, #2563EB 0%, #1D4ED8 50%, #3B82F6 100%);
-  padding: 70rpx 28rpx 40rpx;
+  padding: 20rpx 28rpx 20rpx;
 }
 
 .medical-header-content {
@@ -17,13 +17,12 @@
 
 .medical-title {
   font-size: var(--fs-48);
-  font-weight: 700;
+  font-weight: 600;
 }
 
 .medical-subtitle {
   font-size: var(--fs-26);
-  padding-top: 5rpx;
-  color: rgba(255, 255, 255, 0.85);
+  color: rgba(255, 255, 255);
 }
 
 /* ========== 内容区 ========== */

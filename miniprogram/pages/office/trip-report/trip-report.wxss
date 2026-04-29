@@ -7,22 +7,20 @@
 
 /* 头部 - 使用圆角渐变 */
 .trip-header {
-  padding: 60rpx 40rpx 10rpx;
+  padding: 20rpx 40rpx 10rpx;
 }
 
 .trip-header-content {
   color: #FFFFFF;
-  padding-bottom: 24rpx;
 }
 
 .trip-title {
   font-size: var(--fs-48);
-  font-weight: 700;
+  font-weight: 600;
 }
 
 .trip-subtitle {
   font-size: var(--fs-26);
-  padding-top: 5rpx;
 }
 
 /* 状态卡片 - 参照 approval-modal-copy 风格 */
@@ -120,8 +118,9 @@
 }
 
 .trip-status-detail {
-  display: flex;
-  gap: 32rpx;
+  display: grid;
+  grid-template-columns: repeat(3, 1fr);
+  gap: 24rpx 12rpx;
   padding-top: 20rpx;
   margin-top: 20rpx;
   border-top: 1rpx solid;
@@ -151,14 +150,16 @@
 
 /* 操作按钮 */
 .trip-action-section {
+  display: flex;
+  gap: 16rpx;
   margin-bottom: 32rpx;
 }
 
 .trip-action-btn {
-  width: 100%;
+  flex: 1;
   height: 100rpx;
   border-radius: 20rpx;
-  font-size: var(--fs-34);
+  font-size: var(--fs-28);
   font-weight: 600;
   border: none;
   display: flex;
@@ -177,6 +178,19 @@
   background: linear-gradient(135deg, #16A34A 0%, #059669 100%);
   color: #FFFFFF;
   box-shadow: 0 8rpx 24rpx rgba(22, 163, 74, 0.3);
+}
+
+.trip-action-btn-retro {
+  background: linear-gradient(135deg, #F59E0B 0%, #D97706 100%);
+  color: #FFFFFF;
+  box-shadow: 0 8rpx 24rpx rgba(245, 158, 11, 0.3);
+}
+
+.trip-action-btn-retro.is-disabled,
+.trip-action-btn-retro[disabled] {
+  background: #E2E8F0;
+  color: #94A3B8;
+  box-shadow: none;
 }
 
 .trip-action-btn:active {

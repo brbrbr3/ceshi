@@ -44,7 +44,7 @@
 }
 
 .menus-header {
-  padding: 60rpx 40rpx 40rpx;
+  padding: 20rpx 40rpx 40rpx;
 }
 
 .menus-title {

@@ -10,7 +10,7 @@
 /* ========== 头部 - 青蓝色渐变 ========== */
 .cp-header {
   background: linear-gradient(135deg, #0891B2 0%, #0E7490 40%, #06B6D4 85%, #22D3EE 100%);
-  padding: 60rpx 28rpx 26rpx;
+  padding: 20rpx 28rpx 26rpx;
 }
 
 .cp-header-content {

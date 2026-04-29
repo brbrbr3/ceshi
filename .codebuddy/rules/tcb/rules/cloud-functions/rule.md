@@ -118,7 +118,7 @@ Use these rules whenever you are writing the function code itself:
 3. **Write code and deploy, do not stop at local files**
    - Use `manageFunctions(action="createFunction")` for creation
    - Use `manageFunctions(action="updateFunctionCode")` for code updates
-   - Keep `functionRootPath` as the parent directory of the function folder
+   - Keep `functionRootPath` as the directory that directly contains function folders (e.g., `cloudfunctions/` or `functions/`), NOT the project root and NOT the function subdirectory itself
    - Use CLI only as a fallback when MCP tools are unavailable
 
 4. **Prefer doc-first fallbacks**
@@ -186,11 +186,26 @@ function sendJson(res, statusCode, data) {
   res.end(JSON.stringify(data));
 }
 
-const server = http.createServer((req, res) => {
+function readJsonBody(req) {
+  return new Promise((resolve, reject) => {
+    let raw = "";
+    req.on("data", (chunk) => { raw += chunk; });
+    req.on("end", () => {
+      if (!raw) { resolve({}); return; }
+      try { resolve(JSON.parse(raw)); } catch { resolve({}); }
+    });
+    req.on("error", reject);
+  });
+}
+
+const server = http.createServer(async (req, res) => {
   const url = new URL(req.url || "/", "http://127.0.0.1");
 
   if (req.method === "GET" && url.pathname === "/") {
     sendJson(res, 200, { ok: true, message: "hello from http function" });
+  } else if (req.method === "POST" && url.pathname === "/") {
+    const body = await readJsonBody(req);
+    sendJson(res, 200, { received: body });
   } else {
     sendJson(res, 404, { error: "Not Found" });
   }
@@ -198,6 +213,8 @@ const server = http.createServer((req, res) => {
 
 server.listen(9000);
 ```
+
+For a more complete example with routing, method checks, and error handling, see `./references/http-functions.md`.
 
 `cloudfunctions/hello-http/scf_bootstrap`
 

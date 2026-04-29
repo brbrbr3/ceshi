@@ -125,6 +125,8 @@ Page({
     loadingArticles: false,
     todaySchedules: [],
     loadingSchedules: false,
+    // 外出状态
+    activeTrip: null,
     // 群团活动
     activities: [],
     loadingActivities: false,
@@ -152,6 +154,7 @@ Page({
     this.loadPermissionCache() //加载权限缓存
     this.loadHolidayConfig() //加载节假日配置
     this.loadTodaySchedules() // 加载今日日程
+    this.loadActiveTrip() // 加载外出状态
     app.updateCacheVersionAndShowWhatsNew() //更新缓存版本号，展示更新说明弹窗
     this.loadSignature()
   },
@@ -907,6 +910,69 @@ Page({
       'bg_home.jpg'
     ).catch(err => {
       console.error('加载背景图片失败:', err)
+    })
+  },
+
+  /**
+   * 加载当前外出状态
+   */
+  loadActiveTrip() {
+    wx.cloud.callFunction({
+      name: 'tripReport',
+      data: { action: 'getActiveTrip' }
+    }).then(res => {
+      if (res.result.code === 0) {
+        const activeTrip = res.result.data.activeTrip
+        if (activeTrip) {
+          const now = Date.now()
+          const diff = now - activeTrip.departAt
+          const hours = Math.floor(diff / (1000 * 60 * 60))
+          const minutes = Math.floor((diff % (1000 * 60 * 60)) / (1000 * 60))
+          activeTrip.elapsedTimeText = hours > 0 ? `${hours}小时${minutes}分钟` : `${minutes}分钟`
+        }
+        this.setData({ activeTrip })
+      }
+    }).catch(err => {
+      console.error('加载外出状态失败:', err)
+    })
+  },
+
+  /**
+   * 从首页返回报备
+   */
+  handleReturnFromHome() {
+    const activeTrip = this.data.activeTrip
+    if (!activeTrip) return
+
+    wx.showModal({
+      title: '确认返回',
+      content: '确认已返回？将记录当前时间为返回时间。',
+      success: (res) => {
+        if (res.confirm) {
+          wx.showLoading({ title: '处理中...', mask: true })
+          wx.cloud.callFunction({
+            name: 'tripReport',
+            data: {
+              action: 'return',
+              params: { tripId: activeTrip._id }
+            }
+          }).then(res => {
+            wx.hideLoading()
+            if (res.result.code === 0) {
+              const status = res.result.data.status
+              const message = status === 'overtime' ? '返回报备成功（超时）' : '返回报备成功'
+              utils.showToast({ title: message, icon: 'success' })
+              this.setData({ activeTrip: null })
+            } else {
+              utils.showToast({ title: res.result.message || '报备失败', icon: 'none' })
+            }
+          }).catch(err => {
+            wx.hideLoading()
+            console.error('返回报备失败:', err)
+            utils.showToast({ title: '报备失败，请重试', icon: 'none' })
+          })
+        }
+      }
     })
   }
 })

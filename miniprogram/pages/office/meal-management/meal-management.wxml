@@ -441,14 +441,16 @@
             <text class="sd-detail-value">{{currentSideDishOrder.deadline}}</text>
           </view>
           <view class="sd-detail-row">
-            <text class="sd-detail-label">类别数</text>
-            <text class="sd-detail-value">{{currentSideDishOrder.categories ? currentSideDishOrder.categories.length : 0}} 类</text>
+            <text class="sd-detail-label">副食类别</text>
+            <view class="sd-detail-value-row">
+              <text wx:for="{{currentSideDishOrder.categories}}" wx:key="categoryId">{{item.name}} · 每人最多可订{{item.maxCount}}份</text>
+            </view>
           </view>
         </view>
 
         <!-- 已预订状态（按类别显示） -->
         <view wx:if="{{currentSideDishOrder.myBookedCount > 0}}" class="sd-booked-status">
-          <text>已预订：{{currentSideDishOrder.myBookedCount}} 份（</text>
+          <text>已预订 {{currentSideDishOrder.myBookedCount}} 份（</text>
           <text wx:for="{{currentSideDishOrder.myBookedItems}}" wx:key="categoryId">{{item.categoryName}}{{item.count}}份{{index < currentSideDishOrder.myBookedItems.length - 1 ? '、' : ''}}</text>
           <text>）</text>
         </view>
@@ -616,7 +618,8 @@
             <text class="booking-name">{{index + 1}}. {{item.name}}</text>
             <view class="booking-item-detail">
               <text wx:if="{{item.items && item.items.length > 0}}" class="booking-category-detail">
-                <block wx:for="{{item.items}}" wx:for-item="cat" wx:key="categoryId">{{cat.categoryName}}×{{cat.count}} </block>
+                <block wx:for="{{item.items}}" wx:for-item="cat" wx:key="categoryId">{{cat.categoryName}}×{{cat.count}}<text wx:if="{{index !== item.items.length - 1}}"> · </text>
+                </block>
               </text>
               <text wx:else class="booking-count">{{item.count}} 份</text>
             </view>

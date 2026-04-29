@@ -28,6 +28,7 @@ function fail(message, code) {
  * 支持的 action：
  * - depart: 外出报备
  * - return: 返回报备
+ * - retroDepart: 补填外出报备
  * - getActiveTrip: 获取当前未返回的出行
  * - getMyTrips: 获取我的出行记录列表
  * - getAllTrips: 获取所有出行记录（Dashboard用）
@@ -46,6 +47,8 @@ exports.main = async (event, context) => {
         return await handleDepart(openid, params)
       case 'return':
         return await handleReturn(openid, params)
+      case 'retroDepart':
+        return await handleRetroDepart(openid, params)
       case 'getActiveTrip':
         return await getActiveTrip(openid)
       case 'getMyTrips':
@@ -75,10 +78,10 @@ exports.main = async (event, context) => {
  * - 为匹配的同行人创建代报备记录
  */
 async function handleDepart(openid, params) {
-  const { destination, companions, plannedReturnAt, travelMode } = params
+  const { destination, companions, travelMode } = params
 
   // 参数校验
-  if (!destination || !plannedReturnAt || !travelMode) {
+  if (!destination || !travelMode) {
     return fail('缺少必填参数', 400)
   }
 
@@ -116,7 +119,7 @@ async function handleDepart(openid, params) {
     department: currentUserDepartment,
     destination,
     companions: companions || '',
-    plannedReturnAt,
+    plannedReturnAt: null,
     travelMode,
     departAt: now,
     returnAt: null,
@@ -181,7 +184,7 @@ async function handleDepart(openid, params) {
           department: matchedUser.department || '',
           destination,
           companions: otherCompanions,
-          plannedReturnAt,
+          plannedReturnAt: null,
           travelMode,
           departAt: now,
           returnAt: null,
@@ -254,14 +257,11 @@ async function handleReturn(openid, params) {
   }
 
   const now = Date.now()
-  const plannedReturnAt = tripRes.data.plannedReturnAt
-  const overtimeHours = 1 // 超时阈值：1小时
 
-  // 判断是否超时
-  let newStatus = 'returned'
-  if (now > plannedReturnAt + overtimeHours * 60 * 60 * 1000) {
-    newStatus = 'overtime'
-  }
+  // 判断是否超时：返回时间晚于出发日23时则为超时
+  const departDate = new Date(tripRes.data.departAt)
+  const deadline = new Date(departDate.getFullYear(), departDate.getMonth(), departDate.getDate(), 23, 0, 0)
+  let newStatus = now > deadline.getTime() ? 'overtime' : 'returned'
 
   // 更新记录
   await tripReportsCollection.doc(tripId).update({
@@ -292,8 +292,76 @@ async function handleReturn(openid, params) {
 }
 
 /**
- * 获取当前未返回的出行
+ * 补填外出报备
+ * 用户补填过去的外出记录，包含出发时间和返回时间
  */
+async function handleRetroDepart(openid, params) {
+  const { destination, companions, departAt, returnAt, travelMode } = params
+
+  // 参数校验
+  if (!destination || !departAt || !returnAt || !travelMode) {
+    return fail('缺少必填参数', 400)
+  }
+
+  if (departAt >= returnAt) {
+    return fail('出发时间必须早于返回时间', 400)
+  }
+
+  // 检查是否有未返回的出行
+  const activeTrip = await tripReportsCollection
+    .where({
+      _openid: openid,
+      status: 'out'
+    })
+    .limit(1)
+    .get()
+
+  if (activeTrip.data && activeTrip.data.length > 0) {
+    return fail('您有未返回的出行记录，请先报备返回', 400)
+  }
+
+  // 获取当前用户信息
+  const userRes = await usersCollection
+    .where({ openid })
+    .limit(1)
+    .get()
+
+  const currentUser = userRes.data && userRes.data[0]
+  const currentUserName = currentUser ? currentUser.name : '未知用户'
+  const currentUserDepartment = currentUser ? currentUser.department : ''
+  const now = Date.now()
+
+  // 判断是否超时：返回时间晚于出发日23时则为超时
+  const departDate = new Date(departAt)
+  const deadline = new Date(departDate.getFullYear(), departDate.getMonth(), departDate.getDate(), 23, 0, 0)
+  const status = returnAt > deadline.getTime() ? 'overtime' : 'returned'
+
+  const tripData = {
+    _openid: openid,
+    userName: currentUserName,
+    department: currentUserDepartment,
+    destination,
+    companions: companions || '',
+    plannedReturnAt: null,
+    travelMode,
+    departAt,
+    returnAt,
+    status,
+    overtimeNotified: false,
+    createdByOpenid: null,
+    createdByName: null,
+    isRetro: true,
+    createdAt: now,
+    updatedAt: now
+  }
+
+  const result = await tripReportsCollection.add({ data: tripData })
+
+  return success({
+    _id: result._id,
+    ...tripData
+  }, '补填报备成功')
+}
 async function getActiveTrip(openid) {
   const result = await tripReportsCollection
     .where({
@@ -480,19 +548,28 @@ async function getStatistics(params) {
  */
 async function checkOvertime() {
   const now = Date.now()
-  const overtimeThreshold = 1 * 60 * 60 * 1000 // 1小时
 
-  // 查询所有外出中且超过返回时间的记录
+  // 查询所有外出中的记录
   const result = await tripReportsCollection
     .where({
       status: 'out',
-      plannedReturnAt: _.lt(now - overtimeThreshold),
       overtimeNotified: _.neq(true)
     })
     .limit(100)
     .get()
 
-  const overtimeTrips = result.data || []
+  const overtimeTrips = []
+  const allOutTrips = result.data || []
+
+  // 筛选已超时的：当前时间已超过出发日23时
+  for (const trip of allOutTrips) {
+    const departDate = new Date(trip.departAt)
+    const deadline = new Date(departDate.getFullYear(), departDate.getMonth(), departDate.getDate(), 23, 0, 0)
+    if (now > deadline.getTime()) {
+      overtimeTrips.push(trip)
+    }
+  }
+
   let notifiedCount = 0
 
   for (const trip of overtimeTrips) {
@@ -503,7 +580,7 @@ async function checkOvertime() {
           openid: trip._openid,
           type: 'trip_overtime',
           title: '出行超时提醒',
-          content: `您的出行已超出计划返回时间1小时，请及时返回并报备。目的地：${trip.destination}`,
+          content: `您的出行已超过出发日23时，请及时返回并报备。目的地：${trip.destination}`,
           relatedId: trip._id,
           read: false,
           createdAt: now

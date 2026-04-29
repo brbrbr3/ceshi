@@ -43,7 +43,7 @@ page {
 
 /* ==================== 头部 ==================== */
 .meal-header {
-  padding-top: 50rpx;
+  padding-top: 20rpx;
   padding-bottom: 44rpx;
 }
 
@@ -64,7 +64,7 @@ page {
 
 /* ==================== Tab 栏 ==================== */
 .meal-tabs-shell {
-  margin-top: 30rpx;
+  margin-top: 20rpx;
   margin-bottom: -10rpx;
   padding: 6rpx;
   border-radius: 28rpx;
@@ -951,6 +951,16 @@ page {
 }
 
 .sd-detail-value {
+  font-size: var(--fs-26);
+  color: #1E293B;
+  font-weight: 500;
+  text-align: right;
+  word-break: break-all;
+}
+
+.sd-detail-value-row {
+  display: flex;
+  flex-direction: column;
   font-size: var(--fs-26);
   color: #1E293B;
   font-weight: 500;

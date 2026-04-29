@@ -292,6 +292,7 @@ async function generateOrderPdf(openid, orderId) {
 /**
  * 副食预订清单 PDF 导出
  * 接收 orderId（side_dish_orders._id），生成预订人员清单 PDF
+ * 支持按类别预订模式，显示每个类别的预订明细
  */
 async function generateSideDishBookingPdf(orderId) {
   // 1. 查询征订单
@@ -311,7 +312,29 @@ async function generateSideDishBookingPdf(orderId) {
 
   const totalCount = bookings.reduce((sum, b) => sum + (b.count || 0), 0)
 
-  // 3. 生成 PDF
+  // 3. 按类别汇总统计
+  const categories = order.categories || []
+  const categorySummaries = []
+  categories.forEach(cat => {
+    let catCount = 0
+    bookings.forEach(b => {
+      if (b.items && Array.isArray(b.items)) {
+        const item = b.items.find(i => i.categoryId === cat.id)
+        if (item) catCount += item.count
+      }
+    })
+    categorySummaries.push({
+      categoryId: cat.id,
+      categoryName: cat.name,
+      count: catCount,
+      maxCount: cat.maxCount
+    })
+  })
+
+  // 4. 读取时区配置
+  const timezoneOffset = await getTimezoneOffset()
+
+  // 5. 生成 PDF
   const fontPath = await ensureFont()
 
   const pdfDoc = new PDFDocument({
@@ -352,7 +375,12 @@ async function generateSideDishBookingPdf(orderId) {
       reject(new Error('PDF生成失败: ' + err.message))
     })
 
-    // 标题
+    // 辅助函数：在指定位置写文本
+    function pdfText(text, x, y) {
+      pdfDoc.font('ChineseFont').text(text, x, y)
+    }
+
+    // ===== 标题 =====
     pdfDoc.fontSize(22).font('ChineseFont').text('副食预订清单', { align: 'center' })
     pdfDoc.moveDown(0.8)
 
@@ -360,79 +388,192 @@ async function generateSideDishBookingPdf(orderId) {
     pdfDoc.moveTo(50, pdfDoc.y).lineTo(545, pdfDoc.y).stroke('#2563EB')
     pdfDoc.moveDown(0.8)
 
-    // 征订单基本信息
+    // ===== 征订单基本信息 =====
     pdfDoc.fontSize(13).font('ChineseFont')
     pdfDoc.text(`征订标题：`, 50, undefined, { continued: true }).font('ChineseFont').text(order.title)
     pdfDoc.text(`创建者：`, 50, undefined, { continued: true }).font('ChineseFont').text(order.creatorName || '-')
     pdfDoc.text(`截止日期：`, 50, undefined, { continued: true }).font('ChineseFont').text(order.deadline)
-    pdfDoc.text(`最大份数/人：`, 50, undefined, { continued: true }).font('ChineseFont').text(String(order.maxCount) + `（上限 ${order.maxCount * 2}）`)
+
+    // 副食类别（按类别列出）
+    pdfDoc.text(`副食类别：`, 50, undefined, { continued: true })
+    if (categories.length > 0) {
+      const catDesc = categories.map(c => `${c.name}（上限${c.maxCount}份/人）`).join('、')
+      pdfDoc.font('ChineseFont').text(catDesc)
+    } else {
+      pdfDoc.font('ChineseFont').text('-')
+    }
     pdfDoc.moveDown(0.6)
 
-    // 统计信息
+    // ===== 统计信息 =====
     pdfDoc.fontSize(12).fillColor('#2563EB')
       .text(`预订总人数：${bookings.length} 人    预订总份数：${totalCount} 份`, { align: 'center' })
     pdfDoc.fillColor('#000000')
+    pdfDoc.moveDown(0.5)
+
+    // 按类别统计
+    if (categorySummaries.length > 0) {
+      pdfDoc.fontSize(11).fillColor('#475569')
+      const catSummaryText = categorySummaries.map(c => `${c.categoryName}：${c.count} 份`).join('    ')
+      pdfDoc.text(catSummaryText, { align: 'center' })
+      pdfDoc.fillColor('#000000')
+    }
     pdfDoc.moveDown(0.8)
 
-    // 表头
-    const tableTop = pdfDoc.y
-    const colWidths = [60, 140, 100, 100]
-    const colX = [50, 110, 250, 350]
+    // ===== 预订明细表格 =====
+    // 根据类别数量决定列布局
+    const hasCategoryItems = categories.length > 0 && bookings.some(b => b.items && b.items.length > 0)
 
-    pdfDoc.rect(50, tableTop, 495, 28).fill('#EEF2FF')
-    pdfDoc.fillColor('#1E293B').fontSize(11).font('ChineseFont')
+    if (hasCategoryItems) {
+      // 有类别模式：序号 | 姓名 | 各类别份数 | 合计 | 提交时间
+      const catColCount = categories.length
+      // 计算各类别列宽（A4 可用宽度 495，序号50+姓名80+合计50+时间80=260，剩余给类别列）
+      const fixedWidth = 50 + 80 + 50 + 80 // 260
+      const remainingWidth = 495 - fixedWidth
+      const catColWidth = Math.max(50, Math.floor(remainingWidth / catColCount))
 
-    pdfDoc.text('序号', colX[0], tableTop + 8, { width: colWidths[0], align: 'center' })
-    pdfText('姓名', colX[1] + 15, tableTop + 8)
-    pdfText('预订份数', colX[2] + 25, tableTop + 8)
-    pdfText('提交时间', colX[3] + 20, tableTop + 8)
+      const colX = [50]
+      let xPos = 50
+      // 序号列
+      xPos += 50
+      // 姓名列
+      colX.push(xPos)
+      xPos += 80
+      // 各类别列
+      for (let i = 0; i < catColCount; i++) {
+        colX.push(xPos)
+        xPos += catColWidth
+      }
+      // 合计列
+      colX.push(xPos)
+      xPos += 50
+      // 时间列
+      colX.push(xPos)
 
-    function pdfText(text, x, y) {
-      pdfDoc.font('ChineseFont').text(text, x, y)
-    }
+      // 表头
+      const tableTop = pdfDoc.y
+      pdfDoc.rect(50, tableTop, 495, 28).fill('#EEF2FF')
+      pdfDoc.fillColor('#1E293B').fontSize(9).font('ChineseFont')
 
-    pdfDoc.fillColor('#000000')
-    let rowY = tableTop + 28
+      pdfDoc.text('序号', colX[0], tableTop + 8, { width: 50, align: 'center' })
+      pdfDoc.text('姓名', colX[1], tableTop + 8, { width: 80, align: 'center' })
+      categories.forEach((cat, ci) => {
+        pdfDoc.text(cat.name, colX[2 + ci], tableTop + 8, { width: catColWidth, align: 'center' })
+      })
+      pdfDoc.text('合计', colX[2 + catColCount], tableTop + 8, { width: 50, align: 'center' })
+      pdfDoc.text('提交时间', colX[2 + catColCount + 1], tableTop + 8, { width: 80, align: 'center' })
 
-    // 数据行
-    bookings.forEach((b, idx) => {
-      if (rowY > 750) {
-        pdfDoc.addPage()
-        rowY = 50
+      pdfDoc.fillColor('#000000')
+      let rowY = tableTop + 28
+
+      // 数据行
+      bookings.forEach((b, idx) => {
+        if (rowY > 750) {
+          pdfDoc.addPage()
+          rowY = 50
+        }
+
+        // 行背景交替色
+        if (idx % 2 === 0) {
+          pdfDoc.rect(50, rowY, 495, 26).fill('#FAFAFA')
+        }
+        pdfDoc.rect(50, rowY, 495, 26).stroke('#EEEEEE')
+
+        const timeStr = b.createdAt ? formatLocalTime(new Date(b.createdAt), timezoneOffset).split(' ')[0] : '-'
+
+        pdfDoc.fontSize(9).font('ChineseFont').fillColor('#334155')
+        pdfDoc.text(String(idx + 1), colX[0], rowY + 8, { width: 50, align: 'center' })
+        pdfDoc.text(b.name || '-', colX[1], rowY + 8, { width: 80, align: 'center' })
+
+        // 各类别份数
+        categories.forEach((cat, ci) => {
+          let catCount = 0
+          if (b.items && Array.isArray(b.items)) {
+            const item = b.items.find(i => i.categoryId === cat.id)
+            if (item) catCount = item.count
+          }
+          pdfDoc.text(String(catCount), colX[2 + ci], rowY + 8, { width: catColWidth, align: 'center' })
+        })
+
+        pdfDoc.text(String(b.count || 0), colX[2 + catColCount], rowY + 8, { width: 50, align: 'center' })
+        pdfDoc.text(timeStr, colX[2 + catColCount + 1], rowY + 8, { width: 80, align: 'center' })
+
+        rowY += 26
+      })
+
+      // 无数据提示
+      if (bookings.length === 0) {
+        pdfDoc.fontSize(12).fillColor('#94A3B8')
+          .text('暂无预订记录', 50, rowY + 20, { align: 'center' })
+        pdfDoc.fillColor('#000000')
+      } else {
+        rowY += 20
       }
 
-      // 行背景交替色
-      if (idx % 2 === 0) {
-        pdfDoc.rect(50, rowY, 495, 26).fill('#FAFAFA')
-      }
-      pdfDoc.rect(50, rowY, 495, 26).stroke('#EEEEEE')
-
-      const timeStr = b.createdAt ? formatLocalTime(new Date(b.createdAt), -3).split(' ')[0] : '-'
-
-      pdfDoc.fontSize(10).font('ChineseFont').fillColor('#334155')
-      pdfDoc.text(String(idx + 1), colX[0], rowY + 7, { width: colWidths[0], align: 'center' })
-      pdfDoc.text(b.name || '-', colX[1] + 15, rowY + 7, { width: colWidths[1] - 20 })
-      pdfDoc.text(String(b.count || 0), colX[2] + 35, rowY + 7, { width: colWidths[2] - 40, align: 'center' })
-      pdfDoc.text(timeStr, colX[3] + 15, rowY + 7, { width: colWidths[3] - 20 })
-
-      rowY += 26
-    })
-
-    // 无数据提示
-    if (bookings.length === 0) {
-      pdfDoc.fontSize(12).fillColor('#94A3B8')
-        .text('暂无预订记录', 50, rowY + 20, { align: 'center' })
+      // 底部信息
+      pdfDoc.moveDown(0.6)
+      pdfDoc.moveTo(50, Math.min(rowY, 780)).lineTo(545, Math.min(rowY, 780)).stroke('#DDDDDD')
+      // 修改后：
+      pdfDoc.fontSize(9).fillColor('#999999')
+        .text(`生成时间：${formatLocalTime(new Date(), timezoneOffset)}`, 50, undefined, { width: 495, align: 'center' })
       pdfDoc.fillColor('#000000')
     } else {
-      rowY += 20
-    }
+      // 无类别模式（兼容旧数据）：序号 | 姓名 | 预订份数 | 提交时间
+      const tableTop = pdfDoc.y
+      const colWidths = [60, 140, 100, 100]
+      const colX = [50, 110, 250, 350]
 
-    // 底部信息
-    pdfDoc.moveDown(0.6)
-    pdfDoc.moveTo(50, Math.min(rowY, 780)).lineTo(545, Math.min(rowY, 780)).stroke('#DDDDDD')
-    pdfDoc.fontSize(9).fillColor('#999999')
-      .text(`生成时间：${formatLocalTime(new Date(), -3)}`, { align: 'center' })
-    pdfDoc.fillColor('#000000')
+      pdfDoc.rect(50, tableTop, 495, 28).fill('#EEF2FF')
+      pdfDoc.fillColor('#1E293B').fontSize(11).font('ChineseFont')
+
+      pdfDoc.text('序号', colX[0], tableTop + 8, { width: colWidths[0], align: 'center' })
+      pdfText('姓名', colX[1] + 15, tableTop + 8)
+      pdfText('预订份数', colX[2] + 25, tableTop + 8)
+      pdfText('提交时间', colX[3] + 20, tableTop + 8)
+
+      pdfDoc.fillColor('#000000')
+      let rowY = tableTop + 28
+
+      // 数据行
+      bookings.forEach((b, idx) => {
+        if (rowY > 750) {
+          pdfDoc.addPage()
+          rowY = 50
+        }
+
+        // 行背景交替色
+        if (idx % 2 === 0) {
+          pdfDoc.rect(50, rowY, 495, 26).fill('#FAFAFA')
+        }
+        pdfDoc.rect(50, rowY, 495, 26).stroke('#EEEEEE')
+
+        const timeStr = b.createdAt ? formatLocalTime(new Date(b.createdAt), timezoneOffset).split(' ')[0] : '-'
+
+        pdfDoc.fontSize(10).font('ChineseFont').fillColor('#334155')
+        pdfDoc.text(String(idx + 1), colX[0], rowY + 7, { width: colWidths[0], align: 'center' })
+        pdfDoc.text(b.name || '-', colX[1] + 15, rowY + 7, { width: colWidths[1] - 20 })
+        pdfDoc.text(String(b.count || 0), colX[2] + 35, rowY + 7, { width: colWidths[2] - 40, align: 'center' })
+        pdfDoc.text(timeStr, colX[3] + 15, rowY + 7, { width: colWidths[3] - 20 })
+
+        rowY += 26
+      })
+
+      // 无数据提示
+      if (bookings.length === 0) {
+        pdfDoc.fontSize(12).fillColor('#94A3B8')
+          .text('暂无预订记录', 50, rowY + 20, { align: 'center' })
+        pdfDoc.fillColor('#000000')
+      } else {
+        rowY += 20
+      }
+
+      // 底部信息
+      pdfDoc.moveDown(0.6)
+      pdfDoc.moveTo(50, Math.min(rowY, 780)).lineTo(545, Math.min(rowY, 780)).stroke('#DDDDDD')
+      // 修改后：
+      pdfDoc.fontSize(9).fillColor('#999999')
+        .text(`生成时间：${formatLocalTime(new Date(), timezoneOffset)}`, 50, undefined, { width: 495, align: 'center' })
+      pdfDoc.fillColor('#000000')
+    }
 
     pdfDoc.end()
   })

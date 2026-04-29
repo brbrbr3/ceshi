@@ -112,7 +112,7 @@
 /* 表格类型字段样式 */
 .approval-modal-table-section {
   margin-top: 24rpx;
-  margin-right: 4rpx;
+  margin-right: 8rpx;
 }
 
 .approval-modal-table-title {

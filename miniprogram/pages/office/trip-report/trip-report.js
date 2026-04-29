@@ -37,13 +37,21 @@ Page({
     submitting: false,
     activeTrip: null, // 当前未返回的出行
     showFormPopup: false, // 是否显示表单弹窗
+    showRetroFormPopup: false, // 是否显示补填表单弹窗
     travelModes: [], // 出行方式选项
     form: {
       destination: '',
       companions: '',
-      plannedReturnAt: '', // 改为统一的日期时间字符串
       travelMode: ''
     },
+    retroForm: {
+      destination: '',
+      companions: '',
+      departAt: '',
+      returnAt: '',
+      travelMode: ''
+    },
+    retroTravelModeIndex: -1,
     travelModeIndex: -1,
     tripList: [], // 出行记录列表
     groupedTrips: [], // 按月分组的出行记录
@@ -51,7 +59,9 @@ Page({
     destinationHistory: [],
     companionsHistory: [],
     showDestinationHistory: false,
-    showCompanionsHistory: false
+    showCompanionsHistory: false,
+    showRetroDestinationHistory: false,
+    showRetroCompanionsHistory: false
   },
 
   async onLoad() {
@@ -204,8 +214,8 @@ Page({
       if (res.result.code === 0) {
         const activeTrip = res.result.data.activeTrip
         if (activeTrip) {
-          // 格式化时间
-          activeTrip.plannedReturnText = this.formatDateTime(activeTrip.plannedReturnAt)
+          // 计算已外出时长
+          activeTrip.elapsedTimeText = this.calcElapsedTime(activeTrip.departAt)
         }
         this.setData({
           activeTrip
@@ -214,6 +224,20 @@ Page({
     } catch (error) {
       console.error('获取当前出行失败:', error)
     }
+  },
+
+  /**
+   * 计算已外出时长文本
+   */
+  calcElapsedTime(departAt) {
+    const now = Date.now()
+    const diff = now - departAt
+    const hours = Math.floor(diff / (1000 * 60 * 60))
+    const minutes = Math.floor((diff % (1000 * 60 * 60)) / (1000 * 60))
+    if (hours > 0) {
+      return `${hours}小时${minutes}分钟`
+    }
+    return `${minutes}分钟`
   },
 
   /**
@@ -349,21 +373,6 @@ Page({
    * 显示外出报备表单
    */
   showDepartForm() {
-    // 计算最小返回时间（当前时间 + 30分钟）
-    const now = new Date()
-    const futureTime = new Date(now.getTime() + 30 * 60 * 1000)
-
-    // 格式化为 YYYY-MM-DD HH:mm 格式
-    const defaultReturnAt = this.formatDateTimeForPicker(futureTime)
-
-    // 计算精确时间范围
-    // minReturnDatetime = 当前时间
-    const minReturnDatetime = this.formatDateTimeForPicker(now)
-
-    // maxReturnDatetime = 明天 23:59:59
-    const tomorrow = new Date(now.getFullYear(), now.getMonth(), now.getDate() + 1, 23, 59, 59)
-    const maxReturnDatetime = this.formatDateTimeForPicker(tomorrow)
-
     // 获取最后一次成功报备的数据作为默认值
     const lastTrip = this.data.tripList.find(trip => trip.status === 'returned')
 
@@ -371,7 +380,6 @@ Page({
     const form = {
       destination: '',
       companions: '',
-      plannedReturnAt: defaultReturnAt,
       travelMode: lastTrip ? lastTrip.travelMode : ''
     }
 
@@ -380,8 +388,6 @@ Page({
     this.setData({
       showFormPopup: true,
       form,
-      minReturnDatetime,
-      maxReturnDatetime,
       travelModeIndex: travelModeIndex >= 0 ? travelModeIndex : 0
     })
 
@@ -478,15 +484,6 @@ Page({
     })
   },
 
-  /**
-   * 处理计划返回时间选择变化
-   */
-  handleReturnDateTimeChange(e) {
-    this.setData({
-      'form.plannedReturnAt': e.detail.value
-    })
-  },
-
   handleTravelModeChange(e) {
     const index = Number(e.detail.value)
     const travelMode = this.data.travelModes[index]
@@ -510,27 +507,9 @@ Page({
       return false
     }
 
-    if (!form.plannedReturnAt) {
-      utils.showToast({
-        title: '请选择计划返回时间',
-        icon: 'none'
-      })
-      return false
-    }
-
     if (!form.travelMode) {
       utils.showToast({
         title: '请选择出行方式',
-        icon: 'none'
-      })
-      return false
-    }
-
-    // 检查返回时间是否在未来
-    const returnTimestamp = new Date(form.plannedReturnAt.replace(' ', 'T')).getTime()
-    if (returnTimestamp <= Date.now()) {
-      utils.showToast({
-        title: '计划返回时间必须在当前时间之后',
         icon: 'none'
       })
       return false
@@ -548,8 +527,6 @@ Page({
     if (!this.validateForm()) return
 
     const form = this.data.form
-    // 解析日期时间字符串为时间戳
-    const plannedReturnAt = new Date(form.plannedReturnAt.replace(' ', 'T')).getTime()
 
     this.setData({
       submitting: true
@@ -562,7 +539,6 @@ Page({
         params: {
           destination: form.destination.trim(),
           companions: form.companions.trim(),
-          plannedReturnAt,
           travelMode: form.travelMode
         }
       }
@@ -682,16 +658,180 @@ Page({
   },
 
   /**
-   * 处理按钮点击
+   * 处理按钮点击 - 外出报备
    */
-  handleMainButton() {
-    if (this.data.activeTrip) {
-      // 有未返回的出行 → 返回报备
-      this.handleReturn()
-    } else {
-      // 没有未返回的出行 → 外出报备
-      this.showDepartForm()
+  handleDepartBtn() {
+    if (this.data.activeTrip) return
+    this.showDepartForm()
+  },
+
+  /**
+   * 显示补填外出报备表单
+   */
+  showRetroForm() {
+    if (this.data.activeTrip) return
+
+    const lastTrip = this.data.tripList.find(trip => trip.status === 'returned')
+    const retroForm = {
+      destination: '',
+      companions: '',
+      departAt: '',
+      returnAt: '',
+      travelMode: lastTrip ? lastTrip.travelMode : ''
     }
+    const retroTravelModeIndex = lastTrip ? this.data.travelModes.indexOf(lastTrip.travelMode) : -1
+
+    this.setData({
+      showRetroFormPopup: true,
+      retroForm,
+      retroTravelModeIndex: retroTravelModeIndex >= 0 ? retroTravelModeIndex : 0,
+      showRetroDestinationHistory: this.data.destinationHistory.length > 0,
+      showRetroCompanionsHistory: this.data.companionsHistory.length > 0
+    })
+  },
+
+  hideRetroFormPopup() {
+    this.setData({
+      showRetroFormPopup: false,
+      showRetroDestinationHistory: false,
+      showRetroCompanionsHistory: false
+    })
+  },
+
+  // 补填表单输入处理
+  handleRetroDestinationInput(e) {
+    const value = e.detail.value
+    this.setData({
+      'retroForm.destination': value,
+      showRetroDestinationHistory: value === '' && this.data.destinationHistory.length > 0
+    })
+  },
+
+  handleRetroCompanionsInput(e) {
+    const value = e.detail.value
+    this.setData({
+      'retroForm.companions': value,
+      showRetroCompanionsHistory: value === '' && this.data.companionsHistory.length > 0
+    })
+  },
+
+  // 补填表单选择历史记录
+  selectRetroDestinationHistory(e) {
+    const value = e.currentTarget.dataset.value
+    this.setData({
+      'retroForm.destination': value,
+      showRetroDestinationHistory: false
+    })
+  },
+
+  selectRetroCompanionsHistory(e) {
+    const value = e.currentTarget.dataset.value
+    this.setData({
+      'retroForm.companions': value,
+      showRetroCompanionsHistory: false
+    })
+  },
+
+  handleRetroDepartAtChange(e) {
+    this.setData({ 'retroForm.departAt': e.detail.value })
+  },
+
+  handleRetroReturnAtChange(e) {
+    this.setData({ 'retroForm.returnAt': e.detail.value })
+  },
+
+  handleRetroTravelModeChange(e) {
+    const index = Number(e.detail.value)
+    const travelMode = this.data.travelModes[index]
+    this.setData({
+      retroTravelModeIndex: index,
+      'retroForm.travelMode': travelMode
+    })
+  },
+
+  validateRetroForm() {
+    const form = this.data.retroForm
+
+    if (!String(form.destination || '').trim()) {
+      utils.showToast({ title: '请填写目的地', icon: 'none' })
+      return false
+    }
+
+    if (!form.departAt) {
+      utils.showToast({ title: '请选择出发时间', icon: 'none' })
+      return false
+    }
+
+    if (!form.returnAt) {
+      utils.showToast({ title: '请选择返回时间', icon: 'none' })
+      return false
+    }
+
+    const departTs = new Date(form.departAt.replace(' ', 'T')).getTime()
+    const returnTs = new Date(form.returnAt.replace(' ', 'T')).getTime()
+
+    if (departTs >= returnTs) {
+      utils.showToast({ title: '出发时间必须早于返回时间', icon: 'none' })
+      return false
+    }
+
+    if (returnTs > Date.now()) {
+      utils.showToast({ title: '返回时间不能晚于当前时间', icon: 'none' })
+      return false
+    }
+
+    if (!form.travelMode) {
+      utils.showToast({ title: '请选择出行方式', icon: 'none' })
+      return false
+    }
+
+    return true
+  },
+
+  submitRetroDepart() {
+    if (this.data.submitting) return
+    if (!this.validateRetroForm()) return
+
+    const form = this.data.retroForm
+    const departAt = new Date(form.departAt.replace(' ', 'T')).getTime()
+    const returnAt = new Date(form.returnAt.replace(' ', 'T')).getTime()
+
+    this.setData({ submitting: true })
+
+    wx.cloud.callFunction({
+      name: 'tripReport',
+      data: {
+        action: 'retroDepart',
+        params: {
+          destination: form.destination.trim(),
+          companions: form.companions.trim(),
+          departAt,
+          returnAt,
+          travelMode: form.travelMode
+        }
+      }
+    }).then(res => {
+      if (res.result.code === 0) {
+        // 保存历史记录
+        this.saveToHistory('destination', form.destination.trim())
+        if (form.companions.trim()) {
+          this.saveToHistory('companions', form.companions.trim())
+        }
+
+        const status = res.result.data.status
+        const message = status === 'overtime' ? '补填报备成功（超时）' : '补填报备成功'
+        utils.showToast({ title: message, icon: 'success' })
+        this.setData({ showRetroFormPopup: false })
+        this.refreshList()
+      } else {
+        utils.showToast({ title: res.result.message || '补填失败', icon: 'none' })
+      }
+    }).catch(error => {
+      console.error('补填外出报备失败:', error)
+      utils.showToast({ title: '补填失败，请重试', icon: 'none' })
+    }).finally(() => {
+      this.setData({ submitting: false })
+    })
   },
 
   onReachBottom() {
