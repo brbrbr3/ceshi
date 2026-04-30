@@ -45,8 +45,8 @@
                 </view>
                 <view class="contacts-item-sub">
                   <text wx:if="{{member.department}}">{{member.department}}</text>
-                  <text wx:if="{{member.department && member.position && member.position !== '无'}}"> · </text>
-                  <text wx:if="{{member.position && member.position !== '无'}}">{{member.position}}</text>
+                  <text wx:if="{{member.department && member.position.length > 0}}"> · </text>
+                  <text wx:if="{{member.position.length > 0}}">{{member.position.join('、')}}</text>
                 </view>
               </view>
             </view>
@@ -63,7 +63,7 @@
                 </view> -->
                 <view class="contacts-expand-cell">
                   <view class="contacts-expand-label">岗位</view>
-                  <view class="contacts-expand-value">{{member.position || '—'}}</view>
+                  <view class="contacts-expand-value">{{member.position.length > 0 ? member.position.join('、') : '—'}}</view>
                 </view>
                 <view class="contacts-expand-cell" data-mobile="{{member.mobile}}" catch:tap="onPhoneCall">
                   <view class="contacts-expand-label">手机📱</view>

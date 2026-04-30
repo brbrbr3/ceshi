@@ -75,16 +75,6 @@
         </view>
       </view>
 
-      <view wx:if="{{showPositionField}}" class="auth-field">
-        <view class="auth-field-label">请选择岗位</view>
-        <picker mode="selector" range="{{positionOptions}}" value="{{positionIndex >= 0 ? positionIndex : 0}}" bindchange="handlePositionChange">
-          <view class="auth-picker-shell {{positionIndex < 0 ? 'is-placeholder' : ''}}">
-            <view class="auth-picker-value">{{positionIndex >= 0 ? form.position : '请选择岗位'}}</view>
-            <view class="auth-picker-arrow">›</view>
-          </view>
-        </picker>
-      </view>
-
       <view class="auth-field">
         <view class="auth-field-label">手机 <text class="auth-field-optional">（选填）</text></view>
         <view class="auth-input-shell">

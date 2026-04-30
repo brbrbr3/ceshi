@@ -375,11 +375,11 @@ Page({
       if (result.registered && result.user) {
         const user = result.user
         const isAdmin = user.isAdmin || user.role === 'admin'
-        const canManageSchedule = isAdmin || SCHEDULE_ALLOWED_POSITIONS.includes(user.position)
+        const canManageSchedule = isAdmin || (Array.isArray(user.position) && user.position.some(p => SCHEDULE_ALLOWED_POSITIONS.includes(p)))
 
-        // 物业/家属/配偶且岗位为"无"的用户不显示时间轴日程列表
+        // 物业/家属/配偶且无岗位的用户不显示时间轴日程列表
         const hiddenRoles = ['物业', '家属', '配偶']
-        const shouldHideSchedule = hiddenRoles.includes(user.role) && user.position === '无'
+        const shouldHideSchedule = hiddenRoles.includes(user.role) && (!Array.isArray(user.position) || user.position.length === 0)
 
         this.setData({
           currentUser: user,

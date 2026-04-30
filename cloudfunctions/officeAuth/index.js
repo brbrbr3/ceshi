@@ -137,27 +137,27 @@ function getDefaultConstants() {
     // 角色相关
     ROLE_OPTIONS: ['馆领导', '部门负责人', '馆员', '工勤', '物业', '配偶', '家属'],
     ROLE_POSITION_MAP: {
-      '馆领导': ['无', '人事主管', '会计主管'],
-      '部门负责人': ['无', '人事主管', '会计主管', '会计', '出纳', '俱乐部', '阳光课堂'],
-      '馆员': ['无', '礼宾', '会计', '出纳', '俱乐部', '阳光课堂'],
+      '馆领导': ['人事主管', '会计主管'],
+      '部门负责人': ['人事主管', '会计主管', '会计', '出纳', '俱乐部', '阳光课堂'],
+      '馆员': ['礼宾', '会计', '出纳', '俱乐部', '阳光课堂'],
       '工勤': ['招待员', '厨师'],
-      '配偶': ['无', '出纳', '内聘']
+      '配偶': ['出纳', '内聘']
     },
     NEED_RELATIVE_ROLES: ['配偶', '家属'],
     DEFAULT_ROLE: '',
     ROLE_FIELD_VISIBILITY: {
-      '馆领导': { showPosition: true, showDepartment: false, fixedDepartment: null },
-      '部门负责人': { showPosition: true, showDepartment: true, fixedDepartment: null },
-      '馆员': { showPosition: true, showDepartment: true, fixedDepartment: null },
-      '工勤': { showPosition: true, showDepartment: true, fixedDepartment: '办公室' },
+      '馆领导': { showPosition: false, showDepartment: false, fixedDepartment: null },
+      '部门负责人': { showPosition: false, showDepartment: true, fixedDepartment: null },
+      '馆员': { showPosition: false, showDepartment: true, fixedDepartment: null },
+      '工勤': { showPosition: false, showDepartment: true, fixedDepartment: '办公室' },
       '物业': { showPosition: false, showDepartment: true, fixedDepartment: '办公室' },
-      '配偶': { showPosition: true, showDepartment: false, fixedDepartment: null },
+      '配偶': { showPosition: false, showDepartment: false, fixedDepartment: null },
       '家属': { showPosition: false, showDepartment: false, fixedDepartment: null }
     },
 
     // 岗位相关
-    POSITION_OPTIONS: ['无', '人事主管', '会计主管', '礼宾', '会计', '出纳', '俱乐部', '阳光课堂', '招待员', '厨师', '内聘'],
-    DEFAULT_POSITION: '',
+    POSITION_OPTIONS: ['人事主管', '会计主管', '礼宾', '会计', '出纳', '俱乐部', '阳光课堂', '招待员', '厨师', '内聘'],
+    DEFAULT_POSITION: [],
 
     // 部门相关
     DEPARTMENT_OPTIONS: ['政治处', '新公处', '经商处', '科技处', '武官处', '领侨处', '文化处', '办公室', 'DW办'],
@@ -230,7 +230,7 @@ function formatUserRecord(record) {
     createdAt: record.createdAt || null,
     updatedAt: record.updatedAt || null,
     relativeName: record.relativeName || '',
-    position: record.position || '',
+    position: Array.isArray(record.position) ? record.position : (record.position ? [record.position] : []),
     department: record.department || '',
     mobile: record.mobile || '',
     landline: record.landline || '',
@@ -251,7 +251,7 @@ function normalizeBoolean(value) {
 // 动态获取常量
 async function getPositionOptions() {
   const constants = await getSystemConstants()
-  return constants.POSITION_OPTIONS || ['无', '人事主管', '会计主管', '礼宾', '会计', '出纳', '俱乐部', '阳光课堂', '招待员', '厨师', '内聘']
+  return constants.POSITION_OPTIONS || ['人事主管', '会计主管', '礼宾', '会计', '出纳', '俱乐部', '阳光课堂', '招待员', '厨师', '内聘']
 }
 
 async function getDepartmentOptions() {
@@ -273,7 +273,7 @@ async function validateForm(formData) {
   const constants = await getSystemConstants()
   const roleOptions = constants.ROLE_OPTIONS || ['馆领导', '部门负责人', '馆员', '工勤', '物业', '配偶', '家属']
   const genderOptions = constants.GENDER_OPTIONS || ['男', '女']
-  const positionOptions = constants.POSITION_OPTIONS || ['无', '人事主管', '会计主管', '礼宾', '会计', '出纳', '俱乐部', '阳光课堂', '招待员', '厨师', '内聘']
+  const positionOptions = constants.POSITION_OPTIONS || ['人事主管', '会计主管', '礼宾', '会计', '出纳', '俱乐部', '阳光课堂', '招待员', '厨师', '内聘']
   const relativeRoles = constants.NEED_RELATIVE_ROLES || ['配偶', '家属']
   const roleFieldVisibility = constants.ROLE_FIELD_VISIBILITY || {}
 
@@ -314,21 +314,11 @@ async function validateForm(formData) {
   }
 
   // 获取角色的字段显示配置
-  const roleConfig = roleFieldVisibility[role] || { showPosition: true, showDepartment: true }
-  const showPosition = roleConfig.showPosition !== false // 默认显示
+  const roleConfig = roleFieldVisibility[role] || { showPosition: false, showDepartment: true }
   const showDepartment = roleConfig.showDepartment !== false // 默认显示
 
   if (showDepartment && !department) {
     throw new Error('请选择部门')
-  }
-
-  if (position && !positionOptions.includes(position)) {
-    throw new Error('请选择有效的岗位')
-  }
-
-  // 如果是工勤角色，部门必须为"办公室"
-  if (role === '工勤' && department !== '办公室') {
-    throw new Error('工勤人员的部门必须为办公室')
   }
 
   return {
@@ -338,7 +328,7 @@ async function validateForm(formData) {
     role,
     isAdmin,
     relativeName: relativeRoles.includes(role) ? relativeName : '',
-    position: showPosition ? (position || '无') : '', // 只有需要岗位的角色才设置值
+    position: [], // 岗位由管理员在岗位配置页分配
     department: showDepartment ? department : '',
     mobile,
     landline,
@@ -417,7 +407,7 @@ async function checkRegistration(openid) {
           isAdmin: !!businessData.isAdmin,
           avatarText: businessData.avatarText || '',
           relativeName: businessData.relativeName || '',
-          position: businessData.position || '',
+          position: Array.isArray(businessData.position) ? businessData.position : [],
           department: businessData.department || '',
           status: requestStatus.APPROVED,
           approvedAt: now,
@@ -474,9 +464,9 @@ async function checkRegistration(openid) {
             role: businessData.role || '',
             isAdmin: !!businessData.isAdmin,
             relativeName: businessData.relativeName || '',
-            position: businessData.position || '',
-            department: businessData.department || ''
-          }
+            position: Array.isArray(businessData.position) ? businessData.position : (businessData.position ? [businessData.position] : []),
+           department: businessData.department || ''
+          },
         })
       }
     }
@@ -562,7 +552,7 @@ async function submitRegistration(openid, formData) {
           isAdmin: form.isAdmin,
           avatarText: form.avatarText,
           relativeName: form.relativeName || '',
-          position: form.position || '',
+          position: Array.isArray(form.position) ? form.position : [],
           department: form.department || '',
           mobile: form.mobile || '',
           landline: form.landline || '',
@@ -589,7 +579,7 @@ async function submitRegistration(openid, formData) {
         name: form.name,
         role: form.role,
         relativeName: form.relativeName || '',
-        position: form.position || '',
+        position: Array.isArray(form.position) ? form.position : [],
         department: form.department || '',
         mobile: form.mobile || '',
         landline: form.landline || '',
@@ -651,7 +641,7 @@ async function submitProfileUpdate(openid, formData) {
           role: form.role,
           isAdmin: form.isAdmin,
           relativeName: form.relativeName || '',
-          position: form.position || '',
+          position: Array.isArray(form.position) ? form.position : [],
           department: form.department || '',
           mobile: form.mobile || '',
           landline: form.landline || '',
@@ -1111,7 +1101,7 @@ async function getPendingRegistrations(openid) {
         gender: businessData.gender || '',
         role: businessData.role || '',
         department: businessData.department || '',
-        position: businessData.position || '',
+        position: Array.isArray(businessData.position) ? businessData.position : (businessData.position ? [businessData.position] : []),
         createdAt: order.createdAt
       }
     })
@@ -1235,7 +1225,7 @@ async function getContactsList() {
     name: record.name,
     role: record.role,
     department: record.department || '',
-    position: record.position || '',
+    position: Array.isArray(record.position) ? record.position : (record.position ? [record.position] : []),
     mobile: record.mobile || '',
     landline: record.landline || '',
     avatarText: record.avatarText || (record.name ? record.name.slice(0, 1) : '智'),

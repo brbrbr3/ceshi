@@ -208,7 +208,7 @@ async function claimAdmin(openid, inviteCode) {
     isAdmin: true,
     avatarText: businessData.avatarText || existingUser?.avatarText || (businessData.applicantName ? businessData.applicantName.slice(0, 1) : ''),
     relativeName: businessData.relativeName || existingUser?.relativeName || '',
-    position: businessData.position || existingUser?.position || '',
+    position: Array.isArray(businessData.position) ? businessData.position : (Array.isArray(existingUser?.position) ? existingUser.position : []),
     department: businessData.department || existingUser?.department || '',
     status: APPROVED_STATUS,
     sourceOrderId: registrationOrder._id,

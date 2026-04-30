@@ -131,7 +131,7 @@ async function checkPermission(openid, featureKey) {
 
       if (specialConditions && Array.isArray(specialConditions)) {
         specialPassed = specialConditions.some(cond =>
-          user.role === cond.role && user.position === cond.position
+          user.role === cond.role && Array.isArray(user.position) && user.position.includes(cond.position)
         )
       }
 
@@ -249,7 +249,7 @@ async function batchCheckPermissions(openid, featureKeys) {
         const _sc = permission.specialConditions
         let _sp = false
         if (_sc && Array.isArray(_sc)) {
-          _sp = _sc.some(c => user.role === c.role && user.position === c.position)
+          _sp = _sc.some(c => user.role === c.role && Array.isArray(user.position) && user.position.includes(c.position))
         }
         if (!_sp) {
           results[featureKey] = {

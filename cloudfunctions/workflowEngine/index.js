@@ -423,8 +423,8 @@ async function hasPermission(task, operatorId) {
           return true
         }
 
-        // 会计主管（按岗位 position）
-        if (roleId === 'accountant_supervisor' && user.position === '会计主管') {
+        // 会计主管（按岗位 position，position 为数组）
+        if (roleId === 'accountant_supervisor' && Array.isArray(user.position) && user.position.includes('会计主管')) {
           return true
         }
 
@@ -1440,7 +1440,7 @@ async function completeWorkflow(orderId, decision, approverId, approverName, com
       isAdmin: !!businessData.isAdmin,
       avatarText: businessData.avatarText || '',
       relativeName: businessData.relativeName || '',
-      position: businessData.position || '',
+      position: Array.isArray(businessData.position) ? businessData.position : [],
       department: businessData.department || '',
       mobile: businessData.mobile || '',
       landline: businessData.landline || '',
@@ -1482,7 +1482,7 @@ async function completeWorkflow(orderId, decision, approverId, approverName, com
         role: businessData.role || '馆员',
         isAdmin: !!businessData.isAdmin,
         relativeName: businessData.relativeName || '',
-        position: businessData.position || '',
+        position: Array.isArray(businessData.position) ? businessData.position : [],
         department: businessData.department || '',
         mobile: businessData.mobile || '',
         landline: businessData.landline || '',

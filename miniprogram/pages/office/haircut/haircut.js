@@ -117,8 +117,8 @@ Page({
             const result = await app.checkUserRegistration()
             if (result.registered && result.user) {
                 const user = result.user
-                const canView = HAIRCUT_VIEWER_POSITIONS.includes(user.position)
-                const isReceptionist = user.position === '招待员'
+                const canView = Array.isArray(user.position) && user.position.some(p => HAIRCUT_VIEWER_POSITIONS.includes(p))
+                const isReceptionist = Array.isArray(user.position) && user.position.includes('招待员')
                 this.setData({
                     canView,
                     isReceptionist,

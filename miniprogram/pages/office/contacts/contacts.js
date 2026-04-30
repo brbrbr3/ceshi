@@ -200,7 +200,7 @@ Page({
         (item.name || '').indexOf(keyword) > -1 ||
         (item.role || '').indexOf(keyword) > -1 ||
         (item.department || '').indexOf(keyword) > -1 ||
-        (item.position || '').indexOf(keyword) > -1
+        (Array.isArray(item.position) ? item.position.join(',') : (item.position || '')).indexOf(keyword) > -1
       return matchDept && matchKeyword
     })
 
@@ -220,7 +220,7 @@ Page({
         deptGroups[item.department].push(item)
       } else if (item.role === '物业') {
         propertyGroup.push(item)
-      } else if (item.role === '配偶' && item.position && item.position !== '无') {
+      } else if (item.role === '配偶' && Array.isArray(item.position) && item.position.length > 0) {
         spouseGroup.push(item)
       }
       // 其他角色不展示（家属和待赴任馆员已在云函数排除）

@@ -1,0 +1,71 @@
+<view class="office-page position-config-page" style="{{fontStyle}}">
+  <view class="office-gradient-header">
+    <view class="position-config-title">岗位配置</view>
+    <view class="position-config-subtitle">管理各岗位人员分配</view>
+  </view>
+
+  <view class="office-content">
+    <view wx:if="{{loading}}" class="position-config-loading">
+      <view class="position-config-loading-text">加载中...</view>
+    </view>
+
+    <view wx:elif="{{positionGroups.length === 0}}" class="office-card office-empty">
+      <view>暂无岗位数据</view>
+    </view>
+
+    <view wx:else>
+      <view class="position-group" wx:for="{{positionGroups}}" wx:key="position">
+        <view class="office-card position-group-card">
+          <view class="position-group-header">
+            <view class="position-group-name">{{item.position}}</view>
+            <view class="position-group-count">{{item.users.length}} 人</view>
+          </view>
+
+          <view wx:if="{{item.users.length > 0}}" class="position-user-list">
+            <view class="position-user-item" wx:for="{{item.users}}" wx:for-item="user" wx:key="openid">
+              <view class="position-user-avatar">{{user.avatarText}}</view>
+              <view class="position-user-info">
+                <view class="position-user-name">{{user.name}}</view>
+                <view class="position-user-role">{{user.role}}{{user.department ? ' · ' + user.department : ''}}</view>
+              </view>
+              <view class="position-user-remove" catchtap="handleRemovePosition" data-openid="{{user.openid}}" data-position="{{item.position}}">移除</view>
+            </view>
+          </view>
+
+          <view wx:else class="position-group-empty">暂无人员</view>
+
+          <view class="position-group-add" bindtap="handleShowAddUser" data-position="{{item.position}}">
+            <view class="position-group-add-icon">+</view>
+            <view class="position-group-add-text">添加人员</view>
+          </view>
+        </view>
+      </view>
+    </view>
+  </view>
+
+  <!-- 添加人员弹窗 -->
+  <view class="position-add-mask {{showAddUser ? '' : 'is-hidden'}} {{modalAnimating ? 'is-closing' : ''}}" catchtap="handleCloseAddUser">
+    <view class="position-add-container" catchtap="stopPropagation">
+      <view class="position-add-title">添加人员到「{{currentPosition}}」</view>
+
+      <view class="position-add-search">
+        <input class="position-add-search-input" value="{{searchKeyword}}" bindinput="handleSearchInput" placeholder="搜索姓名..." />
+      </view>
+
+      <view class="position-add-list">
+        <view class="position-add-item" wx:for="{{availableUsers}}" wx:key="openid" bindtap="handleAssignPosition" data-openid="{{item.openid}}" data-name="{{item.name}}">
+          <view class="position-add-item-avatar">{{item.avatarText}}</view>
+          <view class="position-add-item-info">
+            <view class="position-add-item-name">{{item.name}}</view>
+            <view class="position-add-item-detail">{{item.role}}{{item.department ? ' · ' + item.department : ''}}</view>
+          </view>
+          <view class="position-add-item-btn">添加</view>
+        </view>
+
+        <view wx:if="{{availableUsers.length === 0}}" class="position-add-empty">
+          没有可添加的用户
+        </view>
+      </view>
+    </view>
+  </view>
+</view>

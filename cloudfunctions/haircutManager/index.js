@@ -331,7 +331,7 @@ async function cancelAppointment(openid, appointmentId, cancelReason) {
   }
 
   const user = userResult.data[0]
-  const isReceptionist = user.position === '招待员'
+  const isReceptionist = Array.isArray(user.position) && user.position.includes('招待员')
   const isOwner = appointment.bookerId === openid
 
   // 权限检查：只有预约创建者或招待员可以取消
@@ -384,7 +384,7 @@ async function getAppointments(openid, params = {}) {
   }
 
   const user = userResult.data[0]
-  if (!HAIRCUT_VIEWER_POSITIONS.includes(user.position)) {
+  if (!Array.isArray(user.position) || !user.position.some(p => HAIRCUT_VIEWER_POSITIONS.includes(p))) {
     throw new Error('您无权查看理发预约列表')
   }
 
@@ -542,7 +542,7 @@ async function setSlotStatus(openid, date, timeSlot, status) {
   }
 
   const user = userResult.data[0]
-  if (user.position !== '招待员') {
+  if (!(Array.isArray(user.position) && user.position.includes('招待员'))) {
     throw new Error('只有招待员可以设置时段状态')
   }
 
@@ -631,7 +631,7 @@ async function cancelAppointmentByReceptionist(openid, date, timeSlot, cancelRea
   }
 
   const user = userResult.data[0]
-  if (user.position !== '招待员') {
+  if (!(Array.isArray(user.position) && user.position.includes('招待员'))) {
     throw new Error('只有招待员可以取消预约')
   }
 

@@ -7,15 +7,12 @@ Page({
     mode: 'create',
     constants: {}, // 从数据库加载的常量
     roleOptions: [],
-    positionOptions: [],
     departmentOptions: [],
     allDepartmentOptions: [], // 保存完整的部门列表，用于切换角色时恢复
     roleIndex: -1,
-    positionIndex: -1,
     departmentIndex: -1,
     showRelativeField: false,
     showDepartmentField: false,
-    showPositionField: true,
     reviewRemark: '',
     today: '',
     form: {
@@ -25,7 +22,6 @@ Page({
       role: '',
       isAdmin: false,
       relativeName: '',
-      position: '',
       department: '',
       mobile: '',
       landline: ''
@@ -63,7 +59,6 @@ Page({
       this.setData({
         constants: allConstants,
         roleOptions: allConstants.ROLE_OPTIONS || [],
-        positionOptions: allConstants.POSITION_OPTIONS || [],
         departmentOptions: allConstants.DEPARTMENT_OPTIONS || [],
         allDepartmentOptions: allConstants.DEPARTMENT_OPTIONS || [] // 保存完整列表
       })
@@ -92,7 +87,7 @@ Page({
 
     // 降级：使用默认配置
     const defaults = {
-      showPosition: true,
+      showPosition: false,
       showDepartment: true,
       fixedDepartment: null
     }
@@ -113,31 +108,18 @@ Page({
           return
         }
 
-        const { roleOptions, positionOptions, departmentOptions, constants } = this.data
+        const { roleOptions, departmentOptions, constants } = this.data
         const roleIndex = result.request.role ? roleOptions.indexOf(result.request.role) : -1
         const role = result.request.role || ''
 
         // 使用常量判断
         const needRelativeRoles = constants.NEED_RELATIVE_ROLES || ['配偶', '家属']
-        const rolePositionMap = constants.ROLE_POSITION_MAP || {}
 
         // 使用新的角色字段配置
         const roleConfig = this.getRoleFieldConfig(role)
 
         const showRelativeField = needRelativeRoles.includes(role)
         const showDepartmentField = roleConfig.showDepartment
-        const showPositionField = roleConfig.showPosition
-
-        // 根据角色设置岗位选项和显示状态
-        let rolePositionOptions = positionOptions
-        let positionIndex = -1
-
-        if (rolePositionMap[role]) {
-          rolePositionOptions = rolePositionMap[role]
-          positionIndex = result.request.position ? rolePositionOptions.indexOf(result.request.position) : -1
-        } else {
-          positionIndex = result.request.position ? positionOptions.indexOf(result.request.position) : -1
-        }
 
         let department = result.request.department || ''
         let departmentIndex = -1
@@ -158,11 +140,8 @@ Page({
 
         this.setData({
           roleIndex,
-          positionOptions: rolePositionOptions,
-          positionIndex,
           showRelativeField,
           showDepartmentField,
-          showPositionField,
           departmentIndex,
           departmentOptions: roleDepartmentOptions,
           reviewRemark: result.request.status === 'rejected'
@@ -176,7 +155,6 @@ Page({
             role: role,
             isAdmin: !!result.request.isAdmin,
             relativeName: result.request.relativeName || '',
-            position: result.request.position || '',
             department: department,
             mobile: result.request.mobile || '',
             landline: result.request.landline || ''
@@ -227,27 +205,21 @@ Page({
 
   handleRoleChange(e) {
     const roleIndex = Number(e.detail.value)
-    const { roleOptions, allDepartmentOptions, constants, positionOptions } = this.data
+    const { roleOptions, allDepartmentOptions, constants } = this.data
     const role = roleOptions[roleIndex]
 
     // 使用常量判断
     const needRelativeRoles = constants.NEED_RELATIVE_ROLES || ['配偶', '家属']
-    const rolePositionMap = constants.ROLE_POSITION_MAP || {}
 
     // 使用新的角色字段配置
     const roleConfig = this.getRoleFieldConfig(role)
 
     const showRelativeField = needRelativeRoles.includes(role)
     const showDepartmentField = roleConfig.showDepartment
-    const showPositionField = roleConfig.showPosition
 
     let department = ''
     let departmentIndex = -1
     let roleDepartmentOptions = allDepartmentOptions // 使用完整部门列表
-
-    // 根据角色设置岗位选项和显示状态
-    let rolePositionOptions = rolePositionMap[role] || positionOptions
-    let positionIndex = -1
 
     // 使用配置中的固定部门
     if (roleConfig.fixedDepartment) {
@@ -256,21 +228,12 @@ Page({
       roleDepartmentOptions = [roleConfig.fixedDepartment]
     }
 
-    // 根据角色设置岗位选项
-    if (rolePositionMap[role]) {
-      positionIndex = role === '工勤' ? -1 : -1 // 默认都不选择
-    }
-
     this.setData({
       roleIndex,
-      positionOptions: rolePositionOptions,
-      positionIndex,
       'form.role': role,
       showRelativeField,
       showDepartmentField,
-      showPositionField,
       'form.relativeName': showRelativeField ? this.data.form.relativeName : '',
-      'form.position': positionIndex >= 0 ? rolePositionOptions[positionIndex] : '',
       'form.department': department,
       departmentIndex,
       departmentOptions: roleDepartmentOptions
@@ -280,14 +243,6 @@ Page({
   handleRelativeNameInput(e) {
     this.setData({
       'form.relativeName': e.detail.value
-    })
-  },
-
-  handlePositionChange(e) {
-    const positionIndex = Number(e.detail.value)
-    this.setData({
-      positionIndex,
-      'form.position': this.data.positionOptions[positionIndex]
     })
   },
 
@@ -323,7 +278,7 @@ Page({
     }
 
     const form = this.data.form
-    const { constants, positionIndex } = this.data
+    const { constants } = this.data
     const needRelativeRoles = constants.NEED_RELATIVE_ROLES || ['配偶', '家属']
     const roleConfig = this.getRoleFieldConfig(form.role)
     
@@ -349,10 +304,6 @@ Page({
     }
     if (roleConfig.showDepartment && !form.department) {
       utils.showToast({ title: '请选择部门', icon: 'none' })
-      return
-    }
-    if (form.role === '工勤' && positionIndex < 0) {
-      utils.showToast({ title: '请选择岗位', icon: 'none' })
       return
     }
 

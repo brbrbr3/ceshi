@@ -181,7 +181,7 @@ Page({
           defaultTab = 'myMeal'
         }
 
-        if (MEAL_TAB2_POSITIONS.includes(user.position)) {
+        if (Array.isArray(user.position) && user.position.some(p => MEAL_TAB2_POSITIONS.includes(p))) {
           availableTabs.push({
             key: 'management',
             label: '工作餐管理'
@@ -202,7 +202,7 @@ Page({
         }
 
         // 副食管理 Tab（岗位判断）
-        if (MEAL_TAB4_POSITIONS.includes(user.position)) {
+        if (Array.isArray(user.position) && user.position.some(p => MEAL_TAB4_POSITIONS.includes(p))) {
           if (!availableTabs.find(t => t.key === 'sideManage')) {
             availableTabs.push({
               key: 'sideManage',

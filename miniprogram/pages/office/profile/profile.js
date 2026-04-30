@@ -13,6 +13,7 @@ Page({
     avatarText: 'CHN',
     userAvatarUrl: '',
     isAdmin: false,
+    canConfigPosition: false, // 是否有岗位配置权限
     stats: [{
         label: '本月出勤（占位）',
         value: '7天',
@@ -51,8 +52,8 @@ Page({
             label: '字体大小'
           },
           {
-            icon: '⚙️',
-            label: '人员配置'
+            icon: '🗂️',
+            label: '岗位配置'
           }
         ]
       },
@@ -171,10 +172,10 @@ Page({
         ]
 
         // 如果有岗位信息，添加到信息卡片中
-        if (user.position && user.position !== '无') {
+        if (Array.isArray(user.position) && user.position.length > 0) {
           companyInfo.splice(2, 0, {
             label: '岗位',
-            value: user.position
+            value: user.position.join('、')
           })
         }
 
@@ -224,6 +225,7 @@ Page({
           avatarText: (user.avatarText || user.name || '智').slice(0, 1),
           avatarStatusClass: statusInfo.cls,
           isAdmin: !!user.isAdmin,
+          canConfigPosition: this.checkPositionConfigPermission(user),
           companyInfo
         })
       })
@@ -278,6 +280,18 @@ Page({
     })
   },
 
+
+  /**
+   * 检查用户是否有岗位配置权限
+   * 馆领导 / 部门负责人+办公室 / 管理员
+   */
+  checkPositionConfigPermission(user) {
+    if (!user) return false
+    if (user.isAdmin) return true
+    if (user.role === '馆领导') return true
+    if (user.role === '部门负责人' && user.department === '办公室') return true
+    return false
+  },
 
   handleLogout() {
     // 退出登录前，将用户状态设为 offline（若当前外出则保持 out）
@@ -347,7 +361,18 @@ Page({
       wx.navigateTo({
         url: '/pages/office/help/help'
       })
-    } else if (label === '字体大小') {} else {
+    } else if (label === '字体大小') {} else if (label === '岗位配置') {
+      if (this.data.canConfigPosition) {
+        wx.navigateTo({
+          url: '/pages/office/position-config/position-config'
+        })
+      } else {
+        utils.showToast({
+          title: '您没有岗位配置权限',
+          icon: 'none'
+        })
+      }
+    } else {
       utils.showToast({
         title: '功能开发中，敬请期待',
         icon: 'none'

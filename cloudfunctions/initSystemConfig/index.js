@@ -27,11 +27,11 @@ const SYSTEM_CONFIGS = [
     type: 'role',
     key: 'ROLE_POSITION_MAP',
     value: {
-      '馆领导': ['无', '人事主管', '会计主管'],
-      '部门负责人': ['无', '人事主管', '会计主管', '会计', '出纳', '俱乐部', '阳光课堂'],
-      '馆员': ['无', '礼宾', '会计', '出纳', '俱乐部', '阳光课堂'],
+      '馆领导': ['人事主管', '会计主管'],
+      '部门负责人': ['人事主管', '会计主管', '会计', '出纳', '俱乐部', '阳光课堂'],
+      '馆员': ['礼宾', '会计', '出纳', '俱乐部', '阳光课堂'],
       '工勤': ['招待员', '厨师'],
-      '配偶': ['无', '出纳', '内聘']
+      '配偶': ['出纳', '内聘']
     },
     description: '角色-岗位映射关系',
     sort: 2
@@ -55,14 +55,14 @@ const SYSTEM_CONFIGS = [
   {
     type: 'position',
     key: 'POSITION_OPTIONS',
-    value: ['无', '人事主管', '会计主管', '礼宾', '会计', '出纳', '俱乐部', '阳光课堂', '招待员', '厨师', '内聘'],
+    value: ['人事主管', '会计主管', '礼宾', '会计', '出纳', '俱乐部', '阳光课堂', '妇女小组', '招待员', '厨师', '领事部内聘', '办公室内聘', '酒水库库管', '文具库库管', '礼品库库管'],
     description: '岗位选项列表',
     sort: 10
   },
   {
     type: 'position',
     key: 'DEFAULT_POSITION',
-    value: '',
+    value: [],
     description: '默认岗位',
     sort: 11
   },
@@ -88,12 +88,12 @@ const SYSTEM_CONFIGS = [
     type: 'role_field_mapping',
     key: 'ROLE_FIELD_VISIBILITY',
     value: {
-      '馆领导': { showPosition: true, showDepartment: false, fixedDepartment: null },
-      '部门负责人': { showPosition: true, showDepartment: true, fixedDepartment: null },
-      '馆员': { showPosition: true, showDepartment: true, fixedDepartment: null },
-      '工勤': { showPosition: true, showDepartment: true, fixedDepartment: '办公室' },
+      '馆领导': { showPosition: false, showDepartment: false, fixedDepartment: null },
+      '部门负责人': { showPosition: false, showDepartment: true, fixedDepartment: null },
+      '馆员': { showPosition: false, showDepartment: true, fixedDepartment: null },
+      '工勤': { showPosition: false, showDepartment: true, fixedDepartment: '办公室' },
       '物业': { showPosition: false, showDepartment: true, fixedDepartment: '办公室' },
-      '配偶': { showPosition: true, showDepartment: false, fixedDepartment: null },
+      '配偶': { showPosition: false, showDepartment: false, fixedDepartment: null },
       '家属': { showPosition: false, showDepartment: false, fixedDepartment: null },
       '待赴任馆员': { showPosition: false, showDepartment: false, fixedDepartment: null },
     },
