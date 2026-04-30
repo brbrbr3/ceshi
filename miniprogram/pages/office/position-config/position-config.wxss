@@ -4,16 +4,19 @@
   background: #F5F5F5;
 }
 
+.position-config-header {
+  padding: 30rpx 28rpx 32rpx;
+}
+
 .position-config-title {
-  font-size: var(--fs-36);
-  font-weight: 700;
+  font-size: var(--fs-48);
+  font-weight: 600;
   color: #FFFFFF;
 }
 
 .position-config-subtitle {
   font-size: var(--fs-26);
-  color: rgba(255, 255, 255, 0.7);
-  margin-top: 8rpx;
+  color: rgba(255, 255, 255);
 }
 
 .position-config-loading {
@@ -173,7 +176,7 @@
   right: 0;
   background: #FFFFFF;
   border-radius: 24rpx 24rpx 0 0;
-  max-height: 70vh;
+  height: 70vh;
   display: flex;
   flex-direction: column;
   animation: slideUp 0.3s cubic-bezier(0.25, 0.1, 0.25, 1);
@@ -196,10 +199,15 @@
 }
 
 .position-add-search-input {
+  display: block;
+  width: 100%;
+  box-sizing: border-box;
   background: #F3F4F6;
   border-radius: 16rpx;
   padding: 16rpx 24rpx;
   font-size: var(--fs-28);
+  height: 60rpx;
+  line-height: 60rpx;
 }
 
 .position-add-list {
@@ -259,7 +267,42 @@
 }
 
 /* 动画 */
-@keyframes fadeIn { from { opacity: 0; } to { opacity: 1; } }
-@keyframes fadeOut { from { opacity: 1; } to { opacity: 0; } }
-@keyframes slideUp { from { transform: translateY(100%); } to { transform: translateY(0); } }
-@keyframes slideDown { from { transform: translateY(0); } to { transform: translateY(100%); } }
+@keyframes fadeIn {
+  from {
+    opacity: 0;
+  }
+
+  to {
+    opacity: 1;
+  }
+}
+
+@keyframes fadeOut {
+  from {
+    opacity: 1;
+  }
+
+  to {
+    opacity: 0;
+  }
+}
+
+@keyframes slideUp {
+  from {
+    transform: translateY(100%);
+  }
+
+  to {
+    transform: translateY(0);
+  }
+}
+
+@keyframes slideDown {
+  from {
+    transform: translateY(0);
+  }
+
+  to {
+    transform: translateY(100%);
+  }
+}

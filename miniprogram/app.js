@@ -606,12 +606,52 @@ App({
     }).then(res => {
       const result = res.result || {}
       if (result.code !== 0) {
-        return false
+        return this._bypassPermissionForDev(featureKey)
       }
-      return result.data ? result.data.allowed : false
+      const allowed = result.data ? result.data.allowed : false
+      if (!allowed) {
+        return this._bypassPermissionForDev(featureKey)
+      }
+      return true
     }).catch(error => {
       console.error('权限检查失败:', error)
+      return this._bypassPermissionForDev(featureKey)
+    })
+  },
+
+  /**
+   * 判断是否为开发版或体验版
+   */
+  _isDevOrTrial() {
+    try {
+      const accountInfo = wx.getAccountInfoSync()
+      const env = accountInfo.miniProgram.envVersion
+      return env === 'develop' || env === 'trial'
+    } catch (e) {
       return false
+    }
+  },
+
+  /**
+   * 开发/体验模式下，无权限时弹窗提示并允许通过
+   */
+  _bypassPermissionForDev(featureKey) {
+    if (!this._isDevOrTrial()) {
+      return Promise.resolve(false)
+    }
+    return new Promise((resolve) => {
+      wx.showModal({
+        title: '权限提示',
+        content: `您没有「${featureKey}」的权限，但当前小程序为体验版，可以体验测试。`,
+        confirmText: '继续体验',
+        cancelText: '返回',
+        success: (res) => {
+          resolve(res.confirm)
+        },
+        fail: () => {
+          resolve(false)
+        }
+      })
     })
   },
 
@@ -821,13 +861,7 @@ App({
     return {
       // 角色相关
       ROLE_OPTIONS: ['馆领导', '部门负责人', '馆员', '工勤', '物业', '配偶', '家属'],
-      ROLE_POSITION_MAP: {
-        '馆领导': ['人事主管', '会计主管'],
-        '部门负责人': ['人事主管', '会计主管', '会计', '出纳', '俱乐部', '阳光课堂'],
-        '馆员': ['礼宾', '会计', '出纳', '俱乐部', '阳光课堂'],
-        '工勤': ['招待员', '厨师'],
-        '配偶': ['出纳', '内聘']
-      },
+
       NEED_RELATIVE_ROLES: ['配偶', '家属'],
       DEFAULT_ROLE: '',
 

@@ -144,97 +144,98 @@ Page({
     } catch (e) {}
   },
 
-  syncUserProfile() {
-    app.checkUserRegistration({
+  async syncUserProfile() {
+    try {
+      const result = await app.checkUserRegistration({
         forceRefresh: true
       })
-      .then((result) => {
-        if (!result.registered || !result.user) {
-          wx.reLaunch({
-            url: '/pages/auth/login/login'
-          })
-          return
-        }
-
-        const user = result.user
-        const companyInfo = [{
-            label: '出生日期',
-            value: user.birthday || '未填写'
-          },
-          {
-            label: '角色',
-            value: user.role || '未设置'
-          },
-          {
-            label: '管理员',
-            value: user.isAdmin ? '是' : '否'
-          }
-        ]
-
-        // 如果有岗位信息，添加到信息卡片中
-        if (Array.isArray(user.position) && user.position.length > 0) {
-          companyInfo.splice(2, 0, {
-            label: '岗位',
-            value: user.position.join('、')
-          })
-        }
-
-        // 如果有部门信息，添加到信息卡片中
-        if (user.department) {
-          companyInfo.splice(companyInfo.length - 1, 0, {
-            label: '部门',
-            value: user.department
-          })
-        }
-
-        // 如果有亲属信息，添加到信息卡片中
-        if (user.relativeName) {
-          companyInfo.splice(companyInfo.length - 1, 0, {
-            label: '亲属',
-            value: user.relativeName
-          })
-        }
-
-        // 用户状态映射
-        const userStatus = user.userStatus || 'offline'
-        const STATUS_MAP = {
-          online: {
-            label: '在线',
-            cls: 'status-online'
-          },
-          busy: {
-            label: '忙碌',
-            cls: 'status-busy'
-          },
-          out: {
-            label: '外出中',
-            cls: 'status-out'
-          },
-          offline: {
-            label: '离线',
-            cls: 'status-offline'
-          }
-        }
-        const statusInfo = STATUS_MAP[userStatus] || STATUS_MAP.offline
-
-        this.setData({
-          userName: user.name,
-          roleLabel: user.isAdmin ? `${user.role} · 管理员` : user.role,
-          primaryTag: user.isAdmin ? '管理员' : '普通用户',
-          secondaryTag: '状态：' + statusInfo.label,
-          avatarText: (user.avatarText || user.name || '智').slice(0, 1),
-          avatarStatusClass: statusInfo.cls,
-          isAdmin: !!user.isAdmin,
-          canConfigPosition: this.checkPositionConfigPermission(user),
-          companyInfo
+      if (!result.registered || !result.user) {
+        wx.reLaunch({
+          url: '/pages/auth/login/login'
         })
-      })
-      .catch((error) => {
-        utils.showToast({
-          title: error.message || '加载失败',
-          icon: 'none'
+        return
+      }
+
+      const user = result.user
+      const companyInfo = [{
+          label: '出生日期',
+          value: user.birthday || '未填写'
+        },
+        {
+          label: '角色',
+          value: user.role || '未设置'
+        },
+        {
+          label: '管理员',
+          value: user.isAdmin ? '是' : '否'
+        }
+      ]
+
+      // 如果有岗位信息，添加到信息卡片中
+      if (Array.isArray(user.position) && user.position.length > 0) {
+        companyInfo.splice(2, 0, {
+          label: '岗位',
+          value: user.position.join('、')
         })
+      }
+
+      // 如果有部门信息，添加到信息卡片中
+      if (user.department) {
+        companyInfo.splice(companyInfo.length - 1, 0, {
+          label: '部门',
+          value: user.department
+        })
+      }
+
+      // 如果有亲属信息，添加到信息卡片中
+      if (user.relativeName) {
+        companyInfo.splice(companyInfo.length - 1, 0, {
+          label: '亲属',
+          value: user.relativeName
+        })
+      }
+
+      // 用户状态映射
+      const userStatus = user.userStatus || 'offline'
+      const STATUS_MAP = {
+        online: {
+          label: '在线',
+          cls: 'status-online'
+        },
+        busy: {
+          label: '忙碌',
+          cls: 'status-busy'
+        },
+        out: {
+          label: '外出中',
+          cls: 'status-out'
+        },
+        offline: {
+          label: '离线',
+          cls: 'status-offline'
+        }
+      }
+      const statusInfo = STATUS_MAP[userStatus] || STATUS_MAP.offline
+
+      const canConfigPosition = await this.checkPositionConfigPermission()
+
+      this.setData({
+        userName: user.name,
+        roleLabel: user.isAdmin ? `${user.role} · 管理员` : user.role,
+        primaryTag: user.isAdmin ? '管理员' : '普通用户',
+        secondaryTag: '状态：' + statusInfo.label,
+        avatarText: (user.avatarText || user.name || '智').slice(0, 1),
+        avatarStatusClass: statusInfo.cls,
+        isAdmin: !!user.isAdmin,
+        canConfigPosition,
+        companyInfo
       })
+    } catch (error) {
+      utils.showToast({
+        title: error.message || '加载失败',
+        icon: 'none'
+      })
+    }
   },
 
   onChangeStatus() {
@@ -248,7 +249,10 @@ Page({
       return
     }
     // online ↔ busy 互切
-    wx.showLoading({ title: '切换状态中...', mask: true })
+    wx.showLoading({
+      title: '切换状态中...',
+      mask: true
+    })
     const nextStatus = currentStatus === 'online' ? 'busy' : 'online'
     app.callOfficeAuth('updateUserStatus', {
       userStatus: nextStatus
@@ -282,15 +286,14 @@ Page({
 
 
   /**
-   * 检查用户是否有岗位配置权限
-   * 馆领导 / 部门负责人+办公室 / 管理员
+   * 检查用户是否有岗位配置权限（使用系统权限配置）
    */
-  checkPositionConfigPermission(user) {
-    if (!user) return false
-    if (user.isAdmin) return true
-    if (user.role === '馆领导') return true
-    if (user.role === '部门负责人' && user.department === '办公室') return true
-    return false
+  async checkPositionConfigPermission() {
+    try {
+      return await app.checkPermission('manage_positions')
+    } catch {
+      return false
+    }
   },
 
   handleLogout() {
@@ -361,7 +364,8 @@ Page({
       wx.navigateTo({
         url: '/pages/office/help/help'
       })
-    } else if (label === '字体大小') {} else if (label === '岗位配置') {
+    } else if (label === '字体大小') {
+    } else if (label === '岗位配置') {
       if (this.data.canConfigPosition) {
         wx.navigateTo({
           url: '/pages/office/position-config/position-config'

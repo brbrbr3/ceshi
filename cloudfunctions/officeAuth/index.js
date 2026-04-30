@@ -1206,7 +1206,6 @@ function formatDateTime(timestamp) {
 /**
  * 获取通讯录列表
  * 查询所有 approved 用户，排除"家属"和"待赴任馆员"角色
- * 仅返回公开字段，不返回 openid 等敏感信息
  */
 async function getContactsList() {
   // 排除的角色
@@ -1222,6 +1221,7 @@ async function getContactsList() {
 
   const contacts = (result.data || []).map(record => ({
     _id: record._id,
+    openid: record.openid,
     name: record.name,
     role: record.role,
     department: record.department || '',

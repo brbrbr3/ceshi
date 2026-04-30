@@ -18,7 +18,8 @@ Page({
   },
 
   async onLoad() {
-    await this.checkPermission()
+    const hasPermission = await this.checkPermission()
+    if (!hasPermission) return
     await this.loadData()
   },
 
@@ -30,27 +31,19 @@ Page({
   },
 
   /**
-   * 权限检查：馆领导 / 部门负责人+办公室 / 管理员
+   * 权限检查：使用系统权限配置
    */
   async checkPermission() {
     try {
-      const result = await app.checkUserRegistration()
-      if (!result.registered || !result.user) {
-        wx.showModal({ title: '提示', content: '请先完成注册', showCancel: false, success: () => wx.navigateBack() })
-        return
-      }
-
-      const user = result.user
-      const hasPermission = user.isAdmin || user.role === '馆领导' || (user.role === '部门负责人' && user.department === '办公室')
-
+      const hasPermission = await app.checkPermission('manage_positions')
       if (!hasPermission) {
         wx.showModal({ title: '权限不足', content: '您没有岗位配置权限', showCancel: false, success: () => wx.navigateBack() })
-        return
+        return false
       }
-
-      this.setData({ currentUser: user })
+      return true
     } catch (error) {
       wx.showModal({ title: '错误', content: error.message || '权限检查失败', showCancel: false, success: () => wx.navigateBack() })
+      return false
     }
   },
 
@@ -60,22 +53,15 @@ Page({
   async loadData() {
     this.setData({ loading: true })
     try {
-      // 获取岗位选项
-      const positionOptions = app.getConstantSync('POSITION_OPTIONS') || []
-
-      // 获取所有用户
-      const res = await app.callOfficeAuth('getContactsList')
-      const allUsers = (res.contacts || []).map(u => ({
-        ...u,
-        avatarText: u.avatarText || (u.name ? u.name.slice(0, 1) : '智')
-      }))
-
-      // 按岗位分组
-      const positionGroups = positionOptions.map(position => {
-        const users = allUsers.filter(u => Array.isArray(u.position) && u.position.includes(position))
-        return { position, users }
+      const res = await wx.cloud.callFunction({
+        name: 'positionManager',
+        data: { action: 'getPositionConfig' }
       })
+      if (res.result.code !== 0) {
+        throw new Error(res.result.message || '加载失败')
+      }
 
+      const { positionGroups, allUsers } = res.result.data
       this.setData({ positionGroups, allUsers, loading: false })
     } catch (error) {
       this.setData({ loading: false })
@@ -136,10 +122,13 @@ Page({
 
     wx.showLoading({ title: '分配中...', mask: true })
     try {
-      await wx.cloud.callFunction({
+      const res = await wx.cloud.callFunction({
         name: 'positionManager',
         data: { action: 'assignPosition', targetOpenid: openid, position }
       })
+      if (res.result.code !== 0) {
+        throw new Error(res.result.message || '分配失败')
+      }
 
       wx.hideLoading()
       utils.showToast({ title: `已将「${name}」分配到「${position}」`, icon: 'success' })
@@ -167,10 +156,13 @@ Page({
 
         wx.showLoading({ title: '移除中...', mask: true })
         try {
-          await wx.cloud.callFunction({
+          const res = await wx.cloud.callFunction({
             name: 'positionManager',
             data: { action: 'removePosition', targetOpenid: openid, position }
           })
+          if (res.result.code !== 0) {
+            throw new Error(res.result.message || '移除失败')
+          }
 
           wx.hideLoading()
           utils.showToast({ title: '已移除', icon: 'success' })

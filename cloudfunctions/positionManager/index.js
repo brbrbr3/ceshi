@@ -7,6 +7,7 @@ cloud.init({
 const db = cloud.database()
 const _ = db.command
 const usersCollection = db.collection('office_users')
+const permissionsCollection = db.collection('permissions')
 
 function success(data, message) {
   return { code: 0, message: message || 'ok', data: data || {} }
@@ -17,7 +18,7 @@ function fail(message, code) {
 }
 
 /**
- * 权限检查：馆领导 / 部门负责人+办公室 / 管理员
+ * 权限检查：通过 permissionManager 的逻辑检查 manage_positions 权限
  */
 async function checkPermission(openid) {
   const userResult = await usersCollection.where({ openid, status: 'approved' }).limit(1).get()
@@ -25,8 +26,30 @@ async function checkPermission(openid) {
     throw new Error('用户不存在或未审批')
   }
   const user = userResult.data[0]
-  const hasPermission = user.isAdmin || user.role === '馆领导' || (user.role === '部门负责人' && user.department === '办公室')
-  if (!hasPermission) {
+
+  // 管理员自动拥有所有权限
+  if (user.isAdmin) return user
+
+  // 查询权限配置
+  const permResult = await permissionsCollection.where({ featureKey: 'manage_positions' }).limit(1).get()
+  if (!permResult.data || permResult.data.length === 0) {
+    throw new Error('权限配置不存在')
+  }
+  const permission = permResult.data[0]
+
+  // 检查角色权限
+  if (permission.enabledRoles.includes(user.role)) return user
+
+  // 检查特殊条件
+  const specialConditions = permission.specialConditions || []
+  const specialPassed = specialConditions.some(cond => {
+    if (user.role !== cond.role) return false
+    if (cond.position && Array.isArray(user.position) && user.position.includes(cond.position)) return true
+    if (cond.department && user.department === cond.department) return true
+    return false
+  })
+
+  if (!specialPassed) {
     throw new Error('您没有岗位配置权限')
   }
   return user
@@ -36,6 +59,9 @@ async function checkPermission(openid) {
  * 为用户分配岗位
  */
 async function assignPosition(openid, targetOpenid, position) {
+  if (!targetOpenid) throw new Error('缺少目标用户标识')
+  if (!position) throw new Error('缺少岗位信息')
+
   await checkPermission(openid)
 
   // 获取目标用户
@@ -59,6 +85,16 @@ async function assignPosition(openid, targetOpenid, position) {
     throw new Error('无效的岗位')
   }
 
+  // 如果 position 字段是字符串，先转为数组（兼容历史数据）
+  if (!Array.isArray(targetUser.position)) {
+    await usersCollection.doc(targetUser._id).update({
+      data: {
+        position: targetUser.position ? [targetUser.position] : [],
+        updatedAt: Date.now()
+      }
+    })
+  }
+
   // 使用 _.push 添加岗位
   await usersCollection.doc(targetUser._id).update({
     data: {
@@ -74,6 +110,9 @@ async function assignPosition(openid, targetOpenid, position) {
  * 移除用户岗位
  */
 async function removePosition(openid, targetOpenid, position) {
+  if (!targetOpenid) throw new Error('缺少目标用户标识')
+  if (!position) throw new Error('缺少岗位信息')
+
   await checkPermission(openid)
 
   // 获取目标用户
@@ -88,6 +127,16 @@ async function removePosition(openid, targetOpenid, position) {
   // 检查是否有该岗位
   if (!currentPositions.includes(position)) {
     throw new Error('该用户没有此岗位')
+  }
+
+  // 如果 position 字段是字符串，先转为数组（兼容历史数据）
+  if (!Array.isArray(targetUser.position)) {
+    await usersCollection.doc(targetUser._id).update({
+      data: {
+        position: targetUser.position ? [targetUser.position] : [],
+        updatedAt: Date.now()
+      }
+    })
   }
 
   // 使用 _.pull 移除岗位

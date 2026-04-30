@@ -522,27 +522,6 @@ function needRelativeField(role) {
   }
 }
 
-/**
- * 获取角色对应的岗位选项
- * @param {string} role - 角色名称
- * @returns {string[]}
- */
-function getPositionOptionsByRole(role) {
-  try {
-    const app = getApp()
-    const map = app.getConstantSync('ROLE_POSITION_MAP')
-    const defaultPositions = app.getConstantSync('POSITION_OPTIONS')
-    
-    if (map && map[role]) {
-      return map[role]
-    }
-    
-    return defaultPositions || []
-  } catch (e) {
-    return []
-  }
-}
-
 // ==================== 云存储图片缓存 ====================
 
 /**
@@ -660,7 +639,6 @@ module.exports = {
   // 角色判断
   needDepartmentField,
   needRelativeField,
-  getPositionOptionsByRole,
 
   // 云存储图片缓存
   loadCachedCloudImage

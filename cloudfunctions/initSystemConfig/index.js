@@ -23,19 +23,7 @@ const SYSTEM_CONFIGS = [
     description: '角色选项列表',
     sort: 1
   },
-  {
-    type: 'role',
-    key: 'ROLE_POSITION_MAP',
-    value: {
-      '馆领导': ['人事主管', '会计主管'],
-      '部门负责人': ['人事主管', '会计主管', '会计', '出纳', '俱乐部', '阳光课堂'],
-      '馆员': ['礼宾', '会计', '出纳', '俱乐部', '阳光课堂'],
-      '工勤': ['招待员', '厨师'],
-      '配偶': ['出纳', '内聘']
-    },
-    description: '角色-岗位映射关系',
-    sort: 2
-  },
+
   {
     type: 'role',
     key: 'NEED_RELATIVE_ROLES',
@@ -514,6 +502,14 @@ const PERMISSION_CONFIGS = [
     description: '提交休假申请（年休假、任期假、组合假等）',
     enabledRoles: ['馆领导', '部门负责人', '馆员', '工勤', '配偶'],
     requireAdmin: false
+  },
+  {
+    featureKey: 'manage_positions',
+    featureName: '岗位配置',
+    description: '管理岗位人员分配（添加/移除岗位人员）',
+    enabledRoles: ['馆领导'],
+    requireAdmin: false,
+    specialConditions: [{ role: '部门负责人', department: '办公室' }]
   }
 ]
 
@@ -623,6 +619,7 @@ exports.main = async (event, context) => {
                 description: perm.description,
                 enabledRoles: perm.enabledRoles,
                 requireAdmin: perm.requireAdmin,
+                specialConditions: perm.specialConditions || [],
                 updatedAt: now
               }
             })
