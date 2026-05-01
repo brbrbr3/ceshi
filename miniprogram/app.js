@@ -592,7 +592,8 @@ App({
   // ========== 权限管理相关方法 ==========
 
     /**
-   * 检查用户是否有权限访问指定功能
+   * 功能：直接调用云函数检查用户是否有指定功能的访问权限
+   * 注意：该函数不应为外部调用。外部检查权限应统一调用navigateWithPermission()方法
    * @param {string} featureKey - 功能标识，如 'medical_application'
    * @returns {Promise<boolean>} 是否有权限
    */
@@ -1261,6 +1262,9 @@ App({
    * @returns {Promise<Object>} 权限数据
    */
   loadPermissionCache(featureKeys) {
+    // 不传或传空数组则自动加载所有权限
+    featureKeys = featureKeys || []
+
     // 先检查是否已有有效缓存
     const cached = this.getPermissionCache()
     if (cached) {
@@ -1269,10 +1273,11 @@ App({
     }
 
     return this.batchCheckPermissions(featureKeys).then(result => {
-      const permissions = {}
       const perms = result.permissions || {}
-      featureKeys.forEach(key => {
-        permissions[key] = perms[key] ? perms[key].allowed : false
+      // 使用云函数返回的所有权限键构建缓存（云函数内部会处理空 key 自动查询）
+      const permissions = {}
+      Object.keys(perms).forEach(key => {
+        permissions[key] = perms[key].allowed
       })
 
       // 持久化缓存

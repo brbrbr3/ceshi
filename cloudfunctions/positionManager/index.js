@@ -154,7 +154,11 @@ async function removePosition(openid, targetOpenid, position) {
  * 获取岗位配置数据
  */
 async function getPositionConfig(openid) {
-  await checkPermission(openid)
+  // 只需检查用户已审批通过，不需要完整权限校验
+  const userResult = await usersCollection.where({ openid, status: 'approved' }).limit(1).get()
+  if (!userResult.data || userResult.data.length === 0) {
+    throw new Error('用户不存在或未审批')
+  }
 
   // 获取岗位选项
   const sysConfigResult = await db.collection('sys_config').where({ key: 'POSITION_OPTIONS' }).limit(1).get()

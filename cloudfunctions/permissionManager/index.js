@@ -182,6 +182,16 @@ async function checkPermission(openid, featureKey) {
  */
 async function batchCheckPermissions(openid, featureKeys) {
   try {
+    // 如果没有传 featureKeys 或为空数组，自动查询数据库获取所有权限 key
+    if (!featureKeys || !Array.isArray(featureKeys) || featureKeys.length === 0) {
+      const allPerms = await permissionsCollection.get()
+      if (allPerms.data && allPerms.data.length > 0) {
+        featureKeys = allPerms.data.map(p => p.featureKey)
+      } else {
+        return success({ user: null, permissions: {} })
+      }
+    }
+
     // 查询用户信息
     const userResult = await usersCollection
       .where({ openid })
@@ -412,10 +422,8 @@ exports.main = async (event) => {
 
     if (action === 'batchCheckPermissions') {
       const featureKeys = event.featureKeys
-      if (!featureKeys || !Array.isArray(featureKeys)) {
-        return fail('缺少功能标识列表', 400)
-      }
-      return await batchCheckPermissions(openid, featureKeys)
+      // featureKeys 为空时，cloud function 内部会查询所有权限 key
+      return await batchCheckPermissions(openid, featureKeys || [])
     }
 
     if (action === 'listPermissions') {

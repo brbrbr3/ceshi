@@ -18,8 +18,6 @@ Page({
   },
 
   async onLoad() {
-    const hasPermission = await this.checkPermission()
-    if (!hasPermission) return
     await this.loadData()
   },
 
@@ -27,23 +25,6 @@ Page({
     const fontStyle = app.globalData.fontStyle
     if (this.data.fontStyle !== fontStyle) {
       this.setData({ fontStyle })
-    }
-  },
-
-  /**
-   * 权限检查：使用系统权限配置
-   */
-  async checkPermission() {
-    try {
-      const hasPermission = await app.checkPermission('manage_positions')
-      if (!hasPermission) {
-        wx.showModal({ title: '权限不足', content: '您没有岗位配置权限', showCancel: false, success: () => wx.navigateBack() })
-        return false
-      }
-      return true
-    } catch (error) {
-      wx.showModal({ title: '错误', content: error.message || '权限检查失败', showCancel: false, success: () => wx.navigateBack() })
-      return false
     }
   },
 
@@ -131,7 +112,7 @@ Page({
       }
 
       wx.hideLoading()
-      utils.showToast({ title: `已将「${name}」分配到「${position}」`, icon: 'success' })
+      utils.showToast({ title: `分配成功`, icon: 'success' })
 
       // 刷新数据
       await this.loadData()

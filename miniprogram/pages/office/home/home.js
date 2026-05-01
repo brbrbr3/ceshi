@@ -222,9 +222,8 @@ Page({
       duration: 2000
     })
 
-    // 批量检查权限（缓存由 app.js 统一管理）
-    const featureKeys = ['medical_application', 'trip_report', 'trip_dashboard', 'meeting_room', 'passport_application', 'meal_management', 'car_purchase', 'leave_application']
-    app.loadPermissionCache(featureKeys)
+    // 批量检查权限（不传参，云函数自动查询所有权限 key，缓存由 app.js 统一管理）
+    app.loadPermissionCache()
       .then(() => {
         wx.hideToast()
       })
