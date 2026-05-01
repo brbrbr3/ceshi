@@ -51,7 +51,7 @@
     <view class="profile-group" wx:for="{{menuGroups}}" wx:key="title">
       <view class="profile-group-title">{{item.title}}</view>
       <view class="office-card profile-menu-card">
-        <view class="profile-menu-item" wx:for="{{item.items}}" wx:key="label" wx:for-item="menu" bindtap="handleMenuTap" data-label="{{menu.label}}" wx:if="{{menu.label !== '岗位配置' || canConfigPosition}}">
+        <view class="profile-menu-item" wx:for="{{item.items}}" wx:key="label" wx:for-item="menu" bindtap="handleMenuTap" data-label="{{menu.label}}">
           <view class="profile-menu-icon">{{menu.icon}}</view>
           <view class="profile-menu-label">{{menu.label}}</view>
           <view wx:if="{{menu.badge}}" class="profile-menu-badge">{{menu.badge}}</view>

@@ -591,7 +591,7 @@ App({
 
   // ========== 权限管理相关方法 ==========
 
-  /**
+    /**
    * 检查用户是否有权限访问指定功能
    * @param {string} featureKey - 功能标识，如 'medical_application'
    * @returns {Promise<boolean>} 是否有权限
@@ -606,53 +606,91 @@ App({
     }).then(res => {
       const result = res.result || {}
       if (result.code !== 0) {
-        return this._bypassPermissionForDev(featureKey)
+        return false
       }
-      const allowed = result.data ? result.data.allowed : false
-      if (!allowed) {
-        return this._bypassPermissionForDev(featureKey)
-      }
-      return true
+      return result.data ? result.data.allowed : false
     }).catch(error => {
       console.error('权限检查失败:', error)
-      return this._bypassPermissionForDev(featureKey)
+      return false
     })
   },
 
   /**
-   * 判断是否为开发版或体验版
+   * 带权限检查的页面跳转
+   * 优先使用缓存，无缓存时实时检查，开发/体验版无权限可跳过
+   * @param {string} featureKey 功能权限key
+   * @param {string} url 目标页面路径
+   * @param {string} featureName 功能名称（用于提示）
    */
-  _isDevOrTrial() {
-    try {
-      const accountInfo = wx.getAccountInfoSync()
-      const env = accountInfo.miniProgram.envVersion
-      return env === 'develop' || env === 'trial'
-    } catch (e) {
-      return false
-    }
-  },
+  navigateWithPermission(featureKey, url, featureName) {
+    // 优先使用缓存权限
+    const cache = this.getPermissionCache()
+    const cachedValue = cache ? cache[featureKey] : undefined
 
-  /**
-   * 开发/体验模式下，无权限时弹窗提示并允许通过
-   */
-  _bypassPermissionForDev(featureKey) {
-    if (!this._isDevOrTrial()) {
-      return Promise.resolve(false)
+    if (cachedValue === true) {
+      wx.navigateTo({ url })
+      return
     }
-    return new Promise((resolve) => {
+
+    if (cachedValue === false) {
+      if (this._checkDevTrial(featureName, url)) return
       wx.showModal({
         title: '权限提示',
-        content: `您没有「${featureKey}」的权限，但当前小程序为体验版，可以体验测试。`,
-        confirmText: '继续体验',
-        cancelText: '返回',
-        success: (res) => {
-          resolve(res.confirm)
-        },
-        fail: () => {
-          resolve(false)
-        }
+        content: `您没有权限使用「${featureName}」功能`,
+        showCancel: false,
+        confirmText: '我知道了'
       })
+      return
+    }
+
+    // 缓存未命中，实时检查
+    wx.showLoading({ title: '检查权限...', mask: true })
+    this.checkPermission(featureKey).then(allowed => {
+      wx.hideLoading()
+      // 更新缓存（写入 app 全局缓存）
+      const newCache = { ...(this.getPermissionCache() || {}), [featureKey]: allowed }
+      this.persistPermissionCache(newCache)
+
+      if (allowed) {
+        wx.navigateTo({ url })
+        return
+      }
+      if (this._checkDevTrial(featureName, url)) return
+      wx.showModal({
+        title: '权限提示',
+        content: `您没有权限使用「${featureName}」功能`,
+        showCancel: false,
+        confirmText: '我知道了'
+      })
+    }).catch(() => {
+      wx.hideLoading()
+      if (this._checkDevTrial(featureName, url)) return
+      wx.showToast({ title: '权限检查失败', icon: 'none' })
     })
+  },
+
+  /**
+   * 检查当前是否为开发版或体验版，是则弹窗允许跳过权限
+   * @param {string} featureName 功能名称
+   * @param {string} url 目标页面路径
+   * @returns {boolean} 是否已处理（弹窗）
+   */
+  _checkDevTrial(featureName, url) {
+    try {
+      const info = wx.getAccountInfoSync()
+      const env = info.miniProgram.envVersion
+      if (env === 'develop' || env === 'trial') {
+        wx.showModal({
+          title: '权限提示',
+          content: `您没有权限使用「${featureName}」功能，但当前小程序为体验版，可以体验测试。`,
+          confirmText: '继续体验',
+          cancelText: '返回',
+          success: (res) => { if (res.confirm) wx.navigateTo({ url }) }
+        })
+        return true
+      }
+    } catch (e) {}
+    return false
   },
 
   /**
@@ -1136,8 +1174,7 @@ App({
           icon: '⚠'
         }
       },
-      TRIP_OVERTIME_HOURS: 1,
-      TRIP_DASHBOARD_ROLES: ['馆领导', '部门负责人', 'admin']
+      TRIP_OVERTIME_HOURS: 1
     }
   },
 

@@ -15,8 +15,7 @@ Page({
     unreadNotificationCount: 0,
     loading: false,
     currentUser: null,
-    // 权限缓存
-    permissionCache: {},
+    // 权限缓存（统一由 app.js 管理）
     // 背景图片云存储链接
     bgImageUrl: '',
     stats: [{
@@ -212,9 +211,6 @@ Page({
     // 先检查是否已有有效缓存
     const cached = app.getPermissionCache()
     if (cached) {
-      this.setData({
-        permissionCache: cached
-      })
       console.log('权限缓存已存在，跳过加载')
       return
     }
@@ -226,13 +222,10 @@ Page({
       duration: 2000
     })
 
-    // 批量检查权限
+    // 批量检查权限（缓存由 app.js 统一管理）
     const featureKeys = ['medical_application', 'trip_report', 'trip_dashboard', 'meeting_room', 'passport_application', 'meal_management', 'car_purchase', 'leave_application']
     app.loadPermissionCache(featureKeys)
-      .then((permissions) => {
-        this.setData({
-          permissionCache: permissions
-        })
+      .then(() => {
         wx.hideToast()
       })
       .catch((error) => {
@@ -491,30 +484,23 @@ Page({
 
   handleQuickAction(e) {
     const label = e.currentTarget.dataset.label
-    const featureKey = e.currentTarget.dataset.feature
 
     if (label === '每周菜单') {
       wx.navigateTo({
         url: '/pages/office/menus/menus'
       })
     } else if (label === '就医申请') {
-      // 统一权限检查
-      this.checkAndNavigate('medical_application', '/pages/office/medical-application/medical-application', '就医申请')
+      app.navigateWithPermission('medical_application', '/pages/office/medical-application/medical-application', '就医申请')
     } else if (label === '外出报备') {
-      // 统一权限检查
-      this.checkAndNavigate('trip_report', '/pages/office/trip-report/trip-report', '外出报备')
+      app.navigateWithPermission('trip_report', '/pages/office/trip-report/trip-report', '外出报备')
     } else if (label === '出行数据板') {
-      // 统一权限检查
-      this.checkAndNavigate('trip_dashboard', '/pages/office/trip-dashboard/trip-dashboard', '出行数据板')
+      app.navigateWithPermission('trip_dashboard', '/pages/office/trip-dashboard/trip-dashboard', '出行数据板')
     } else if (label === '会议室预约') {
-      // 统一权限检查
-      this.checkAndNavigate('meeting_room', '/pages/office/meeting-room/meeting-room', '会议室预约')
+      app.navigateWithPermission('meeting_room', '/pages/office/meeting-room/meeting-room', '会议室预约')
     } else if (label === '护照管理') {
-      // 统一权限检查
-      this.checkAndNavigate('passport_application', '/pages/office/passport/passport', '护照管理')
+      app.navigateWithPermission('passport_application', '/pages/office/passport/passport', '护照管理')
     } else if (label === '工作餐与副食') {
-      // 统一权限检查
-      this.checkAndNavigate('meal_management', '/pages/office/meal-management/meal-management', '工作餐与副食')
+      app.navigateWithPermission('meal_management', '/pages/office/meal-management/meal-management', '工作餐与副食')
     } else if (label === '理发预约') {
       // 全体用户可用，无需权限检查
       wx.navigateTo({
@@ -526,11 +512,9 @@ Page({
         url: '/pages/office/repair/repair'
       })
     } else if (label === '购车管理') {
-      // 统一权限检查
-      this.checkAndNavigate('car_purchase', '/pages/office/car-purchase/car-purchase', '购车管理')
+      app.navigateWithPermission('car_purchase', '/pages/office/car-purchase/car-purchase', '购车管理')
     } else if (label === '休假申请') {
-      // 统一权限检查
-      this.checkAndNavigate('leave_application', '/pages/office/leave/leave', '休假申请')
+      app.navigateWithPermission('leave_application', '/pages/office/leave/leave', '休假申请')
     } else if (label === '常用信息') {
       // 全体用户可用，无需权限检查
       wx.navigateTo({
@@ -542,74 +526,6 @@ Page({
         icon: 'none'
       })
     }
-  },
-
-  /**
-   * 统一的权限检查和页面跳转方法
-   * @param {string} featureKey 功能权限key
-   * @param {string} url 目标页面路径
-   * @param {string} featureName 功能名称（用于提示）
-   */
-  checkAndNavigate(featureKey, url, featureName) {
-    // 优先使用缓存权限
-    const cachedPermission = this.data.permissionCache[featureKey]
-    if (cachedPermission === true) {
-      wx.navigateTo({
-        url
-      })
-      return
-    }
-
-    if (cachedPermission === false) {
-      this.showPermissionDenied(featureName)
-      return
-    }
-
-    // 缓存未命中，实时检查权限
-    wx.showLoading({
-      title: '检查权限...',
-      mask: true
-    })
-    app.checkPermission(featureKey)
-      .then((allowed) => {
-        wx.hideLoading()
-        // 更新缓存
-        const permissionCache = {
-          ...this.data.permissionCache,
-          [featureKey]: allowed
-        }
-        this.setData({
-          permissionCache
-        })
-
-        if (allowed) {
-          wx.navigateTo({
-            url
-          })
-        } else {
-          this.showPermissionDenied(featureName)
-        }
-      })
-      .catch((error) => {
-        wx.hideLoading()
-        console.error('权限检查失败:', error)
-        utils.showToast({
-          title: '权限检查失败',
-          icon: 'none'
-        })
-      })
-  },
-
-  /**
-   * 显示无权限提示
-   */
-  showPermissionDenied(featureName) {
-    wx.showModal({
-      title: '权限提示',
-      content: `您没有权限使用「${featureName}」功能`,
-      showCancel: false,
-      confirmText: '我知道了'
-    })
   },
 
   showComingSoon() {

@@ -161,9 +161,33 @@ Page({
 
   _parseContent(content) {
     if (!content) return ''
+
+    // 将裸 URL 转换为 <a> 标签
+    const urlRegex = /(https?:\/\/[^\s<>"'）)]+)/gi
+
     if (/<[a-z][\s\S]*>/i.test(content)) {
-      return content
+      // 内容包含 HTML 标签 → 保留现有标签结构，仅转换裸 URL
+      return content.replace(
+        /(<a[^>]*>[\s\S]*?<\/a>)|(https?:\/\/[^\s<>"'）)]+)/gi,
+        (match, anchorTag, url) => {
+          if (anchorTag) return anchorTag
+          // 分离 URL 末尾的标点符号
+          const trailingPunct = url.match(/[，。、；：)）\]}>]+$/)?.[0] || ''
+          const cleanUrl = trailingPunct ? url.slice(0, -trailingPunct.length) : url
+          return `<a href="${cleanUrl}">${cleanUrl}</a>${trailingPunct}`
+        }
+      )
     }
-    return ''
+
+    // 纯文本内容 → 尝试识别 URL
+    if (urlRegex.test(content)) {
+      return content.replace(urlRegex, (url) => {
+        const trailingPunct = url.match(/[，。、；：)）\]}>]+$/)?.[0] || ''
+        const cleanUrl = trailingPunct ? url.slice(0, -trailingPunct.length) : url
+        return `<p><a href="${cleanUrl}">${cleanUrl}</a>${trailingPunct}</p>`
+      })
+    }
+
+    return content
   }
 })

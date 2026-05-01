@@ -421,13 +421,7 @@ const SYSTEM_CONFIGS = [
     description: '超时提醒阈值（小时）',
     sort: 104
   },
-  {
-    type: 'trip',
-    key: 'TRIP_DASHBOARD_ROLES',
-    value: ['馆领导', '部门负责人', 'admin'],
-    description: '可访问出行数据板Dashboard的角色列表',
-    sort: 105
-  },
+
   {
     type: 'leave',
     key: 'LEAVE_TYPE_OPTIONS',

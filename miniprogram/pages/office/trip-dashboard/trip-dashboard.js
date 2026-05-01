@@ -62,12 +62,8 @@ Page({
     wx.showLoading({ title: '加载中...', mask: true })
     
     try {
-      // 检查权限
-      const hasAccess = await this.checkPermission()
-      if (!hasAccess) {
-        wx.hideLoading()
-        return
-      }
+      // 初始化用户信息
+      await this.initUserInfo()
 
       // 初始化分页配置
       this.initPagination({
@@ -76,7 +72,7 @@ Page({
       })
 
       // 加载常量配置
-      await this.loadConstants()
+      this.loadConstants()
       
       // 加载数据
       await this.loadAllData()
@@ -95,37 +91,20 @@ Page({
   },
 
   /**
-   * 检查权限
+   * 初始化用户信息
    */
-  async checkPermission() {
+  async initUserInfo() {
     try {
       const result = await app.checkUserRegistration()
       if (!result.registered || !result.user) {
         wx.reLaunch({ url: '/pages/auth/login/login' })
-        return false
+        return
       }
 
       const user = result.user
-      const dashboardRoles = await app.getConstant('TRIP_DASHBOARD_ROLES')
-      const allowedRoles = dashboardRoles || ['馆领导', '部门负责人', 'admin']
-      
-      // 检查是否有权限
-      const isAdmin = user.isAdmin || user.role === 'admin'
       const isLeader = user.role === '馆领导'
-      const isDeptHead = user.role === '部门负责人'
-      const canViewAll = isAdmin || isLeader || isDeptHead
-
-      if (!canViewAll) {
-        wx.showModal({
-          title: '权限不足',
-          content: '您没有权限访问此页面',
-          showCancel: false,
-          success: () => {
-            wx.navigateBack()
-          }
-        })
-        return false
-      }
+      const isAdmin = user.isAdmin || user.role === 'admin'
+      const canViewAll = isAdmin || isLeader || user.role === '部门负责人'
 
       this.setData({
         currentUser: user,
@@ -133,42 +112,26 @@ Page({
         canViewAll,
         selectedDepartment: (isLeader || isAdmin) ? 'all' : (user.department || 'all')
       })
-
-      return true
     } catch (error) {
-      console.error('权限检查失败:', error)
-      wx.showToast({ title: '权限检查失败', icon: 'none' })
-      return false
+      console.error('获取用户信息失败:', error)
+      wx.showToast({ title: '获取用户信息失败', icon: 'none' })
     }
   },
 
   /**
    * 加载常量配置
    */
-  async loadConstants() {
-    try {
-      const departmentOptions = await app.getConstant('DEPARTMENT_OPTIONS')
-      // 部门负责人只能选自己所在部门
-      if (this.data.userRole === '部门负责人' && this.data.currentUser && this.data.currentUser.department) {
-        this.setData({
-          departmentOptions: [this.data.currentUser.department]
-        })
-      } else {
-        this.setData({
-          departmentOptions: ['全部', ...(departmentOptions || [])]
-        })
-      }
-    } catch (error) {
-      console.error('加载常量配置失败:', error)
-      if (this.data.userRole === '部门负责人' && this.data.currentUser && this.data.currentUser.department) {
-        this.setData({
-          departmentOptions: [this.data.currentUser.department]
-        })
-      } else {
-        this.setData({
-          departmentOptions: ['全部', '政治处', '新公处', '经商处', '科技处', '武官处', '领侨处', '文化处', '办公室', 'DW办']
-        })
-      }
+  loadConstants() {
+    const departmentOptions = app.getConstantSync('DEPARTMENT_OPTIONS')
+    // 部门负责人只能选自己所在部门
+    if (this.data.userRole === '部门负责人' && this.data.currentUser && this.data.currentUser.department) {
+      this.setData({
+        departmentOptions: [this.data.currentUser.department]
+      })
+    } else {
+      this.setData({
+        departmentOptions: ['全部', ...(departmentOptions || [])]
+      })
     }
   },
 

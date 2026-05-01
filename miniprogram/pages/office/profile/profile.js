@@ -13,7 +13,7 @@ Page({
     avatarText: 'CHN',
     userAvatarUrl: '',
     isAdmin: false,
-    canConfigPosition: false, // 是否有岗位配置权限
+
     stats: [{
         label: '本月出勤（占位）',
         value: '7天',
@@ -217,7 +217,8 @@ Page({
       }
       const statusInfo = STATUS_MAP[userStatus] || STATUS_MAP.offline
 
-      const canConfigPosition = await this.checkPositionConfigPermission()
+
+
 
       this.setData({
         userName: user.name,
@@ -227,7 +228,7 @@ Page({
         avatarText: (user.avatarText || user.name || '智').slice(0, 1),
         avatarStatusClass: statusInfo.cls,
         isAdmin: !!user.isAdmin,
-        canConfigPosition,
+
         companyInfo
       })
     } catch (error) {
@@ -284,17 +285,6 @@ Page({
     })
   },
 
-
-  /**
-   * 检查用户是否有岗位配置权限（使用系统权限配置）
-   */
-  async checkPositionConfigPermission() {
-    try {
-      return await app.checkPermission('manage_positions')
-    } catch {
-      return false
-    }
-  },
 
   handleLogout() {
     // 退出登录前，将用户状态设为 offline（若当前外出则保持 out）
@@ -366,16 +356,7 @@ Page({
       })
     } else if (label === '字体大小') {
     } else if (label === '岗位配置') {
-      if (this.data.canConfigPosition) {
-        wx.navigateTo({
-          url: '/pages/office/position-config/position-config'
-        })
-      } else {
-        utils.showToast({
-          title: '您没有岗位配置权限',
-          icon: 'none'
-        })
-      }
+      app.navigateWithPermission('manage_positions', '/pages/office/position-config/position-config', '岗位配置')
     } else {
       utils.showToast({
         title: '功能开发中，敬请期待',

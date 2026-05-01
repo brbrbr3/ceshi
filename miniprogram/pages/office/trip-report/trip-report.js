@@ -72,7 +72,7 @@ Page({
     })
 
     // 加载常量配置
-    await this.loadConstants()
+    this.loadConstants()
 
     // 加载历史记录
     this.loadHistory()
@@ -104,18 +104,11 @@ Page({
   /**
    * 加载常量配置
    */
-  async loadConstants() {
-    try {
-      const travelModes = await app.getConstant('TRAVEL_MODES')
-      this.setData({
-        travelModes: travelModes || ['自驾', '搭车', '打车', '步行']
-      })
-    } catch (error) {
-      console.error('加载常量配置失败:', error)
-      this.setData({
-        travelModes: ['自驾', '搭车', '打车', '步行']
-      })
-    }
+  loadConstants() {
+    const travelModes = app.getConstantSync('TRAVEL_MODES')
+    this.setData({
+      travelModes: travelModes || ['自驾', '搭车', '打车', '步行']
+    })
   },
 
   /**
