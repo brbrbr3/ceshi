@@ -91,7 +91,7 @@
 .dashboard-stat-card {
   background: #FFFFFF;
   border-radius: 20rpx;
-  padding: 32rpx;
+  padding: 6rpx 0 26rpx 0;
   text-align: center;
   box-shadow: 0 2rpx 12rpx rgba(0, 0, 0, 0.04);
 }
@@ -100,7 +100,6 @@
   font-size: var(--fs-56);
   font-weight: 700;
   color: #2563EB;
-  margin-bottom: 8rpx;
 }
 
 .dashboard-stat-label {

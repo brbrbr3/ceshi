@@ -680,6 +680,71 @@ App({
   },
 
   /**
+   * 带权限检查的 TabBar 页面守卫（用于已通过 switchTab 进入的 TabBar 页）
+   * 优先使用缓存，无缓存时实时检查，开发/体验版无权限可跳过
+   * @param {string} featureKey 功能权限key
+   * @param {string} featureName 功能名称（用于提示）
+   * @returns {Promise<boolean>} 是否允许继续
+   */
+  switchTabWithPermission(featureKey, featureName) {
+    return new Promise((resolve) => {
+      // 优先使用缓存权限
+      const cache = this.getPermissionCache()
+      const cachedValue = cache ? cache[featureKey] : undefined
+
+      if (cachedValue === true) {
+        resolve(true)
+        return
+      }
+
+      if (cachedValue === false) {
+        if (this._checkDevTrialForTab(featureName, resolve)) return
+        wx.showModal({
+          title: '权限提示',
+          content: `您没有权限使用「${featureName}」功能`,
+          showCancel: false,
+          confirmText: '我知道了',
+          success: () => {
+            wx.switchTab({ url: '/pages/office/home/home' })
+            resolve(false)
+          }
+        })
+        return
+      }
+
+      // 缓存未命中，实时检查
+      wx.showLoading({ title: '检查权限...', mask: true })
+      this.checkPermission(featureKey).then(allowed => {
+        wx.hideLoading()
+        // 更新缓存
+        const newCache = { ...(this.getPermissionCache() || {}), [featureKey]: allowed }
+        this.persistPermissionCache(newCache)
+
+        if (allowed) {
+          resolve(true)
+          return
+        }
+        if (this._checkDevTrialForTab(featureName, resolve)) return
+        wx.showModal({
+          title: '权限提示',
+          content: `您没有权限使用「${featureName}」功能`,
+          showCancel: false,
+          confirmText: '我知道了',
+          success: () => {
+            wx.switchTab({ url: '/pages/office/home/home' })
+            resolve(false)
+          }
+        })
+      }).catch(() => {
+        wx.hideLoading()
+        if (this._checkDevTrialForTab(featureName, resolve)) return
+        wx.showToast({ title: '权限检查失败', icon: 'none' })
+        resolve(false)
+      })
+    })
+  },
+
+  /**
    * 检查当前是否为开发版或体验版，是则弹窗允许跳过权限
    * @param {string} featureName 功能名称
    * @param {string} url 目标页面路径
@@ -696,6 +761,30 @@ App({
           confirmText: '继续体验',
           cancelText: '返回',
           success: (res) => { if (res.confirm) wx.navigateTo({ url }) }
+        })
+        return true
+      }
+    } catch (e) {}
+    return false
+  },
+
+  /**
+   * TabBar 版本的开发/体验版跳过权限检查
+   * @param {string} featureName 功能名称
+   * @param {Function} resolve Promise resolve 回调
+   * @returns {boolean} 是否已处理（弹窗）
+   */
+  _checkDevTrialForTab(featureName, resolve) {
+    try {
+      const info = wx.getAccountInfoSync()
+      const env = info.miniProgram.envVersion
+      if (env === 'develop' || env === 'trial') {
+        wx.showModal({
+          title: '权限提示',
+          content: `您没有权限使用「${featureName}」功能，但当前小程序为体验版，可以体验测试。`,
+          confirmText: '继续体验',
+          cancelText: '返回',
+          success: (res) => { resolve(res.confirm) }
         })
         return true
       }

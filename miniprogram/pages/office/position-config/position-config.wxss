@@ -1,7 +1,6 @@
 /* 岗位配置页 */
 .position-config-page {
   min-height: 100vh;
-  background: #F5F5F5;
 }
 
 .position-config-header {

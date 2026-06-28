@@ -47,14 +47,16 @@ Page({
     ],
     menuGroups: [{
         title: '系统设置',
-        items: [{
+        items: [
+          {
             icon: 'Aa',
             label: '字体大小'
-          },
+          }
+          /* ,
           {
             icon: '🗂️',
             label: '岗位配置'
-          }
+          } */
         ]
       },
       {

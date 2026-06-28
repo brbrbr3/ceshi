@@ -62,6 +62,10 @@ input {
   padding: 40rpx 32rpx 30rpx;
 }
 
+.office-subpage-header-content {
+  color: #FFFFFF;
+}
+
 .office-subpage-title {
   font-size: var(--fs-44);
   font-weight: 600;

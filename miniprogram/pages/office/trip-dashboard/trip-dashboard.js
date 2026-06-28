@@ -65,6 +65,15 @@ Page({
       // 初始化用户信息
       await this.initUserInfo()
 
+      // 权限检查：TabBar 页面守卫
+      const allowed = await app.switchTabWithPermission(
+        'trip_dashboard',
+        '出行数据板'
+      )
+      if (!allowed) {
+        return
+      }
+
       // 初始化分页配置
       this.initPagination({
         initialPageSize: 10,
@@ -130,7 +139,7 @@ Page({
       })
     } else {
       this.setData({
-        departmentOptions: ['全部', ...(departmentOptions || [])]
+        departmentOptions: ['全馆', ...(departmentOptions || [])]
       })
     }
   },
@@ -394,7 +403,7 @@ Page({
   handleDepartmentChange(e) {
     const index = Number(e.detail.value)
     const department = this.data.departmentOptions[index]
-    const selectedDepartment = department === '全部' ? 'all' : department
+    const selectedDepartment = department === '全馆' ? 'all' : department
 
     if (selectedDepartment !== this.data.selectedDepartment) {
       this.setData({ selectedDepartment })

@@ -13,7 +13,7 @@ Page({
     checkedCount: 0,
     showArrivedButton: true,
     navTitle: '到馆指南',
-    navBackBtn: '<',
+    navBackBtn: '＜',
     // 背景图片云存储链接
     bgImageUrl: '',
 

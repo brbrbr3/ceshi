@@ -1,7 +1,9 @@
 <view class="office-page position-config-page" style="{{fontStyle}}">
-  <view class="office-gradient-header position-config-header">
-    <view class="position-config-title">岗位配置</view>
-    <view class="position-config-subtitle">管理各岗位人员分配</view>
+  <view class="office-gradient-header office-subpage-header">
+  <view class="office-subpage-header-content">
+    <view class="office-subpage-title">岗位配置</view>
+    <view class="office-subpage-subtitle">管理各岗位人员分配</view>
+  </view>
   </view>
 
   <view class="office-content">
