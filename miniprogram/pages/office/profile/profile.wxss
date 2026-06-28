@@ -3,7 +3,7 @@ page {
 }
 
 .profile-header {
-  padding: 90rpx 40rpx 40rpx;
+  padding: 40rpx 40rpx 40rpx;
 }
 
 .profile-theme-switch {
@@ -22,7 +22,6 @@ page {
   display: flex;
   align-items: center;
   gap: 20rpx;
-  margin-top: 28rpx;
 }
 
 .profile-avatar-wrap {

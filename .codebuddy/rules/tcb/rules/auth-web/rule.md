@@ -1,7 +1,7 @@
 ---
 name: auth-web-cloudbase
 description: CloudBase Web Authentication Quick Guide for frontend integration after auth-tool has already been checked. Provides concise and practical Web authentication solutions with multiple login methods and complete user management.
-version: 2.18.0
+version: 2.23.3
 alwaysApply: false
 ---
 
@@ -47,7 +47,11 @@ Keep local `references/...` paths for files that ship with the current skill dir
 - Using `signInWithEmailAndPassword` or `signUpWithEmailAndPassword` for username-style accounts such as `admin` and `editor`.
 - Keeping the login or register account input as `type="email"` when the task explicitly says the account identifier is a plain username string.
 - Starting implementation before calling `queryAppAuth(action="getLoginConfig")` and enabling `usernamePassword` when it is still off.
-- **Treating `auth.getUser()` returning a user as proof of real login.** When the SDK is initialized with a `publishableKey` / `accessKey`, it may silently create an anonymous session. A route guard's `checkAuth()` must verify that the user actually signed in with username/password (e.g. check `session.loginType !== 'ANONYMOUS'` or that `user.user_metadata?.username` exists), not just that `getUser()` returns non-null. Otherwise unauthenticated visitors pass the guard, protected pages render without a real user, and role-based UI (edit / delete buttons gated on `currentUser.role`) breaks because `currentUser` has no role record.
+- **Writing `auth.signInWithPassword(...)` or `auth.signUp(...)` code without first confirming the provider is enabled via MCP.** Before writing any sign-in or sign-up code in the browser, call `queryAppAuth(action="listProviders")` to verify the target provider (e.g. `email`, `phone`, `usernamePassword`) has `On: "TRUE"`. For email-based sign-up (`auth.signUp({ email, password })`), additionally confirm SMTP is configured — otherwise the provider may throw `"provider email not found"` or similar errors. For username/password login, use `auth.signInWithPassword({ username, password })`; registration is best done through the management API (`manageAppAuth(action="createUser")`) or by confirming email provider readiness first.
+- **Treating `auth.getUser()` or deprecated `auth.getLoginState()` as proof of real login.** When the SDK is initialized with `accessKey`, the deprecated `getLoginState()` returns an object with a valid `uid` even without any login — causing route guards that check `!!loginState` or `!!uid` to incorrectly pass. The fix is to use `auth.getSession()` instead: it returns `data.session === undefined` when no real login has occurred. Only `!!data.session` from `getSession()` is a reliable authentication check.
+- **Copying old CloudBase auth snippets from training data.** Do not use `auth.getLoginState()`, `auth.hasLoginState()`, `auth.getCurrentUser()`, or `auth.toDefaultLoginPage()` as the default Web flow. Use the Supabase-like Web SDK v2 auth methods in this file and provider readiness from `auth-tool`.
+  
+  Note: anonymous login is now **disabled by default** for new environments and inactive existing environments. Always use `auth.getSession()` for auth guards.
 
 ## Overview
 
@@ -59,7 +63,18 @@ Keep local `references/...` paths for files that ship with the current skill dir
 ## Core Capabilities
 
 **Use Case**: Web frontend projects using `@cloudbase/js-sdk@2.24.0+` for user authentication  
-**Key Benefits**: Supabase-like Auth API shape, supports phone, email, anonymous, username/password, and third-party login methods
+**Key Benefits**: **Supabase-compatible Auth API** — all methods return `{ data, error }`, supports phone, email, anonymous (disabled by default), username/password, OAuth, and third-party login methods
+
+> 📌 **Supabase API Compatibility**: CloudBase Web SDK v2 auth module is designed with Supabase-like API ergonomics. If you are familiar with `supabase-js` auth patterns, the same mental model applies:
+> - All methods return `Promise<{ data, error }>` — always check `error` first
+> - `signInWithPassword`, `signInWithOtp`, `signUp`, `signOut`, `getSession`, `getUser` follow the same naming as Supabase
+> - `onAuthStateChange(callback)` provides reactive auth state observation (events: `INITIAL_SESSION`, `SIGNED_IN`, `SIGNED_OUT`, `TOKEN_REFRESHED`, `USER_UPDATED`, `PASSWORD_RECOVERY`, `BIND_IDENTITY`)
+> - Session management via `getSession()` / `refreshSession()` / `setSession()` mirrors Supabase patterns
+> 
+> **Key differences from Supabase**:
+> - **OTP verification**: Supabase uses a standalone `auth.verifyOtp({ phone, token, type })` call; CloudBase returns `verifyOtp` as a callback on `data` — call `data.verifyOtp({ token })` from the `signInWithOtp` / `signUp` result
+> - **`accessKey`** replaces Supabase's `anonKey`; environment uses `env` + `region` instead of Supabase's `url`
+> - **`signInWithIdToken`** for direct third-party token login (similar to Supabase's same-named method)
 
 Use npm installation for modern Web projects. In React, Vue, Vite, and other bundler-based apps, install and import `@cloudbase/js-sdk` from the project dependencies instead of using a CDN script.
 
@@ -76,10 +91,12 @@ Use npm installation for modern Web projects. In React, Vue, Vite, and other bun
 - When `queryAppAuth` / `manageAppAuth` returns `sdkStyle: "supabase-like"` and `sdkHints`, follow those method and parameter hints first
 - `auth.signInWithOtp({ phone })` and `auth.signUp({ phone })` use the phone number in a `phone` field, not `phone_number`
 - `auth.signInWithOtp({ email })` and `auth.signUp({ email })` use `email`
-- `auth.signUp({ username, password })` and `auth.signInWithPassword({ username, password })` are the canonical username/password Web auth path
+- `auth.signInWithPassword({ username, password })` is the canonical Web login path for username/password accounts
+- Treat direct Web `auth.signUp({ username, password })` as conditional. Verify `sdkHints` and the installed SDK first; some versions only support `signUp` for OTP/provider-token flows and will not create username/password users.
 - If the task gives accounts like `admin`, `editor`, or another plain string without `@`, treat it as a username-style identifier rather than an email address
 - `verifyOtp({ token })` expects the SMS or email code in `token`
 - `accessKey` is the publishable key from `queryAppAuth` / `manageAppAuth` via `auth-tool-cloudbase`, not a secret key
+- **`accessKey` triggers automatic anonymous session creation** — the deprecated `auth.getLoginState()` returns an object with a valid `uid` even without explicit login, which misleads route guards into thinking the user is authenticated. Use `auth.getSession()` instead — it returns `data.session === undefined` when no real login has occurred, making auth checks straightforward and reliable.
 - Never set `accessKey` to `envId`, a username, or any placeholder string. If you do not have a real Publishable Key yet, do not fabricate one.
 - If the task mentions provider setup, stop and read `auth-tool-cloudbase` before writing frontend code
 
@@ -93,6 +110,8 @@ const app = cloudbase.init({
   env: 'your-full-env-id', // Canonical full CloudBase environment ID resolved from envQuery or the console, not an alias or shorthand
   region: `region`,  // CloudBase environment Region, default 'ap-shanghai'
   accessKey: 'publishable key', // required, get from auth-tool-cloudbase
+  // ⚠️ With accessKey, the deprecated getLoginState() returns misleading auth data (uid)
+  // even without login. Always use auth.getSession() — returns undefined when not logged in.
   auth: { detectSessionInUrl: true }, // required
 })
 
@@ -142,27 +161,53 @@ const uid = data.user.id
 
 **Checking login state (for route guards / auth checks):**
 ```js
-// Use auth.getLoginState() to get the current session.
-// IMPORTANT: uid alone is NOT enough — when the SDK is initialized with a
-// publishableKey it may create an anonymous session that also has a uid.
-// Route guards must reject anonymous sessions explicitly.
-const loginState = await auth.getLoginState()
-const isRealLogin = !!loginState
-  && !!loginState.uid
-  && loginState.loginType !== 'ANONYMOUS'
-// Use isRealLogin (not just !!uid) to gate protected routes.
+// Use auth.getSession() — NOT the deprecated getLoginState().
+//
+// Why: getLoginState() returns an object with uid even when only accessKey is
+// present (no real login), causing route guards to incorrectly pass anonymous users.
+// getSession() returns data.session === undefined when no real login exists,
+// making the check reliable and simple.
+const { data, error } = await auth.getSession()
+
+if (!data?.session) {
+  // No real login — redirect to sign-in page
+  window.location.href = '/login'
+  return
+}
+
+// Also reject anonymous sessions (when signInAnonymously() was called explicitly)
+if (data.session.user?.is_anonymous) {
+  // Anonymous user — not allowed for protected routes
+  window.location.href = '/login'
+  return
+}
+
+// data.session contains: access_token, refresh_token, expires_in, user
+// data.session.user contains the authenticated user info
+const currentUser = data.session.user
+
+// Optional: further verify identity type from the session user if needed
+const hasVerifiedIdentity = Boolean(
+  currentUser.phone_confirmed_at ||
+  currentUser.email_confirmed_at ||
+  currentUser.user_metadata?.username
+)
+
+// ❌ Do NOT use auth.getLoginState() — it's deprecated and returns
+//    misleading data (uid/loginState) even without real login
+// ❌ Do NOT use auth.getUser(), !!loginState, or !!loginState.uid as auth checks
 ```
 
 **4. Registration**
-- For username-style account systems, use username/password registration directly
+- For username-style account systems, verify whether direct username/password signup is supported before wiring the form
+- Username/password login can use plain identifiers such as `admin` or `editor`, but raw signup APIs may enforce stricter username patterns or be disabled
 - Do not switch to email OTP or phone OTP unless the task explicitly says the account identifier is an email address or phone number
-- When the task uses plain usernames such as `admin`, `editor`, or `user01`, the canonical form code is `auth.signUp({ username, password })`
+- If direct username signup is unsupported, create users through a backend or management API boundary; never put secret keys in browser code
 ```js
-// Username + Password
-const usernameSignUp = await auth.signUp({
-  username: 'newuser',
-  password: 'pass123',
-  nickname: 'User',
+// Username + Password login
+const login = await auth.signInWithPassword({
+  username: 'editor',
+  password: 'editor123',
 })
 
 // Email Otp
@@ -232,8 +277,13 @@ const handleRegister = async () => {
 ```
 
 **5. Anonymous**
-- Automatically use `auth-tool-cloudbase` to turn on `Anonymous Login` through `manageAppAuth`
+
+> ⚠️ **Anonymous login is disabled by default for new environments.** The SDK initialized with `accessKey` will automatically create an anonymous session regardless of this setting. Do not rely on `signInAnonymously()` for production flows — use verified login methods instead.
+
+- Only use when explicitly required for read-only demos
+- Automatically use `auth-tool-cloudbase` to turn on `Anonymous Login` through `manageAppAuth` (must be explicitly enabled first)
 ```js
+// Anonymous login is disabled by default — must be explicitly enabled via auth-tool
 const { data, error } = await auth.signInAnonymously()
 ```
 
@@ -252,7 +302,16 @@ await auth.signInWithCustomTicket(async () => {
 })
 ```
 
-**8. Upgrade Anonymous**
+**8. ID Token (Third-party token validation)**
+```js
+// Direct login with a third-party JWT/OAuth token (e.g. from native SDK)
+const { data, error } = await auth.signInWithIdToken({
+  provider: 'wechat', // or 'google', 'github', etc.
+  token: '<jwt-or-oauth-token>',
+})
+```
+
+**9. Upgrade Anonymous**
 ```js
 const sessionResult = await auth.getSession()
 const upgradeResult = await auth.signUp({
@@ -270,7 +329,9 @@ await upgradeResult.data.verifyOtp({ token: '123456' })
 // Sign out
 const signOutResult = await auth.signOut()
 
-// Get user
+// Get user profile only after auth.getSession() has returned a real session
+const sessionResult = await auth.getSession()
+if (!sessionResult.data?.session) throw new Error('Not signed in')
 const userResult = await auth.getUser()
 console.log(
   userResult.data.user.email,
@@ -328,7 +389,14 @@ await fetch('/api/protected', {
   headers: { Authorization: `Bearer ${sessionResult.data.session?.access_token}` },
 })
 
-// Refresh user
+// Refresh session (extend token validity)
+const refreshResult = await auth.refreshSession() // uses current refresh_token
+// or with explicit token: await auth.refreshSession(refresh_token)
+
+// Set session manually (e.g. from external auth flow or SSR hydration)
+const setResult = await auth.setSession({ refresh_token: '<token-from-server>' })
+
+// Refresh user (sync latest user data from server)
 const refreshUserResult = await auth.refreshUser()
 ```
 

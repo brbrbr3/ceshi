@@ -22,8 +22,8 @@ Page({
       isAdmin: false,
       relativeName: '',
       department: '',
-      mobile: '',
-      landline: ''
+      mobile: '+55 61 ',
+      landline: '+55 61 '
     }
   },
 
@@ -162,8 +162,8 @@ Page({
             isAdmin: !!user.isAdmin,
             relativeName: user.relativeName || '',
             department: department,
-            mobile: user.mobile || '',
-            landline: user.landline || ''
+            mobile: user.mobile || '+55 61 ',
+            landline: user.landline || '+55 61 '
           }
         })
       })
@@ -295,10 +295,18 @@ Page({
       utils.showToast({ title: '请选择部门', icon: 'none' })
       return
     }
-console.log('提交的表单数据:', JSON.stringify(this.data.form))
+    // 清理预填内容：若用户未修改 mobile/landline，不保存预填值
+    const submitForm = { ...form }
+    if ((submitForm.mobile || '').trim() === '+55 61') {
+      submitForm.mobile = ''
+    }
+    if ((submitForm.landline || '').trim() === '+55 61') {
+      submitForm.landline = ''
+    }
+
     this.setData({ loading: true })
 
-    app.submitProfileUpdate(form)
+    app.submitProfileUpdate(submitForm)
       .then(() => {
         // 清除缓存，让返回后的页面重新拉取最新状态
         app.clearAuthState()

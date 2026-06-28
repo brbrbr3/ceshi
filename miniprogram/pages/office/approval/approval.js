@@ -378,6 +378,22 @@ Page({
   if (this.data.fontStyle !== fontStyle) {
     this.setData({ fontStyle })
   }
+
+    // 非管理员拦截：只有管理员可使用审批中心
+    const userProfile = app.globalData.userProfile
+    if (userProfile && !userProfile.isAdmin) {
+      wx.showModal({
+        title: '提示',
+        content: '只有管理员可使用此功能',
+        showCancel: false,
+        confirmText: '知道了',
+        success: () => {
+          wx.switchTab({ url: '/pages/office/home/home' })
+        }
+      })
+      return
+    }
+
     // 检查是否有跳转目标（从消息中心或申请提交跳转过来）
     const targetTab = app.globalData.targetApprovalTab
     if (targetTab) {

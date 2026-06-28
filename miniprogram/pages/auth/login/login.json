@@ -1,4 +1,5 @@
 {
-  "navigationBarTitleText": "微信登录",
+  "navigationBarTitleText": "登录页",
+  "navigationBarBackgroundColor": "#FFFFFF",
   "enablePullDownRefresh": true
 }

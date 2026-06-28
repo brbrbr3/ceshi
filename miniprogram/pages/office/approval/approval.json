@@ -1,5 +1,6 @@
 {
-  "navigationStyle": "custom",
+  "navigationBarTitleText": "审批中心",
+  "navigationBarBackgroundColor": "#FFFFFF",
   "backgroundColor": "#EEF2FF",
   "usingComponents": {
     "approval-card": "/components/approval-card/approval-card",

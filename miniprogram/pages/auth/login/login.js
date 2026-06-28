@@ -56,6 +56,7 @@ Page({
     showRegisterLink: true,
     isAdmin: false,
     isDevEnv: false,
+    isRegistered: false,
     showDebugPanel: false,
     debugResults: [],
     showClearDbPanel: false,
@@ -82,12 +83,12 @@ Page({
       })
     }
     app.clearAuthState()
+    this.setData({
+      isDevEnv: app.globalData.isDevEnv
+    })
     this.refreshStatus()
     app.loadConstants().catch((err) => {
       console.warn('预加载常量失败:', err)
-    })
-    this.setData({
-      isDevEnv: this.checkDevEnv()
     })
   },
 
@@ -144,7 +145,8 @@ Page({
       this.setData({
         statusCard,
         showRegisterLink: !result.registered && (!result.request || result.request.status === 'rejected'),
-        isAdmin
+        isAdmin,
+        isRegistered: result.registered
       })
     }).catch((error) => {
       this.setData({
@@ -156,7 +158,8 @@ Page({
           extra: '',
           time: ''
         },
-        showRegisterLink: false
+        showRegisterLink: false,
+        isRegistered: false
       })
     })
   },
@@ -166,7 +169,7 @@ Page({
     if (this.data.loading) return
 
     // 调试环境跳过生物认证（开发者工具不支持生物认证API）
-    if (this.checkDevEnv()) {
+    if (app.globalData.isDevEnv) {
       console.warn('[login] 开发环境，跳过生物认证')
       this.doLogin()
       return
@@ -234,16 +237,6 @@ Page({
           loading: false
         })
       }
-    }
-  },
-
-  // 判断是否为开发环境（开发者工具）
-  checkDevEnv() {
-    try {
-      const accountInfo = wx.getAccountInfoSync()
-      return accountInfo.miniProgram.envVersion === 'develop'
-    } catch (e) {
-      return false
     }
   },
 
@@ -320,7 +313,7 @@ Page({
   },
 
   toggleDebugPanel() {
-    if (!this.data.isAdmin || !this.checkDevEnv()) {
+    if (!this.data.isAdmin || !this.data.isDevEnv) {
       return
     }
 

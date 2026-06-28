@@ -1,33 +1,31 @@
 <view class="auth-page login-page" style="{{fontStyle}}">
   <view class="auth-hero">
     <view wx:if="{{isDevEnv}}" class="auth-brand">DevEnv</view>
-    <view class="auth-title">Embaixada da China</view>
-    <view class="auth-subtitle">欢迎使用Embaixada da China办公小程序！</view>
-    <view class="auth-tip-row">
-      <view class="auth-tip-pill">微信身份校验</view>
-      <view class="auth-tip-pill">管理员审批</view>
-      <view class="auth-tip-pill">人脸/指纹登录</view>
-    </view>
+    <view class="auth-title">报备助手</view>
+    <view class="auth-subtitle">欢迎使用Embaixada da China报备助手！</view>
+    <!-- <view class="auth-tip-row">
+      <view wx:if="{{isDevEnv}}" class="auth-tip-pill">微信身份校验</view>
+      <view wx:if="{{isDevEnv}}" class="auth-tip-pill">管理员审批</view>
+      <view wx:if="{{isDevEnv}}" class="auth-tip-pill">人脸/指纹登录</view>
+    </view> -->
   </view>
 
   <view class="auth-card">
-    <view class="auth-wechat-panel login-wechat-panel">
-      <view class="auth-wechat-icon login-wechat-icon">生物特征</view>
+    <view class="auth-wechat-title">{{isRegistered ? '您已注册，点击下方按钮登录：' : '您尚未注册，点击下方按钮注册：'}}</view>
+    <button class="auth-submit-btn login-submit-btn" loading="{{loading}}" bindtap="handleWxLogin">{{isRegistered ? '人脸/指纹登录' : '注册'}}</button>
+    <view wx:if="{{isRegistered}}" class="auth-wechat-panel login-wechat-panel">
+      <!-- <view wx:if="{{isDevEnv}}" class="auth-wechat-icon login-wechat-icon">生物特征</view> -->
       <view>
-        <view class="auth-wechat-desc">当前登录方式：</view>
-        <view class="auth-wechat-title">使用微信身份识别当前用户</view>
-        <view class="auth-wechat-title">需验证用户人脸/指纹特征</view>
+        <!-- <view wx:if="{{isDevEnv}}" class="auth-wechat-title">使用微信身份识别当前用户</view> -->
+        <view class="auth-wechat-desc">小程序不会保存您的生物特征，仅用于登录验证</view>
       </view>
     </view>
     <view class="auth-card-title"></view>
-    <text class="auth-card-desc">已注册用户：点击下方按钮，验证人脸/指纹后登录
-      未注册用户：将跳转到注册页面填写基础资料</text>
-
-
-    <button class="auth-submit-btn login-submit-btn" loading="{{loading}}" bindtap="handleWxLogin">人脸/指纹登录</button>
+    <!-- <text wx:if="{{isDevEnv}}" class="auth-card-desc">已注册用户：点击下方按钮，验证人脸/指纹后登录
+      未注册用户：将跳转到注册页面填写基础资料</text> -->
   </view>
 
-  <view wx:if="{{statusCard}}" class="auth-card auth-status-card {{statusCard.className}}">
+  <view wx:if="{{statusCard && !isRegistered}}" class="auth-card auth-status-card {{statusCard.className}}">
     <view class="auth-status-head">
       <view class="auth-status-title">{{statusCard.title}}</view>
       <view class="auth-status-tag">{{statusCard.tag}}</view>
@@ -37,7 +35,7 @@
     <view wx:if="{{statusCard.time}}" class="auth-status-time">{{statusCard.time}}</view>
   </view>
 
-  <view wx:if="{{showRegisterLink}}" class="auth-bottom-link" bindtap="goRegister">尚未注册？去填写注册申请</view>
+  <!-- <view wx:if="{{showRegisterLink}}" class="auth-bottom-link" bindtap="goRegister">尚未注册？去填写注册申请</view> -->
 
   <view wx:if="{{bootstrapStatus.canBootstrap && !isAdmin}}" class="auth-bootstrap-card">
     <view class="auth-bootstrap-title">首个管理员初始化</view>

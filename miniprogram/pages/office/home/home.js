@@ -22,7 +22,8 @@ Page({
       label: '待审批',
       value: '0'
     }],
-    quickActions: [{
+    quickActions: [
+     /*  {
         icon: '🍽️',
         label: '每周菜单',
         color: '#16A34A',
@@ -37,7 +38,7 @@ Page({
         bg: '#DCFCE7',
         implemented: true,
         featureKey: 'meal_management'
-      },
+      }, */
       {
         icon: '🛴',
         label: '外出报备',
@@ -54,7 +55,7 @@ Page({
         implemented: true,
         featureKey: 'trip_dashboard'
       },
-      {
+      /* {
         icon: '🏥',
         label: '就医申请',
         color: '#EF4444',
@@ -109,7 +110,7 @@ Page({
         bg: '#D1FAE5',
         implemented: true,
         featureKey: 'leave_application'
-      },
+      }, */
       {
         icon: 'ℹ️',
         label: '常用信息',
@@ -144,18 +145,18 @@ Page({
     this.setData({
       currentDateText: this.getCurrentDateText()
     })
-    this.loadBgImage()
+    //this.loadBgImage()
     this.syncUserProfile() //同步用户资料
     this.syncNotifications() //同步消息推送
-    this.loadAnnouncements() //加载通知公告
-    this.loadArticles() //加载学习园地
-    this.loadActivities() //加载群团活动
+    //this.loadAnnouncements() //加载通知公告
+    //this.loadArticles() //加载学习园地
+    //this.loadActivities() //加载群团活动
     this.loadPermissionCache() //加载权限缓存
     this.loadHolidayConfig() //加载节假日配置
-    this.loadTodaySchedules() // 加载今日日程
+    //this.loadTodaySchedules() // 加载今日日程
     this.loadActiveTrip() // 加载外出状态
     app.updateCacheVersionAndShowWhatsNew() //更新缓存版本号，展示更新说明弹窗
-    this.loadSignature()
+    //this.loadSignature()
   },
 
   /**

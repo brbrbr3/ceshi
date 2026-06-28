@@ -186,7 +186,7 @@ input {
 }
 
 .auth-brand {
-  width: 88rpx;
+  width: 188rpx;
   height: 88rpx;
   border-radius: 28rpx;
   background: linear-gradient(135deg, #1D4ED8 0%, #3B82F6 100%);

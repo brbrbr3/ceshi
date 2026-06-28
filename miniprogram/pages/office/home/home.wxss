@@ -199,7 +199,7 @@ page {
 
 .home-calendar {
   border: 3rpx solid rgba(0, 0, 0, 0.238);
-  margin: -15rpx 0 0;
+  margin: -6rpx 0 0;
   border-radius: 28rpx;
   padding: 24rpx 28rpx;
   display: flex;

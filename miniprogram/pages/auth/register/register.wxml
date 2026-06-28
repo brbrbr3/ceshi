@@ -1,11 +1,11 @@
 <view class="auth-page register-page" style="{{fontStyle}}">
   <view class="auth-hero">
-    <view class="auth-brand">注册</view>
+    <!-- <view wx:if="{{isDevEnv}}" class="auth-brand">注册</view> -->
     <view class="auth-title">填写注册申请</view>
     <view class="auth-subtitle">请补充个人资料。提交后，管理员将收到一条新的注册申请并进行审核。</view>
     <view class="auth-tip-row">
-      <view class="auth-tip-pill">姓名</view>
-      <view class="auth-tip-pill">角色信息</view>
+      <!-- <view wx:if="{{isDevEnv}}" class="auth-tip-pill">姓名</view> -->
+      <!-- <view wx:if="{{isDevEnv}}" class="auth-tip-pill">角色信息</view> -->
       <!-- <view class="auth-tip-pill">管理员标记</view> -->
     </view>
   </view>

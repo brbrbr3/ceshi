@@ -47,7 +47,7 @@ page {
 
 
 .approval-header {
-  padding: 90rpx 32rpx 40rpx;
+  padding: 40rpx 32rpx 40rpx;
 }
 
 .approval-title {
@@ -62,7 +62,7 @@ page {
 
 .approval-launch-btn {
   min-width: 126rpx;
-  margin: 90rpx 0 0 10rpx;
+  margin: 0 0 0 10rpx;
   padding: 14rpx 34rpx;
   border-radius: 999rpx;
   background: rgba(255, 255, 255, 0.16);

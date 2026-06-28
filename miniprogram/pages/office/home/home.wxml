@@ -16,7 +16,7 @@
 
     <!-- 背景装饰图片 -->
     <view class="home-bg-image-wrapper">
-      <image class="home-bg-image" src="{{bgImageUrl}}" mode="widthFix" />
+      <image class="home-bg-image" src="/image/br3.jpg" mode="widthFix" />
     </view>
   </view>
 
@@ -70,7 +70,7 @@
     </view>
 
     <!--通知公告-->
-    <view class="office-section">
+    <view wx:if="{{isDevEnv}}" class="office-section">
       <view class="office-section-header">
         <view class="office-section-title" bindtap="goAnnouncements">通知公告</view>
         <view class="office-link" bindtap="goAnnouncements">更多</view>
@@ -91,7 +91,7 @@
     </view>
 
     <!--今日日程-->
-    <view class="office-section">
+    <view wx:if="{{isDevEnv}}" class="office-section">
       <view class="office-section-header">
         <view class="office-section-title">今日日程</view>
         <view class="office-link" bindtap="goCalendar">日历</view>
@@ -115,7 +115,7 @@
     </view>
 
     <!--群团活动-->
-    <view class="office-section">
+    <view wx:if="{{isDevEnv}}" class="office-section">
       <view class="office-section-header">
         <view class="office-section-title" bindtap="goActivities">群团活动</view>
         <view class="office-link" style="color: #7C3AED;" bindtap="goActivities">更多</view>
@@ -141,7 +141,7 @@
     </view>
 
     <!--学习园地-->
-    <view class="office-section">
+    <view wx:if="{{isDevEnv}}" class="office-section">
       <view class="office-section-header">
         <view class="office-section-title" bindtap="goLearning">学习园地</view>
         <view class="office-link" style="color: #B91C1C;" bindtap="goLearning">更多</view>

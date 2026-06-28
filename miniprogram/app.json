@@ -65,18 +65,6 @@
         "selectedIconPath": "image/ap1-s.png"
       },
       {
-        "pagePath": "pages/office/contacts/contacts",
-        "text": "通讯录",
-        "iconPath": "image/contact1.png",
-        "selectedIconPath": "image/contact1-s.png"
-      },
-      {
-        "pagePath": "pages/office/greenbook/greenbook",
-        "text": "小绿书",
-        "iconPath": "image/greenbook1.png",
-        "selectedIconPath": "image/greenbook1-s.png"
-      },
-      {
         "pagePath": "pages/office/profile/profile",
         "text": "我的",
         "iconPath": "image/me1.png",
@@ -102,11 +90,7 @@
   "sitemapLocation": "sitemap.json",
   "themeLocation": "demo.theme.json",
   "darkmode": false,
-  "resizable": true,
-  "pageOrientation": "portrait",
-  "debugOptions": {
-    "adaptedPCNavBar": true
-  },
+  "resizable": false,
   "useExtendedLib": {
     "weui": true
   },

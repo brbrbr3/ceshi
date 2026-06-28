@@ -167,6 +167,14 @@ App({
       })
     }
 
+    // 判断是否为开发环境（开发者工具），启动时执行一次，全局可用
+    try {
+      const accountInfo = wx.getAccountInfoSync()
+      this.globalData.isDevEnv = accountInfo.miniProgram.envVersion === 'develop'
+    } catch (e) {
+      this.globalData.isDevEnv = false
+    }
+
     // 检查缓存版本号，版本变化时清除常量、权限的内存、缓存
     this.checkCacheVersion()
 
@@ -264,6 +272,7 @@ App({
     permissionCache: null, // 权限缓存
     fontScale: 1.1, // ← 新增，字体缩放默认值
     fontStyle: '', // ← 新增
+    isDevEnv: false, // 是否为开发环境（开发者工具），onLaunch 时计算一次
   }, getDefaultAuthState()),
 
   restoreAuthState() {

@@ -82,6 +82,6 @@
     </view>
 
     <view class="office-card profile-logout-btn" bindtap="handleLogout">退出登录</view>
-    <view class="profile-version">利亚通 · V{{version}} 稳定版</view>
+    <view class="profile-version">报备助手 · V{{version}}</view>
   </view>
 </view>

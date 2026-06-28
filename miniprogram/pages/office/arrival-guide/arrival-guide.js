@@ -13,6 +13,7 @@ Page({
     checkedCount: 0,
     showArrivedButton: true,
     navTitle: '到馆指南',
+    navBackBtn: '<',
     // 背景图片云存储链接
     bgImageUrl: '',
 
@@ -868,7 +869,7 @@ Page({
     this.setData({
       statusBarHeight: systemInfo.statusBarHeight || 20
     })
-    this.loadBgImage()
+    //this.loadBgImage()
 
     // 验证用户角色
     app.checkUserRegistration().then((result) => {

@@ -51,9 +51,24 @@ If the user specifies "Node.js 18", use runtime `Nodejs18.15` and the path `/var
 const http = require("http");
 const { URL } = require("url");
 
+// CORS headers — default to * for simple cross-origin APIs
+const CORS_HEADERS = {
+  "Access-Control-Allow-Origin": "*",
+  "Access-Control-Allow-Methods": "GET, POST, OPTIONS",
+  "Access-Control-Allow-Headers": "Content-Type",
+};
+
 function sendJson(res, statusCode, data) {
-  res.writeHead(statusCode, { "Content-Type": "application/json; charset=utf-8" });
+  res.writeHead(statusCode, {
+    "Content-Type": "application/json; charset=utf-8",
+    ...CORS_HEADERS,
+  });
   res.end(JSON.stringify(data));
+}
+
+function sendOptions(res) {
+  res.writeHead(204, CORS_HEADERS);
+  res.end();
 }
 
 function readJsonBody(req) {
@@ -82,6 +97,11 @@ function readJsonBody(req) {
 }
 
 const server = http.createServer(async (req, res) => {
+  // Handle CORS preflight
+  if (req.method === "OPTIONS") {
+    return sendOptions(res);
+  }
+
   const url = new URL(req.url || "/", "http://127.0.0.1");
 
   if (req.method === "GET" && url.pathname === "/health") {
@@ -113,6 +133,7 @@ server.listen(9000);
 - If you intentionally use ES Modules, use `import ...` consistently and do not rely on CommonJS-only globals such as bare `__dirname`, `require(...)`, or `module.exports`. When you need the current file path in ESM, derive it from `import.meta.url`.
 - Treat routing, method checks, and body parsing as part of the function code. With the native `http` module, parse `req.url` yourself and read the request body from the stream before calling `JSON.parse`.
 - Return JSON responses explicitly and set `Content-Type` yourself, for example `application/json; charset=utf-8`.
+- **Handle CORS headers**. Browsers block cross-origin requests without proper CORS headers. Default to `Access-Control-Allow-Origin: *` for simple APIs, and always respond to `OPTIONS` preflight requests with `200` and CORS headers.
 - Keep unsupported routes and methods explicit. Return `404` for unknown paths, and return `405` when the path exists but the HTTP method is not allowed.
 - Keep `scf_bootstrap`, `index.js`, `package.json`, and any bundled dependencies in the function directory that will be uploaded.
 
@@ -140,9 +161,24 @@ That combination avoids the common ESM pitfall where `__dirname` is not defined.
 const http = require("http");
 const { URL } = require("url");
 
+// CORS headers — default to * for simple cross-origin APIs
+const CORS_HEADERS = {
+  "Access-Control-Allow-Origin": "*",
+  "Access-Control-Allow-Methods": "GET, POST, OPTIONS",
+  "Access-Control-Allow-Headers": "Content-Type",
+};
+
 function sendJson(res, statusCode, data) {
-  res.writeHead(statusCode, { "Content-Type": "application/json; charset=utf-8" });
+  res.writeHead(statusCode, {
+    "Content-Type": "application/json; charset=utf-8",
+    ...CORS_HEADERS,
+  });
   res.end(JSON.stringify(data));
+}
+
+function sendOptions(res) {
+  res.writeHead(204, CORS_HEADERS);
+  res.end();
 }
 
 function readJsonBody(req) {
@@ -171,6 +207,11 @@ function readJsonBody(req) {
 }
 
 const server = http.createServer(async (req, res) => {
+  // Handle CORS preflight
+  if (req.method === "OPTIONS") {
+    return sendOptions(res);
+  }
+
   const url = new URL(req.url || "/", "http://127.0.0.1");
 
   if (url.pathname === "/users" && req.method === "POST") {
@@ -219,7 +260,7 @@ Follow these steps in order when creating an HTTP Function:
 
 1. **Write the function code** — create the directory with `index.js`, `scf_bootstrap`, and `package.json`.
 2. **Deploy with `manageFunctions`** — set `type: "HTTP"`, `protocolType: "HTTP"`, and `runtime` explicitly.
-3. **Configure security rules** — HTTP Functions default to a restrictive security rule. If the function should be publicly accessible (anonymous access), call `managePermissions(action="updateResourcePermission")` with `resourceType="function"`.
+3. **Configure security rules** — HTTP Functions default to a restrictive security rule. If the function should be publicly accessible, call `managePermissions(action="updateResourcePermission")` with `resourceType="function"`. Note: anonymous login is disabled by default for new environments; use `permission: "CUSTOM"` with `securityRule: '{"invoke":"true"}'` for truly public endpoints rather than relying on anonymous auth.
 4. **Verify** — call the function URL and confirm it returns the expected response. If you get `EXCEED_AUTHORITY`, the security rule needs to be updated (step 3).
 
 ## Deployment flow
@@ -249,7 +290,9 @@ manageFunctions({
 
 ### Security rule configuration
 
-After creating an HTTP Function, it will reject anonymous callers with `EXCEED_AUTHORITY` by default. If the function should be publicly accessible:
+After creating an HTTP Function, it will reject unauthenticated callers with `EXCEED_AUTHORITY` by default. If the function should be publicly accessible:
+
+> ⚠️ **Note:** Anonymous login is disabled by default for new environments. For public endpoints, use `rule: "true"` to allow all callers regardless of auth state, rather than relying on anonymous login being enabled.
 
 ```javascript
 managePermissions({
@@ -263,7 +306,7 @@ managePermissions({
 });
 ```
 
-- `aclTag: "CUSTOM"` with `rule: "true"` allows all callers (anonymous access).
+- `aclTag: "CUSTOM"` with `rule: "true"` allows all callers (public access without requiring any login).
 - Do NOT use `readSecurityRule` / `writeSecurityRule` — those are removed. Use `queryPermissions` / `managePermissions` instead.
 - Security rule semantics for `resourceType="function"` differ from NoSQL database rules. Do not reuse `doc._openid` or `auth.openid` expressions from NoSQL security rules.
 - Official reference: `https://docs.cloudbase.net/cloud-function/security-rules`
@@ -311,10 +354,10 @@ manageGateway({
 });
 ```
 
-Before enabling anonymous access, confirm both of these:
+Before enabling public access, confirm both of these:
 
 1. The access path exists.
-2. The function security rule allows the intended caller identity (see Security rule configuration above).
+2. The function security rule allows the intended caller identity (see Security rule configuration above). Note: anonymous login is disabled by default — for public endpoints, use `rule: "true"` instead of requiring anonymous auth.
 
 ## SSE and WebSocket notes
 

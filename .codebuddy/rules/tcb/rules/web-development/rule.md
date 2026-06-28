@@ -1,7 +1,7 @@
 ---
 name: web-development
 description: Use when users need to implement, integrate, debug, build, deploy, or validate a Web frontend after the product direction is already clear, especially for React, Vue, Vite, browser flows, or CloudBase Web integration.
-version: 2.18.0
+version: 2.23.3
 alwaysApply: false
 ---
 
@@ -13,6 +13,10 @@ If this environment only installed the current skill, start from the CloudBase m
 - Current skill raw source: `https://cnb.cool/tencent/cloud/cloudbase/cloudbase-skills/-/git/raw/main/skills/cloudbase/references/web-development/SKILL.md`
 
 Keep local `references/...` paths for files that ship with the current skill directory. When this file points to a sibling skill such as `auth-tool` or `web-development`, use the standalone fallback URL shown next to that reference.
+
+**Cross-cutting protocols** (required before code changes or static hosting publish):
+- Change Safety Protocol: `https://cnb.cool/tencent/cloud/cloudbase/cloudbase-skills/-/git/raw/main/skills/cloudbase/references/cloudbase-platform/references/protocols/change-safety-protocol.md`
+- Deployment Gate: `https://cnb.cool/tencent/cloud/cloudbase/cloudbase-skills/-/git/raw/main/skills/cloudbase/references/cloudbase-platform/references/protocols/deployment-gate.md`
 
 # Web Development
 
@@ -28,18 +32,21 @@ Keep local `references/...` paths for files that ship with the current skill dir
 
 - The task includes project structure, framework conventions, build config, deployment, routing, or frontend test and validation flows.
 - The request includes UI implementation but the visual direction is already fixed; otherwise read `ui-design` first.
+- **⚠️ Any task involving interface styling, layout, color scheme, or font selection — before writing the first line of CSS/Tailwind, you MUST load the `ui-design` skill and output a Design Specification.** Skipping this step causes frontend styling to degrade to generic AI template defaults. The `ui-design` skill must be loaded before any visual implementation begins, not retroactively after the user complains about the appearance.
 
 ### Then also read
 
 - General React / Vue / Vite guidance -> `frameworks.md`
 - Browser flow checks or page validation -> `browser-testing.md`
 - Login flow -> `../auth-tool/SKILL.md` (standalone fallback: `https://cnb.cool/tencent/cloud/cloudbase/cloudbase-skills/-/git/raw/main/skills/cloudbase/references/auth-tool/SKILL.md`), then `../auth-web/SKILL.md` (standalone fallback: `https://cnb.cool/tencent/cloud/cloudbase/cloudbase-skills/-/git/raw/main/skills/cloudbase/references/auth-web/SKILL.md`)
+- Official Account JSAPI Pay, Native QR-code Pay, or WeChat OAuth on CloudBase -> `../cloudbase-wechat-integration/SKILL.md` (standalone fallback: `https://cnb.cool/tencent/cloud/cloudbase/cloudbase-skills/-/git/raw/main/skills/cloudbase/references/cloudbase-wechat-integration/SKILL.md`; official docs: `https://docs.cloudbase.net/integration/introduce/index.md`)
 - CloudBase database work -> matching database skill
 
 ### Do NOT use for
 
 - Visual direction setting, prototype-first design work, or pure aesthetic exploration.
 - Mini programs, native Apps, or backend-only services.
+- WeChat payment or Official Account OAuth contract details; use `cloudbase-wechat-integration` after identifying the Web surface.
 
 ### Common mistakes / gotchas
 
@@ -47,7 +54,52 @@ Keep local `references/...` paths for files that ship with the current skill dir
 - Mixing framework setup, deployment, and CloudBase integration concerns into one vague change.
 - Treating cloud functions as the default solution for Web authentication.
 - Skipping browser-level validation after a UI or routing change.
+- **History mode SPA with CloudBase static hosting**: deploying a single-page app using History mode (React Router / Vue Router) without configuring the static hosting "404 error document" to `index.html`. This causes `NoSuchKey` / 404 errors when users refresh or directly visit any sub-route.
 - In an existing application, detouring into UI redesign or broad repo sweeps before patching the current handlers and services.
+
+## Engineering constitution (non-negotiable)
+
+These rules override convenience. Treat them as a gate before saying "done".
+
+### 1. TypeScript — do not silence the type system
+
+- **Do NOT use `any` to bypass type errors.** Not `: any`, not `as any`, not `@ts-ignore`, not `@ts-nocheck`, not `@ts-expect-error` without a written justification. `any` propagates silently and defeats the only compile-time safety net this project has.
+- When a type error appears, fix the root cause:
+  - Missing / wrong library types → install `@types/...`, or narrow the import, or write a precise `interface` / `type` for the shape you actually use.
+  - Shape is genuinely unknown at the boundary (JSON from an API, `postMessage` payload, `window.*` injection) → type it as `unknown` and narrow with a type guard (`typeof`, `in`, a discriminator field, or `zod` / equivalent).
+  - Third-party type is wrong → augment via `declare module` in a local `.d.ts`, not `any`.
+  - Truly dynamic case (e.g. generic event bus) → use a generic `<T>` with a constraint, not `any`.
+- `unknown` + narrowing is the acceptable escape hatch. `any` is not.
+- If you genuinely cannot avoid `any` for a specific line (extremely rare), leave a one-line comment with **why** and **what would remove it**, so reviewers can audit.
+- The same spirit applies to ESLint: do not sprinkle `// eslint-disable` to mute the real signal. Fix the rule violation, or discuss before disabling.
+
+### 2. Self-verify before claiming done
+
+Before making any non-trivial code or configuration change, you must first follow the Change Safety Protocol in `cloudbase-platform/references/protocols/change-safety-protocol.md` (declare impact → user confirmation → post-edit verification).
+Before any static hosting publish or custom domain work, complete the checks in `cloudbase-platform/references/protocols/deployment-gate.md`.
+
+Saying "I've implemented it" / "fixed it" / "it should work" without evidence is not acceptable. Before declaring completion, you must actually run the checks and report the result.
+
+**Static / build layer (always, when applicable):**
+
+- `tsc --noEmit` (or `vue-tsc --noEmit`) passes cleanly — zero errors, zero suppressed diagnostics you added.
+- `eslint` / project linter passes on changed files.
+- The project's build command (`npm run build` / `pnpm build` / `vite build`) completes without new warnings that you introduced.
+- The project's unit tests pass if they exist and cover the touched area.
+
+**Runtime / browser layer (whenever the change affects rendering, routing, forms, auth, or async flows):**
+
+- Use the **`agent-browser`** tool to actually open the page and reproduce the user-visible flow. Follow `browser-testing.md` for the concrete workflow.
+- Confirm: the target route loads, the interaction you claim to have fixed behaves the way you claim, no new console errors are introduced, and no regression in the adjacent routes you touched.
+- Record what you checked (route, action, expected result, actual result).
+
+**Only after both layers pass** may you say the task is done. If either layer cannot be executed locally (e.g. blocked by credentials, missing backend, paid API), say so explicitly and list exactly which step is still unverified — do not gloss over it.
+
+### 3. Do not paper over failures
+
+- Do not wrap broken logic in `try { ... } catch {}` to make the error go away.
+- Do not delete or skip a failing test to make CI green — fix it, or explain why the test is actually wrong and change the test with justification.
+- Do not mark a task complete because "the code compiles". Compilation is the bare minimum, not the goal.
 
 ## When to use this skill
 
@@ -103,9 +155,9 @@ Use this skill for Web engineering work such as:
 
 ### 3. Validate changed flows explicitly
 
-- Run the relevant local build or test command when available
-- Open the affected page or flow in a browser when behavior depends on rendering, interaction, or navigation
-- Record what was checked: route, action, expected result, and any remaining gap
+- Run the relevant local build / lint / typecheck / test command when available. A clean `tsc --noEmit` and a clean project build are the minimum bar — not proof of correctness.
+- For anything user-visible (routing, forms, rendering, auth, async flows), open the affected page or flow in a browser with **`agent-browser`**. Code reading alone is not sufficient evidence — see the Engineering constitution above.
+- Record what was checked: route, action, expected result, actual result, and any remaining gap.
 
 ## CloudBase Web integration
 
@@ -131,6 +183,17 @@ Use this section only when the Web project needs CloudBase platform features.
 - Prefer relative asset paths for static hosting compatibility
 - Use hash routing by default when the project lacks server-side route rewrites
 - If the user does not specify a root path, avoid deploying directly to the site root by default
+- **SPA routing (History mode)**: when using React Router / Vue Router in History mode (not hash mode), configure the CloudBase static hosting **"404 error document"** to `index.html`. Otherwise refreshing or directly visiting any sub-route returns `NoSuchKey` / 404 error, because the static hosting looks for a file at that path instead of falling through to `index.html` for the SPA to handle routing.
+
+  Use the MCP tool to apply this:
+  ```json
+  manageHosting({ action: "setWebsiteDocument", indexDocument: "index.html", errorDocument: "index.html" })
+  ```
+
+  Then verify with:
+  ```json
+  queryHosting({ action: "websiteConfig" })
+  ```
 
 ### CloudBase quick start
 

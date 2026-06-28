@@ -12,7 +12,12 @@ page {
 }
 
 .login-wechat-icon{
-  width: 160rpx;
+  width: 120rpx;
+  height: 120rpx;
+  padding: 20rpx;
+  margin: 10rpx;
+  text-align: center;
+  justify-content: center;
 }
 
 /* 首个管理员初始化 */

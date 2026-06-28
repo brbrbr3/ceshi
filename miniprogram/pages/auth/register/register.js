@@ -15,6 +15,7 @@ Page({
     showDepartmentField: false,
     reviewRemark: '',
     today: '',
+    isDevEnv: false,
     form: {
       name: '',
       gender: '男',
@@ -23,8 +24,8 @@ Page({
       isAdmin: false,
       relativeName: '',
       department: '',
-      mobile: '',
-      landline: ''
+      mobile: '+55 61 ',
+      landline: '+55 61 '
     }
   },
 
@@ -36,19 +37,23 @@ Page({
     const today = await utils.getTodayDate()
     this.setData({
       today: today,
-      mode: options && options.mode === 'reapply' ? 'reapply' : 'create'
+      mode: options && options.mode === 'reapply' ? 'reapply' : 'create',
+      isDevEnv: app.globalData.isDevEnv
     })
     this.prefillForm()
   },
 
   async onShow() {
     const fontStyle = app.globalData.fontStyle
-  if (this.data.fontStyle !== fontStyle) {
-    this.setData({ fontStyle })
-  }
+    if (this.data.fontStyle !== fontStyle) {
+      this.setData({ fontStyle })
+    }
     // 每次显示时更新今天的日期
     const today = await utils.getTodayDate()
-    this.setData({ today })
+    this.setData({
+      today,
+      isDevEnv: app.globalData.isDevEnv
+    })
   },
 
   // 加载常量
@@ -58,15 +63,17 @@ Page({
 
       this.setData({
         constants: allConstants,
-        roleOptions: allConstants.ROLE_OPTIONS || [],
-        departmentOptions: allConstants.DEPARTMENT_OPTIONS || [],
-        allDepartmentOptions: allConstants.DEPARTMENT_OPTIONS || [] // 保存完整列表
+        roleOptions: allConstants.ROLE_OPTIONS || app.getConstantSync('ROLE_OPTIONS') || [],
+        departmentOptions: allConstants.DEPARTMENT_OPTIONS || app.getConstantSync('DEPARTMENT_OPTIONS') || [],
+        allDepartmentOptions: allConstants.DEPARTMENT_OPTIONS || app.getConstantSync('DEPARTMENT_OPTIONS') || []
       })
     } catch (error) {
-      console.error('加载常量失败:', error)
-      wx.showToast({
-        title: '加载配置失败',
-        icon: 'none'
+      console.error('加载常量失败，使用默认配置:', error)
+      this.setData({
+        constants: {},
+        roleOptions: app.getConstantSync('ROLE_OPTIONS') || [],
+        departmentOptions: app.getConstantSync('DEPARTMENT_OPTIONS') || [],
+        allDepartmentOptions: app.getConstantSync('DEPARTMENT_OPTIONS') || []
       })
     }
   },
@@ -335,7 +342,16 @@ Page({
   },
 
   doSubmit(form) {
-    app.submitRegistration(form)
+    // 清理预填内容：若用户未修改 mobile/landline，不保存预填值
+    const submitForm = { ...form }
+    if ((submitForm.mobile || '').trim() === '+55 61') {
+      submitForm.mobile = ''
+    }
+    if ((submitForm.landline || '').trim() === '+55 61') {
+      submitForm.landline = ''
+    }
+
+    app.submitRegistration(submitForm)
       .then(() => {
         // 清除缓存，让 login 页面重新拉取最新状态
         app.clearAuthState()
