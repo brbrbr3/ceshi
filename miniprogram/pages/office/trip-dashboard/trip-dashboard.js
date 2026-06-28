@@ -104,7 +104,7 @@ Page({
       const user = result.user
       const isLeader = user.role === '馆领导'
       const isAdmin = user.isAdmin || user.role === 'admin'
-      const canViewAll = isAdmin || isLeader || user.role === '部门负责人'
+      const canViewAll = isAdmin || isLeader || user.isDepartmentHead
 
       this.setData({
         currentUser: user,
@@ -124,7 +124,7 @@ Page({
   loadConstants() {
     const departmentOptions = app.getConstantSync('DEPARTMENT_OPTIONS')
     // 部门负责人只能选自己所在部门
-    if (this.data.userRole === '部门负责人' && this.data.currentUser && this.data.currentUser.department) {
+    if (this.data.currentUser && this.data.currentUser.isDepartmentHead && this.data.currentUser.department) {
       this.setData({
         departmentOptions: [this.data.currentUser.department]
       })

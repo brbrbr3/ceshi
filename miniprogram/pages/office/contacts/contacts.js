@@ -30,10 +30,6 @@ const roleIcons = {
     icon: '👔',
     color: '#7C3AED'
   },
-  '部门负责人': {
-    icon: '🏛️',
-    color: '#0891B2'
-  },
   '馆员': {
     icon: '📚',
     color: '#059669'
@@ -53,7 +49,7 @@ const roleIcons = {
 }
 
 // 可展示在部门分组中的角色
-const DEPARTMENT_GROUP_ROLES = ['部门负责人', '馆员', '工勤']
+const DEPARTMENT_GROUP_ROLES = ['馆员', '工勤']
 
 Page({
   data: {
@@ -99,7 +95,7 @@ Page({
       const contacts = res.result.data.contacts || []
 
       // 获取部门选项
-      const deptOptions = app.getConstantSync('DEPARTMENT_OPTIONS') || ['政治处', '新公处', '经商处', '科技处', '武官处', '领侨处', '文化处', '办公室', 'DW办']
+      const deptOptions = app.getConstantSync('DEPARTMENT_OPTIONS') || []
 
       // 统计在线人数
       const onlineCount = contacts.filter(c => (c.userStatus || 'offline') === 'online').length
@@ -236,8 +232,8 @@ Page({
     // 部门内：部门负责人排首位，其余按姓名
     Object.keys(deptGroups).forEach(dept => {
       deptGroups[dept].sort((a, b) => {
-        if (a.role === '部门负责人' && b.role !== '部门负责人') return -1
-        if (b.role === '部门负责人' && a.role !== '部门负责人') return 1
+        if (a.isDepartmentHead && !b.isDepartmentHead) return -1
+        if (b.isDepartmentHead && !a.isDepartmentHead) return 1
         return (a.name || '').localeCompare(b.name || '', 'zh')
       })
     })

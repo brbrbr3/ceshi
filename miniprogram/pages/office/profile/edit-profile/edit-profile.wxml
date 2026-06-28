@@ -65,6 +65,16 @@
         </picker>
       </view>
 
+      <view wx:if="{{showDeptHeadCheckbox}}" class="auth-field">
+        <view class="auth-field-label">部门负责人</view>
+        <checkbox-group bindchange="handleDeptHeadChange">
+          <label class="auth-checkbox-label">
+            <checkbox value="true" checked="{{form.isDepartmentHead}}"/>
+            <text>我是部门负责人</text>
+          </label>
+        </checkbox-group>
+      </view>
+
       <view wx:if="{{showRelativeField}}" class="auth-field">
         <view class="auth-field-label">您是哪位馆员的亲属？</view>
         <view class="auth-input-shell">
@@ -84,6 +94,16 @@
         <view class="auth-input-shell">
           <input value="{{form.landline}}" placeholder="+55 61 " placeholder-class="auth-input-placeholder" bindinput="handleLandlineInput" type="text" />
         </view>
+      </view>
+
+      <view class="auth-field">
+        <view class="auth-field-label">居住区域 <text class="auth-field-optional">（选填）</text></view>
+        <picker mode="selector" range="{{livingAreaOptions}}" value="{{livingAreaIndex >= 0 ? livingAreaIndex : 0}}" bindchange="handleLivingAreaChange">
+          <view class="auth-picker-shell {{livingAreaIndex < 0 ? 'is-placeholder' : ''}}">
+            <view class="auth-picker-value">{{livingAreaIndex >= 0 ? form.livingArea : '请选择居住区域'}}</view>
+            <view class="auth-picker-arrow">›</view>
+          </view>
+        </picker>
       </view>
 
       <view class="auth-field">

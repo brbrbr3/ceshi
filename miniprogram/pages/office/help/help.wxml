@@ -43,7 +43,7 @@
           </view>
           <view class="card-permission">
             <view class="permission-label">权限要求：</view>
-            <view class="permission-value">馆领导、部门负责人、馆员、工勤可办理工作餐和预订副食。会计主管、会计、出纳、招待员、厨师可管理工作餐和副食。</view>
+            <view class="permission-value">馆领导、各部门负责人、馆员、工勤可办理工作餐和预订副食。会计主管、会计、出纳、招待员、厨师可管理工作餐和副食。</view>
           </view>
         </view>
       </view>
@@ -85,7 +85,7 @@
           <view class="card-desc">可查看外出报备的历史记录和当前外出人员状态，支持统计分析功能。</view>
           <view class="card-permission">
             <view class="permission-label">权限要求：</view>
-            <view class="permission-value">仅馆领导、部门负责人可用</view>
+            <view class="permission-value">仅馆领导、各部门负责人可用</view>
           </view>
         </view>
       </view>

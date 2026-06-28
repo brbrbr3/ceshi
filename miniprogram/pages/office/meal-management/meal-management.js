@@ -4,13 +4,13 @@ const utils = require('../../../common/utils.js')
 // ==================== 常量定义 ====================
 
 /** Tab1 可见角色 */
-const MEAL_TAB1_ROLES = ['馆领导', '部门负责人', '馆员', '工勤']
+const MEAL_TAB1_ROLES = ['馆领导', '馆员', '工勤']
 
 /** Tab2 可见岗位 */
 const MEAL_TAB2_POSITIONS = ['会计主管', '会计', '出纳', '招待员', '厨师']
 
 /** Tab3（副食预订）可见角色 — 与Tab1相同 */
-const MEAL_TAB3_ROLES = ['馆领导', '部门负责人', '馆员', '工勤']
+const MEAL_TAB3_ROLES = ['馆领导', '馆员', '工勤']
 
 /** Tab4（副食管理）可见岗位 — 与Tab2相同 */
 const MEAL_TAB4_POSITIONS = ['会计主管', '会计', '出纳', '招待员', '厨师']
@@ -173,7 +173,7 @@ Page({
         let availableTabs = []
         let defaultTab = ''
 
-        if (MEAL_TAB1_ROLES.includes(user.role)) {
+        if (MEAL_TAB1_ROLES.includes(user.role) || user.isDepartmentHead) {
           availableTabs.push({
             key: 'myMeal',
             label: '我的工作餐'
@@ -190,7 +190,7 @@ Page({
         }
 
         // 副食预订 Tab（角色判断）
-        if (MEAL_TAB3_ROLES.includes(user.role)) {
+        if (MEAL_TAB3_ROLES.includes(user.role) || user.isDepartmentHead) {
           // 避免重复添加
           if (!availableTabs.find(t => t.key === 'sideOrder')) {
             availableTabs.push({

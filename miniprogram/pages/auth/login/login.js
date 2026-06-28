@@ -57,6 +57,7 @@ Page({
     isAdmin: false,
     isDevEnv: false,
     isRegistered: false,
+    isPendingApproval: false,
     showDebugPanel: false,
     debugResults: [],
     showClearDbPanel: false,
@@ -146,7 +147,8 @@ Page({
         statusCard,
         showRegisterLink: !result.registered && (!result.request || result.request.status === 'rejected'),
         isAdmin,
-        isRegistered: result.registered
+        isRegistered: result.registered,
+        isPendingApproval: !result.registered && result.request && result.request.status === 'pending'
       })
     }).catch((error) => {
       this.setData({
@@ -159,7 +161,8 @@ Page({
           time: ''
         },
         showRegisterLink: false,
-        isRegistered: false
+        isRegistered: false,
+        isPendingApproval: false
       })
     })
   },
@@ -167,6 +170,15 @@ Page({
 
   async handleWxLogin() {
     if (this.data.loading) return
+
+    // 审批中不可操作
+    if (this.data.isPendingApproval) {
+      wx.showToast({
+        title: '注册申请审核中，请耐心等待',
+        icon: 'none'
+      })
+      return
+    }
 
     // 调试环境跳过生物认证（开发者工具不支持生物认证API）
     if (app.globalData.isDevEnv) {

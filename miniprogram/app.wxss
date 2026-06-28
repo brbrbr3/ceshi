@@ -57,6 +57,21 @@ input {
   box-sizing: border-box;
 }
 
+/* 头部 - 使用圆角渐变 */
+.office-subpage-header {
+  padding: 40rpx 32rpx 30rpx;
+}
+
+.office-subpage-title {
+  font-size: var(--fs-44);
+  font-weight: 600;
+}
+
+.office-subpage-subtitle {
+  font-size: var(--fs-26);
+  opacity: 0.9;
+}
+
 .office-header-top {
   display: flex;
   align-items: center;
@@ -301,6 +316,13 @@ input {
 
 .auth-submit-btn::after {
   border: none;
+}
+
+.auth-submit-btn.is-pending {
+  background: linear-gradient(135deg, #9CA3AF 0%, #B0B7C3 100%);
+  box-shadow: none;
+  color: #E5E7EB;
+  pointer-events: none;
 }
 
 .auth-note {

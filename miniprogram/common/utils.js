@@ -23,9 +23,9 @@ function getTimezoneOffset() {
   try {
     const app = getApp()
     const offset = app.getConstantSync('TIMEZONE_OFFSET')
-    return offset !== undefined && offset !== null ? offset : -3
+    return offset !== undefined && offset !== null ? offset : 0
   } catch (e) {
-    return -3
+    return 0
   }
 }
 

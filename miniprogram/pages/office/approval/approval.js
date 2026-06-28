@@ -15,7 +15,6 @@ const approvalTypeIcons = {
 // 角色图标配置（静态配置）
 const roleIcons = {
   '馆领导': { icon: '👔', color: '#7C3AED', bg: '#F3E8FF' },
-  '部门负责人': { icon: '🏛️', color: '#0891B2', bg: '#E0F2FE' },
   '馆员': { icon: '📚', color: '#059669', bg: '#D1FAE5' },
   '工勤': { icon: '🧰', color: '#EA580C', bg: '#FFEDD5' },
   '物业': { icon: '🏘️', color: '#DB2777', bg: '#FCE7F3' },
@@ -33,8 +32,8 @@ let approvalTypes = [
 let systemConstants = null
 
 // 使用统一的时间格式化函数（立即初始化默认值，避免异步加载前被调用时报错）
-let formatRelativeTime = (timestamp) => utils.formatRelativeTime(timestamp, -3)
-let formatDateTime = (timestamp) => utils.formatDateTime(timestamp, -3)
+let formatRelativeTime = (timestamp) => utils.formatRelativeTime(timestamp, 0)
+let formatDateTime = (timestamp) => utils.formatDateTime(timestamp, 0)
 
 function getStatusMeta(status) {
   if (status === 'approved') {
@@ -168,7 +167,7 @@ function mapRequestItem(request) {
             approverRole = workflowSteps[currentStep - 1].stepName || '审批人'
           }
 
-          const rolePrefix = reviewedBy.includes('管理员') || reviewedBy.includes('部门负责人') || reviewedBy.includes('会计主管') || reviewedBy.includes('馆领导') ? '' : approverRole
+          const rolePrefix = reviewedBy.includes('管理员') || reviewedBy.includes('会计主管') || reviewedBy.includes('馆领导') ? '' : approverRole
           const approvalInfo = `${rolePrefix}${reviewedBy}已于${reviewedTime}中止该申请`
 
           if (reviewRemark) {
@@ -186,7 +185,7 @@ function mapRequestItem(request) {
         approverRole = workflowSteps[currentStep - 1].stepName || '审批人'
       }
 
-      const rolePrefix = reviewedBy.includes('管理员') || reviewedBy.includes('部门负责人') || reviewedBy.includes('会计主管') || reviewedBy.includes('馆领导') ? '' : approverRole
+      const rolePrefix = reviewedBy.includes('管理员') || reviewedBy.includes('会计主管') || reviewedBy.includes('馆领导') ? '' : approverRole
       const approvalInfo = `${rolePrefix}${reviewedBy}已于${reviewedTime}${actionText}该申请`
 
       if (reviewRemark) {
@@ -304,7 +303,7 @@ Page({
       systemConstants = allConstants
       
       // 设置时间格式化函数（使用新的同步函数）
-      const timezoneOffset = allConstants.TIMEZONE_OFFSET || -3
+      const timezoneOffset = allConstants.TIMEZONE_OFFSET
       formatRelativeTime = (timestamp) => utils.formatRelativeTime(timestamp, timezoneOffset)
       formatDateTime = (timestamp) => utils.formatDateTime(timestamp, timezoneOffset)
 
@@ -324,15 +323,8 @@ Page({
       }
       
       // 获取审批中心tab配置
-      const approvalTabs = allConstants.APPROVAL_TABS || [
-        { key: 'pending', label: '待审批' },
-        { key: 'mine', label: '我发起的' },
-        { key: 'done', label: '已处理' }
-      ]
-      const approvalTabPermission = allConstants.APPROVAL_TAB_PERMISSION || {
-        withReview: ['pending', 'mine', 'done'],
-        withoutReview: ['mine']
-      }
+      const approvalTabs = allConstants.APPROVAL_TABS
+      const approvalTabPermission = allConstants.APPROVAL_TAB_PERMISSION
       
       // 保存常量到 data
       this.setData({
@@ -344,20 +336,9 @@ Page({
       
     } catch (error) {
       console.error('加载常量失败:', error)
-      // 使用默认值
-      formatRelativeTime = (timestamp) => utils.formatRelativeTime(timestamp, -3)
-      formatDateTime = (timestamp) => utils.formatDateTime(timestamp, -3)
-      this.setData({
-        approvalTabs: [
-          { key: 'pending', label: '待审批' },
-          { key: 'mine', label: '我发起的' },
-          { key: 'done', label: '已处理' }
-        ],
-        approvalTabPermission: {
-          withReview: ['pending', 'mine', 'done'],
-          withoutReview: ['mine']
-        }
-      })
+      // 使用 data 中的默认值（已在 Page data 中定义）
+      formatRelativeTime = (timestamp) => utils.formatRelativeTime(timestamp, 0)
+      formatDateTime = (timestamp) => utils.formatDateTime(timestamp, 0)
     }
   },
 

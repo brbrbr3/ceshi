@@ -107,7 +107,7 @@ Page({
   loadConstants() {
     const travelModes = app.getConstantSync('TRAVEL_MODES')
     this.setData({
-      travelModes: travelModes || ['自驾', '搭车', '打车', '步行']
+      travelModes: travelModes || []
     })
   },
 

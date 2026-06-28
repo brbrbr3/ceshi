@@ -209,8 +209,8 @@ async function resolveApprovers(approverType, approverConfig, businessData) {
             // 管理员角色
             userQuery.isAdmin = true
           } else if (roleId === 'department_head') {
-            // 部门负责人角色
-            userQuery.role = '部门负责人'
+            // 部门负责人角色（改为 isDepartmentHead 字段判断）
+            userQuery.isDepartmentHead = true
           } else if (roleId === 'accountant_supervisor') {
             // 会计主管：按岗位查询（position）
             userQuery.position = '会计主管'
@@ -219,7 +219,7 @@ async function resolveApprovers(approverType, approverConfig, businessData) {
             userQuery.role = '馆领导'
           } else if (roleId === 'office_dept_head') {
             // 办公室部门负责人
-            userQuery.role = '部门负责人'
+            userQuery.isDepartmentHead = true
             userQuery.department = '办公室'
           } else {
             // 其他角色，按 role 字段查询
@@ -290,9 +290,9 @@ async function resolveApprovers(approverType, approverConfig, businessData) {
           return []
         }
         
-        // 2. 查找同部门的部门负责人
+        // 2. 查找同部门的部门负责人（改为 isDepartmentHead 字段）
         const deptHeadsRes = await usersCollection.where({
-          role: '部门负责人',
+          isDepartmentHead: true,
           department: applicantDept,
           status: 'approved'
         }).get()
@@ -418,8 +418,8 @@ async function hasPermission(task, operatorId) {
           return true
         }
 
-        // 部门负责人（按角色）
-        if (roleId === 'department_head' && user.role === '部门负责人') {
+        // 部门负责人（按 isDepartmentHead 字段）
+        if (roleId === 'department_head' && user.isDepartmentHead) {
           return true
         }
 
@@ -729,7 +729,7 @@ async function approveTask(taskId, action, comment, operatorId, operatorName, at
         'terminated': '已中止',
         'supplement': '待补充'
       }[order.workflowStatus] || order.workflowStatus
-      throw new Error(`工单已${statusText}，请刷新页面`)
+      throw new Error(`工单${statusText}，请刷新页面`)
     }
 
     // 4. 检查任务状态，如果不是 pending，给出更详细的错误信息
@@ -1444,6 +1444,7 @@ async function completeWorkflow(orderId, decision, approverId, approverName, com
       department: businessData.department || '',
       mobile: businessData.mobile || '',
       landline: businessData.landline || '',
+      livingArea: businessData.livingArea || '',
       userStatus: 'offline',
       status: 'approved',
       sourceOrderId: order.orderId,
@@ -1486,6 +1487,7 @@ async function completeWorkflow(orderId, decision, approverId, approverName, com
         department: businessData.department || '',
         mobile: businessData.mobile || '',
         landline: businessData.landline || '',
+        livingArea: businessData.livingArea || '',
         updatedAt: now
       }
 
@@ -2039,7 +2041,7 @@ async function terminateOrder(orderId, openid, operatorName = '审批人', reaso
         throw new Error('无权中止此工单')
       }
       const user = userRes.data[0]
-      if (user.role !== '馆领导' && user.role !== '部门负责人' && user.role !== '会计主管') {
+      if (user.role !== '馆领导' && user.role !== '会计主管' && !user.isDepartmentHead) {
         throw new Error('无权中止此工单')
       }
     }

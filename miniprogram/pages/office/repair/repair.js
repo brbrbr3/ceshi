@@ -81,7 +81,7 @@ Page({
    */
   loadLivingAreas() {
     const areas = app.getConstantSync('REPAIR_LIVING_AREAS')
-    const livingAreas = areas || ['本部', '馆周边', '5号院', '8号院', '湖畔']
+    const livingAreas = areas || []
     this.setData({
       livingAreas: livingAreas,
       areaPickerRange: ['全部居住区', ...livingAreas]

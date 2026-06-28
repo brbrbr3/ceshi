@@ -19,8 +19,8 @@ const MEETING_ROOMS = [
 ]
 
 // 权限角色常量
-const CAN_RESERVE_ROLES = ['馆领导', '部门负责人', '馆员', '工勤']
-const CAN_VIEW_3F_ROLES = ['馆领导', '部门负责人', '馆员', '工勤']
+const CAN_RESERVE_ROLES = ['馆领导', '馆员', '工勤']
+const CAN_VIEW_3F_ROLES = ['馆领导', '馆员', '工勤']
 
 Page({
   data: {
@@ -242,8 +242,8 @@ Page({
           const isAdmin = user.isAdmin || user.role === 'admin'
           
           // 管理员拥有所有权限
-          const canReserve = isAdmin || CAN_RESERVE_ROLES.includes(user.role)
-          const canView3FRoom = isAdmin || CAN_VIEW_3F_ROLES.includes(user.role)
+          const canReserve = isAdmin || CAN_RESERVE_ROLES.includes(user.role) || user.isDepartmentHead
+          const canView3FRoom = isAdmin || CAN_VIEW_3F_ROLES.includes(user.role) || user.isDepartmentHead
           
           this.setData({
             currentUser: user,

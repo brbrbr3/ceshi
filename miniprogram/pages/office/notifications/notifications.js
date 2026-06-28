@@ -88,7 +88,7 @@ Page({
 
   handleNotificationTap(e) {
     const id = e.currentTarget.dataset.id
-    const notification = this.data.notifications.find(n => n._id === id)
+    const notification = this.data.list.find(n => n._id === id)
 
     // 标记为已读
     app.markNotificationAsRead(id, function(success) {
@@ -100,8 +100,8 @@ Page({
     // 根据通知类型跳转到对应页面
     if (notification) {
       // 从常量获取消息类型和跳转映射
-      const NOTIFICATION_TYPES = app.getConstantSync('NOTIFICATION_TYPES')
-      const NOTIFICATION_TARGET_TAB = app.getConstantSync('NOTIFICATION_TARGET_TAB')
+      const NOTIFICATION_TYPES = app.getConstantSync('NOTIFICATION_TYPES') || {}
+      const NOTIFICATION_TARGET_TAB = app.getConstantSync('NOTIFICATION_TARGET_TAB') || {}
 
       if (notification.type === NOTIFICATION_TYPES.MENU && notification.menuId) {
         // 菜单通知，跳转到菜单详情页
@@ -114,7 +114,7 @@ Page({
         if (targetTab && targetTab !== 'none') {
           // 设置全局变量，通知审批中心切换到指定tab
           app.globalData.targetApprovalTab = targetTab
-          wx.switchTab({
+          wx.navigateTo({
             url: '/pages/office/approval/approval'
           })
         }

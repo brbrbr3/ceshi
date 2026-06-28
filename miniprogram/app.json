@@ -59,10 +59,10 @@
         "selectedIconPath": "image/home1-s.png"
       },
       {
-        "pagePath": "pages/office/approval/approval",
-        "text": "审批中心",
-        "iconPath": "image/ap1.png",
-        "selectedIconPath": "image/ap1-s.png"
+        "pagePath": "pages/office/trip-dashboard/trip-dashboard",
+        "text": "出行数据板",
+        "iconPath": "image/td1.png",
+        "selectedIconPath": "image/td1-s.png"
       },
       {
         "pagePath": "pages/office/profile/profile",

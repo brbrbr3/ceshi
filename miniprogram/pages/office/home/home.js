@@ -48,13 +48,21 @@ Page({
         featureKey: 'trip_report'
       },
       {
+        icon: '📝',
+        label: '审批中心',
+        color: '#2563EB',
+        bg: '#EFF6FF',
+        implemented: true,
+        featureKey: 'approval'
+      },
+     /*  {
         icon: '📊',
         label: '出行数据板',
         color: '#7C3AED',
         bg: '#F3E8FF',
         implemented: true,
         featureKey: 'trip_dashboard'
-      },
+      }, */
       /* {
         icon: '🏥',
         label: '就医申请',
@@ -180,9 +188,10 @@ Page({
           signatureLoaded: true
         })
         // 仅对需要签名的角色提示，且签名数量为0且本次启动未提示过
-        const needSignatureRoles = ['馆领导', '部门负责人', '馆员', '工勤']
+        const needSignatureRoles = ['馆领导', '馆员', '工勤']
         const userRole = (this.data.currentUser && this.data.currentUser.role) || (app.globalData.userProfile && app.globalData.userProfile.role) || ''
-        if (signatures.length === 0 && needSignatureRoles.includes(userRole) && !app.globalData.signaturePrompted) {
+        const isDeptHead = (this.data.currentUser && this.data.currentUser.isDepartmentHead) || (app.globalData.userProfile && app.globalData.userProfile.isDepartmentHead)
+        if (signatures.length === 0 && (needSignatureRoles.includes(userRole) || isDeptHead) && !app.globalData.signaturePrompted) {
           app.globalData.signaturePrompted = true
           wx.showModal({
             title: '提示',
@@ -484,7 +493,6 @@ Page({
 
   handleQuickAction(e) {
     const label = e.currentTarget.dataset.label
-
     if (label === '每周菜单') {
       wx.navigateTo({
         url: '/pages/office/menus/menus'
@@ -519,6 +527,21 @@ Page({
       // 全体用户可用，无需权限检查
       wx.navigateTo({
         url: '/pages/office/arrival-guide/arrival-guide'
+      })
+    } else if (label === '审批中心') {
+      // 仅管理员可用
+      const currentUser = this.data.currentUser || (app.globalData.userProfile)
+      if (!currentUser || !currentUser.isAdmin) {
+        wx.showModal({
+          title: '提示',
+          content: '审批中心仅管理员可访问',
+          showCancel: false,
+          confirmText: '知道了'
+        })
+        return
+      }
+      wx.navigateTo({
+        url: '/pages/office/approval/approval'
       })
     } else {
       utils.showToast({

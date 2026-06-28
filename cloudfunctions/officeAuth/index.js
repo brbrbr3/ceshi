@@ -124,74 +124,8 @@ async function getSystemConstants() {
       return cachedConstants
     }
     
-    // 否则返回默认值
-    return getDefaultConstants()
-  }
-}
-
-/**
- * 获取默认常量（降级方案，与 initSystemConfig 保持同步）
- */
-function getDefaultConstants() {
-  return {
-    // 角色相关
-    ROLE_OPTIONS: ['馆领导', '部门负责人', '馆员', '工勤', '物业', '配偶', '家属'],
-    ROLE_POSITION_MAP: {
-      '馆领导': ['人事主管', '会计主管'],
-      '部门负责人': ['人事主管', '会计主管', '会计', '出纳', '俱乐部', '阳光课堂'],
-      '馆员': ['礼宾', '会计', '出纳', '俱乐部', '阳光课堂'],
-      '工勤': ['招待员', '厨师'],
-      '配偶': ['出纳', '内聘']
-    },
-    NEED_RELATIVE_ROLES: ['配偶', '家属'],
-    DEFAULT_ROLE: '',
-    ROLE_FIELD_VISIBILITY: {
-      '馆领导': { showPosition: false, showDepartment: false, fixedDepartment: null },
-      '部门负责人': { showPosition: false, showDepartment: true, fixedDepartment: null },
-      '馆员': { showPosition: false, showDepartment: true, fixedDepartment: null },
-      '工勤': { showPosition: false, showDepartment: true, fixedDepartment: '办公室' },
-      '物业': { showPosition: false, showDepartment: true, fixedDepartment: '办公室' },
-      '配偶': { showPosition: false, showDepartment: false, fixedDepartment: null },
-      '家属': { showPosition: false, showDepartment: false, fixedDepartment: null }
-    },
-
-    // 岗位相关
-    POSITION_OPTIONS: ['人事主管', '会计主管', '礼宾', '会计', '出纳', '俱乐部', '阳光课堂', '招待员', '厨师', '内聘'],
-    DEFAULT_POSITION: [],
-
-    // 部门相关
-    DEPARTMENT_OPTIONS: ['政治处', '新公处', '经商处', '科技处', '武官处', '领侨处', '文化处', '办公室', 'DW办'],
-    DEFAULT_DEPARTMENT: '',
-
-    // 性别相关
-    GENDER_OPTIONS: ['男', '女'],
-    DEFAULT_GENDER: '男',
-
-    // 请求状态
-    REQUEST_STATUS: {
-      PENDING: 'pending',
-      APPROVED: 'approved',
-      REJECTED: 'rejected',
-      TERMINATED: 'terminated'
-    },
-    REQUEST_STATUS_TEXT: {
-      pending: '待审批',
-      approved: '已通过',
-      rejected: '已驳回',
-      terminated: '已中止'
-    },
-    REQUEST_STATUS_STYLE: {
-      pending: { color: '#D97706', bg: '#FEF3C7' },
-      approved: { color: '#16A34A', bg: '#DCFCE7' },
-      rejected: { color: '#DC2626', bg: '#FEE2E2' },
-      terminated: { color: '#DC2626', bg: '#FEE2E2' }
-    },
-
-    // 审批角色
-    APPROVAL_REVIEWER_ROLES: ['馆领导', '部门负责人'],
-
-    // 物业报修
-    REPAIR_LIVING_AREAS: ['本部', '馆周边', '5号院', '8号院', '湖畔']
+    // 缓存失败且无旧缓存，抛出错误
+    throw new Error('系统常量加载失败，请稍后重试')
   }
 }
 
@@ -234,6 +168,7 @@ function formatUserRecord(record) {
     department: record.department || '',
     mobile: record.mobile || '',
     landline: record.landline || '',
+    livingArea: record.livingArea || '',
     userStatus: record.userStatus || 'offline'
   }
 }
@@ -251,30 +186,29 @@ function normalizeBoolean(value) {
 // 动态获取常量
 async function getPositionOptions() {
   const constants = await getSystemConstants()
-  return constants.POSITION_OPTIONS || ['人事主管', '会计主管', '礼宾', '会计', '出纳', '俱乐部', '阳光课堂', '招待员', '厨师', '内聘']
+  return constants.POSITION_OPTIONS || []
 }
 
 async function getDepartmentOptions() {
   const constants = await getSystemConstants()
-  return constants.DEPARTMENT_OPTIONS || ['政治处', '新公处', '经商处', '科技处', '武官处', '领侨处', '文化处', '办公室', 'DW办']
+  return constants.DEPARTMENT_OPTIONS || []
 }
 
 async function getRoleOptions() {
   const constants = await getSystemConstants()
-  return constants.roles || ['馆领导', '部门负责人', '馆员', '工勤', '物业', '配偶', '家属']
+  return constants.roles || []
 }
 
 async function getGenderOptions() {
   const constants = await getSystemConstants()
-  return constants.genders || ['男', '女']
+  return constants.genders || []
 }
 
 async function validateForm(formData) {
   const constants = await getSystemConstants()
-  const roleOptions = constants.ROLE_OPTIONS || ['馆领导', '部门负责人', '馆员', '工勤', '物业', '配偶', '家属']
-  const genderOptions = constants.GENDER_OPTIONS || ['男', '女']
-  const positionOptions = constants.POSITION_OPTIONS || ['人事主管', '会计主管', '礼宾', '会计', '出纳', '俱乐部', '阳光课堂', '招待员', '厨师', '内聘']
-  const relativeRoles = constants.NEED_RELATIVE_ROLES || ['配偶', '家属']
+  const roleOptions = constants.ROLE_OPTIONS || []
+  const genderOptions = constants.GENDER_OPTIONS || []
+  const relativeRoles = constants.NEED_RELATIVE_ROLES || []
   const roleFieldVisibility = constants.ROLE_FIELD_VISIBILITY || {}
 
   const payload = formData || {}
@@ -288,6 +222,7 @@ async function validateForm(formData) {
   const department = String(payload.department || '').trim()
   const mobile = String(payload.mobile || '').trim()
   const landline = String(payload.landline || '').trim()
+  const livingArea = String(payload.livingArea || '').trim()
 
   if (!name) {
     throw new Error('请输入姓名')
@@ -317,9 +252,12 @@ async function validateForm(formData) {
   const roleConfig = roleFieldVisibility[role] || { showPosition: false, showDepartment: true }
   const showDepartment = roleConfig.showDepartment !== false // 默认显示
 
-  if (showDepartment && !department) {
+  // 馆领导允许部门为空（选了"无"）
+  if (showDepartment && !department && role !== '馆领导') {
     throw new Error('请选择部门')
   }
+
+  const isDepartmentHead = Boolean(formData.isDepartmentHead)
 
   return {
     name,
@@ -327,11 +265,13 @@ async function validateForm(formData) {
     birthday,
     role,
     isAdmin,
+    isDepartmentHead,
     relativeName: relativeRoles.includes(role) ? relativeName : '',
     position: [], // 岗位由管理员在岗位配置页分配
     department: showDepartment ? department : '',
     mobile,
     landline,
+    livingArea,
     avatarText: name.slice(0, 1)
   }
 }
@@ -409,6 +349,9 @@ async function checkRegistration(openid) {
           relativeName: businessData.relativeName || '',
           position: Array.isArray(businessData.position) ? businessData.position : [],
           department: businessData.department || '',
+          mobile: businessData.mobile || '',
+          landline: businessData.landline || '',
+          livingArea: businessData.livingArea || '',
           status: requestStatus.APPROVED,
           approvedAt: now,
           approvedBy: order.updatedBy || '',
@@ -465,7 +408,10 @@ async function checkRegistration(openid) {
             isAdmin: !!businessData.isAdmin,
             relativeName: businessData.relativeName || '',
             position: Array.isArray(businessData.position) ? businessData.position : (businessData.position ? [businessData.position] : []),
-           department: businessData.department || ''
+            department: businessData.department || '',
+            mobile: businessData.mobile || '',
+            landline: businessData.landline || '',
+            livingArea: businessData.livingArea || ''
           },
         })
       }
@@ -550,12 +496,14 @@ async function submitRegistration(openid, formData) {
           birthday: form.birthday,
           role: form.role,
           isAdmin: form.isAdmin,
+          isDepartmentHead: form.isDepartmentHead,
           avatarText: form.avatarText,
           relativeName: form.relativeName || '',
           position: Array.isArray(form.position) ? form.position : [],
           department: form.department || '',
           mobile: form.mobile || '',
           landline: form.landline || '',
+          livingArea: form.livingArea || '',
           phone: formData.phone || '',
           email: formData.email || '',
           applyReason: formData.applyReason || '申请注册系统'
@@ -640,11 +588,13 @@ async function submitProfileUpdate(openid, formData) {
           birthday: form.birthday,
           role: form.role,
           isAdmin: form.isAdmin,
+          isDepartmentHead: form.isDepartmentHead,
           relativeName: form.relativeName || '',
           position: Array.isArray(form.position) ? form.position : [],
           department: form.department || '',
           mobile: form.mobile || '',
           landline: form.landline || '',
+          livingArea: form.livingArea || '',
           userId: existingUser._id, // 关联原用户ID
           updateReason: formData.updateReason || '申请修改个人信息'
         }
@@ -670,15 +620,15 @@ async function submitProfileUpdate(openid, formData) {
 async function getApprovalData(openid, pagination = {}) {
   const constants = await getSystemConstants()
   const requestStatus = constants.requestStatus || { PENDING: 'pending', APPROVED: 'approved', REJECTED: 'rejected', TERMINATED: 'terminated' }
-  const reviewerRoles = constants.reviewerRoles || ['馆领导', '部门负责人']
+  const reviewerRoles = constants.reviewerRoles || []
   
   const { page = 1, pageSize = 10 } = pagination
   const currentUser = await findUserByOpenId(openid)
 
-  // 权限判断：馆领导、部门负责人、管理员可以审批
+  // 权限判断：馆领导、部门负责人（isDepartmentHead）、管理员可以审批
   const canReview = !!(currentUser &&
     currentUser.status === requestStatus.APPROVED &&
-    (currentUser.isAdmin || reviewerRoles.includes(currentUser.role)))
+    (currentUser.isAdmin || reviewerRoles.includes(currentUser.role) || currentUser.isDepartmentHead))
 
   // 查询所有激活的工作流模板，用于获取申请类型的名称
   const templatesResult = await templatesCollection

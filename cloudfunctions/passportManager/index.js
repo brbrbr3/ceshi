@@ -60,9 +60,9 @@ async function submitApplication(openid, businessData) {
   const user = userResult.data[0]
   const role = user.role || ''
 
-  // 检查权限：仅馆领导、部门负责人、馆员、工勤、物业可使用
-  const allowedRoles = ['馆领导', '部门负责人', '馆员', '工勤', '物业']
-  if (!allowedRoles.includes(role)) {
+  // 检查权限：仅馆领导、部门负责人（isDepartmentHead）、馆员、工勤、物业可使用
+  const allowedRoles = ['馆领导', '馆员', '工勤', '物业']
+  if (!allowedRoles.includes(role) && !user.isDepartmentHead) {
     throw new Error('您当前的角色无权申请护照借用')
   }
 

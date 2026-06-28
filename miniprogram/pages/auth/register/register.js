@@ -11,8 +11,11 @@ Page({
     allDepartmentOptions: [], // 保存完整的部门列表，用于切换角色时恢复
     roleIndex: -1,
     departmentIndex: -1,
+    livingAreaOptions: [],
+    livingAreaIndex: -1,
     showRelativeField: false,
     showDepartmentField: false,
+    showDeptHeadCheckbox: false,
     reviewRemark: '',
     today: '',
     isDevEnv: false,
@@ -24,8 +27,10 @@ Page({
       isAdmin: false,
       relativeName: '',
       department: '',
+      isDepartmentHead: false,
       mobile: '+55 61 ',
-      landline: '+55 61 '
+      landline: '+55 61 ',
+      livingArea: ''
     }
   },
 
@@ -61,19 +66,24 @@ Page({
     try {
       const allConstants = await app.getAllConstants()
 
+      // 过滤掉"部门负责人"角色（已改为 isDepartmentHead 字段）
+      const filteredRoles = (allConstants.ROLE_OPTIONS || []).filter(r => r !== '部门负责人')
+
       this.setData({
         constants: allConstants,
-        roleOptions: allConstants.ROLE_OPTIONS || app.getConstantSync('ROLE_OPTIONS') || [],
-        departmentOptions: allConstants.DEPARTMENT_OPTIONS || app.getConstantSync('DEPARTMENT_OPTIONS') || [],
-        allDepartmentOptions: allConstants.DEPARTMENT_OPTIONS || app.getConstantSync('DEPARTMENT_OPTIONS') || []
+        roleOptions: filteredRoles,
+        departmentOptions: allConstants.DEPARTMENT_OPTIONS || [],
+        allDepartmentOptions: allConstants.DEPARTMENT_OPTIONS || [],
+        livingAreaOptions: allConstants.REPAIR_LIVING_AREAS || []
       })
     } catch (error) {
-      console.error('加载常量失败，使用默认配置:', error)
+      console.error('加载常量失败:', error)
       this.setData({
         constants: {},
-        roleOptions: app.getConstantSync('ROLE_OPTIONS') || [],
-        departmentOptions: app.getConstantSync('DEPARTMENT_OPTIONS') || [],
-        allDepartmentOptions: app.getConstantSync('DEPARTMENT_OPTIONS') || []
+        roleOptions: [],
+        departmentOptions: [],
+        allDepartmentOptions: [],
+        livingAreaOptions: []
       })
     }
   },
@@ -119,8 +129,12 @@ Page({
         const roleIndex = result.request.role ? roleOptions.indexOf(result.request.role) : -1
         const role = result.request.role || ''
 
+        // 居住区域回填
+        const livingArea = result.request.livingArea || ''
+        const livingAreaIndex = livingArea ? this.data.livingAreaOptions.indexOf(livingArea) : -1
+
         // 使用常量判断
-        const needRelativeRoles = constants.NEED_RELATIVE_ROLES || ['配偶', '家属']
+        const needRelativeRoles = constants.NEED_RELATIVE_ROLES || []
 
         // 使用新的角色字段配置
         const roleConfig = this.getRoleFieldConfig(role)
@@ -131,11 +145,24 @@ Page({
         let department = result.request.department || ''
         let departmentIndex = -1
         let roleDepartmentOptions = departmentOptions
+        let showDeptHeadCheckbox = false
+        let isDepartmentHead = result.request.isDepartmentHead || false
 
-        // 使用配置中的固定部门
-        if (roleConfig.fixedDepartment) {
+        if (role === '馆领导') {
+          // 馆领导：部门选项前加"无"
+          roleDepartmentOptions = ['无', ...departmentOptions]
+          if (!department) {
+            department = '无'
+            departmentIndex = 0
+            isDepartmentHead = false
+          } else {
+            departmentIndex = roleDepartmentOptions.indexOf(department)
+            if (departmentIndex < 0) departmentIndex = -1
+          }
+        } else if (roleConfig.fixedDepartment) {
+          // 使用配置中的固定部门
           department = roleConfig.fixedDepartment
-          departmentIndex = departmentOptions.indexOf(roleConfig.fixedDepartment)
+          departmentIndex = 0
           roleDepartmentOptions = [roleConfig.fixedDepartment]
         } else if (department) {
           departmentIndex = departmentOptions.indexOf(department)
@@ -143,12 +170,18 @@ Page({
             departmentIndex = -1
             department = ''
           }
+          // 馆员有部门时显示checkbox
+          if (role === '馆员' && department) {
+            showDeptHeadCheckbox = true
+          }
         }
 
         this.setData({
           roleIndex,
+          livingAreaIndex,
           showRelativeField,
           showDepartmentField,
+          showDeptHeadCheckbox,
           departmentIndex,
           departmentOptions: roleDepartmentOptions,
           reviewRemark: result.request.status === 'rejected'
@@ -163,8 +196,10 @@ Page({
             isAdmin: !!result.request.isAdmin,
             relativeName: result.request.relativeName || '',
             department: department,
-            mobile: result.request.mobile || '',
-            landline: result.request.landline || ''
+            isDepartmentHead: isDepartmentHead,
+            mobile: result.request.mobile || '+55 61 ',
+            landline: result.request.landline || '+55 61 ',
+            livingArea: livingArea
           }
         })
       })
@@ -216,7 +251,7 @@ Page({
     const role = roleOptions[roleIndex]
 
     // 使用常量判断
-    const needRelativeRoles = constants.NEED_RELATIVE_ROLES || ['配偶', '家属']
+    const needRelativeRoles = constants.NEED_RELATIVE_ROLES || []
 
     // 使用新的角色字段配置
     const roleConfig = this.getRoleFieldConfig(role)
@@ -226,13 +261,21 @@ Page({
 
     let department = ''
     let departmentIndex = -1
-    let roleDepartmentOptions = allDepartmentOptions // 使用完整部门列表
+    let roleDepartmentOptions
+    let showDeptHeadCheckbox = false
+    let isDepartmentHead = false
 
-    // 使用配置中的固定部门
-    if (roleConfig.fixedDepartment) {
+    if (role === '馆领导') {
+      // 馆领导：部门选项前加"无"
+      roleDepartmentOptions = ['无', ...allDepartmentOptions]
+    } else if (roleConfig.fixedDepartment) {
+      // 使用配置中的固定部门
       department = roleConfig.fixedDepartment
-      departmentIndex = allDepartmentOptions.indexOf(roleConfig.fixedDepartment)
+      departmentIndex = 0
       roleDepartmentOptions = [roleConfig.fixedDepartment]
+    } else {
+      // 其他角色（馆员等）：完整部门列表
+      roleDepartmentOptions = allDepartmentOptions
     }
 
     this.setData({
@@ -240,8 +283,10 @@ Page({
       'form.role': role,
       showRelativeField,
       showDepartmentField,
+      showDeptHeadCheckbox,
       'form.relativeName': showRelativeField ? this.data.form.relativeName : '',
       'form.department': department,
+      'form.isDepartmentHead': isDepartmentHead,
       departmentIndex,
       departmentOptions: roleDepartmentOptions
     })
@@ -255,9 +300,37 @@ Page({
 
   handleDepartmentChange(e) {
     const departmentIndex = Number(e.detail.value)
+    const selectedDept = this.data.departmentOptions[departmentIndex]
+    const role = this.data.form.role
+
+    let showDeptHeadCheckbox = false
+    let isDepartmentHead = false
+
+    if (role === '馆领导') {
+      if (selectedDept === '无') {
+        // 馆领导选"无"：清空部门，不是部门负责人
+        isDepartmentHead = false
+      } else {
+        // 馆领导选具体部门：自动成为部门负责人
+        isDepartmentHead = true
+      }
+    } else if (role === '馆员' && selectedDept) {
+      // 馆员选具体部门：显示checkbox（保持上次打勾状态）
+      showDeptHeadCheckbox = true
+      isDepartmentHead = this.data.form.isDepartmentHead || false
+    }
+
     this.setData({
       departmentIndex,
-      'form.department': this.data.departmentOptions[departmentIndex]
+      'form.department': selectedDept === '无' ? '' : selectedDept,
+      'form.isDepartmentHead': isDepartmentHead,
+      showDeptHeadCheckbox
+    })
+  },
+
+  handleDeptHeadChange(e) {
+    this.setData({
+      'form.isDepartmentHead': e.detail.value.includes('true')
     })
   },
 
@@ -279,6 +352,14 @@ Page({
     })
   },
 
+  handleLivingAreaChange(e) {
+    const index = Number(e.detail.value)
+    this.setData({
+      livingAreaIndex: index,
+      'form.livingArea': this.data.livingAreaOptions[index] || ''
+    })
+  },
+
   submitRegistration() {
     if (this.data.loading) {
       return
@@ -286,7 +367,7 @@ Page({
 
     const form = this.data.form
     const { constants } = this.data
-    const needRelativeRoles = constants.NEED_RELATIVE_ROLES || ['配偶', '家属']
+    const needRelativeRoles = constants.NEED_RELATIVE_ROLES || []
     const roleConfig = this.getRoleFieldConfig(form.role)
     
     if (!String(form.name || '').trim()) {
@@ -309,7 +390,7 @@ Page({
       utils.showToast({ title: '请填写亲属姓名', icon: 'none' })
       return
     }
-    if (roleConfig.showDepartment && !form.department) {
+    if (roleConfig.showDepartment && !form.department && form.role !== '馆领导') {
       utils.showToast({ title: '请选择部门', icon: 'none' })
       return
     }

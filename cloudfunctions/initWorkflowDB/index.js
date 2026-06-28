@@ -57,7 +57,8 @@ const EXAMPLE_TEMPLATES = [
         { field: 'position', label: '岗位', condition: { field: 'position', op: '!=', value: '' } },
         { field: 'relativeName', label: '关系人姓名', condition: { field: 'relativeName', op: '!=', value: '' } },
         { field: 'mobile', label: '手机', condition: { field: 'mobile', op: '!=', value: '' } },
-        { field: 'landline', label: '座机', condition: { field: 'landline', op: '!=', value: '' } }
+        { field: 'landline', label: '座机', condition: { field: 'landline', op: '!=', value: '' } },
+        { field: 'livingArea', label: '居住区域', condition: { field: 'livingArea', op: '!=', value: '' } }
       ]
     },
     defaultTimeout: 72,
@@ -106,6 +107,7 @@ const EXAMPLE_TEMPLATES = [
         { field: 'relativeName', label: '关系人姓名', condition: { field: 'relativeName', op: '!=', value: '' } },
         { field: 'mobile', label: '手机', condition: { field: 'mobile', op: '!=', value: '' } },
         { field: 'landline', label: '座机', condition: { field: 'landline', op: '!=', value: '' } },
+        { field: 'livingArea', label: '居住区域', condition: { field: 'livingArea', op: '!=', value: '' } },
         { field: 'updateReason', label: '修改原因' }
       ]
     },

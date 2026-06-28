@@ -16,7 +16,7 @@
 
     <!-- 背景装饰图片 -->
     <view class="home-bg-image-wrapper">
-      <image class="home-bg-image" src="/image/br3.jpg" mode="widthFix" />
+      <image class="home-bg-image" src="/image/br3-low.jpg" mode="widthFix" />
     </view>
   </view>
 
@@ -31,7 +31,7 @@
           <view class="home-calendar-desc">{{todayTypeText}}</view>
         </view>
       </view>
-      <view class="home-calendar-tag">全馆日历</view>
+      <!-- <view class="home-calendar-tag">全馆日历</view> -->
     </view>
    <!--欢迎词 + 通知、搜索图标-->
    <view class="home-greeting-row">
@@ -54,10 +54,10 @@
       </view>
       <view class="home-trip-return-btn" bindtap="handleReturnFromHome">返回报备</view>
     </view>
-    <!--常用功能（所有图标对所有人可见）-->
+    <!--功能面板（所有图标对所有人可见）-->
     <view class="office-section">
       <view class="office-section-header">
-        <view class="office-section-title">常用功能</view>
+        <view class="office-section-title">功能面板</view>
       </view>
       <view class="office-card home-grid-card">
         <view class="home-grid">

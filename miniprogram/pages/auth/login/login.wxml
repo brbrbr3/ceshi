@@ -12,12 +12,12 @@
 
   <view class="auth-card">
     <view class="auth-wechat-title">{{isRegistered ? '您已注册，点击下方按钮登录：' : '您尚未注册，点击下方按钮注册：'}}</view>
-    <button class="auth-submit-btn login-submit-btn" loading="{{loading}}" bindtap="handleWxLogin">{{isRegistered ? '人脸/指纹登录' : '注册'}}</button>
+    <button class="auth-submit-btn login-submit-btn {{isPendingApproval ? 'is-pending' : ''}}" loading="{{loading}}" bindtap="handleWxLogin">{{isPendingApproval ? '审核中' : (isRegistered ? '人脸/指纹登录' : '注册')}}</button>
     <view wx:if="{{isRegistered}}" class="auth-wechat-panel login-wechat-panel">
       <!-- <view wx:if="{{isDevEnv}}" class="auth-wechat-icon login-wechat-icon">生物特征</view> -->
       <view>
         <!-- <view wx:if="{{isDevEnv}}" class="auth-wechat-title">使用微信身份识别当前用户</view> -->
-        <view class="auth-wechat-desc">小程序不会保存您的生物特征，仅用于登录验证</view>
+        <view class="auth-wechat-desc">您的生物特征仅用于登录验证，小程序不会保存</view>
       </view>
     </view>
     <view class="auth-card-title"></view>
