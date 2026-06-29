@@ -1433,6 +1433,8 @@ async function completeWorkflow(orderId, decision, approverId, approverName, com
     const now = Date.now()
     const userPayload = {
       openid: businessData.applicantId,
+      nickName: businessData.nickName || '',
+      avatarUrl: businessData.avatarUrl || '',
       name: businessData.applicantName || '',
       gender: businessData.gender || '',
       birthday: businessData.birthday || '',
@@ -1478,6 +1480,8 @@ async function completeWorkflow(orderId, decision, approverId, approverName, com
     if (userId) {
       const now = Date.now()
       const updatePayload = {
+        nickName: businessData.nickName || '',
+        avatarUrl: businessData.avatarUrl || '',
         gender: businessData.gender || '',
         birthday: businessData.birthday || '',
         role: businessData.role || '馆员',

@@ -23,6 +23,13 @@
     "miniprogram": {
       "list": [
         {
+          "name": "pages/auth/register/register",
+          "pathName": "pages/auth/register/register",
+          "query": "",
+          "scene": null,
+          "launchMode": "default"
+        },
+        {
           "name": "pages/office/leave/leave",
           "pathName": "pages/office/leave/leave",
           "query": "",

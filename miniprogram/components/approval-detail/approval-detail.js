@@ -93,7 +93,30 @@ Component({
       // 过滤掉条件不满足的字段
       fields = fields.filter(f => this.shouldShowField(f, request))
       
-      this.setData({ detailFields: fields })
+      // 处理图片类型字段：将云存储 cloud:// 链接转换为临时 HTTP 链接
+      const imageFields = fields.filter(f => f.type === 'image' && f.value && typeof f.value === 'string' && f.value.startsWith('cloud://'))
+      if (imageFields.length > 0) {
+        // 先渲染初始数据，异步获取临时链接后更新
+        this.setData({ detailFields: fields })
+        const fileIds = imageFields.map(f => f.value)
+        wx.cloud.getTempFileURL({
+          fileList: fileIds
+        }).then(res => {
+          const updatedFields = this.data.detailFields.map(f => {
+            if (f.type !== 'image') return f
+            const result = res.fileList.find(file => file.fileID === f.value)
+            if (result && result.tempFileURL) {
+              return { ...f, value: result.tempFileURL }
+            }
+            return f
+          })
+          this.setData({ detailFields: updatedFields })
+        }).catch(err => {
+          console.error('获取图片临时链接失败:', err)
+        })
+      } else {
+        this.setData({ detailFields: fields })
+      }
     }
   },
 

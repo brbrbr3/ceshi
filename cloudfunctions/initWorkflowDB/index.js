@@ -49,6 +49,8 @@ const EXAMPLE_TEMPLATES = [
         { field: 'department', label: '部门' }
       ],
       detailFields: [
+        { field: 'nickName', label: '昵称', condition: { field: 'nickName', op: '!=', value: '' } },
+        { field: 'avatarUrl', label: '头像', type: 'image', condition: { field: 'avatarUrl', op: '!=', value: '' } },
         { field: 'name', label: '申请人姓名' },
         { field: 'gender', label: '性别' },
         { field: 'birthday', label: '生日' },
@@ -98,6 +100,8 @@ const EXAMPLE_TEMPLATES = [
         { field: 'department', label: '部门' }
       ],
       detailFields: [
+        { field: 'nickName', label: '昵称', condition: { field: 'nickName', op: '!=', value: '' } },
+        { field: 'avatarUrl', label: '头像', type: 'image', condition: { field: 'avatarUrl', op: '!=', value: '' } },
         { field: 'name', label: '申请人姓名' },
         { field: 'gender', label: '性别' },
         { field: 'birthday', label: '生日' },

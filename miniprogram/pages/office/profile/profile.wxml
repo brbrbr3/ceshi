@@ -4,7 +4,13 @@
 
     <view class="profile-user-row">
       <view class="profile-avatar-wrap">
-        <view class="profile-avatar">{{avatarText}}</view>
+        <image
+          wx:if="{{userAvatarUrl}}"
+          class="profile-avatar profile-avatar-img"
+          src="{{userAvatarUrl}}"
+          mode="aspectFill"
+        />
+        <view wx:else class="profile-avatar">{{avatarText}}</view>
         <view class="profile-avatar-status {{avatarStatusClass}}"></view>
       </view>
       <view class="profile-user-main">

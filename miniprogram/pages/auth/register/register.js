@@ -30,7 +30,9 @@ Page({
       isDepartmentHead: false,
       mobile: '+55 61 ',
       landline: '+55 61 ',
-      livingArea: ''
+      livingArea: '',
+      avatarUrl: '',
+      nickName: ''
     }
   },
 
@@ -199,7 +201,9 @@ Page({
             isDepartmentHead: isDepartmentHead,
             mobile: result.request.mobile || '+55 61 ',
             landline: result.request.landline || '+55 61 ',
-            livingArea: livingArea
+            livingArea: livingArea,
+            avatarUrl: result.request.avatarUrl || '',
+            nickName: result.request.nickName || ''
           }
         })
       })
@@ -215,6 +219,34 @@ Page({
     this.setData({
       'form.name': e.detail.value
     })
+  },
+
+  handleChooseAvatar(e) {
+    const { avatarUrl } = e.detail
+    this.setData({
+      'form.avatarUrl': avatarUrl
+    })
+  },
+
+  handleNickNameReview(e) {
+    console.log('[nicknamereview] detail:', JSON.stringify(e.detail))
+    // review 事件只返回 {pass, timeout}，不包含昵称值
+    // 仅在用户授权通过时标记，等 bindinput 带出实际昵称
+    if (e.detail && e.detail.pass) {
+      this._pendingNickname = true
+    }
+  },
+
+  handleNickNameInput(e) {
+    // 仅当 review 授权通过后才接收 input 值，阻止手动输入
+    if (!this._pendingNickname) return
+    this._pendingNickname = false
+    const nickName = e.detail.value
+    if (nickName) {
+      this.setData({
+        'form.nickName': nickName
+      })
+    }
   },
 
   selectGender(e) {
@@ -374,6 +406,14 @@ Page({
       utils.showToast({ title: '请输入姓名', icon: 'none' })
       return
     }
+    if (!form.avatarUrl) {
+      utils.showToast({ title: '请点击获取微信头像', icon: 'none' })
+      return
+    }
+    if (!String(form.nickName || '').trim()) {
+      utils.showToast({ title: '请点击获取微信昵称', icon: 'none' })
+      return
+    }
     if (!form.gender) {
       utils.showToast({ title: '请选择性别', icon: 'none' })
       return
@@ -432,30 +472,66 @@ Page({
       submitForm.landline = ''
     }
 
-    app.submitRegistration(submitForm)
-      .then(() => {
-        // 清除缓存，让 login 页面重新拉取最新状态
-        app.clearAuthState()
+    // 上传头像到云存储（chooseAvatar 返回的是临时本地路径）
+    const doSubmitNow = (cloudAvatarUrl) => {
+      if (cloudAvatarUrl) {
+        submitForm.avatarUrl = cloudAvatarUrl
+      }
 
-        wx.showModal({
-          title: '提交成功',
-          content: '注册申请已提交，请等待管理员审批。审批通过后即可成为正式用户。',
-          showCancel: false,
-          success: () => {
-            wx.reLaunch({
-              url: '/pages/auth/login/login'
-            })
-          }
+      app.submitRegistration(submitForm)
+        .then(() => {
+          // 清除缓存，让 login 页面重新拉取最新状态
+          app.clearAuthState()
+
+          wx.showModal({
+            title: '提交成功',
+            content: '注册申请已提交，请等待管理员审批。审批通过后即可成为正式用户。',
+            showCancel: false,
+            success: () => {
+              wx.reLaunch({
+                url: '/pages/auth/login/login'
+              })
+            }
+          })
         })
-      })
-      .catch((error) => {
-        wx.showToast({
-          title: error.message || '提交失败',
-          icon: 'none'
+        .catch((error) => {
+          wx.showToast({
+            title: error.message || '提交失败',
+            icon: 'none'
+          })
         })
-      })
-      .then(() => {
+        .then(() => {
+          this.setData({ loading: false })
+        })
+    }
+
+    // 如果 avatarUrl 是云存储 fileID（如重新提交被驳回申请），直接使用
+    if (submitForm.avatarUrl && submitForm.avatarUrl.startsWith('cloud://')) {
+      doSubmitNow(submitForm.avatarUrl)
+      return
+    }
+
+    // avatarUrl 是临时本地路径，需要上传到云存储
+    if (submitForm.avatarUrl) {
+      wx.showLoading({ title: '上传头像中...', mask: true })
+      const cloudPath = `avatars/${Date.now()}_${Math.random().toString(36).slice(2, 10)}.png`
+      wx.cloud.uploadFile({
+        cloudPath: cloudPath,
+        filePath: submitForm.avatarUrl
+      }).then((uploadRes) => {
+        wx.hideLoading()
+        submitForm.avatarUrl = '' // 清空临时路径
+        doSubmitNow(uploadRes.fileID)
+      }).catch((err) => {
+        wx.hideLoading()
+        console.error('头像上传失败:', err)
+        wx.showToast({ title: '头像上传失败，请重试', icon: 'none' })
         this.setData({ loading: false })
       })
+      return
+    }
+
+    // 无头像，直接提交
+    doSubmitNow('')
   }
 })

@@ -20,6 +20,48 @@
     </view>
 
     <view class="auth-form">
+      <!-- 微信头像 -->
+      <view class="auth-field">
+        <view class="auth-field-label">微信头像 <text style="color: #e74c3c;">*</text></view>
+    <view class="auth-card-desc">请点击下方按钮，选择"用微信头像"，不要选择"从相册选择"或"拍照"</view>
+        <button
+          class="auth-avatar-btn"
+          open-type="chooseAvatar"
+          bindchooseavatar="handleChooseAvatar"
+        >
+          <image
+            wx:if="{{form.avatarUrl}}"
+            class="auth-avatar-preview"
+            src="{{form.avatarUrl}}"
+            mode="aspectFill"
+          />
+          <view wx:else class="auth-avatar-placeholder">
+            <text class="auth-avatar-icon">📷</text>
+            <text>点击获取微信头像</text>
+          </view>
+        </button>
+        <view wx:if="{{form.avatarUrl}}" class="auth-avatar-hint">已选择微信头像，点击可重新选择</view>
+      </view>
+
+      <!-- 微信昵称 -->
+      <view class="auth-field">
+        <view class="auth-field-label">微信昵称 <text style="color: #e74c3c;">*</text></view>
+        <!-- 未选择：可点击按钮 -->
+        <view wx:if="{{!form.nickName}}" class="auth-nickname-btn">
+          <text class="auth-nickname-btn-text">点击获取微信昵称</text>
+          <input
+            class="auth-nickname-hidden-input"
+            type="nickname"
+            bindnicknamereview="handleNickNameReview"
+            bindinput="handleNickNameInput"
+          />
+        </view>
+        <!-- 已选择：置灰展示 -->
+        <view wx:else class="auth-nickname-btn is-selected">
+          <text class="auth-nickname-btn-text">微信昵称：{{form.nickName}}</text>
+        </view>
+      </view>
+
       <view class="auth-field">
         <view class="auth-field-label">姓名</view>
         <view class="auth-input-shell">
@@ -110,7 +152,7 @@
       </view>
 
       <view class="auth-field">
-        <view class="auth-field-label">是否为管理员</view>
+        <view class="auth-field-label">是否为本系统管理员</view>
         <view class="auth-segment">
           <view class="auth-segment-item {{form.isAdmin ? 'is-active' : ''}}" data-value="true" bindtap="selectAdmin">是</view>
           <view class="auth-segment-item {{!form.isAdmin ? 'is-active' : ''}}" data-value="false" bindtap="selectAdmin">否</view>

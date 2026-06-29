@@ -169,7 +169,9 @@ function formatUserRecord(record) {
     mobile: record.mobile || '',
     landline: record.landline || '',
     livingArea: record.livingArea || '',
-    userStatus: record.userStatus || 'offline'
+    userStatus: record.userStatus || 'offline',
+    avatarUrl: record.avatarUrl || '',
+    nickName: record.nickName || ''
   }
 }
 
@@ -223,9 +225,19 @@ async function validateForm(formData) {
   const mobile = String(payload.mobile || '').trim()
   const landline = String(payload.landline || '').trim()
   const livingArea = String(payload.livingArea || '').trim()
+  const avatarUrl = String(payload.avatarUrl || '').trim()
+  const nickName = String(payload.nickName || '').trim()
 
   if (!name) {
     throw new Error('请输入姓名')
+  }
+
+  if (!avatarUrl) {
+    throw new Error('请选择微信头像')
+  }
+
+  if (!nickName) {
+    throw new Error('请输入微信昵称')
   }
 
   if (!genderOptions.includes(gender)) {
@@ -272,7 +284,9 @@ async function validateForm(formData) {
     mobile,
     landline,
     livingArea,
-    avatarText: name.slice(0, 1)
+    avatarText: name.slice(0, 1),
+    avatarUrl,
+    nickName
   }
 }
 
@@ -352,6 +366,8 @@ async function checkRegistration(openid) {
           mobile: businessData.mobile || '',
           landline: businessData.landline || '',
           livingArea: businessData.livingArea || '',
+          avatarUrl: businessData.avatarUrl || '',
+          nickName: businessData.nickName || '',
           status: requestStatus.APPROVED,
           approvedAt: now,
           approvedBy: order.updatedBy || '',
@@ -411,7 +427,9 @@ async function checkRegistration(openid) {
             department: businessData.department || '',
             mobile: businessData.mobile || '',
             landline: businessData.landline || '',
-            livingArea: businessData.livingArea || ''
+            livingArea: businessData.livingArea || '',
+            avatarUrl: businessData.avatarUrl || '',
+            nickName: businessData.nickName || ''
           },
         })
       }
@@ -504,6 +522,8 @@ async function submitRegistration(openid, formData) {
           mobile: form.mobile || '',
           landline: form.landline || '',
           livingArea: form.livingArea || '',
+          avatarUrl: form.avatarUrl || '',
+          nickName: form.nickName || '',
           phone: formData.phone || '',
           email: formData.email || '',
           applyReason: formData.applyReason || '申请注册系统'
@@ -595,6 +615,8 @@ async function submitProfileUpdate(openid, formData) {
           mobile: form.mobile || '',
           landline: form.landline || '',
           livingArea: form.livingArea || '',
+          avatarUrl: form.avatarUrl || '',
+          nickName: form.nickName || '',
           userId: existingUser._id, // 关联原用户ID
           updateReason: formData.updateReason || '申请修改个人信息'
         }
@@ -1052,6 +1074,8 @@ async function getPendingRegistrations(openid) {
         role: businessData.role || '',
         department: businessData.department || '',
         position: Array.isArray(businessData.position) ? businessData.position : (businessData.position ? [businessData.position] : []),
+        avatarUrl: businessData.avatarUrl || '',
+        nickName: businessData.nickName || '',
         createdAt: order.createdAt
       }
     })
@@ -1180,7 +1204,9 @@ async function getContactsList() {
     landline: record.landline || '',
     avatarText: record.avatarText || (record.name ? record.name.slice(0, 1) : '智'),
     isAdmin: !!record.isAdmin,
-    userStatus: record.userStatus || 'offline'
+    userStatus: record.userStatus || 'offline',
+    avatarUrl: record.avatarUrl || '',
+    nickName: record.nickName || ''
   }))
 
   return success({ contacts }, '获取成功')

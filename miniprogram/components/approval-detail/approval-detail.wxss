@@ -167,6 +167,14 @@
   padding: 24rpx 0;
 }
 
+/* 图片类型字段 */
+.approval-modal-image {
+  width: 80rpx;
+  height: 80rpx;
+  border-radius: 50%;
+  background: #F1F5F9;
+}
+
 .approval-detail-status-value{
   margin-top: -35rpx;
 }

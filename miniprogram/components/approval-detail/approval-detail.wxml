@@ -34,6 +34,13 @@
             <view wx:if="{{!item.value || item.value.length === 0}}" class="approval-modal-table-empty">暂无记录</view>
           </view>
         </block>
+        <!-- 图片类型字段 -->
+        <block wx:elif="{{item.type === 'image'}}">
+          <view class="approval-modal-row">
+            <text class="approval-modal-label">{{item.label}}</text>
+            <image class="approval-modal-image" src="{{item.value}}" mode="aspectFill" />
+          </view>
+        </block>
         <!-- 普通文本/布尔字段 -->
         <block wx:else>
           <view class="approval-modal-row">
