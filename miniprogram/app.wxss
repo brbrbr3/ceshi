@@ -569,7 +569,7 @@ input {
 
 .auth-avatar-hint {
   margin-top: 10rpx;
-  font-size: var(--fs-22);
+  font-size: var(--fs-26);
   color: #3B82F6;
 }
 

@@ -228,25 +228,29 @@ Page({
     })
   },
 
+  handleNickNameBlur(e) {
+    // 选择微信昵称时 bindinput 可能不触发，bindblur 是可靠的值来源
+    // bindblur 在 bindnicknamereview 之前触发，暂存值供 review 回调使用
+    this._pendingNickValue = (e.detail.value || '').trim()
+  },
+
   handleNickNameReview(e) {
     console.log('[nicknamereview] detail:', JSON.stringify(e.detail))
-    // review 事件只返回 {pass, timeout}，不包含昵称值
-    // 仅在用户授权通过时标记，等 bindinput 带出实际昵称
     if (e.detail && e.detail.pass) {
-      this._pendingNickname = true
+      // 审核通过，使用 blur/input 暂存的值
+      if (this._pendingNickValue) {
+        this.setData({ 'form.nickName': this._pendingNickValue })
+      }
+    } else {
+      // 审核未通过，清空（微信会清空 input 内容，form.nickName 也需手动清）
+      this.setData({ 'form.nickName': '' })
     }
+    this._pendingNickValue = ''
   },
 
   handleNickNameInput(e) {
-    // 仅当 review 授权通过后才接收 input 值，阻止手动输入
-    if (!this._pendingNickname) return
-    this._pendingNickname = false
-    const nickName = e.detail.value
-    if (nickName) {
-      this.setData({
-        'form.nickName': nickName
-      })
-    }
+    // bindinput 在选择微信昵称时可能不触发，但手动输入时同步暂存值
+    this._pendingNickValue = (e.detail.value || '').trim()
   },
 
   selectGender(e) {
