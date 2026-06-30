@@ -2,7 +2,6 @@ const config = require('./config')
 const themeListeners = []
 const AUTH_CORE_KEY = 'app-auth-core'
 const PROFILE_CACHE_KEY = 'app-profile-cache'
-const USER_INFO_CACHE_KEY = 'app-user-info-cache'  // 保留兼容旧缓存（过渡期）
 const CONSTANTS_CACHE_KEY = 'app-constants-cache'
 const PERMISSION_CACHE_KEY = 'app-permission-cache'
 const SUBSCRIBE_REQUEST_KEY = 'office-subscribe-requested'
@@ -212,7 +211,6 @@ App({
       // 只清版本相关的缓存
       this.clearConstantsCache()    // 常量结构随版本变
       this.clearPermissionCache()   // 权限结构可能随版本变
-      removeStorage(USER_INFO_CACHE_KEY) // 清废弃旧 key，顺便迁移
 
       // 不清 AUTH_CORE_KEY / PROFILE_CACHE_KEY ——
       // 身份与版本无关；PROFILE 有 updatedAt 静默刷新自动同步
@@ -290,12 +288,6 @@ App({
     if (coreCached) {
       this.globalData.hasLogin = !!coreCached.hasLogin
       this.globalData.openid = coreCached.openid || null
-    } else {
-      // 兜底：旧缓存格式迁移
-      const oldCached = readStorage(USER_INFO_CACHE_KEY)
-      if (!oldCached) return
-      this.globalData.hasLogin = !!oldCached.hasLogin
-      this.globalData.openid = oldCached.openid || null
     }
 
     // 恢复 profile（只要缓存存在就使用，由 updatedAt 版本比对保证一致性）
@@ -320,13 +312,6 @@ App({
         updatedAt: this.globalData._profileUpdatedAt || null
       })
     }
-
-    // 过渡期兼容旧 key（后续版本可删除）
-    writeStorage(USER_INFO_CACHE_KEY, {
-      hasLogin: this.globalData.hasLogin,
-      openid: this.globalData.openid,
-      userProfile: this.globalData.userProfile
-    })
   },
 
   setAuthState(payload) {
@@ -347,8 +332,6 @@ App({
     // 显式清除身份与资料缓存
     removeStorage(AUTH_CORE_KEY)
     removeStorage(PROFILE_CACHE_KEY)
-    // 清废弃旧 key（过渡期兼容）
-    this.clearUserInfoCache()
   },
 
   /* 
@@ -602,6 +585,21 @@ App({
     return this.callOfficeAuth('submitProfileUpdate', {
       formData
     }).then((data) => {
+      return data
+    })
+  },
+
+  submitDetailInfo(formData) {
+    return this.callOfficeAuth('submitDetailInfo', {
+      formData
+    }).then((data) => {
+      // 彻底清除 profile 缓存（内存 + 本地存储），使下次 checkUserRegistration 强制走网络获取最新数据
+      this.globalData.userProfile = null
+      this.globalData._profileUpdatedAt = null
+      removeStorage(PROFILE_CACHE_KEY)
+      // 重置静默刷新节流，允许 home 页 checkUserRegistration 正常走网络流程
+      this._silentRefreshAt = 0
+      this._silentRefreshPromise = null
       return data
     })
   },
@@ -1258,12 +1256,5 @@ App({
   clearPermissionCache() {
     this.globalData.permissionCache = null
     removeStorage(PERMISSION_CACHE_KEY)
-  },
-
-  /**
-   * 清除用户信息缓存
-   */
-  clearUserInfoCache() {
-    removeStorage(USER_INFO_CACHE_KEY)   // 仅清废弃旧 key（过渡期兼容）
   }
 })

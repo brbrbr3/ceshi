@@ -253,17 +253,18 @@ async function validateForm(formData) {
     throw new Error('出生日期格式不正确')
   }
 
-  if (!roleOptions.includes(role)) {
+  // role 为空时跳过角色相关校验（注册阶段不填角色，由 fill-detail 页补充）
+  if (role && !roleOptions.includes(role)) {
     throw new Error('请选择角色')
   }
 
-  if (relativeRoles.includes(role) && !relativeName) {
+  if (role && relativeRoles.includes(role) && !relativeName) {
     throw new Error('请填写亲属姓名')
   }
 
   // 获取角色的字段显示配置
   const roleConfig = roleFieldVisibility[role] || { showPosition: false, showDepartment: true }
-  const showDepartment = roleConfig.showDepartment !== false // 默认显示
+  const showDepartment = role ? (roleConfig.showDepartment !== false) : false // 默认显示
 
   // 馆领导允许部门为空（选了"无"）
   if (showDepartment && !department && role !== '馆领导') {
@@ -373,7 +374,7 @@ async function checkRegistration(openid, options = {}) {
           name: businessData.applicantName || '',
           gender: businessData.gender || '',
           birthday: businessData.birthday || '',
-          role: businessData.role || '馆员',
+          role: businessData.role || '',
           isAdmin: !!businessData.isAdmin,
           isDepartmentHead: !!businessData.isDepartmentHead,
           avatarText: businessData.avatarText || '',
@@ -654,6 +655,73 @@ async function submitProfileUpdate(openid, formData) {
   } catch (error) {
     throw new Error('提交工作流工单失败: ' + error.message)
   }
+}
+
+async function submitDetailInfo(openid, formData) {
+  const constants = await getSystemConstants()
+  const requestStatus = constants.requestStatus || { PENDING: 'pending', APPROVED: 'approved', REJECTED: 'rejected', TERMINATED: 'terminated' }
+
+  // 验证用户已注册（审批通过）
+  const existingUser = await findUserByOpenId(openid)
+  if (!existingUser || existingUser.status !== requestStatus.APPROVED) {
+    return fail('请先完成注册审批', 401, {
+      authStatus: requestStatus.PENDING
+    })
+  }
+
+  const roleOptions = constants.ROLE_OPTIONS || []
+  const relativeRoles = constants.NEED_RELATIVE_ROLES || []
+  const roleFieldVisibility = constants.ROLE_FIELD_VISIBILITY || {}
+  const livingAreaOptions = constants.REPAIR_LIVING_AREAS || []
+
+  const payload = formData || {}
+  const role = String(payload.role || '').trim()
+  const relativeName = String(payload.relativeName || '').trim()
+  const department = String(payload.department || '').trim()
+  const isDepartmentHead = normalizeBoolean(payload.isDepartmentHead)
+  const livingArea = String(payload.livingArea || '').trim()
+
+  // 校验：沿用 register 页原有联动逻辑 + 居住区域必填（待赴任馆员跳过）
+  if (!role || !roleOptions.includes(role)) {
+    throw new Error('请选择角色')
+  }
+  if (relativeRoles.includes(role) && !relativeName) {
+    throw new Error('请填写亲属姓名')
+  }
+  const roleConfig = roleFieldVisibility[role] || { showDepartment: true }
+  const showDepartment = roleConfig.showDepartment !== false
+  if (showDepartment && !department && role !== '馆领导') {
+    throw new Error('请选择部门')
+  }
+  if (role !== '待赴任馆员') {
+    if (!livingArea) {
+      throw new Error('请选择居住区域')
+    }
+    if (livingAreaOptions.length > 0 && !livingAreaOptions.includes(livingArea)) {
+      throw new Error('居住区域无效')
+    }
+  }
+
+  const now = Date.now()
+  const updateData = {
+    role,
+    isDepartmentHead,
+    relativeName: relativeRoles.includes(role) ? relativeName : '',
+    department: showDepartment ? department : '',
+    livingArea: role === '待赴任馆员' ? '' : livingArea,
+    updatedAt: now
+  }
+
+  await usersCollection.doc(existingUser._id).update({ data: updateData })
+
+  return success({
+    openid,
+    role: updateData.role,
+    department: updateData.department,
+    isDepartmentHead: updateData.isDepartmentHead,
+    relativeName: updateData.relativeName,
+    livingArea: updateData.livingArea
+  }, '详细信息提交成功')
 }
 
 async function getApprovalData(openid, pagination = {}) {
@@ -1289,6 +1357,10 @@ exports.main = async (event) => {
 
     if (action === 'submitProfileUpdate') {
       return await submitProfileUpdate(openid, event.formData)
+    }
+
+    if (action === 'submitDetailInfo') {
+      return await submitDetailInfo(openid, event.formData)
     }
 
     if (action === 'getApprovalData') {

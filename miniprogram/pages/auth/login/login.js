@@ -259,6 +259,13 @@ Page({
     app.checkUserRegistration()
       .then((result) => {
         if (result.registered === true) {
+          // 未填写详细信息（角色为空）→ 进入 fill-detail 页补充
+          if (!result.user || !result.user.role) {
+            wx.navigateTo({
+              url: '/pages/auth/fill-detail/fill-detail'
+            })
+            return
+          }
           utils.showToast({
             title: '登录成功',
             icon: 'success'

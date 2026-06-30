@@ -93,7 +93,7 @@ Page({
         value: '待认证'
       },
       {
-        label: '管理员',
+        label: '系统管理员',
         value: '否'
       }
     ],
@@ -166,7 +166,7 @@ Page({
           value: user.role || '未设置'
         },
         {
-          label: '管理员',
+          label: '系统管理员',
           value: user.isAdmin ? '是' : '否'
         }
       ]
@@ -223,9 +223,9 @@ Page({
       this.setData({
         userName: user.nickName || user.name,
         roleLabel: user.isAdmin ? `${user.role} · 管理员` : user.role,
-        primaryTag: user.isAdmin ? '管理员' : '普通用户',
+        primaryTag: user.isAdmin ? '系统管理员' : '非系统管理员',
         secondaryTag: '状态：' + statusInfo.label,
-        avatarText: (user.avatarText || user.name || '智').slice(0, 1),
+        avatarText: (user.avatarText || user.name || '巴').slice(0, 1),
         avatarStatusClass: statusInfo.cls,
         isAdmin: !!user.isAdmin,
         userAvatarUrl: user.avatarUrl || '',

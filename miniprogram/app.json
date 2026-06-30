@@ -2,6 +2,7 @@
   "pages": [
     "pages/auth/login/login",
     "pages/auth/register/register",
+    "pages/auth/fill-detail/fill-detail",
     "pages/office/home/home",
     "pages/office/approval/approval",
     "pages/office/medical-application/medical-application",
