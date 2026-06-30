@@ -83,19 +83,18 @@ Page({
         fontStyle
       })
     }
-    app.clearAuthState()
     this.setData({
       isDevEnv: app.globalData.isDevEnv
     })
-    this.refreshStatus()
+    // 强制刷新注册状态（走网络），不再清空身份/资料缓存
+    this.refreshStatus(true)
     app.loadConstants().catch((err) => {
       console.warn('预加载常量失败:', err)
     })
   },
 
   onPullDownRefresh() {
-    app.clearAuthState()
-    this.refreshStatus().finally(() => {
+    this.refreshStatus(true).finally(() => {
       wx.stopPullDownRefresh()
     })
   },
@@ -130,9 +129,9 @@ Page({
     })
   },
 
-  refreshStatus() {
+  refreshStatus(forceRefresh) {
     return Promise.all([
-      app.checkUserRegistration(),
+      app.checkUserRegistration({ forceRefresh }),
       this.loadBootstrapStatus()
     ]).then(([result]) => {
       const statusCard = result.registered ?

@@ -158,6 +158,7 @@ function formatUserRecord(record) {
     birthday: record.birthday,
     role: record.role,
     isAdmin: !!record.isAdmin,
+    isDepartmentHead: !!record.isDepartmentHead || (record.role === '馆领导' && !!record.department),
     status: record.status,
     avatarText: record.avatarText || (record.name ? record.name.slice(0, 1) : '智'),
     approvedAt: record.approvedAt || null,
@@ -315,17 +316,32 @@ async function ensureAdminUser(openid) {
   return userRecord
 }
 
-async function checkRegistration(openid) {
+async function checkRegistration(openid, options = {}) {
+  const { cachedUpdatedAt } = options  // 客户端缓存的用户记录 updatedAt
   const constants = await getSystemConstants()
   const requestStatus = constants.requestStatus || { PENDING: 'pending', APPROVED: 'approved', REJECTED: 'rejected', TERMINATED: 'terminated' }
   
   const userRecord = await findUserByOpenId(openid)
 
   if (userRecord && userRecord.status === requestStatus.APPROVED) {
+    // 版本比对：如果客户端缓存的 updatedAt 与服务器一致，返回轻量响应
+    if (cachedUpdatedAt && userRecord.updatedAt === cachedUpdatedAt) {
+      return success({
+        openid,
+        registered: true,
+        profileNotModified: true,
+        updatedAt: userRecord.updatedAt,
+        user: null,
+        request: null
+      })
+    }
+
     return success({
       openid,
       registered: true,
+      profileNotModified: false,
       authStatus: requestStatus.APPROVED,
+      updatedAt: userRecord.updatedAt,
       user: formatUserRecord(userRecord),
       request: null
     })
@@ -359,6 +375,7 @@ async function checkRegistration(openid) {
           birthday: businessData.birthday || '',
           role: businessData.role || '馆员',
           isAdmin: !!businessData.isAdmin,
+          isDepartmentHead: !!businessData.isDepartmentHead,
           avatarText: businessData.avatarText || '',
           relativeName: businessData.relativeName || '',
           position: Array.isArray(businessData.position) ? businessData.position : [],
@@ -1261,7 +1278,9 @@ exports.main = async (event) => {
     }
 
     if (action === 'checkRegistration') {
-      return await checkRegistration(openid)
+      return await checkRegistration(openid, {
+        cachedUpdatedAt: event.cachedUpdatedAt || null
+      })
     }
 
     if (action === 'submitRegistration') {

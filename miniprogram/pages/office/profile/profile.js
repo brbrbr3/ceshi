@@ -148,9 +148,7 @@ Page({
 
   async syncUserProfile() {
     try {
-      const result = await app.checkUserRegistration({
-        forceRefresh: true
-      })
+      const result = await app.checkUserRegistration()
       if (!result.registered || !result.user) {
         wx.reLaunch({
           url: '/pages/auth/login/login'

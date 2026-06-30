@@ -1,10 +1,13 @@
 const config = require('./config')
 const themeListeners = []
-const USER_INFO_CACHE_KEY = 'app-user-info-cache'
+const AUTH_CORE_KEY = 'app-auth-core'
+const PROFILE_CACHE_KEY = 'app-profile-cache'
+const USER_INFO_CACHE_KEY = 'app-user-info-cache'  // 保留兼容旧缓存（过渡期）
 const CONSTANTS_CACHE_KEY = 'app-constants-cache'
 const PERMISSION_CACHE_KEY = 'app-permission-cache'
 const SUBSCRIBE_REQUEST_KEY = 'office-subscribe-requested'
 const VERSION_CACHE_KEY = 'app-cache-version'
+const LAST_SHOWN_VERSION_KEY = 'app-last-shown-version'  // 上次展示更新说明的版本（与缓存版本分离）
 const FONTSIZE_CACHE_KEY = 'app-fontsize-cache'
 // 字体令牌基础值（rpx）
 const FONT_TOKENS = {
@@ -104,9 +107,7 @@ function getDefaultAuthState() {
   return {
     hasLogin: false,
     openid: null,
-    userProfile: null,
-    registrationRequest: null,
-    authStatus: 'anonymous'
+    userProfile: null
   }
 }
 
@@ -202,26 +203,34 @@ App({
 
   /**
    * 检查缓存版本号，版本变化时清除常量、权限的内存、缓存
-   * （但不更新缓存版本号，后续在updateCacheVersionAndShowWhatsNew函数更新缓存版本号并showModal）
+   * 并立即落盘新版本号，确保未登录用户也能记录版本（避免每次冷启动都误判为版本变化）
+   * 更新说明弹窗由 updateCacheVersionAndShowWhatsNew 基于 LAST_SHOWN_VERSION_KEY 独立控制
    */
   checkCacheVersion() {
     const storedVersion = readStorage(VERSION_CACHE_KEY)
     if (storedVersion !== config.CACHE_VERSION) {
-      //清除常量、权限的内存、缓存
-      this.clearConstantsCache()
-      this.clearPermissionCache()
-      console.log('新版缓存为' + config.CACHE_VERSION + '，现已清除旧内存、缓存（PERMISSION_CACHE_KEY, CONSTANTS_CACHE_KEY）')
+      // 只清版本相关的缓存
+      this.clearConstantsCache()    // 常量结构随版本变
+      this.clearPermissionCache()   // 权限结构可能随版本变
+      removeStorage(USER_INFO_CACHE_KEY) // 清废弃旧 key，顺便迁移
+
+      // 不清 AUTH_CORE_KEY / PROFILE_CACHE_KEY ——
+      // 身份与版本无关；PROFILE 有 updatedAt 静默刷新自动同步
+
+      // 立即落盘新版本号，避免未到达首页的用户下次冷启动再次误清
+      writeStorage(VERSION_CACHE_KEY, config.CACHE_VERSION)
+      console.log('新版缓存为' + config.CACHE_VERSION + '，已清除版本相关缓存')
     } else {
       console.log('缓存版本未变，为' + storedVersion)
     }
   },
 
-  //登录后调用，更新缓存版本号，展示更新说明modal
+  //登录后调用，基于"上次展示版本"决定是否展示更新说明modal（与缓存版本解耦）
   updateCacheVersionAndShowWhatsNew() {
-    const storedVersion = readStorage(VERSION_CACHE_KEY)
-    if (storedVersion !== config.CACHE_VERSION) {
-      writeStorage(VERSION_CACHE_KEY, config.CACHE_VERSION)
-      console.log('缓存版本已更新为' + config.CACHE_VERSION)
+    const lastShown = readStorage(LAST_SHOWN_VERSION_KEY)
+    if (lastShown !== config.CACHE_VERSION) {
+      writeStorage(LAST_SHOWN_VERSION_KEY, config.CACHE_VERSION)
+      console.log('展示更新说明，版本为' + config.CACHE_VERSION + '（上次展示：' + (lastShown || '无') + '）')
       wx.showModal({
         title: '版本' + config.CACHE_VERSION + '更新说明',
         content: config.VERSION_DESCRIPTION,
@@ -229,7 +238,7 @@ App({
         confirmText: '我知道了'
       })
     } else {
-      console.log('缓存版本未变，为' + storedVersion)
+      console.log('更新说明已展示过，版本为' + lastShown)
     }
   },
 
@@ -276,25 +285,47 @@ App({
   }, getDefaultAuthState()),
 
   restoreAuthState() {
-    const cached = readStorage(USER_INFO_CACHE_KEY)
-    if (!cached) {
-      return
+    // 优先从新 key 恢复长期字段
+    const coreCached = readStorage(AUTH_CORE_KEY)
+    if (coreCached) {
+      this.globalData.hasLogin = !!coreCached.hasLogin
+      this.globalData.openid = coreCached.openid || null
+    } else {
+      // 兜底：旧缓存格式迁移
+      const oldCached = readStorage(USER_INFO_CACHE_KEY)
+      if (!oldCached) return
+      this.globalData.hasLogin = !!oldCached.hasLogin
+      this.globalData.openid = oldCached.openid || null
     }
 
-    this.globalData.hasLogin = !!cached.hasLogin
-    this.globalData.openid = cached.openid || null
-    this.globalData.userProfile = cached.userProfile || null
-    this.globalData.registrationRequest = cached.registrationRequest || null
-    this.globalData.authStatus = cached.authStatus || 'anonymous'
+    // 恢复 profile（只要缓存存在就使用，由 updatedAt 版本比对保证一致性）
+    const profileCached = readStorage(PROFILE_CACHE_KEY)
+    if (profileCached && profileCached.data) {
+      this.globalData.userProfile = profileCached.data
+      this.globalData._profileUpdatedAt = profileCached.updatedAt || null
+    }
   },
 
   persistAuthState() {
+    // 长期缓存：身份标识（仅 openid + hasLogin）
+    writeStorage(AUTH_CORE_KEY, {
+      hasLogin: this.globalData.hasLogin,
+      openid: this.globalData.openid
+    })
+
+    // 短期缓存：用户资料（带服务端 updatedAt 版本号）
+    if (this.globalData.userProfile) {
+      writeStorage(PROFILE_CACHE_KEY, {
+        data: this.globalData.userProfile,
+        updatedAt: this.globalData._profileUpdatedAt || null
+      })
+    }
+
+    // 过渡期兼容旧 key（后续版本可删除）
     writeStorage(USER_INFO_CACHE_KEY, {
       hasLogin: this.globalData.hasLogin,
       openid: this.globalData.openid,
-      userProfile: this.globalData.userProfile,
-      registrationRequest: this.globalData.registrationRequest,
-      authStatus: this.globalData.authStatus
+      userProfile: this.globalData.userProfile
     })
   },
 
@@ -308,14 +339,15 @@ App({
    *清除登录状态（用户信息缓存（内存+本地存储））
    */
   clearAuthState() {
-    //清除用户信息内存
     const defaults = getDefaultAuthState()
     this.globalData.hasLogin = defaults.hasLogin
     this.globalData.openid = defaults.openid
     this.globalData.userProfile = defaults.userProfile
-    this.globalData.registrationRequest = defaults.registrationRequest
-    this.globalData.authStatus = defaults.authStatus
-    // 清除用户信息本地存储
+    this.globalData._profileUpdatedAt = null
+    // 显式清除身份与资料缓存
+    removeStorage(AUTH_CORE_KEY)
+    removeStorage(PROFILE_CACHE_KEY)
+    // 清废弃旧 key（过渡期兼容）
     this.clearUserInfoCache()
   },
 
@@ -374,7 +406,14 @@ App({
   },
 
   /**
-   * 检查用户注册状态
+   * 检查用户注册状态（支持 updatedAt 版本比对缓存）
+   *
+   * AUTH_CORE_KEY 与 PROFILE_CACHE_KEY 完全分离处理：
+   * - Phase 1：AUTH_CORE_KEY（身份标识，简单）独立判断是否需要网络
+   * - Phase 2：PROFILE_CACHE_KEY（用户资料，涉及 updatedAt 比对）独立判断是否需要网络
+   * - Phase 3：任一 key 需要网络 → 发起请求；两者均有效 → 后台静默刷新
+   * - Phase 4：响应处理时两个 key 各自独立写入
+   *
    * @param {Object} options - 配置选项
    * @param {boolean} options.forceRefresh - 是否强制刷新（跳过缓存），默认 false
    * @returns {Promise<Object>} 用户注册信息
@@ -384,45 +423,165 @@ App({
       forceRefresh = false
     } = options
 
-    // 非强制刷新时，先检查缓存
+    // Phase 1：AUTH_CORE_KEY 独立处理（身份标识，简单）
+    let authReady = false
     if (!forceRefresh) {
-      const cached = readStorage(USER_INFO_CACHE_KEY)
-      if (cached && cached.hasLogin) {
-        // 缓存有效，直接返回
-        console.log('用户信息缓存已存在，跳过加载')
-        return Promise.resolve({
-          registered: cached.hasLogin,
-          openid: cached.openid,
-          user: cached.userProfile,
-          request: cached.registrationRequest,
-          authStatus: cached.authStatus,
-          _fromCache: true
-        })
+      const coreCached = readStorage(AUTH_CORE_KEY)
+      if (coreCached && coreCached.hasLogin) {
+        this.globalData.hasLogin = true
+        this.globalData.openid = coreCached.openid
+        authReady = true
       }
     }
+    const authNeedsNetwork = forceRefresh || !authReady
 
-    // 显示加载提示
+    // Phase 2：PROFILE_CACHE_KEY 独立处理（用户资料，涉及 updatedAt 比对）
+    // 注意：缓存读取始终执行——cachedUpdatedAt 用于服务端比对，
+    // globalData.userProfile 用于网络失败降级。forceRefresh 只控制
+    // 是否"认为 profile 已就绪可提前返回"，不跳过缓存恢复。
+    let profileReady = false
+    let cachedUpdatedAt = null
+    const profileCached = readStorage(PROFILE_CACHE_KEY)
+    if (profileCached && profileCached.data) {
+      // 即使 forceRefresh，也恢复内存（网络失败时作为降级数据）
+      if (!this.globalData.userProfile) {
+        this.globalData.userProfile = profileCached.data
+        this.globalData._profileUpdatedAt = profileCached.updatedAt || null
+      }
+      cachedUpdatedAt = profileCached.updatedAt
+      // forceRefresh 时不认为 profile "ready"（仍需网络确认），但 cachedUpdatedAt 已就绪
+      profileReady = !forceRefresh
+    }
+    const profileNeedsNetwork = forceRefresh || !profileReady
+
+    // Phase 3：合并决策（任一 key 需要网络 → 发起请求）
+    const needNetwork = authNeedsNetwork || profileNeedsNetwork
+    if (!needNetwork) {
+      // 两个 key 都有效，后台静默比对 updatedAt（不阻塞当前操作）
+      console.log('用户信息缓存有效，后台静默刷新 profile')
+      this._refreshProfileSilently()
+      return Promise.resolve({
+        registered: this.globalData.hasLogin,
+        openid: this.globalData.openid,
+        user: this.globalData.userProfile,
+        request: null,
+        _fromCache: true
+      })
+    }
+
+    // 需要网络请求
     wx.showToast({
-      title: '缓存用户信息中',
+      title: '加载用户信息',
       icon: 'loading',
       duration: 2000
     })
 
-    // 调用云函数获取最新数据
-    return this.callOfficeAuth('checkRegistration').then((data) => {
-      this.setAuthState({
-        hasLogin: !!data.registered,
-        openid: data.openid || this.globalData.openid,
-        userProfile: data.user || null,
-        registrationRequest: data.request || null,
-        authStatus: data.authStatus || 'anonymous'
-      })
-      console.log('用户信息缓存加载成功')
+    return this.callOfficeAuth('checkRegistration', {
+      cachedUpdatedAt: cachedUpdatedAt
+    }).then((data) => {
+      // Phase 4a：处理 AUTH_CORE_KEY 响应（独立写）
+      if (data.registered) {
+        writeStorage(AUTH_CORE_KEY, {
+          hasLogin: true,
+          openid: data.openid
+        })
+        this.globalData.hasLogin = true
+        this.globalData.openid = data.openid
+      }
+
+      // Phase 4b：处理 PROFILE_CACHE_KEY 响应（独立写）
+      if (data.profileNotModified) {
+        // 服务端确认 profile 未变化，使用内存缓存，仅同步 updatedAt
+        console.log('用户 profile 未变化，使用缓存')
+        if (data.updatedAt) {
+          this.globalData._profileUpdatedAt = data.updatedAt
+        }
+      } else if (data.user) {
+        // profile 有变化，更新内存和缓存
+        this.globalData.userProfile = data.user
+        this.globalData._profileUpdatedAt = data.updatedAt || null
+        writeStorage(PROFILE_CACHE_KEY, {
+          data: data.user,
+          updatedAt: this.globalData._profileUpdatedAt
+        })
+        console.log('用户信息缓存加载成功')
+      }
+
       wx.hideToast()
-      return data
+      return {
+        registered: data.registered,
+        openid: data.openid,
+        user: this.globalData.userProfile,
+        request: data.request || null,
+        _fromCache: false
+      }
     }).catch((error) => {
       wx.hideToast()
+      // 网络失败：回退到内存数据（Phase 1/2 已恢复），保证数据一致性
+      if (this.globalData.userProfile) {
+        console.log('网络异常，降级使用内存数据')
+        return Promise.resolve({
+          registered: this.globalData.hasLogin,
+          openid: this.globalData.openid,
+          user: this.globalData.userProfile,
+          request: null,
+          _fromCache: true
+        })
+      }
       throw error
+    })
+  },
+
+  /**
+   * 后台静默刷新 profile（仅比对 updatedAt，不碰 AUTH_CORE_KEY）
+   *
+   * 当本地两个 key 缓存均有效时，异步向服务端确认 profile 是否变化。
+   * 发现变化时更新内存和 PROFILE_CACHE_KEY；AUTH_CORE_KEY 不受影响。
+   * 静默失败，不影响主流程。
+   */
+  _refreshProfileSilently() {
+    const now = Date.now()
+
+    // 节流：30 秒内不重复请求（登录后多次命中缓存的场景）
+    if (this._silentRefreshAt && now - this._silentRefreshAt < 30000) {
+      console.log('后台静默刷新跳过：30 秒内不重复请求')
+      return
+    }
+    // 去重：已有请求在飞行中，跳过
+    if (this._silentRefreshPromise) {
+      console.log('后台静默刷新跳过：已有请求在飞行中')
+      return
+    }
+
+    const profileCached = readStorage(PROFILE_CACHE_KEY)
+    const cachedUpdatedAt = profileCached ? profileCached.updatedAt : null
+    if (!cachedUpdatedAt) {
+      return
+    }
+
+    this._silentRefreshAt = now
+    this._silentRefreshPromise = this.callOfficeAuth('checkRegistration', {
+      cachedUpdatedAt: cachedUpdatedAt
+    }).then((data) => {
+      if (data.profileNotModified) {
+        console.log('后台静默刷新：profile 未变化')
+        return
+      }
+      // profile 有变化，更新内存和缓存（不碰 AUTH_CORE_KEY）
+      if (data.user) {
+        this.globalData.userProfile = data.user
+        this.globalData._profileUpdatedAt = data.updatedAt || null
+        writeStorage(PROFILE_CACHE_KEY, {
+          data: data.user,
+          updatedAt: this.globalData._profileUpdatedAt
+        })
+        console.log('后台静默刷新：profile有变化，已更新')
+      }
+    }).catch(() => {
+      // 静默失败，重置时间戳允许下次重试
+      this._silentRefreshAt = 0
+    }).then(() => {
+      this._silentRefreshPromise = null
     })
   },
 
@@ -433,9 +592,7 @@ App({
       this.setAuthState({
         hasLogin: false,
         openid: data.openid || this.globalData.openid,
-        userProfile: null,
-        registrationRequest: data.request || null,
-        authStatus: data.authStatus || 'pending'
+        userProfile: null
       })
       return data
     })
@@ -600,12 +757,12 @@ App({
 
   // ========== 权限管理相关方法 ==========
 
-    /**
-   * 功能：直接调用云函数检查用户是否有指定功能的访问权限
-   * 注意：该函数不应为外部调用。外部检查权限应统一调用navigateWithPermission()方法
-   * @param {string} featureKey - 功能标识，如 'medical_application'
-   * @returns {Promise<boolean>} 是否有权限
-   */
+  /**
+ * 功能：直接调用云函数检查用户是否有指定功能的访问权限
+ * 注意：该函数不应为外部调用。外部检查权限应统一调用navigateWithPermission()方法
+ * @param {string} featureKey - 功能标识，如 'medical_application'
+ * @returns {Promise<boolean>} 是否有权限
+ */
   checkPermission(featureKey) {
     return wx.cloud.callFunction({
       name: 'permissionManager',
@@ -764,7 +921,7 @@ App({
         })
         return true
       }
-    } catch (e) {}
+    } catch (e) { }
     return false
   },
 
@@ -788,7 +945,7 @@ App({
         })
         return true
       }
-    } catch (e) {}
+    } catch (e) { }
     return false
   },
 
@@ -903,12 +1060,6 @@ App({
   restoreConstantsCache() {
     const cached = readStorage(CONSTANTS_CACHE_KEY)
     if (!cached || !cached.version) {
-      return null
-    }
-
-    // 检查版本号是否匹配
-    if (cached.version !== config.CACHE_VERSION) {
-      removeStorage(CONSTANTS_CACHE_KEY)
       return null
     }
 
@@ -1113,6 +1264,6 @@ App({
    * 清除用户信息缓存
    */
   clearUserInfoCache() {
-    removeStorage(USER_INFO_CACHE_KEY)
+    removeStorage(USER_INFO_CACHE_KEY)   // 仅清废弃旧 key（过渡期兼容）
   }
 })
