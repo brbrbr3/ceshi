@@ -1,3 +1,18 @@
+// ========== 生产环境日志拦截 ==========
+// 非开发环境下屏蔽 console.log 和 console.warn，保留 console.error 用于线上排查
+;(function () {
+  try {
+    const accountInfo = wx.getAccountInfoSync()
+    const envVersion = accountInfo.miniProgram.envVersion
+    if (envVersion !== 'develop') {
+      console.log = function () {}
+      console.warn = function () {}
+    }
+  } catch (e) {
+    // 获取环境信息失败时不拦截，避免影响正常开发
+  }
+})()
+
 const config = require('./config')
 const themeListeners = []
 const AUTH_CORE_KEY = 'app-auth-core'
@@ -99,8 +114,6 @@ const FONT_TOKENS = {
   99: 99,
   100: 100
 }
-
-global.isDemo = true
 
 function getDefaultAuthState() {
   return {
@@ -273,7 +286,6 @@ App({
   globalData: Object.assign({
     theme: wx.getWindowInfo().theme || 'light',
     platform: wx.getDeviceInfo().platform || 'unknown',
-    iconTabbar: '/page/weui/example/images/icon_tabbar.png',
     targetApprovalTab: null, // 目标审批tab（用于消息跳转：'pending'=待审批, 'mine'=我的发起）
     constantsCache: null, // 常量缓存
     permissionCache: null, // 权限缓存

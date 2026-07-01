@@ -44,7 +44,7 @@
   ],
   "window": {
     "navigationBarTextStyle": "black",
-    "navigationBarTitleText": "Embaixada da China",
+    "navigationBarTitleText": "报备助手",
     "navigationBarBackgroundColor": "#EEF2FF",
     "backgroundColor": "#EEF2FF"
   },
@@ -80,29 +80,17 @@
     "uploadFile": 10000,
     "downloadFile": 10000
   },
-  "workers": "workers",
   "debug": false,
   "style": "v2",
-  "permission": {
-    "scope.userLocation": {
-      "desc": "你的位置信息将用于小程序位置接口的效果展示"
-    }
-  },
   "cloud": true,
   "sitemapLocation": "sitemap.json",
-  "themeLocation": "demo.theme.json",
+  "themeLocation": "theme.json",
   "darkmode": false,
   "resizable": false,
   "useExtendedLib": {
     "weui": true
   },
   "frameset": true,
-  "requiredBackgroundModes": [
-    "audio",
-    "location"
-  ],
-  "embeddedAppIdList": [
-    "wxfdcee92a299bcaf1"
-  ],
+  "__usePrivacyCheck__": true,
   "lazyCodeLoading": "requiredComponents"
 }

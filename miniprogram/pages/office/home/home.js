@@ -7,7 +7,7 @@ const formatTime = (timestamp) => utils.formatRelativeTime(timestamp)
 Page({
   data: {
     displayName: '访客',
-    greetingText: '欢迎使用Embaixada办公系统',
+    greetingText: '欢迎使用报备助手',
     currentDateText: '',
     todayTypeText: '今天是工作日', // 动态显示日期类型
     roleLabel: '待认证用户',
