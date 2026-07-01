@@ -1,0 +1,305 @@
+/* 报备配置页 */
+.report-config-page {
+  min-height: 100vh;
+}
+
+.report-config-loading {
+  padding: 80rpx 0;
+  text-align: center;
+}
+
+.report-config-loading-text {
+  color: #9CA3AF;
+  font-size: var(--fs-28);
+}
+
+/* 分组标题 */
+.report-section-title {
+  font-size: var(--fs-34);
+  font-weight: 600;
+  color: #374151;
+  padding: 8rpx 8rpx 16rpx;
+  margin-top: 16rpx;
+}
+
+.report-section-title:first-of-type {
+  margin-top: 0;
+}
+
+/* 卡片分组 */
+.report-group {
+  margin-bottom: 24rpx;
+}
+
+.report-group-card {
+  padding: 0 !important;
+  overflow: hidden;
+}
+
+.report-group-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 24rpx 32rpx;
+  border-bottom: 1rpx solid #F3F4F6;
+}
+
+.report-group-name {
+  font-size: var(--fs-30);
+  font-weight: 600;
+  color: #1F2937;
+}
+
+.report-group-count {
+  font-size: var(--fs-24);
+  color: #6B7280;
+  background: #F3F4F6;
+  padding: 4rpx 16rpx;
+  border-radius: 20rpx;
+}
+
+.report-group-empty {
+  padding: 24rpx 32rpx;
+  font-size: var(--fs-26);
+  color: #9CA3AF;
+}
+
+/* 用户列表 */
+.report-user-list {
+  padding: 0 32rpx;
+}
+
+.report-user-item {
+  display: flex;
+  align-items: center;
+  padding: 20rpx 0;
+  border-bottom: 1rpx solid #F9FAFB;
+}
+
+.report-user-item:last-child {
+  border-bottom: none;
+}
+
+.report-user-avatar {
+  width: 64rpx;
+  height: 64rpx;
+  border-radius: 50%;
+  background: linear-gradient(135deg, #667EEA, #764BA2);
+  color: #FFFFFF;
+  font-size: var(--fs-26);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  margin-right: 20rpx;
+  flex-shrink: 0;
+}
+
+.report-user-info {
+  flex: 1;
+}
+
+.report-user-name {
+  font-size: var(--fs-28);
+  color: #1F2937;
+  font-weight: 500;
+}
+
+.report-user-role {
+  font-size: var(--fs-24);
+  color: #6B7280;
+  margin-top: 4rpx;
+}
+
+.report-user-remove {
+  font-size: var(--fs-24);
+  color: #DC2626;
+  padding: 8rpx 20rpx;
+  border: 1rpx solid #FCA5A5;
+  border-radius: 8rpx;
+  flex-shrink: 0;
+}
+
+/* 添加按钮 */
+.report-group-add {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 24rpx 32rpx;
+  border-top: 1rpx solid #F3F4F6;
+}
+
+.report-group-add-icon {
+  width: 40rpx;
+  height: 40rpx;
+  border-radius: 50%;
+  background: #EFF6FF;
+  color: #2563EB;
+  font-size: var(--fs-30);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  margin-right: 12rpx;
+}
+
+.report-group-add-text {
+  font-size: var(--fs-28);
+  color: #2563EB;
+}
+
+/* 弹窗 */
+.report-add-mask {
+  position: fixed;
+  top: 0;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  background: rgba(0, 0, 0, 0.5);
+  z-index: 100;
+  animation: fadeIn 0.2s ease;
+}
+
+.report-add-mask.is-hidden {
+  display: none;
+}
+
+.report-add-mask.is-closing {
+  animation: fadeOut 0.25s ease forwards;
+}
+
+.report-add-container {
+  position: absolute;
+  bottom: 0;
+  left: 0;
+  right: 0;
+  background: #FFFFFF;
+  border-radius: 24rpx 24rpx 0 0;
+  height: 70vh;
+  display: flex;
+  flex-direction: column;
+  animation: slideUp 0.3s cubic-bezier(0.25, 0.1, 0.25, 1);
+}
+
+.is-closing .report-add-container {
+  animation: slideDown 0.25s cubic-bezier(0.25, 0.1, 0.25, 1) forwards;
+}
+
+.report-add-title {
+  font-size: var(--fs-32);
+  font-weight: 600;
+  color: #1F2937;
+  padding: 32rpx 32rpx 16rpx;
+  text-align: center;
+}
+
+.report-add-search {
+  padding: 0 32rpx 16rpx;
+}
+
+.report-add-search-input {
+  display: block;
+  width: 100%;
+  box-sizing: border-box;
+  background: #F3F4F6;
+  border-radius: 16rpx;
+  padding: 16rpx 24rpx;
+  font-size: var(--fs-28);
+  height: 60rpx;
+  line-height: 60rpx;
+}
+
+.report-add-list {
+  flex: 1;
+  overflow-y: auto;
+  padding: 0 32rpx 32rpx;
+}
+
+.report-add-item {
+  display: flex;
+  align-items: center;
+  padding: 16rpx 0;
+  border-bottom: 1rpx solid #F9FAFB;
+}
+
+.report-add-item-avatar {
+  width: 56rpx;
+  height: 56rpx;
+  border-radius: 50%;
+  background: linear-gradient(135deg, #667EEA, #764BA2);
+  color: #FFFFFF;
+  font-size: var(--fs-22);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  margin-right: 16rpx;
+  flex-shrink: 0;
+}
+
+.report-add-item-info {
+  flex: 1;
+}
+
+.report-add-item-name {
+  font-size: var(--fs-28);
+  color: #1F2937;
+}
+
+.report-add-item-detail {
+  font-size: var(--fs-24);
+  color: #6B7280;
+}
+
+.report-add-item-btn {
+  font-size: var(--fs-24);
+  color: #2563EB;
+  background: #EFF6FF;
+  padding: 8rpx 24rpx;
+  border-radius: 8rpx;
+}
+
+.report-add-empty {
+  text-align: center;
+  padding: 40rpx 0;
+  color: #9CA3AF;
+  font-size: var(--fs-26);
+}
+
+/* 动画 */
+@keyframes fadeIn {
+  from {
+    opacity: 0;
+  }
+
+  to {
+    opacity: 1;
+  }
+}
+
+@keyframes fadeOut {
+  from {
+    opacity: 1;
+  }
+
+  to {
+    opacity: 0;
+  }
+}
+
+@keyframes slideUp {
+  from {
+    transform: translateY(100%);
+  }
+
+  to {
+    transform: translateY(0);
+  }
+}
+
+@keyframes slideDown {
+  from {
+    transform: translateY(0);
+  }
+
+  to {
+    transform: translateY(100%);
+  }
+}

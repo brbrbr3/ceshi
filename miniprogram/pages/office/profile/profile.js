@@ -217,8 +217,15 @@ Page({
       }
       const statusInfo = STATUS_MAP[userStatus] || STATUS_MAP.offline
 
-
-
+      // 根据 isAdmin 动态构造系统设置菜单（报备配置仅管理员可见）
+      const systemItems = [{ icon: 'Aa', label: '字体大小' }]
+      if (user.isAdmin) {
+        systemItems.push({ icon: '⚙️', label: '报备配置' })
+      }
+      const menuGroups = [
+        { title: '系统设置', items: systemItems },
+        this.data.menuGroups[1]
+      ]
 
       this.setData({
         userName: user.nickName || user.name,
@@ -230,7 +237,8 @@ Page({
         isAdmin: !!user.isAdmin,
         userAvatarUrl: user.avatarUrl || '',
 
-        companyInfo
+        companyInfo,
+        menuGroups
       })
     } catch (error) {
       utils.showToast({
@@ -356,6 +364,10 @@ Page({
         url: '/pages/office/help/help'
       })
     } else if (label === '字体大小') {
+    } else if (label === '报备配置') {
+      wx.navigateTo({
+        url: '/pages/office/report-config/report-config'
+      })
     } else if (label === '岗位配置') {
       app.navigateWithPermission('manage_positions', '/pages/office/position-config/position-config', '岗位配置')
     } else {

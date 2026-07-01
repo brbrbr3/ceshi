@@ -502,6 +502,13 @@ const PERMISSION_CONFIGS = [
     description: '管理岗位人员分配（添加/移除岗位人员）',
     enabledRoles: ['馆领导'],
     requireAdmin: false
+  },
+  {
+    featureKey: 'report_notifier_manage',
+    featureName: '报备配置',
+    description: '配置片长与馆领导报备人（管理员专用）',
+    enabledRoles: [],
+    requireAdmin: true
   }
 ]
 

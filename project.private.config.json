@@ -23,11 +23,18 @@
     "miniprogram": {
       "list": [
         {
-          "name": "pages/auth/register/register",
-          "pathName": "pages/auth/register/register",
+          "name": "pages/office/position-config/position-config",
+          "pathName": "pages/office/position-config/position-config",
           "query": "",
           "scene": null,
           "launchMode": "default"
+        },
+        {
+          "name": "pages/auth/register/register",
+          "pathName": "pages/auth/register/register",
+          "query": "",
+          "launchMode": "default",
+          "scene": null
         },
         {
           "name": "pages/office/leave/leave",

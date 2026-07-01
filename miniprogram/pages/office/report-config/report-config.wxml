@@ -1,0 +1,110 @@
+<view class="office-page report-config-page" style="{{fontStyle}}">
+  <view class="office-gradient-header office-subpage-header">
+    <view class="office-subpage-header-content">
+      <view class="office-subpage-title">报备配置</view>
+      <view class="office-subpage-subtitle">设置各居住区片长、馆领导报备人</view>
+    </view>
+  </view>
+
+  <view class="office-content">
+    <view wx:if="{{loading}}" class="report-config-loading">
+      <view class="report-config-loading-text">加载中...</view>
+    </view>
+
+    <view wx:else>
+      <!-- 第一组：片长设置 -->
+      <view class="report-section-title">片长设置</view>
+      <view wx:if="{{areaManagerGroups.length === 0}}" class="office-card office-empty">
+        <view>暂无居住区域数据</view>
+      </view>
+      <view wx:else>
+        <view class="report-group" wx:for="{{areaManagerGroups}}" wx:key="area">
+          <view class="office-card report-group-card">
+            <view class="report-group-header">
+              <view class="report-group-name">{{item.area}}</view>
+              <view class="report-group-count">{{item.managers.length}} 人</view>
+            </view>
+
+            <view wx:if="{{item.managers.length > 0}}" class="report-user-list">
+              <view class="report-user-item" wx:for="{{item.managers}}" wx:for-item="user" wx:key="openid">
+                <view class="report-user-avatar">{{user.avatarText}}</view>
+                <view class="report-user-info">
+                  <view class="report-user-name">{{user.name}}</view>
+                  <view class="report-user-role">{{user.role}}{{user.department ? ' · ' + user.department : ''}}</view>
+                </view>
+                <view class="report-user-remove" catchtap="handleRemoveAreaManager" data-openid="{{user.openid}}" data-area="{{item.area}}">移除</view>
+              </view>
+            </view>
+
+            <view wx:else class="report-group-empty">暂无片长</view>
+
+            <view class="report-group-add" bindtap="handleShowAddAreaManager" data-area="{{item.area}}">
+              <view class="report-group-add-icon">+</view>
+              <view class="report-group-add-text">添加片长</view>
+            </view>
+          </view>
+        </view>
+      </view>
+
+      <!-- 第二组：馆领导报备人设置 -->
+      <view class="report-section-title">馆领导报备人设置</view>
+      <view wx:if="{{leaderNotifierGroups.length === 0}}" class="office-card office-empty">
+        <view>暂无馆领导用户</view>
+      </view>
+      <view wx:else>
+        <view class="report-group" wx:for="{{leaderNotifierGroups}}" wx:key="leader.openid">
+          <view class="office-card report-group-card">
+            <view class="report-group-header">
+              <view class="report-group-name">{{item.leader.name}}</view>
+              <view class="report-group-count">{{item.notifiers.length}} 人</view>
+            </view>
+
+            <view wx:if="{{item.notifiers.length > 0}}" class="report-user-list">
+              <view class="report-user-item" wx:for="{{item.notifiers}}" wx:for-item="user" wx:key="openid">
+                <view class="report-user-avatar">{{user.avatarText}}</view>
+                <view class="report-user-info">
+                  <view class="report-user-name">{{user.name}}</view>
+                  <view class="report-user-role">{{user.role}}{{user.department ? ' · ' + user.department : ''}}</view>
+                </view>
+                <view class="report-user-remove" catchtap="handleRemoveLeaderNotifier" data-leader-openid="{{item.leader.openid}}" data-openid="{{user.openid}}">移除</view>
+              </view>
+            </view>
+
+            <view wx:else class="report-group-empty">暂无报备人</view>
+
+            <view class="report-group-add" bindtap="handleShowAddLeaderNotifier" data-leader-openid="{{item.leader.openid}}" data-leader-name="{{item.leader.name}}">
+              <view class="report-group-add-icon">+</view>
+              <view class="report-group-add-text">添加报备人</view>
+            </view>
+          </view>
+        </view>
+      </view>
+    </view>
+  </view>
+
+  <!-- 添加人员弹窗 -->
+  <view class="report-add-mask {{showAddUser ? '' : 'is-hidden'}} {{modalAnimating ? 'is-closing' : ''}}" catchtap="handleCloseAddUser">
+    <view class="report-add-container" catchtap="stopPropagation">
+      <view class="report-add-title">{{addTitle}}</view>
+
+      <view class="report-add-search">
+        <input class="report-add-search-input" value="{{searchKeyword}}" bindinput="handleSearchInput" placeholder="搜索姓名..." />
+      </view>
+
+      <view class="report-add-list">
+        <view class="report-add-item" wx:for="{{availableUsers}}" wx:key="openid" bindtap="handleConfirmAdd" data-openid="{{item.openid}}">
+          <view class="report-add-item-avatar">{{item.avatarText}}</view>
+          <view class="report-add-item-info">
+            <view class="report-add-item-name">{{item.name}}</view>
+            <view class="report-add-item-detail">{{item.role}}{{item.department ? ' · ' + item.department : ''}}</view>
+          </view>
+          <view class="report-add-item-btn">添加</view>
+        </view>
+
+        <view wx:if="{{availableUsers.length === 0}}" class="report-add-empty">
+          没有可添加的用户
+        </view>
+      </view>
+    </view>
+  </view>
+</view>

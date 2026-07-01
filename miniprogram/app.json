@@ -12,6 +12,7 @@
     "pages/office/profile/profile",
     "pages/office/profile/edit-profile/edit-profile",
     "pages/office/position-config/position-config",
+    "pages/office/report-config/report-config",
     "pages/office/notifications/notifications",
     "pages/office/menus/menus",
     "pages/office/menu-detail/menu-detail",

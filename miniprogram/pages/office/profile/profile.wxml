@@ -17,8 +17,8 @@
         <view class="profile-name">{{userName}}</view>
         <view class="profile-role">{{roleLabel}}</view>
         <view class="profile-tags">
-          <view class="profile-tag">{{primaryTag}}</view>
-          <view class="profile-tag is-light">{{secondaryTag}}</view>
+          <!-- <view class="profile-tag">{{primaryTag}}</view> -->
+          <view class="profile-tag">{{secondaryTag}}</view>
         </view>
       </view>
       <!-- <view class="profile-arrow">›</view> -->

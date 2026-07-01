@@ -224,6 +224,9 @@ async function handleDepart(openid, params) {
     console.warn('更新用户外出状态失败:', e)
   }
 
+  // 推送外出报备通知给片长/部门负责人/馆领导报备人
+  await notifyReportSubscribers(openid, currentUser, result._id, 'depart', { destination })
+
   return success({
     _id: result._id,
     ...tripData,
@@ -273,15 +276,22 @@ async function handleReturn(openid, params) {
   })
 
   // 返回报备成功，将用户状态设为 online
+  let reporterUser = null
   try {
     const userRes = await usersCollection.where({ openid }).limit(1).get()
     if (userRes.data && userRes.data.length > 0) {
-      await usersCollection.doc(userRes.data[0]._id).update({
+      reporterUser = userRes.data[0]
+      await usersCollection.doc(reporterUser._id).update({
         data: { userStatus: 'online', updatedAt: now }
       })
     }
   } catch (e) {
     console.warn('更新用户在线状态失败:', e)
+  }
+
+  // 推送返回报备通知给片长/部门负责人/馆领导报备人
+  if (reporterUser) {
+    await notifyReportSubscribers(openid, reporterUser, tripId, 'return', { destination: tripRes.data.destination })
   }
 
   return success({
@@ -633,4 +643,88 @@ async function getHistory(openid) {
   )].slice(0, 3)
 
   return success({ destinations, companions })
+}
+
+/**
+ * 报备通知：根据报备人身份推送站内通知
+ * - 馆领导：仅通知其设置的报备人（reportNotifiers），不通知片长/部门负责人
+ * - 非馆领导：通知其居住区域片长 + 同部门部门负责人（若报备人本人即部门负责人则不通知部门负责人）
+ * 通知对象按 openid 去重，并排除报备人本人。通知写入 notifications 集合。
+ * @param {string} reporterOpenid 报备人 openid
+ * @param {object} reporter 报备人完整用户文档（含 role/livingArea/department/isDepartmentHead/reportNotifiers）
+ * @param {string} tripId 出行记录 ID
+ * @param {'depart'|'return'} action 报备类型
+ * @param {object} extra 附加信息（destination 等）
+ */
+async function notifyReportSubscribers(reporterOpenid, reporter, tripId, action, extra) {
+  const now = Date.now()
+  const reporterName = reporter ? reporter.name : '未知用户'
+  const isLeader = reporter && reporter.role === '馆领导'
+  const destination = (extra && extra.destination) || ''
+
+  const title = action === 'depart' ? '外出报备通知' : '返回报备通知'
+  const actionText = action === 'depart' ? '外出报备' : '已返回'
+  let content = `${reporterName} 提交了${actionText}报备`
+  if (destination) {
+    content += `，目的地：${destination}`
+  }
+
+  const notifierOpenids = new Set()
+
+  try {
+    if (isLeader) {
+      // 馆领导：仅通知其设置的报备人
+      const notifiers = reporter && Array.isArray(reporter.reportNotifiers) ? reporter.reportNotifiers : []
+      notifiers.forEach(o => {
+        if (o) notifierOpenids.add(o)
+      })
+    } else {
+      // 非馆领导：通知居住区域片长
+      if (reporter && reporter.livingArea) {
+        const managerRes = await usersCollection
+          .where({ status: 'approved', areaManagerOf: reporter.livingArea })
+          .field({ openid: true })
+          .limit(100)
+          .get()
+        ;(managerRes.data || []).forEach(u => {
+          if (u.openid) notifierOpenids.add(u.openid)
+        })
+      }
+
+      // 通知部门负责人（报备人本人即部门负责人时不通知）
+      if (reporter && !reporter.isDepartmentHead && reporter.department) {
+        const deptHeadRes = await usersCollection
+          .where({ status: 'approved', department: reporter.department, isDepartmentHead: true })
+          .field({ openid: true })
+          .limit(50)
+          .get()
+        ;(deptHeadRes.data || []).forEach(u => {
+          if (u.openid) notifierOpenids.add(u.openid)
+        })
+      }
+    }
+  } catch (e) {
+    console.warn('查询报备通知对象失败:', e)
+  }
+
+  // 排除报备人本人
+  notifierOpenids.delete(reporterOpenid)
+
+  for (const targetOpenid of notifierOpenids) {
+    try {
+      await notificationsCollection.add({
+        data: {
+          openid: targetOpenid,
+          type: action === 'depart' ? 'trip_depart' : 'trip_return',
+          title,
+          content,
+          relatedId: tripId,
+          read: false,
+          createdAt: now
+        }
+      })
+    } catch (e) {
+      console.warn('写入报备通知失败:', e)
+    }
+  }
 }
