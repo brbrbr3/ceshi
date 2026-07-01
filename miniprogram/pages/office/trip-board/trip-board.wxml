@@ -1,0 +1,139 @@
+<view class="board-page" style="{{fontStyle}}">
+  <!-- 第一组：统计图表（占位） -->
+  <view class="board-chart-section">
+    <view class="board-chart-title">统计图表</view>
+    <view class="board-chart-placeholder">
+      <text class="board-chart-placeholder-text">图表功能即将上线</text>
+    </view>
+  </view>
+
+  <!-- 第二组：人员列表 -->
+  <!-- 吸顶区域：折叠面板 + 分组维度切换 -->
+  <view class="board-sticky-header">
+    <!-- 折叠面板：▶当前外出人员信息 共X人-->
+    <view class="board-dropdown" bindtap="handleTogglePersonType">
+      <text class="board-dropdown-arrow {{showPersonTypeMenu ? 'is-open' : ''}}">▶</text>
+      <view class="board-dropdown-label">
+        <text class="board-dropdown-title">{{personType === 'active' ? '当前外出中人员' : '全体人员'}}</text>
+        <text class="board-dropdown-count">共{{personType === 'active' ? activeCount : allCount}}人</text>
+      </view>
+    </view>
+    <!-- 下拉菜单 -->
+    <view wx:if="{{showPersonTypeMenu}}" class="board-dropdown-menu">
+      <view class="board-dropdown-menu-item {{personType === 'active' ? 'is-active' : ''}}" data-type="active" bindtap="handleSelectPersonType">
+        <text>当前外出中人员</text>
+        <text class="board-dropdown-menu-count">共{{activeCount}}人</text>
+      </view>
+      <view class="board-dropdown-menu-item {{personType === 'all' ? 'is-active' : ''}}" data-type="all" bindtap="handleSelectPersonType">
+        <text>全体人员</text>
+        <text class="board-dropdown-menu-count">共{{allCount}}人</text>
+      </view>
+    </view>
+
+    <!-- 分组维度切换 -->
+    <view class="board-group-toggle" bindtap="handleToggleGroupBy">
+      <text class="board-group-arrow {{showGroupByMenu ? 'is-open' : ''}}">▶</text>
+      <text>{{groupBy === 'department' ? '按部门展示' : '按居住区域展示'}}</text>
+    </view>
+    <view wx:if="{{showGroupByMenu}}" class="board-dropdown-menu board-dropdown-menu--group">
+      <view class="board-dropdown-menu-item {{groupBy === 'department' ? 'is-active' : ''}}" data-group="department" bindtap="handleSelectGroupBy">按部门展示</view>
+      <view class="board-dropdown-menu-item {{groupBy === 'livingArea' ? 'is-active' : ''}}" data-group="livingArea" bindtap="handleSelectGroupBy">按居住区域展示</view>
+    </view>
+  </view>
+
+  <!-- 分组列表 -->
+  <view class="board-groups">
+    <!-- 加载中 -->
+    <view wx:if="{{loading && groups.length === 0}}" class="board-loading">
+      <text>加载中...</text>
+    </view>
+
+    <!-- 空状态 -->
+    <view wx:if="{{!loading && groups.length === 0}}" class="board-empty">
+      <text class="board-empty-icon">📋</text>
+      <text class="board-empty-text">暂无数据</text>
+    </view>
+
+    <!-- 分组 -->
+    <view wx:for="{{groups}}" wx:key="groupName" class="board-group">
+      <view class="board-group-title">
+        <text>{{item.groupName}}</text>
+        <text class="board-group-count">{{item.items.length}}人</text>
+      </view>
+      <view class="board-group-items">
+        <view wx:for="{{item.items}}" wx:for-item="trip" wx:key="_id" class="board-item" data-openid="{{trip._openid}}" data-name="{{trip.userName}}" bindtap="handleItemTap">
+          <view class="board-item-avatar" style="background: {{trip.avatarColor}};">{{trip.avatarText}}</view>
+          <view class="board-item-main">
+            <view class="board-item-name-row">
+              <text class="board-item-name">{{trip.userName}}</text>
+              <view class="board-item-status" style="background: {{trip.statusBg}}; color: {{trip.statusColor}};">{{trip.statusText}}</view>
+            </view>
+            <view wx:if="{{trip.hasTrip}}" class="board-item-info">
+              <text class="board-item-dest">{{trip.destination}}</text>
+              <text class="board-item-time">{{trip.departTimeStr}}出发</text>
+            </view>
+            <view wx:else class="board-item-info board-item-info--none">
+              <text>当前未外出</text>
+            </view>
+          </view>
+          <!-- <view wx:if="{{trip.hasTrip}}" class="board-item-arrow">›</view> -->
+        </view>
+      </view>
+    </view>
+  </view>
+
+  <!-- 底部弹窗：个人全部外出记录 -->
+  <view wx:if="{{showPersonPopup}}" class="person-popup-mask {{modalAnimating ? 'is-closing' : ''}}" catchtap="hidePersonPopup">
+    <view class="person-popup-container" catchtap="stopPropagation">
+      <view class="person-popup-header">
+        <view class="person-popup-title">{{personPopupData.name}}的全部出行记录</view>
+        <view class="person-popup-subtitle">共{{personPopupData.total}}条记录</view>
+        <view class="person-popup-close" catchtap="hidePersonPopup">✕</view>
+      </view>
+      <scroll-view scroll-y class="person-popup-body" bindscrolltolower="handlePopupScrollToLower" lower-threshold="50">
+        <view wx:if="{{personPopupLoading}}" class="person-popup-loading">
+          <text>加载中...</text>
+        </view>
+
+        <view wx:if="{{!personPopupLoading && personPopupData.groups.length === 0}}" class="person-popup-empty">
+          <text>暂无出行记录</text>
+        </view>
+
+        <view wx:for="{{personPopupData.groups}}" wx:key="month" class="person-popup-group">
+          <view class="person-popup-group-title">{{item.month}}</view>
+          <view wx:for="{{item.items}}" wx:for-item="record" wx:key="_id" class="person-popup-record">
+            <view class="person-popup-record-header">
+              <text class="person-popup-record-dest">{{record.destination}}</text>
+              <view class="person-popup-record-status" style="background: {{record.statusBg}}; color: {{record.statusColor}};">{{record.statusText}}</view>
+            </view>
+            <view class="person-popup-record-row">
+              <text class="person-popup-record-label">出发</text>
+              <text class="person-popup-record-value">{{record.departTimeStr}}</text>
+            </view>
+            <view class="person-popup-record-row">
+              <text class="person-popup-record-label">返回</text>
+              <text class="person-popup-record-value">{{record.returnTimeStr}}</text>
+            </view>
+            <view wx:if="{{record.travelMode}}" class="person-popup-record-row">
+              <text class="person-popup-record-label">方式</text>
+              <text class="person-popup-record-value">{{record.travelMode}}</text>
+            </view>
+            <view wx:if="{{record.companions}}" class="person-popup-record-row">
+              <text class="person-popup-record-label">同行人</text>
+              <text class="person-popup-record-value">{{record.companions}}</text>
+            </view>
+          </view>
+        </view>
+
+        <!-- 分页加载状态 -->
+        <view class="pagination-loading" wx:if="{{popupLoadingMore}}">
+          <view class="loading-spinner"></view>
+          <text class="loading-text">加载中...</text>
+        </view>
+        <view class="pagination-no-more" wx:elif="{{!popupHasMore && personPopupData.groups.length > 0}}">
+          <text class="no-more-text">没有更多数据了</text>
+        </view>
+      </scroll-view>
+    </view>
+  </view>
+</view>

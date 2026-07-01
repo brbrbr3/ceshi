@@ -4,5 +4,6 @@
   },
   "navigationBarTitleText": "外出报备",
   "enablePullDownRefresh": false,
-  "onReachBottomDistance": 50
+  "onReachBottomDistance": 50,
+  "navigationBarBackgroundColor": "#FFFFFF"
 }

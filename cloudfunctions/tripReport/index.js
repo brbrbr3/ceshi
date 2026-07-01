@@ -35,6 +35,8 @@ function fail(message, code) {
  * - getStatistics: 获取统计数据（Dashboard用）
  * - checkOvertime: 检查超时并发送通知
  * - getHistory: 获取历史记录（目的地和同行人）
+ * - getBoardData: 获取出行数据板分组数据（新数据板用）
+ * - getPersonTrips: 获取某人员全部出行记录（按年月分组）
  */
 exports.main = async (event, context) => {
   const { action, params } = event
@@ -61,6 +63,10 @@ exports.main = async (event, context) => {
         return await checkOvertime()
       case 'getHistory':
         return await getHistory(openid)
+      case 'getBoardData':
+        return await getBoardData(openid, params)
+      case 'getPersonTrips':
+        return await getPersonTrips(openid, params)
       default:
         return fail('未知的操作类型', 400)
     }
@@ -727,4 +733,225 @@ async function notifyReportSubscribers(reporterOpenid, reporter, tripId, action,
       console.warn('写入报备通知失败:', e)
     }
   }
+}
+
+/**
+ * 获取出行数据板分组数据（新数据板用）
+ * 按权限范围过滤，按 groupBy 分组，返回人员出行条目
+ * @param {string} openid 当前用户 openid
+ * @param {object} params { groupBy: 'department'|'livingArea', personType: 'active'|'all' }
+ */
+async function getBoardData(openid, params) {
+  const { groupBy = 'department', personType = 'active' } = params
+
+  // 获取当前用户信息
+  const userRes = await usersCollection.where({ openid }).limit(1).get()
+  if (!userRes.data || userRes.data.length === 0) {
+    return fail('用户不存在', 403)
+  }
+  const currentUser = userRes.data[0]
+
+  const isLeader = currentUser.role === '馆领导'
+  const isAdmin = currentUser.isAdmin
+  const isDeptHead = currentUser.isDepartmentHead
+  const isAreaManager = Array.isArray(currentUser.areaManagerOf) && currentUser.areaManagerOf.length > 0
+
+  // 权限校验
+  if (!isAdmin && !isLeader && !isDeptHead && !isAreaManager) {
+    return fail('无权限访问出行数据板', 403)
+  }
+
+  // 计算可查看的用户范围
+  let userQuery = { status: 'approved' }
+  let scopeType = 'all'
+
+  if (isAdmin || (isLeader && !isDeptHead)) {
+    scopeType = 'all'
+  } else if (isLeader && isDeptHead) {
+    scopeType = 'department'
+    userQuery.department = currentUser.department
+  } else if (isAreaManager) {
+    scopeType = 'area'
+    userQuery.livingArea = _.in(currentUser.areaManagerOf)
+  } else if (isDeptHead) {
+    scopeType = 'department'
+    userQuery.department = currentUser.department
+  }
+
+  // 查询范围内的用户
+  const usersRes = await usersCollection
+    .where(userQuery)
+    .field({ openid: true, name: true, department: true, livingArea: true, role: true, isDepartmentHead: true })
+    .limit(500)
+    .get()
+  const users = usersRes.data || []
+
+  const userMap = {}
+  users.forEach(u => { userMap[u.openid] = u })
+  const allCount = users.length
+
+  // 查询范围内当前外出记录
+  const openids = Object.keys(userMap)
+  let activeTrips = []
+  if (openids.length > 0) {
+    const tripRes = await tripReportsCollection
+      .where({ _openid: _.in(openids), status: 'out' })
+      .orderBy('departAt', 'desc')
+      .limit(500)
+      .get()
+    activeTrips = tripRes.data || []
+  }
+  const activeCount = activeTrips.length
+
+  // 根据 personType 构建条目列表
+  let items = []
+  if (personType === 'active') {
+    items = activeTrips.map(t => ({ ...t, _user: userMap[t._openid] || {} }))
+  } else {
+    // 全体人员：以用户为主表，左关联当前外出记录
+    const activeMap = {}
+    activeTrips.forEach(t => { if (!activeMap[t._openid]) activeMap[t._openid] = t })
+    users.forEach(u => {
+      if (activeMap[u.openid]) {
+        items.push({ ...activeMap[u.openid], _user: u })
+      } else {
+        items.push({
+          _id: 'none_' + u.openid,
+          _openid: u.openid,
+          userName: u.name,
+          department: u.department || '',
+          destination: '',
+          travelMode: '',
+          departAt: null,
+          returnAt: null,
+          status: 'none',
+          companions: '',
+          _user: u
+        })
+      }
+    })
+  }
+
+  // 分组
+  const groups = {}
+  items.forEach(item => {
+    let groupKey = ''
+    if (groupBy === 'department') {
+      // 馆领导单独成组
+      if (item._user && item._user.role === '馆领导') {
+        groupKey = '馆领导'
+      } else {
+        groupKey = item.department || (item._user && item._user.department) || '未分配部门'
+      }
+    } else {
+      groupKey = (item._user && item._user.livingArea) || '未分配居住区'
+    }
+    if (!groups[groupKey]) groups[groupKey] = []
+    groups[groupKey].push(item)
+  })
+
+  // 转为数组并排序
+  let groupList = Object.entries(groups).map(([key, groupItems]) => ({
+    groupName: key,
+    items: groupItems
+  }))
+
+  if (groupBy === 'department') {
+    groupList.sort((a, b) => {
+      if (a.groupName === '馆领导') return -1
+      if (b.groupName === '馆领导') return 1
+      return a.groupName.localeCompare(b.groupName)
+    })
+  } else {
+    groupList.sort((a, b) => a.groupName.localeCompare(b.groupName))
+  }
+
+  const totalCount = personType === 'active' ? activeCount : allCount
+
+  return success({ groups: groupList, totalCount, activeCount, allCount, scopeType })
+}
+
+/**
+ * 获取某人员出行记录（分页）
+ * @param {string} openid 当前用户 openid
+ * @param {object} params { targetOpenid, page, pageSize }
+ */
+async function getPersonTrips(openid, params) {
+  const { targetOpenid, page = 1, pageSize = 20 } = params
+  if (!targetOpenid) {
+    return fail('缺少目标用户标识', 400)
+  }
+
+  // 获取当前用户信息
+  const currentUserRes = await usersCollection.where({ openid }).limit(1).get()
+  if (!currentUserRes.data || currentUserRes.data.length === 0) {
+    return fail('用户不存在', 403)
+  }
+  const currentUser = currentUserRes.data[0]
+
+  const isLeader = currentUser.role === '馆领导'
+  const isAdmin = currentUser.isAdmin
+  const isDeptHead = currentUser.isDepartmentHead
+  const isAreaManager = Array.isArray(currentUser.areaManagerOf) && currentUser.areaManagerOf.length > 0
+
+  if (!isAdmin && !isLeader && !isDeptHead && !isAreaManager) {
+    return fail('无权限查看', 403)
+  }
+
+  // 查目标用户
+  const targetUserRes = await usersCollection.where({ openid: targetOpenid }).limit(1).get()
+  if (!targetUserRes.data || targetUserRes.data.length === 0) {
+    return fail('目标用户不存在', 404)
+  }
+  const targetUser = targetUserRes.data[0]
+
+  // 校验目标用户在当前用户权限范围内
+  if (!isAdmin && !(isLeader && !isDeptHead)) {
+    if ((isLeader && isDeptHead) || isDeptHead) {
+      if (targetUser.department !== currentUser.department) {
+        return fail('无权查看该用户记录', 403)
+      }
+    } else if (isAreaManager) {
+      if (!currentUser.areaManagerOf.includes(targetUser.livingArea)) {
+        return fail('无权查看该用户记录', 403)
+      }
+    }
+  }
+
+  // 分页查询出行记录
+  const skip = (page - 1) * pageSize
+  const tripRes = await tripReportsCollection
+    .where({ _openid: targetOpenid })
+    .orderBy('departAt', 'desc')
+    .skip(skip)
+    .limit(pageSize)
+    .get()
+
+  const trips = tripRes.data || []
+
+  // 仅第一页时查询总数
+  let total = 0
+  if (page === 1) {
+    const countRes = await tripReportsCollection
+      .where({ _openid: targetOpenid })
+      .count()
+    total = countRes.total || 0
+  }
+
+  const hasMore = skip + trips.length < (total || (skip + trips.length))
+
+  return success({
+    user: page === 1 ? {
+      openid: targetUser.openid,
+      name: targetUser.name,
+      department: targetUser.department,
+      livingArea: targetUser.livingArea,
+      role: targetUser.role
+    } : null,
+    trips,
+    total,
+    page,
+    pageSize,
+    hasMore
+  })
 }

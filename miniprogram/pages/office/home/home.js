@@ -502,7 +502,7 @@ Page({
     } else if (label === '外出报备') {
       app.navigateWithPermission('trip_report', '/pages/office/trip-report/trip-report', '外出报备')
     } else if (label === '出行数据板') {
-      app.navigateWithPermission('trip_dashboard', '/pages/office/trip-dashboard/trip-dashboard', '出行数据板')
+      app.navigateWithPermission('trip_dashboard', '/pages/office/trip-dashboard/trip-dashboard', '出行数据板（完整版）')
     } else if (label === '会议室预约') {
       app.navigateWithPermission('meeting_room', '/pages/office/meeting-room/meeting-room', '会议室预约')
     } else if (label === '护照管理') {

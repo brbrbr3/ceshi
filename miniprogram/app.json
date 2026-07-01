@@ -8,6 +8,7 @@
     "pages/office/medical-application/medical-application",
     "pages/office/trip-report/trip-report",
     "pages/office/trip-dashboard/trip-dashboard",
+    "pages/office/trip-board/trip-board",
     "pages/office/contacts/contacts",
     "pages/office/profile/profile",
     "pages/office/profile/edit-profile/edit-profile",
@@ -61,7 +62,7 @@
         "selectedIconPath": "image/home1-s.png"
       },
       {
-        "pagePath": "pages/office/trip-dashboard/trip-dashboard",
+        "pagePath": "pages/office/trip-board/trip-board",
         "text": "出行数据板",
         "iconPath": "image/td1.png",
         "selectedIconPath": "image/td1-s.png"

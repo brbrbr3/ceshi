@@ -1,13 +1,11 @@
 <view class="trip-page" style="{{fontStyle}}">
   <!-- 渐变色头部（带圆角，类似home页） -->
-  <view class="office-gradient-header office-subpage-header">
+ <!--  <view class="office-gradient-header office-subpage-header">
     <view class="office-subpage-header-content">
       <view class="office-subpage-title">外出报备</view>
       <view class="office-subpage-subtitle">记录您的出行信息</view>
     </view>
-
-    
-  </view>
+  </view> -->
 <!-- 状态卡片（半透明玻璃效果，始终显示） -->
 <view class="trip-status-card {{activeTrip ? 'is-active' : 'is-idle'}}">
       <view class="trip-status-header">

@@ -2,7 +2,7 @@
   <view class="office-gradient-header office-subpage-header">
     <view class="office-subpage-header-content">
       <view class="office-subpage-title">报备配置</view>
-      <view class="office-subpage-subtitle">设置各居住区片长、馆领导报备人</view>
+      <view class="office-subpage-subtitle">配置各居住区片长、馆领导报备人</view>
     </view>
   </view>
 

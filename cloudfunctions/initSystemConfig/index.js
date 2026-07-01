@@ -456,7 +456,14 @@ const PERMISSION_CONFIGS = [
   {
     featureKey: 'trip_dashboard',
     featureName: '出行数据板',
-    description: '查看和管理出行记录',
+    description: '查看和管理出行记录（完整版，从首页菜单进入）',
+    enabledRoles: ['馆领导'],
+    requireAdmin: false
+  },
+  {
+    featureKey: 'trip_board',
+    featureName: '出行数据板',
+    description: '出行数据看板（新版tabBar，馆领导/部门负责人/片长可用）',
     enabledRoles: ['馆领导'],
     requireAdmin: false
   },
