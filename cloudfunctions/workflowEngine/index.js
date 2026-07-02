@@ -974,6 +974,9 @@ async function handleRejection(task, order, approverId, approverName, comment) {
 
     // 发送驳回通知给申请人（包含驳回人信息）
     await sendTaskCompletedNotification(order, 'rejected', comment, approverName)
+
+    // 发送注册结果订阅消息（模板1）给注册用户
+    await sendRegistrationResultSubscribeMessage(order, 'rejected')
   } catch (error) {
     // 如果工单状态更新失败，尝试修复
     console.error('handleRejection 错误:', error)
@@ -1258,6 +1261,10 @@ async function sendTaskAssignedNotification(tasks, order) {
   if (notifications.length > 0) {
     await sendBatchAppNotifications(notifications)
   }
+
+  // 发送待审批订阅消息（模板2）给审批人
+  const approverOpenids = notifications.map(n => n.openid)
+  await sendPendingApprovalSubscribeMessage(order, approverOpenids)
 }
 
 // 发送审批完成通知
@@ -1326,6 +1333,146 @@ async function sendOrderTerminatedNotification(order, reason) {
     orderType: order.orderType,
     reason: reason
   })
+}
+
+// ===================== 订阅消息（微信服务通知）=====================
+
+// 订阅消息模板ID
+const SUBSCRIBE_TEMPLATE = {
+  // 模板1：注册审批结果通知（推送给注册用户）
+  REGISTRATION_RESULT: 'fotJ5c43Hf4OEtR88Mx_bm2CaHKLR6mdrVp4Rz69MSU',
+  // 模板2：待审批通知（推送给审批管理员）
+  PENDING_APPROVAL: 'qKtP6ndBlIVWCCGLEHAmUfjiPdCiYJqx6TUWI9_-2x8'
+}
+
+/**
+ * 格式化时间为订阅消息所需格式 YYYY-MM-DD HH:mm
+ */
+function formatSubscribeTime(timestamp) {
+  const d = new Date(timestamp)
+  const pad = (n) => String(n).padStart(2, '0')
+  return `${d.getFullYear()}-${pad(d.getMonth() + 1)}-${pad(d.getDate())} ${pad(d.getHours())}:${pad(d.getMinutes())}`
+}
+
+/**
+ * 截断文本到指定长度（微信 thing 类型字段限制20字）
+ */
+function truncateText(text, maxLen) {
+  const len = maxLen || 20
+  if (!text) return ''
+  return text.length > len ? text.substring(0, len) : text
+}
+
+/**
+ * 消费一条订阅额度：查询并标记为 used
+ * @param {string} openid - 接收者 openid
+ * @param {string} templateId - 模板ID
+ * @returns {Promise<Object|null>} 匹配的订阅记录，无额度时返回 null
+ */
+async function consumeSubscriptionQuota(openid, templateId) {
+  const subscriptionsCollection = db.collection('subscriptions')
+  const res = await subscriptionsCollection
+    .where({ openid, templateId, status: 'subscribed' })
+    .orderBy('createdAt', 'asc')
+    .limit(1)
+    .get()
+
+  if (!res.data || res.data.length === 0) {
+    return null
+  }
+
+  const record = res.data[0]
+  await subscriptionsCollection.doc(record._id).update({
+    data: { status: 'used', usedAt: Date.now() }
+  })
+  return record
+}
+
+/**
+ * 发送注册审批结果订阅消息（模板1）给注册用户
+ * @param {Object} order - 工单对象
+ * @param {string} result - 'approved' 或 'rejected'
+ */
+async function sendRegistrationResultSubscribeMessage(order, result) {
+  // 仅处理注册申请工单
+  if (order.orderType !== 'user_registration') return
+
+  const applicantOpenid = order.businessData && order.businessData.applicantId
+  if (!applicantOpenid) return
+
+  const templateId = SUBSCRIBE_TEMPLATE.REGISTRATION_RESULT
+
+  try {
+    // 消费一条订阅额度
+    const quota = await consumeSubscriptionQuota(applicantOpenid, templateId)
+    if (!quota) {
+      console.log('注册用户无订阅额度，跳过发送订阅消息')
+      return
+    }
+
+    const applicantName = truncateText(order.businessData.applicantName || '用户')
+    const registerTime = formatSubscribeTime(order.submittedAt || order.createdAt || Date.now())
+    const tip = result === 'approved'
+      ? '您的注册申请已批准，请重新登录使用'
+      : '您的注册申请未通过，请修改后重新提交'
+
+    await cloud.openapi.subscribeMessage.send({
+      touser: applicantOpenid,
+      templateId: templateId,
+      page: 'pages/office/home/home',
+      data: {
+        thing1: { value: applicantName },
+        time2: { value: registerTime },
+        thing3: { value: truncateText(tip) }
+      }
+    })
+    console.log('注册审批结果订阅消息已发送:', applicantOpenid, result)
+  } catch (error) {
+    console.error('发送注册审批结果订阅消息失败:', error.message || error)
+  }
+}
+
+/**
+ * 发送待审批通知订阅消息（模板2）给审批人
+ * @param {Object} order - 工单对象
+ * @param {Array} approverOpenids - 审批人 openid 列表
+ */
+async function sendPendingApprovalSubscribeMessage(order, approverOpenids) {
+  // 仅处理注册申请工单
+  if (order.orderType !== 'user_registration') return
+  if (!approverOpenids || approverOpenids.length === 0) return
+
+  const templateId = SUBSCRIBE_TEMPLATE.PENDING_APPROVAL
+
+  for (const approverOpenid of approverOpenids) {
+    try {
+      // 消费一条订阅额度
+      const quota = await consumeSubscriptionQuota(approverOpenid, templateId)
+      if (!quota) {
+        continue
+      }
+
+      const applicantName = truncateText(order.businessData.applicantName || '申请人')
+      const applyTime = formatSubscribeTime(order.submittedAt || order.createdAt || Date.now())
+      const applyType = truncateText('新用户注册申请')
+      const remark = truncateText(order.businessData.applyReason || '请尽快审批')
+
+      await cloud.openapi.subscribeMessage.send({
+        touser: approverOpenid,
+        templateId: templateId,
+        page: 'pages/office/approval/approval',
+        data: {
+          name1: { value: applicantName },
+          time2: { value: applyTime },
+          thing10: { value: applyType },
+          thing6: { value: remark }
+        }
+      })
+      console.log('待审批通知订阅消息已发送:', approverOpenid)
+    } catch (error) {
+      console.error('发送待审批通知订阅消息失败:', approverOpenid, error.message || error)
+    }
+  }
 }
 
 // 自动中止工单（系统操作）
@@ -1731,6 +1878,11 @@ async function completeWorkflow(orderId, decision, approverId, approverName, com
 
   // 发送完成通知给申请人
   await sendWorkflowCompletedNotification(order, decision)
+
+  // 审批通过时发送注册结果订阅消息（模板1）给注册用户
+  if (decision === 'approved') {
+    await sendRegistrationResultSubscribeMessage(order, 'approved')
+  }
 }
 
 // 查询我的工单列表

@@ -228,7 +228,7 @@ page {
 .profile-company-name,
 .profile-menu-label {
   margin-left: 16rpx;
-  font-size: var(--fs-26);
+  font-size: var(--fs-28);
   color: #1E293B;
   font-weight: 600;
 }

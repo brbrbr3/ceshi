@@ -167,6 +167,10 @@
   margin-bottom: 24rpx;
 }
 
+.board-group:last-child {
+  padding-bottom: 100rpx;
+}
+
 .board-group-title {
   display: flex;
   align-items: center;

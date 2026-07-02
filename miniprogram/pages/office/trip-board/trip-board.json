@@ -1,7 +1,7 @@
 {
   "usingComponents": {},
   "navigationBarTitleText": "出行数据板",
-  "enablePullDownRefresh": false,
+  "enablePullDownRefresh": true,
   "onReachBottomDistance": 50,
   "navigationBarBackgroundColor": "#FFFFFF"
 }

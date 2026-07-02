@@ -193,7 +193,7 @@ page {
 }
 
 .home-greeting {
-  font-size: var(--fs-38);
+  font-size: var(--fs-36);
   font-weight: 600;
 }
 

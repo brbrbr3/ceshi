@@ -637,13 +637,14 @@ App({
       return Promise.resolve(false)
     }
 
+    const templateId = 'y1bXHAg_oDuvrQ3pHgcODcMPl-2hZHenWugsqdB2CXY'
     return wx.requestSubscribeMessage({
-      tmplIds: ['y1bXHAg_oDuvrQ3pHgcODcMPl-2hZHenWugsqdB2CXY']
+      tmplIds: [templateId]
     }).then((res) => {
-      const subscribed = res['y1bXHAg_oDuvrQ3pHgcODcMPl-2hZHenWugsqdB2CXY'] === 'accept'
+      const subscribed = res[templateId] === 'accept'
       if (subscribed) {
         setSubscribeRequested()
-        this.saveSubscriptionRecord()
+        this.saveSubscriptionRecord(templateId, 'general')
       }
       return subscribed
     }).catch(() => {
@@ -651,9 +652,9 @@ App({
     })
   },
 
-  saveSubscriptionRecord() {
+  saveSubscriptionRecord(templateId, type) {
     const openid = this.globalData.openid
-    if (!openid) {
+    if (!openid || !templateId) {
       return
     }
 
@@ -661,12 +662,115 @@ App({
     db.collection('subscriptions').add({
       data: {
         openid: openid,
-        templateId: 'y1bXHAg_oDuvrQ3pHgcODcMPl-2hZHenWugsqdB2CXY',
+        templateId: templateId,
+        type: type || 'general',
         createdAt: new Date(),
         status: 'subscribed'
       }
     }).catch(error => {
       // 静默失败
+    })
+  },
+
+  /**
+   * 请求注册审批结果订阅（模板1）
+   * 用户提交注册申请时调用，弹窗询问是否订阅
+   * @returns {Promise<boolean>}
+   */
+  requestRegistrationResultSubscribe() {
+    const templateId = config.SUBSCRIBE_TEMPLATES.REGISTRATION_RESULT
+    return wx.requestSubscribeMessage({
+      tmplIds: [templateId]
+    }).then((res) => {
+      const subscribed = res[templateId] === 'accept'
+      if (subscribed) {
+        this.saveSubscriptionRecord(templateId, 'registration_result')
+      }
+      return subscribed
+    }).catch(() => {
+      return false
+    })
+  },
+
+  /**
+   * 请求待审批通知订阅（模板2）- 智能订阅
+   * 管理员进入审批中心时调用，利用"总是保持以上选择"机制实现伪长期订阅
+   * - 用户已勾选"总是拒绝" → 跳过
+   * - 用户已勾选"总是接受" → 跳过引导，后续可在点击操作中顺带积累额度
+   * - 用户未做选择 → 弹 Modal 引导用户主动点击（Modal 确认按钮 = 用户手势，满足 requestSubscribeMessage 的 TAP gesture 要求）
+   */
+  requestPendingApprovalSubscribe() {
+    const templateId = config.SUBSCRIBE_TEMPLATES.PENDING_APPROVAL
+    console.log('[订阅调试] requestPendingApprovalSubscribe 开始, templateId:', templateId)
+
+    wx.getSetting({
+      withSubscriptions: true,
+      success: (settingRes) => {
+        console.log('[订阅调试] getSetting 成功:', JSON.stringify(settingRes.subscriptionsSetting))
+        const itemSettings = settingRes.subscriptionsSetting && settingRes.subscriptionsSetting.itemSettings
+        const userChoice = itemSettings ? itemSettings[templateId] : undefined
+        console.log('[订阅调试] 用户对该模板的选择:', userChoice)
+
+        // 用户已勾选"总是拒绝"，不再弹窗
+        if (userChoice === 'reject') {
+          console.log('[订阅调试] 用户已总是拒绝，跳过')
+          return
+        }
+
+        // 用户已勾选"总是接受"，无需再引导
+        if (userChoice === 'accept') {
+          console.log('[订阅调试] 用户已总是接受，跳过引导')
+          return
+        }
+
+        // 未做选择 → 弹 Modal 引导用户主动点击（满足 TAP gesture 要求）
+        console.log('[订阅调试] 准备弹窗引导用户开启订阅')
+        this._guidePendingApprovalSubscribe(templateId)
+      },
+      fail: (err) => {
+        console.error('[订阅调试] getSetting 失败:', err)
+        // getSetting 失败，降级为弹窗引导
+        this._guidePendingApprovalSubscribe(templateId)
+      }
+    })
+  },
+
+  /**
+   * 弹窗引导用户开启待审批订阅
+   * Modal 确认按钮的点击会被微信视为新的用户手势，在其 success 回调中调用 requestSubscribeMessage 即可满足 TAP gesture 要求
+   */
+  _guidePendingApprovalSubscribe(templateId) {
+    wx.showModal({
+      title: '开启审批通知',
+      content: '开启后，有新的审批申请时将及时通知您',
+      confirmText: '开启',
+      cancelText: '暂不',
+      success: (modalRes) => {
+        if (modalRes.confirm) {
+          console.log('[订阅调试] 用户点击开启，发起订阅请求')
+          this._doPendingApprovalSubscribe(templateId)
+        } else {
+          console.log('[订阅调试] 用户点击暂不')
+        }
+      }
+    })
+  },
+
+  /**
+   * 执行待审批订阅请求（内部方法，必须在用户手势回调中调用）
+   */
+  _doPendingApprovalSubscribe(templateId) {
+    wx.requestSubscribeMessage({
+      tmplIds: [templateId],
+      success: (res) => {
+        console.log('[订阅调试] requestSubscribeMessage 成功:', JSON.stringify(res))
+        if (res[templateId] === 'accept') {
+          this.saveSubscriptionRecord(templateId, 'pending_approval')
+        }
+      },
+      fail: (err) => {
+        console.error('[订阅调试] requestSubscribeMessage 失败:', err.errMsg || err)
+      }
     })
   },
 

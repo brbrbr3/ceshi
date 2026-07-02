@@ -201,7 +201,9 @@ input {
 }
 
 .auth-hero {
+  margin-top: 270rpx;
   padding: 28rpx 12rpx 24rpx;
+  z-index: 10;
 }
 
 .auth-brand {
@@ -216,6 +218,7 @@ input {
   font-size: var(--fs-36);
   font-weight: 700;
   box-shadow: 0 16rpx 34rpx rgba(37, 99, 235, 0.2);
+  z-index: 1;
 }
 
 .auth-title {
@@ -223,13 +226,16 @@ input {
   font-size: var(--fs-48);
   line-height: 1.25;
   font-weight: 700;
+  z-index: 1;
   color: #0F172A;
 }
 
 .auth-subtitle {
   margin-top: 14rpx;
   font-size: var(--fs-28);
+  font-weight: 500;
   line-height: 1.6;
+  z-index: 1;
   color: #475569;
 }
 

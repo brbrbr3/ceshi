@@ -375,6 +375,10 @@ Page({
       return
     }
 
+    // 管理员进入审批中心时，智能请求待审批通知订阅（模板2）
+    // 利用"总是保持以上选择"机制，已勾选总接受时静默积累额度
+    app.requestPendingApprovalSubscribe()
+
     // 检查是否有跳转目标（从消息中心或申请提交跳转过来）
     const targetTab = app.globalData.targetApprovalTab
     if (targetTab) {
