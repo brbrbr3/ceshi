@@ -1,13 +1,17 @@
 page {
 }
 
-.login-page{
+.login-page {
+}
+
+.login-hero {
+  margin-top: 270rpx;
 }
 
 /* 内容元素设 position: relative，使其在 z-index:0 的背景图之上 */
 .login-page .auth-hero,
 .login-page .auth-card,
-.login-page .auth-status-card,
+.login-page .login-status-card,
 .login-page .auth-bootstrap-card,
 .login-page .auth-debug-entry,
 .login-page .auth-debug-panel {
@@ -15,20 +19,45 @@ page {
   z-index: 1;
 }
 
-.login-submit-btn{
+.login-submit-btn {
 }
 
-.login-wechat-panel{
+.login-wechat-panel {
+  display: flex;
+  align-items: center;
+  gap: 20rpx;
   margin: 5rpx 0 32rpx;
+  padding: 24rpx;
+  border-radius: 24rpx;
+  background: linear-gradient(135deg, #ECFDF5 0%, #F0FDF4 100%);
 }
 
-.login-wechat-icon{
+.login-wechat-icon {
   width: 120rpx;
   height: 120rpx;
+  border-radius: 24rpx;
+  background: linear-gradient(135deg, #22C55E 0%, #16A34A 100%);
+  color: #FFFFFF;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: var(--fs-32);
+  font-weight: 700;
   padding: 20rpx;
   margin: 10rpx;
   text-align: center;
-  justify-content: center;
+}
+
+.login-wechat-title {
+  font-size: var(--fs-28);
+  font-weight: 600;
+  color: #166534;
+}
+
+.login-wechat-desc {
+  margin-top: 8rpx;
+  font-size: var(--fs-24);
+  color: #15803D;
 }
 
 /* 首个管理员初始化 */
@@ -387,4 +416,89 @@ page {
 .auth-clear-db-btn-confirm.is-disabled {
   background: #ccc;
   color: #fff;
+}
+
+/* 审核状态卡片 */
+.login-status-card {
+  overflow: hidden;
+}
+
+.login-status-head {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 20rpx;
+}
+
+.login-status-title {
+  font-size: var(--fs-30);
+  font-weight: 700;
+  color: #0F172A;
+}
+
+.login-status-tag {
+  padding: 10rpx 18rpx;
+  border-radius: 999rpx;
+  font-size: var(--fs-22);
+  font-weight: 600;
+}
+
+.login-status-card.is-pending {
+  border: 1rpx solid rgba(245, 158, 11, 0.22);
+  background: linear-gradient(180deg, #FFFFFF 0%, #FFFBEB 100%);
+}
+
+.login-status-card.is-pending .login-status-tag {
+  background: #FEF3C7;
+  color: #B45309;
+}
+
+.login-status-card.is-rejected {
+  border: 1rpx solid rgba(239, 68, 68, 0.2);
+  background: linear-gradient(180deg, #FFFFFF 0%, #FEF2F2 100%);
+}
+
+.login-status-card.is-rejected .login-status-tag {
+  background: #FEE2E2;
+  color: #B91C1C;
+}
+
+.login-status-card.is-approved {
+  border: 1rpx solid rgba(34, 197, 94, 0.2);
+  background: linear-gradient(180deg, #FFFFFF 0%, #F0FDF4 100%);
+}
+
+.login-status-card.is-approved .login-status-tag {
+  background: #DCFCE7;
+  color: #15803D;
+}
+
+.login-status-card.is-error {
+  border: 1rpx solid rgba(148, 163, 184, 0.2);
+}
+
+.login-status-card.is-error .login-status-tag {
+  background: #E2E8F0;
+  color: #475569;
+}
+
+.login-status-desc,
+.login-status-extra,
+.login-status-time {
+  margin-top: 14rpx;
+  font-size: var(--fs-24);
+  line-height: 1.7;
+  color: #64748B;
+}
+
+.login-status-extra {
+  color: #1E293B;
+}
+
+.login-bottom-link {
+  margin-top: 24rpx;
+  text-align: center;
+  font-size: var(--fs-24);
+  font-weight: 600;
+  color: #2563EB;
 }

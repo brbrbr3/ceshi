@@ -5,7 +5,7 @@
     <image class="login-bg-image" src="/image/congresso.jpg" mode="widthFix" />
   </view>
 
-  <view class="auth-hero">
+  <view class="auth-hero login-hero">
     <view wx:if="{{isDevEnv}}" class="auth-brand">DevEnv</view>
     <view class="auth-title">报备助手</view>
     <view class="auth-subtitle">欢迎使用巴西利亚报备助手！</view>
@@ -17,13 +17,13 @@
   </view>
 
   <view class="auth-card">
-    <view class="auth-wechat-title">{{isRegistered ? '您已注册，点击下方按钮登录：' : '您尚未注册，点击下方按钮注册：'}}</view>
+    <view class="login-wechat-title">{{isRegistered ? '您已注册，点击下方按钮登录：' : '您尚未注册，点击下方按钮注册：'}}</view>
     <button class="auth-submit-btn login-submit-btn {{isPendingApproval ? 'is-pending' : ''}}" loading="{{loading}}" bindtap="handleWxLogin">{{isPendingApproval ? '审核中' : (isRegistered ? '人脸/指纹登录' : '注册')}}</button>
-    <view wx:if="{{isRegistered}}" class="auth-wechat-panel login-wechat-panel">
-      <!-- <view wx:if="{{isDevEnv}}" class="auth-wechat-icon login-wechat-icon">生物特征</view> -->
+    <view wx:if="{{isRegistered}}" class="login-wechat-panel">
+      <!-- <view wx:if="{{isDevEnv}}" class="login-wechat-icon">生物特征</view> -->
       <view>
-        <!-- <view wx:if="{{isDevEnv}}" class="auth-wechat-title">使用微信身份识别当前用户</view> -->
-        <view class="auth-wechat-desc">您的生物特征仅用于登录验证，小程序不会保存</view>
+        <!-- <view wx:if="{{isDevEnv}}" class="login-wechat-title">使用微信身份识别当前用户</view> -->
+        <view class="login-wechat-desc">您的生物特征仅用于登录验证，小程序不会保存</view>
       </view>
     </view>
     <view class="auth-card-title"></view>
@@ -31,17 +31,17 @@
       未注册用户：将跳转到注册页面填写基础资料</text> -->
   </view>
 
-  <view wx:if="{{statusCard && !isRegistered}}" class="auth-card auth-status-card {{statusCard.className}}">
-    <view class="auth-status-head">
-      <view class="auth-status-title">{{statusCard.title}}</view>
-      <view class="auth-status-tag">{{statusCard.tag}}</view>
+  <view wx:if="{{statusCard && !isRegistered}}" class="auth-card login-status-card {{statusCard.className}}">
+    <view class="login-status-head">
+      <view class="login-status-title">{{statusCard.title}}</view>
+      <view class="login-status-tag">{{statusCard.tag}}</view>
     </view>
-    <view class="auth-status-desc">{{statusCard.desc}}</view>
-    <view wx:if="{{statusCard.extra}}" class="auth-status-extra">{{statusCard.extra}}</view>
-    <view wx:if="{{statusCard.time}}" class="auth-status-time">{{statusCard.time}}</view>
+    <view class="login-status-desc">{{statusCard.desc}}</view>
+    <view wx:if="{{statusCard.extra}}" class="login-status-extra">{{statusCard.extra}}</view>
+    <view wx:if="{{statusCard.time}}" class="login-status-time">{{statusCard.time}}</view>
   </view>
 
-  <!-- <view wx:if="{{showRegisterLink}}" class="auth-bottom-link" bindtap="goRegister">尚未注册？去填写注册申请</view> -->
+  <!-- <view wx:if="{{showRegisterLink}}" class="login-bottom-link" bindtap="goRegister">尚未注册？去填写注册申请</view> -->
 
   <view wx:if="{{bootstrapStatus.canBootstrap && !isAdmin}}" class="auth-bootstrap-card">
     <view class="auth-bootstrap-title">首个管理员初始化</view>

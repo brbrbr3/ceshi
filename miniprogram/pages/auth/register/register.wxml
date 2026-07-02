@@ -14,9 +14,9 @@
     <view class="auth-card-title">填写个人资料</view>
     <view class="auth-card-desc">审批通过后将自动成为正式用户。</view>
 
-    <view wx:if="{{reviewRemark}}" class="auth-review-banner">
-      <view class="auth-review-title">退回说明</view>
-      <view class="auth-review-text">{{reviewRemark}}</view>
+    <view wx:if="{{reviewRemark}}" class="register-review-banner">
+      <view class="register-review-title">退回说明</view>
+      <view class="register-review-text">{{reviewRemark}}</view>
     </view>
 
     <view class="auth-form">

@@ -32,14 +32,7 @@ input {
   width: 100%;
 }
 
-/* lib */
-.strong {
-  font-weight: bold;
-}
 
-.tc {
-  text-align: center;
-}
 
 /* 业务样式 */
 .office-page {
@@ -117,29 +110,6 @@ input {
   color: #2563EB;
 }
 
-.office-chip-scroll {
-  white-space: nowrap;
-}
-
-.office-chip {
-  display: inline-flex;
-  align-items: center;
-  justify-content: center;
-  padding: 16rpx 28rpx;
-  margin-right: 16rpx;
-  border-radius: 999rpx;
-  background: #FFFFFF;
-  color: #4B6080;
-  font-size: var(--fs-24);
-  box-shadow: 0 8rpx 18rpx rgba(37, 99, 235, 0.06);
-}
-
-.office-chip.is-active {
-  background: #2563EB;
-  color: #FFFFFF;
-  box-shadow: 0 14rpx 28rpx rgba(37, 99, 235, 0.2);
-}
-
 .office-pill {
   display: inline-flex;
   align-items: center;
@@ -175,18 +145,6 @@ input {
   font-weight: 600;
 }
 
-.office-avatar {
-  width: 76rpx;
-  height: 76rpx;
-  border-radius: 38rpx;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  color: #FFFFFF;
-  font-size: var(--fs-28);
-  font-weight: 600;
-}
-
 .office-empty {
   padding: 80rpx 24rpx;
   text-align: center;
@@ -201,7 +159,6 @@ input {
 }
 
 .auth-hero {
-  margin-top: 270rpx;
   padding: 28rpx 12rpx 24rpx;
   z-index: 10;
 }
@@ -276,40 +233,7 @@ input {
   color: #64748B;
 }
 
-.auth-wechat-panel {
-  display: flex;
-  align-items: center;
-  gap: 20rpx;
-  margin-top: 28rpx;
-  padding: 24rpx;
-  border-radius: 24rpx;
-  background: linear-gradient(135deg, #ECFDF5 0%, #F0FDF4 100%);
-}
 
-.auth-wechat-icon {
-  width: 80rpx;
-  height: 80rpx;
-  border-radius: 24rpx;
-  background: linear-gradient(135deg, #22C55E 0%, #16A34A 100%);
-  color: #FFFFFF;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  font-size: var(--fs-32);
-  font-weight: 700;
-}
-
-.auth-wechat-title {
-  font-size: var(--fs-28);
-  font-weight: 600;
-  color: #166534;
-}
-
-.auth-wechat-desc {
-  margin-top: 8rpx;
-  font-size: var(--fs-24);
-  color: #15803D;
-}
 
 .auth-submit-btn {
   width: 100%;
@@ -344,89 +268,7 @@ input {
   margin-bottom: 60rpx;
 }
 
-.auth-status-card {
-  overflow: hidden;
-}
 
-.auth-status-head {
-  display: flex;
-  align-items: center;
-  justify-content: space-between;
-  gap: 20rpx;
-}
-
-.auth-status-title {
-  font-size: var(--fs-30);
-  font-weight: 700;
-  color: #0F172A;
-}
-
-.auth-status-tag {
-  padding: 10rpx 18rpx;
-  border-radius: 999rpx;
-  font-size: var(--fs-22);
-  font-weight: 600;
-}
-
-.auth-status-card.is-pending {
-  border: 1rpx solid rgba(245, 158, 11, 0.22);
-  background: linear-gradient(180deg, #FFFFFF 0%, #FFFBEB 100%);
-}
-
-.auth-status-card.is-pending .auth-status-tag {
-  background: #FEF3C7;
-  color: #B45309;
-}
-
-.auth-status-card.is-rejected {
-  border: 1rpx solid rgba(239, 68, 68, 0.2);
-  background: linear-gradient(180deg, #FFFFFF 0%, #FEF2F2 100%);
-}
-
-.auth-status-card.is-rejected .auth-status-tag {
-  background: #FEE2E2;
-  color: #B91C1C;
-}
-
-.auth-status-card.is-approved {
-  border: 1rpx solid rgba(34, 197, 94, 0.2);
-  background: linear-gradient(180deg, #FFFFFF 0%, #F0FDF4 100%);
-}
-
-.auth-status-card.is-approved .auth-status-tag {
-  background: #DCFCE7;
-  color: #15803D;
-}
-
-.auth-status-card.is-error {
-  border: 1rpx solid rgba(148, 163, 184, 0.2);
-}
-
-.auth-status-card.is-error .auth-status-tag {
-  background: #E2E8F0;
-  color: #475569;
-}
-
-.auth-status-desc,
-.auth-status-extra,
-.auth-status-time {
-  margin-top: 14rpx;
-  font-size: var(--fs-24);
-  line-height: 1.7;
-  color: #64748B;
-}
-
-.auth-status-extra {
-  color: #1E293B;
-}
-
-.auth-bottom-link {
-  margin-top: 24rpx;
-  text-align: center;
-  font-size: var(--fs-24);
-  font-weight: 600;
-  color: #2563EB;
-}
 
 .auth-form {
   margin-top: 28rpx;
@@ -515,24 +357,7 @@ input {
   font-weight: 600;
 }
 
-.auth-review-banner {
-  margin-top: 20rpx;
-  padding: 22rpx 24rpx;
-  border-radius: 24rpx;
-  background: #FEF2F2;
-  color: #B91C1C;
-}
 
-.auth-review-title {
-  font-size: var(--fs-24);
-  font-weight: 600;
-}
-
-.auth-review-text {
-  margin-top: 10rpx;
-  font-size: var(--fs-24);
-  line-height: 1.7;
-}
 
 /* 微信头像选择 */
 .auth-avatar-btn {
@@ -584,7 +409,3 @@ input {
   color: #64748B;
 }
 
-/* profile 头像图片 */
-.profile-avatar-img {
-  object-fit: cover;
-}

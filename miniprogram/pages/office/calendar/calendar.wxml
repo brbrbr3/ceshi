@@ -25,8 +25,11 @@
     </view>
   </view>
 
-  <!-- 时间轴日程列表（仅周视图显示，且当前用户不被隐藏） -->
-  <view class="schedule-section" wx:if="{{isWeekView && showScheduleSection}}">
+  <!--   时间轴日程列表（仅周视图显示，且当前用户不被隐藏）
+      * 已注释掉，当前不再使用
+  -->
+  <!-- <view class="schedule-section" wx:if="{{isWeekView && showScheduleSection}}"> -->
+  <view class="schedule-section" wx:if="{{false}}">
     <!-- 日期标题 -->
     <view class="schedule-date-header">
       <view class="schedule-date-title">{{selectedDateText}}</view>

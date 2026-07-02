@@ -9,9 +9,9 @@
     <view class="auth-card-title">填写个人资料</view>
     <view class="auth-card-desc">审批通过后将更新您的个人信息。姓名和性别不可更改。</view>
 
-    <view wx:if="{{reviewRemark}}" class="auth-review-banner">
-      <view class="auth-review-title">退回说明</view>
-      <view class="auth-review-text">{{reviewRemark}}</view>
+    <view wx:if="{{reviewRemark}}" class="edit-profile-review-banner">
+      <view class="edit-profile-review-title">退回说明</view>
+      <view class="edit-profile-review-text">{{reviewRemark}}</view>
     </view>
 
     <view class="auth-form">

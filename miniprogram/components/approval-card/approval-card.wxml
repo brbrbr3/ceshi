@@ -2,7 +2,7 @@
   <!-- 顶部：申请人信息 + 状态标签 -->
   <view class="approval-list-top">
     <view class="approval-person">
-      <view class="office-avatar" style="background: {{request.avatarColor}};">{{request.avatar}}</view>
+      <view class="approval-card-avatar" style="background: {{request.avatarColor}};">{{request.avatar}}</view>
       <view class="approval-person-main">
         <view class="approval-person-row">
           <view class="approval-person-name">{{request.name}}</view>

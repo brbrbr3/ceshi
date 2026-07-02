@@ -22,3 +22,23 @@ page {
   color: #64748B;
   padding-left: 4rpx;
 }
+
+/* 退回说明 */
+.edit-profile-review-banner {
+  margin-top: 20rpx;
+  padding: 22rpx 24rpx;
+  border-radius: 24rpx;
+  background: #FEF2F2;
+  color: #B91C1C;
+}
+
+.edit-profile-review-title {
+  font-size: var(--fs-24);
+  font-weight: 600;
+}
+
+.edit-profile-review-text {
+  margin-top: 10rpx;
+  font-size: var(--fs-24);
+  line-height: 1.7;
+}
