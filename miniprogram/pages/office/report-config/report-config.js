@@ -10,12 +10,14 @@ Page({
     livingAreas: [],
     areaManagerGroups: [],   // [{ area, managers: [{openid,name,role,department,avatarText,...}] }]
     leaderNotifierGroups: [], // [{ leader, notifiers: [...] }]
+    deptNotifierGroups: [],   // [{ department, heads: [...], extraNotifiers: [...] }]
     allUsers: [],
     showAddUser: false,
     modalAnimating: false,
-    addMode: '',              // 'area' | 'leader'
+    addMode: '',              // 'area' | 'leader' | 'dept'
     currentArea: '',
     currentLeaderOpenid: '',
+    currentDepartment: '',
     addTitle: '',
     searchKeyword: '',
     availableUsers: []
@@ -45,11 +47,12 @@ Page({
       if (res.result.code !== 0) {
         throw new Error(res.result.message || '加载失败')
       }
-      const { livingAreas, areaManagerGroups, leaderNotifierGroups, allUsers } = res.result.data
+      const { livingAreas, areaManagerGroups, leaderNotifierGroups, deptNotifierGroups, allUsers } = res.result.data
       this.setData({
         livingAreas,
         areaManagerGroups,
         leaderNotifierGroups,
+        deptNotifierGroups,
         allUsers,
         loading: false
       })
@@ -70,6 +73,7 @@ Page({
       addMode: 'area',
       currentArea: area,
       currentLeaderOpenid: '',
+      currentDepartment: '',
       addTitle: '添加片长到「' + area + '」',
       searchKeyword: '',
       availableUsers
@@ -89,7 +93,28 @@ Page({
       addMode: 'leader',
       currentLeaderOpenid: leaderOpenid,
       currentArea: '',
+      currentDepartment: '',
       addTitle: '为「' + leaderName + '」添加报备人',
+      searchKeyword: '',
+      availableUsers
+    })
+  },
+
+  /**
+   * 显示添加部门额外报备人弹窗
+   */
+  handleShowAddDeptNotifier(e) {
+    const department = e.currentTarget.dataset.department
+    const group = this.data.deptNotifierGroups.find(g => g.department === department)
+    const existingOpenids = group ? group.extraNotifiers.map(u => u.openid) : []
+    const availableUsers = this.data.allUsers.filter(u => !existingOpenids.includes(u.openid))
+    this.setData({
+      showAddUser: true,
+      addMode: 'dept',
+      currentDepartment: department,
+      currentArea: '',
+      currentLeaderOpenid: '',
+      addTitle: '为「' + department + '」添加额外报备人',
       searchKeyword: '',
       availableUsers
     })
@@ -118,6 +143,11 @@ Page({
       const group = this.data.leaderNotifierGroups.find(g => g.leader.openid === leaderOpenid)
       const existingOpenids = group ? group.notifiers.map(u => u.openid) : []
       availableUsers = this.data.allUsers.filter(u => u.openid !== leaderOpenid && !existingOpenids.includes(u.openid))
+    } else if (this.data.addMode === 'dept') {
+      const department = this.data.currentDepartment
+      const group = this.data.deptNotifierGroups.find(g => g.department === department)
+      const existingOpenids = group ? group.extraNotifiers.map(u => u.openid) : []
+      availableUsers = this.data.allUsers.filter(u => !existingOpenids.includes(u.openid))
     }
     if (keyword) {
       availableUsers = availableUsers.filter(u => (u.name || '').indexOf(keyword) > -1)
@@ -142,6 +172,11 @@ Page({
         res = await wx.cloud.callFunction({
           name: 'reportNotifierManager',
           data: { action: 'setLeaderNotifier', leaderOpenid: this.data.currentLeaderOpenid, notifierOpenid: openid }
+        })
+      } else if (this.data.addMode === 'dept') {
+        res = await wx.cloud.callFunction({
+          name: 'reportNotifierManager',
+          data: { action: 'setDeptExtraNotifier', targetOpenid: openid, department: this.data.currentDepartment }
         })
       }
       if (!res || res.result.code !== 0) {
@@ -200,6 +235,64 @@ Page({
           const res = await wx.cloud.callFunction({
             name: 'reportNotifierManager',
             data: { action: 'removeLeaderNotifier', leaderOpenid, notifierOpenid: openid }
+          })
+          if (res.result.code !== 0) throw new Error(res.result.message || '移除失败')
+          wx.hideLoading()
+          utils.showToast({ title: '已移除', icon: 'success' })
+          await this.loadData()
+        } catch (error) {
+          wx.hideLoading()
+          utils.showToast({ title: error.message || '移除失败', icon: 'none' })
+        }
+      }
+    })
+  },
+
+  /**
+   * 切换部门负责人报备推送开关（暂停/恢复）
+   */
+  handleToggleDeptHeadNotify(e) {
+    const { openid, disabled } = e.currentTarget.dataset
+    const isDisabled = disabled === true || disabled === 'true'
+    const actionText = isDisabled ? '恢复接收' : '暂停接收'
+    wx.showModal({
+      title: '确认操作',
+      content: '确认' + actionText + '该部门负责人的报备推送？',
+      success: async (r) => {
+        if (!r.confirm) return
+        wx.showLoading({ title: '处理中...', mask: true })
+        try {
+          const res = await wx.cloud.callFunction({
+            name: 'reportNotifierManager',
+            data: { action: 'toggleDeptHeadNotify', targetOpenid: openid }
+          })
+          if (res.result.code !== 0) throw new Error(res.result.message || '操作失败')
+          wx.hideLoading()
+          utils.showToast({ title: res.result.message || '操作成功', icon: 'none' })
+          await this.loadData()
+        } catch (error) {
+          wx.hideLoading()
+          utils.showToast({ title: error.message || '操作失败', icon: 'none' })
+        }
+      }
+    })
+  },
+
+  /**
+   * 移除部门额外报备人
+   */
+  handleRemoveDeptExtraNotifier(e) {
+    const { openid, department } = e.currentTarget.dataset
+    wx.showModal({
+      title: '确认移除',
+      content: '确认将该用户从「' + department + '」额外报备人移除？',
+      success: async (r) => {
+        if (!r.confirm) return
+        wx.showLoading({ title: '移除中...', mask: true })
+        try {
+          const res = await wx.cloud.callFunction({
+            name: 'reportNotifierManager',
+            data: { action: 'removeDeptExtraNotifier', targetOpenid: openid, department }
           })
           if (res.result.code !== 0) throw new Error(res.result.message || '移除失败')
           wx.hideLoading()

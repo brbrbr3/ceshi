@@ -48,12 +48,13 @@ async function ensureArrayField(target, field) {
 }
 
 /**
- * 获取报备配置配置
+ * 获取报备配置
  * 返回：
  * - livingAreas: 居住区域列表（来自 sys_config REPAIR_LIVING_AREAS）
  * - areaManagerGroups: [{ area, managers: [user...] }] 按居住区域分组的片长
  * - leaderNotifierGroups: [{ leader, notifiers: [user...] }] 按馆领导分组的报备人
- * - allUsers: 所有已审批用户（含 areaManagerOf/reportNotifiers，用于添加弹窗过滤）
+ * - deptNotifierGroups: [{ department, heads: [user...], extraNotifiers: [user...] }] 按部门分组的报备配置
+ * - allUsers: 所有已审批用户（含 areaManagerOf/reportNotifiers/deptExtraNotifierOf/deptHeadNotifyDisabled，用于添加弹窗过滤）
  */
 async function getReportConfig(openid) {
   await assertAdmin(openid)
@@ -61,6 +62,10 @@ async function getReportConfig(openid) {
   // 获取居住区域列表
   const areaConfigRes = await sysConfigCollection.where({ key: 'REPAIR_LIVING_AREAS' }).limit(1).get()
   const livingAreas = (areaConfigRes.data && areaConfigRes.data.length > 0) ? areaConfigRes.data[0].value : []
+
+  // 获取部门列表
+  const deptConfigRes = await sysConfigCollection.where({ key: 'DEPARTMENT_OPTIONS' }).limit(1).get()
+  const departmentOptions = (deptConfigRes.data && deptConfigRes.data.length > 0) ? deptConfigRes.data[0].value : []
 
   // 获取所有已审批用户
   const usersResult = await usersCollection.where({ status: 'approved' }).limit(1000).get()
@@ -73,6 +78,8 @@ async function getReportConfig(openid) {
     isDepartmentHead: !!u.isDepartmentHead,
     areaManagerOf: Array.isArray(u.areaManagerOf) ? u.areaManagerOf : [],
     reportNotifiers: Array.isArray(u.reportNotifiers) ? u.reportNotifiers : [],
+    deptExtraNotifierOf: Array.isArray(u.deptExtraNotifierOf) ? u.deptExtraNotifierOf : [],
+    deptHeadNotifyDisabled: !!u.deptHeadNotifyDisabled,
     avatarText: u.avatarText || (u.name ? u.name.slice(0, 1) : '智')
   }))
 
@@ -89,7 +96,14 @@ async function getReportConfig(openid) {
     return { leader, notifiers }
   })
 
-  return success({ livingAreas, areaManagerGroups, leaderNotifierGroups, allUsers: users }, '获取成功')
+  // 部门报备配置分组：按部门列表分组，每组含负责人（只读，可暂停/恢复）和额外报备人（可增删）
+  const deptNotifierGroups = departmentOptions.map(dept => {
+    const heads = users.filter(u => u.isDepartmentHead && u.department === dept)
+    const extraNotifiers = users.filter(u => u.deptExtraNotifierOf.includes(dept))
+    return { department: dept, heads, extraNotifiers }
+  })
+
+  return success({ livingAreas, areaManagerGroups, leaderNotifierGroups, deptNotifierGroups, allUsers: users }, '获取成功')
 }
 
 /**
@@ -117,7 +131,7 @@ async function setAreaManager(openid, targetOpenid, area) {
     data: { areaManagerOf: _.push(area), updatedAt: Date.now() }
   })
 
-  return success({ targetOpenid, area }, '片长设置成功')
+  return success({ targetOpenid, area }, '片长配置成功')
 }
 
 /**
@@ -214,6 +228,88 @@ async function removeLeaderNotifier(openid, leaderOpenid, notifierOpenid) {
   return success({ leaderOpenid, notifierOpenid }, '报备人移除成功')
 }
 
+/**
+ * 设置部门额外报备人：为某用户添加某部门的额外报备接收人身份
+ */
+async function setDeptExtraNotifier(openid, targetOpenid, department) {
+  await assertAdmin(openid)
+  if (!targetOpenid) throw new Error('缺少目标用户标识')
+  if (!department) throw new Error('缺少部门名称')
+
+  const targetResult = await usersCollection.where({ openid: targetOpenid }).limit(1).get()
+  if (!targetResult.data || targetResult.data.length === 0) {
+    throw new Error('目标用户不存在')
+  }
+  const target = targetResult.data[0]
+  const currentDepts = Array.isArray(target.deptExtraNotifierOf) ? target.deptExtraNotifierOf : []
+
+  if (currentDepts.includes(department)) {
+    throw new Error('该用户已是此部门的额外报备人')
+  }
+
+  await ensureArrayField(target, 'deptExtraNotifierOf')
+
+  await usersCollection.doc(target._id).update({
+    data: { deptExtraNotifierOf: _.push(department), updatedAt: Date.now() }
+  })
+
+  return success({ targetOpenid, department }, '部门额外报备人设置成功')
+}
+
+/**
+ * 移除部门额外报备人
+ */
+async function removeDeptExtraNotifier(openid, targetOpenid, department) {
+  await assertAdmin(openid)
+  if (!targetOpenid) throw new Error('缺少目标用户标识')
+  if (!department) throw new Error('缺少部门名称')
+
+  const targetResult = await usersCollection.where({ openid: targetOpenid }).limit(1).get()
+  if (!targetResult.data || targetResult.data.length === 0) {
+    throw new Error('目标用户不存在')
+  }
+  const target = targetResult.data[0]
+  const currentDepts = Array.isArray(target.deptExtraNotifierOf) ? target.deptExtraNotifierOf : []
+
+  if (!currentDepts.includes(department)) {
+    throw new Error('该用户不是此部门的额外报备人')
+  }
+
+  await ensureArrayField(target, 'deptExtraNotifierOf')
+
+  await usersCollection.doc(target._id).update({
+    data: { deptExtraNotifierOf: _.pull(department), updatedAt: Date.now() }
+  })
+
+  return success({ targetOpenid, department }, '部门额外报备人移除成功')
+}
+
+/**
+ * 切换部门负责人报备推送开关（暂停/恢复接收本部门报备推送）
+ * 仅对 isDepartmentHead=true 的用户有效
+ */
+async function toggleDeptHeadNotify(openid, targetOpenid) {
+  await assertAdmin(openid)
+  if (!targetOpenid) throw new Error('缺少目标用户标识')
+
+  const targetResult = await usersCollection.where({ openid: targetOpenid }).limit(1).get()
+  if (!targetResult.data || targetResult.data.length === 0) {
+    throw new Error('目标用户不存在')
+  }
+  const target = targetResult.data[0]
+
+  if (!target.isDepartmentHead) {
+    throw new Error('目标用户不是部门负责人')
+  }
+
+  const newStatus = !target.deptHeadNotifyDisabled
+  await usersCollection.doc(target._id).update({
+    data: { deptHeadNotifyDisabled: newStatus, updatedAt: Date.now() }
+  })
+
+  return success({ targetOpenid, deptHeadNotifyDisabled: newStatus }, newStatus ? '已暂停接收报备推送' : '已恢复接收报备推送')
+}
+
 exports.main = async (event) => {
   const wxContext = cloud.getWXContext()
   const openid = wxContext.OPENID
@@ -243,6 +339,18 @@ exports.main = async (event) => {
 
     if (action === 'removeLeaderNotifier') {
       return await removeLeaderNotifier(openid, event.leaderOpenid, event.notifierOpenid)
+    }
+
+    if (action === 'setDeptExtraNotifier') {
+      return await setDeptExtraNotifier(openid, event.targetOpenid, event.department)
+    }
+
+    if (action === 'removeDeptExtraNotifier') {
+      return await removeDeptExtraNotifier(openid, event.targetOpenid, event.department)
+    }
+
+    if (action === 'toggleDeptHeadNotify') {
+      return await toggleDeptHeadNotify(openid, event.targetOpenid)
     }
 
     return fail('不支持的操作类型', 400)

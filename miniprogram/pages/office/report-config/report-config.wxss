@@ -119,6 +119,49 @@
   flex-shrink: 0;
 }
 
+/* 部门负责人切换按钮 */
+.report-user-toggle {
+  font-size: var(--fs-24);
+  color: #059669;
+  padding: 8rpx 20rpx;
+  border: 1rpx solid #6EE7B7;
+  border-radius: 8rpx;
+  flex-shrink: 0;
+}
+
+.report-user-toggle.is-disabled {
+  color: #9CA3AF;
+  border-color: #E5E7EB;
+}
+
+/* 负责人标签 */
+.report-tag-head {
+  display: inline-block;
+  font-size: var(--fs-20);
+  color: #2563EB;
+  background: #EFF6FF;
+  padding: 2rpx 12rpx;
+  border-radius: 8rpx;
+  margin-left: 12rpx;
+  vertical-align: middle;
+}
+
+/* 子分区 */
+.report-subsection {
+  border-bottom: 1rpx solid #F3F4F6;
+}
+
+.report-subsection:last-of-type {
+  border-bottom: none;
+}
+
+.report-subsection-title {
+  font-size: var(--fs-24);
+  color: #6B7280;
+  font-weight: 500;
+  padding: 16rpx 32rpx 0;
+}
+
 /* 添加按钮 */
 .report-group-add {
   display: flex;

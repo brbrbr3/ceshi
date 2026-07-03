@@ -697,14 +697,26 @@ async function notifyReportSubscribers(reporterOpenid, reporter, tripId, action,
         })
       }
 
-      // 通知部门负责人（报备人本人即部门负责人时不通知）
+      // 通知部门负责人（报备人本人即部门负责人时不通知；排除已暂停接收的）
       if (reporter && !reporter.isDepartmentHead && reporter.department) {
         const deptHeadRes = await usersCollection
-          .where({ status: 'approved', department: reporter.department, isDepartmentHead: true })
+          .where({ status: 'approved', department: reporter.department, isDepartmentHead: true, deptHeadNotifyDisabled: _.neq(true) })
           .field({ openid: true })
           .limit(50)
           .get()
         ;(deptHeadRes.data || []).forEach(u => {
+          if (u.openid) notifierOpenids.add(u.openid)
+        })
+      }
+
+      // 通知同部门额外报备接收人（deptExtraNotifierOf 含该部门，不限定同部门人员）
+      if (reporter && reporter.department) {
+        const extraRes = await usersCollection
+          .where({ status: 'approved', deptExtraNotifierOf: reporter.department })
+          .field({ openid: true })
+          .limit(100)
+          .get()
+        ;(extraRes.data || []).forEach(u => {
           if (u.openid) notifierOpenids.add(u.openid)
         })
       }

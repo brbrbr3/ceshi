@@ -39,10 +39,10 @@ Page({
   },
 
   async onLoad() {
-    wx.showLoading({ title: '加载中...', mask: true })
     try {
       await this.initUserInfo()
-      if (!this.data.currentUser) return
+      if (!this.data.currentUser) return  // 无权限已切走，不再继续
+      wx.showLoading({ title: '加载中...', mask: true })
       await this.loadBoardData()
     } finally {
       wx.hideLoading()
@@ -53,6 +53,10 @@ Page({
     const fontStyle = app.globalData.fontStyle
     if (this.data.fontStyle !== fontStyle) {
       this.setData({ fontStyle })
+    }
+    // 首次被拒后切走再切回，直接切回首页，不再重复弹窗
+    if (!this.data.currentUser && this._denied) {
+      wx.switchTab({ url: '/pages/office/home/home' })
     }
   },
 
@@ -74,13 +78,18 @@ Page({
       const isAreaManager = Array.isArray(user.areaManagerOf) && user.areaManagerOf.length > 0
 
       if (!isAdmin && !isLeader && !isDeptHead && !isAreaManager) {
-        wx.showModal({
-          title: '权限提示',
-          content: '您没有权限访问出行数据板',
-          showCancel: false,
-          confirmText: '我知道了',
+        // 标记已拒，供 onShow 静默切回使用
+        this._denied = true
+        // 先切回首页，切换成功后再弹窗提示
+        wx.switchTab({
+          url: '/pages/office/home/home',
           success: () => {
-            wx.switchTab({ url: '/pages/office/home/home' })
+            wx.showModal({
+              title: '权限提示',
+              content: '您没有权限访问出行数据板',
+              showCancel: false,
+              confirmText: '我知道了'
+            })
           }
         })
         return

@@ -12,8 +12,8 @@
     </view>
 
     <view wx:else>
-      <!-- 第一组：片长设置 -->
-      <view class="report-section-title">片长设置</view>
+      <!-- 第一组：片长配置 -->
+      <view class="report-section-title">片长配置</view>
       <view wx:if="{{areaManagerGroups.length === 0}}" class="office-card office-empty">
         <view>暂无居住区域数据</view>
       </view>
@@ -46,8 +46,8 @@
         </view>
       </view>
 
-      <!-- 第二组：馆领导报备人设置 -->
-      <view class="report-section-title">馆领导报备人设置</view>
+      <!-- 第二组：馆领导报备人配置 -->
+      <view class="report-section-title">馆领导报备人配置</view>
       <view wx:if="{{leaderNotifierGroups.length === 0}}" class="office-card office-empty">
         <view>暂无馆领导用户</view>
       </view>
@@ -75,6 +75,64 @@
             <view class="report-group-add" bindtap="handleShowAddLeaderNotifier" data-leader-openid="{{item.leader.openid}}" data-leader-name="{{item.leader.name}}">
               <view class="report-group-add-icon">+</view>
               <view class="report-group-add-text">添加报备人</view>
+            </view>
+          </view>
+        </view>
+      </view>
+
+      <!-- 第三组：部门报备配置 -->
+      <view class="report-section-title">部门报备配置</view>
+      <view wx:if="{{deptNotifierGroups.length === 0}}" class="office-card office-empty">
+        <view>暂无部门数据</view>
+      </view>
+      <view wx:else>
+        <view class="report-group" wx:for="{{deptNotifierGroups}}" wx:key="department">
+          <view class="office-card report-group-card">
+            <view class="report-group-header">
+              <view class="report-group-name">{{item.department}}</view>
+              <view class="report-group-count">{{item.heads.length + item.extraNotifiers.length}} 人</view>
+            </view>
+
+            <!-- 负责人子区 -->
+            <view class="report-subsection">
+              <view class="report-subsection-title">负责人</view>
+              <view wx:if="{{item.heads.length > 0}}" class="report-user-list">
+                <view class="report-user-item" wx:for="{{item.heads}}" wx:for-item="user" wx:key="openid">
+                  <view class="report-user-avatar">{{user.avatarText}}</view>
+                  <view class="report-user-info">
+                    <view class="report-user-name">
+                      {{user.name}}
+                      <text class="report-tag-head">负责人</text>
+                    </view>
+                    <view class="report-user-role">{{user.role}}{{user.department ? ' · ' + user.department : ''}}</view>
+                  </view>
+                  <view class="report-user-toggle {{user.deptHeadNotifyDisabled ? 'is-disabled' : ''}}" catchtap="handleToggleDeptHeadNotify" data-openid="{{user.openid}}" data-disabled="{{user.deptHeadNotifyDisabled}}">
+                    {{user.deptHeadNotifyDisabled ? '已停用' : '暂停接收'}}
+                  </view>
+                </view>
+              </view>
+              <view wx:else class="report-group-empty">暂无负责人</view>
+            </view>
+
+            <!-- 额外报备人子区 -->
+            <view class="report-subsection">
+              <view class="report-subsection-title">额外报备人</view>
+              <view wx:if="{{item.extraNotifiers.length > 0}}" class="report-user-list">
+                <view class="report-user-item" wx:for="{{item.extraNotifiers}}" wx:for-item="user" wx:key="openid">
+                  <view class="report-user-avatar">{{user.avatarText}}</view>
+                  <view class="report-user-info">
+                    <view class="report-user-name">{{user.name}}</view>
+                    <view class="report-user-role">{{user.role}}{{user.department ? ' · ' + user.department : ''}}</view>
+                  </view>
+                  <view class="report-user-remove" catchtap="handleRemoveDeptExtraNotifier" data-openid="{{user.openid}}" data-department="{{item.department}}">移除</view>
+                </view>
+              </view>
+              <view wx:else class="report-group-empty">暂无额外报备人</view>
+            </view>
+
+            <view class="report-group-add" bindtap="handleShowAddDeptNotifier" data-department="{{item.department}}">
+              <view class="report-group-add-icon">+</view>
+              <view class="report-group-add-text">添加额外报备人</view>
             </view>
           </view>
         </view>

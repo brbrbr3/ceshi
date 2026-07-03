@@ -221,14 +221,14 @@ input {
 }
 
 .auth-card-title {
-  font-size: var(--fs-32);
+  font-size: var(--fs-36);
   font-weight: 700;
   color: #0F172A;
 }
 
 .auth-card-desc {
   margin-top: 12rpx;
-  font-size: var(--fs-26);
+  font-size: var(--fs-28);
   line-height: 1.7;
   color: #64748B;
 }
@@ -280,7 +280,7 @@ input {
 
 .auth-field-label {
   margin-bottom: 14rpx;
-  font-size: var(--fs-28);
+  font-size: var(--fs-30);
   font-weight: 600;
   color: #1E293B;
 }
@@ -315,13 +315,13 @@ input {
 
 .auth-input-shell input {
   width: 100%;
-  font-size: var(--fs-26);
+  font-size: var(--fs-28);
   color: #0F172A;
 }
 
 .auth-picker-value {
   flex: 1;
-  font-size: var(--fs-26);
+  font-size: var(--fs-28);
   color: #0F172A;
 }
 

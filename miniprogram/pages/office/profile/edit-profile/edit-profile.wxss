@@ -18,7 +18,7 @@ page {
 
 .auth-field-hint {
   margin-top: 8rpx;
-  font-size: var(--fs-22);
+  font-size: var(--fs-26);
   color: #64748B;
   padding-left: 4rpx;
 }

@@ -11,7 +11,7 @@
       <!-- 角色 -->
       <view class="auth-field">
         <view class="auth-field-label">角色 <text style="color: #e74c3c;">*</text></view>
-        <!-- <view class="auth-card-desc">请选择您的角色</view> -->
+        <view class="auth-card-desc">DW委员请选择“馆领导”，其他人员请根据本人实际选择角色。</view>
         <picker mode="selector" range="{{roleOptions}}" value="{{roleIndex >= 0 ? roleIndex : 0}}" bindchange="handleRoleChange">
           <view class="auth-picker-shell {{roleIndex < 0 ? 'is-placeholder' : ''}}">
             <view class="auth-picker-value">{{roleIndex >= 0 ? form.role : '请选择角色'}}</view>
@@ -23,6 +23,8 @@
       <!-- 部门 -->
       <view wx:if="{{showDepartmentField}}" class="auth-field">
         <view class="auth-field-label">部门 <text style="color: #e74c3c;">*</text></view>
+        <view wx:if="{{form.role === '馆领导'}}" class="auth-card-desc">您是“馆领导”：若您具体担任处室负责人，请在此选择本人所在部门，否则请选“无”。</view>
+        <view wx:if="{{form.role === '工勤' || form.role === '物业'}}" class="auth-card-desc">工勤/物业的部门只能是办公室。</view>
         <picker mode="selector" range="{{departmentOptions}}" value="{{departmentIndex >= 0 ? departmentIndex : 0}}" bindchange="handleDepartmentChange">
           <view class="auth-picker-shell {{departmentIndex < 0 ? 'is-placeholder' : ''}}">
             <view class="auth-picker-value">{{departmentIndex >= 0 ? departmentOptions[departmentIndex] : '请选择部门'}}</view>
