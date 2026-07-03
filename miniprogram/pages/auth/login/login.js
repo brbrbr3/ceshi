@@ -179,6 +179,12 @@ Page({
       return
     }
 
+    // 未注册用户无需生物认证，直接进入注册/登录流程
+    if (!this.data.isRegistered) {
+      this.doLogin()
+      return
+    }
+
     // 调试环境跳过生物认证（开发者工具不支持生物认证API）
     if (app.globalData.isDevEnv) {
       console.warn('[login] 开发环境，跳过生物认证')

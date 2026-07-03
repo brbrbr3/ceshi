@@ -2,40 +2,11 @@ page {
   background: #EEF2FF;
 }
 
-/* 微信昵称按钮 - 对齐提交按钮样式 */
-.auth-nickname-btn {
-  position: relative;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  width: 100%;
-  height: 92rpx;
-  margin-top: 16rpx;
-  border-radius: 24rpx;
-  background: linear-gradient(135deg, #1D4ED8 0%, #3B82F6 100%);
-  box-shadow: 0 16rpx 30rpx rgba(37, 99, 235, 0.18);
-  overflow: hidden;
-}
-.auth-nickname-btn-text {
-  font-size: 32rpx;
-  font-weight: 600;
-  color: #FFFFFF;
-}
-.auth-nickname-btn.is-selected {
-  background: linear-gradient(135deg, #9CA3AF 0%, #B0B7C3 100%);
-  box-shadow: none;
-}
-.auth-nickname-btn.is-selected .auth-nickname-btn-text {
-  color: #E5E7EB;
-}
-.auth-nickname-hidden-input {
-  position: absolute;
-  top: 0;
-  left: 0;
-  width: 100%;
-  height: 100%;
-  opacity: 0;
-  z-index: 1;
+/* 微信昵称输入提示 */
+.auth-nickname-tip {
+  margin-top: 12rpx;
+  font-size: var(--fs-24);
+  color: #94A3B8;
 }
 
 /* 退回说明 */

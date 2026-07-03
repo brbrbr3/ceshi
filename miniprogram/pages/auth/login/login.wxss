@@ -1,4 +1,5 @@
 page {
+  background-color: #F8FAFC;
 }
 
 .login-page {
@@ -49,14 +50,14 @@ page {
 }
 
 .login-wechat-title {
-  font-size: var(--fs-28);
+  font-size: var(--fs-32);
   font-weight: 600;
   color: #166534;
 }
 
 .login-wechat-desc {
   margin-top: 8rpx;
-  font-size: var(--fs-24);
+  font-size: var(--fs-30);
   color: #15803D;
 }
 

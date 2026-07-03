@@ -117,8 +117,10 @@ Page({
   },
 
   handleNickNameInput(e) {
-    // bindinput 在选择微信昵称时可能不触发，但手动输入时同步暂存值
-    this._pendingNickValue = (e.detail.value || '').trim()
+    // 手动输入时实时同步显示（选微信昵称时 bindinput 可能不触发，由 review 回调兜底）
+    const val = (e.detail.value || '').trim()
+    this._pendingNickValue = val
+    this.setData({ 'form.nickName': val })
   },
 
   selectGender(e) {
@@ -183,7 +185,7 @@ Page({
       return
     }
     if (!String(form.nickName || '').trim()) {
-      utils.showToast({ title: '请点击获取微信昵称', icon: 'none' })
+      utils.showToast({ title: '请输入昵称', icon: 'none' })
       return
     }
     if (!form.gender) {

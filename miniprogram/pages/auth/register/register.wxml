@@ -37,14 +37,9 @@
       <!-- 微信昵称 -->
       <view class="auth-field">
         <view class="auth-field-label">微信昵称 <text style="color: #e74c3c;">*</text></view>
-        <!-- 未选择：可点击按钮 -->
-        <view wx:if="{{!form.nickName}}" class="auth-nickname-btn">
-          <text class="auth-nickname-btn-text">点击获取微信昵称</text>
-          <input class="auth-nickname-hidden-input" type="nickname" bindnicknamereview="handleNickNameReview" bindinput="handleNickNameInput" bindblur="handleNickNameBlur" />
-        </view>
-        <!-- 已选择：置灰展示 -->
-        <view wx:else class="auth-nickname-btn is-selected">
-          <text class="auth-nickname-btn-text">微信昵称：{{form.nickName}}</text>
+        <view wx:if="{{!form.nickName}}" class="auth-card-desc">请点击下方输入框，在键盘上方选择"使用微信昵称"，不要自行输入</view>
+        <view class="auth-input-shell">
+          <input type="nickname" value="{{form.nickName}}" placeholder="点击使用微信昵称" placeholder-class="auth-input-placeholder" bindinput="handleNickNameInput" bindblur="handleNickNameBlur" bindnicknamereview="handleNickNameReview" />
         </view>
         <view wx:if="{{form.nickName}}" class="auth-avatar-hint">已选择微信昵称✅</view>
       </view>

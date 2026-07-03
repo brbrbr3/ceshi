@@ -100,7 +100,7 @@ input {
 }
 
 .office-section-title {
-  font-size: var(--fs-32);
+  font-size: var(--fs-36);
   font-weight: 600;
   color: #1E293B;
 }
@@ -189,7 +189,7 @@ input {
 
 .auth-subtitle {
   margin-top: 14rpx;
-  font-size: var(--fs-28);
+  font-size: var(--fs-32);
   font-weight: 500;
   line-height: 1.6;
   z-index: 1;

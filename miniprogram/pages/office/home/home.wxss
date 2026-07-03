@@ -340,7 +340,7 @@ page {
 
 .home-grid-label {
   margin-top: 14rpx;
-  font-size: var(--fs-26);
+  font-size: var(--fs-28);
   color: #4B6080;
   text-align: center;
   line-height: 1.4;
