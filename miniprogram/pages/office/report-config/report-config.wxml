@@ -12,6 +12,11 @@
     </view>
 
     <view wx:else>
+      <!-- 只读模式提示 -->
+      <view wx:if="{{!canEdit}}" class="report-readonly-tip">
+        <text>当前为只读模式，如需修改请联系管理员</text>
+      </view>
+
       <!-- 第一组：片长配置 -->
       <view class="report-section-title">片长配置</view>
       <view wx:if="{{areaManagerGroups.length === 0}}" class="office-card office-empty">
@@ -32,13 +37,13 @@
                   <view class="report-user-name">{{user.name}}</view>
                   <view class="report-user-role">{{user.role}}{{user.department ? ' · ' + user.department : ''}}</view>
                 </view>
-                <view class="report-user-remove" catchtap="handleRemoveAreaManager" data-openid="{{user.openid}}" data-area="{{item.area}}">移除</view>
+                <view wx:if="{{canEdit}}" class="report-user-remove" catchtap="handleRemoveAreaManager" data-openid="{{user.openid}}" data-area="{{item.area}}">移除</view>
               </view>
             </view>
 
             <view wx:else class="report-group-empty">暂无片长</view>
 
-            <view class="report-group-add" bindtap="handleShowAddAreaManager" data-area="{{item.area}}">
+            <view wx:if="{{canEdit}}" class="report-group-add" bindtap="handleShowAddAreaManager" data-area="{{item.area}}">
               <view class="report-group-add-icon">+</view>
               <view class="report-group-add-text">添加片长</view>
             </view>
@@ -66,13 +71,13 @@
                   <view class="report-user-name">{{user.name}}</view>
                   <view class="report-user-role">{{user.role}}{{user.department ? ' · ' + user.department : ''}}</view>
                 </view>
-                <view class="report-user-remove" catchtap="handleRemoveLeaderNotifier" data-leader-openid="{{item.leader.openid}}" data-openid="{{user.openid}}">移除</view>
+                <view wx:if="{{canEdit}}" class="report-user-remove" catchtap="handleRemoveLeaderNotifier" data-leader-openid="{{item.leader.openid}}" data-openid="{{user.openid}}">移除</view>
               </view>
             </view>
 
             <view wx:else class="report-group-empty">暂无报备人</view>
 
-            <view class="report-group-add" bindtap="handleShowAddLeaderNotifier" data-leader-openid="{{item.leader.openid}}" data-leader-name="{{item.leader.name}}">
+            <view wx:if="{{canEdit}}" class="report-group-add" bindtap="handleShowAddLeaderNotifier" data-leader-openid="{{item.leader.openid}}" data-leader-name="{{item.leader.name}}">
               <view class="report-group-add-icon">+</view>
               <view class="report-group-add-text">添加报备人</view>
             </view>
@@ -106,7 +111,7 @@
                     </view>
                     <view class="report-user-role">{{user.role}}{{user.department ? ' · ' + user.department : ''}}</view>
                   </view>
-                  <view class="report-user-toggle {{user.deptHeadNotifyDisabled ? 'is-disabled' : ''}}" catchtap="handleToggleDeptHeadNotify" data-openid="{{user.openid}}" data-disabled="{{user.deptHeadNotifyDisabled}}">
+                  <view wx:if="{{canEdit}}" class="report-user-toggle {{user.deptHeadNotifyDisabled ? 'is-disabled' : ''}}" catchtap="handleToggleDeptHeadNotify" data-openid="{{user.openid}}" data-disabled="{{user.deptHeadNotifyDisabled}}">
                     {{user.deptHeadNotifyDisabled ? '已停用' : '暂停接收'}}
                   </view>
                 </view>
@@ -124,13 +129,13 @@
                     <view class="report-user-name">{{user.name}}</view>
                     <view class="report-user-role">{{user.role}}{{user.department ? ' · ' + user.department : ''}}</view>
                   </view>
-                  <view class="report-user-remove" catchtap="handleRemoveDeptExtraNotifier" data-openid="{{user.openid}}" data-department="{{item.department}}">移除</view>
+                  <view wx:if="{{canEdit}}" class="report-user-remove" catchtap="handleRemoveDeptExtraNotifier" data-openid="{{user.openid}}" data-department="{{item.department}}">移除</view>
                 </view>
               </view>
               <view wx:else class="report-group-empty">暂无额外报备人</view>
             </view>
 
-            <view class="report-group-add" bindtap="handleShowAddDeptNotifier" data-department="{{item.department}}">
+            <view wx:if="{{canEdit}}" class="report-group-add" bindtap="handleShowAddDeptNotifier" data-department="{{item.department}}">
               <view class="report-group-add-icon">+</view>
               <view class="report-group-add-text">添加额外报备人</view>
             </view>

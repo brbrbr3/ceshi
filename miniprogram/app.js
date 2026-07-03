@@ -475,13 +475,17 @@ App({
       cachedUpdatedAt: cachedUpdatedAt
     }).then((data) => {
       // Phase 4a：处理 AUTH_CORE_KEY 响应（独立写）
+      // openid 是微信身份标识，无论是否已注册都需要保存
+      // （未注册用户也需要 openid 用于订阅消息授权记录等场景）
+      if (data.openid) {
+        this.globalData.openid = data.openid
+      }
       if (data.registered) {
         writeStorage(AUTH_CORE_KEY, {
           hasLogin: true,
           openid: data.openid
         })
         this.globalData.hasLogin = true
-        this.globalData.openid = data.openid
       }
 
       // Phase 4b：处理 PROFILE_CACHE_KEY 响应（独立写）
@@ -668,7 +672,7 @@ App({
         status: 'subscribed'
       }
     }).catch(error => {
-      // 静默失败
+      console.error('[订阅记录] 写入失败:', error)
     })
   },
 
@@ -677,8 +681,18 @@ App({
    * 用户提交注册申请时调用，弹窗询问是否订阅
    * @returns {Promise<boolean>}
    */
-  requestRegistrationResultSubscribe() {
+  async requestRegistrationResultSubscribe() {
     const templateId = config.SUBSCRIBE_TEMPLATES.REGISTRATION_RESULT
+
+    // 确保 openid 已获取（新用户首次注册时 globalData.openid 可能为空）
+    if (!this.globalData.openid) {
+      try {
+        await this.getUserOpenIdViaCloud()
+      } catch (e) {
+        console.error('[订阅] 获取 openid 失败:', e)
+      }
+    }
+
     return wx.requestSubscribeMessage({
       tmplIds: [templateId]
     }).then((res) => {

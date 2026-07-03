@@ -217,9 +217,9 @@ Page({
       }
       const statusInfo = STATUS_MAP[userStatus] || STATUS_MAP.offline
 
-      // 根据 isAdmin 动态构造系统设置菜单（报备配置仅管理员可见）
+      // 报备配置：管理员可编辑，馆领导/馆员只读查看
       const systemItems = [{ icon: 'Aa', label: '字体大小' }]
-      if (user.isAdmin) {
+      if (user.isAdmin || user.role === '馆领导' || user.role === '馆员') {
         systemItems.push({ icon: '⚙️', label: '报备配置' })
       }
       const menuGroups = [

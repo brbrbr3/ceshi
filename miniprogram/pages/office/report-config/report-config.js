@@ -20,10 +20,12 @@ Page({
     currentDepartment: '',
     addTitle: '',
     searchKeyword: '',
-    availableUsers: []
+    availableUsers: [],
+    canEdit: false
   },
 
   async onLoad() {
+    await this.checkPermission()
     await this.loadData()
   },
 
@@ -32,6 +34,18 @@ Page({
     if (this.data.fontStyle !== fontStyle) {
       this.setData({ fontStyle })
     }
+  },
+
+  /**
+   * 检查当前用户是否为管理员（决定可编辑权限）
+   */
+  checkPermission() {
+    return app.checkUserRegistration().then((result) => {
+      if (result.registered && result.user) {
+        const isAdmin = result.user.isAdmin || result.user.role === 'admin'
+        this.setData({ canEdit: !!isAdmin })
+      }
+    }).catch(() => {})
   },
 
   /**
@@ -66,6 +80,10 @@ Page({
    * 显示添加片长弹窗
    */
   handleShowAddAreaManager(e) {
+    if (!this.data.canEdit) {
+      utils.showToast({ title: '无权限操作', icon: 'none' })
+      return
+    }
     const area = e.currentTarget.dataset.area
     const availableUsers = this.data.allUsers.filter(u => !(Array.isArray(u.areaManagerOf) && u.areaManagerOf.includes(area)))
     this.setData({
@@ -84,6 +102,10 @@ Page({
    * 显示添加馆领导报备人弹窗
    */
   handleShowAddLeaderNotifier(e) {
+    if (!this.data.canEdit) {
+      utils.showToast({ title: '无权限操作', icon: 'none' })
+      return
+    }
     const { leaderOpenid, leaderName } = e.currentTarget.dataset
     const group = this.data.leaderNotifierGroups.find(g => g.leader.openid === leaderOpenid)
     const existingOpenids = group ? group.notifiers.map(u => u.openid) : []
@@ -104,6 +126,10 @@ Page({
    * 显示添加部门额外报备人弹窗
    */
   handleShowAddDeptNotifier(e) {
+    if (!this.data.canEdit) {
+      utils.showToast({ title: '无权限操作', icon: 'none' })
+      return
+    }
     const department = e.currentTarget.dataset.department
     const group = this.data.deptNotifierGroups.find(g => g.department === department)
     const existingOpenids = group ? group.extraNotifiers.map(u => u.openid) : []
@@ -159,6 +185,10 @@ Page({
    * 确认添加（按 addMode 调用不同云函数 action）
    */
   async handleConfirmAdd(e) {
+    if (!this.data.canEdit) {
+      utils.showToast({ title: '无权限操作', icon: 'none' })
+      return
+    }
     const { openid } = e.currentTarget.dataset
     wx.showLoading({ title: '添加中...', mask: true })
     try {
@@ -196,6 +226,10 @@ Page({
    * 移除片长
    */
   handleRemoveAreaManager(e) {
+    if (!this.data.canEdit) {
+      utils.showToast({ title: '无权限操作', icon: 'none' })
+      return
+    }
     const { openid, area } = e.currentTarget.dataset
     wx.showModal({
       title: '确认移除',
@@ -224,6 +258,10 @@ Page({
    * 移除馆领导报备人
    */
   handleRemoveLeaderNotifier(e) {
+    if (!this.data.canEdit) {
+      utils.showToast({ title: '无权限操作', icon: 'none' })
+      return
+    }
     const { leaderOpenid, openid } = e.currentTarget.dataset
     wx.showModal({
       title: '确认移除',
@@ -252,6 +290,10 @@ Page({
    * 切换部门负责人报备推送开关（暂停/恢复）
    */
   handleToggleDeptHeadNotify(e) {
+    if (!this.data.canEdit) {
+      utils.showToast({ title: '无权限操作', icon: 'none' })
+      return
+    }
     const { openid, disabled } = e.currentTarget.dataset
     const isDisabled = disabled === true || disabled === 'true'
     const actionText = isDisabled ? '恢复接收' : '暂停接收'
@@ -282,6 +324,10 @@ Page({
    * 移除部门额外报备人
    */
   handleRemoveDeptExtraNotifier(e) {
+    if (!this.data.canEdit) {
+      utils.showToast({ title: '无权限操作', icon: 'none' })
+      return
+    }
     const { openid, department } = e.currentTarget.dataset
     wx.showModal({
       title: '确认移除',

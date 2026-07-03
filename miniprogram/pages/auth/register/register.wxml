@@ -88,6 +88,7 @@
 
       <view class="auth-field">
         <view class="auth-field-label">是否为本系统管理员</view>
+        <view class="auth-card-desc">请选择“否”，除非您已获得授权成为本系统管理员。</view>
         <view class="auth-segment">
           <view class="auth-segment-item {{form.isAdmin ? 'is-active' : ''}}" data-value="true" bindtap="selectAdmin">是</view>
           <view class="auth-segment-item {{!form.isAdmin ? 'is-active' : ''}}" data-value="false" bindtap="selectAdmin">否</view>

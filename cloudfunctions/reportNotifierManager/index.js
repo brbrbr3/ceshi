@@ -34,6 +34,20 @@ async function assertAdmin(openid) {
 }
 
 /**
+ * 权限检查：仅已审批用户可操作（用于只读查询）
+ */
+async function assertApproved(openid) {
+  const userResult = await usersCollection
+    .where({ openid, status: 'approved' })
+    .limit(1)
+    .get()
+  if (!userResult.data || userResult.data.length === 0) {
+    throw new Error('用户未授权，请先完成审批')
+  }
+  return userResult.data[0]
+}
+
+/**
  * 兼容历史数据：确保字段为数组
  */
 async function ensureArrayField(target, field) {
@@ -57,7 +71,7 @@ async function ensureArrayField(target, field) {
  * - allUsers: 所有已审批用户（含 areaManagerOf/reportNotifiers/deptExtraNotifierOf/deptHeadNotifyDisabled，用于添加弹窗过滤）
  */
 async function getReportConfig(openid) {
-  await assertAdmin(openid)
+  await assertApproved(openid)
 
   // 获取居住区域列表
   const areaConfigRes = await sysConfigCollection.where({ key: 'REPAIR_LIVING_AREAS' }).limit(1).get()
