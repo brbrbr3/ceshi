@@ -13,6 +13,9 @@ const tripReportsCollection = db.collection('trip_reports')
 const usersCollection = db.collection('office_users')
 const notificationsCollection = db.collection('notifications')
 
+// 订阅消息模板ID
+const TRIP_REPORT_TEMPLATE_ID = 's4TMlGjkc0Yb4hqsX-BUG0FyhldMvwKr_h7AueqjnOo'
+
 // 统一返回格式
 function success(data, message) {
   return { code: 0, message: message || 'ok', data: data || {} }
@@ -231,7 +234,7 @@ async function handleDepart(openid, params) {
   }
 
   // 推送外出报备通知给片长/部门负责人/馆领导报备人
-  await notifyReportSubscribers(openid, currentUser, result._id, 'depart', { destination })
+  await notifyReportSubscribers(openid, currentUser, result._id, 'depart', { destination, companions: companions || '', reportTime: now })
 
   return success({
     _id: result._id,
@@ -297,7 +300,7 @@ async function handleReturn(openid, params) {
 
   // 推送返回报备通知给片长/部门负责人/馆领导报备人
   if (reporterUser) {
-    await notifyReportSubscribers(openid, reporterUser, tripId, 'return', { destination: tripRes.data.destination })
+    await notifyReportSubscribers(openid, reporterUser, tripId, 'return', { destination: tripRes.data.destination, companions: tripRes.data.companions || '', reportTime: now })
   }
 
   return success({
@@ -728,6 +731,9 @@ async function notifyReportSubscribers(reporterOpenid, reporter, tripId, action,
   // 排除报备人本人
   notifierOpenids.delete(reporterOpenid)
 
+  // 获取时区偏移
+  const offsetHours = await getTimezoneOffset()
+
   for (const targetOpenid of notifierOpenids) {
     try {
       await notificationsCollection.add({
@@ -744,7 +750,120 @@ async function notifyReportSubscribers(reporterOpenid, reporter, tripId, action,
     } catch (e) {
       console.warn('写入报备通知失败:', e)
     }
+
+    // 发送微信订阅消息（模板3：出行报备通知）
+    try {
+      await sendTripReportSubscribeMessage(
+        targetOpenid,
+        reporterName,
+        extra.reportTime || now,
+        destination,
+        extra.companions || '',
+        action,
+        offsetHours
+      )
+    } catch (e) {
+      console.warn('发送报备订阅消息失败:', e)
+    }
   }
+}
+
+/**
+ * 从 sys_config 读取 TIMEZONE_OFFSET（小时偏移量，默认 -3）
+ */
+async function getTimezoneOffset() {
+  try {
+    const configRes = await db.collection('sys_config')
+      .where({ type: 'timezone', key: 'TIMEZONE_OFFSET' })
+      .limit(1)
+      .get()
+    if (configRes.data && configRes.data.length > 0) {
+      return configRes.data[0].value !== undefined ? configRes.data[0].value : -3
+    }
+  } catch (e) {}
+  return -3
+}
+
+/**
+ * 格式化时间为订阅消息所需格式 YYYY-MM-DD HH:mm（含时差修正）
+ */
+function formatSubscribeTime(timestamp, offsetHours) {
+  const date = new Date(timestamp)
+  const utc = date.getTime() + date.getTimezoneOffset() * 60000
+  const local = new Date(utc + (offsetHours || 0) * 3600000)
+  const pad = (n) => String(n).padStart(2, '0')
+  return `${local.getFullYear()}-${pad(local.getMonth() + 1)}-${pad(local.getDate())} ${pad(local.getHours())}:${pad(local.getMinutes())}`
+}
+
+/**
+ * 截断文本到指定长度（微信 thing 类型字段限制20字）
+ */
+function truncateText(text, maxLen) {
+  const len = maxLen || 20
+  if (!text) return ''
+  return text.length > len ? text.substring(0, len) : text
+}
+
+/**
+ * 消费一条订阅额度：查询并标记为 used
+ */
+async function consumeSubscriptionQuota(openid, templateId) {
+  const subscriptionsCollection = db.collection('subscriptions')
+  const res = await subscriptionsCollection
+    .where({ openid, templateId, status: 'subscribed' })
+    .orderBy('createdAt', 'asc')
+    .limit(1)
+    .get()
+
+  if (!res.data || res.data.length === 0) {
+    return null
+  }
+
+  const record = res.data[0]
+  await subscriptionsCollection.doc(record._id).update({
+    data: { status: 'used', usedAt: Date.now() }
+  })
+  return record
+}
+
+/**
+ * 发送出行报备订阅消息（模板3）给报备接收人
+ * @param {string} openid - 接收者 openid
+ * @param {string} reporterName - 报备人姓名
+ * @param {number} reportTime - 报备时间戳
+ * @param {string} destination - 目的地
+ * @param {string} companions - 同行人
+ * @param {'depart'|'return'} action - 报备类型
+ * @param {number} offsetHours - 时区偏移小时数
+ */
+async function sendTripReportSubscribeMessage(openid, reporterName, reportTime, destination, companions, action, offsetHours) {
+  const templateId = TRIP_REPORT_TEMPLATE_ID
+
+  // 消费一条订阅额度
+  const quota = await consumeSubscriptionQuota(openid, templateId)
+  if (!quota) {
+    return
+  }
+
+  const name = truncateText(reporterName)
+  const time = formatSubscribeTime(reportTime, offsetHours)
+  const dest = truncateText(destination || '未知')
+  const companion = truncateText(companions || '无')
+  const remark = truncateText(action === 'depart' ? '外出报备' : '已返回')
+
+  await cloud.openapi.subscribeMessage.send({
+    touser: openid,
+    templateId: templateId,
+    page: 'pages/office/trip-board/trip-board',
+    data: {
+      thing1: { value: name },
+      time2: { value: time },
+      thing3: { value: dest },
+      thing4: { value: companion },
+      thing5: { value: remark }
+    }
+  })
+  console.log('出行报备订阅消息已发送:', openid, action)
 }
 
 /**

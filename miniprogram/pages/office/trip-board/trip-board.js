@@ -44,6 +44,8 @@ Page({
       if (!this.data.currentUser) return  // 无权限已切走，不再继续
       wx.showLoading({ title: '加载中...', mask: true })
       await this.loadBoardData()
+      // 静默积累出行报备订阅额度
+      app.requestTripReportSubscribe()
     } finally {
       wx.hideLoading()
     }

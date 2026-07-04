@@ -1346,12 +1346,34 @@ const SUBSCRIBE_TEMPLATE = {
 }
 
 /**
- * 格式化时间为订阅消息所需格式 YYYY-MM-DD HH:mm
+ * 从 sys_config 读取 TIMEZONE_OFFSET（小时偏移量，默认 -3）
  */
-function formatSubscribeTime(timestamp) {
-  const d = new Date(timestamp)
+async function getTimezoneOffset() {
+  try {
+    const configRes = await db.collection('sys_config')
+      .where({ type: 'timezone', key: 'TIMEZONE_OFFSET' })
+      .limit(1)
+      .get()
+    if (configRes.data && configRes.data.length > 0) {
+      return configRes.data[0].value !== undefined ? configRes.data[0].value : -3
+    }
+  } catch (e) {
+    // 降级使用默认值
+  }
+  return -3
+}
+
+/**
+ * 格式化时间为订阅消息所需格式 YYYY-MM-DD HH:mm（含时差修正）
+ * @param {number} timestamp - GMT 时间戳
+ * @param {number} offsetHours - 时区偏移小时数（默认 0）
+ */
+function formatSubscribeTime(timestamp, offsetHours) {
+  const date = new Date(timestamp)
+  const utc = date.getTime() + date.getTimezoneOffset() * 60000
+  const local = new Date(utc + (offsetHours || 0) * 3600000)
   const pad = (n) => String(n).padStart(2, '0')
-  return `${d.getFullYear()}-${pad(d.getMonth() + 1)}-${pad(d.getDate())} ${pad(d.getHours())}:${pad(d.getMinutes())}`
+  return `${local.getFullYear()}-${pad(local.getMonth() + 1)}-${pad(local.getDate())} ${pad(local.getHours())}:${pad(local.getMinutes())}`
 }
 
 /**
@@ -1411,7 +1433,8 @@ async function sendRegistrationResultSubscribeMessage(order, result) {
     }
 
     const applicantName = truncateText(order.businessData.applicantName || '用户')
-    const registerTime = formatSubscribeTime(order.submittedAt || order.createdAt || Date.now())
+    const offsetHours = await getTimezoneOffset()
+    const registerTime = formatSubscribeTime(order.submittedAt || order.createdAt || Date.now(), offsetHours)
     const tip = result === 'approved'
       ? '您的注册申请已批准，请重新登录使用'
       : '您的注册申请未通过，请修改后重新提交'
@@ -1443,6 +1466,7 @@ async function sendPendingApprovalSubscribeMessage(order, approverOpenids) {
   if (!approverOpenids || approverOpenids.length === 0) return
 
   const templateId = SUBSCRIBE_TEMPLATE.PENDING_APPROVAL
+  const offsetHours = await getTimezoneOffset()
 
   for (const approverOpenid of approverOpenids) {
     try {
@@ -1453,7 +1477,7 @@ async function sendPendingApprovalSubscribeMessage(order, approverOpenids) {
       }
 
       const applicantName = truncateText(order.businessData.applicantName || '申请人')
-      const applyTime = formatSubscribeTime(order.submittedAt || order.createdAt || Date.now())
+      const applyTime = formatSubscribeTime(order.submittedAt || order.createdAt || Date.now(), offsetHours)
       const applyType = truncateText('新用户注册申请')
       const remark = truncateText(order.businessData.applyReason || '请尽快审批')
 
