@@ -260,6 +260,13 @@ input {
   pointer-events: none;
 }
 
+.auth-submit-btn.is-disabled {
+  background: linear-gradient(135deg, #9CA3AF 0%, #B0B7C3 100%);
+  box-shadow: none;
+  color: #E5E7EB;
+  pointer-events: none;
+}
+
 .auth-note {
   margin-top: 18rpx;
   font-size: var(--fs-24);

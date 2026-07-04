@@ -52,6 +52,7 @@ Page({
 
   data: {
     loading: false,
+    statusLoading: true,
     statusCard: null,
     showRegisterLink: true,
     isAdmin: false,
@@ -130,6 +131,7 @@ Page({
   },
 
   refreshStatus(forceRefresh) {
+    this.setData({ statusLoading: true })
     return Promise.all([
       app.checkUserRegistration({ forceRefresh }),
       this.loadBootstrapStatus()
@@ -143,6 +145,7 @@ Page({
       const isAdmin = result.registered && result.user && result.user.isAdmin === true
 
       this.setData({
+        statusLoading: false,
         statusCard,
         showRegisterLink: !result.registered && (!result.request || result.request.status === 'rejected'),
         isAdmin,
@@ -151,6 +154,7 @@ Page({
       })
     }).catch((error) => {
       this.setData({
+        statusLoading: false,
         statusCard: {
           className: 'is-error',
           title: '连接失败',
@@ -169,6 +173,15 @@ Page({
 
   async handleWxLogin() {
     if (this.data.loading) return
+
+    // 用户状态加载中，禁止操作（防止绕过生物认证）
+    if (this.data.statusLoading) {
+      utils.showToast({
+        title: '正在获取用户状态，请稍候',
+        icon: 'none'
+      })
+      return
+    }
 
     // 审批中不可操作
     if (this.data.isPendingApproval) {
