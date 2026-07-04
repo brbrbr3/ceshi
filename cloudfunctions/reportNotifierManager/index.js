@@ -207,8 +207,14 @@ async function setLeaderNotifier(openid, leaderOpenid, notifierOpenid) {
 
   await ensureArrayField(leader, 'reportNotifiers')
 
+  const now = Date.now()
   await usersCollection.doc(leader._id).update({
-    data: { reportNotifiers: _.push(notifierOpenid), updatedAt: Date.now() }
+    data: { reportNotifiers: _.push(notifierOpenid), updatedAt: now }
+  })
+
+  // 同步更新被指定报备人的 updatedAt，确保 checkRegistration 版本比对能感知变化
+  await usersCollection.doc(notifierResult.data[0]._id).update({
+    data: { updatedAt: now }
   })
 
   return success({ leaderOpenid, notifierOpenid }, '报备人设置成功')
@@ -235,9 +241,18 @@ async function removeLeaderNotifier(openid, leaderOpenid, notifierOpenid) {
 
   await ensureArrayField(leader, 'reportNotifiers')
 
+  const now = Date.now()
   await usersCollection.doc(leader._id).update({
-    data: { reportNotifiers: _.pull(notifierOpenid), updatedAt: Date.now() }
+    data: { reportNotifiers: _.pull(notifierOpenid), updatedAt: now }
   })
+
+  // 同步更新被移除报备人的 updatedAt，确保 checkRegistration 版本比对能感知变化
+  const notifierDoc = await usersCollection.where({ openid: notifierOpenid }).limit(1).get()
+  if (notifierDoc.data && notifierDoc.data.length > 0) {
+    await usersCollection.doc(notifierDoc.data[0]._id).update({
+      data: { updatedAt: now }
+    })
+  }
 
   return success({ leaderOpenid, notifierOpenid }, '报备人移除成功')
 }

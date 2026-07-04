@@ -172,7 +172,10 @@ function formatUserRecord(record) {
     livingArea: record.livingArea || '',
     userStatus: record.userStatus || 'offline',
     avatarUrl: record.avatarUrl || '',
-    nickName: record.nickName || ''
+    nickName: record.nickName || '',
+    areaManagerOf: Array.isArray(record.areaManagerOf) ? record.areaManagerOf : [],
+    deptExtraNotifierOf: Array.isArray(record.deptExtraNotifierOf) ? record.deptExtraNotifierOf : [],
+    reportNotifiers: Array.isArray(record.reportNotifiers) ? record.reportNotifiers : []
   }
 }
 
@@ -306,6 +309,18 @@ async function findUserByOpenId(openid) {
   return result.data[0] || null
 }
 
+/**
+ * 查询当前用户是否被某馆领导指定为报备人
+ * reportNotifiers 存储在馆领导文档上（openid 数组），需反向查询
+ */
+async function checkIsLeaderNotifier(openid) {
+  const leaderRes = await usersCollection
+    .where({ status: 'approved', role: '馆领导', reportNotifiers: openid })
+    .limit(1)
+    .get()
+  return !!(leaderRes.data && leaderRes.data.length > 0)
+}
+
 async function ensureAdminUser(openid) {
   const userRecord = await findUserByOpenId(openid)
   const constants = await getSystemConstants()
@@ -337,13 +352,15 @@ async function checkRegistration(openid, options = {}) {
       })
     }
 
+    const userObj = formatUserRecord(userRecord)
+    userObj.isLeaderNotifier = await checkIsLeaderNotifier(openid)
     return success({
       openid,
       registered: true,
       profileNotModified: false,
       authStatus: requestStatus.APPROVED,
       updatedAt: userRecord.updatedAt,
-      user: formatUserRecord(userRecord),
+      user: userObj,
       request: null
     })
   }
@@ -400,11 +417,13 @@ async function checkRegistration(openid, options = {}) {
         }
 
         const updatedUser = await findUserByOpenId(openid)
+        const approvedUserObj = formatUserRecord(updatedUser)
+        approvedUserObj.isLeaderNotifier = await checkIsLeaderNotifier(openid)
         return success({
           openid,
           registered: true,
           authStatus: requestStatus.APPROVED,
-          user: formatUserRecord(updatedUser),
+          user: approvedUserObj,
           request: null
         })
       } else {

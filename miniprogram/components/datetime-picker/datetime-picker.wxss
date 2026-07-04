@@ -257,7 +257,7 @@
 }
 
 /* 选中效果 */
-picker-view-column:first-child .picker-column-item:first-child {
+.picker-view-column:first-child .picker-column-item:first-child {
   margin-top: 0;
 }
 

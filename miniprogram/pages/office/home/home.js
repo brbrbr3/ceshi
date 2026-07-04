@@ -156,6 +156,8 @@ Page({
     //this.loadBgImage()
     this.syncUserProfile() //同步用户资料
     this.syncNotifications() //同步消息推送
+    // 同步用户微信订阅选择到本地缓存（供 handleQuickAction 中的 silentAccumulateSubscribe 使用）
+    app.syncSubscriptionChoices()
     //this.loadAnnouncements() //加载通知公告
     //this.loadArticles() //加载学习园地
     //this.loadActivities() //加载群团活动
@@ -492,6 +494,21 @@ Page({
   },
 
   handleQuickAction(e) {
+    // 利用用户 tap 手势静默积累订阅额度
+    // 管理员 → 积累模板2（待审批通知）；报备接收人 → 积累模板3（出行报备通知）
+    const user = this.data.currentUser || app.globalData.userProfile
+    if (user) {
+      const types = []
+      if (user.isAdmin) types.push('pending_approval')
+      const isReceiver = user.isDepartmentHead
+        || user.role === '馆领导'
+        || (Array.isArray(user.areaManagerOf) && user.areaManagerOf.length > 0)
+        || (Array.isArray(user.deptExtraNotifierOf) && user.deptExtraNotifierOf.length > 0)
+        || user.isLeaderNotifier
+      if (isReceiver) types.push('trip_report')
+      if (types.length > 0) app.silentAccumulateSubscribe(types)
+    }
+
     const label = e.currentTarget.dataset.label
     if (label === '每周菜单') {
       wx.navigateTo({

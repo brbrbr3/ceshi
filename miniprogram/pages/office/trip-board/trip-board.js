@@ -44,8 +44,6 @@ Page({
       if (!this.data.currentUser) return  // 无权限已切走，不再继续
       wx.showLoading({ title: '加载中...', mask: true })
       await this.loadBoardData()
-      // 静默积累出行报备订阅额度
-      app.requestTripReportSubscribe()
     } finally {
       wx.hideLoading()
     }
@@ -59,7 +57,18 @@ Page({
     // 首次被拒后切走再切回，直接切回首页，不再重复弹窗
     if (!this.data.currentUser && this._denied) {
       wx.switchTab({ url: '/pages/office/home/home' })
+      return
     }
+
+    // 同步用户微信订阅选择到本地缓存（供 silentAccumulateSubscribe 使用）
+    app.syncSubscriptionChoices()
+
+    // 报备接收人：首次引导订阅出行报备通知（模板3）
+    // requestSubscribeWithQuota 仅首次弹 Modal，后续不再弹
+    app.requestTripReportSubscribe()
+
+    // 每天一次云端校准订阅额度计数
+    app.calibrateSubscriptionCounts()
   },
 
   /**
@@ -78,8 +87,10 @@ Page({
       const isAdmin = user.isAdmin
       const isDeptHead = user.isDepartmentHead
       const isAreaManager = Array.isArray(user.areaManagerOf) && user.areaManagerOf.length > 0
+      const isDeptExtraNotifier = Array.isArray(user.deptExtraNotifierOf) && user.deptExtraNotifierOf.length > 0
+      const isLeaderNotifier = !!user.isLeaderNotifier
 
-      if (!isAdmin && !isLeader && !isDeptHead && !isAreaManager) {
+      if (!isAdmin && !isLeader && !isDeptHead && !isAreaManager && !isDeptExtraNotifier && !isLeaderNotifier) {
         // 标记已拒，供 onShow 静默切回使用
         this._denied = true
         // 先切回首页，切换成功后再弹窗提示
@@ -221,6 +232,21 @@ Page({
   // ========== 条目点击：个人全部外出记录弹窗 ==========
 
   handleItemTap(e) {
+    // 利用 tap 手势静默积累订阅额度（与首页 handleQuickAction 逻辑一致）
+    // 管理员 → 积累模板2（待审批通知）；报备接收人 → 积累模板3（出行报备通知）
+    const user = this.data.currentUser
+    if (user) {
+      const types = []
+      if (user.isAdmin) types.push('pending_approval')
+      const isReceiver = user.role === '馆领导'
+        || user.isDepartmentHead
+        || (Array.isArray(user.areaManagerOf) && user.areaManagerOf.length > 0)
+        || (Array.isArray(user.deptExtraNotifierOf) && user.deptExtraNotifierOf.length > 0)
+        || user.isLeaderNotifier
+      if (isReceiver) types.push('trip_report')
+      if (types.length > 0) app.silentAccumulateSubscribe(types)
+    }
+
     const openid = e.currentTarget.dataset.openid
     const name = e.currentTarget.dataset.name
     if (!openid) return
