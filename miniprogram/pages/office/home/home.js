@@ -158,6 +158,8 @@ Page({
     this.syncNotifications() //同步消息推送
     // 同步用户微信订阅选择到本地缓存（供 handleQuickAction 中的 silentAccumulateSubscribe 使用）
     app.syncSubscriptionChoices()
+    // 每天一次云端校准订阅额度计数（清缓存后 sub_count_* 归零，此处触发云端恢复）
+    app.calibrateSubscriptionCounts()
     //this.loadAnnouncements() //加载通知公告
     //this.loadArticles() //加载学习园地
     //this.loadActivities() //加载群团活动

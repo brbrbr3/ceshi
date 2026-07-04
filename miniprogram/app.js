@@ -715,17 +715,41 @@ App({
    * @param {string} type - 订阅类型标识（如 'pending_approval'、'trip_report'）
    * @param {object} guideOptions - 弹窗引导文案 { title, content, confirmText, cancelText }
    */
-  requestSubscribeWithQuota(templateId, type, guideOptions) {
+  async requestSubscribeWithQuota(templateId, type, guideOptions) {
     if (!templateId) return
 
-    // 仅作首次引导：已引导过则不再弹 Modal（后续额度积累由 silentAccumulateSubscribe 在用户 tap 中处理）
-    // 注意：原实现通过 wx.getSetting 异步判断用户选择后在 success 回调中调 requestSubscribeMessage，
-    // 但 getSetting 的 success 回调已脱离用户手势上下文，导致"已勾选总接受"分支报 TAP gesture 错误。
-    // 修复：首次统一走 Modal 引导（Modal 确认按钮 = 新手势），后续积累交给 silentAccumulateSubscribe。
     const guideKey = `sub_guide_${templateId}`
     if (wx.getStorageSync(guideKey)) return
-    wx.setStorageSync(guideKey, true)
 
+    // 快速检查：用户已在微信中设置过"总是接受/拒绝"，说明之前已引导过
+    // sub_choice_* 由 syncSubscriptionChoices 从 wx.getSetting 恢复，不受小程序缓存清理影响
+    const choice = wx.getStorageSync(`sub_choice_${templateId}`)
+    if (choice === 'accept' || choice === 'reject') {
+      wx.setStorageSync(guideKey, true)
+      return
+    }
+
+    // 查询云端是否已有订阅记录，如有则标记已引导并跳过弹窗
+    const openid = this.globalData.openid
+    if (openid) {
+      try {
+        const db = wx.cloud.database()
+        const countRes = await db.collection('subscriptions')
+          .where({ openid: openid, templateId: templateId, status: 'subscribed' })
+          .count()
+        if (countRes.total > 0) {
+          wx.setStorageSync(guideKey, true)
+          wx.setStorageSync(`sub_count_${templateId}`, countRes.total)
+          return
+        }
+      } catch (err) {
+        console.error('[订阅] 查询已有订阅记录失败:', err)
+        // 查询失败时仍走弹窗引导流程（保守处理）
+      }
+    }
+
+    // 三层检查均未命中：首次引导，弹 Modal（Modal 确认按钮 = 新手势，满足 requestSubscribeMessage 的 TAP gesture 要求）
+    wx.setStorageSync(guideKey, true)
     this._guideSubscribe(templateId, type, guideOptions)
   },
 
@@ -857,21 +881,39 @@ App({
       'trip_report': config.SUBSCRIBE_TEMPLATES.TRIP_REPORT
     }
 
-    // 过滤出需要积累的模板：用户已"总是接受" 且 本地计数 < 100
+    // 过滤出需要积累的模板
     const toRequest = []
     types.forEach(type => {
       const id = typeToTemplate[type]
       if (!id) return
       const choice = wx.getStorageSync(`sub_choice_${id}`) || '(未设置)'
-      const count = wx.getStorageSync(`sub_count_${id}`) || 0
-      console.log(`[订阅] silentAccumulate type=${type} id=${id} choice=${choice} count=${count}`)
-      if (choice !== 'accept') return
+      const count = wx.getStorageSync(`sub_count_${id}`)
+      console.log(`[订阅] silentAccumulate type=${type} id=${id} choice=${choice} count=${count === '' ? '(未初始化)' : count}`)
+
+      // 用户明确"总是拒绝" → 跳过
+      if (choice === 'reject') return
+      // 缓存未初始化时跳过（等待 calibrateSubscriptionCounts 从云端恢复），避免从 0 误计
+      if (count === '') return
       if (count >= 100) return
-      toRequest.push(id)
+
+      // 用户明确"总是接受" → 直接加入（静默无弹窗）
+      if (choice === 'accept') {
+        toRequest.push(id)
+        return
+      }
+
+      // choice 为 '(未设置)' 且有历史订阅记录 → 可能是清缓存导致 wx.getSetting 丢失 itemSettings
+      // 每个模板每会话最多尝试1次，避免频繁弹窗打扰用户
+      if (count > 0) {
+        if (!this._unknownChoiceAttempted) this._unknownChoiceAttempted = {}
+        if (this._unknownChoiceAttempted[id]) return
+        this._unknownChoiceAttempted[id] = true
+        toRequest.push(id)
+      }
     })
 
     if (toRequest.length === 0) {
-      console.log('[订阅] silentAccumulate 无可积累模板（sub_choice 非 accept 或 count 已达 100）')
+      console.log('[订阅] silentAccumulate 无可积累模板（sub_choice 为 reject 或 count 已达 100 或未知状态本会话已尝试）')
       return
     }
 
@@ -891,6 +933,9 @@ App({
             wx.setStorageSync(`sub_count_${id}`, count + 1)
           }
         })
+        // 同步"总是"选择状态（requestSubscribeMessage 后 wx.getSetting 能反映最新设置）
+        // 若用户勾选了"总是接受"，此处恢复 sub_choice_* 为 'accept'，后续调用将静默进行
+        this.syncSubscriptionChoices()
       },
       fail: (err) => {
         console.error('[订阅] silentAccumulateSubscribe 失败:', err.errMsg || err)
@@ -910,7 +955,13 @@ App({
     const now = new Date()
     const today = `${now.getFullYear()}-${String(now.getMonth() + 1).padStart(2, '0')}-${String(now.getDate()).padStart(2, '0')}`
     const lastCalibrate = wx.getStorageSync('sub_calibrate_date')
-    if (lastCalibrate === today) return
+
+    // 缓存丢失检测：sub_count 不存在（返回 ''）说明缓存被清除，强制初始化
+    const needInit = wx.getStorageSync(`sub_count_${config.SUBSCRIBE_TEMPLATES.PENDING_APPROVAL}`) === ''
+                  || wx.getStorageSync(`sub_count_${config.SUBSCRIBE_TEMPLATES.TRIP_REPORT}`) === ''
+
+    // 每日节流；缓存丢失时强制执行一次
+    if (lastCalibrate === today && !needInit) return
 
     const openid = this.globalData.openid
     if (!openid) return
@@ -925,12 +976,16 @@ App({
         { id: config.SUBSCRIBE_TEMPLATES.TRIP_REPORT }
       ]
 
-      // 1. 同步本地计数（subscribed 状态 = 可用额度）
+      // 1. 同步本地计数（subscribed 状态 = 可用额度）+ 恢复引导标记
       for (const tpl of templates) {
         const countRes = await db.collection('subscriptions')
           .where({ openid: openid, templateId: tpl.id, status: 'subscribed' })
           .count()
         wx.setStorageSync(`sub_count_${tpl.id}`, countRes.total)
+        // 已有订阅记录 → 标记已引导过，避免重复弹窗
+        if (countRes.total > 0) {
+          wx.setStorageSync(`sub_guide_${tpl.id}`, true)
+        }
       }
 
       // 2. 清理已使用记录（used 状态），每次最多删20条
