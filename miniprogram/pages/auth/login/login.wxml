@@ -19,14 +19,14 @@
   <view class="auth-card">
     <view class="login-wechat-title">{{isRegistered ? '您已注册，点击下方按钮登录：' : '您尚未注册，点击下方按钮注册：'}}</view>
     <button class="auth-submit-btn login-submit-btn {{isPendingApproval ? 'is-pending' : ''}}" loading="{{loading}}" bindtap="handleWxLogin">{{isPendingApproval ? '审核中' : (isRegistered ? '人脸/指纹登录' : '注册')}}</button>
+    <view wx:if="{{isRegistered}}" class="login-wechat-title-desc">您的生物特征仅用于登录验证，小程序不会保存</view>
     <view class="login-wechat-panel">
       <!-- <view wx:if="{{isDevEnv}}" class="login-wechat-icon">生物特征</view> -->
       <view>
         <!-- <view wx:if="{{isDevEnv}}" class="login-wechat-title">使用微信身份识别当前用户</view> -->
-        <view wx:if="{{isRegistered}}" class="login-wechat-desc">您的生物特征仅用于登录验证，小程序不会保存</view>
         <view class="login-wechat-desc">注意事项：</view>
-        <view class="login-wechat-desc">1.小程序将采集您的部分个人信息（微信头像、微信昵称），请在相关征求获取个人信息的弹窗中点击<text style="font-weight: 700; color: crimson;">同意</text>，否则后续将无法正常使用小程序</view>
-        <view class="login-wechat-desc">2.为正常使用小程序的微信消息推送功能，请在相关征求向您推送消息的弹窗中<text style="font-weight: 700; color: crimson;">打开相关推送并确认</text>，否则后续将无法正常使用小程序</view>
+        <view class="login-wechat-desc">1.小程序将采集您的部分个人信息（微信头像、微信昵称）用于注册验证，请<text style="font-weight: 700; color: crimson;">在用户隐私保护指引弹窗中点击“同意”</text>，否则后续将无法正常使用小程序</view>
+        <view class="login-wechat-desc">2.为正常使用小程序的微信消息推送功能，请<text style="font-weight: 700; color: crimson;">在申请向您发送消息的弹窗中打开相关通知推送，并点击“允许”</text>，否则后续将无法正常使用小程序</view>
       </view>
     </view>
     <view class="auth-card-title"></view>

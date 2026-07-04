@@ -62,10 +62,15 @@ Page({
         throw new Error(res.result.message || '加载失败')
       }
       const { livingAreas, areaManagerGroups, leaderNotifierGroups, deptNotifierGroups, allUsers } = res.result.data
+      // 补充扁平的 leaderOpenid 字段供 wx:key 使用（wx:key 不支持点号路径）
+      const leaderNotifierGroupsWithKey = (leaderNotifierGroups || []).map(g => ({
+        ...g,
+        leaderOpenid: (g.leader && g.leader.openid) || ''
+      }))
       this.setData({
         livingAreas,
         areaManagerGroups,
-        leaderNotifierGroups,
+        leaderNotifierGroups: leaderNotifierGroupsWithKey,
         deptNotifierGroups,
         allUsers,
         loading: false

@@ -2,7 +2,7 @@
   <view class="auth-hero">
     <!-- <view wx:if="{{isDevEnv}}" class="auth-brand">注册</view> -->
     <view class="auth-title">填写注册申请</view>
-    <view class="auth-subtitle">请补充个人资料。提交后，管理员将收到一条新的注册申请并进行审核。</view>
+    <view class="auth-subtitle">请按要求填写个人资料。提交后，管理员将收到一条新的注册申请并进行审核。</view>
     <view class="auth-tip-row">
       <!-- <view wx:if="{{isDevEnv}}" class="auth-tip-pill">姓名</view> -->
       <!-- <view wx:if="{{isDevEnv}}" class="auth-tip-pill">角色信息</view> -->
@@ -12,7 +12,7 @@
 
   <view class="auth-card">
     <view class="auth-card-title">填写个人资料</view>
-    <view class="auth-card-desc">审批通过后将自动成为正式用户。</view>
+    <view class="auth-card-desc">审批通过后将自动成为本小程序正式用户。</view>
 
     <view wx:if="{{reviewRemark}}" class="register-review-banner">
       <view class="register-review-title">退回说明</view>
@@ -98,5 +98,6 @@
 
     <button class="auth-submit-btn" loading="{{loading}}" bindtap="submitRegistration">提交注册申请</button>
     <view class="auth-note">提交后请等待管理员处理；若未通过，可进入本页修改并重新提交。</view>
+    <view class="auth-note">请<text style="font-weight: 700; color: crimson;">在申请向您发送消息的弹窗中打开相关通知推送，并点击“允许”</text>。</view>
   </view>
 </view>

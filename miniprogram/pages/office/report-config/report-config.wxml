@@ -2,7 +2,7 @@
   <view class="office-gradient-header office-subpage-header">
     <view class="office-subpage-header-content">
       <view class="office-subpage-title">报备配置</view>
-      <view class="office-subpage-subtitle">配置各居住区片长、馆领导报备人</view>
+      <view class="office-subpage-subtitle">配置居住区片长、馆领导报备人及部门额外报备人</view>
     </view>
   </view>
 
@@ -57,7 +57,7 @@
         <view>暂无馆领导用户</view>
       </view>
       <view wx:else>
-        <view class="report-group" wx:for="{{leaderNotifierGroups}}" wx:key="leader.openid">
+        <view class="report-group" wx:for="{{leaderNotifierGroups}}" wx:key="leaderOpenid">
           <view class="office-card report-group-card">
             <view class="report-group-header">
               <view class="report-group-name">{{item.leader.name}}</view>

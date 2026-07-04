@@ -228,7 +228,7 @@ Page({
       ]
 
       this.setData({
-        userName: user.nickName || user.name,
+        userName: user.name,
         roleLabel: user.isAdmin ? `${user.role} · 管理员` : user.role,
         primaryTag: user.isAdmin ? '系统管理员' : '非系统管理员',
         secondaryTag: '状态：' + statusInfo.label,
