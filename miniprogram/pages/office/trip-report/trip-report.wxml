@@ -44,13 +44,13 @@
     <!-- 主操作按钮 -->
     <view class="trip-action-section">
       <button wx:if="{{activeTrip}}" class="trip-action-btn trip-action-btn-return" bindtap="handleReturn">
-        🏠 返回报备
+        🏠返回报备
       </button>
       <button wx:else class="trip-action-btn trip-action-btn-depart" bindtap="handleDepartBtn">
-        🚗 外出报备
+        🚗外出报备
       </button>
       <button class="trip-action-btn trip-action-btn-retro {{activeTrip ? 'is-disabled' : ''}}" bindtap="showRetroForm" disabled="{{!!activeTrip}}">
-        📝 补填外出报备
+        📝补填外出报备
       </button>
     </view>
 
@@ -119,7 +119,7 @@
           </view>
           <!-- 历史记录快捷选择 -->
           <view wx:if="{{showDestinationHistory && destinationHistory.length > 0}}" class="trip-history-list">
-            <view class="trip-history-title">最近使用</view>
+            <view class="trip-history-title">常用目的地</view>
             <view class="trip-history-items">
               <view wx:for="{{destinationHistory}}" wx:key="index" class="trip-history-item" bindtap="selectDestinationHistory" data-value="{{item}}">
                 {{item}}
@@ -142,7 +142,7 @@
           <view class="trip-field-hint">多个同行人用空格分隔，系统将自动为同行人代报备</view>
           <!-- 历史记录快捷选择 -->
           <view wx:if="{{showCompanionsHistory && companionsHistory.length > 0}}" class="trip-history-list">
-            <view class="trip-history-title">最近使用</view>
+            <view class="trip-history-title">常用同行人</view>
             <view class="trip-history-items">
               <view wx:for="{{companionsHistory}}" wx:key="index" class="trip-history-item" bindtap="selectCompanionsHistory" data-value="{{item}}">
                 {{item}}
@@ -161,7 +161,7 @@
           </picker>
         </view>
 
-        <button class="trip-submit-btn" loading="{{submitting}}" disabled="{{submitting}}" bindtap="submitDepart">
+        <button class="auth-submit-btn trip-submit-btn" loading="{{submitting}}" disabled="{{submitting}}" bindtap="submitDepart">
           确认报备
         </button>
       </view>
@@ -254,7 +254,7 @@
           </picker>
         </view>
 
-        <button class="trip-submit-btn" loading="{{submitting}}" disabled="{{submitting}}" bindtap="submitRetroDepart">
+        <button class="auth-submit-btn trip-submit-btn" loading="{{submitting}}" disabled="{{submitting}}" bindtap="submitRetroDepart">
           确认补填
         </button>
       </view>

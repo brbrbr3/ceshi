@@ -8,8 +8,12 @@ const app = getApp()
 const utils = require('../../../common/utils.js')
 
 // 引入日历组件和农历插件
-const { WxCalendar } = require('@lspriv/wx-calendar/lib')
-const { LunarPlugin } = require('@lspriv/wc-plugin-lunar')
+const {
+  WxCalendar
+} = require('@lspriv/wx-calendar/lib')
+const {
+  LunarPlugin
+} = require('@lspriv/wc-plugin-lunar')
 
 // 启用农历插件
 WxCalendar.use(LunarPlugin)
@@ -21,22 +25,58 @@ const CONFIG_HOLIDAY_ALLOWED_ROLES = ['admin', '会计', '会计主管']
 const SCHEDULE_ALLOWED_POSITIONS = ['礼宾']
 
 // 日程类型配置
-const SCHEDULE_TYPES = [
-  { type: 'meeting', name: '会议', color: '#8B5CF6' },
-  { type: 'study', name: '学习', color: '#EF4444' },
-  { type: 'visit', name: '会见', color: '#10B981' },
-  { type: 'banquet', name: '宴请', color: '#F59E0B' },
-  { type: 'other', name: '其他', color: '#6B7280' }
+const SCHEDULE_TYPES = [{
+    type: 'meeting',
+    name: '会议',
+    color: '#8B5CF6'
+  },
+  {
+    type: 'study',
+    name: '学习',
+    color: '#EF4444'
+  },
+  {
+    type: 'visit',
+    name: '会见',
+    color: '#10B981'
+  },
+  {
+    type: 'banquet',
+    name: '宴请',
+    color: '#F59E0B'
+  },
+  {
+    type: 'other',
+    name: '其他',
+    color: '#6B7280'
+  }
 ]
 
 // 重复选项
-const REPEAT_OPTIONS = [
-  { value: 'none', label: '不重复' },
-  { value: 'daily', label: '每天' },
-  { value: 'weekly', label: '每周' },
-  { value: 'monthly', label: '每月' },
-  { value: 'workdayDaily', label: '工作日每天' },
-  { value: 'workdayWeekly', label: '工作日每周' }
+const REPEAT_OPTIONS = [{
+    value: 'none',
+    label: '不重复'
+  },
+  {
+    value: 'daily',
+    label: '每天'
+  },
+  {
+    value: 'weekly',
+    label: '每周'
+  },
+  {
+    value: 'monthly',
+    label: '每月'
+  },
+  {
+    value: 'workdayDaily',
+    label: '工作日每天'
+  },
+  {
+    value: 'workdayWeekly',
+    label: '工作日每周'
+  }
 ]
 
 // 计算当年最后一天
@@ -68,7 +108,10 @@ function computeEaster(year) {
   const m = Math.floor((a + 11 * h + 22 * l) / 451)
   const month = Math.floor((h + l - 7 * m + 114) / 31)
   const day = ((h + l - 7 * m + 114) % 31) + 1
-  return { month, day }
+  return {
+    month,
+    day
+  }
 }
 
 /**
@@ -81,7 +124,11 @@ function easterOffset(year, offset) {
   const easter = computeEaster(year)
   const date = new Date(year, easter.month - 1, easter.day)
   date.setDate(date.getDate() + offset)
-  return { year: date.getFullYear(), month: date.getMonth() + 1, day: date.getDate() }
+  return {
+    year: date.getFullYear(),
+    month: date.getMonth() + 1,
+    day: date.getDate()
+  }
 }
 
 /**
@@ -94,42 +141,96 @@ function getBrazilHolidays(year) {
   const holidays = new Map()
 
   // 固定日期节假日
-  const fixedHolidays = [
-    { month: 1, day: 1, pt: 'Confraternização Universal', zh: '元旦' },
-    { month: 4, day: 21, pt: 'Tiradentes', zh: '拔牙者纪念日' },
-    { month: 5, day: 1, pt: 'Dia do Trabalho', zh: '劳动节' },
-    { month: 9, day: 7, pt: 'Independência do Brasil', zh: '巴西独立日' },
-    { month: 10, day: 12, pt: 'Nossa Senhora Aparecida', zh: '圣母显灵日' },
-    { month: 11, day: 2, pt: 'Finados', zh: '亡灵节' },
-    { month: 11, day: 15, pt: 'Proclamação da República', zh: '共和国宣告日' },
-    { month: 12, day: 25, pt: 'Natal', zh: '圣诞节' }
+  const fixedHolidays = [{
+      month: 1,
+      day: 1,
+      pt: 'Confraternização Universal',
+      zh: '元旦'
+    },
+    {
+      month: 4,
+      day: 21,
+      pt: 'Tiradentes',
+      zh: '拔牙者纪念日'
+    },
+    {
+      month: 5,
+      day: 1,
+      pt: 'Dia do Trabalho',
+      zh: '劳动节'
+    },
+    {
+      month: 9,
+      day: 7,
+      pt: 'Independência do Brasil',
+      zh: '巴西独立日'
+    },
+    {
+      month: 10,
+      day: 12,
+      pt: 'Nossa Senhora Aparecida',
+      zh: '圣母显灵日'
+    },
+    {
+      month: 11,
+      day: 2,
+      pt: 'Finados',
+      zh: '亡灵节'
+    },
+    {
+      month: 11,
+      day: 15,
+      pt: 'Proclamação da República',
+      zh: '共和国宣告日'
+    },
+    {
+      month: 12,
+      day: 25,
+      pt: 'Natal',
+      zh: '圣诞节'
+    }
   ]
 
   fixedHolidays.forEach(h => {
     const key = `${year}-${String(h.month).padStart(2, '0')}-${String(h.day).padStart(2, '0')}`
-    holidays.set(key, { pt: h.pt, zh: h.zh })
+    holidays.set(key, {
+      pt: h.pt,
+      zh: h.zh
+    })
   })
 
   // 浮动日期节假日（基于复活节）
   // 瀑布节（狂欢节周一）：复活节前47天
   const carnivalMon = easterOffset(year, -47)
   const carnivalMonKey = `${carnivalMon.year}-${String(carnivalMon.month).padStart(2, '0')}-${String(carnivalMon.day).padStart(2, '0')}`
-  holidays.set(carnivalMonKey, { pt: 'Carnaval', zh: '狂欢节' })
+  holidays.set(carnivalMonKey, {
+    pt: 'Carnaval',
+    zh: '狂欢节'
+  })
 
   // 瀑布节（狂欢节周二）：复活节前46天
   const carnivalTue = easterOffset(year, -46)
   const carnivalTueKey = `${carnivalTue.year}-${String(carnivalTue.month).padStart(2, '0')}-${String(carnivalTue.day).padStart(2, '0')}`
-  holidays.set(carnivalTueKey, { pt: 'Carnaval', zh: '狂欢节' })
+  holidays.set(carnivalTueKey, {
+    pt: 'Carnaval',
+    zh: '狂欢节'
+  })
 
   // 耶稣受难日：复活节前2天
   const goodFriday = easterOffset(year, -2)
   const goodFridayKey = `${goodFriday.year}-${String(goodFriday.month).padStart(2, '0')}-${String(goodFriday.day).padStart(2, '0')}`
-  holidays.set(goodFridayKey, { pt: 'Sexta-feira Santa', zh: '耶稣受难日' })
+  holidays.set(goodFridayKey, {
+    pt: 'Sexta-feira Santa',
+    zh: '耶稣受难日'
+  })
 
   // 圣体节：复活节后60天
   const corpusChristi = easterOffset(year, 60)
   const corpusChristiKey = `${corpusChristi.year}-${String(corpusChristi.month).padStart(2, '0')}-${String(corpusChristi.day).padStart(2, '0')}`
-  holidays.set(corpusChristiKey, { pt: 'Corpus Christi', zh: '圣体节' })
+  holidays.set(corpusChristiKey, {
+    pt: 'Corpus Christi',
+    zh: '圣体节'
+  })
 
   return holidays
 }
@@ -149,14 +250,18 @@ function getBrazilHolidayMarks(year) {
     const m = parseInt(parts[1])
     const d = parseInt(parts[2])
     // festival 类型 text 为节日简称（取第一个单词或缩写）
-    const shortName = info.pt.split(' ').length > 2
-      ? info.pt.split(' ').slice(0, 2).join(' ')
-      : info.pt
+    const shortName = info.pt.split(' ').length > 2 ?
+      info.pt.split(' ').slice(0, 2).join(' ') :
+      info.pt
     marks.push({
-      year: y, month: m, day: d,
+      year: y,
+      month: m,
+      day: d,
       type: 'festival',
       text: shortName,
-      style: { color: '#2563EB' }
+      style: {
+        color: '#2563EB'
+      }
     })
   })
 
@@ -182,7 +287,7 @@ Page({
 
     // 配置节假日权限控制
     canConfigHoliday: false,
-    canManageSchedule: false,  // 日程管理权限
+    canManageSchedule: false, // 日程管理权限
     currentUser: null,
 
     // 配置弹窗
@@ -193,7 +298,7 @@ Page({
     submitting: false,
 
     // 日程相关
-    showScheduleSection: true,  // 是否显示时间轴日程列表
+    showScheduleSection: true, // 是否显示时间轴日程列表
     selectedDate: null,
     selectedDateText: '',
     schedules: {
@@ -201,7 +306,9 @@ Page({
       allDay: [],
       timed: []
     },
-    hours: Array.from({ length: END_HOUR - START_HOUR }, (_, i) => i + START_HOUR),
+    hours: Array.from({
+      length: END_HOUR - START_HOUR
+    }, (_, i) => i + START_HOUR),
 
     // 当前时间线
     showCurrentTime: true,
@@ -215,25 +322,25 @@ Page({
     scheduleForm: {
       title: '',
       isAllDay: false,
-      startDatetime: '',  // 开始日期时间 YYYY-MM-DD HH:mm
-      endDatetime: '',    // 结束日期时间 YYYY-MM-DD HH:mm
+      startDatetime: '', // 开始日期时间 YYYY-MM-DD HH:mm
+      endDatetime: '', // 结束日期时间 YYYY-MM-DD HH:mm
       type: 'meeting',
       typeName: '会议',
       color: '#8B5CF6',
       repeat: 'none',
-      repeatLabel: '不重复',  // 重复标签
-      repeatEndDate: '',      // 重复截止日期
+      repeatLabel: '不重复', // 重复标签
+      repeatEndDate: '', // 重复截止日期
       location: '',
       description: ''
     },
-    
+
     // 重复截止日期相关
-    maxRepeatEndDate: getMaxRepeatEndDate(),  // 当年最后一天
+    maxRepeatEndDate: getMaxRepeatEndDate(), // 当年最后一天
 
     // 日程详情弹窗
     showDetailPopup: false,
     detailSchedule: null,
-    isSubscribed: false,  // 订阅状态
+    isSubscribed: false, // 订阅状态
 
     // 类型和重复选项
     typeOptions: SCHEDULE_TYPES,
@@ -244,16 +351,19 @@ Page({
     showRepeatPopup: false,
 
     // 巴西节假日提示
-    brazilHolidayInfo: null  // { pt: '葡萄牙语名称', zh: '中文名称' } 或 null
+    brazilHolidayInfo: null // { pt: '葡萄牙语名称', zh: '中文名称' } 或 null
   },
 
   async onLoad() {
     // 初始化页面实例属性（Set 无法存入 this.data）
-    this.scheduleDatesSet = new Set()           // 已加载的日程日期集合
-    this.loadedMonthsSet = new Set()            // 已加载的年月集合，格式 'YYYY-MM'
-    this.loadedHolidayYearsSet = new Set()      // 已加载节假日的年份集合
+    this.scheduleDatesSet = new Set() // 已加载的日程日期集合
+    this.loadedMonthsSet = new Set() // 已加载的年月集合，格式 'YYYY-MM'
+    this.loadedHolidayYearsSet = new Set() // 已加载节假日的年份集合
 
-    wx.showLoading({ title: '加载中...', mask: true })
+    wx.showLoading({
+      title: '加载中...',
+      mask: true
+    })
 
     try {
       // 生成年份选项
@@ -273,13 +383,13 @@ Page({
       // 初始化今日日期
       this.initTodayDate()
 
-      // 更新当前时间线
+      /* // 更新当前时间线
       this.updateCurrentTime()
 
       // 每分钟更新时间线
       this.timeInterval = setInterval(() => {
         this.updateCurrentTime()
-      }, 60000)
+      }, 60000) */
     } finally {
       wx.hideLoading()
     }
@@ -287,9 +397,11 @@ Page({
 
   onShow() {
     const fontStyle = app.globalData.fontStyle
-  if (this.data.fontStyle !== fontStyle) {
-    this.setData({ fontStyle })
-  }
+    if (this.data.fontStyle !== fontStyle) {
+      this.setData({
+        fontStyle
+      })
+    }
     // 每次显示时重新加载日程列表（时间轴）
     // 注意：节假日和日程点标记已实现增量加载，不需要在 onShow 重复加载
     if (this.data.selectedDate) {
@@ -326,7 +438,7 @@ Page({
     })
 
     // 加载今日日程
-    this.loadSchedules(defaultDate)
+    //this.loadSchedules(defaultDate)
   },
 
   /**
@@ -397,33 +509,39 @@ Page({
    */
   async loadHolidays() {
     const currentYear = new Date().getFullYear()
-    
+
     // 已加载过该年份，跳过
     if (this.loadedHolidayYearsSet.has(currentYear)) {
       return
     }
-    
+
     try {
       const res = await wx.cloud.callFunction({
         name: 'holidayManager',
         data: {
           action: 'getByYear',
-          params: { year: currentYear }
+          params: {
+            year: currentYear
+          }
         }
       })
 
       if (res.result.code === 0 && res.result.data.exists) {
         const config = res.result.data.config
         // 缓存节假日数据
-        this.setData({ holidayDates: config.dates })
-        
+        this.setData({
+          holidayDates: config.dates
+        })
+
         // 记录已加载的年份
         this.loadedHolidayYearsSet.add(currentYear)
-        
+
         // 更新标记
         this.updateMarks()
       } else {
-        this.setData({ holidayDates: [] })
+        this.setData({
+          holidayDates: []
+        })
         this.loadedHolidayYearsSet.add(currentYear)
         this.updateMarks()
       }
@@ -446,7 +564,9 @@ Page({
           date: date,
           type: 'corner',
           text: '休',
-          style: { color: '#16A34A' }
+          style: {
+            color: '#16A34A'
+          }
         })
       })
     }
@@ -458,12 +578,16 @@ Page({
           date: date,
           type: 'schedule',
           text: '',
-          style: { color: '#EF4444' }  // 红色圆点
+          style: {
+            color: '#EF4444'
+          } // 红色圆点
         })
       })
     }
 
-    this.setData({ marks })
+    this.setData({
+      marks
+    })
   },
 
   /**
@@ -484,7 +608,10 @@ Page({
         name: 'scheduleManager',
         data: {
           action: 'getScheduleDates',
-          params: { year, month }
+          params: {
+            year,
+            month
+          }
         }
       })
 
@@ -514,8 +641,8 @@ Page({
    */
   removeMonthFromCache(year, month) {
     const monthKey = `${year}-${String(month).padStart(2, '0')}`
-    const prefix = monthKey + '-'  // '2026-03-'
-    
+    const prefix = monthKey + '-' // '2026-03-'
+
     // 从 scheduleDatesSet 移除该月所有日期
     const datesToRemove = []
     this.scheduleDatesSet.forEach(date => {
@@ -524,7 +651,7 @@ Page({
       }
     })
     datesToRemove.forEach(date => this.scheduleDatesSet.delete(date))
-    
+
     // 从 loadedMonthsSet 移除
     this.loadedMonthsSet.delete(monthKey)
   },
@@ -539,18 +666,28 @@ Page({
    */
   updateMarks() {
     const marks = []
-    const { holidayDates } = this.data
+    const {
+      holidayDates
+    } = this.data
     const scheduleDatesSet = this.scheduleDatesSet
 
     // 添加节假日角标（使用 year/month/day 避免 new Date(string) 时区问题）
     if (holidayDates && holidayDates.length > 0) {
       holidayDates.forEach(date => {
-        const { year, month, day } = utils.parseDateParts(date)
+        const {
+          year,
+          month,
+          day
+        } = utils.parseDateParts(date)
         marks.push({
-          year, month, day,  // 使用数字字段，不使用 date 字符串
+          year,
+          month,
+          day, // 使用数字字段，不使用 date 字符串
           type: 'corner',
           text: '休',
-          style: { color: '#16A34A' }
+          style: {
+            color: '#16A34A'
+          }
         })
       })
     }
@@ -562,17 +699,27 @@ Page({
     // 添加日程圆点标记（遍历 Set 中所有已加载的日期）
     if (scheduleDatesSet && scheduleDatesSet.size > 0) {
       scheduleDatesSet.forEach(date => {
-        const { year, month, day } = utils.parseDateParts(date)
+        const {
+          year,
+          month,
+          day
+        } = utils.parseDateParts(date)
         marks.push({
-          year, month, day,  // 使用数字字段，不使用 date 字符串
+          year,
+          month,
+          day, // 使用数字字段，不使用 date 字符串
           type: 'schedule',
           text: '',
-          style: { color: '#EF4444' }
+          style: {
+            color: '#EF4444'
+          }
         })
       })
     }
 
-    this.setData({ marks })
+    this.setData({
+      marks
+    })
   },
 
   /**
@@ -580,11 +727,14 @@ Page({
    * 添加/编辑/删除日程后调用，确保日历显示最新状态
    */
   async refreshScheduleMarks() {
-    const { currentYear, currentMonth } = this.data
-    
+    const {
+      currentYear,
+      currentMonth
+    } = this.data
+
     // 从缓存中移除当前月份数据
     this.removeMonthFromCache(currentYear, currentMonth)
-    
+
     // 重新加载当前月份
     await this.loadScheduleMarks(currentYear, currentMonth)
   },
@@ -606,16 +756,20 @@ Page({
         name: 'holidayManager',
         data: {
           action: 'getByYear',
-          params: { year: year }
+          params: {
+            year: year
+          }
         }
       })
 
-      const holidayDates = (res.result.code === 0 && res.result.data.exists)
-        ? res.result.data.config.dates
-        : []
+      const holidayDates = (res.result.code === 0 && res.result.data.exists) ?
+        res.result.data.config.dates :
+        []
 
       // 缓存节假日数据
-      this.setData({ holidayDates })
+      this.setData({
+        holidayDates
+      })
 
       // 记录已加载的年份
       this.loadedHolidayYearsSet.add(year)
@@ -633,19 +787,21 @@ Page({
    * 日历加载完成
    */
   handleCalendarLoad(e) {
-    this.setData({ calendarLoaded: true })
+    this.setData({
+      calendarLoaded: true
+    })
 
     // 加载当前月份的日程日期标记
     const today = new Date()
     const year = today.getFullYear()
     const month = today.getMonth() + 1
-    
+
     // 初始化当前年月
-    this.setData({ 
+    this.setData({
       currentYear: year,
       currentMonth: month
     })
-    
+
     this.loadScheduleMarks(year, month)
   },
 
@@ -653,7 +809,9 @@ Page({
    * 点击日期
    */
   handleCalendarClick(e) {
-    const { checked } = e.detail
+    const {
+      checked
+    } = e.detail
 
     const dateText = this.formatDateStr(checked)
     const dateStr = this.getDateString(checked)
@@ -673,7 +831,12 @@ Page({
    * 选中日期变化
    */
   handleCalendarChange(e) {
-    const { checked, range, year, month } = e.detail
+    const {
+      checked,
+      range,
+      year,
+      month
+    } = e.detail
 
     const dateText = this.formatDateStr(checked)
     const dateStr = this.getDateString(checked)
@@ -692,7 +855,10 @@ Page({
     let newYear = checked ? checked.year : null
     let newMonth = checked ? checked.month : null
 
-    const { currentYear, currentMonth } = this.data
+    const {
+      currentYear,
+      currentMonth
+    } = this.data
 
     // 年份或月份变化时才刷新
     if (newYear && newMonth && (newYear !== currentYear || newMonth !== currentMonth)) {
@@ -716,7 +882,9 @@ Page({
    * 视图变化（月视图/周视图切换）
    */
   handleViewChange(e) {
-    const { view } = e.detail
+    const {
+      view
+    } = e.detail
 
     this.setData({
       calendarView: view,
@@ -755,12 +923,18 @@ Page({
         name: 'scheduleManager',
         data: {
           action: 'getByDate',
-          params: { date: dateStr }
+          params: {
+            date: dateStr
+          }
         }
       })
 
       if (res.result.code === 0) {
-        const { all, allDay, timed } = res.result.data
+        const {
+          all,
+          allDay,
+          timed
+        } = res.result.data
 
         // 计算时间轴位置（包含重叠并排算法），传入当前日期处理跨日日程
         const timedWithPosition = this.calculateScheduleLayout(timed, dateStr)
@@ -888,7 +1062,10 @@ Page({
 
     // 重复日程：每一日都使用原始 startTime/endTime，不处理跨日
     if (schedule.repeat && schedule.repeat !== 'none') {
-      return { start: startMinutes, end: endMinutes }
+      return {
+        start: startMinutes,
+        end: endMinutes
+      }
     }
 
     // 非重复日程：处理跨日情况
@@ -902,7 +1079,10 @@ Page({
       endMinutes = 24 * 60
     }
 
-    return { start: startMinutes, end: endMinutes }
+    return {
+      start: startMinutes,
+      end: endMinutes
+    }
   },
 
   /**
@@ -984,12 +1164,15 @@ Page({
    */
   calculateSchedulePosition(schedule, currentDate) {
     if (schedule.isAllDay) {
-      return { top: 0, height: 0 }
+      return {
+        top: 0,
+        height: 0
+      }
     }
 
     // 获取当日显示的时间范围（处理跨日日程）
     const range = this.getDayDisplayRange(schedule, currentDate)
-    
+
     // 计算相对于 0:00 的偏移（小时）
     const startOffset = range.start / 60
     const endOffset = range.end / 60
@@ -997,7 +1180,10 @@ Page({
     const top = startOffset * HOUR_HEIGHT
     const height = Math.max((endOffset - startOffset) * HOUR_HEIGHT, 50) // 最小高度 50rpx
 
-    return { top, height }
+    return {
+      top,
+      height
+    }
   },
 
   /**
@@ -1010,7 +1196,9 @@ Page({
 
     // 时间范围检查 (0-24)
     if (hour < START_HOUR || hour > END_HOUR) {
-      this.setData({ showCurrentTime: false })
+      this.setData({
+        showCurrentTime: false
+      })
       return
     }
 
@@ -1050,13 +1238,16 @@ Page({
     }
 
     // 使用日历上选中的日期，如果没有则使用当前日期
-    const selectedDateStr = this.data.selectedDate 
-      ? this.getDateString(this.data.selectedDate) 
-      : this.getDateString(new Date())
+    const selectedDateStr = this.data.selectedDate ?
+      this.getDateString(this.data.selectedDate) :
+      this.getDateString(new Date())
 
     // 计算默认时间：当前时间向上取整到最近的30分钟
     const now = new Date()
-    const { startDatetime, endDatetime } = this.getDefaultDatetime(now, selectedDateStr)
+    const {
+      startDatetime,
+      endDatetime
+    } = this.getDefaultDatetime(now, selectedDateStr)
 
     this.setData({
       showSchedulePopup: true,
@@ -1142,11 +1333,15 @@ Page({
       name: 'scheduleManager',
       data: {
         action: 'checkSubscription',
-        params: { scheduleId }
+        params: {
+          scheduleId
+        }
       }
     }).then(res => {
       if (res.result.code === 0) {
-        this.setData({ isSubscribed: res.result.data.isSubscribed })
+        this.setData({
+          isSubscribed: res.result.data.isSubscribed
+        })
       }
     }).catch(err => {
       console.error('检查订阅状态失败:', err)
@@ -1162,29 +1357,42 @@ Page({
 
     const action = this.data.isSubscribed ? 'unsubscribe' : 'subscribe'
 
-    wx.showLoading({ title: this.data.isSubscribed ? '取消订阅...' : '订阅中...', mask: true })
+    wx.showLoading({
+      title: this.data.isSubscribed ? '取消订阅...' : '订阅中...',
+      mask: true
+    })
 
     wx.cloud.callFunction({
       name: 'scheduleManager',
       data: {
         action,
-        params: { scheduleId: schedule._id }
+        params: {
+          scheduleId: schedule._id
+        }
       }
     }).then(res => {
       wx.hideLoading()
       if (res.result.code === 0) {
-        this.setData({ isSubscribed: !this.data.isSubscribed })
+        this.setData({
+          isSubscribed: !this.data.isSubscribed
+        })
         wx.showToast({
           title: this.data.isSubscribed ? '订阅成功' : '已取消订阅',
           icon: 'success'
         })
       } else {
-        wx.showToast({ title: res.result.message, icon: 'none' })
+        wx.showToast({
+          title: res.result.message,
+          icon: 'none'
+        })
       }
     }).catch(err => {
       wx.hideLoading()
       console.error('订阅操作失败:', err)
-      wx.showToast({ title: '操作失败', icon: 'none' })
+      wx.showToast({
+        title: '操作失败',
+        icon: 'none'
+      })
     })
   },
 
@@ -1192,7 +1400,9 @@ Page({
    * 隐藏日程详情弹窗
    */
   hideDetailPopup() {
-    this.setData({ showDetailPopup: false })
+    this.setData({
+      showDetailPopup: false
+    })
   },
 
   /**
@@ -1213,12 +1423,12 @@ Page({
     const schedule = this.data.detailSchedule
 
     // 构建日期时间字符串
-    const startDatetime = schedule.isAllDay
-      ? schedule.startDate
-      : `${schedule.startDate} ${schedule.startTime || '09:00'}`
-    const endDatetime = schedule.isAllDay
-      ? schedule.endDate || schedule.startDate
-      : `${schedule.endDate || schedule.startDate} ${schedule.endTime || '10:00'}`
+    const startDatetime = schedule.isAllDay ?
+      schedule.startDate :
+      `${schedule.startDate} ${schedule.startTime || '09:00'}`
+    const endDatetime = schedule.isAllDay ?
+      schedule.endDate || schedule.startDate :
+      `${schedule.endDate || schedule.startDate} ${schedule.endTime || '10:00'}`
 
     // 获取重复标签
     const repeatLabel = this.getRepeatLabel(schedule.repeat || 'none')
@@ -1248,14 +1458,18 @@ Page({
    * 隐藏日程弹窗
    */
   hideSchedulePopup() {
-    this.setData({ showSchedulePopup: false })
+    this.setData({
+      showSchedulePopup: false
+    })
   },
 
   /**
    * 标题输入
    */
   handleTitleInput(e) {
-    this.setData({ 'scheduleForm.title': e.detail.value })
+    this.setData({
+      'scheduleForm.title': e.detail.value
+    })
   },
 
   /**
@@ -1263,14 +1477,22 @@ Page({
    */
   handleAllDayChange(e) {
     const isAllDay = e.detail.value
-    this.setData({ 'scheduleForm.isAllDay': isAllDay })
+    this.setData({
+      'scheduleForm.isAllDay': isAllDay
+    })
   },
 
   /**
    * 开始日期时间变化
    */
   handleStartDatetimeChange(e) {
-    const { year, month, day, hour, minute } = e.detail
+    const {
+      year,
+      month,
+      day,
+      hour,
+      minute
+    } = e.detail
     const dateStr = `${year}-${String(month).padStart(2, '0')}-${String(day).padStart(2, '0')}`
 
     let startDatetime
@@ -1280,52 +1502,70 @@ Page({
       startDatetime = `${dateStr} ${String(hour || 0).padStart(2, '0')}:${String(minute || 0).padStart(2, '0')}`
     }
 
-    this.setData({ 'scheduleForm.startDatetime': startDatetime })
+    this.setData({
+      'scheduleForm.startDatetime': startDatetime
+    })
   },
 
   /**
    * 结束日期时间变化
    */
   handleEndDatetimeChange(e) {
-    const { year, month, day, hour, minute } = e.detail
+    const {
+      year,
+      month,
+      day,
+      hour,
+      minute
+    } = e.detail
     const dateStr = `${year}-${String(month).padStart(2, '0')}-${String(day).padStart(2, '0')}`
-    
+
     let endDatetime
     if (this.data.scheduleForm.isAllDay) {
       endDatetime = dateStr
     } else {
       endDatetime = `${dateStr} ${String(hour || 0).padStart(2, '0')}:${String(minute || 0).padStart(2, '0')}`
     }
-    
-    this.setData({ 'scheduleForm.endDatetime': endDatetime })
+
+    this.setData({
+      'scheduleForm.endDatetime': endDatetime
+    })
   },
 
   /**
    * 地点输入
    */
   handleLocationInput(e) {
-    this.setData({ 'scheduleForm.location': e.detail.value })
+    this.setData({
+      'scheduleForm.location': e.detail.value
+    })
   },
 
   /**
    * 备注输入
    */
   handleDescriptionInput(e) {
-    this.setData({ 'scheduleForm.description': e.detail.value })
+    this.setData({
+      'scheduleForm.description': e.detail.value
+    })
   },
 
   /**
    * 显示类型选择弹窗
    */
   handleTypeTap() {
-    this.setData({ showTypePopup: true })
+    this.setData({
+      showTypePopup: true
+    })
   },
 
   /**
    * 隐藏类型选择弹窗
    */
   hideTypePopup() {
-    this.setData({ showTypePopup: false })
+    this.setData({
+      showTypePopup: false
+    })
   },
 
   /**
@@ -1349,14 +1589,18 @@ Page({
    * 显示重复选择弹窗
    */
   handleRepeatTap() {
-    this.setData({ showRepeatPopup: true })
+    this.setData({
+      showRepeatPopup: true
+    })
   },
 
   /**
    * 隐藏重复选择弹窗
    */
   hideRepeatPopup() {
-    this.setData({ showRepeatPopup: false })
+    this.setData({
+      showRepeatPopup: false
+    })
   },
 
   /**
@@ -1365,7 +1609,7 @@ Page({
   handleSelectRepeat(e) {
     const value = e.currentTarget.dataset.value
     const repeatLabel = this.getRepeatLabel(value)
-    
+
     // 如果选择了重复类型，设置默认截止日期为开始日期后30天（不超过当年最后一天）
     let repeatEndDate = this.data.scheduleForm.repeatEndDate
     if (value !== 'none' && !repeatEndDate) {
@@ -1374,20 +1618,20 @@ Page({
       if (startDatetime) {
         const startDate = startDatetime.split(' ')[0]
         const start = utils.parseLocalDate(startDate)
-        start.setDate(start.getDate() + 30)  // 默认30天
-        
+        start.setDate(start.getDate() + 30) // 默认30天
+
         const defaultEndDate = utils.formatDateObj(start)
         const maxEndDate = this.data.maxRepeatEndDate
-        
+
         repeatEndDate = defaultEndDate <= maxEndDate ? defaultEndDate : maxEndDate
       }
     }
-    
+
     // 如果选择了不重复，清空截止日期
     if (value === 'none') {
       repeatEndDate = ''
     }
-    
+
     this.setData({
       'scheduleForm.repeat': value,
       'scheduleForm.repeatLabel': repeatLabel,
@@ -1395,30 +1639,36 @@ Page({
       showRepeatPopup: false
     })
   },
-  
+
   /**
    * 选择重复截止日期
    */
   handleRepeatEndDateChange(e) {
-    const dateStr = e.detail.value  // datetime-picker 返回 YYYY-MM-DD 或 YYYY-MM-DD HH:mm
-    const date = dateStr.split(' ')[0]  // 只取日期部分
-    
+    const dateStr = e.detail.value // datetime-picker 返回 YYYY-MM-DD 或 YYYY-MM-DD HH:mm
+    const date = dateStr.split(' ')[0] // 只取日期部分
+
     // 验证截止日期不能早于开始日期
     const startDatetime = this.data.scheduleForm.startDatetime
     if (startDatetime) {
       const startDate = startDatetime.split(' ')[0]
       if (date < startDate) {
-        utils.showToast({ title: '截止日期不能早于开始日期', icon: 'none' })
+        utils.showToast({
+          title: '截止日期不能早于开始日期',
+          icon: 'none'
+        })
         return
       }
     }
-    
+
     // 验证截止日期不能超过当年最后一天
     if (date > this.data.maxRepeatEndDate) {
-      utils.showToast({ title: `截止日期不能超过${this.data.maxRepeatEndDate}`, icon: 'none' })
+      utils.showToast({
+        title: `截止日期不能超过${this.data.maxRepeatEndDate}`,
+        icon: 'none'
+      })
       return
     }
-    
+
     this.setData({
       'scheduleForm.repeatEndDate': date
     })
@@ -1436,36 +1686,60 @@ Page({
    * 保存日程
    */
   async handleSaveSchedule() {
-    const { scheduleForm, editingSchedule } = this.data
+    const {
+      scheduleForm,
+      editingSchedule
+    } = this.data
 
     // 表单验证
     if (!scheduleForm.title.trim()) {
-      utils.showToast({ title: '请输入日程标题', icon: 'none' })
+      utils.showToast({
+        title: '请输入日程标题',
+        icon: 'none'
+      })
       return
     }
 
     if (!scheduleForm.startDatetime) {
-      utils.showToast({ title: '请选择开始时间', icon: 'none' })
+      utils.showToast({
+        title: '请选择开始时间',
+        icon: 'none'
+      })
       return
     }
 
     // 重复日程必须设置截止日期
     if (scheduleForm.repeat !== 'none' && !scheduleForm.repeatEndDate) {
-      utils.showToast({ title: '请设置重复截止日期', icon: 'none' })
+      utils.showToast({
+        title: '请设置重复截止日期',
+        icon: 'none'
+      })
       return
     }
 
     // 解析日期时间字符串（格式：YYYY-MM-DD HH:mm 或 YYYY-MM-DD）
     const parseDateTimeStr = (datetimeStr) => {
-      if (!datetimeStr) return { date: '', time: '' }
+      if (!datetimeStr) return {
+        date: '',
+        time: ''
+      }
       const parts = datetimeStr.split(' ')
       const date = parts[0] || ''
       const time = parts[1] || ''
-      return { date, time }
+      return {
+        date,
+        time
+      }
     }
 
-    const { date: startDate, time: startTime } = parseDateTimeStr(scheduleForm.startDatetime)
-    const { date: endDate, time: endTime } = parseDateTimeStr(scheduleForm.endDatetime)
+    const {
+      date: startDate,
+      time: startTime
+    } = parseDateTimeStr(scheduleForm.startDatetime)
+    const {
+      date: endDate,
+      time: endTime
+    } = parseDateTimeStr(scheduleForm.endDatetime)
 
     // 验证时间：非全天日程时，开始时间不得晚于结束时间
     if (!scheduleForm.isAllDay) {
@@ -1474,12 +1748,18 @@ Page({
       const endDateTime = `${endDate || startDate} ${endTime || '23:59'}`
 
       if (startDateTime > endDateTime) {
-        utils.showToast({ title: '开始时间不得晚于结束时间', icon: 'none' })
+        utils.showToast({
+          title: '开始时间不得晚于结束时间',
+          icon: 'none'
+        })
         return
       }
     }
 
-    wx.showLoading({ title: '保存中...', mask: true })
+    wx.showLoading({
+      title: '保存中...',
+      mask: true
+    })
 
     try {
       const currentUser = this.data.currentUser || app.globalData.userProfile
@@ -1527,8 +1807,13 @@ Page({
       wx.hideLoading()
 
       if (res.result.code === 0) {
-        utils.showToast({ title: editingSchedule ? '更新成功' : '创建成功', icon: 'success' })
-        this.setData({ showSchedulePopup: false })
+        utils.showToast({
+          title: editingSchedule ? '更新成功' : '创建成功',
+          icon: 'success'
+        })
+        this.setData({
+          showSchedulePopup: false
+        })
 
         // 重新加载当日日程
         if (this.data.selectedDate) {
@@ -1538,12 +1823,18 @@ Page({
         // 强制刷新日程标记（从服务器重新获取）
         this.refreshScheduleMarks()
       } else {
-        utils.showToast({ title: res.result.message || '操作失败', icon: 'none' })
+        utils.showToast({
+          title: res.result.message || '操作失败',
+          icon: 'none'
+        })
       }
     } catch (error) {
       wx.hideLoading()
       console.error('保存日程失败:', error)
-      utils.showToast({ title: '保存失败，请重试', icon: 'none' })
+      utils.showToast({
+        title: '保存失败，请重试',
+        icon: 'none'
+      })
     }
   },
 
@@ -1562,7 +1853,9 @@ Page({
       return
     }
 
-    const { editingSchedule } = this.data
+    const {
+      editingSchedule
+    } = this.data
 
     if (!editingSchedule) return
 
@@ -1576,22 +1869,32 @@ Page({
 
     if (!result.confirm) return
 
-    wx.showLoading({ title: '删除中...', mask: true })
+    wx.showLoading({
+      title: '删除中...',
+      mask: true
+    })
 
     try {
       const res = await wx.cloud.callFunction({
         name: 'scheduleManager',
         data: {
           action: 'delete',
-          params: { scheduleId: editingSchedule._id }
+          params: {
+            scheduleId: editingSchedule._id
+          }
         }
       })
 
       wx.hideLoading()
 
       if (res.result.code === 0) {
-        utils.showToast({ title: '删除成功', icon: 'success' })
-        this.setData({ showSchedulePopup: false })
+        utils.showToast({
+          title: '删除成功',
+          icon: 'success'
+        })
+        this.setData({
+          showSchedulePopup: false
+        })
 
         // 重新加载当日日程
         if (this.data.selectedDate) {
@@ -1601,12 +1904,18 @@ Page({
         // 强制刷新日程标记（从服务器重新获取）
         this.refreshScheduleMarks()
       } else {
-        utils.showToast({ title: res.result.message || '删除失败', icon: 'none' })
+        utils.showToast({
+          title: res.result.message || '删除失败',
+          icon: 'none'
+        })
       }
     } catch (error) {
       wx.hideLoading()
       console.error('删除日程失败:', error)
-      utils.showToast({ title: '删除失败，请重试', icon: 'none' })
+      utils.showToast({
+        title: '删除失败，请重试',
+        icon: 'none'
+      })
     }
   },
 
@@ -1640,13 +1949,17 @@ Page({
         name: 'holidayManager',
         data: {
           action: 'getByYear',
-          params: { year }
+          params: {
+            year
+          }
         }
       })
 
       let holidays = []
       if (res.result.code === 0 && res.result.data.exists) {
-        holidays = res.result.data.config.dates.map(date => ({ date }))
+        holidays = res.result.data.config.dates.map(date => ({
+          date
+        }))
       }
 
       this.setData({
@@ -1666,7 +1979,9 @@ Page({
    * 隐藏配置弹窗
    */
   hideConfigHolidayPopup() {
-    this.setData({ showConfigHolidayPopup: false })
+    this.setData({
+      showConfigHolidayPopup: false
+    })
   },
 
   /**
@@ -1680,7 +1995,9 @@ Page({
   handleYearChange(e) {
     const index = e.detail.value
     const year = this.data.yearOptions[index]
-    this.setData({ configYear: year })
+    this.setData({
+      configYear: year
+    })
     this.showConfigHolidayPopup()
   },
 
@@ -1692,7 +2009,9 @@ Page({
     const date = e.detail.value
     const holidays = [...this.data.holidays]
     holidays[index].date = date
-    this.setData({ holidays })
+    this.setData({
+      holidays
+    })
   },
 
   /**
@@ -1703,8 +2022,12 @@ Page({
     const defaultDate = holidays.length > 0 ? holidays[holidays.length - 1].date : utils.getLocalDateString()
     const nextDate = holidays.length > 0 ? this.getNextDate(defaultDate) : defaultDate
 
-    holidays.push({ date: nextDate })
-    this.setData({ holidays })
+    holidays.push({
+      date: nextDate
+    })
+    this.setData({
+      holidays
+    })
   },
 
   /**
@@ -1730,7 +2053,9 @@ Page({
     const index = e.currentTarget.dataset.index
     const holidays = [...this.data.holidays]
     holidays.splice(index, 1)
-    this.setData({ holidays })
+    this.setData({
+      holidays
+    })
   },
 
   /**
@@ -1743,7 +2068,9 @@ Page({
       .map(h => h.date)
       .filter(d => d)
 
-    this.setData({ submitting: true })
+    this.setData({
+      submitting: true
+    })
 
     try {
       const currentUser = this.data.currentUser || app.globalData.userProfile
@@ -1762,17 +2089,31 @@ Page({
       })
 
       if (res.result.code === 0) {
-        utils.showToast({ title: '配置成功', icon: 'success' })
-        this.setData({ showConfigHolidayPopup: false, holidayDates: dates })
+        utils.showToast({
+          title: '配置成功',
+          icon: 'success'
+        })
+        this.setData({
+          showConfigHolidayPopup: false,
+          holidayDates: dates
+        })
         this.updateMarks()
       } else {
-        utils.showToast({ title: res.result.message || '配置失败', icon: 'none' })
+        utils.showToast({
+          title: res.result.message || '配置失败',
+          icon: 'none'
+        })
       }
     } catch (error) {
       console.error('提交配置失败:', error)
-      utils.showToast({ title: '配置失败，请重试', icon: 'none' })
+      utils.showToast({
+        title: '配置失败，请重试',
+        icon: 'none'
+      })
     } finally {
-      this.setData({ submitting: false })
+      this.setData({
+        submitting: false
+      })
     }
   }
 })

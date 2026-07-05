@@ -43,9 +43,9 @@ Page({
 
   onShow() {
     const fontStyle = app.globalData.fontStyle
-  if (this.data.fontStyle !== fontStyle) {
-    this.setData({ fontStyle })
-  }
+    if (this.data.fontStyle !== fontStyle) {
+      this.setData({ fontStyle })
+    }
     // 每次显示页面时刷新数据（从编辑页返回时自动更新）
     if (this.data.menuId) {
       this.loadMenu()
@@ -358,13 +358,12 @@ Page({
 
     // 3. 解码常见HTML实体
     text = text.replace(/&nbsp;/g, ' ')
-                 .replace(/&amp;/g, '&')
-                 .replace(/&lt;/g, '<')
-                 .replace(/&gt;/g, '>')
+      .replace(/&amp;/g, '&')
+      .replace(/&lt;/g, '<')
+      .replace(/&gt;/g, '>')
 
     // 3. 按换行符和空格分词
-    const tokens = text.split(/[\n\r\s]+/).map(t => t.trim()).filter(Boolean)
-    // 4. 过滤并提取菜品名
+    const tokens = text.split(/[\n\r\s：:]+/).map(t => t.trim()).filter(Boolean)    // 4. 过滤并提取菜品名
     const dishes = []
     const seen = new Set()
 

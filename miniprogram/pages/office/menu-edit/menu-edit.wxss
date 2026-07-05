@@ -3,13 +3,13 @@
 }
 
 .menu-edit-page .auth-field-label {
-  font-size: var(--fs-28);
+  font-size: var(--fs-34);
   font-weight: 600;
   color: #1E293B;
 }
 
 .menu-edit-header {
-  padding: 60rpx 40rpx 80rpx;
+  padding: 30rpx 40rpx 80rpx;
 }
 
 .menu-edit-title {

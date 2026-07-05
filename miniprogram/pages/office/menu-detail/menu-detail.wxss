@@ -3,7 +3,7 @@
 }
 
 .menu-detail-header {
-  padding-top: 60rpx;
+  padding-top: 30rpx;
   text-align: left;
   padding-bottom: 90rpx;
 }
@@ -56,6 +56,11 @@
 .menu-action-btn.is-delete {
   background: #FEE2E2;
   color: #DC2626;
+}
+
+.menu-detail-link {
+  padding-right: 10rpx;
+  font-size: var(--fs-28);
 }
 
 .menu-comments-card {
@@ -169,7 +174,8 @@
 }
 
 .empty-state.is-mini .empty-text {
-  font-size: var(--fs-24);
+  font-size: var(--fs-26);
+  text-align: center;
 }
 
 /* ==================== 菜品打分模块样式 ==================== */

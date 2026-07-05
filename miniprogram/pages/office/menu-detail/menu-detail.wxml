@@ -81,7 +81,7 @@
     <view class="office-section">
       <view class="office-section-header">
         <view class="office-section-title">评论</view>
-        <view class="office-link">{{comments.length}}</view>
+        <view class="office-link menu-detail-link">{{comments.length}} 条</view>
       </view>
 
       <view class="office-card menu-comments-card">

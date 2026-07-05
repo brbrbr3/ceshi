@@ -12,7 +12,7 @@
             <input
               value="{{form.title}}"
               bindinput="onTitleInput"
-              placeholder="请输入菜单标题"
+              placeholder="请输入标题，如“7月6日——10日工作餐”"
               placeholder-class="auth-input-placeholder"
               maxlength="50"
             />

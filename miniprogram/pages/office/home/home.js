@@ -23,22 +23,14 @@ Page({
       value: '0'
     }],
     quickActions: [
-     /*  {
-        icon: '🍽️',
-        label: '每周菜单',
-        color: '#16A34A',
-        bg: '#DCFCE7',
-        implemented: true,
-        featureKey: null
-      },
-      {
-        icon: '🍱',
-        label: '工作餐与副食',
-        color: '#16A34A',
-        bg: '#DCFCE7',
-        implemented: true,
-        featureKey: 'meal_management'
-      }, */
+      /* {
+         icon: '🍱',
+         label: '工作餐与副食',
+         color: '#16A34A',
+         bg: '#DCFCE7',
+         implemented: true,
+         featureKey: 'meal_management'
+       }, */
       {
         icon: '🛴',
         label: '外出报备',
@@ -48,6 +40,14 @@ Page({
         featureKey: 'trip_report'
       },
       {
+        icon: '🍽️',
+        label: '每周菜单',
+        color: '#16A34A',
+        bg: '#EFF6FF',
+        implemented: true,
+        featureKey: null
+      },
+      {
         icon: '📝',
         label: '审批中心',
         color: '#2563EB',
@@ -55,14 +55,14 @@ Page({
         implemented: true,
         featureKey: 'approval'
       },
-     /*  {
-        icon: '📊',
-        label: '出行数据板',
-        color: '#7C3AED',
-        bg: '#F3E8FF',
-        implemented: true,
-        featureKey: 'trip_dashboard'
-      }, */
+      /*  {
+         icon: '📊',
+         label: '出行数据板',
+         color: '#7C3AED',
+         bg: '#F3E8FF',
+         implemented: true,
+         featureKey: 'trip_dashboard'
+       }, */
       /* {
         icon: '🏥',
         label: '就医申请',
@@ -123,7 +123,7 @@ Page({
         icon: 'ℹ️',
         label: '常用信息',
         color: '#0891B2',
-        bg: '#E8E4FF',
+        bg: '#EFF6FF',
         implemented: true,
         featureKey: 'arrival_guide'
       }
@@ -502,11 +502,11 @@ Page({
     if (user) {
       const types = []
       if (user.isAdmin) types.push('pending_approval')
-      const isReceiver = user.isDepartmentHead
-        || user.role === '馆领导'
-        || (Array.isArray(user.areaManagerOf) && user.areaManagerOf.length > 0)
-        || (Array.isArray(user.deptExtraNotifierOf) && user.deptExtraNotifierOf.length > 0)
-        || user.isLeaderNotifier
+      const isReceiver = user.isDepartmentHead ||
+        user.role === '馆领导' ||
+        (Array.isArray(user.areaManagerOf) && user.areaManagerOf.length > 0) ||
+        (Array.isArray(user.deptExtraNotifierOf) && user.deptExtraNotifierOf.length > 0) ||
+        user.isLeaderNotifier
       if (isReceiver) types.push('trip_report')
       if (types.length > 0) app.silentAccumulateSubscribe(types)
     }
@@ -877,7 +877,9 @@ Page({
   loadActiveTrip() {
     wx.cloud.callFunction({
       name: 'tripReport',
-      data: { action: 'getActiveTrip' }
+      data: {
+        action: 'getActiveTrip'
+      }
     }).then(res => {
       if (res.result.code === 0) {
         const activeTrip = res.result.data.activeTrip
@@ -888,7 +890,9 @@ Page({
           const minutes = Math.floor((diff % (1000 * 60 * 60)) / (1000 * 60))
           activeTrip.elapsedTimeText = hours > 0 ? `${hours}小时${minutes}分钟` : `${minutes}分钟`
         }
-        this.setData({ activeTrip })
+        this.setData({
+          activeTrip
+        })
       }
     }).catch(err => {
       console.error('加载外出状态失败:', err)
@@ -907,27 +911,43 @@ Page({
       content: '确认已返回？将记录当前时间为返回时间。',
       success: (res) => {
         if (res.confirm) {
-          wx.showLoading({ title: '处理中...', mask: true })
+          wx.showLoading({
+            title: '处理中...',
+            mask: true
+          })
           wx.cloud.callFunction({
             name: 'tripReport',
             data: {
               action: 'return',
-              params: { tripId: activeTrip._id }
+              params: {
+                tripId: activeTrip._id
+              }
             }
           }).then(res => {
             wx.hideLoading()
             if (res.result.code === 0) {
               const status = res.result.data.status
               const message = status === 'overtime' ? '返回报备成功（超时）' : '返回报备成功'
-              utils.showToast({ title: message, icon: 'success' })
-              this.setData({ activeTrip: null })
+              utils.showToast({
+                title: message,
+                icon: 'success'
+              })
+              this.setData({
+                activeTrip: null
+              })
             } else {
-              utils.showToast({ title: res.result.message || '报备失败', icon: 'none' })
+              utils.showToast({
+                title: res.result.message || '报备失败',
+                icon: 'none'
+              })
             }
           }).catch(err => {
             wx.hideLoading()
             console.error('返回报备失败:', err)
-            utils.showToast({ title: '报备失败，请重试', icon: 'none' })
+            utils.showToast({
+              title: '报备失败，请重试',
+              icon: 'none'
+            })
           })
         }
       }
