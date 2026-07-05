@@ -2,7 +2,7 @@
   <view class="office-gradient-header office-subpage-header">
     <view class="office-subpage-header-content">
       <view class="office-subpage-title">报备配置</view>
-      <view class="office-subpage-subtitle">配置居住区片长、馆领导报备人及部门额外报备人</view>
+      <view class="office-subpage-subtitle">配置居住区片长、馆领导报备人及部门报备人</view>
     </view>
   </view>
 
@@ -53,6 +53,7 @@
 
       <!-- 第二组：馆领导报备人配置 -->
       <view class="report-section-title">馆领导报备人配置</view>
+      <view class="report-section-subtitle">每个馆领导的出行报备，只推送消息给此处配置的报备人</view>
       <view wx:if="{{leaderNotifierGroups.length === 0}}" class="office-card office-empty">
         <view>暂无馆领导用户</view>
       </view>
@@ -87,6 +88,7 @@
 
       <!-- 第三组：部门报备配置 -->
       <view class="report-section-title">部门报备配置</view>
+      <view class="report-section-subtitle">部门人员报备时，除该部门负责人外，额外报备人也会收到推送消息</view>
       <view wx:if="{{deptNotifierGroups.length === 0}}" class="office-card office-empty">
         <view>暂无部门数据</view>
       </view>

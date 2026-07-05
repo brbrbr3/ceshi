@@ -14,10 +14,12 @@ Page({
     currentPosition: '',
     searchKeyword: '',
     availableUsers: [],
-    modalAnimating: false
+    modalAnimating: false,
+    canEdit: false
   },
 
   async onLoad() {
+    await this.checkPermission()
     await this.loadData()
   },
 
@@ -26,6 +28,18 @@ Page({
     if (this.data.fontStyle !== fontStyle) {
       this.setData({ fontStyle })
     }
+  },
+
+  /**
+   * 检查当前用户是否为管理员（决定可编辑权限）
+   */
+  checkPermission() {
+    return app.checkUserRegistration().then((result) => {
+      if (result.registered && result.user) {
+        const isAdmin = result.user.isAdmin || result.user.role === 'admin'
+        this.setData({ canEdit: !!isAdmin })
+      }
+    }).catch(() => {})
   },
 
   /**

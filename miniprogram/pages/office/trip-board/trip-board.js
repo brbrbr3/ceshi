@@ -44,6 +44,12 @@ Page({
       if (!this.data.currentUser) return  // 无权限已切走，不再继续
       wx.showLoading({ title: '加载中...', mask: true })
       await this.loadBoardData()
+
+      // 权限确认后，引导订阅出行报备通知（模板3）
+      // requestSubscribeWithQuota 仅首次弹 Modal，后续不再弹
+      app.syncSubscriptionChoices()
+      app.requestTripReportSubscribe()
+      app.calibrateSubscriptionCounts()
     } finally {
       wx.hideLoading()
     }
@@ -59,6 +65,8 @@ Page({
       wx.switchTab({ url: '/pages/office/home/home' })
       return
     }
+    // 首次进入页面时 initUserInfo 尚未完成，跳过订阅逻辑（由 onLoad 处理）
+    if (!this.data.currentUser) return
 
     // 同步用户微信订阅选择到本地缓存（供 silentAccumulateSubscribe 使用）
     app.syncSubscriptionChoices()

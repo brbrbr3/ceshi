@@ -1,9 +1,9 @@
 <view class="office-page position-config-page" style="{{fontStyle}}">
   <view class="office-gradient-header office-subpage-header">
-  <view class="office-subpage-header-content">
-    <view class="office-subpage-title">岗位配置</view>
-    <view class="office-subpage-subtitle">管理各岗位人员分配</view>
-  </view>
+    <view class="office-subpage-header-content">
+      <view class="office-subpage-title">岗位配置</view>
+      <view class="office-subpage-subtitle">管理各岗位人员分配</view>
+    </view>
   </view>
 
   <view class="office-content">
@@ -16,6 +16,12 @@
     </view>
 
     <view wx:else>
+
+      <!-- 只读模式提示 -->
+      <view wx:if="{{!canEdit}}" class="report-readonly-tip">
+        <text>当前为只读模式，如需修改请联系管理员</text>
+      </view>
+
       <view class="position-group" wx:for="{{positionGroups}}" wx:key="position">
         <view class="office-card position-group-card">
           <view class="position-group-header">
@@ -30,13 +36,13 @@
                 <view class="position-user-name">{{user.name}}</view>
                 <view class="position-user-role">{{user.role}}{{user.department ? ' · ' + user.department : ''}}</view>
               </view>
-              <view class="position-user-remove" catchtap="handleRemovePosition" data-openid="{{user.openid}}" data-position="{{item.position}}">移除</view>
+              <view wx:if="{{canEdit}}" class="position-user-remove" catchtap="handleRemovePosition" data-openid="{{user.openid}}" data-position="{{item.position}}">移除</view>
             </view>
           </view>
 
           <view wx:else class="position-group-empty">暂无人员</view>
 
-          <view class="position-group-add" bindtap="handleShowAddUser" data-position="{{item.position}}">
+          <view wx:if="{{canEdit}}" class="position-group-add" bindtap="handleShowAddUser" data-position="{{item.position}}">
             <view class="position-group-add-icon">+</view>
             <view class="position-group-add-text">添加人员</view>
           </view>

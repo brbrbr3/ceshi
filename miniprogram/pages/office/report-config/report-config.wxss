@@ -37,6 +37,15 @@
   margin-top: 16rpx;
 }
 
+/* 分组副标题 */
+.report-section-subtitle {
+  font-size: var(--fs-28);
+  font-weight: 400;
+  color: #374151;
+  padding: 8rpx 8rpx 16rpx;
+  margin-top: -18rpx;
+}
+
 .report-section-title:first-of-type {
   margin-top: 0;
 }
@@ -171,7 +180,7 @@
 }
 
 .report-subsection-title {
-  font-size: var(--fs-24);
+  font-size: var(--fs-28);
   color: #6B7280;
   font-weight: 500;
   padding: 16rpx 32rpx 0;

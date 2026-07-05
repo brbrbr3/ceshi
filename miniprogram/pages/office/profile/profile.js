@@ -52,11 +52,6 @@ Page({
             icon: 'Aa',
             label: '字体大小'
           }
-          /* ,
-          {
-            icon: '🗂️',
-            label: '岗位配置'
-          } */
         ]
       },
       {
@@ -220,8 +215,12 @@ Page({
       // 报备配置：管理员可编辑，馆领导/馆员只读查看
       const systemItems = [{ icon: 'Aa', label: '字体大小' }]
       if (user.isAdmin || user.role === '馆领导' || user.role === '馆员') {
-        systemItems.push({ icon: '⚙️', label: '报备配置' })
+        systemItems.push({ icon: '📣', label: '报备配置' })
       }
+      /* // 岗位配置：管理员、馆领导、馆员、工勤可见；进入后仅管理员可配置
+      if (user.isAdmin || user.role === '馆领导' || user.role === '馆员' || user.role === '工勤') {
+        systemItems.push({ icon: '📑', label: '岗位配置' })
+      } */
       const menuGroups = [
         { title: '系统设置', items: systemItems },
         this.data.menuGroups[1]
@@ -369,7 +368,9 @@ Page({
         url: '/pages/office/report-config/report-config'
       })
     } else if (label === '岗位配置') {
-      app.navigateWithPermission('manage_positions', '/pages/office/position-config/position-config', '岗位配置')
+      wx.navigateTo({
+        url: '/pages/office/position-config/position-config'
+      })
     } else {
       utils.showToast({
         title: '功能开发中，敬请期待',

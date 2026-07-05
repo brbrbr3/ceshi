@@ -97,7 +97,7 @@ Page({
       currentArea: area,
       currentLeaderOpenid: '',
       currentDepartment: '',
-      addTitle: '添加片长到「' + area + '」',
+      addTitle: '为「' + area + '」添加片长',
       searchKeyword: '',
       availableUsers
     })
