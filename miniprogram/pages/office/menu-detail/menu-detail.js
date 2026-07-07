@@ -36,7 +36,8 @@ Page({
     if (options.id) {
       this.setData({ menuId: options.id })
       this.loadMenu()
-      this.loadComments()
+      this.loadRatings()
+      //this.loadComments()
       this.checkPermission()
     }
   },
@@ -49,7 +50,7 @@ Page({
     // 每次显示页面时刷新数据（从编辑页返回时自动更新）
     if (this.data.menuId) {
       this.loadMenu()
-      this.loadComments()
+      //this.loadComments()
       this.loadRatings()
     }
   },

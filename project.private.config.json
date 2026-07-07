@@ -1,5 +1,5 @@
 {
-  "projectname": "ceshi",
+  "projectname": "bxly%E6%8A%A5%E5%A4%87%E5%8A%A9%E6%89%8B",
   "setting": {
     "urlCheck": true,
     "coverView": true,
@@ -18,39 +18,6 @@
     "useIsolateContext": false,
     "ignoreDevUnusedFiles": true
   },
-  "libVersion": "3.14.2",
-  "condition": {
-    "miniprogram": {
-      "list": [
-        {
-          "name": "pages/auth/fill-detail/fill-detail",
-          "pathName": "pages/auth/fill-detail/fill-detail",
-          "query": "",
-          "scene": null,
-          "launchMode": "default"
-        },
-        {
-          "name": "pages/office/position-config/position-config",
-          "pathName": "pages/office/position-config/position-config",
-          "query": "",
-          "launchMode": "default",
-          "scene": null
-        },
-        {
-          "name": "pages/auth/register/register",
-          "pathName": "pages/auth/register/register",
-          "query": "",
-          "launchMode": "default",
-          "scene": null
-        },
-        {
-          "name": "pages/office/leave/leave",
-          "pathName": "pages/office/leave/leave",
-          "query": "",
-          "launchMode": "default",
-          "scene": null
-        }
-      ]
-    }
-  }
+  "libVersion": "3.16.2",
+  "condition": {}
 }
