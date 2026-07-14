@@ -47,12 +47,10 @@ Page({
     ],
     menuGroups: [{
         title: '系统设置',
-        items: [
-          {
-            icon: 'Aa',
-            label: '字体大小'
-          }
-        ]
+        items: [{
+          icon: 'Aa',
+          label: '字体大小'
+        }]
       },
       {
         title: '个人设置',
@@ -86,6 +84,14 @@ Page({
       {
         label: '角色',
         value: '待认证'
+      },
+      {
+        label: '部门负责人',
+        value: '否'
+      },
+      {
+        label: '居住区域',
+        value: '未填写'
       },
       {
         label: '系统管理员',
@@ -159,16 +165,12 @@ Page({
         {
           label: '角色',
           value: user.role || '未设置'
-        },
-        {
-          label: '系统管理员',
-          value: user.isAdmin ? '是' : '否'
         }
       ]
 
       // 如果有岗位信息，添加到信息卡片中
       if (Array.isArray(user.position) && user.position.length > 0) {
-        companyInfo.splice(2, 0, {
+        companyInfo.push({
           label: '岗位',
           value: user.position.join('、')
         })
@@ -176,19 +178,40 @@ Page({
 
       // 如果有部门信息，添加到信息卡片中
       if (user.department) {
-        companyInfo.splice(companyInfo.length - 1, 0, {
+        companyInfo.push({
           label: '部门',
           value: user.department
         })
       }
 
+      // 如果有部门信息，添加部门负责人情况到信息卡片中
+      if (user.department) {
+        // 部门负责人（是/否）
+        companyInfo.push({
+          label: '部门负责人',
+          value: user.isDepartmentHead ? '是' : '否'
+        })
+      }
+
+      // 居住区域
+      companyInfo.push({
+        label: '居住区域',
+        value: user.livingArea || '未填写'
+      })
+
       // 如果有亲属信息，添加到信息卡片中
       if (user.relativeName) {
-        companyInfo.splice(companyInfo.length - 1, 0, {
+        companyInfo.push({
           label: '亲属',
           value: user.relativeName
         })
       }
+
+      // 系统管理员（是/否）
+      companyInfo.push({
+        label: '系统管理员',
+        value: user.isAdmin ? '是' : '否'
+      })
 
       // 用户状态映射
       const userStatus = user.userStatus || 'offline'
@@ -213,16 +236,24 @@ Page({
       const statusInfo = STATUS_MAP[userStatus] || STATUS_MAP.offline
 
       // 报备配置：管理员可编辑，馆领导/馆员只读查看
-      const systemItems = [{ icon: 'Aa', label: '字体大小' }]
+      const systemItems = [{
+        icon: 'Aa',
+        label: '字体大小'
+      }]
       if (user.isAdmin || user.role === '馆领导' || user.role === '馆员') {
-        systemItems.push({ icon: '📣', label: '报备配置' })
+        systemItems.push({
+          icon: '📣',
+          label: '报备配置'
+        })
       }
       /* // 岗位配置：管理员、馆领导、馆员、工勤可见；进入后仅管理员可配置
       if (user.isAdmin || user.role === '馆领导' || user.role === '馆员' || user.role === '工勤') {
         systemItems.push({ icon: '📑', label: '岗位配置' })
       } */
-      const menuGroups = [
-        { title: '系统设置', items: systemItems },
+      const menuGroups = [{
+          title: '系统设置',
+          items: systemItems
+        },
         this.data.menuGroups[1]
       ]
 
@@ -362,8 +393,7 @@ Page({
       wx.navigateTo({
         url: '/pages/office/help/help'
       })
-    } else if (label === '字体大小') {
-    } else if (label === '报备配置') {
+    } else if (label === '字体大小') {} else if (label === '报备配置') {
       wx.navigateTo({
         url: '/pages/office/report-config/report-config'
       })

@@ -610,8 +610,18 @@ async function submitProfileUpdate(openid, formData) {
     })
   }
 
+  // 编辑资料流程不提交头像/昵称（注册时确定、不可改），
+  // 用已注册用户的现有值补齐，避免共用 validateForm 误报"请选择微信头像"
+  const mergedFormData = { ...formData }
+  if (!String(mergedFormData.avatarUrl || '').trim()) {
+    mergedFormData.avatarUrl = existingUser.avatarUrl || ''
+  }
+  if (!String(mergedFormData.nickName || '').trim()) {
+    mergedFormData.nickName = existingUser.nickName || ''
+  }
+
   // 验证表单数据
-  const form = await validateForm(formData)
+  const form = await validateForm(mergedFormData)
 
   // 检查是否已有待审批的修改申请
   const existingOrderResult = await workOrdersCollection
