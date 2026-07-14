@@ -270,10 +270,10 @@ async function handleReturn(openid, params) {
 
   const now = Date.now()
 
-  // 判断是否超时：返回时间晚于出发日23时则为超时
-  const departDate = new Date(tripRes.data.departAt)
-  const deadline = new Date(departDate.getFullYear(), departDate.getMonth(), departDate.getDate(), 23, 0, 0)
-  let newStatus = now > deadline.getTime() ? 'overtime' : 'returned'
+  // 判断是否超时：返回时间晚于出发日23时则为超时（按系统配置时区）
+  const offsetHours = await getTimezoneOffset()
+  const deadline = getOvertimeDeadline(tripRes.data.departAt, offsetHours)
+  let newStatus = now > deadline ? 'overtime' : 'returned'
 
   // 更新记录
   await tripReportsCollection.doc(tripId).update({
@@ -350,10 +350,10 @@ async function handleRetroDepart(openid, params) {
   const currentUserDepartment = currentUser ? currentUser.department : ''
   const now = Date.now()
 
-  // 判断是否超时：返回时间晚于出发日23时则为超时
-  const departDate = new Date(departAt)
-  const deadline = new Date(departDate.getFullYear(), departDate.getMonth(), departDate.getDate(), 23, 0, 0)
-  const status = returnAt > deadline.getTime() ? 'overtime' : 'returned'
+  // 判断是否超时：返回时间晚于出发日23时则为超时（按系统配置时区）
+  const offsetHours = await getTimezoneOffset()
+  const deadline = getOvertimeDeadline(departAt, offsetHours)
+  const status = returnAt > deadline ? 'overtime' : 'returned'
 
   const tripData = {
     _openid: openid,
@@ -567,6 +567,7 @@ async function getStatistics(params) {
  */
 async function checkOvertime() {
   const now = Date.now()
+  const offsetHours = await getTimezoneOffset()
 
   // 查询所有外出中的记录
   const result = await tripReportsCollection
@@ -580,11 +581,10 @@ async function checkOvertime() {
   const overtimeTrips = []
   const allOutTrips = result.data || []
 
-  // 筛选已超时的：当前时间已超过出发日23时
+  // 筛选已超时的：当前时间已超过出发日23时（按系统配置时区）
   for (const trip of allOutTrips) {
-    const departDate = new Date(trip.departAt)
-    const deadline = new Date(departDate.getFullYear(), departDate.getMonth(), departDate.getDate(), 23, 0, 0)
-    if (now > deadline.getTime()) {
+    const deadline = getOvertimeDeadline(trip.departAt, offsetHours)
+    if (now > deadline) {
       overtimeTrips.push(trip)
     }
   }
@@ -782,6 +782,23 @@ async function getTimezoneOffset() {
     }
   } catch (e) {}
   return -3
+}
+
+/**
+ * 计算超时截止时间戳（出发日23:00，按系统配置时区）
+ * 云函数运行在 UTC+0，需将本地23:00转换为UTC时间戳
+ * @param {number} departAt - 出发时间戳
+ * @param {number} offsetHours - 时区偏移（小时，相对UTC，如-3表示UTC-3）
+ * @returns {number} 截止时间戳（本地23:00对应的UTC时间戳）
+ */
+function getOvertimeDeadline(departAt, offsetHours) {
+  const departDate = new Date(departAt)
+  // 将UTC时间转换为本地时间（加偏移），用UTC方法读取本地日期分量
+  const localMs = departDate.getTime() + offsetHours * 3600000
+  const localDate = new Date(localMs)
+  // 构造本地23:00对应的UTC时间戳：UTC时 = 23 - offsetHours
+  // 例如 UTC-3: 23 - (-3) = 26 → 次日02:00 UTC
+  return Date.UTC(localDate.getUTCFullYear(), localDate.getUTCMonth(), localDate.getUTCDate(), 23 - offsetHours, 0, 0)
 }
 
 /**

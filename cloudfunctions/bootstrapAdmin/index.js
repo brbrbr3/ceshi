@@ -204,7 +204,7 @@ async function claimAdmin(openid, inviteCode) {
     name: businessData.applicantName || existingUser?.name || '',
     gender: businessData.gender || existingUser?.gender || '',
     birthday: businessData.birthday || existingUser?.birthday || '',
-    role: businessData.role || existingUser?.role || '馆领导',
+    role: businessData.role || existingUser?.role || '',
     isAdmin: true,
     isDepartmentHead: !!(businessData.isDepartmentHead || (businessData.role === '馆领导' && businessData.department)),
     avatarText: businessData.avatarText || existingUser?.avatarText || (businessData.applicantName ? businessData.applicantName.slice(0, 1) : ''),

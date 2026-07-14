@@ -724,6 +724,15 @@ Page({
       })
     }).then((result) => {
       if (result && result.registered) {
+        // 未填写详细信息（角色为空）→ 进入 fill-detail 页补充
+        if (!result.user || !result.user.role) {
+          setTimeout(() => {
+            wx.navigateTo({
+              url: '/pages/auth/fill-detail/fill-detail'
+            })
+          }, 200)
+          return
+        }
         setTimeout(() => {
           wx.switchTab({
             url: '/pages/office/home/home'

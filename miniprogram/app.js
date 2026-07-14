@@ -948,8 +948,16 @@ App({
 
   /**
    * 校准订阅额度计数 - 每天最多1次
-   * 1. 从云端查询各模板的实际可用额度（subscribed 状态），同步本地计数
-   * 2. 清理已使用的记录（used 状态），每次最多删20条
+   * 1. 读取微信侧"总是接受/拒绝"设置（被动探测，零打扰），识别并清理 DB 中的幽灵订阅记录
+   * 2. 从云端查询各模板的实际可用额度（subscribed 状态），同步本地计数
+   * 3. 清理已使用的记录（used 状态），每次最多删20条
+   *
+   * 幽灵记录判定（基于 wx.getSetting 的 itemSettings）：
+   * - 'reject'  ：用户明确"总是拒绝"，DB 的 subscribed 记录必然失效 → 清理
+   * - 'accept'  ：用户明确"总是接受"，DB 记录有效 → 保留并恢复 sub_choice_
+   * - undefined ：未设"总是"（仅本次/已取消/从未订阅）。若本地 sub_choice_ 缺失且有
+   *               subscribed 记录，高概率是已失效的"仅每次"遗留 → 清理以打破死锁
+   *               （代价：误删少数有效"仅每次"额度，用户重新弹窗即可补回）
    */
   async calibrateSubscriptionCounts() {
     const now = new Date()
@@ -976,15 +984,49 @@ App({
         { id: config.SUBSCRIBE_TEMPLATES.TRIP_REPORT }
       ]
 
-      // 1. 同步本地计数（subscribed 状态 = 可用额度）+ 恢复引导标记
+      // 0. 被动探测：读取微信侧"总是接受/拒绝"设置（零打扰，不发送任何消息）
+      const itemSettings = await this._getSubscriptionSettings()
+
+      // 1. 按微信设置判定幽灵记录 + 同步本地计数 + 恢复引导标记
       for (const tpl of templates) {
         const countRes = await db.collection('subscriptions')
           .where({ openid: openid, templateId: tpl.id, status: 'subscribed' })
           .count()
-        wx.setStorageSync(`sub_count_${tpl.id}`, countRes.total)
-        // 已有订阅记录 → 标记已引导过，避免重复弹窗
-        if (countRes.total > 0) {
-          wx.setStorageSync(`sub_guide_${tpl.id}`, true)
+
+        const wxChoice = itemSettings ? itemSettings[tpl.id] : undefined
+        const localChoice = wx.getStorageSync(`sub_choice_${tpl.id}`)
+
+        if (wxChoice === 'reject') {
+          // 用户明确"总是拒绝" → DB 的 subscribed 记录 100% 是幽灵，清理
+          await this._removeSubscribedRecords(db, openid, tpl.id)
+          wx.setStorageSync(`sub_count_${tpl.id}`, 0)
+          wx.setStorageSync(`sub_choice_${tpl.id}`, 'reject')
+          console.log(`[订阅] 校准: 模板 ${tpl.id} 检测到 reject，已清理幽灵记录`)
+        } else if (wxChoice === 'accept') {
+          // 用户明确"总是接受" → DB 记录有效，保留
+          wx.setStorageSync(`sub_count_${tpl.id}`, countRes.total)
+          wx.setStorageSync(`sub_choice_${tpl.id}`, 'accept')
+          if (countRes.total > 0) {
+            wx.setStorageSync(`sub_guide_${tpl.id}`, true)
+          }
+          console.log(`[订阅] 校准: 模板 ${tpl.id} 检测到 accept，额度=${countRes.total}`)
+        } else {
+          // undefined：未设"总是"，无法精确区分有效/失效
+          if (!localChoice && countRes.total > 0) {
+            // 从未"总是接受"却有 subscribed 记录 → 高概率幽灵（已失效的"仅每次"遗留）
+            // 清理以打破死锁，允许重新引导
+            await this._removeSubscribedRecords(db, openid, tpl.id)
+            wx.setStorageSync(`sub_count_${tpl.id}`, 0)
+            // 清除旧版校准遗留的引导标记，打破死锁，允许重新引导
+            wx.removeStorageSync(`sub_guide_${tpl.id}`)
+            console.log(`[订阅] 校准: 模板 ${tpl.id} 无"总是"设置且有 ${countRes.total} 条记录，按幽灵清理`)
+          } else {
+            // localChoice='accept'（异常：accept 应出现在 itemSettings）或 count=0 → 保守保留
+            wx.setStorageSync(`sub_count_${tpl.id}`, countRes.total)
+            if (countRes.total > 0 && localChoice === 'accept') {
+              wx.setStorageSync(`sub_guide_${tpl.id}`, true)
+            }
+          }
         }
       }
 
@@ -1000,6 +1042,44 @@ App({
       await Promise.all(deletePromises)
     } catch (error) {
       console.error('[订阅] 校准失败:', error)
+    }
+  },
+
+  /**
+   * 读取微信侧订阅消息设置（Promise 封装，用于被动探测）
+   * @returns {Promise<Object|null>} itemSettings 对象，失败/无设置时返回 null
+   */
+  _getSubscriptionSettings() {
+    return new Promise((resolve) => {
+      wx.getSetting({
+        withSubscriptions: true,
+        success: (res) => {
+          const itemSettings = res.subscriptionsSetting && res.subscriptionsSetting.itemSettings
+          resolve(itemSettings || null)
+        },
+        fail: (err) => {
+          console.error('[订阅] _getSubscriptionSettings getSetting 失败:', err)
+          resolve(null)
+        }
+      })
+    })
+  },
+
+  /**
+   * 清理指定模板的 subscribed 记录（幽灵记录）
+   * 每次最多删除 20 条；若超过则下次校准继续清理
+   */
+  async _removeSubscribedRecords(db, openid, templateId) {
+    const res = await db.collection('subscriptions')
+      .where({ openid: openid, templateId: templateId, status: 'subscribed' })
+      .limit(20)
+      .get()
+    const deletePromises = res.data.map(doc =>
+      db.collection('subscriptions').doc(doc._id).remove()
+    )
+    await Promise.all(deletePromises)
+    if (res.data.length === 20) {
+      console.warn(`[订阅] 模板 ${templateId} 幽灵记录可能未清理完，下次校准继续`)
     }
   },
 
