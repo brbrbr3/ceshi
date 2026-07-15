@@ -203,10 +203,17 @@ App({
   },
 
   // 根据 fontScale 生成所有令牌的 CSS 变量字符串
+  // 桌面端（windows/mac）rpx 会按窗口宽度放大（375px 手机 vs 1000px+ 桌面），
+  // 导致字号被放大 ~2.67 倍。桌面端改用 px，锁定 375px 设计稿换算（1rpx = 0.5px）。
   generateFontStyle(scale) {
+    const isDesktop = ['windows', 'mac'].includes(this.globalData.platform)
+    const rpxToPx = 0.5 // 375px 设计稿：1rpx = 375 / 750 = 0.5px
     const vars = Object.entries(FONT_TOKENS)
       .map(([key, baseRpx]) => {
         const scaled = Math.round(baseRpx * scale * 100) / 100
+        if (isDesktop) {
+          return `--fs-${key}: ${(scaled * rpxToPx).toFixed(2)}px`
+        }
         return `--fs-${key}: ${scaled}rpx`
       })
       .join('; ')

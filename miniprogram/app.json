@@ -64,7 +64,7 @@
   "sitemapLocation": "sitemap.json",
   "themeLocation": "theme.json",
   "darkmode": false,
-  "resizable": false,
+  "resizable": true,
   "useExtendedLib": {
     "weui": true
   },

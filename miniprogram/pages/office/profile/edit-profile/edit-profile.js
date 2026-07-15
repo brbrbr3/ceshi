@@ -26,8 +26,8 @@ Page({
       relativeName: '',
       department: '',
       isDepartmentHead: false,
-      mobile: '+55 61 ',
-      landline: '+55 61 ',
+      // mobile: '+55 61 ',
+      // landline: '+55 61 ',
       livingArea: ''
     }
   },
@@ -45,7 +45,9 @@ Page({
 
       // 设置今天的日期作为最大可选日期
       const today = await utils.getTodayDate()
-      this.setData({ today })
+      this.setData({
+        today
+      })
 
       // 加载用户信息
       await this.loadUserProfile()
@@ -57,12 +59,16 @@ Page({
 
   async onShow() {
     const fontStyle = app.globalData.fontStyle
-  if (this.data.fontStyle !== fontStyle) {
-    this.setData({ fontStyle })
-  }
+    if (this.data.fontStyle !== fontStyle) {
+      this.setData({
+        fontStyle
+      })
+    }
     // 每次显示时更新今天的日期
     const today = await utils.getTodayDate()
-    this.setData({ today })
+    this.setData({
+      today
+    })
   },
 
   // 加载常量
@@ -95,7 +101,9 @@ Page({
    * @returns {Object} 字段显示配置 { showPosition, showDepartment, fixedDepartment }
    */
   getRoleFieldConfig(role) {
-    const { constants } = this.data
+    const {
+      constants
+    } = this.data
     const roleFieldVisibility = constants.ROLE_FIELD_VISIBILITY || {}
 
     // 优先使用数据库配置
@@ -127,7 +135,11 @@ Page({
         }
 
         const user = result.user
-        const { roleOptions, departmentOptions, constants } = this.data
+        const {
+          roleOptions,
+          departmentOptions,
+          constants
+        } = this.data
         const roleIndex = user.role ? roleOptions.indexOf(user.role) : -1
         const role = user.role || ''
 
@@ -195,8 +207,8 @@ Page({
             relativeName: user.relativeName || '',
             department: department,
             isDepartmentHead: isDepartmentHead,
-            mobile: user.mobile || '+55 61 ',
-            landline: user.landline || '+55 61 ',
+            // mobile: user.mobile || '+55 61 ',
+            // landline: user.landline || '+55 61 ',
             livingArea: livingArea
           }
         })
@@ -232,7 +244,11 @@ Page({
 
   handleRoleChange(e) {
     const roleIndex = Number(e.detail.value)
-    const { roleOptions, allDepartmentOptions, constants } = this.data
+    const {
+      roleOptions,
+      allDepartmentOptions,
+      constants
+    } = this.data
     const role = roleOptions[roleIndex]
 
     // 使用常量判断
@@ -351,32 +367,51 @@ Page({
     }
 
     const form = this.data.form
-    const { constants } = this.data
+    const {
+      constants
+    } = this.data
     const needRelativeRoles = constants.NEED_RELATIVE_ROLES || []
     const roleConfig = this.getRoleFieldConfig(form.role)
-    
+
     if (!form.gender) {
-      utils.showToast({ title: '请选择性别', icon: 'none' })
+      utils.showToast({
+        title: '请选择性别',
+        icon: 'none'
+      })
       return
     }
     if (!form.birthday) {
-      utils.showToast({ title: '请选择出生日期', icon: 'none' })
+      utils.showToast({
+        title: '请选择出生日期',
+        icon: 'none'
+      })
       return
     }
     if (!form.role) {
-      utils.showToast({ title: '请选择角色', icon: 'none' })
+      utils.showToast({
+        title: '请选择角色',
+        icon: 'none'
+      })
       return
     }
     if (needRelativeRoles.includes(form.role) && !String(form.relativeName || '').trim()) {
-      utils.showToast({ title: '请填写亲属姓名', icon: 'none' })
+      utils.showToast({
+        title: '请填写亲属姓名',
+        icon: 'none'
+      })
       return
     }
     if (roleConfig.showDepartment && !form.department && form.role !== '馆领导') {
-      utils.showToast({ title: '请选择部门', icon: 'none' })
+      utils.showToast({
+        title: '请选择部门',
+        icon: 'none'
+      })
       return
     }
     // 清理预填内容：若用户未修改 mobile/landline，不保存预填值
-    const submitForm = { ...form }
+    const submitForm = {
+      ...form
+    }
     if ((submitForm.mobile || '').trim() === '+55 61') {
       submitForm.mobile = ''
     }
@@ -384,7 +419,9 @@ Page({
       submitForm.landline = ''
     }
 
-    this.setData({ loading: true })
+    this.setData({
+      loading: true
+    })
 
     app.submitProfileUpdate(submitForm)
       .then(() => {
@@ -407,7 +444,9 @@ Page({
         })
       })
       .then(() => {
-        this.setData({ loading: false })
+        this.setData({
+          loading: false
+        })
       })
   }
 })

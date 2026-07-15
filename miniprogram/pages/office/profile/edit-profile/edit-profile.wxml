@@ -82,7 +82,7 @@
         </view>
       </view>
 
-      <view class="auth-field">
+      <!-- <view class="auth-field">
         <view class="auth-field-label">手机 <text class="auth-field-optional">（选填）</text></view>
         <view class="auth-input-shell">
           <input value="{{form.mobile}}" placeholder="+55 61 " placeholder-class="auth-input-placeholder" bindinput="handleMobileInput" type="text" />
@@ -94,7 +94,7 @@
         <view class="auth-input-shell">
           <input value="{{form.landline}}" placeholder="+55 61 " placeholder-class="auth-input-placeholder" bindinput="handleLandlineInput" type="text" />
         </view>
-      </view>
+      </view> -->
 
       <view class="auth-field">
         <view class="auth-field-label">居住区域 <text class="auth-field-optional">（选填）</text></view>
