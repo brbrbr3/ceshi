@@ -155,10 +155,8 @@ Page({
     //this.loadBgImage()
     this.syncUserProfile() //同步用户资料
     this.syncNotifications() //同步消息推送
-    // 同步用户微信订阅选择到本地缓存（供 handleQuickAction 中的 silentAccumulateSubscribe 使用）
-    app.syncSubscriptionChoices()
-    // 每天一次云端校准订阅额度计数（清缓存后 sub_count_* 归零，此处触发云端恢复）
-    app.calibrateSubscriptionCounts()
+    // 刷新微信侧订阅状态到本地缓存（供 handleQuickAction tap 时同步读取）
+    app.syncSubStatus()
     //this.loadAnnouncements() //加载通知公告
     //this.loadArticles() //加载学习园地
     //this.loadActivities() //加载群团活动
@@ -307,17 +305,6 @@ Page({
   goApprovalTab() {
     wx.switchTab({
       url: '/pages/office/approval/approval'
-    })
-  },
-
-  requestSubscribeMessage() {
-    app.requestSubscribeMessage().then((subscribed) => {
-      if (subscribed) {
-        utils.showToast({
-          title: '订阅成功',
-          icon: 'success'
-        })
-      }
     })
   },
 
@@ -481,11 +468,11 @@ Page({
   },
 
   handleQuickAction(e) {
-    // 利用用户 tap 手势静默积累订阅额度
-    // 管理员 → 积累模板2（待审批通知）；报备接收人 → 积累模板3（出行报备通知）
+    // 利用用户 tap 手势订阅/充值额度（基于"总是保持以上选择"机制）
+    // 全体用户 → 模板4（未读消息提醒）；管理员 → 模板2（待审批通知）；报备接收人 → 模板3（出行报备通知）
     const user = this.data.currentUser || app.globalData.userProfile
     if (user) {
-      const types = []
+      const types = ['unread_message']
       if (user.isAdmin) types.push('pending_approval')
       const isReceiver = user.isDepartmentHead ||
         user.role === '馆领导' ||
@@ -493,7 +480,7 @@ Page({
         (Array.isArray(user.deptExtraNotifierOf) && user.deptExtraNotifierOf.length > 0) ||
         user.isLeaderNotifier
       if (isReceiver) types.push('trip_report')
-      if (types.length > 0) app.silentAccumulateSubscribe(types)
+      app.subscribeOnTap(types)
     }
 
     const label = e.currentTarget.dataset.label

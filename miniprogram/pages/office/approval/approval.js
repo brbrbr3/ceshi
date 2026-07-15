@@ -375,15 +375,8 @@ Page({
       return
     }
 
-    // 同步用户微信订阅选择到本地缓存（供 silentAccumulateSubscribe 使用）
-    app.syncSubscriptionChoices()
-
-    // 管理员进入审批中心时，首次引导订阅待审批通知（模板2）
-    // requestSubscribeWithQuota 仅首次弹 Modal，后续不再弹
-    app.requestPendingApprovalSubscribe()
-
-    // 每天一次云端校准订阅额度计数
-    app.calibrateSubscriptionCounts()
+    // 刷新微信侧订阅状态到本地缓存（供功能面板 tap 时同步读取）
+    app.syncSubStatus()
 
     // 检查是否有跳转目标（从消息中心或申请提交跳转过来）
     const targetTab = app.globalData.targetApprovalTab

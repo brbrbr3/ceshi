@@ -45,11 +45,8 @@ Page({
       wx.showLoading({ title: '加载中...', mask: true })
       await this.loadBoardData()
 
-      // 权限确认后，引导订阅出行报备通知（模板3）
-      // requestSubscribeWithQuota 仅首次弹 Modal，后续不再弹
-      app.syncSubscriptionChoices()
-      app.requestTripReportSubscribe()
-      app.calibrateSubscriptionCounts()
+      // 刷新微信侧订阅状态到本地缓存
+      app.syncSubStatus()
     } finally {
       wx.hideLoading()
     }
@@ -68,15 +65,8 @@ Page({
     // 首次进入页面时 initUserInfo 尚未完成，跳过订阅逻辑（由 onLoad 处理）
     if (!this.data.currentUser) return
 
-    // 同步用户微信订阅选择到本地缓存（供 silentAccumulateSubscribe 使用）
-    app.syncSubscriptionChoices()
-
-    // 报备接收人：首次引导订阅出行报备通知（模板3）
-    // requestSubscribeWithQuota 仅首次弹 Modal，后续不再弹
-    app.requestTripReportSubscribe()
-
-    // 每天一次云端校准订阅额度计数
-    app.calibrateSubscriptionCounts()
+    // 刷新微信侧订阅状态到本地缓存（供功能面板 tap 时同步读取）
+    app.syncSubStatus()
   },
 
   /**
@@ -244,7 +234,7 @@ Page({
     // 管理员 → 积累模板2（待审批通知）；报备接收人 → 积累模板3（出行报备通知）
     const user = this.data.currentUser
     if (user) {
-      const types = []
+      const types = ['unread_message']
       if (user.isAdmin) types.push('pending_approval')
       const isReceiver = user.role === '馆领导'
         || user.isDepartmentHead
@@ -252,7 +242,7 @@ Page({
         || (Array.isArray(user.deptExtraNotifierOf) && user.deptExtraNotifierOf.length > 0)
         || user.isLeaderNotifier
       if (isReceiver) types.push('trip_report')
-      if (types.length > 0) app.silentAccumulateSubscribe(types)
+      app.subscribeOnTap(types)
     }
 
     const openid = e.currentTarget.dataset.openid

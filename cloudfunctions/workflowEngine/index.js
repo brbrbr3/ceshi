@@ -534,7 +534,7 @@ async function startWorkflow(orderType, businessData) {
         orderType,
         businessData
       }
-      sendTaskAssignedNotification(tasks, orderData).catch(() => {
+      await sendTaskAssignedNotification(tasks, orderData).catch(() => {
         // 通知发送失败不影响主流程
       })
     }
@@ -1386,50 +1386,6 @@ function truncateText(text, maxLen) {
 }
 
 /**
- * 消费一条订阅额度：查询并标记为 used
- * @param {string} openid - 接收者 openid
- * @param {string} templateId - 模板ID
- * @returns {Promise<Object|null>} 匹配的订阅记录，无额度时返回 null
- */
-async function consumeSubscriptionQuota(openid, templateId) {
-  const subscriptionsCollection = db.collection('subscriptions')
-  const res = await subscriptionsCollection
-    .where({ openid, templateId, status: 'subscribed' })
-    .orderBy('createdAt', 'asc')
-    .limit(1)
-    .get()
-
-  if (!res.data || res.data.length === 0) {
-    return null
-  }
-
-  const record = res.data[0]
-  await subscriptionsCollection.doc(record._id).update({
-    data: { status: 'used', usedAt: Date.now() }
-  })
-  return record
-}
-
-/**
- * 清理幽灵订阅记录：当微信返回 43101（额度耗尽/用户拒绝/删除小程序）时调用
- * 批量删除该用户该模板的所有 subscribed 记录，使 DB 计数与微信实际额度同步
- */
-async function cleanGhostSubscriptions(openid, templateId) {
-  const subscriptionsCollection = db.collection('subscriptions')
-  while (true) {
-    const res = await subscriptionsCollection
-      .where({ openid, templateId, status: 'subscribed' })
-      .limit(20)
-      .get()
-    if (!res.data || res.data.length === 0) break
-    await Promise.all(res.data.map(doc =>
-      subscriptionsCollection.doc(doc._id).remove()
-    ))
-  }
-  console.log('[订阅] 幽灵记录已清理:', openid, templateId)
-}
-
-/**
  * 发送注册审批结果订阅消息（模板1）给注册用户
  * @param {Object} order - 工单对象
  * @param {string} result - 'approved' 或 'rejected'
@@ -1462,18 +1418,10 @@ async function sendRegistrationResultSubscribeMessage(order, result) {
       }
     })
     console.log('注册审批结果订阅消息已发送:', applicantOpenid, result)
-
-    // 发送成功后，消费一条 DB 记录（记账）
-    await consumeSubscriptionQuota(applicantOpenid, templateId)
   } catch (error) {
     const errcode = error.errcode || error.errCode
-    if (errcode === 43101) {
-      // 额度耗尽/用户拒绝/删除小程序 → 清理幽灵记录
-      console.warn('[订阅] 注册审批结果消息额度不足，清理幽灵记录:', applicantOpenid)
-      await cleanGhostSubscriptions(applicantOpenid, templateId)
-    } else {
-      console.error('[订阅] 发送注册审批结果消息失败:', applicantOpenid, errcode, error.message || error)
-    }
+    // 43101/-604101 = 额度不足/用户拒绝，无需清理 DB（已无 subscriptions 表），仅记日志
+    console.warn('[订阅] 发送注册审批结果消息失败:', applicantOpenid, errcode, error.message || error)
   }
 }
 
@@ -1509,18 +1457,10 @@ async function sendPendingApprovalSubscribeMessage(order, approverOpenids) {
         }
       })
       console.log('待审批通知订阅消息已发送:', approverOpenid)
-
-      // 发送成功后，消费一条 DB 记录（记账）
-      await consumeSubscriptionQuota(approverOpenid, templateId)
     } catch (error) {
       const errcode = error.errcode || error.errCode
-      if (errcode === 43101) {
-        // 额度耗尽/用户拒绝/删除小程序 → 清理幽灵记录
-        console.warn('[订阅] 待审批通知消息额度不足，清理幽灵记录:', approverOpenid)
-        await cleanGhostSubscriptions(approverOpenid, templateId)
-      } else {
-        console.error('[订阅] 发送待审批通知消息失败:', approverOpenid, errcode, error.message || error)
-      }
+      // 43101/-604101 = 额度不足/用户拒绝，无需清理 DB（已无 subscriptions 表），仅记日志
+      console.warn('[订阅] 发送待审批通知消息失败:', approverOpenid, errcode, error.message || error)
     }
   }
 }

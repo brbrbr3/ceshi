@@ -12,7 +12,7 @@
 
   <view class="auth-card">
     <view class="auth-card-title">填写个人资料</view>
-    <view class="auth-card-desc">审批通过后将自动成为本小程序正式用户。</view>
+    <!-- <view class="auth-card-desc">审批通过后将自动成为本小程序正式用户。</view> -->
 
     <view wx:if="{{reviewRemark}}" class="register-review-banner">
       <view class="register-review-title">退回说明</view>
@@ -37,7 +37,7 @@
       <!-- 微信昵称 -->
       <view class="auth-field">
         <view class="auth-field-label">微信昵称 <text style="color: #e74c3c;">*</text></view>
-        <view wx:if="{{!form.nickName}}" class="auth-card-desc">请点击下方输入框，在键盘上方选择"使用微信昵称"，不要自行输入</view>
+        <view wx:if="{{!form.nickName}}" class="auth-card-desc">请点击下方输入框，在键盘上方选择"用微信昵称"，不要自行输入</view>
         <view class="auth-input-shell">
           <input type="nickname" value="{{form.nickName}}" placeholder="点击使用微信昵称" placeholder-class="auth-input-placeholder" bindinput="handleNickNameInput" bindblur="handleNickNameBlur" bindnicknamereview="handleNickNameReview" />
         </view>
@@ -96,7 +96,7 @@
       </view>
     </view>
 
-    <button class="auth-submit-btn" loading="{{loading}}" bindtap="submitRegistration">提交注册申请</button>
+    <button class="auth-submit-btn {{loading ? 'is-pending' : ''}}" loading="{{loading}}" bindtap="submitRegistration">提交注册申请</button>
     <view class="auth-note">提交后请等待管理员处理；若未通过，可进入本页修改并重新提交。</view>
   </view>
 </view>

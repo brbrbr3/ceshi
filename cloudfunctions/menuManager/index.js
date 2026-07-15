@@ -6,6 +6,84 @@ cloud.init({
 
 const db = cloud.database()
 
+// 未读消息提醒模板ID（模板4：新菜单发布等通用消息推送）
+const UNREAD_MESSAGE_TEMPLATE_ID = 'mJ1CGM8OvpgomnYy0yot4Kk8hD8S-NH06A6ZDywdpGc'
+
+/**
+ * 格式化通知时间（YYYY-MM-DD HH:MM）
+ */
+function formatNoticeTime(timestamp) {
+  const d = new Date(timestamp)
+  const pad = (n) => String(n).padStart(2, '0')
+  return `${d.getFullYear()}-${pad(d.getMonth() + 1)}-${pad(d.getDate())} ${pad(d.getHours())}:${pad(d.getMinutes())}`
+}
+
+/**
+ * 截断文本（微信 thing 类型限制20字）
+ */
+function truncateNoticeText(text, len) {
+  if (!text) return ''
+  const max = len || 20
+  return text.length > max ? text.substring(0, max) : text
+}
+
+/**
+ * 向全体已批准用户推送"未读消息提醒"（菜单发布通知）
+ * 盲发模式：不查询用户是否订阅，直接 send，失败仅记日志
+ * @param {string} authorName - 菜单发布人姓名
+ * @param {string} menuTitle - 菜单标题
+ */
+async function sendMenuNoticeToAllUsers(authorName, menuTitle) {
+  const senderName = truncateNoticeText(authorName || '管理员')
+  const sendTime = formatNoticeTime(Date.now())
+  const msgType = truncateNoticeText('新菜单通知')
+  const msgContent = truncateNoticeText(`${authorName || '管理员'}提交了新的工作餐菜单，点击查看`)
+  const remark = truncateNoticeText(menuTitle || '')
+
+  const batchSize = 100
+  let offset = 0
+  let totalSent = 0
+  let totalFailed = 0
+
+  while (true) {
+    const res = await db.collection('office_users')
+      .where({ status: 'approved' })
+      .skip(offset)
+      .limit(batchSize)
+      .get()
+
+    if (!res.data || res.data.length === 0) break
+
+    for (const userDoc of res.data) {
+      try {
+        await cloud.openapi.subscribeMessage.send({
+          touser: userDoc.openid,
+          templateId: UNREAD_MESSAGE_TEMPLATE_ID,
+          page: 'pages/office/menus/menus',
+          data: {
+            thing7: { value: senderName },
+            time2: { value: sendTime },
+            thing6: { value: msgType },
+            thing3: { value: msgContent },
+            thing4: { value: remark }
+          }
+        })
+        totalSent++
+      } catch (error) {
+        const errcode = error.errcode || error.errCode
+        // 43101/-604101 = 额度不足/用户拒绝，属正常情况
+        console.warn('[菜单通知] 发送失败:', userDoc.openid, errcode)
+        totalFailed++
+      }
+    }
+
+    offset += batchSize
+    if (res.data.length < batchSize) break
+  }
+
+  console.log(`[菜单通知] 推送完成: 成功 ${totalSent} 失败 ${totalFailed}`)
+}
+
 exports.main = async (event) => {
   const { action, menuData, menuId, commentData, ratingData } = event
 
@@ -49,6 +127,11 @@ exports.main = async (event) => {
             createdAt: Date.now(),
             updatedAt: Date.now()
           }
+        })
+
+        // 菜单发布成功后，向全体用户推送"未读消息提醒"订阅消息（盲发，失败仅记日志）
+        sendMenuNoticeToAllUsers(menuData.authorName || user.name || '管理员', menuData.title).catch(err => {
+          console.error('[菜单通知] 推送失败:', err)
         })
 
         return {
