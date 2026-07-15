@@ -103,6 +103,18 @@ Page({
   },
 
   loadBootstrapStatus() {
+    // 初始化状态基本不变：已初始化时长期缓存（24h），未初始化时短缓存（5min）
+    const cacheKey = 'bootstrapStatus'
+    const cached = wx.getStorageSync(cacheKey)
+    const now = Date.now()
+    if (cached && cached.data) {
+      const ttl = cached.data.hasApprovedAdmin ? 24 * 60 * 60 * 1000 : 5 * 60 * 1000
+      if (cached.timestamp && now - cached.timestamp < ttl) {
+        this.setData({ bootstrapStatus: cached.data })
+        return Promise.resolve(cached.data)
+      }
+    }
+
     return wx.cloud.callFunction({
       name: 'bootstrapAdmin',
       data: {
@@ -116,6 +128,11 @@ Page({
       const bootstrapStatus = result.data || {}
       this.setData({
         bootstrapStatus
+      })
+      // 写入缓存
+      wx.setStorageSync(cacheKey, {
+        data: bootstrapStatus,
+        timestamp: now
       })
       return bootstrapStatus
     }).catch((error) => {

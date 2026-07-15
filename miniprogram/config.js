@@ -4,9 +4,9 @@
 
 const config = {
   // 缓存版本号（修改此值可强制刷新用户端缓存）
-  CACHE_VERSION: '0.42.14.4',
+  CACHE_VERSION: '0.42.15.2',
   //更新说明
-  VERSION_DESCRIPTION: '欢迎使用报备助手！\n1.新增报备配置，可配置片长、馆领导报备人。2.出行数据板已改版。',
+  VERSION_DESCRIPTION: '欢迎使用报备助手！\n1.报备配置功能，可配置片长、馆领导报备人、部门额外报备人。',
 
   // 云开发环境 ID
   envId: 'cloud1-d2gyip4xi1fcf54bd',

@@ -11,7 +11,6 @@ Page({
     currentDateText: '',
     todayTypeText: '今天是工作日', // 动态显示日期类型
     roleLabel: '待认证用户',
-    pendingApprovalCount: 0,
     unreadNotificationCount: 0,
     loading: false,
     currentUser: null,
@@ -298,20 +297,6 @@ Page({
           roleLabel,
           currentUser: user
         })
-
-        // 获取待审批数量
-        return app.callOfficeAuth('getApprovalData')
-      })
-      .then((data) => {
-        if (data && data.summary) {
-          const pendingCount = data.summary.pendingCount || 0
-          const newStats = [...this.data.stats]
-          newStats[0].value = pendingCount
-          this.setData({
-            pendingApprovalCount: pendingCount,
-            stats: newStats
-          })
-        }
       })
       .catch(() => {
         // 静默失败
@@ -588,10 +573,24 @@ Page({
 
   /**
    * 加载节假日配置并判断今天类型
+   *
+   * 缓存策略：同一年同一天内有效。onShow 多次触发时走缓存，
+   * 跨天时 date 不匹配自动失效，跨年时 cacheKey 变化自动失效。
    */
   async loadHolidayConfig() {
+    const currentYear = new Date().getFullYear()
+    const today = utils.formatDate(Date.now()) // YYYY-MM-DD
+    const cacheKey = 'holidayConfig_' + currentYear
+
+    // 缓存命中：同一天内不重复请求
+    const cached = wx.getStorageSync(cacheKey)
+    if (cached && cached.date === today && cached.holidayDates) {
+      const todayType = this.getTodayType(cached.holidayDates)
+      this.setData({ todayTypeText: todayType })
+      return
+    }
+
     try {
-      const currentYear = new Date().getFullYear()
       const res = await wx.cloud.callFunction({
         name: 'holidayManager',
         data: {
@@ -606,6 +605,12 @@ Page({
       if (res.result.code === 0 && res.result.data.exists) {
         holidayDates = res.result.data.config.dates || []
       }
+
+      // 写入缓存
+      wx.setStorageSync(cacheKey, {
+        holidayDates,
+        date: today
+      })
 
       // 判断今天类型
       const todayType = this.getTodayType(holidayDates)
