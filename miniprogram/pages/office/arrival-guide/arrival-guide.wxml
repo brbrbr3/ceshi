@@ -1,6 +1,6 @@
 <view class="arrival-guide-page" style="{{fontStyle}}">
   <!-- 全屏背景 -->
-  <image class="bg-image" src="/image/br3-low.jpg" mode="aspectFill" />
+  <!-- <image class="bg-image" src="/image/br3-low.jpg" mode="widthFix" /> -->
 
   <!-- 自定义导航栏 -->
   <view class="custom-nav" style="padding-top: {{statusBarHeight}}px">

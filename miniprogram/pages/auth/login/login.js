@@ -57,6 +57,7 @@ Page({
     showRegisterLink: true,
     isAdmin: false,
     isDevEnv: false,
+    isDesktop: false,
     isRegistered: false,
     isPendingApproval: false,
     showDebugPanel: false,
@@ -85,7 +86,8 @@ Page({
       })
     }
     this.setData({
-      isDevEnv: app.globalData.isDevEnv
+      isDevEnv: app.globalData.isDevEnv,
+      isDesktop: ['windows', 'mac'].includes(app.globalData.platform)
     })
     // 强制刷新注册状态（走网络），不再清空身份/资料缓存
     this.refreshStatus(true)
@@ -201,6 +203,13 @@ Page({
     // 调试环境跳过生物认证（开发者工具不支持生物认证API）
     if (app.globalData.isDevEnv) {
       console.warn('[login] 开发环境，跳过生物认证')
+      this.doLogin()
+      return
+    }
+
+    // 桌面端（Windows/Mac 微信）不支持生物认证，直接登录
+    if (this.data.isDesktop) {
+      console.log('[login] 桌面端，跳过生物认证')
       this.doLogin()
       return
     }

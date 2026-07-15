@@ -36,8 +36,9 @@
 
         <view class="menu-edit-submit">
           <button
-            class="auth-submit-btn "
+            class="auth-submit-btn {{loading ? 'is-disabled' : ''}}"
             loading="{{loading}}"
+            disabled="{{loading}}"
             bindtap="handleSubmit"
           >
             {{isEdit ? '保存修改' : '提交'}}
