@@ -510,3 +510,12 @@ page {
   font-weight: 600;
   color: #2563EB;
 }
+
+/* 审核员登录链接 */
+.login-reviewer-link {
+  margin-top: 24rpx;
+  text-align: center;
+  font-size: var(--fs-24);
+  color: #94a3b8;
+  text-decoration: underline;
+}

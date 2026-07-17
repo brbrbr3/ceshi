@@ -47,7 +47,7 @@
 
       <view class="auth-field">
         <view class="auth-field-label">角色</view>
-        <picker mode="selector" range="{{roleOptions}}" value="{{roleIndex}}" bindchange="handleRoleChange">
+        <picker disabled="{{isReviewer}}" mode="selector" range="{{roleOptions}}" value="{{roleIndex}}" bindchange="handleRoleChange">
           <view class="auth-picker-shell {{roleIndex < 0 ? 'is-placeholder' : ''}}">
             <view class="auth-picker-value">{{roleIndex >= 0 ? form.role : '请选择角色'}}</view>
             <view class="auth-picker-arrow">›</view>
@@ -57,7 +57,7 @@
 
       <view wx:if="{{showDepartmentField}}" class="auth-field">
         <view class="auth-field-label">部门</view>
-        <picker mode="selector" range="{{departmentOptions}}" value="{{departmentIndex >= 0 ? departmentIndex : 0}}" bindchange="handleDepartmentChange">
+        <picker disabled="{{isReviewer}}" mode="selector" range="{{departmentOptions}}" value="{{departmentIndex >= 0 ? departmentIndex : 0}}" bindchange="handleDepartmentChange">
           <view class="auth-picker-shell {{departmentIndex < 0 ? 'is-placeholder' : ''}}">
             <view class="auth-picker-value">{{departmentIndex >= 0 ? form.department : '请选择部门'}}</view>
             <view class="auth-picker-arrow">›</view>
@@ -98,7 +98,7 @@
 
       <view class="auth-field">
         <view class="auth-field-label">居住区域 <text class="auth-field-optional">（选填）</text></view>
-        <picker mode="selector" range="{{livingAreaOptions}}" value="{{livingAreaIndex >= 0 ? livingAreaIndex : 0}}" bindchange="handleLivingAreaChange">
+        <picker disabled="{{isReviewer}}" mode="selector" range="{{livingAreaOptions}}" value="{{livingAreaIndex >= 0 ? livingAreaIndex : 0}}" bindchange="handleLivingAreaChange">
           <view class="auth-picker-shell {{livingAreaIndex < 0 ? 'is-placeholder' : ''}}">
             <view class="auth-picker-value">{{livingAreaIndex >= 0 ? form.livingArea : '请选择居住区域'}}</view>
             <view class="auth-picker-arrow">›</view>

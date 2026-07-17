@@ -162,6 +162,22 @@ Component({
     },
 
     /**
+     * 预览大图
+     */
+    handlePreviewImage(e) {
+      const url = e.currentTarget.dataset.url
+      if (!url) return
+      // 收集所有图片字段，支持左右滑动浏览
+      const imageUrls = this.data.detailFields
+        .filter(f => f.type === 'image' && f.value)
+        .map(f => f.value)
+      wx.previewImage({
+        current: url,
+        urls: imageUrls.length > 0 ? imageUrls : [url]
+      })
+    },
+
+    /**
      * 获取状态配置
      */
     getStatusInfo(status) {

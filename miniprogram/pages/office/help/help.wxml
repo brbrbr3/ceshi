@@ -412,7 +412,7 @@
     </view>
 
     <!-- 更新历史 -->
-    <view wx:if="{{isAdmin}}" class="help-section">
+    <view wx:if="{{isAdmin && !isReviewer}}" class="help-section">
       <view class="section-title">更新历史（仅管理员可见）</view>
 
       <view class="permission-tips">

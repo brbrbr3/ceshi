@@ -17,6 +17,7 @@ Page({
     showDeptHeadCheckbox: false,
     reviewRemark: '',
     today: '',
+    isReviewer: false,
     form: {
       name: '',
       gender: '男',
@@ -198,6 +199,7 @@ Page({
           showDeptHeadCheckbox,
           departmentIndex,
           departmentOptions: roleDepartmentOptions,
+          isReviewer: !!user.isReviewer,
           form: {
             name: user.name || '',
             gender: user.gender || '男',

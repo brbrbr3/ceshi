@@ -4,12 +4,7 @@
 
     <view class="profile-user-row">
       <view class="profile-avatar-wrap">
-        <image
-          wx:if="{{userAvatarUrl}}"
-          class="profile-avatar profile-avatar-img"
-          src="{{userAvatarUrl}}"
-          mode="aspectFill"
-        />
+        <image wx:if="{{userAvatarUrl}}" class="profile-avatar profile-avatar-img" src="{{userAvatarUrl}}" mode="aspectFill" />
         <view wx:else class="profile-avatar">{{avatarText}}</view>
         <view class="profile-avatar-status {{avatarStatusClass}}"></view>
       </view>
@@ -75,8 +70,8 @@
       <view class="profile-company-head">
         <view class="profile-company-logo">🏢</view>
         <view>
-          <view class="profile-company-name">组织：Embaixada</view>
-          <view class="profile-company-address">地址：SES 813, LOTE 52</view>
+          <view class="profile-company-name">{{(isReviewer ? '组织：888' : '组织：Embaixada')}}</view>
+          <view class="profile-company-address">地址：{{(isReviewer? '123456' : 'SES 813, LOTE 52')}}</view>
         </view>
       </view>
       <view class="profile-company-grid">

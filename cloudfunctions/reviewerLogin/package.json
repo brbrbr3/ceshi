@@ -1,0 +1,9 @@
+{
+  "name": "reviewerLogin",
+  "version": "1.0.0",
+  "description": "审核员账号密码登录验证",
+  "main": "index.js",
+  "dependencies": {
+    "wx-server-sdk": "~2.6.3"
+  }
+}

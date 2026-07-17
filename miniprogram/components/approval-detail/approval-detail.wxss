@@ -175,6 +175,11 @@
   background: #F1F5F9;
 }
 
+/* 图片点击反馈 */
+.approval-modal-image:active {
+  opacity: 0.7;
+}
+
 .approval-detail-status-value{
   margin-top: -35rpx;
 }

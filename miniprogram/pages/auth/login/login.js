@@ -75,10 +75,22 @@ Page({
     },
     showBootstrapModal: false,
     bootstrapInviteCode: '',
-    bootstrapLoading: false
+    bootstrapLoading: false,
+    showReviewerModal: false,
+    reviewerAccount: '',
+    reviewerPassword: '',
+    reviewerLoading: false
   },
 
   onShow() {
+    // 审核员会话恢复：直接跳转 home 页，无需再点击登录
+    if (app.globalData.isReviewer) {
+      wx.switchTab({
+        url: '/pages/office/home/home'
+      })
+      return
+    }
+
     const fontStyle = app.globalData.fontStyle
     if (this.data.fontStyle !== fontStyle) {
       this.setData({
@@ -777,5 +789,82 @@ Page({
       })
       this.refreshStatus()
     })
+  },
+
+  // ========== 审核员登录 ==========
+
+  showReviewerModal() {
+    this.setData({
+      showReviewerModal: true,
+      reviewerAccount: '',
+      reviewerPassword: ''
+    })
+  },
+
+  hideReviewerModal() {
+    this._closeModal('showReviewerModal', () => {
+      this.setData({
+        reviewerAccount: '',
+        reviewerPassword: ''
+      })
+    })
+  },
+
+  onReviewerAccountInput(e) {
+    this.setData({ reviewerAccount: e.detail.value })
+  },
+
+  onReviewerPasswordInput(e) {
+    this.setData({ reviewerPassword: e.detail.value })
+  },
+
+  async confirmReviewerLogin() {
+    const account = String(this.data.reviewerAccount || '').trim()
+    const password = String(this.data.reviewerPassword || '').trim()
+
+    if (!account || !password) {
+      utils.showToast({ title: '请输入账号和密码', icon: 'none' })
+      return
+    }
+
+    if (this.data.reviewerLoading) return
+    this.setData({ reviewerLoading: true })
+
+    wx.showLoading({ title: '验证中...', mask: true })
+
+    try {
+      const res = await wx.cloud.callFunction({
+        name: 'reviewerLogin',
+        data: { account, password }
+      })
+
+      wx.hideLoading()
+
+      const result = res.result || {}
+      if (result.code !== 0) {
+        throw new Error(result.message || '验证失败')
+      }
+
+      // 激活审核模式
+      app.activateReviewerMode()
+
+      this._closeModal('showReviewerModal')
+
+      utils.showToast({ title: '登录成功', icon: 'success' })
+
+      setTimeout(() => {
+        wx.switchTab({
+          url: '/pages/office/home/home'
+        })
+      }, 200)
+    } catch (error) {
+      wx.hideLoading()
+      utils.showToast({
+        title: error.message || '登录失败',
+        icon: 'none'
+      })
+    } finally {
+      this.setData({ reviewerLoading: false })
+    }
   }
 })

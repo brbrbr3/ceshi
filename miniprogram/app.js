@@ -14,8 +14,10 @@
 })()
 
 const config = require('./config')
+const reviewerMock = require('./common/reviewer-mock')
 const themeListeners = []
 const AUTH_CORE_KEY = 'app-auth-core'
+const REVIEWER_SESSION_KEY = 'app-reviewer-session'
 const PROFILE_CACHE_KEY = 'app-profile-cache'
 const CONSTANTS_CACHE_KEY = 'app-constants-cache'
 const PERMISSION_CACHE_KEY = 'app-permission-cache'
@@ -176,6 +178,9 @@ App({
     this.checkCacheVersion()
 
     this.readAndSetFontScale()
+
+    // 恢复审核员会话（如果存在）
+    this.restoreReviewerSession()
   },
 
   // 读取字体缩放缓存并设置
@@ -283,7 +288,130 @@ App({
     fontScale: 1.1, // ← 新增，字体缩放默认值
     fontStyle: '', // ← 新增
     isDevEnv: false, // 是否为开发环境（开发者工具），onLaunch 时计算一次
+    isReviewer: false, // 是否为审核模式
   }, getDefaultAuthState()),
+
+  // ========== 审核员模式 ==========
+
+  /**
+   * 恢复审核员会话（onLaunch 时调用）
+   * 检查本地存储中是否有有效的审核员会话，有则恢复审核模式
+   */
+  restoreReviewerSession() {
+    const session = readStorage(REVIEWER_SESSION_KEY)
+    if (session && session.active) {
+      // 检查会话是否过期（默认 24 小时）
+      const SESSION_TTL = 24 * 60 * 60 * 1000
+      if (session.loginAt && Date.now() - session.loginAt < SESSION_TTL) {
+        this.activateReviewerMode(true)
+        console.log('[reviewer] 审核员会话已恢复')
+      } else {
+        removeStorage(REVIEWER_SESSION_KEY)
+        console.log('[reviewer] 审核员会话已过期，已清除')
+      }
+    }
+  },
+
+  /**
+   * 激活审核模式
+   * @param {boolean} isRestore - 是否为从缓存恢复（恢复时不写缓存）
+   */
+  activateReviewerMode(isRestore) {
+    this.globalData.isReviewer = true
+    this.globalData.hasLogin = true
+    this.globalData.openid = '__reviewer__'
+    this.globalData.userProfile = reviewerMock.mockReviewerProfile
+
+    if (!isRestore) {
+      writeStorage(REVIEWER_SESSION_KEY, {
+        active: true,
+        loginAt: Date.now()
+      })
+    }
+
+    // Monkey-patch wx.cloud.callFunction，拦截所有云函数调用
+    if (!this._originalCallFunction) {
+      this._originalCallFunction = wx.cloud.callFunction.bind(wx.cloud)
+    }
+
+    const self = this
+    wx.cloud.callFunction = function(options) {
+      options = options || {}
+      const mockData = reviewerMock.getMockResponse(options.name, options.data)
+      const result = {
+        result: {
+          code: 0,
+          message: 'ok',
+          data: mockData
+        }
+      }
+
+      // 兼容回调风格
+      if (options.success && typeof options.success === 'function') {
+        options.success(result)
+      }
+      if (options.complete && typeof options.complete === 'function') {
+        options.complete(result)
+      }
+
+      // 同时返回 Promise
+      return Promise.resolve(result)
+    }
+
+    // Monkey-patch wx.cloud.database，拦截所有直接数据库查询
+    if (!this._originalDatabase) {
+      this._originalDatabase = wx.cloud.database.bind(wx.cloud)
+    }
+
+    function createMockCollection() {
+      return {
+        doc: function() { return createMockCollection() },
+        where: function() { return createMockCollection() },
+        orderBy: function() { return createMockCollection() },
+        skip: function() { return createMockCollection() },
+        limit: function() { return createMockCollection() },
+        field: function() { return createMockCollection() },
+        get: function() { return Promise.resolve({ data: [] }) },
+        count: function() { return Promise.resolve({ total: 0 }) },
+        add: function() { return Promise.resolve({ _id: 'mock_' + Date.now() }) },
+        update: function() { return Promise.resolve({ stats: { updated: 0 } }) },
+        remove: function() { return Promise.resolve({ stats: { removed: 0 } }) }
+      }
+    }
+
+    wx.cloud.database = function() {
+      return {
+        collection: function() { return createMockCollection() },
+        command: self._originalDatabase().command,
+        serverDate: function() { return new Date() }
+      }
+    }
+
+    console.log('[reviewer] 审核模式已激活')
+  },
+
+  /**
+   * 停用审核模式
+   * 清除审核状态，恢复原始 wx.cloud.callFunction
+   */
+  deactivateReviewerMode() {
+    this.globalData.isReviewer = false
+    removeStorage(REVIEWER_SESSION_KEY)
+
+    // 恢复原始 wx.cloud.callFunction
+    if (this._originalCallFunction) {
+      wx.cloud.callFunction = this._originalCallFunction
+      this._originalCallFunction = null
+    }
+
+    // 恢复原始 wx.cloud.database
+    if (this._originalDatabase) {
+      wx.cloud.database = this._originalDatabase
+      this._originalDatabase = null
+    }
+
+    console.log('[reviewer] 审核模式已停用')
+  },
 
   restoreAuthState() {
     // 优先从新 key 恢复长期字段
@@ -408,6 +536,17 @@ App({
     const {
       forceRefresh = false
     } = options
+
+    // 审核模式：直接返回 mock 注册用户信息
+    if (this.globalData.isReviewer) {
+      return Promise.resolve({
+        registered: true,
+        openid: '__reviewer__',
+        user: reviewerMock.mockReviewerProfile,
+        request: null,
+        _fromCache: true
+      })
+    }
 
     // Phase 1：AUTH_CORE_KEY 独立处理（身份标识，简单）
     let authReady = false
@@ -624,6 +763,10 @@ App({
   },
 
   logout() {
+    // 审核模式：停用审核模式并恢复原始 wx.cloud.callFunction
+    if (this.globalData.isReviewer) {
+      this.deactivateReviewerMode()
+    }
     this.clearAuthState()
   },
 
@@ -851,6 +994,11 @@ App({
  * @returns {Promise<boolean>} 是否有权限
  */
   checkPermission(featureKey) {
+    // 审核模式：所有权限直接放行
+    if (this.globalData.isReviewer) {
+      return Promise.resolve(true)
+    }
+
     return wx.cloud.callFunction({
       name: 'permissionManager',
       data: {
@@ -877,6 +1025,12 @@ App({
    * @param {string} featureName 功能名称（用于提示）
    */
   navigateWithPermission(featureKey, url, featureName) {
+    // 审核模式：直接放行
+    if (this.globalData.isReviewer) {
+      wx.navigateTo({ url })
+      return
+    }
+
     // 优先使用缓存权限
     const cache = this.getPermissionCache()
     const cachedValue = cache ? cache[featureKey] : undefined
@@ -931,6 +1085,11 @@ App({
    * @returns {Promise<boolean>} 是否允许继续
    */
   switchTabWithPermission(featureKey, featureName) {
+    // 审核模式：直接放行
+    if (this.globalData.isReviewer) {
+      return Promise.resolve(true)
+    }
+
     return new Promise((resolve) => {
       // 优先使用缓存权限
       const cache = this.getPermissionCache()
@@ -1063,6 +1222,15 @@ App({
    * @returns {Promise<Object>} 权限检查结果
    */
   batchCheckPermissions(featureKeys) {
+    // 审核模式：所有权限直接放行
+    if (this.globalData.isReviewer) {
+      const permissions = {}
+      ;(featureKeys || []).forEach(key => {
+        permissions[key] = { allowed: true }
+      })
+      return Promise.resolve({ permissions })
+    }
+
     return wx.cloud.callFunction({
       name: 'permissionManager',
       data: {

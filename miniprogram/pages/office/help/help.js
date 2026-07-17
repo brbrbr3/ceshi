@@ -7,7 +7,8 @@ Page({
    * 页面的初始数据
    */
   data: {
-    isAdmin: false
+    isAdmin: false,
+    isReviewer: false
   },
 
   /**
@@ -49,7 +50,8 @@ Page({
       }
       const user = result.user
       this.setData({
-        isAdmin: !!user.isAdmin
+        isAdmin: !!user.isAdmin,
+        isReviewer: !!user.isReviewer
       })
     } catch (error) {
       utils.showToast({

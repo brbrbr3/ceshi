@@ -13,7 +13,7 @@ Page({
     avatarText: 'CHN',
     userAvatarUrl: '',
     isAdmin: false,
-
+    isReviewer: false,
     stats: [{
         label: '本月出勤（占位）',
         value: '7天',
@@ -261,8 +261,8 @@ Page({
         avatarText: (user.avatarText || user.name || '巴').slice(0, 1),
         avatarStatusClass: statusInfo.cls,
         isAdmin: !!user.isAdmin,
+        isReviewer: !!user.isReviewer,
         userAvatarUrl: user.avatarUrl || '',
-
         companyInfo,
         menuGroups
       })

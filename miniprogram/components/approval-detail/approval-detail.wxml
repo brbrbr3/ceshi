@@ -38,7 +38,7 @@
         <block wx:elif="{{item.type === 'image'}}">
           <view class="approval-modal-row">
             <text class="approval-modal-label">{{item.label}}</text>
-            <image class="approval-modal-image" src="{{item.value}}" mode="aspectFill" />
+            <image class="approval-modal-image" src="{{item.value}}" mode="aspectFill" catchtap="handlePreviewImage" data-url="{{item.value}}" />
           </view>
         </block>
         <!-- 普通文本/布尔字段 -->
