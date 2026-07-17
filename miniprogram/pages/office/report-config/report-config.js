@@ -104,7 +104,7 @@ Page({
   },
 
   /**
-   * 显示添加馆领导报备人弹窗
+   * 显示添加馆领导报备接收人弹窗
    */
   handleShowAddLeaderNotifier(e) {
     if (!this.data.canEdit) {
@@ -128,7 +128,7 @@ Page({
   },
 
   /**
-   * 显示添加部门额外报备人弹窗
+   * 显示添加部门额外报备接收人弹窗
    */
   handleShowAddDeptNotifier(e) {
     if (!this.data.canEdit) {
@@ -145,7 +145,7 @@ Page({
       currentDepartment: department,
       currentArea: '',
       currentLeaderOpenid: '',
-      addTitle: '为「' + department + '」添加额外报备人',
+      addTitle: '为「' + department + '」添加额外报备接收人',
       searchKeyword: '',
       availableUsers
     })
@@ -260,7 +260,7 @@ Page({
   },
 
   /**
-   * 移除馆领导报备人
+   * 移除馆领导报备接收人
    */
   handleRemoveLeaderNotifier(e) {
     if (!this.data.canEdit) {
@@ -326,7 +326,7 @@ Page({
   },
 
   /**
-   * 移除部门额外报备人
+   * 移除部门额外报备接收人
    */
   handleRemoveDeptExtraNotifier(e) {
     if (!this.data.canEdit) {
@@ -336,7 +336,7 @@ Page({
     const { openid, department } = e.currentTarget.dataset
     wx.showModal({
       title: '确认移除',
-      content: '确认将该用户从「' + department + '」额外报备人移除？',
+      content: '确认将该用户从「' + department + '」额外报备接收人移除？',
       success: async (r) => {
         if (!r.confirm) return
         wx.showLoading({ title: '移除中...', mask: true })

@@ -1,11 +1,11 @@
 <view class="board-page" style="{{fontStyle}}">
-  <!-- 第一组：统计图表（占位） -->
+  <!-- 第一组：统计图表（占位） 
   <view class="board-chart-section">
     <view class="board-chart-title">统计图表</view>
     <view class="board-chart-placeholder">
-      <text class="board-chart-placeholder-text">图表功能即将上线</text>
+      <text class="board-chart-placeholder-text">数据太少，暂不显示</text>
     </view>
-  </view>
+  </view> -->
 
   <!-- 第二组：人员列表 -->
   <!-- 吸顶区域：折叠面板 + 分组维度切换 -->
@@ -82,6 +82,8 @@
     </view>
   </view>
 
+  <view class="board-bottom-msg" wx:if="{{viewScopeText}}">- 您可查看{{viewScopeText}}出行情况 -</view>
+  
   <!-- 底部弹窗：个人全部外出记录 -->
   <view wx:if="{{showPersonPopup}}" class="person-popup-mask {{modalAnimating ? 'is-closing' : ''}}" catchtap="hidePersonPopup">
     <view class="person-popup-container" catchtap="stopPropagation">

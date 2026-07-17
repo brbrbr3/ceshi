@@ -41,10 +41,11 @@
 
 .board-sticky-header {
   position: sticky;
-  top: 0;
+  top: 10rpx;
   z-index: 20;
   background: #EEF2FF;
   padding: 0 24rpx;
+  margin-top: 30rpx;
 }
 
 /* 折叠面板 */
@@ -517,4 +518,13 @@
 .no-more-text {
   font-size: var(--fs-24);
   color: #CBD5E1;
+}
+
+/* ========== 底部可查看范围提示 ========== */
+
+.board-bottom-msg {
+  text-align: center;
+  padding: 150rpx 48rpx 40rpx;
+  font-size: var(--fs-30);
+  color: #94A3B8;
 }

@@ -3,7 +3,7 @@
   <view class="office-gradient-header office-subpage-header">
     <view class="office-subpage-header-content">
       <view class="office-subpage-title">帮助中心</view>
-      <view class="office-subpage-subtitle">了解小程序各功能模块的使用说明</view>
+      <view class="office-subpage-subtitle">小程序各功能模块简介</view>
     </view>
   </view>
 
@@ -84,10 +84,10 @@
           <view class="card-title">外出报备</view>
         </view>
         <view class="card-content">
-          <view class="card-desc">报备外出和返回，可自动为同行人代报备，可查看当前个人是否外出。</view>
+          <view class="card-desc">报备外出和返回，出行时可自动为同行人代报备（同行人需为本系统注册用户，返回时需同行人自行返回报备）。当日超23时未归即为超时。</view>
           <view class="card-permission">
             <view class="permission-label">权限要求：</view>
-            <view class="permission-value">无限制，所有用户可使用</view>
+            <view class="permission-value">所有用户可使用</view>
           </view>
         </view>
       </view>
@@ -98,14 +98,14 @@
           <view class="card-title">每周菜单</view>
         </view>
         <view class="card-content">
-          <view class="card-desc">查看每周工作日工作餐菜单安排。</view>
+          <view class="card-desc">查看每周工作餐菜单安排。</view>
           <view class="card-permission">
             <view class="permission-label">权限要求：</view>
-            <view class="permission-value">所有用户可查看，仅工勤角色用户可添加、编辑菜单。</view>
+            <view class="permission-value">所有用户可查看菜单并打分，仅工勤角色用户可添加、编辑、删除菜单。</view>
           </view>
         </view>
       </view>
-      
+
 
       <!-- <view class="help-card">
         <view class="card-header">
@@ -176,7 +176,7 @@
         </view>
       </view> -->
 
-     <!--  <view class="help-card">
+      <!--  <view class="help-card">
         <view class="card-header">
           <view class="card-icon">📚</view>
           <view class="card-title">学习园地</view>
@@ -236,7 +236,7 @@
           <view class="card-title">审批中心</view>
         </view>
         <view class="card-content">
-          <view class="card-desc">处理审批任务和查看已提交申请。分为"待审批"、"我发起的"、"已处理"三个Tab页，根据用户角色显示相应的内容。</view>
+          <view class="card-desc">查看和审批小程序用户提交的各类申请。</view>
           <view class="card-permission">
             <view class="permission-label">权限要求：</view>
             <view class="permission-value">仅管理员可查看</view>
@@ -250,10 +250,10 @@
           <view class="card-title">实用资讯</view>
         </view>
         <view class="card-content">
-          <view class="card-desc">馆内常驻人员生活参考信息</view>
+          <view class="card-desc">巴西利亚生活参考信息</view>
           <view class="card-permission">
             <view class="permission-label">权限要求：</view>
-            <view class="permission-value">全体用户可用。待赴任馆员额外显示"行前准备"和"我已到馆"按钮。</view>
+            <view class="permission-value">全体用户可用。</view>
           </view>
         </view>
       </view>
@@ -262,7 +262,7 @@
 
     <!-- ========== 审批中心 ========== -->
     <view class="help-section">
-      <view class="section-title">审批中心</view>
+      <view class="section-title">出行数据板</view>
 
 
       <view class="help-card">
@@ -271,14 +271,14 @@
           <view class="card-title">出行数据板</view>
         </view>
         <view class="card-content">
-          <view class="card-desc">可查看外出报备的历史记录和当前外出人员状态，支持统计分析功能。</view>
+          <view class="card-desc">可查看当前人员外出情况，查看个人外出历史记录。</view>
           <view class="card-permission">
             <view class="permission-label">权限要求：</view>
-            <view class="permission-value">仅馆领导，各部门负责人、额外报备人，居住区片长可用</view>
+            <view class="permission-value">馆领导，各部门的负责人、额外报备接收人，各居住区片长可使用</view>
           </view>
         </view>
       </view>
-      
+
     </view>
 
     <!-- ========== 通讯录 ========== 
@@ -336,14 +336,28 @@
 
       <view class="help-card">
         <view class="card-header">
-          <view class="card-icon">👤</view>
-          <view class="card-title">个人设置</view>
+          <view class="card-icon">🔔</view>
+          <view class="card-title">消息中心</view>
         </view>
         <view class="card-content">
-          <view class="card-desc">查看和设置个人信息，包括修改个人资料等。个人资料修改后需管理员审批后生效。</view>
+          <view class="card-desc">接收系统消息提醒，包括审批状态变更通知、菜单更新通知等。支持标记已读和清除功能。</view>
           <view class="card-permission">
             <view class="permission-label">权限要求：</view>
-            <view class="permission-value">无限制，所有用户可访问自己的信息</view>
+            <view class="permission-value">无限制，所有用户可查看</view>
+          </view>
+        </view>
+      </view>
+
+      <view class="help-card">
+        <view class="card-header">
+          <view class="card-icon">👤</view>
+          <view class="card-title">修改个人信息</view>
+        </view>
+        <view class="card-content">
+          <view class="card-desc">查看和修改个人信息。个人信息修改后需管理员审批方可生效。</view>
+          <view class="card-permission">
+            <view class="permission-label">权限要求：</view>
+            <view class="permission-value">无限制，所有用户可用</view>
           </view>
         </view>
       </view>
@@ -362,21 +376,7 @@
         </view>
       </view> -->
 
-      <view class="help-card">
-        <view class="card-header">
-          <view class="card-icon">🔔</view>
-          <view class="card-title">消息中心</view>
-        </view>
-        <view class="card-content">
-          <view class="card-desc">接收系统消息提醒，包括审批状态变更通知、菜单更新通知等。支持标记已读和清除功能。</view>
-          <view class="card-permission">
-            <view class="permission-label">权限要求：</view>
-            <view class="permission-value">无限制，所有用户可查看</view>
-          </view>
-        </view>
-      </view>
-
-      <view class="help-card">
+      <!-- <view class="help-card">
         <view class="card-header">
           <view class="card-icon">💬</view>
           <view class="card-title">意见反馈</view>
@@ -388,7 +388,7 @@
             <view class="permission-value">无限制，所有用户可提交反馈，并可看到他人的反馈及回复。</view>
           </view>
         </view>
-      </view>
+      </view> -->
     </view>
 
     <!-- 权限说明 -->
@@ -408,7 +408,265 @@
 
     <!-- 底部提示 -->
     <view class="help-footer">
-      <view class="footer-text">如有疑问，请联系管理员或通过"意见反馈"提交问题</view>
+      <view class="footer-text">如有疑问，请联系管理员或点击小程序右上角胶囊按钮"···"选择"反馈与投诉"提交问题。</view>
+    </view>
+
+    <!-- 更新历史 -->
+    <view wx:if="{{isAdmin}}" class="help-section">
+      <view class="section-title">更新历史（仅管理员可见）</view>
+
+      <view class="permission-tips">
+        <view class="tips-item">
+          <view class="tips-icon"></view>
+          <view class="tips-content">
+            <text class="tips-title">0.43.1 help页面上线
+              0.43 全面简化订阅模板消息推送代码
+              0.42.15.2 优化调用量
+              0.42.15.1 移除手机号收集
+              0.42.15 桌面端不再生物认证
+              0.42.14.4 修复edit-profile页
+              0.42.14.3 修复bootstrap默认角色、PENDING_APPROVAL 模板幽灵记录
+              0.42.14.2 去除菜品评论区
+              0.42.14.1 问题修复
+              0.42.14 每周菜单功能恢复
+              0.42.13.2 修复登录页绕过验证bug
+              0.42.13.1 优化订阅模板缓存机制
+              0.42.13 订阅模版静默累积额度机制
+              0.42.12.1 文字优化
+              0.42.12 增加报备订阅消息推送
+              0.42.11.1 修复新注册用户微信推送
+              0.42.11 增加部门报备配置
+              0.42.10.2 修复login页面生物识别条件
+              0.42.10.1 整理app.wxss样式
+              0.42.10 添加订阅消息模板（注册、审批）
+              0.42.9 转移未用页面
+              0.42.8 新出行数据板
+              0.42.7 准备提交审核
+              0.42.6 报备配置
+              0.42.5 注册页部门等信息移至用户通过后填写
+              0.42.4.1 修复昵称获取问题
+              0.42.4 修复整体缓存机制
+              0.42.3 注册页需微信头像、昵称
+              0.42.2 样式统一
+              0.42.1 注册页填写居住区域
+              0.42 报备助手
+              0.41.3 权限缓存去除硬编码
+              0.41.2 问题修复
+              0.41.1 稳定
+              0.41 增加‘岗位配置’页，取消用户自行选择岗位
+              0.40.13 工作餐与副食改动
+              0.40.12 首页添加‘外出状态’
+              0.40.11 副食支持按类别
+              0.40.10 休假完善
+              0.40.9 稳定版
+              0.40.8 地址坐标更新
+              0.40.7 常用信息更新
+              0.40.6 修复休假计算
+              0.40.5 弹窗动画抽象
+              0.40.4 图片上云存储，图片下载带缓存，删除无用包，取消页面下拉刷新
+              0.40.3 问题修复
+              0.40.2 自动计算假期
+              0.40.1 删除无用包
+              0.40 休假申请
+              0.39.4 问题修复
+              0.39.3 尝试加入生物识别
+              0.39.2 常用信息
+              0.39.1 问题修复
+              0.39 增加‘通讯录’页和用户状态
+              0.38.2 增加‘手机’‘座机’
+              0.38.1 修复今日日程后端时差问题
+              0.38 可修改字体大小
+              0.37.3 CSS 变量令牌
+              0.37.2 审批中心问题修复
+              0.37.1 问题修复
+              0.37 增加新馆员到馆指南页
+              0.36.8 问题修复
+              0.36.7 购车借款修复
+              0.36.6 购车申请、购车借款申请可导出PDF
+              0.36.5 增加馆内购车借款申请功能
+              0.36.4 修复预约会议室问题
+              0.36.3 增加馆内购车申请
+              0.36.2 优化会议室查询
+              0.36.1 问题修复
+              0.36 购车管理
+              0.35.1 修复活动权限问题，新闻2小时爬取1次
+              0.35 增加‘活动专区’页面
+              0.34.5 菜品打分
+              Add DB_CLEAR_KEY protection for database clearing
+              0.34.3 修正bootstrap问题
+              0.34.2 理发统计问题修复
+              0.34.1 副食预订及管理
+              0.34 餐食管理 上线
+              0.33.2 改进内存缓存机制，用户信息每次都重新加载，其他长期缓存
+              0.33.1 修复UI问题
+              0.33 news页
+              0.32.3 小绿书加入缓存机制：列表页 Storage 缓存 + 静默刷新；详情页内存 + Storage 二级缓存
+              0.32.2 引入ucharts组件trip-dashboard
+              0.32.1 引入mp-html组件
+              0.32 学习园地
+              0.31.2 移除skyline渲染
+              0.31.1
+              0.31 分享页面
+              0.30.6 公告改富文本
+              0.30.5 公告可置顶
+              0.30.4 PDF可导出签字图片
+              0.30.3 工作流日志加入stepName字段显示
+              0.30.2
+              0.30.1 calendar页权限
+              0.30 ‘签字管理’功能
+              0.29.3 稳定版
+              0.29.2 界面滚动问题修复
+              0.29.1 PDF导出功能抽象单独云函数
+              0.29 就医申请重设计，可导出PDF
+              0.28 添加签字板组件
+              0.27.1 居住区picker修复
+              0.27 物业报修上线
+              0.26.9 修改’理发统计‘tab页
+              0.26.8 上传护照检查云函数触发器
+              0.26.7 理发逻辑整理
+              0.26.6 理发功能重构，加入help页
+              0.26.5 UI调整
+              0.26.4 增加‘出纳’岗位
+              0.26.3 理发日期计算修正
+              0.26.2 理发功能重构
+              0.26.1 理发UI调整
+              0.26 理发预约
+              0.25.15 帮助页面更新passport功能介绍
+              0.25.14 护照界面微调
+              0.25.13 护照借用重构
+              0.25.12 工作流推送通知动态获取ordertypename
+              0.25.11 修复通知页面重复键警告
+              0.25.10 修复工作流引擎消息推送简化查询逻辑
+              0.25.9 datetime-picker 支持空值显示 placeholder
+              0.25.8 简化 officeAuth 云函数查询逻辑
+              0.25.7 消除前端 mapRequestItem 函数硬编码
+              0.25.6 officeAuth工单处理重构-消除硬编码
+              0.25.5 护照借用
+              0.25.4 修正缓存加载问题
+              0.25.3 position问题修正，默认为’‘
+              0.25.2 界面调整
+              0.25.1 界面调整玻璃效果
+              0.25 护照领用功能上线
+              0.24.2 删除无用的初始化代码
+              0.24.1 永久缓存机制+版本变化重刷缓存
+              0.24 首页背景图片美化
+              0.23.3 删除weui.wxssDemo 相关样式 引用
+              0.23.2 微信小程序官方Demo的示例分包
+              0.23.1 移除冗余的 NEED_DEPARTMENT_ROLES 配置
+              0.23 帮助中心上线
+              0.22.2 个人中心页面的"消息通知"菜单项添加未读消息计数 badge
+              0.22.1 工作流删除硬代码，完全依赖模板
+              0.22 删除兼容、调试代码
+              0.21.6 长按添加会议预约
+              0.21.5 调试面板新功能
+              0.21.4 预约会议室权限控制
+              0.21.3 移除过时的getSystemInfoSync()函数
+              0.21.2 工作流并发审批修复
+              0.21.1 UI调整
+              0.21 意见反馈上线
+              0.20 超级管理员入口
+              0.19.3 拖拽延时
+              0.19.2 定位问题修正
+              0.19.1 会议室预约支持拖拽
+              0.19 会议室预约功能上线
+              0.18.1 小修复。现在可订阅日程。
+              0.18 今日日程模块上线
+              0.17.11 全馆日程权限控制
+              0.17.10 修复日程点加载刷新
+              0.17.9 修复重复日程显示
+              0.17.8 日程重复功能上线
+              0.17.7 删除initDatabase云函数
+              0.17.6 解决第三方日历组件时间处理问题
+              0.17.5 添加日程标记点
+              0.17.4 修复跨日日程交叠问题
+              0.17.3 修复 calendar.js 中时间计算函数的跨日处理问题
+              0.17.2 新建/编辑日程日期时间。picker合并
+              0.17.1 日程重叠并排显示算法、datetime-picker 替换
+              0.17 添加日历周视图下日程列表
+              0.16.4 show提示信息优化
+              0.16.3 用户信息、权限均存入缓存以提升性能
+              0.16.2 pagination框架修复。透明按钮统一。
+              0.16.1 UI问题修复。
+              0.16 稳定版
+              0.15.6 datetime-picker bug fixed
+              0.15.1.1 权限初始化已移至 initSystemConfig 云函数统一管理
+              0.15.5 权限检查统一
+              0.15.4 datetime-picker 替代部分原生 picker
+              0.15.3 新日期时间picker组件
+              0.15.2 可设置节假日
+              0.15.1
+              Merge branch 're' of https://github.com/brbrbr3/ceshi into re
+              0.15 改用lspriv/wx-calendar组件
+              0.14 添加日历组件
+              0.13.5 UI微调。home页预缓存权限。
+              0.13.4
+              0.13.3 添加调试模式，app onload不再调用初始化函数
+              0.13.2 主页改动
+              0.13.1 添加代报备功能。首页图标、文字加大。
+              0.13.1 详情页UI微调
+              0.13 稳定版
+              0.12.10 优化注册、修改个人信息页面picker初始状态、报备UI、重新创建申请loading UI
+              0.12.9 审批中心Tab权限控制优化，申请详情页标题栏固定
+              0.12.8 申请详情页UI修正，内容不会超出下边缘
+              0.12.7 申请详情滚动、退出登录修复
+              0.12.6 添加图标。优化详情页动画，限制无审批权限用户只能在"我发起的"Tab页查看
+              0.12.5 tab页添加图标
+              0.12.4 initdatabase云函数修改。
+              0.12.3 主页flex布局，删除占位，图标加大。
+              0.12.2
+              0.12.1 报备界面微调
+              0.12 外出报备、外出管理功能上线
+              0.11.10a 精简编码规范、mcp工具规则
+              0.11.10 修正showToast函数大小写
+              0.11.9 审批详情页更改
+              0.11.8 菜单功能各页面自动刷新
+              0.11.7 删除非动态渲染兼容代码
+              0.11.6 消息中心页面硬编码修复，建立跳转机制。为menu_comments、notifications集合添加索引。
+              0.11.5 优化审批中心、申请详情页、自动中止
+              0.11.4 修正云数据库集合安全规则（工作流创建的记录，所在表不应private）
+              0.11.3 移除微信订阅消息推送功能（需要注册服务号，个人无法注册）
+              0.11.2 数据库集合索引全体去掉_openid
+              0.11.1 修复菜单、通知页标题换行、页面自动刷新
+              0.11 审批中心卡片、详情使用动态渲染展示字段
+              0.10.4 修复【申请卡片】、【申请详情】进度条显示
+              0.10.3 继续修复硬编码问题（MEDICAL_APPROVAL_STEPS 冗余、COLLECTIONS 常量冗余）
+              0.10.2 注册、修改信息UI错误修正
+              0.10.1 数据库表初始化函数加入对索引和安全规则的初始化。
+              0.10 常量统一归口initsystemconfig云函数，增加了数据库表的初始化云函数
+              0.9 审批中心卡片和详情改为组件形式，可复用
+              0.8.1 在 app.js 添加启动初始化
+              0.8 弃用layer，大幅重构代码，确保常量存数据库，前端函数共享
+              0.6.4
+              0.6.3 审批中心的对话框都会显示"确定"和"取消"两个按钮
+              0.6.2 修改个人信息页面的展示逻辑优化
+              0.6.1 完善了注册和信息修改页
+              0.6 加入修改个人信息功能
+              0.5.4 归置说明文档，注册加入部门字段
+              0.5.3 为切换tab页面的界面加载制定了规范。为 notifications 集合创建了组合索引。
+              0.5.2 优化通知公告UI，菜单模块UI
+              0.5.1 更新编码规范，修改通知公告界面
+              0.5 加入编码规范，通知公告功能上线
+              0.4 加入了对功能的统一的权限管理
+              0.3.1 统一时间函数，优化审批中心页面加载逻辑
+              0.3 建立分页加载框架
+              0.2.3 大幅优化就医申请工作流及UI
+              0.2.2 强化工作流容错
+              0.2.1 修复就医申请重复提交问题
+              0.2 就医申请上线
+              0.1.2 梳理审批中心申请详情界面
+              0.1.1 梳理工作流通知功能
+              0.1.0 登录工作流重新梳理，登录界面改换
+              0.0.1 已配置工作流引擎，且应用于注册流程。但订阅消息模板的申请尚未批准。
+              0.0.0.4.3 首页审批数字动态变化
+              0.0.0.4.2 修复消息通知页面问题
+              0.0.0.4.1 修复菜单功能问题！
+              0.0.0.4 菜单功能上线了！
+              0.0.0.3.1 界面微调，无头像
+              0.0.0.2 修复登陆问题
+              0.0.0.1</text>
+          </view>
+        </view>
+      </view>
     </view>
   </view>
 </view>

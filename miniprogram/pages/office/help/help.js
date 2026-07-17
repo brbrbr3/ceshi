@@ -1,11 +1,13 @@
 // pages/office/help/help.js
+const app = getApp()
+const utils = require('../../../common/utils.js')
 Page({
 
   /**
    * 页面的初始数据
    */
   data: {
-
+    isAdmin: false
   },
 
   /**
@@ -29,10 +31,33 @@ Page({
     const app = getApp()
     const fontStyle = app.globalData.fontStyle
     if (this.data.fontStyle !== fontStyle) {
-      this.setData({ fontStyle })
+      this.setData({
+        fontStyle
+      })
     }
+    this.syncUserProfile()
   },
 
+  async syncUserProfile() {
+    try {
+      const result = await app.checkUserRegistration()
+      if (!result.registered || !result.user) {
+        wx.reLaunch({
+          url: '/pages/auth/login/login'
+        })
+        return
+      }
+      const user = result.user
+      this.setData({
+        isAdmin: !!user.isAdmin
+      })
+    } catch (error) {
+      utils.showToast({
+        title: error.message || '加载失败',
+        icon: 'none'
+      })
+    }
+  },
   /**
    * 生命周期函数--监听页面隐藏
    */

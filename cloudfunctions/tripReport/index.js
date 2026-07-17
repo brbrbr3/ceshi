@@ -15,6 +15,8 @@ const notificationsCollection = db.collection('notifications')
 
 // 订阅消息模板ID
 const TRIP_REPORT_TEMPLATE_ID = 's4TMlGjkc0Yb4hqsX-BUG0FyhldMvwKr_h7AueqjnOo'
+// 未读消息提醒模板（外出超时通知等通用消息推送）
+const UNREAD_MESSAGE_TEMPLATE_ID = 'mJ1CGM8OvpgomnYy0yot4Kk8hD8S-NH06A6ZDywdpGc'
 
 // 统一返回格式
 function success(data, message) {
@@ -42,6 +44,11 @@ function fail(message, code) {
  * - getPersonTrips: 获取某人员全部出行记录（按年月分组）
  */
 exports.main = async (event, context) => {
+  // 定时触发器调用（event 无 action 字段，含 Trigger/Message）
+  if (!event.action) {
+    return await checkOvertime()
+  }
+
   const { action, params } = event
   const wxContext = cloud.getWXContext()
   const openid = wxContext.OPENID
@@ -233,7 +240,7 @@ async function handleDepart(openid, params) {
     console.warn('更新用户外出状态失败:', e)
   }
 
-  // 推送外出报备通知给片长/部门负责人/馆领导报备人
+  // 推送外出报备通知给片长/部门负责人/馆领导报备接收人
   await notifyReportSubscribers(openid, currentUser, result._id, 'depart', { destination, companions: companions || '', reportTime: now })
 
   return success({
@@ -298,7 +305,7 @@ async function handleReturn(openid, params) {
     console.warn('更新用户在线状态失败:', e)
   }
 
-  // 推送返回报备通知给片长/部门负责人/馆领导报备人
+  // 推送返回报备通知给片长/部门负责人/馆领导报备接收人
   if (reporterUser) {
     await notifyReportSubscribers(openid, reporterUser, tripId, 'return', { destination: tripRes.data.destination, companions: tripRes.data.companions || '', reportTime: now })
   }
@@ -563,13 +570,13 @@ async function getStatistics(params) {
 
 /**
  * 检查超时并发送通知
- * 此函数应由定时触发器调用
+ * 此函数由定时触发器每日晚23点（GMT-3）调用
+ * 筛选当时仍处于外出状态且未通知过的记录，发送站内通知 + 微信订阅消息
  */
 async function checkOvertime() {
   const now = Date.now()
-  const offsetHours = await getTimezoneOffset()
 
-  // 查询所有外出中的记录
+  // 查询所有外出中且未通知过的记录（定时器已固定在23点执行，无需再判断时间）
   const result = await tripReportsCollection
     .where({
       status: 'out',
@@ -578,22 +585,12 @@ async function checkOvertime() {
     .limit(100)
     .get()
 
-  const overtimeTrips = []
-  const allOutTrips = result.data || []
-
-  // 筛选已超时的：当前时间已超过出发日23时（按系统配置时区）
-  for (const trip of allOutTrips) {
-    const deadline = getOvertimeDeadline(trip.departAt, offsetHours)
-    if (now > deadline) {
-      overtimeTrips.push(trip)
-    }
-  }
-
+  const overtimeTrips = result.data || []
   let notifiedCount = 0
 
   for (const trip of overtimeTrips) {
     try {
-      // 发送通知
+      // 站内通知
       await notificationsCollection.add({
         data: {
           openid: trip._openid,
@@ -606,7 +603,10 @@ async function checkOvertime() {
         }
       })
 
-      // 更新已通知标记
+      // 微信订阅消息（未读消息提醒模板）
+      await sendOvertimeSubscribeMessage(trip._openid)
+
+      // 更新已通知标记（防重复）
       await tripReportsCollection.doc(trip._id).update({
         data: {
           overtimeNotified: true,
@@ -785,6 +785,23 @@ async function getTimezoneOffset() {
 }
 
 /**
+ * 从 sys_config 读取部门选项列表（用于部门分组排序）
+ * @returns {Promise<string[]>} 部门名称数组，读取失败返回空数组
+ */
+async function getDepartmentOptions() {
+  try {
+    const configRes = await db.collection('sys_config')
+      .where({ type: 'department', key: 'DEPARTMENT_OPTIONS' })
+      .limit(1)
+      .get()
+    if (configRes.data && configRes.data.length > 0 && Array.isArray(configRes.data[0].value)) {
+      return configRes.data[0].value
+    }
+  } catch (e) {}
+  return []
+}
+
+/**
  * 计算超时截止时间戳（出发日23:00，按系统配置时区）
  * 云函数运行在 UTC+0，需将本地23:00转换为UTC时间戳
  * @param {number} departAt - 出发时间戳
@@ -862,6 +879,34 @@ async function sendTripReportSubscribeMessage(openid, reporterName, reportTime, 
 }
 
 /**
+ * 发送外出超时微信订阅消息（未读消息提醒模板）
+ * 盲发模式：不查询用户是否订阅，直接 send，失败仅记日志
+ * @param {string} openid - 接收者 openid
+ */
+async function sendOvertimeSubscribeMessage(openid) {
+  const msgType = truncateText('外出超时通知')
+  const msgContent = truncateText('您当日23时未归，外出已超时')
+  const remark = truncateText('请及时返回并报备')
+
+  try {
+    await cloud.openapi.subscribeMessage.send({
+      touser: openid,
+      templateId: UNREAD_MESSAGE_TEMPLATE_ID,
+      page: 'pages/office/trip-board/trip-board',
+      data: {
+        thing6: { value: msgType },
+        thing3: { value: msgContent },
+        thing4: { value: remark }
+      }
+    })
+    console.log('外出超时订阅消息已发送:', openid)
+  } catch (error) {
+    const errcode = error.errcode || error.errCode
+    console.warn('[订阅] 发送外出超时消息失败:', openid, errcode, error.message || error)
+  }
+}
+
+/**
  * 获取出行数据板分组数据（新数据板用）
  * 按权限范围过滤，按 groupBy 分组，返回人员出行条目
  * @param {string} openid 当前用户 openid
@@ -881,27 +926,49 @@ async function getBoardData(openid, params) {
   const isAdmin = currentUser.isAdmin
   const isDeptHead = currentUser.isDepartmentHead
   const isAreaManager = Array.isArray(currentUser.areaManagerOf) && currentUser.areaManagerOf.length > 0
+  const isDeptExtraNotifier = Array.isArray(currentUser.deptExtraNotifierOf) && currentUser.deptExtraNotifierOf.length > 0
 
-  // 权限校验
-  if (!isAdmin && !isLeader && !isDeptHead && !isAreaManager) {
+  // 权限校验（含部门额外报备人）
+  if (!isAdmin && !isLeader && !isDeptHead && !isAreaManager && !isDeptExtraNotifier) {
     return fail('无权限访问出行数据板', 403)
   }
 
-  // 计算可查看的用户范围
+  // 计算可查看的用户范围（多身份取并集）
   let userQuery = { status: 'approved' }
   let scopeType = 'all'
 
+  // 全体范围：管理员 或 馆领导（非部门负责人）
   if (isAdmin || (isLeader && !isDeptHead)) {
     scopeType = 'all'
-  } else if (isLeader && isDeptHead) {
-    scopeType = 'department'
-    userQuery.department = currentUser.department
-  } else if (isAreaManager) {
-    scopeType = 'area'
-    userQuery.livingArea = _.in(currentUser.areaManagerOf)
-  } else if (isDeptHead) {
-    scopeType = 'department'
-    userQuery.department = currentUser.department
+  } else {
+    // 收集各身份对应的查看范围，取并集（片长 + 部门负责人/额外报备人不再互斥）
+    const orConditions = []
+
+    // 片长 → 管辖居住区域
+    if (isAreaManager) {
+      orConditions.push({ livingArea: _.in(currentUser.areaManagerOf) })
+    }
+
+    // 部门负责人 + 部门额外报备人 → 相关部门（去重合并）
+    const depts = new Set()
+    if (isDeptHead && currentUser.department) {
+      depts.add(currentUser.department)
+    }
+    if (isDeptExtraNotifier) {
+      currentUser.deptExtraNotifierOf.forEach(d => depts.add(d))
+    }
+    if (depts.size > 0) {
+      orConditions.push({ department: _.in(Array.from(depts)) })
+    }
+
+    // 合并查询条件：单条件直接并入 userQuery，多条件用 _.or 取并集
+    if (orConditions.length === 1) {
+      Object.assign(userQuery, orConditions[0])
+      scopeType = orConditions[0].livingArea ? 'area' : 'department'
+    } else if (orConditions.length > 1) {
+      userQuery = _.or(orConditions.map(c => ({ status: 'approved', ...c })))
+      scopeType = 'mixed'
+    }
   }
 
   // 查询范围内的用户
@@ -963,9 +1030,13 @@ async function getBoardData(openid, params) {
   items.forEach(item => {
     let groupKey = ''
     if (groupBy === 'department') {
-      // 馆领导单独成组
-      if (item._user && item._user.role === '馆领导') {
+      const role = (item._user && item._user.role) || ''
+      // 馆领导单独成组（第一组）
+      if (role === '馆领导') {
         groupKey = '馆领导'
+      } else if (role === '配偶' || role === '家属') {
+        // 配偶、家属单独成组（最后一组）
+        groupKey = '配偶及家属'
       } else {
         groupKey = item.department || (item._user && item._user.department) || '未分配部门'
       }
@@ -983,9 +1054,21 @@ async function getBoardData(openid, params) {
   }))
 
   if (groupBy === 'department') {
+    // 按系统配置的部门顺序排列（馆领导置顶、配偶及家属置底）
+    const departmentOrder = await getDepartmentOptions()
     groupList.sort((a, b) => {
+      // 馆领导组置顶
       if (a.groupName === '馆领导') return -1
       if (b.groupName === '馆领导') return 1
+      // 配偶及家属组置底
+      if (a.groupName === '配偶及家属') return 1
+      if (b.groupName === '配偶及家属') return -1
+      // 按配置顺序排序，未配置的部门（如"未分配部门"）排在其后
+      const aIdx = departmentOrder.indexOf(a.groupName)
+      const bIdx = departmentOrder.indexOf(b.groupName)
+      const aOrder = aIdx === -1 ? Number.MAX_SAFE_INTEGER : aIdx
+      const bOrder = bIdx === -1 ? Number.MAX_SAFE_INTEGER : bIdx
+      if (aOrder !== bOrder) return aOrder - bOrder
       return a.groupName.localeCompare(b.groupName)
     })
   } else {
@@ -1019,8 +1102,9 @@ async function getPersonTrips(openid, params) {
   const isAdmin = currentUser.isAdmin
   const isDeptHead = currentUser.isDepartmentHead
   const isAreaManager = Array.isArray(currentUser.areaManagerOf) && currentUser.areaManagerOf.length > 0
+  const isDeptExtraNotifier = Array.isArray(currentUser.deptExtraNotifierOf) && currentUser.deptExtraNotifierOf.length > 0
 
-  if (!isAdmin && !isLeader && !isDeptHead && !isAreaManager) {
+  if (!isAdmin && !isLeader && !isDeptHead && !isAreaManager && !isDeptExtraNotifier) {
     return fail('无权限查看', 403)
   }
 
@@ -1031,16 +1115,22 @@ async function getPersonTrips(openid, params) {
   }
   const targetUser = targetUserRes.data[0]
 
-  // 校验目标用户在当前用户权限范围内
+  // 校验目标用户在当前用户权限范围内（并集：满足任一范围即可）
   if (!isAdmin && !(isLeader && !isDeptHead)) {
-    if ((isLeader && isDeptHead) || isDeptHead) {
-      if (targetUser.department !== currentUser.department) {
-        return fail('无权查看该用户记录', 403)
-      }
-    } else if (isAreaManager) {
-      if (!currentUser.areaManagerOf.includes(targetUser.livingArea)) {
-        return fail('无权查看该用户记录', 403)
-      }
+    // 收集可查看的部门（部门负责人 + 部门额外报备人，去重）
+    const allowedDepts = new Set()
+    if (isDeptHead && currentUser.department) {
+      allowedDepts.add(currentUser.department)
+    }
+    if (isDeptExtraNotifier) {
+      currentUser.deptExtraNotifierOf.forEach(d => allowedDepts.add(d))
+    }
+
+    const inDept = allowedDepts.size > 0 && targetUser.department && allowedDepts.has(targetUser.department)
+    const inArea = isAreaManager && targetUser.livingArea && currentUser.areaManagerOf.includes(targetUser.livingArea)
+
+    if (!inDept && !inArea) {
+      return fail('无权查看该用户记录', 403)
     }
   }
 

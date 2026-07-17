@@ -47,7 +47,7 @@
         🏠返回报备
       </button>
       <button wx:else class="trip-action-btn trip-action-btn-depart" bindtap="handleDepartBtn">
-        🚗外出报备
+        🛴外出报备
       </button>
       <button class="trip-action-btn trip-action-btn-retro {{activeTrip ? 'is-disabled' : ''}}" bindtap="showRetroForm" disabled="{{!!activeTrip}}">
         📝补填外出报备

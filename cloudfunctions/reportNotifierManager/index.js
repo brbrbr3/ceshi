@@ -103,14 +103,14 @@ async function getReportConfig(openid) {
     return { area, managers }
   })
 
-  // 馆领导报备人分组：列出所有馆领导
+  // 馆领导报备接收人分组：列出所有馆领导
   const leaders = users.filter(u => u.role === '馆领导')
   const leaderNotifierGroups = leaders.map(leader => {
     const notifiers = users.filter(u => leader.reportNotifiers.includes(u.openid))
     return { leader, notifiers }
   })
 
-  // 部门报备配置分组：按部门列表分组，每组含负责人（只读，可暂停/恢复）和额外报备人（可增删）
+  // 部门报备配置分组：按部门列表分组，每组含负责人（只读，可暂停/恢复）和额外报备接收人（可增删）
   const deptNotifierGroups = departmentOptions.map(dept => {
     const heads = users.filter(u => u.isDepartmentHead && u.department === dept)
     const extraNotifiers = users.filter(u => u.deptExtraNotifierOf.includes(dept))
@@ -177,7 +177,7 @@ async function removeAreaManager(openid, targetOpenid, area) {
 }
 
 /**
- * 设置馆领导报备人：为某馆领导添加报备人
+ * 设置馆领导报备接收人：为某馆领导添加报备人
  */
 async function setLeaderNotifier(openid, leaderOpenid, notifierOpenid) {
   await assertAdmin(openid)
@@ -221,7 +221,7 @@ async function setLeaderNotifier(openid, leaderOpenid, notifierOpenid) {
 }
 
 /**
- * 移除馆领导报备人
+ * 移除馆领导报备接收人
  */
 async function removeLeaderNotifier(openid, leaderOpenid, notifierOpenid) {
   await assertAdmin(openid)
@@ -258,7 +258,7 @@ async function removeLeaderNotifier(openid, leaderOpenid, notifierOpenid) {
 }
 
 /**
- * 设置部门额外报备人：为某用户添加某部门的额外报备接收人身份
+ * 设置部门额外报备接收人：为某用户添加某部门的额外报备接收人身份
  */
 async function setDeptExtraNotifier(openid, targetOpenid, department) {
   await assertAdmin(openid)
@@ -273,7 +273,7 @@ async function setDeptExtraNotifier(openid, targetOpenid, department) {
   const currentDepts = Array.isArray(target.deptExtraNotifierOf) ? target.deptExtraNotifierOf : []
 
   if (currentDepts.includes(department)) {
-    throw new Error('该用户已是此部门的额外报备人')
+    throw new Error('该用户已是此部门的额外报备接收人')
   }
 
   await ensureArrayField(target, 'deptExtraNotifierOf')
@@ -282,11 +282,11 @@ async function setDeptExtraNotifier(openid, targetOpenid, department) {
     data: { deptExtraNotifierOf: _.push(department), updatedAt: Date.now() }
   })
 
-  return success({ targetOpenid, department }, '部门额外报备人设置成功')
+  return success({ targetOpenid, department }, '部门额外报备接收人设置成功')
 }
 
 /**
- * 移除部门额外报备人
+ * 移除部门额外报备接收人
  */
 async function removeDeptExtraNotifier(openid, targetOpenid, department) {
   await assertAdmin(openid)
@@ -301,7 +301,7 @@ async function removeDeptExtraNotifier(openid, targetOpenid, department) {
   const currentDepts = Array.isArray(target.deptExtraNotifierOf) ? target.deptExtraNotifierOf : []
 
   if (!currentDepts.includes(department)) {
-    throw new Error('该用户不是此部门的额外报备人')
+    throw new Error('该用户不是此部门的额外报备接收人')
   }
 
   await ensureArrayField(target, 'deptExtraNotifierOf')
@@ -310,7 +310,7 @@ async function removeDeptExtraNotifier(openid, targetOpenid, department) {
     data: { deptExtraNotifierOf: _.pull(department), updatedAt: Date.now() }
   })
 
-  return success({ targetOpenid, department }, '部门额外报备人移除成功')
+  return success({ targetOpenid, department }, '部门额外报备接收人移除成功')
 }
 
 /**

@@ -18,7 +18,7 @@ Page({
     currentUser: null,
     fontStyle: '',
     // 折叠面板
-    personType: 'active', // 'active' | 'all'
+    personType: 'all', // 'active' | 'all'
     showPersonTypeMenu: false,
     activeCount: 0,
     allCount: 0,
@@ -106,7 +106,7 @@ Page({
         return
       }
 
-      this.setData({ currentUser: user })
+      this.setData({ currentUser: user, viewScopeText: this.computeViewScopeText(user) })
     } catch (error) {
       console.error('获取用户信息失败:', error)
       wx.showToast({ title: '获取用户信息失败', icon: 'none' })
@@ -384,6 +384,46 @@ Page({
   },
 
   stopPropagation() {},
+
+  /**
+   * 根据用户报备配置计算可查看范围文案
+   * 优先级与云函数 getBoardData 的 scopeType 逻辑保持一致
+   * 多身份取并集，各部门去重
+   */
+  computeViewScopeText(user) {
+    const isLeader = user.role === '馆领导'
+    const isAdmin = user.isAdmin
+    const isDeptHead = user.isDepartmentHead
+    const isAreaManager = Array.isArray(user.areaManagerOf) && user.areaManagerOf.length > 0
+    const isDeptExtraNotifier = Array.isArray(user.deptExtraNotifierOf) && user.deptExtraNotifierOf.length > 0
+
+    // 全体范围：管理员 或 馆领导（非部门负责人）
+    if (isAdmin || (isLeader && !isDeptHead)) {
+      return '全体人员'
+    }
+
+    // 收集各身份范围描述（并集），与云函数逻辑一致
+    const parts = []
+
+    if (isAreaManager) {
+      parts.push('管辖居住区域（' + user.areaManagerOf.join('、') + '）')
+    }
+    if (isDeptHead && user.department) {
+      parts.push('本部门（' + user.department + '）')
+    }
+    if (isDeptExtraNotifier) {
+      // 排除已作为"本部门"显示的部门，避免重复
+      const extraDepts = user.deptExtraNotifierOf.filter(d => d !== user.department)
+      if (extraDepts.length > 0) {
+        parts.push('报备部门（' + extraDepts.join('、') + '）')
+      }
+    }
+
+    if (parts.length === 0) {
+      return ''
+    }
+    return parts.join('及') + '人员'
+  },
 
   async onPullDownRefresh() {
     await this.loadBoardData()

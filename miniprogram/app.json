@@ -16,7 +16,6 @@
     "pages/office/menu-detail/menu-detail",
     "pages/office/menu-edit/menu-edit",
     "pages/office/calendar/calendar",
-    "pages/office/feedback/feedback",
     "pages/office/help/help",
     "pages/office/arrival-guide/arrival-guide"
   ],

@@ -172,5 +172,6 @@
 }
 
 .footer-text {
-  font-size: var(--fs-26);
+  font-size: var(--fs-30);
+  text-align: left;
 }

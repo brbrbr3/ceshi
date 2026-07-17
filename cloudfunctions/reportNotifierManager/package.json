@@ -1,7 +1,7 @@
 {
   "name": "reportNotifierManager",
   "version": "1.0.0",
-  "description": "报备配置管理云函数（片长与馆领导报备人）",
+  "description": "报备配置管理云函数（片长与馆领导报备接收人）",
   "main": "index.js",
   "dependencies": {
     "wx-server-sdk": "~2.6.3"

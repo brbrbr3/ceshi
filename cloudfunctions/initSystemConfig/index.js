@@ -513,7 +513,7 @@ const PERMISSION_CONFIGS = [
   {
     featureKey: 'report_notifier_manage',
     featureName: '报备配置',
-    description: '配置片长与馆领导报备人（管理员专用）',
+    description: '配置片长与馆领导报备接收人（管理员专用）',
     enabledRoles: [],
     requireAdmin: true
   }
