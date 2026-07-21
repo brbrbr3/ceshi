@@ -239,7 +239,7 @@
           <view class="card-desc">查看和审批小程序用户提交的各类申请。</view>
           <view class="card-permission">
             <view class="permission-label">权限要求：</view>
-            <view class="permission-value">仅管理员可查看</view>
+            <view class="permission-value">当前仅允许管理员查看</view>
           </view>
         </view>
       </view>
@@ -250,7 +250,7 @@
           <view class="card-title">实用资讯</view>
         </view>
         <view class="card-content">
-          <view class="card-desc">巴西利亚生活参考信息</view>
+          <view class="card-desc">{{(isReviewer ? '' : '巴西利亚')}}当地生活参考信息</view>
           <view class="card-permission">
             <view class="permission-label">权限要求：</view>
             <view class="permission-value">全体用户可用。</view>

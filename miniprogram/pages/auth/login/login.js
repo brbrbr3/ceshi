@@ -243,69 +243,73 @@ Page({
       return
     }
 
-    try {
-      // 1. 检测设备支持哪种生物认证
-      let authMode = null
+    // 生物认证暂时关闭（部分设备未设置生物识别导致无法登录），后续如需恢复取消下方注释即可
+    // try {
+    //   // 1. 检测设备支持哪种生物认证
+    //   let authMode = null
+    //
+    //   // 先尝试人脸（iOS Face ID 优先）
+    //   try {
+    //     const faceCheck = await wx.checkIsSoterEnrolledInDevice({
+    //       checkAuthMode: 'facial'
+    //     })
+    //     if (faceCheck.isEnrolled) {
+    //       authMode = 'facial'
+    //     }
+    //   } catch (e) {
+    //     // 不支持人脸，继续检查指纹
+    //   }
+    //
+    //   // 人脸不可用，再尝试指纹
+    //   if (!authMode) {
+    //     try {
+    //       const fingerCheck = await wx.checkIsSoterEnrolledInDevice({
+    //         checkAuthMode: 'fingerPrint'
+    //       })
+    //       if (fingerCheck.isEnrolled) {
+    //         authMode = 'fingerPrint'
+    //       }
+    //     } catch (e) {
+    //       // 不支持指纹
+    //     }
+    //   }
+    //
+    //   // 没有任何生物认证可用，返回
+    //   if (!authMode) {
+    //     //this.doLogin()
+    //     return
+    //   }
+    //
+    //   // 2. 调起生物认证
+    //   this.setData({
+    //     loading: true
+    //   })
+    //   await wx.startSoterAuthentication({
+    //     requestAuthModes: [authMode],
+    //     challenge: String(Date.now()),
+    //     authContent: '请验证身份以登录'
+    //   })
+    //   // 认证通过，继续登录
+    //   this.doLogin()
+    // } catch (err) {
+    //   // 生物认证失败或取消
+    //   if (err.errCode === 90001 || err.errCode === 90002) {
+    //     // 用户取消，不继续登录
+    //     return
+    //   }
+    //   // 其他错误（如认证失败），返回
+    //   //this.doLogin()
+    // } finally {
+    //   // 只有在 doLogin 没有被调用时才重置 loading
+    //   if (this.data.loading) {
+    //     this.setData({
+    //       loading: false
+    //     })
+    //   }
+    // }
 
-      // 先尝试人脸（iOS Face ID 优先）
-      try {
-        const faceCheck = await wx.checkIsSoterEnrolledInDevice({
-          checkAuthMode: 'facial'
-        })
-        if (faceCheck.isEnrolled) {
-          authMode = 'facial'
-        }
-      } catch (e) {
-        // 不支持人脸，继续检查指纹
-      }
-
-      // 人脸不可用，再尝试指纹
-      if (!authMode) {
-        try {
-          const fingerCheck = await wx.checkIsSoterEnrolledInDevice({
-            checkAuthMode: 'fingerPrint'
-          })
-          if (fingerCheck.isEnrolled) {
-            authMode = 'fingerPrint'
-          }
-        } catch (e) {
-          // 不支持指纹
-        }
-      }
-
-      // 没有任何生物认证可用，返回
-      if (!authMode) {
-        //this.doLogin()
-        return
-      }
-
-      // 2. 调起生物认证
-      this.setData({
-        loading: true
-      })
-      await wx.startSoterAuthentication({
-        requestAuthModes: [authMode],
-        challenge: String(Date.now()),
-        authContent: '请验证身份以登录'
-      })
-      // 认证通过，继续登录
-      this.doLogin()
-    } catch (err) {
-      // 生物认证失败或取消
-      if (err.errCode === 90001 || err.errCode === 90002) {
-        // 用户取消，不继续登录
-        return
-      }
-      // 其他错误（如认证失败），返回
-      //this.doLogin()
-    } finally {
-      // 只有在 doLogin 没有被调用时才重置 loading
-      if (this.data.loading) {
-        this.setData({
-          loading: false
-        })
-      }
-    }
+    // 暂时跳过生物认证，直接登录
+    this.doLogin()
   },
 
   // 原来的登录逻辑抽到这个方法

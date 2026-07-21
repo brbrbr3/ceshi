@@ -68,10 +68,11 @@
 
     <view class="office-card profile-company-card">
       <view class="profile-company-head">
-        <view class="profile-company-logo">🏢</view>
+        <!-- <view class="profile-company-logo">🏢</view> -->
         <view>
-          <view class="profile-company-name">{{(isReviewer ? '组织：888' : '组织：Embaixada')}}</view>
-          <view class="profile-company-address">地址：{{(isReviewer? '123456' : 'SES 813, LOTE 52')}}</view>
+          <view class="profile-company-name">组织：<text class="profile-company-address" selectable="true">{{(isReviewer ? '888' : 'Embaixada')}}</text></view>
+          <view class="profile-company-name">地址：<text class="profile-company-address" selectable="true">{{(isReviewer? '123456' : 'Quadra 813, Lote 52, Avenida das Nações, SES, Asa Sul, Brasília-DF, Brasil')}}</text></view>
+          <view wx:if="{{!isReviewer}}" class="profile-company-name">邮编（CEP）：<text class="profile-company-address" selectable="true">70443-900</text></view>
         </view>
       </view>
       <view class="profile-company-grid">
