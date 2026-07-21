@@ -1,0 +1,235 @@
+<view class="ic-page" style="{{fontStyle}}">
+
+  <!-- 渐变色头部 -->
+  <view class="office-gradient-header ic-header">
+    <view class="ic-header-content">
+      <view class="ic-header-row">
+        <view class="ic-header-title">兴趣班备案</view>
+        <view class="ic-header-add" bindtap="handleShowCreate">
+          <text class="ic-header-add-icon">+</text>
+          <text class="ic-header-add-text">新增</text>
+        </view>
+      </view>
+      <view class="ic-header-scope">{{scopeText}}</view>
+    </view>
+  </view>
+
+  <!-- 搜索栏 -->
+  <view class="ic-search-bar">
+    <view class="ic-search-input-wrapper">
+      <text class="ic-search-icon">🔍</text>
+      <input
+        class="ic-search-input"
+        value="{{keyword}}"
+        placeholder="搜索姓名或兴趣班名称"
+        placeholder-class="ic-search-placeholder"
+        bindinput="handleSearchInput"
+        bindconfirm="handleSearchConfirm"
+        confirm-type="search"
+      />
+      <view wx:if="{{keyword}}" class="ic-search-clear" bindtap="handleClearSearch">×</view>
+    </view>
+  </view>
+
+  <!-- 状态筛选标签（仅普通用户查看自己时显示） -->
+  <view wx:if="{{showStatusFilter}}" class="ic-filter-bar">
+    <view class="ic-filter-item {{statusFilter === 'all' ? 'is-active' : ''}}" bindtap="handleStatusFilterChange" data-status="all">全部</view>
+    <view class="ic-filter-item {{statusFilter === 'active' ? 'is-active' : ''}}" bindtap="handleStatusFilterChange" data-status="active">生效中</view>
+    <view class="ic-filter-item {{statusFilter === 'ended' ? 'is-active' : ''}}" bindtap="handleStatusFilterChange" data-status="ended">已结束</view>
+  </view>
+
+  <!-- 列表区 -->
+  <view class="ic-list-section">
+
+    <!-- 备案卡片 -->
+    <view class="ic-card {{!item.isActive ? 'is-ended' : ''}}" wx:for="{{list}}" wx:key="_id" bindtap="handleShowDetail" data-record="{{item}}">
+      <view class="ic-card-header">
+        <view class="ic-card-name">{{item.name}}</view>
+        <view wx:if="{{item.creatorRole}}" class="ic-card-role-tag">{{item.creatorRole}}</view>
+        <view class="ic-card-status {{item.isActive ? 'is-active' : 'is-ended'}}">
+          {{item.isActive ? '生效中' : '已结束'}}
+        </view>
+      </view>
+
+      <view class="ic-card-body">
+        <view class="ic-card-classname">{{item.className}}</view>
+        <view class="ic-card-meta">
+          <view class="ic-card-meta-item">
+            <text class="ic-card-meta-label">时段</text>
+            <text class="ic-card-meta-value">{{item.timeSlot}}</text>
+          </view>
+          <view class="ic-card-meta-item">
+            <text class="ic-card-meta-label">教学模式</text>
+            <text class="ic-card-meta-value">{{item.teachingMode}}</text>
+          </view>
+        </view>
+        <view wx:if="{{item.companion}}" class="ic-card-extra">
+          <text class="ic-card-extra-label">陪同人：</text>
+          <text class="ic-card-extra-value">{{item.companion}}</text>
+        </view>
+        <view wx:if="{{item.remark}}" class="ic-card-extra">
+          <text class="ic-card-extra-label">备注：</text>
+          <text class="ic-card-extra-value">{{item.remark}}</text>
+        </view>
+      </view>
+
+      <view class="ic-card-footer">
+        <view class="ic-card-time">
+          <text wx:if="{{item.isActive}}">备案于 {{item.createdAtText}}</text>
+          <text wx:else>已结束{{item.endedAtText ? ' · ' + item.endedAtText : ''}}</text>
+        </view>
+        <view wx:if="{{item.canOperate}}" class="ic-card-actions" catchtap="stopPropagation">
+          <view class="ic-card-btn ic-card-btn-edit" bindtap="handleShowEdit" data-record="{{item}}">编辑</view>
+          <view class="ic-card-btn ic-card-btn-end" bindtap="handleEnd" data-record="{{item}}">结束此兴趣班</view>
+        </view>
+      </view>
+    </view>
+
+    <!-- 分页加载状态 -->
+    <import src="/components/pagination-loading/pagination-loading.wxml" />
+    <template is="pagination-loading" data="{{ ...$root }}" />
+
+  </view>
+
+  <!-- ========== 表单弹窗 ========== -->
+  <view class="ic-popup-mask {{showFormPopup ? 'is-visible' : ''}} {{modalAnimating ? 'is-closing' : ''}}" catchtap="hideFormPopup">
+    <view class="ic-popup-container" catchtap="stopPropagation">
+      <view class="ic-popup-header">
+        <view class="ic-popup-title">{{formMode === 'edit' ? '编辑兴趣班备案' : '新增兴趣班备案'}}</view>
+        <view class="ic-popup-close" bindtap="hideFormPopup">×</view>
+      </view>
+
+      <!-- 编辑模式提示 -->
+      <view wx:if="{{formMode === 'edit'}}" class="ic-edit-tip">
+        ⚠ 提交后将结束原备案并新增一条记录
+      </view>
+
+      <scroll-view class="ic-popup-body" scroll-y enhanced show-scrollbar="{{false}}">
+        <view class="ic-popup-form">
+
+          <view class="ic-form-section">
+            <view class="ic-form-section-title">基本信息</view>
+
+            <view class="ic-field">
+              <view class="ic-field-label">姓名 <text class="ic-required">*</text></view>
+              <view class="ic-input-wrapper">
+                <input class="ic-input" value="{{form.name}}" placeholder="请输入参与人姓名" placeholder-class="ic-input-placeholder" bindinput="handleNameInput" />
+              </view>
+            </view>
+
+            <view class="ic-field">
+              <view class="ic-field-label">兴趣班名称 <text class="ic-required">*</text></view>
+              <view class="ic-input-wrapper">
+                <input class="ic-input" value="{{form.className}}" placeholder="请输入兴趣班名称" placeholder-class="ic-input-placeholder" bindinput="handleClassNameInput" />
+              </view>
+            </view>
+
+            <view class="ic-field">
+              <view class="ic-field-label">兴趣班时段 <text class="ic-required">*</text></view>
+              <view class="ic-input-wrapper">
+                <input class="ic-input" value="{{form.timeSlot}}" placeholder="如：每周三11:30——12:30" placeholder-class="ic-input-placeholder" bindinput="handleTimeSlotInput" />
+              </view>
+            </view>
+
+            <view class="ic-field">
+              <view class="ic-field-label">教学模式 <text class="ic-required">*</text></view>
+              <view class="ic-input-wrapper">
+                <input class="ic-input" value="{{form.teachingMode}}" placeholder="如：集体教学 / 一对一" placeholder-class="ic-input-placeholder" bindinput="handleTeachingModeInput" />
+              </view>
+              <view class="ic-quick-tags">
+                <view wx:for="{{teachingModeOptions}}" wx:key="index" wx:for-item="mode" class="ic-quick-tag {{form.teachingMode === mode ? 'is-selected' : ''}}" bindtap="handleSelectTeachingMode" data-mode="{{mode}}">{{mode}}</view>
+              </view>
+            </view>
+          </view>
+
+          <view class="ic-form-section">
+            <view class="ic-form-section-title">其他信息（选填）</view>
+
+            <view class="ic-field">
+              <view class="ic-field-label">陪同人</view>
+              <view class="ic-input-wrapper">
+                <input class="ic-input" value="{{form.companion}}" placeholder="请输入陪同人（选填）" placeholder-class="ic-input-placeholder" bindinput="handleCompanionInput" />
+              </view>
+            </view>
+
+            <view class="ic-field">
+              <view class="ic-field-label">备注</view>
+              <view class="ic-input-wrapper">
+                <input class="ic-input" value="{{form.remark}}" placeholder="如：女儿" placeholder-class="ic-input-placeholder" bindinput="handleRemarkInput" />
+              </view>
+            </view>
+          </view>
+
+          <button class="ic-submit-btn" loading="{{submitting}}" disabled="{{submitting}}" bindtap="handleSubmit">
+            {{formMode === 'edit' ? '确认编辑' : '确认备案'}}
+          </button>
+
+        </view>
+      </scroll-view>
+    </view>
+  </view>
+
+  <!-- ========== 详情弹窗 ========== -->
+  <view class="ic-popup-mask {{showDetailPopup ? 'is-visible' : ''}} {{modalAnimating ? 'is-closing' : ''}}" catchtap="hideDetailPopup">
+    <view class="ic-popup-container ic-popup-container-detail" catchtap="stopPropagation">
+      <view class="ic-popup-header">
+        <view class="ic-popup-title">备案详情</view>
+        <view class="ic-popup-close" bindtap="hideDetailPopup">×</view>
+      </view>
+
+      <scroll-view wx:if="{{detailRecord}}" class="ic-popup-body" scroll-y enhanced show-scrollbar="{{false}}">
+        <view class="ic-detail-content">
+
+          <view class="ic-detail-status-row">
+            <view class="ic-detail-status {{detailRecord.isActive ? 'is-active' : 'is-ended'}}">
+              {{detailRecord.isActive ? '● 生效中' : '○ 已结束'}}
+            </view>
+          </view>
+
+          <view class="ic-detail-name">{{detailRecord.name}}</view>
+          <view class="ic-detail-classname">{{detailRecord.className}}</view>
+
+          <view class="ic-detail-grid">
+            <view class="ic-detail-item">
+              <view class="ic-detail-item-label">时段</view>
+              <view class="ic-detail-item-value">{{detailRecord.timeSlot}}</view>
+            </view>
+            <view class="ic-detail-item">
+              <view class="ic-detail-item-label">教学模式</view>
+              <view class="ic-detail-item-value">{{detailRecord.teachingMode}}</view>
+            </view>
+            <view wx:if="{{detailRecord.companion}}" class="ic-detail-item">
+              <view class="ic-detail-item-label">陪同人</view>
+              <view class="ic-detail-item-value">{{detailRecord.companion}}</view>
+            </view>
+            <view wx:if="{{detailRecord.remark}}" class="ic-detail-item">
+              <view class="ic-detail-item-label">备注</view>
+              <view class="ic-detail-item-value">{{detailRecord.remark}}</view>
+            </view>
+          </view>
+
+          <view class="ic-detail-info">
+            <view class="ic-detail-info-row">
+              <text class="ic-detail-info-label">备案人</text>
+              <text class="ic-detail-info-value">{{detailRecord.creatorName || '--'}}</text>
+            </view>
+            <view wx:if="{{detailRecord.creatorDepartment}}" class="ic-detail-info-row">
+              <text class="ic-detail-info-label">部门</text>
+              <text class="ic-detail-info-value">{{detailRecord.creatorDepartment}}</text>
+            </view>
+            <view class="ic-detail-info-row">
+              <text class="ic-detail-info-label">备案时间</text>
+              <text class="ic-detail-info-value">{{detailRecord.createdDateText}}</text>
+            </view>
+            <view wx:if="{{!detailRecord.isActive && detailRecord.endedAtText}}" class="ic-detail-info-row">
+              <text class="ic-detail-info-label">结束时间</text>
+              <text class="ic-detail-info-value">{{detailRecord.endedAtText}}</text>
+            </view>
+          </view>
+
+        </view>
+      </scroll-view>
+    </view>
+  </view>
+
+</view>

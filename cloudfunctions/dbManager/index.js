@@ -82,6 +82,7 @@ const DB_COLLECTIONS = [
   'greenbook_posts',
   'greenbook_comments',
   'greenbook_likes',
+  'interest_class_reports',
   'meal_subscriptions',
   'meal_adjustments',
   'side_dish_orders',

@@ -1467,6 +1467,61 @@
 
 ---
 
+### 39. interest_class_reports - 兴趣班备案记录
+
+**用途**：存储用户提交的兴趣班备案记录，支持分级查看（馆领导看全体生效中、部门负责人看本部门生效中、普通用户看自己全部含已结束）。备案不可删除，只能"结束"；编辑备案时结束原记录并新增一条（保留备查历史）。
+
+**安全规则**：`ADMINONLY` - 仅管理员可读写
+
+> **重要说明**：所有数据读写均通过云函数 `interestClassReport` 进行，云函数内部按角色过滤查询范围。集合设为 ADMINONLY，确保数据只能通过云函数访问。
+
+**记录数**：动态
+
+**索引**：
+
+- `_id` - 记录 ID（云开发自动创建）
+- `idx_openid_status` - 组合索引：_openid（升序）+ status（升序）- 优化用户查询自己的备案
+- `idx_creatorDepartment_status` - 组合索引：creatorDepartment（升序）+ status（升序）- 优化部门负责人按部门筛选
+- `idx_createdAt` - 创建时间索引（降序）- 优化时间排序查询
+
+**字段结构**：
+```javascript
+{
+  _id: String,                    // 记录 ID（自动生成）
+  _openid: String,                // 创建者 openid（云函数自动写入）
+  name: String,                   // 参与人姓名（可能与创建者不同，如子女）
+  className: String,              // 兴趣班名称
+  timeSlot: String,               // 兴趣班时段（文本，如"每周三11:30——12:30"）
+  teachingMode: String,           // 教学模式（文本，如"集体教学"/"一对一"）
+  companion: String,              // 陪同人（可选）
+  remark: String,                 // 备注（可选，如"女儿"）
+  creatorName: String,            // 创建者姓名（冗余，列表展示）
+  creatorDepartment: String,      // 创建者部门（冗余，部门负责人筛选）
+  creatorRole: String,            // 创建者角色（冗余，列表展示）
+  status: String,                 // 状态：'active'（生效中）| 'ended'（已结束）
+  endedAt: Number,                // 结束时间戳（null/不存在表示生效中）
+  createdAt: Number,              // 创建时间戳
+  updatedAt: Number               // 更新时间戳
+}
+```
+
+**业务规则**：
+1. 备案不可删除，只能"结束"（设置 status='ended'）
+2. 编辑备案 = 结束原记录 + 新增一条记录（保留备查历史）
+3. 分级查看：
+   - 部门负责人 → 查看本部门人员**生效中**备案
+   - 馆领导（非部门负责人）→ 查看全体人员**生效中**备案
+   - 其他用户 → 查看自己的**全部**备案（含已结束）
+4. 仅创建者可编辑/结束自己的生效中备案
+
+**相关云函数**：
+- `interestClassReport.list`：分页查询备案列表（按角色自动过滤范围与状态）
+- `interestClassReport.create`：新增备案（status 默认 'active'）
+- `interestClassReport.edit`：编辑备案（结束原记录 + 新增新记录）
+- `interestClassReport.end`：结束备案（设置 status='ended'）
+
+---
+
 ## 命名规范
 
 ### 集合命名规则
@@ -1606,6 +1661,7 @@ const notificationsCollection = db.collection('notifications')  // ✅
 | 2026-04-06 |添加 activities 活动主表、activity_registrations 报名记录集合（活动管理模块） | AI |
 | 2026-04-07 | 添加 car_purchase_records 购车记录集合（购车管理Checklist功能） | AI |
 | 2026-04-28 | 更新 side_dish_orders/side_dish_bookings 支持多类别征订（categories/items） | AI |
+| 2026-07-21 | 添加 interest_class_reports 兴趣班备案记录集合（兴趣班备案功能） | AI |
 
 ---
 
@@ -1947,3 +2003,4 @@ https://tcb.cloud.tencent.com/dev?envId=cloud1-8gdftlggae64d5d0#/db/doc
 - [activities](https://tcb.cloud.tencent.com/dev?envId=cloud1-8gdftlggae64d5d0#/db/doc/collection/activities)
 - [activity_registrations](https://tcb.cloud.tencent.com/dev?envId=cloud1-8gdftlggae64d5d0#/db/doc/collection/activity_registrations)
 - [car_purchase_records](https://tcb.cloud.tencent.com/dev?envId=cloud1-8gdftlggae64d5d0#/db/doc/collection/car_purchase_records)
+- [interest_class_reports](https://tcb.cloud.tencent.com/dev?envId=cloud1-8gdftlggae64d5d0#/db/doc/collection/interest_class_reports)

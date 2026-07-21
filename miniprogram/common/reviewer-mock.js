@@ -54,7 +54,8 @@ var WRITE_ACTIONS = [
   'createPurchaseApplication', 'createPurchaseLoan',
   'submitRegistration', 'submitProfileUpdate', 'submitDetailInfo',
   'updateUserStatus', 'markAsRead', 'clearAll', 'broadcast',
-  'createAnnouncement', 'createArticle', 'createActivity'
+  'createAnnouncement', 'createArticle', 'createActivity',
+  'edit', 'end'
 ]
 
 /**

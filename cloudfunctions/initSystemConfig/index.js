@@ -516,6 +516,13 @@ const PERMISSION_CONFIGS = [
     description: '配置片长与馆领导报备接收人（管理员专用）',
     enabledRoles: [],
     requireAdmin: true
+  },
+  {
+    featureKey: 'interest_class_report',
+    featureName: '兴趣班备案',
+    description: '兴趣班备案功能',
+    enabledRoles: ['馆领导', '馆员', '工勤', '物业', '配偶', '家属'],
+    requireAdmin: false
   }
 ]
 

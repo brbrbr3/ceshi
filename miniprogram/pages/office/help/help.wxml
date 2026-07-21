@@ -21,7 +21,7 @@
           <view class="card-title">全馆日历</view>
         </view>
         <view class="card-content">
-          <view class="card-desc">以日历视图展示馆内节假日和巴西节假日安排</view>
+          <view class="card-desc">以日历视图展示{{(isReviewer ? '法定节假日' : '馆内节假日和巴西节假日')}}安排</view>
           <view class="card-permission">
             <view class="permission-label">权限要求：</view>
             <view class="permission-value">所有用户可查看</view>
@@ -84,10 +84,29 @@
           <view class="card-title">外出报备</view>
         </view>
         <view class="card-content">
-          <view class="card-desc">报备外出和返回，出行时可自动为同行人代报备（同行人需为本系统注册用户，返回时需同行人自行返回报备）。当日超23时未归即为超时。</view>
+          <view class="card-desc">报备外出和返回，出行时可自动为同行人代报备（同行人需为本系统注册用户，返回时同行人需自行报备）。当日超23时未归计为超时。</view>
           <view class="card-permission">
             <view class="permission-label">权限要求：</view>
             <view class="permission-value">所有用户可使用</view>
+          </view>
+        </view>
+      </view>
+
+      <view class="help-card">
+        <view class="card-header">
+          <view class="card-icon">🛹</view>
+          <view class="card-title">兴趣班备案</view>
+        </view>
+        <view class="card-content">
+          <view class="card-desc">登记当前参与的兴趣班信息，便于馆内备案备查。支持以下功能：</view>
+          <view class="card-features">
+            <view class="feature-item">• 新增备案：填写参与人姓名、兴趣班名称、时段、教学模式、陪同人、备注等。</view>
+            <view class="feature-item">• 编辑备案：编辑会结束原备案记录，并新增一条新的备案记录。</view>
+            <view class="feature-item">• 结束兴趣班：将备案标记为"已结束"，记录保留不删除。</view>
+          </view>
+          <view class="card-permission">
+            <view class="permission-label">权限要求：</view>
+            <view class="permission-value">馆领导、部门负责人可依据权限查看管辖范围内人员生效中的备案；其他用户可查看自己的全部备案（含已结束）。</view>
           </view>
         </view>
       </view>
@@ -419,10 +438,11 @@
         <view class="tips-item">
           <view class="tips-icon"></view>
           <view class="tips-content">
-            <text class="tips-title">0.44.1 暂时注释生物认证登录
-            0.44 提供账号密码登录
-            0.43.2 晚11时提醒功能
-            0.43.1 help页面上线
+            <text class="tips-title">0.45 增加水印组件
+              0.44.1 暂时注释生物认证登录
+              0.44 提供账号密码登录
+              0.43.2 晚11时提醒功能
+              0.43.1 help页面上线
               0.43 全面简化订阅模板消息推送代码
               0.42.15.2 优化调用量
               0.42.15.1 移除手机号收集

@@ -897,6 +897,28 @@ Page({
 
 ---
 
+## 14. 审核模式规范
+
+### 14.1 核心原则
+
+**每次增加新功能时，必须同步增加针对审核模式的相关修改。**
+
+审核模式通过 `miniprogram/common/reviewer-mock.js` 拦截云函数调用并返回 mock 数据，使审核员能够在不依赖真实后端的情况下体验完整功能流程。
+
+### 14.2 新增功能时的检查清单
+
+新增功能涉及云函数调用时，必须同步修改 `reviewer-mock.js`：
+
+1. **读取类 action**（如 `list`、`get`、`detail`）：加入 `LIST_ACTIONS` 数组，并配置对应的 mock 数据生成函数
+2. **写入类 action**（如 `create`、`update`、`delete`、`edit`、`end`、`submit` 等）：加入 `WRITE_ACTIONS` 数组（返回空对象表示成功）
+3. **特殊 action**（返回结构不同于标准 list/write）：在 `getReviewMockData` 中单独添加分支处理
+
+### 14.3 参考文件
+
+- `miniprogram/common/reviewer-mock.js` - 审核模式 mock 数据拦截器
+
+---
+
 ## 参考文档
 
 1. `DATABASE_COLLECTIONS_REFERENCE.md` - 数据库集合参考

@@ -6,6 +6,7 @@
     "pages/office/home/home",
     "pages/office/approval/approval",
     "pages/office/trip-report/trip-report",
+    "pages/office/interest-class/interest-class",
     "pages/office/trip-board/trip-board",
     "pages/office/profile/profile",
     "pages/office/profile/edit-profile/edit-profile",

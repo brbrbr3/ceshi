@@ -39,20 +39,20 @@ Page({
         featureKey: 'trip_report'
       },
       {
+        icon: '🛹',
+        label: '兴趣班备案',
+        color: '#2563EB',
+        bg: '#EFF6FF',
+        implemented: true,
+        featureKey: 'interest_class_report'
+      },
+      {
         icon: '🍽️',
         label: '每周菜单',
         color: '#16A34A',
         bg: '#EFF6FF',
         implemented: true,
         featureKey: null
-      },
-      {
-        icon: '📝',
-        label: '审批中心',
-        color: '#2563EB',
-        bg: '#EFF6FF',
-        implemented: true,
-        featureKey: 'approval'
       },
       /*  {
          icon: '📊',
@@ -125,6 +125,14 @@ Page({
         bg: '#EFF6FF',
         implemented: true,
         featureKey: 'arrival_guide'
+      },
+      {
+        icon: '📝',
+        label: '审批中心',
+        color: '#2563EB',
+        bg: '#EFF6FF',
+        implemented: true,
+        featureKey: 'approval'
       }
     ],
     announcements: [],
@@ -492,6 +500,8 @@ Page({
       app.navigateWithPermission('medical_application', '/pages/office/medical-application/medical-application', '就医申请')
     } else if (label === '外出报备') {
       app.navigateWithPermission('trip_report', '/pages/office/trip-report/trip-report', '外出报备')
+    } else if (label === '兴趣班备案') {
+      app.navigateWithPermission('interest_class_report', '/pages/office/interest-class/interest-class', '兴趣班备案')
     } else if (label === '出行数据板') {
       app.navigateWithPermission('trip_dashboard', '/pages/office/trip-dashboard/trip-dashboard', '出行数据板（完整版）')
     } else if (label === '会议室预约') {
