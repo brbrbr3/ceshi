@@ -1,0 +1,17 @@
+/* 水印覆盖层：全屏固定定位，背景平铺 */
+.watermark-overlay {
+  position: fixed;
+  top: 0;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  pointer-events: none;
+  background-repeat: repeat;
+}
+
+/* 离屏 canvas：移出可视区域 */
+.watermark-canvas {
+  position: absolute;
+  left: -9999px;
+  top: -9999px;
+}

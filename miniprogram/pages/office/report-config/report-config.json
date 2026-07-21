@@ -1,4 +1,7 @@
 {
   "navigationBarTitleText": "报备配置",
-  "enablePullDownRefresh": false
+  "enablePullDownRefresh": false,
+  "usingComponents": {
+    "watermark": "/components/watermark/watermark"
+  }
 }

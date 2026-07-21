@@ -1,3 +1,5 @@
+<watermark />
+
 <view class="auth-page edit-profile-page" style="{{fontStyle}}">
   <view class="auth-hero">
     <!-- <view class="auth-brand">编辑</view> -->

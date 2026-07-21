@@ -419,7 +419,10 @@
         <view class="tips-item">
           <view class="tips-icon"></view>
           <view class="tips-content">
-            <text class="tips-title">0.43.1 help页面上线
+            <text class="tips-title">0.44.1 暂时注释生物认证登录
+            0.44 提供账号密码登录
+            0.43.2 晚11时提醒功能
+            0.43.1 help页面上线
               0.43 全面简化订阅模板消息推送代码
               0.42.15.2 优化调用量
               0.42.15.1 移除手机号收集

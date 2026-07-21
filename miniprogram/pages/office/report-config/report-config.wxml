@@ -1,3 +1,5 @@
+<watermark />
+
 <view class="office-page report-config-page" style="{{fontStyle}}">
   <view class="office-gradient-header office-subpage-header">
     <view class="office-subpage-header-content">

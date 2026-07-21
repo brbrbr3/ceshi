@@ -1,0 +1,8 @@
+<!-- 水印覆盖层：全屏固定定位，背景平铺水印图片，不拦截点击事件 -->
+<view
+  class="watermark-overlay"
+  style="background-image: url('{{watermarkUrl}}'); z-index: {{zIndex}};"
+  wx:if="{{visible && watermarkUrl}}"
+></view>
+<!-- 离屏 canvas 用于绘制水印单元 -->
+<canvas type="2d" id="watermarkCanvas" class="watermark-canvas" style="width: {{gapX}}px; height: {{gapY}}px;"></canvas>
