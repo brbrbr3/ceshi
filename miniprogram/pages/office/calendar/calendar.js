@@ -275,6 +275,8 @@ const END_HOUR = 24 // 结束小时 24:00
 
 Page({
   data: {
+    isReviewer: false,
+
     // 日历状态
     calendarLoaded: false,
     calendarView: 'month', // 'month' | 'week'
@@ -470,6 +472,7 @@ Page({
         const canConfigHoliday = isAdmin || CONFIG_HOLIDAY_ALLOWED_ROLES.includes(user.role)
 
         this.setData({
+          isReviewer: !!user.isReviewer,
           currentUser: user,
           canConfigHoliday
         })

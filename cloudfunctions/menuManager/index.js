@@ -10,15 +10,6 @@ const db = cloud.database()
 const UNREAD_MESSAGE_TEMPLATE_ID = 'mJ1CGM8OvpgomnYy0yot4Kk8hD8S-NH06A6ZDywdpGc'
 
 /**
- * 格式化通知时间（YYYY-MM-DD HH:MM）
- */
-function formatNoticeTime(timestamp) {
-  const d = new Date(timestamp)
-  const pad = (n) => String(n).padStart(2, '0')
-  return `${d.getFullYear()}-${pad(d.getMonth() + 1)}-${pad(d.getDate())} ${pad(d.getHours())}:${pad(d.getMinutes())}`
-}
-
-/**
  * 截断文本（微信 thing 类型限制20字）
  */
 function truncateNoticeText(text, len) {
@@ -34,8 +25,6 @@ function truncateNoticeText(text, len) {
  * @param {string} menuTitle - 菜单标题
  */
 async function sendMenuNoticeToAllUsers(authorName, menuTitle) {
-  const senderName = truncateNoticeText(authorName || '管理员')
-  const sendTime = formatNoticeTime(Date.now())
   const msgType = truncateNoticeText('新菜单通知')
   const msgContent = truncateNoticeText(`${authorName || '管理员'}提交了新的工作餐菜单，点击查看`)
   const remark = truncateNoticeText(menuTitle || '')
@@ -61,8 +50,6 @@ async function sendMenuNoticeToAllUsers(authorName, menuTitle) {
           templateId: UNREAD_MESSAGE_TEMPLATE_ID,
           page: 'pages/office/menus/menus',
           data: {
-            thing7: { value: senderName },
-            time2: { value: sendTime },
             thing6: { value: msgType },
             thing3: { value: msgContent },
             thing4: { value: remark }
