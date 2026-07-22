@@ -616,6 +616,19 @@ App({
           openid: data.openid
         })
         this.globalData.hasLogin = true
+      } else {
+        // 用户未注册或已被删除，清除旧的身份和资料缓存
+        // 防止 doLogin 命中旧缓存导致"已删除用户还能登录一次"
+        // 注意：openid 保留（未注册用户也需要 openid 用于订阅消息授权等场景）
+        this.globalData.hasLogin = false
+        this.globalData.userProfile = null
+        this.globalData._profileUpdatedAt = null
+        removeStorage(AUTH_CORE_KEY)
+        removeStorage(PROFILE_CACHE_KEY)
+        // 重置静默刷新节流，允许后续 checkUserRegistration 正常走网络流程
+        this._silentRefreshAt = 0
+        this._silentRefreshPromise = null
+        console.log('用户未注册或已被删除，已清除旧的身份和资料缓存')
       }
 
       // Phase 4b：处理 PROFILE_CACHE_KEY 响应（独立写）

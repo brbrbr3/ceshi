@@ -317,7 +317,7 @@ Page({
     this.setData({
       loading: true
     })
-    app.checkUserRegistration()
+    app.checkUserRegistration({ forceRefresh: true })
       .then((result) => {
         if (result.registered === true) {
           // 未填写详细信息（角色为空）→ 进入 fill-detail 页补充

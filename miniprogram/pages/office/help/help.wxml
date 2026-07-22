@@ -438,7 +438,11 @@
         <view class="tips-item">
           <view class="tips-icon"></view>
           <view class="tips-content">
-            <text class="tips-title">0.45 增加水印组件
+            <text class="tips-title">
+            0.46.2 修复缓存问题
+            0.46.1 未读消息字段精简
+            0.46 兴趣班备案
+            0.45 增加水印组件
               0.44.1 暂时注释生物认证登录
               0.44 提供账号密码登录
               0.43.2 晚11时提醒功能
