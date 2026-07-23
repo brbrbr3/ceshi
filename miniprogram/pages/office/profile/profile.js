@@ -321,6 +321,37 @@ Page({
   },
 
 
+  handleClearCache() {
+    wx.showModal({
+      title: '清除缓存',
+      content: '此功能可解决小程序运行异常问题。将清除小程序产生的所有本地缓存并返回登录页，是否继续？',
+      confirmText: '清除',
+      confirmColor: '#e74c3c',
+      success: (res) => {
+        if (res.confirm) {
+          wx.showLoading({ title: '清除中...', mask: true })
+          // 审核模式需先停用：恢复被拦截的 wx.cloud.callFunction 并重置 isReviewer
+          // 否则清缓存后仍处于审核态，login 页 onShow 会自动跳回 home
+          if (app.globalData.isReviewer) {
+            app.deactivateReviewerMode()
+          }
+          try {
+            wx.clearStorageSync()
+          } catch (e) {
+            console.warn('清除本地缓存失败:', e)
+          }
+          // 重置 app 内存状态（身份/常量/权限缓存）
+          app.clearOverallState()
+          wx.hideLoading()
+          utils.showToast({ title: '缓存已清除', icon: 'success' })
+          setTimeout(() => {
+            wx.reLaunch({ url: '/pages/auth/login/login' })
+          }, 300)
+        }
+      }
+    })
+  },
+
   handleLogout() {
     // 退出登录前，将用户状态设为 offline（若当前外出则保持 out）
     app.callOfficeAuth('updateUserStatus', {

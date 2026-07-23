@@ -4,9 +4,9 @@
 
 const config = {
   // 缓存版本号（修改此值可强制刷新用户端缓存）
-  CACHE_VERSION: '1.0',
+  CACHE_VERSION: '1.0.1',
   //更新说明
-  VERSION_DESCRIPTION: '欢迎使用报备助手！',
+  VERSION_DESCRIPTION: '欢迎使用报备助手！\n修复了登录的一些问题',
 
   // 云开发环境 ID
   envId: 'cloud1-d2gyip4xi1fcf54bd',

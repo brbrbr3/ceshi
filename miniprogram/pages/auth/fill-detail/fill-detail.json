@@ -1,4 +1,7 @@
 {
   "navigationBarTitleText": "补充详细信息",
-  "navigationBarBackgroundColor": "#FFFFFF"
+  "navigationBarBackgroundColor": "#FFFFFF",
+  "usingComponents": {
+    "watermark": "/components/watermark/watermark"
+  }
 }

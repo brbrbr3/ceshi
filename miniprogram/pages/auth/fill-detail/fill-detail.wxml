@@ -1,3 +1,5 @@
+<watermark />
+
 <view class="auth-page fill-detail-page" style="{{fontStyle}}">
   <view class="auth-hero">
     <view class="auth-title">补充详细信息</view>

@@ -732,12 +732,15 @@ async function submitDetailInfo(openid, formData) {
   }
 
   const now = Date.now()
+  // 提交详细信息即代表用户正式进入系统，设为在线
+  // （首次填写者不可能处于外出状态，直接设 online 安全）
   const updateData = {
     role,
     isDepartmentHead,
     relativeName: relativeRoles.includes(role) ? relativeName : '',
     department: showDepartment ? department : '',
     livingArea: role === '待赴任馆员' ? '' : livingArea,
+    userStatus: 'online',
     updatedAt: now
   }
 

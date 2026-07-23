@@ -240,6 +240,8 @@ Page({
             livingArea: form.livingArea
         }).then(() => {
             wx.showToast({ title: '提交成功', icon: 'success' })
+            // 角色刚填写，权限缓存可能基于"无角色"判定为无权限，需清除以便首页重新加载
+            app.clearPermissionCache()
             setTimeout(() => {
                 if (form.role === '待赴任馆员') {
                     wx.reLaunch({
