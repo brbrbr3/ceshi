@@ -84,6 +84,6 @@
     </view>
 
     <view class="office-card profile-logout-btn" bindtap="handleLogout">退出登录</view>
-    <view class="profile-version">报备助手 · V{{version}}</view>
+    <view class="profile-version">BXLY报备助手 · V{{version}} · 京ICP备2026045041</view>
   </view>
 </view>
