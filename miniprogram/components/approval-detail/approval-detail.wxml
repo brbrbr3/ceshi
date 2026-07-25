@@ -59,7 +59,7 @@
       </view>
 
       <!-- 审批备注 -->
-      <view wx:if="{{request.reviewRemark}}" class="approval-modal-remark">{{request.reviewRemark}}</view>
+      <view wx:if="{{request.reviewRemark}}" class="approval-modal-remark">审批消息：{{request.reviewRemark}}</view>
 
       <!-- 进度条（工作流步骤>=2且待审批时显示） -->
       <block wx:if="{{request.progress.totalSteps >= 2 && request.status === 'pending' && request.progress}}">

@@ -12,10 +12,11 @@ Page({
     departmentIndex: -1,
     livingAreaOptions: [],
     livingAreaIndex: -1,
-    showRelativeField: false,
-    showDepartmentField: false,
-    showDeptHeadCheckbox: false,
-    reviewRemark: '',
+      showRelativeField: false,
+      showDepartmentField: false,
+      showDeptHeadCheckbox: false,
+      showLivingArea: true,
+      reviewRemark: '',
     today: '',
     isReviewer: false,
     form: {
@@ -156,6 +157,8 @@ Page({
 
         const showRelativeField = needRelativeRoles.includes(role)
         const showDepartmentField = roleConfig.showDepartment
+        // 待赴任馆员尚未到任，无需填写居住区域
+        const showLivingArea = role !== '待赴任馆员'
 
         let department = user.department || ''
         let departmentIndex = -1
@@ -197,6 +200,7 @@ Page({
           showRelativeField,
           showDepartmentField,
           showDeptHeadCheckbox,
+          showLivingArea,
           departmentIndex,
           departmentOptions: roleDepartmentOptions,
           isReviewer: !!user.isReviewer,
@@ -261,6 +265,8 @@ Page({
 
     const showRelativeField = needRelativeRoles.includes(role)
     const showDepartmentField = roleConfig.showDepartment
+    // 待赴任馆员尚未到任，无需填写居住区域
+    const showLivingArea = role !== '待赴任馆员'
 
     let department = ''
     let departmentIndex = -1
@@ -287,9 +293,13 @@ Page({
       showRelativeField,
       showDepartmentField,
       showDeptHeadCheckbox,
+      showLivingArea,
       'form.relativeName': showRelativeField ? this.data.form.relativeName : '',
       'form.department': department,
       'form.isDepartmentHead': isDepartmentHead,
+      // 切换角色时，待赴任馆员清空居住区域；其他角色保留原值
+      livingAreaIndex: showLivingArea ? this.data.livingAreaIndex : -1,
+      'form.livingArea': showLivingArea ? this.data.form.livingArea : '',
       departmentIndex,
       departmentOptions: roleDepartmentOptions
     })
@@ -406,6 +416,13 @@ Page({
     if (roleConfig.showDepartment && !form.department && form.role !== '馆领导') {
       utils.showToast({
         title: '请选择部门',
+        icon: 'none'
+      })
+      return
+    }
+    if (this.data.showLivingArea && !form.livingArea) {
+      utils.showToast({
+        title: '请选择居住区域',
         icon: 'none'
       })
       return

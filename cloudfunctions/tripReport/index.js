@@ -164,7 +164,7 @@ async function handleDepart(openid, params) {
           name: _.in(companionNames),
           status: 'approved'
         })
-        .field({ openid: true, name: true, department: true })
+        .field({ openid: true, name: true, department: true, role: true, livingArea: true, isDepartmentHead: true, reportNotifiers: true })
         .get()
 
       const matchedUsers = matchedUsersRes.data || []
@@ -212,8 +212,30 @@ async function handleDepart(openid, params) {
           updatedAt: now
         }
 
-        await tripReportsCollection.add({ data: companionTripData })
+        const companionTripResult = await tripReportsCollection.add({ data: companionTripData })
         companionResults.matched.push(matchedUser.name)
+
+        // 更新同行人 userStatus 为 out
+        try {
+          await usersCollection.where({ openid: matchedUser.openid }).update({
+            data: { userStatus: 'out', updatedAt: now }
+          })
+        } catch (e) {
+          console.warn(`更新同行人 ${matchedUser.name} 外出状态失败:`, e)
+        }
+
+        // 推送代报备通知给该同行人的报备接收人（片长/部门负责人/馆领导报备接收人）
+        try {
+          await notifyReportSubscribers(
+            matchedUser.openid,
+            matchedUser,
+            companionTripResult._id,
+            'depart',
+            { destination, companions: otherCompanions, reportTime: now }
+          )
+        } catch (e) {
+          console.warn(`推送同行人 ${matchedUser.name} 的报备通知失败:`, e)
+        }
       }
 
       // 记录未匹配的同行人

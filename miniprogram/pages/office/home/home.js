@@ -258,7 +258,15 @@ Page({
     return ` ${date.getFullYear()} 年 ${date.getMonth() + 1} 月 ${date.getDate()} 日　${weekMap[date.getDay()]}`
   },
 
-  getGreeting(name) {
+  getGreeting(name, birthday) {
+    // 生日当天特殊问候
+    if (birthday) {
+      const todayStr = utils.getLocalDateString() // YYYY-MM-DD
+      // 比较 月-日 部分，避免年份干扰
+      if (todayStr.slice(5) === birthday.slice(5)) {
+        return `${name}，生日快乐！🎂🎂🎂`
+      }
+    }
     const hour = new Date().getHours()
     let prefix
     if (hour >= 22 || hour <= 5) {
@@ -299,7 +307,7 @@ Page({
 
         this.setData({
           displayName: user.name,
-          greetingText: this.getGreeting(user.name),
+          greetingText: this.getGreeting(user.name, user.birthday),
           roleLabel,
           currentUser: user
         })

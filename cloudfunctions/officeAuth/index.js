@@ -274,6 +274,11 @@ async function validateForm(formData) {
     throw new Error('请选择部门')
   }
 
+  // 居住区域必填（待赴任馆员除外；role 为空时为注册阶段，跳过）
+  if (role && role !== '待赴任馆员' && !livingArea) {
+    throw new Error('请选择居住区域')
+  }
+
   const isDepartmentHead = Boolean(formData.isDepartmentHead)
 
   return {

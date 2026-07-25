@@ -54,9 +54,10 @@ const EXAMPLE_TEMPLATES = [
         { field: 'name', label: '申请人姓名' },
         { field: 'gender', label: '性别' },
         { field: 'birthday', label: '生日' },
-        { field: 'role', label: '角色' },
+        { field: 'role', label: '角色', condition: { field: 'relativeName', op: '!=', value: '' } },
+        { field: 'isAdmin', label: '是否申请管理员', type: 'boolean', condition: { field: 'isAdmin', op: 'eq', value: true } },
         { field: 'department', label: '部门', condition: { field: 'department', op: '!=', value: '' } },
-        { field: 'position', label: '岗位', condition: { field: 'position', op: '!=', value: '' } },
+        { field: 'position', label: '岗位', condition: { field: 'position', op: 'notEmpty' } }, 
         { field: 'relativeName', label: '关系人姓名', condition: { field: 'relativeName', op: '!=', value: '' } },
         { field: 'mobile', label: '手机', condition: { field: 'mobile', op: '!=', value: '' } },
         { field: 'landline', label: '座机', condition: { field: 'landline', op: '!=', value: '' } },
@@ -106,8 +107,9 @@ const EXAMPLE_TEMPLATES = [
         { field: 'gender', label: '性别' },
         { field: 'birthday', label: '生日' },
         { field: 'role', label: '角色' },
+        { field: 'isAdmin', label: '是否申请管理员', type: 'boolean', condition: { field: 'isAdmin', op: 'eq', value: true } },
         { field: 'department', label: '部门', condition: { field: 'department', op: '!=', value: '' } },
-        { field: 'position', label: '岗位', condition: { field: 'position', op: '!=', value: '' } },
+        { field: 'position', label: '岗位', condition: { field: 'position', op: 'notEmpty' } }, 
         { field: 'relativeName', label: '关系人姓名', condition: { field: 'relativeName', op: '!=', value: '' } },
         { field: 'mobile', label: '手机', condition: { field: 'mobile', op: '!=', value: '' } },
         { field: 'landline', label: '座机', condition: { field: 'landline', op: '!=', value: '' } },
@@ -472,14 +474,16 @@ const EXAMPLE_TEMPLATES = [
         { field: 'transferredCount', label: '已转让公费待遇次数', condition: { field: 'transferredCount', op: '>', value: 0 } },
         { field: 'needsVisaAssistance', label: '是否需协助办理签证', type: 'boolean', condition: { field: 'needsVisaAssistance', op: 'eq', value: true } },
         { field: 'otherNotes', label: '其他说明', condition: { field: 'otherNotes', op: '!=', value: '' } },
-        { field: 'pastLeaveRecords', label: '过往休假记录', type: 'table', condition: { field: 'pastLeaveRecords', op: 'notEmpty' }, columns: [
-          { field: 'leaveType', label: '类型' },
-          { field: 'startDate', label: '开始日期' },
-          { field: 'endDate', label: '结束日期' },
-          { field: 'days', label: '天数' },
-          { field: 'expenseType', label: '费用' },
-          { field: 'location', label: '地点' }
-        ]}
+        {
+          field: 'pastLeaveRecords', label: '过往休假记录', type: 'table', condition: { field: 'pastLeaveRecords', op: 'notEmpty' }, columns: [
+            { field: 'leaveType', label: '类型' },
+            { field: 'startDate', label: '开始日期' },
+            { field: 'endDate', label: '结束日期' },
+            { field: 'days', label: '天数' },
+            { field: 'expenseType', label: '费用' },
+            { field: 'location', label: '地点' }
+          ]
+        }
       ]
     },
     defaultTimeout: 72,
@@ -533,7 +537,7 @@ const EXAMPLE_TEMPLATES = [
         { field: 'borrowDate', label: '借用日期' }
       ],
       detailFields: [
-        { field: 'applicantName', label: '申请人'},
+        { field: 'applicantName', label: '申请人' },
         { field: 'borrowerNames', label: '借用的护照' },
         { field: 'borrowDate', label: '借用日期' },
         { field: 'expectedReturnDate', label: '预计归还日期', condition: { field: 'expectedReturnDate', op: '!=', value: '' } },
@@ -575,11 +579,11 @@ exports.main = async (event, context) => {
   const wxContext = cloud.getWXContext()
   const openid = wxContext.OPENID
   const startTime = Date.now()
-  
+
   try {
     await assertAdmin(openid)
     console.log('=== 开始初始化工作流数据库 ===')
-    
+
     // 1. 创建集合（如果不存在）
     console.log('步骤1: 检查/创建数据库集合')
     const collectionsToCheck = [
@@ -588,7 +592,7 @@ exports.main = async (event, context) => {
       COLLECTIONS.WORKFLOW_TASKS,
       COLLECTIONS.WORKFLOW_LOGS
     ]
-    
+
     for (const collectionName of collectionsToCheck) {
       try {
         // 尝试查询集合，如果不存在会报错，忽略
@@ -602,11 +606,11 @@ exports.main = async (event, context) => {
         }
       }
     }
-    
+
     // 2. 导入示例模板数据
     console.log('步骤2: 导入示例工作流模板')
     const now = Date.now()
-    
+
     for (const template of EXAMPLE_TEMPLATES) {
       try {
         // 检查模板是否已存在
@@ -617,7 +621,7 @@ exports.main = async (event, context) => {
           })
           .limit(1)
           .get()
-        
+
         if (existingRes.data && existingRes.data.length > 0) {
           // 已存在，更新
           await db.collection(COLLECTIONS.WORKFLOW_TEMPLATES)
@@ -656,7 +660,7 @@ exports.main = async (event, context) => {
 
     const duration = Date.now() - startTime
     console.log(`\n=== 初始化完成，耗时: ${duration}ms ===`)
-    
+
     return {
       code: 0,
       message: '工作流数据库初始化完成',
@@ -666,7 +670,7 @@ exports.main = async (event, context) => {
         collectionsChecked: collectionsToCheck.length
       }
     }
-    
+
   } catch (error) {
     console.error('初始化失败:', error)
     return {

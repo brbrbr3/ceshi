@@ -17,7 +17,7 @@
 
       <view class="help-card">
         <view class="card-header">
-          <view class="card-icon">📅</view>
+          <view class="card-icon">🗓️</view>
           <view class="card-title">全馆日历</view>
         </view>
         <view class="card-content">

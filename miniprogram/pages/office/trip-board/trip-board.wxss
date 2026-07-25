@@ -41,11 +41,10 @@
 
 .board-sticky-header {
   position: sticky;
-  top: 10rpx;
+  top: 0;
   z-index: 20;
   background: #EEF2FF;
-  padding: 0 24rpx;
-  margin-top: 30rpx;
+  padding: 30rpx 24rpx 0;
 }
 
 /* 折叠面板 */

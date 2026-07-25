@@ -821,38 +821,52 @@ Page({
   },
 
   confirmReview(decision) {
-    const title = decision === 'approve' ? '确认批准' : '确认驳回'
-
     const request = this.data.selectedRequest
-    const isMedicalApplication = request.orderType === 'medical_application'
+    if (!request) {
+      return
+    }
 
-    let content = ''
-    
-      if (decision === 'approve') {
-        content = '确认批准？'
-      } else {
-        content = '确认驳回？'
-      }
-    
-
-    wx.showModal({
-      title,
-      content,
-      showCancel: true,
-      confirmText: '确定',
-      cancelText: '取消',
-      success: (res) => {
-        if (res.confirm) {
-          this.reviewRequest(decision)
+    if (decision === 'reject') {
+      // 驳回时要求填写驳回原因
+      wx.showModal({
+        title: '确认驳回',
+        editable: true,
+        placeholderText: '请输入驳回原因（必填）',
+        confirmText: '确定驳回',
+        cancelText: '取消',
+        confirmColor: '#DC2626',
+        success: (res) => {
+          if (res.confirm) {
+            const reason = (res.content || '').trim()
+            if (!reason) {
+              utils.showToast({ title: '请输入驳回原因', icon: 'none' })
+              return
+            }
+            this.reviewRequest(decision, reason)
+          }
         }
-      }
-    })
+      })
+    } else {
+      // 批准保持原逻辑
+      wx.showModal({
+        title: '确认批准',
+        content: '确认批准？',
+        showCancel: true,
+        confirmText: '确定',
+        cancelText: '取消',
+        success: (res) => {
+          if (res.confirm) {
+            this.reviewRequest(decision)
+          }
+        }
+      })
+    }
   },
 
-  reviewRequest(decision) {
+  reviewRequest(decision, reason) {
     this.setData({ actionLoading: true })
 
-    const reviewRemark = this.data.reviewRemark || ''
+    const reviewRemark = reason || this.data.reviewRemark || ''
 
     const currentUser = this.data.currentUser || app.globalData.userProfile
     const openid = app.globalData.openid

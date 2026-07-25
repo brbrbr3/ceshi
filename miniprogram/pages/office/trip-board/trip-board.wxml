@@ -10,7 +10,7 @@
   <!-- 第二组：人员列表 -->
   <!-- 吸顶区域：折叠面板 + 分组维度切换 -->
   <view class="board-sticky-header">
-    <!-- 折叠面板：▶当前外出人员信息 共X人-->
+    <!-- 折叠面板：▶全体人员 共X人-->
     <view class="board-dropdown" bindtap="handleTogglePersonType">
       <text class="board-dropdown-arrow {{showPersonTypeMenu ? 'is-open' : ''}}">▶</text>
       <view class="board-dropdown-label">

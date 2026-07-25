@@ -98,8 +98,8 @@
         </view>
       </view> -->
 
-      <view class="auth-field">
-        <view class="auth-field-label">居住区域 <text class="auth-field-optional">（选填）</text></view>
+      <view wx:if="{{showLivingArea}}" class="auth-field">
+        <view class="auth-field-label">居住区域</view>
         <picker disabled="{{isReviewer}}" mode="selector" range="{{livingAreaOptions}}" value="{{livingAreaIndex >= 0 ? livingAreaIndex : 0}}" bindchange="handleLivingAreaChange">
           <view class="auth-picker-shell {{livingAreaIndex < 0 ? 'is-placeholder' : ''}}">
             <view class="auth-picker-value">{{livingAreaIndex >= 0 ? form.livingArea : '请选择居住区域'}}</view>

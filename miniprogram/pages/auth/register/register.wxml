@@ -22,8 +22,8 @@
     <view class="auth-form">
       <!-- 微信头像 -->
       <view class="auth-field">
-        <view class="auth-field-label">微信头像 <text style="color: #e74c3c;">*</text></view>
-        <view wx:if="{{!form.avatarUrl}}" class="auth-card-desc">请点击下方按钮，选择"用微信头像"，不要选择"从相册选择"或"拍照"</view>
+        <view class="auth-field-label">头像 <text style="color: #e74c3c;">*</text></view>
+        <view wx:if="{{!form.avatarUrl}}" class="auth-card-desc">建议使用微信头像：请点击下方按钮，选择"用微信头像"</view>
         <button class="auth-avatar-btn" open-type="chooseAvatar" bindchooseavatar="handleChooseAvatar">
           <image wx:if="{{form.avatarUrl}}" class="auth-avatar-preview" src="{{form.avatarUrl}}" mode="aspectFill" />
           <view wx:else class="auth-avatar-placeholder">

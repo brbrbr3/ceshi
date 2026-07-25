@@ -105,7 +105,7 @@ page {
 /* 调试模式入口 */
 .auth-debug-entry {
   margin: 40rpx auto;
-  padding: 20rpx 40rpx;
+  padding: 20rpx 40rpx 180rpx;
   font-size: var(--fs-24);
   color: #999;
   text-align: center;

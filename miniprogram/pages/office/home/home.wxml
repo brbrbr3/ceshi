@@ -25,7 +25,7 @@
   <!--全馆日历模块-->
  <view class="office-glass-card home-calendar" bindtap="goCalendar">
       <view class="home-calendar-main">
-        <view class="home-calendar-icon">📅</view>
+        <view class="home-calendar-icon">🗓️</view>
         <view>
           <view class="home-calendar-title">{{currentDateText}}</view>
           <view class="home-calendar-desc">{{todayTypeText}}</view>
