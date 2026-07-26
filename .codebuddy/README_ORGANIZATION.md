@@ -14,13 +14,16 @@ d:/WechatPrograms/ceshi/
 ├── project.config.json（微信开发者工具项目配置）
 ├── project.private.config.json（私有配置）
 ├── package.json（根目录依赖配置）
+├── package-lock.json（依赖锁定文件）
 ├── sitemap.json（小程序索引配置）
+├── LICENSE（开源许可证）
 │
 ├── .codebuddy/
 │   ├── README_ORGANIZATION.md（本文件：文档组织说明）
 │   ├── settings.json（AI助手配置文件）
+│   ├── settings.local.json（本地配置文件）
 │   │
-│   ├── rules/（CloudBase规则，AI助手使用，57个文件）
+│   ├── rules/（CloudBase规则，AI助手使用，129个文件）
 │   │   ├── tcb/（CloudBase规则集）
 │   │   │   ├── rules/
 │   │   │   │   ├── cloudbase-platform/（平台规则）
@@ -48,19 +51,27 @@ d:/WechatPrograms/ceshi/
 │   ├── database-rules/（数据库规则）
 │   │   └── workflow-rules.json（工作流数据库规则）
 │   │
-│   └── plans/（开发计划）
+│   └── plans/（开发计划，15个文档）
 │
-├── cloudfunctions/（云函数目录，22个云函数）
+├── cloudfunctions/（云函数目录，34个云函数）
+│   ├── activityManager/（活动管理）
 │   ├── announcementManager/（通知公告管理）
+│   ├── articleManager/（文章管理）
+│   ├── bootstrapAdmin/（初始化管理员）
 │   ├── broadcastNotification/（广播通知）
+│   ├── carPurchase/（购车管理）
 │   ├── dbManager/（数据库管理）
 │   ├── feedbackManager/（反馈管理）
 │   ├── generateOrderPdf/（订单PDF生成）
 │   ├── getSystemConfig/（获取系统配置）
+│   ├── greenbookManager/（小绿书管理）
 │   ├── haircutManager/（理发管理）
 │   ├── holidayManager/（假期管理）
 │   ├── initSystemConfig/（初始化系统配置）
 │   ├── initWorkflowDB/（初始化工作流数据库）
+│   ├── interestClassReport/（兴趣班备案）
+│   ├── leaveManager/（请假管理）
+│   ├── mealManager/（用餐管理）
 │   ├── medicalApplication/（医疗申请）
 │   ├── meetingRoomManager/（会议室管理）
 │   ├── menuManager/（菜单管理）
@@ -70,67 +81,68 @@ d:/WechatPrograms/ceshi/
 │   ├── passportExpiryChecker/（护照过期检查）
 │   ├── passportManager/（护照管理）
 │   ├── permissionManager/（权限管理）
+│   ├── positionManager/（岗位管理）
 │   ├── repairManager/（报修管理）
+│   ├── reportNotifierManager/（报备接收人管理）
+│   ├── reviewerLogin/（审核员登录）
 │   ├── scheduleManager/（日程管理）
-│   ├── tripReport/（出差报告）
+│   ├── tripReport/（外出报备）
 │   └── workflowEngine/（工作流引擎）
 │
 ├── miniprogram/（小程序前端）
 │   ├── app.js（小程序入口）
 │   ├── app.json（小程序配置）
 │   ├── app.wxss（全局样式）
-│   ├── app-darkmode.json（暗黑模式配置）
-│   ├── demo.theme.json（主题配置）
 │   ├── config.js（项目配置）
+│   ├── package.json（小程序依赖配置）
 │   ├── sitemap.json（索引配置）
+│   ├── theme.json（主题配置）
 │   │
-│   ├── pages/（页面目录，23个页面）
-│   │   ├── auth/（认证页面）
-│   │   ├── test/（测试页面）
-│   │   └── office/（办公模块页面，22个子页面）
+│   ├── pages/（页面目录，18个页面）
+│   │   ├── auth/（认证页面，3个）
+│   │   │   ├── fill-detail/（补充信息）
+│   │   │   ├── login/（登录）
+│   │   │   └── register/（注册）
+│   │   │
+│   │   └── office/（办公模块页面，15个）
 │   │       ├── home/（首页）
 │   │       ├── profile/（个人中心）
 │   │       ├── calendar/（日历）
-│   │       ├── contacts/（通讯录）
 │   │       ├── notifications/（通知中心）
 │   │       ├── help/（帮助中心）
 │   │       ├── approval/（审批）
-│   │       ├── announcement-list/（通知公告列表）
-│   │       ├── announcement-create/（创建通知公告）
-│   │       ├── announcement-detail/（通知公告详情）
-│   │       ├── haircut/（理发预约）
-│   │       ├── menus/（菜单管理）
+│   │       ├── menus/（菜单列表）
 │   │       ├── menu-detail/（菜单详情）
 │   │       ├── menu-edit/（菜单编辑）
-│   │       ├── meeting-room/（会议室预约）
-│   │       ├── repair/（报修管理）
-│   │       ├── feedback/（反馈）
-│   │       ├── medical-application/（医疗申请）
-│   │       ├── passport/（护照管理）
-│   │       ├── task/（任务管理）
-│   │       ├── trip-report/（出差报告）
-│   │       └── trip-dashboard/（出差看板）
+│   │       ├── trip-report/（外出报备）
+│   │       ├── trip-board/（出行数据板）
+│   │       ├── arrival-guide/（到岗指南）
+│   │       ├── interest-class/（兴趣班备案）
+│   │       ├── position-config/（岗位配置）
+│   │       └── report-config/（报备接收人配置）
 │   │
-│   ├── components/（自定义组件，5个）
+│   ├── components/（自定义组件，7个）
 │   │   ├── approval-card/（审批卡片）
 │   │   ├── approval-detail/（审批详情）
 │   │   ├── datetime-picker/（日期时间选择器）
+│   │   ├── greenbook-card/（小绿书卡片）
 │   │   ├── pagination-loading/（分页加载组件）
-│   │   └── signature-pad/（签名板）
+│   │   ├── signature-pad/（签名板）
+│   │   └── watermark/（水印组件）
 │   │
 │   ├── common/（公共资源）
-│   │   ├── lib/weui.wxss（WeUI样式库）
+│   │   ├── lib/（第三方库，含 weui.wxss）
 │   │   ├── utils.js（工具函数）
+│   │   ├── reviewer-mock.js（审核模式 mock 拦截器）
 │   │   ├── head.wxml（公共头部模板）
 │   │   ├── foot.wxml（公共底部模板）
 │   │   └── index.wxss（公共样式）
 │   │
 │   ├── behaviors/（行为混入）
-│   │   └── pagination.js（分页行为）
+│   │   ├── pagination.js（分页行为）
+│   │   └── modalAnimation.js（弹窗动画行为）
 │   │
 │   ├── image/（图片资源）
-│   ├── workers/（Web Worker）
-│   │   └── fib/（Fibonacci计算Worker）
 │   └── miniprogram_npm/（npm构建产物）
 │
 └── specs/（规格文档）
@@ -199,6 +211,9 @@ d:/WechatPrograms/ceshi/
 - 分页加载框架API
 - 小程序页面开发规范
 - 命令执行规范
+- 弹窗动画规范
+- 审核模式规范
+- 时间处理规范
 
 **`DATABASE_COLLECTIONS_REFERENCE.md`** - 数据库集合参考
 - 所有数据库集合的说明
@@ -256,56 +271,73 @@ d:/WechatPrograms/ceshi/
 
 ## 云函数说明
 
-项目包含 22 个云函数，按功能分类：
+项目包含 34 个云函数，按功能分类：
 
 | 分类 | 云函数 | 说明 |
 |------|--------|------|
-| 通知公告 | announcementManager, broadcastNotification, notificationManager | 通知的创建、广播与管理 |
-| 数据管理 | dbManager, getSystemConfig, initSystemConfig | 数据库操作与系统配置 |
+| 通知公告 | announcementManager, broadcastNotification, notificationManager, reportNotifierManager | 通知的创建、广播、管理与报备接收人配置 |
+| 数据管理 | dbManager, getSystemConfig, initSystemConfig, bootstrapAdmin | 数据库操作、系统配置与管理员初始化 |
 | 工作流 | workflowEngine, initWorkflowDB | 工作流引擎与初始化 |
-| 办公服务 | meetingRoomManager, menuManager, haircutManager, repairManager, scheduleManager | 会议室、菜单、理发、报修、日程管理 |
-| 审批相关 | medicalApplication, tripReport, feedbackManager | 医疗申请、出差报告、反馈 |
+| 办公服务 | meetingRoomManager, menuManager, haircutManager, repairManager, scheduleManager, mealManager, leaveManager | 会议室、菜单、理发、报修、日程、用餐、请假管理 |
+| 审批相关 | medicalApplication, tripReport, feedbackManager | 医疗申请、外出报备、反馈 |
 | 证件管理 | passportManager, passportExpiryChecker | 护照管理与过期检查 |
-| 权限认证 | officeAuth, permissionManager | 办公认证与权限管理 |
+| 权限认证 | officeAuth, permissionManager, reviewerLogin | 办公认证、权限管理、审核员登录 |
+| 内容资讯 | articleManager, activityManager, interestClassReport | 文章、活动、兴趣班备案 |
+| 小绿书管理 | greenbookManager, carPurchase | 绿卡与购车管理 |
+| 岗位管理 | positionManager | 岗位配置管理 |
 | 其他 | openapi, generateOrderPdf | 开放API与PDF生成 |
 
 ---
 
 ## 小程序页面说明
 
-### 页面结构（23个页面）
+### 页面结构（18个页面）
 
 | 模块 | 页面 | 说明 |
 |------|------|------|
-| 认证 | auth | 登录/注册 |
-| 测试 | test | 测试页面 |
+| 认证 | auth/fill-detail, auth/login, auth/register | 补充信息、登录、注册 |
 | 首页 | office/home | 办公首页 |
 | 个人中心 | office/profile | 个人信息管理 |
 | 日历 | office/calendar | 日程日历 |
-| 通讯录 | office/contacts | 人员通讯录 |
 | 通知 | office/notifications | 通知中心 |
 | 帮助 | office/help | 帮助中心 |
 | 审批 | office/approval | 审批处理 |
-| 通知公告 | office/announcement-list, announcement-create, announcement-detail | 公告的列表、创建、详情 |
-| 理发 | office/haircut | 理发预约 |
-| 菜单 | office/menus, menu-detail, menu-edit | 菜单的列表、详情、编辑 |
-| 会议室 | office/meeting-room | 会议室预约 |
-| 报修 | office/repair | 报修管理 |
-| 反馈 | office/feedback | 意见反馈 |
-| 医疗 | office/medical-application | 医疗申请 |
-| 护照 | office/passport | 护照管理 |
-| 任务 | office/task | 任务管理 |
-| 出差 | office/trip-report, trip-dashboard | 出差报告与看板 |
+| 菜单 | office/menus, office/menu-detail, office/menu-edit | 菜单的列表、详情、编辑 |
+| 出差 | office/trip-report, office/trip-board | 外出报备与出行数据板 |
+| 到岗指南 | office/arrival-guide | 到岗指南 |
+| 兴趣班 | office/interest-class | 兴趣班备案 |
+| 岗位配置 | office/position-config | 岗位配置 |
+| 报备配置 | office/report-config | 报备接收人配置 |
 
-### 自定义组件（5个）
+### 自定义组件（7个）
 
 | 组件 | 说明 |
 |------|------|
 | approval-card | 审批卡片展示 |
 | approval-detail | 审批详情展示 |
 | datetime-picker | 日期时间选择器 |
+| greenbook-card | 小绿书卡片展示 |
 | pagination-loading | 分页加载组件 |
 | signature-pad | 手写签名板 |
+| watermark | 水印组件 |
+
+### 公共行为混入（behaviors/）
+
+| 文件 | 说明 |
+|------|------|
+| pagination.js | 分页加载行为，列表页统一混入 |
+| modalAnimation.js | 弹窗退出动画行为，统一关闭动画处理 |
+
+### 公共资源（common/）
+
+| 文件 | 说明 |
+|------|------|
+| utils.js | 工具函数（时间格式化、日期解析等） |
+| reviewer-mock.js | 审核模式 mock 拦截器，拦截云函数调用返回 mock 数据 |
+| head.wxml | 公共头部模板 |
+| foot.wxml | 公共底部模板 |
+| index.wxss | 公共样式 |
+| lib/ | 第三方库目录（含 weui.wxss） |
 
 ---
 
@@ -393,6 +425,7 @@ d:/WechatPrograms/ceshi/
 
 | 日期 | 版本 | 更新内容 |
 |------|------|---------|
+| 2026-07-25 | 3.0 | 同步最新项目结构：云函数 22→34 个（新增 activityManager、articleManager、bootstrapAdmin、carPurchase、greenbookManager、interestClassReport、leaveManager、mealManager、positionManager、reportNotifierManager、reviewerLogin 等）；页面 23→18 个（移除 contacts、announcement-*、haircut、meeting-room、repair、feedback、medical-application、passport、task、trip-dashboard；新增 arrival-guide、interest-class、position-config、report-config、trip-board、auth/fill-detail）；组件 5→7 个（新增 greenbook-card、watermark）；behaviors 新增 modalAnimation.js；common 新增 reviewer-mock.js；miniprogram 顶层文件更新（移除 app-darkmode.json、demo.theme.json、workers/；新增 package.json、theme.json）；CODING_STANDARDS 新增弹窗动画/审核模式/时间处理规范；rules 文件数 57→129；plans 文件数标注 |
 | 2026-03-30 | 2.0 | 全面更新：同步实际项目结构，补充云函数、小程序页面、组件的详细目录树；移除已删除的文档引用（DOCS_ORGANIZATION_PLAN、MCP_EXECUTION_STANDARD、PERMISSION-MANAGEMENT、pagination-framework、ANNOUNCEMENT_UI_REDESIGN、workflow部署/集成文档、guides目录）；新增 plans/ 目录、database-rules 详细内容、云函数分类说明、页面与组件说明 |
 | 2026-03-16 | 1.0 | 初始版本，完成文档归置 |
 

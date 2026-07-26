@@ -1,3 +1,6 @@
+<page-meta page-style="{{showPersonPopup ? 'overflow: hidden;' : ''}}" />
+<wxs module="pullDown" src="../../../behaviors/pullDownClose.wxs"></wxs>
+
 <view class="board-page" style="{{fontStyle}}">
   <!-- 第一组：统计图表（占位） 
   <view class="board-chart-section">
@@ -14,14 +17,14 @@
     <view class="board-dropdown" bindtap="handleTogglePersonType">
       <text class="board-dropdown-arrow {{showPersonTypeMenu ? 'is-open' : ''}}">▶</text>
       <view class="board-dropdown-label">
-        <text class="board-dropdown-title">{{personType === 'active' ? '当前外出中人员' : '全体人员'}}</text>
+        <text class="board-dropdown-title">{{personType === 'active' ? '当前外出人员' : '全体人员'}}</text>
         <text class="board-dropdown-count">共{{personType === 'active' ? activeCount : allCount}}人</text>
       </view>
     </view>
     <!-- 下拉菜单 -->
     <view wx:if="{{showPersonTypeMenu}}" class="board-dropdown-menu">
       <view class="board-dropdown-menu-item {{personType === 'active' ? 'is-active' : ''}}" data-type="active" bindtap="handleSelectPersonType">
-        <text>当前外出中人员</text>
+        <text>当前外出人员</text>
         <text class="board-dropdown-menu-count">共{{activeCount}}人</text>
       </view>
       <view class="board-dropdown-menu-item {{personType === 'all' ? 'is-active' : ''}}" data-type="all" bindtap="handleSelectPersonType">
@@ -85,14 +88,24 @@
   <view class="board-bottom-msg" wx:if="{{viewScopeText}}">- 您可查看{{viewScopeText}}出行情况 -</view>
   
   <!-- 底部弹窗：个人全部外出记录 -->
-  <view wx:if="{{showPersonPopup}}" class="person-popup-mask {{modalAnimating ? 'is-closing' : ''}}" catchtap="hidePersonPopup">
-    <view class="person-popup-container" catchtap="stopPropagation">
-      <view class="person-popup-header">
+  <view wx:if="{{showPersonPopup}}" class="person-popup-mask trip-pull-mask {{modalAnimating ? 'is-closing' : ''}}" catchtap="hidePersonPopup">
+    <view class="person-popup-container trip-pull-container" catchtap="stopPropagation">
+      <view class="person-popup-header"
+        bindtouchstart="{{pullDown.onTouchStart}}"
+        bindtouchmove="{{pullDown.onTouchMove}}"
+        bindtouchend="{{pullDown.onTouchEnd}}"
+        bindtouchcancel="{{pullDown.onTouchEnd}}"
+        data-container-class=".trip-pull-container"
+        data-mask-class=".trip-pull-mask"
+        data-modal-key="showPersonPopup"
+        data-threshold="{{pullDownThreshold}}">
+        <view class="person-popup-handle"></view>
         <view class="person-popup-title">{{personPopupData.name}}的全部出行记录</view>
         <view class="person-popup-subtitle">共{{personPopupData.total}}条记录</view>
         <view class="person-popup-close" catchtap="hidePersonPopup">✕</view>
       </view>
-      <scroll-view scroll-y class="person-popup-body" bindscrolltolower="handlePopupScrollToLower" lower-threshold="50">
+      <scroll-view scroll-y enhanced show-scrollbar="{{false}}" class="person-popup-body"
+        bindscrolltolower="handlePopupScrollToLower" lower-threshold="50">
         <view wx:if="{{personPopupLoading}}" class="person-popup-loading">
           <text>加载中...</text>
         </view>

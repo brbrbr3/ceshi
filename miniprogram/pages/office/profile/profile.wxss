@@ -236,6 +236,10 @@ page {
   font-weight: 600;
 }
 
+.profile-company-row:not(:last-child) {
+  margin-bottom: 8rpx;
+}
+
 .profile-info-value {
   margin-top: 18rpx;
   font-size: var(--fs-40);

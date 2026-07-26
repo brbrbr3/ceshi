@@ -1,0 +1,152 @@
+/**
+ * 下拉关闭弹窗 WXS 事件处理
+ *
+ * 事件绑定在弹窗 header 上，下拉 header 即可关闭弹窗。
+ * 在视图层直接处理触摸事件，实现 60fps 流畅交互。
+ *
+ * 使用方式：
+ *   1. WXML header 上绑定 WXS 事件 + dataset 参数
+ *   2. 配合 pullDownClose.js Behavior 使用
+ *
+ * WXML 示例：
+ *   <wxs module="pullDown" src="../../../behaviors/pullDownClose.wxs"></wxs>
+ *   <view class="xxx-header"
+ *     bindtouchstart="{{pullDown.onTouchStart}}"
+ *     bindtouchmove="{{pullDown.onTouchMove}}"
+ *     bindtouchend="{{pullDown.onTouchEnd}}"
+ *     bindtouchcancel="{{pullDown.onTouchEnd}}"
+ *     data-container-class=".xxx-pull-container"
+ *     data-mask-class=".xxx-pull-mask"
+ *     data-modal-key="showXxxPopup"
+ *     data-threshold="{{pullDownThreshold}}">
+ */
+
+var pullDownY = 0       // 阻尼后的当前位移
+var startY = 0          // 触摸起始 Y 坐标
+var isPulling = false   // 是否处于下拉状态
+var currentThreshold = 0 // 从实际高度计算的阈值（异步获取）
+var DAMP_FACTOR = 400   // 阻尼系数
+
+/**
+ * 触摸开始：记录起始位置，预加载阈值
+ */
+function onTouchStart(e, ownerInstance) {
+  var touch = e.touches[0]
+  startY = touch.clientY
+  isPulling = true
+  pullDownY = 0
+  currentThreshold = 0
+
+  var ds = e.currentTarget.dataset
+  var containerSelector = ds.containerClass || '.popup-container'
+  var container = ownerInstance.selectComponent(containerSelector)
+  if (container) {
+    container.getBoundingClientRect(function (rect) {
+      if (rect && rect.height > 0) {
+        currentThreshold = rect.height / 6
+      }
+    })
+  }
+}
+
+/**
+ * 获取关闭阈值
+ */
+function getThreshold(ds) {
+  if (currentThreshold > 0) return currentThreshold
+  if (ds.threshold) return Number(ds.threshold)
+  return 100
+}
+
+/**
+ * 触摸移动：阻尼位移 + 遮罩渐变
+ */
+function onTouchMove(e, ownerInstance) {
+  if (!isPulling) return
+
+  var deltaY = e.touches[0].clientY - startY
+  if (deltaY <= 0) {
+    return
+  }
+
+  // 阻尼公式
+  var dampedY = deltaY * (1 - deltaY / (deltaY + DAMP_FACTOR))
+  if (dampedY < 0) dampedY = 0
+  pullDownY = dampedY
+
+  var ds = e.currentTarget.dataset
+  var containerSelector = ds.containerClass || '.popup-container'
+  var maskSelector = ds.maskClass || '.popup-mask'
+  var threshold = getThreshold(ds)
+
+  var container = ownerInstance.selectComponent(containerSelector)
+  var mask = ownerInstance.selectComponent(maskSelector)
+
+  if (container) {
+    container.setStyle({
+      'transform': 'translateY(' + dampedY + 'px)',
+      'transition': 'none'
+    })
+  }
+
+  if (mask) {
+    var fadeDistance = threshold * 1.5
+    var opacity = 1 - dampedY / fadeDistance
+    if (opacity < 0) opacity = 0
+    mask.setStyle({ 'opacity': opacity })
+  }
+}
+
+/**
+ * 触摸结束：超过阈值关闭，否则弹回
+ */
+function onTouchEnd(e, ownerInstance) {
+  if (!isPulling) return
+  isPulling = false
+
+  var ds = e.currentTarget.dataset
+  var containerSelector = ds.containerClass || '.popup-container'
+  var maskSelector = ds.maskClass || '.popup-mask'
+  var threshold = getThreshold(ds)
+
+  var container = ownerInstance.selectComponent(containerSelector)
+  var mask = ownerInstance.selectComponent(maskSelector)
+
+  if (pullDownY >= threshold) {
+    if (container) {
+      container.setStyle({
+        'transform': 'translateY(100%)',
+        'transition': 'transform 0.25s ease-out'
+      })
+    }
+    if (mask) {
+      mask.setStyle({
+        'opacity': 0,
+        'transition': 'opacity 0.25s ease-out'
+      })
+    }
+    ownerInstance.callMethod('_onPullDownClose', {
+      modalKey: ds.modalKey || 'showPersonPopup'
+    })
+  } else {
+    if (container) {
+      container.setStyle({
+        'transform': 'translateY(0)',
+        'transition': 'transform 0.3s cubic-bezier(0.25, 0.1, 0.25, 1)'
+      })
+    }
+    if (mask) {
+      mask.setStyle({
+        'opacity': '',
+        'transition': 'opacity 0.3s ease'
+      })
+    }
+  }
+  pullDownY = 0
+}
+
+module.exports = {
+  onTouchStart: onTouchStart,
+  onTouchMove: onTouchMove,
+  onTouchEnd: onTouchEnd
+}

@@ -330,12 +330,14 @@
   bottom: 0;
   left: 0;
   right: 0;
+  height: 80vh;
   max-height: 80vh;
   background: #FFFFFF;
   border-radius: 32rpx 32rpx 0 0;
   display: flex;
   flex-direction: column;
   animation: slideUp 0.3s cubic-bezier(0.25, 0.1, 0.25, 1);
+  will-change: transform;
 }
 
 .is-closing .person-popup-container {
@@ -352,6 +354,21 @@
   padding: 32rpx 28rpx 24rpx;
   border-bottom: 1rpx solid #F1F5F9;
   flex-shrink: 0;
+}
+
+/* 下拉把手（iOS 风格，呼吸灯效果） */
+.person-popup-handle {
+  width: 102rpx;
+  height: 10rpx;
+  margin: 0 auto 5rpx;
+  background: #CBD5E1;
+  border-radius: 5rpx;
+  animation: handleBreathe 2s ease-in-out infinite;
+}
+
+@keyframes handleBreathe {
+  0%, 100% { opacity: 0.4; }
+  50% { opacity: 1; }
 }
 
 .person-popup-title {
@@ -385,6 +402,13 @@
   padding: 24rpx 28rpx;
   overflow-y: auto;
   box-sizing: border-box;
+}
+
+/* 隐藏默认滚动条（原 enhanced + show-scrollbar="{{false}}" 效果） */
+.person-popup-body::-webkit-scrollbar {
+  display: none;
+  width: 0;
+  height: 0;
 }
 
 .person-popup-loading,
@@ -523,7 +547,7 @@
 
 .board-bottom-msg {
   text-align: center;
-  padding: 150rpx 48rpx 40rpx;
+  padding: 150rpx 48rpx 80rpx;
   font-size: var(--fs-30);
   color: #94A3B8;
 }

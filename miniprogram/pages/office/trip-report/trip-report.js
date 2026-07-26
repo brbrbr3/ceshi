@@ -5,21 +5,21 @@ const paginationBehavior = require('../../../behaviors/pagination.js')
 // 状态样式映射
 const STATUS_STYLE = {
   out: {
-    color: '#2563EB',
-    bg: '#EFF6FF',
+    color: '#F59E0B',
+    bg: '#FFFBEB',
     icon: '🚗',
     text: '外出中'
   },
   returned: {
     color: '#16A34A',
     bg: '#DCFCE7',
-    icon: '✓',
+    icon: '🏠',
     text: '已返回'
   },
   overtime: {
     color: '#DC2626',
     bg: '#FEE2E2',
-    icon: '⚠',
+    icon: '❌',
     text: '超时'
   }
 }
@@ -27,7 +27,8 @@ const STATUS_STYLE = {
 // 历史记录存储key
 const STORAGE_KEY_DESTINATION = 'trip_destination_history'
 const STORAGE_KEY_COMPANIONS = 'trip_companions_history'
-const MAX_HISTORY_COUNT = 3
+const MAX_DESTINATION_HISTORY = 10
+const MAX_COMPANIONS_HISTORY = 5
 
 Page({
   behaviors: [paginationBehavior],
@@ -178,9 +179,10 @@ Page({
     // 添加到最前面
     history.unshift(value)
 
-    // 最多保留 MAX_HISTORY_COUNT 条
-    if (history.length > MAX_HISTORY_COUNT) {
-      history = history.slice(0, MAX_HISTORY_COUNT)
+    // 最多保留对应条数（目的地10条，同行人5条）
+    const maxCount = key === 'destination' ? MAX_DESTINATION_HISTORY : MAX_COMPANIONS_HISTORY
+    if (history.length > maxCount) {
+      history = history.slice(0, maxCount)
     }
 
     // 保存到本地存储

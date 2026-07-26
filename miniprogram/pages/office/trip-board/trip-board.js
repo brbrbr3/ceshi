@@ -1,17 +1,18 @@
 const app = getApp()
 const utils = require('../../../common/utils.js')
 const modalAnimation = require('../../../behaviors/modalAnimation.js')
+const pullDownClose = require('../../../behaviors/pullDownClose.js')
 
 // 状态样式映射
 const STATUS_STYLE = {
-  out: { color: '#2563EB', bg: '#EFF6FF', text: '外出中' },
+  out: { color: '#F59E0B', bg: '#FFFBEB', text: '外出中' },
   returned: { color: '#16A34A', bg: '#DCFCE7', text: '已返回' },
   overtime: { color: '#DC2626', bg: '#FEE2E2', text: '超时' },
-  none: { color: '#94A3B8', bg: '#F1F5F9', text: '在馆' }
+  none: { color: '#94A3B8', bg: '#F1F5F9', text: '🏢在馆' }
 }
 
 Page({
-  behaviors: [modalAnimation],
+  behaviors: [modalAnimation, pullDownClose],
 
   data: {
     loading: false,
@@ -35,10 +36,16 @@ Page({
     popupPage: 1,
     popupPageSize: 20,
     popupHasMore: true,
-    popupLoadingMore: false
+    popupLoadingMore: false,
+    // 下拉关闭阈值（弹窗高度 1/6，onLoad 中计算）
+    pullDownThreshold: 0
   },
 
   async onLoad() {
+    // 计算下拉关闭阈值（弹窗 max-height 为 80vh，阈值 = 高度 / 6）
+    var sysInfo = wx.getWindowInfo ? wx.getWindowInfo() : wx.getSystemInfoSync()
+    this.setData({ pullDownThreshold: Math.round(sysInfo.windowHeight * 0.8 / 6) })
+
     try {
       await this.initUserInfo()
       if (!this.data.currentUser) return  // 无权限已切走，不再继续
@@ -167,12 +174,16 @@ Page({
     }
 
     const livingArea = (item._user && item._user.livingArea) || ''
+    // 未外出时，根据居住区域显示不同状态：本部→🏢在馆，其他→🏠在家
+    const statusText = item.status === 'none'
+      ? (livingArea === '本部' ? '🏢在馆' : '🏠在家')
+      : style.text
 
     return {
       ...item,
       avatarText,
       avatarColor: utils.getAvatarColor(item.userName),
-      statusText: style.text,
+      statusText,
       statusColor: style.color,
       statusBg: style.bg,
       departTimeStr,
@@ -278,7 +289,8 @@ Page({
           params: {
             targetOpenid,
             page,
-            pageSize: this.data.popupPageSize
+            pageSize: this.data.popupPageSize,
+            knownTotal: this.data.personPopupData.total || undefined
           }
         }
       })
@@ -372,6 +384,7 @@ Page({
   },
 
   hidePersonPopup() {
+    if (this._pullDownClosing) return
     this._closeModal('showPersonPopup', () => {
       this.setData({
         personPopupData: null,
@@ -381,6 +394,21 @@ Page({
         popupPage: 1
       })
     })
+  },
+
+  /**
+   * 下拉关闭后的数据清理（由 pullDownClose behavior 回调）
+   */
+  _onPullDownClosed(modalKey) {
+    if (modalKey === 'showPersonPopup') {
+      this.setData({
+        personPopupData: null,
+        personPopupLoading: false,
+        popupLoadingMore: false,
+        popupHasMore: true,
+        popupPage: 1
+      })
+    }
   },
 
   stopPropagation() {},

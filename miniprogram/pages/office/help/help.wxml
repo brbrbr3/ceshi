@@ -438,7 +438,9 @@
         <view class="tips-item">
           <view class="tips-icon"></view>
           <view class="tips-content">
-            <text class="tips-title">1.0.1 修复登录问题，增加‘清除缓存’功能
+            <text class="tips-title">1.0.3 修复数据板列表展示顺序，界面优化
+            1.0.2 修复代报备通知机制，UI优化
+            1.0.1 修复登录问题，增加‘清除缓存’功能
               1.0.0 正式版上线</text>
           </view>
         </view>

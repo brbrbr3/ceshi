@@ -70,9 +70,9 @@
       <view class="profile-company-head">
         <!-- <view class="profile-company-logo">🏢</view> -->
         <view>
-          <view class="profile-company-name">组织：<text class="profile-company-address" selectable="true">{{(isReviewer ? '888' : 'Embaixada')}}</text></view>
-          <view class="profile-company-name">地址：<text class="profile-company-address" selectable="true">{{(isReviewer? '123456' : 'Quadra 813, Lote 52, Avenida das Nações, SES, Asa Sul, Brasília-DF, Brasil')}}</text></view>
-          <view wx:if="{{!isReviewer}}" class="profile-company-name">邮编（CEP）：<text class="profile-company-address" selectable="true">70443-900</text></view>
+          <view class="profile-company-row"><text class="profile-company-name" user-select="true">组织：{{(isReviewer ? '888' : 'Embaixada')}}</text></view>
+          <view class="profile-company-row"><text class="profile-company-name" user-select="true">地址：{{(isReviewer? '123456' : 'Quadra 813 Lote 52, Avenida das Nações, SES, Asa Sul, Brasília-DF, Brasil')}}</text></view>
+          <view wx:if="{{!isReviewer}}" class="profile-company-row"><text  class="profile-company-name" user-select="true">邮编（CEP）：70443-900</text></view>
         </view>
       </view>
       <view class="profile-company-grid">

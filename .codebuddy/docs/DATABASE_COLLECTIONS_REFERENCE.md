@@ -152,7 +152,7 @@
 **索引**：
 
 - `_id` - 记录 ID（云开发自动创建）
-- `idx_openid_createdAt` - 组合索引：openid（升序）+ createdAt（降序）- 优化消息列表查询
+- `openid_createdAt_idx` - 组合索引：openid（升序）+ createdAt（降序）- 优化消息列表查询
 
 **字段结构**：
 ```javascript
@@ -1662,6 +1662,7 @@ const notificationsCollection = db.collection('notifications')  // ✅
 | 2026-04-07 | 添加 car_purchase_records 购车记录集合（购车管理Checklist功能） | AI |
 | 2026-04-28 | 更新 side_dish_orders/side_dish_bookings 支持多类别征订（categories/items） | AI |
 | 2026-07-21 | 添加 interest_class_reports 兴趣班备案记录集合（兴趣班备案功能） | AI |
+| 2026-07-26 | 创建 notifications 集合组合索引 `openid_createdAt_idx`（openid升序 + createdAt降序） | AI |
 
 ---
 

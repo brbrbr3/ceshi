@@ -663,15 +663,15 @@ async function getHistory(openid) {
 
   const trips = result.data || []
 
-  // 提取目的地并去重（最多3条）
+  // 提取目的地并去重（最多10条）
   const destinations = [...new Set(
     trips.map(t => t.destination).filter(Boolean)
-  )].slice(0, 3)
+  )].slice(0, 10)
 
-  // 提取同行人并去重（最多3条）
+  // 提取同行人并去重（最多5条）
   const companions = [...new Set(
     trips.map(t => t.companions).filter(Boolean)
-  )].slice(0, 3)
+  )].slice(0, 5)
 
   return success({ destinations, companions })
 }
@@ -814,6 +814,23 @@ async function getDepartmentOptions() {
   try {
     const configRes = await db.collection('sys_config')
       .where({ type: 'department', key: 'DEPARTMENT_OPTIONS' })
+      .limit(1)
+      .get()
+    if (configRes.data && configRes.data.length > 0 && Array.isArray(configRes.data[0].value)) {
+      return configRes.data[0].value
+    }
+  } catch (e) {}
+  return []
+}
+
+/**
+ * 从 sys_config 读取居住区域选项列表（用于居住区分组排序）
+ * @returns {Promise<string[]>} 居住区域名称数组，读取失败返回空数组
+ */
+async function getLivingAreaOptions() {
+  try {
+    const configRes = await db.collection('sys_config')
+      .where({ key: 'REPAIR_LIVING_AREAS' })
       .limit(1)
       .get()
     if (configRes.data && configRes.data.length > 0 && Array.isArray(configRes.data[0].value)) {
@@ -996,7 +1013,7 @@ async function getBoardData(openid, params) {
   // 查询范围内的用户
   const usersRes = await usersCollection
     .where(userQuery)
-    .field({ openid: true, name: true, department: true, livingArea: true, role: true, isDepartmentHead: true })
+    .field({ openid: true, name: true, department: true, livingArea: true, role: true, isDepartmentHead: true, areaManagerOf: true, deptExtraNotifierOf: true })
     .limit(500)
     .get()
   const users = usersRes.data || []
@@ -1069,6 +1086,33 @@ async function getBoardData(openid, params) {
     groups[groupKey].push(item)
   })
 
+  // 组内排序：部门 → 部门负责人/额外报备接收人优先；居住区 → 片长优先
+  Object.values(groups).forEach(groupItems => {
+    groupItems.sort((a, b) => {
+      const aUser = a._user || {}
+      const bUser = b._user || {}
+      const aName = a.userName || ''
+      const bName = b.userName || ''
+      if (groupBy === 'department') {
+        // 部门负责人最前
+        const aIsHead = aUser.isDepartmentHead ? 0 : 1
+        const bIsHead = bUser.isDepartmentHead ? 0 : 1
+        if (aIsHead !== bIsHead) return aIsHead - bIsHead
+        // 部门额外报备接收人次之
+        const aIsExtra = (aUser.deptExtraNotifierOf && aUser.deptExtraNotifierOf.length > 0) ? 0 : 1
+        const bIsExtra = (bUser.deptExtraNotifierOf && bUser.deptExtraNotifierOf.length > 0) ? 0 : 1
+        if (aIsExtra !== bIsExtra) return aIsExtra - bIsExtra
+      } else {
+        // 片长最前
+        const aIsManager = (aUser.areaManagerOf && aUser.areaManagerOf.length > 0) ? 0 : 1
+        const bIsManager = (bUser.areaManagerOf && bUser.areaManagerOf.length > 0) ? 0 : 1
+        if (aIsManager !== bIsManager) return aIsManager - bIsManager
+      }
+      // 同优先级按姓名排序
+      return aName.localeCompare(bName)
+    })
+  })
+
   // 转为数组并排序
   let groupList = Object.entries(groups).map(([key, groupItems]) => ({
     groupName: key,
@@ -1094,7 +1138,16 @@ async function getBoardData(openid, params) {
       return a.groupName.localeCompare(b.groupName)
     })
   } else {
-    groupList.sort((a, b) => a.groupName.localeCompare(b.groupName))
+    // 按系统配置的居住区域顺序排列
+    const livingAreaOrder = await getLivingAreaOptions()
+    groupList.sort((a, b) => {
+      const aIdx = livingAreaOrder.indexOf(a.groupName)
+      const bIdx = livingAreaOrder.indexOf(b.groupName)
+      const aOrder = aIdx === -1 ? Number.MAX_SAFE_INTEGER : aIdx
+      const bOrder = bIdx === -1 ? Number.MAX_SAFE_INTEGER : bIdx
+      if (aOrder !== bOrder) return aOrder - bOrder
+      return a.groupName.localeCompare(b.groupName)
+    })
   }
 
   const totalCount = personType === 'active' ? activeCount : allCount
@@ -1108,7 +1161,7 @@ async function getBoardData(openid, params) {
  * @param {object} params { targetOpenid, page, pageSize }
  */
 async function getPersonTrips(openid, params) {
-  const { targetOpenid, page = 1, pageSize = 20 } = params
+  const { targetOpenid, page = 1, pageSize = 20, knownTotal } = params
   if (!targetOpenid) {
     return fail('缺少目标用户标识', 400)
   }
@@ -1167,16 +1220,16 @@ async function getPersonTrips(openid, params) {
 
   const trips = tripRes.data || []
 
-  // 仅第一页时查询总数
-  let total = 0
-  if (page === 1) {
+  // 优先使用传入的 knownTotal，否则第一页查询总数
+  let total = knownTotal
+  if (total === undefined) {
     const countRes = await tripReportsCollection
       .where({ _openid: targetOpenid })
       .count()
     total = countRes.total || 0
   }
 
-  const hasMore = skip + trips.length < (total || (skip + trips.length))
+  const hasMore = skip + trips.length < total
 
   return success({
     user: page === 1 ? {
