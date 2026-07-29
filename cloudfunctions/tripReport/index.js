@@ -236,6 +236,13 @@ async function handleDepart(openid, params) {
         } catch (e) {
           console.warn(`推送同行人 ${matchedUser.name} 的报备通知失败:`, e)
         }
+
+        // 推送代报备通知给被代报备人本人（站内通知 + 微信订阅消息）
+        try {
+          await sendProxyReportNotification(matchedUser.openid, currentUserName, destination, now)
+        } catch (e) {
+          console.warn(`推送同行人 ${matchedUser.name} 的代报备通知失败:`, e)
+        }
       }
 
       // 记录未匹配的同行人
@@ -942,6 +949,53 @@ async function sendOvertimeSubscribeMessage(openid) {
   } catch (error) {
     const errcode = error.errcode || error.errCode
     console.warn('[订阅] 发送外出超时消息失败:', openid, errcode, error.message || error)
+  }
+}
+
+/**
+ * 发送代报备通知给被代报备人本人（站内通知 + 微信订阅消息模板4：未读消息提醒）
+ * @param {string} openid - 被代报备人 openid
+ * @param {string} reporterName - 代报备人姓名
+ * @param {string} destination - 目的地
+ * @param {number} now - 时间戳
+ */
+async function sendProxyReportNotification(openid, reporterName, destination, now) {
+  const title = '代报备通知'
+  const content = `${reporterName}已为您代报备出行，目的地：${destination}`
+  const remark = '返回后请自行报备返回'
+
+  // 1. 站内通知
+  try {
+    await notificationsCollection.add({
+      data: {
+        openid: openid,
+        type: 'proxy_report',
+        title,
+        content,
+        read: false,
+        createdAt: now
+      }
+    })
+  } catch (e) {
+    console.warn('写入代报备站内通知失败:', e)
+  }
+
+  // 2. 微信订阅消息（模板4：未读消息提醒）
+  try {
+    await cloud.openapi.subscribeMessage.send({
+      touser: openid,
+      templateId: UNREAD_MESSAGE_TEMPLATE_ID,
+      page: 'pages/office/trip-report/trip-report',
+      data: {
+        thing6: { value: truncateText('代报备通知') },
+        thing3: { value: truncateText(content) },
+        thing4: { value: truncateText(remark) }
+      }
+    })
+    console.log('代报备订阅消息已发送:', openid)
+  } catch (error) {
+    const errcode = error.errcode || error.errCode
+    console.warn('[订阅] 发送代报备通知消息失败:', openid, errcode, error.message || error)
   }
 }
 

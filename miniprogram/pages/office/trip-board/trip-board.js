@@ -141,7 +141,7 @@ Page({
         const data = res.result.data
         const groups = (data.groups || []).map(g => ({
           groupName: g.groupName,
-          items: g.items.map(item => this.formatBoardItem(item))
+          items: g.items.map(item => this.formatBoardItem(item, this.data.groupBy))
         }))
 
         this.setData({
@@ -162,8 +162,10 @@ Page({
 
   /**
    * 格式化数据板条目
+   * @param {Object} item - 原始数据项
+   * @param {string} groupBy - 分组维度 'department' | 'livingArea'
    */
-  formatBoardItem(item) {
+  formatBoardItem(item, groupBy) {
     const style = STATUS_STYLE[item.status] || STATUS_STYLE.none
     const avatarText = item.userName ? item.userName.slice(0, 1) : '?'
 
@@ -174,21 +176,58 @@ Page({
     }
 
     const livingArea = (item._user && item._user.livingArea) || ''
-    // 未外出时，根据居住区域显示不同状态：本部→🏢在馆，其他→🏠在家
-    const statusText = item.status === 'none'
-      ? (livingArea === '本部' ? '🏢在馆' : '🏠在家')
-      : style.text
+    const user = item._user || {}
+    const hasTrip = item.status !== 'none'
+
+    let roleLabel = ''
+    let statusText, statusColor, statusBg
+
+    if (hasTrip) {
+      // 外出中状态：保持原样（外出中/已返回/超时）
+      statusText = style.text
+      statusColor = style.color
+      statusBg = style.bg
+    } else {
+      // 未外出状态：根据分组维度判断角色标签
+      if (groupBy === 'department') {
+        if (user.isDepartmentHead) {
+          roleLabel = '负责人'
+          statusColor = '#2563EB'
+          statusBg = '#EFF6FF'
+        } else if (Array.isArray(user.deptExtraNotifierOf) && user.deptExtraNotifierOf.length > 0) {
+          roleLabel = '报备接收人'
+          statusColor = '#0D9488'
+          statusBg = '#CCFBF1'
+        }
+      } else if (groupBy === 'livingArea') {
+        if (Array.isArray(user.areaManagerOf) && user.areaManagerOf.length > 0) {
+          roleLabel = '片长'
+          statusColor = '#7C3AED'
+          statusBg = '#F5F3FF'
+        }
+      }
+
+      if (roleLabel) {
+        statusText = roleLabel
+      } else {
+        // 无角色标签：显示原有在馆/在家
+        statusText = livingArea === '本部' ? '🏢在馆' : '🏠在家'
+        statusColor = style.color
+        statusBg = style.bg
+      }
+    }
 
     return {
       ...item,
       avatarText,
       avatarColor: utils.getAvatarColor(item.userName),
       statusText,
-      statusColor: style.color,
-      statusBg: style.bg,
+      statusColor,
+      statusBg,
       departTimeStr,
       livingArea,
-      hasTrip: item.status !== 'none'
+      hasTrip,
+      showStatus: hasTrip || !!roleLabel
     }
   },
 
@@ -440,8 +479,10 @@ Page({
       parts.push('本部门（' + user.department + '）')
     }
     if (isDeptExtraNotifier) {
-      // 排除已作为"本部门"显示的部门，避免重复
-      const extraDepts = user.deptExtraNotifierOf.filter(d => d !== user.department)
+      // 仅当已作为"本部门"显示时，才排除对应部门避免重复
+      const extraDepts = isDeptHead
+        ? user.deptExtraNotifierOf.filter(d => d !== user.department)
+        : user.deptExtraNotifierOf
       if (extraDepts.length > 0) {
         parts.push('报备部门（' + extraDepts.join('、') + '）')
       }

@@ -168,7 +168,7 @@
 }
 
 .board-group:last-child {
-  padding-bottom: 100rpx;
+  margin-bottom: 24rpx;
 }
 
 .board-group-title {
@@ -248,8 +248,8 @@
 
 .board-item-info {
   display: flex;
+  justify-content: space-between;
   align-items: center;
-  gap: 16rpx;
 }
 
 .board-item-dest {
@@ -261,9 +261,10 @@
 }
 
 .board-item-time {
-  font-size: var(--fs-24);
+  font-size: var(--fs-26);
   color: #94A3B8;
   flex-shrink: 0;
+  padding-right: 15rpx;
 }
 
 .board-item-info--none {
@@ -547,7 +548,7 @@
 
 .board-bottom-msg {
   text-align: center;
-  padding: 150rpx 48rpx 80rpx;
+  padding: 0 48rpx 54rpx;
   font-size: var(--fs-30);
   color: #94A3B8;
 }

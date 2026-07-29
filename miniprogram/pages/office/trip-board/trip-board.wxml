@@ -69,7 +69,7 @@
           <view class="board-item-main">
             <view class="board-item-name-row">
               <text class="board-item-name">{{trip.userName}}</text>
-              <view class="board-item-status" style="background: {{trip.statusBg}}; color: {{trip.statusColor}};">{{trip.statusText}}</view>
+              <view wx:if="{{trip.showStatus}}" class="board-item-status" style="background: {{trip.statusBg}}; color: {{trip.statusColor}};">{{trip.statusText}}</view>
             </view>
             <view wx:if="{{trip.hasTrip}}" class="board-item-info">
               <text class="board-item-dest">{{trip.destination}}</text>

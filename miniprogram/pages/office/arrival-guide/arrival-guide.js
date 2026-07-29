@@ -561,7 +561,7 @@ Page({
     }],
 
     websiteContent: [{
-      category: '租房',
+      category: '一、租房',
       items: [{
         name: 'https://www.dfimoveis.com.br/',
         desc: '',
@@ -585,7 +585,7 @@ Page({
       ]
     },
     {
-      category: '查违章',
+      category: '二、查违章',
       items: [{
         name: 'https://portal.detran.df.gov.br/#/servicos/detran-digital/veiculos/consulta/debitos',
         desc: '联邦区车管所',
@@ -599,13 +599,16 @@ Page({
       ]
     },
     {
-      category: '缴电费',
+      category: '三、缴电费（外租公寓电费支付说明）\n（一）登录电力公司缴费网站：',
       items: [{
         name: 'https://agenciavirtual.neoenergiabrasilia.com.br/',
         desc: '',
         type: 'link'
       }]
     },
+    {
+      category: '点击login登录\n1. 外租公寓SQS212 210公寓（贾参）和SQS 303 308（强武官）公寓的登陆帐户和密码为（以王主任名义租赁）：\n税号: 10488817170\n密码: Wang2098\n2. 其余外租公寓登陆帐户和密码为（以段参名义租赁）：\n税号: 110.861.711-52\n密码: Gp300391\n（二）根据地址选择自家公寓，PENDENCIAS（待支付）列如果是sim，则说明有账单未支付，点击最左侧蓝框，\n（三）点击SEGUNDA VIA DE FATURA， 查询未支付账单\n（四）选择未支付账单，点击GERAR FATURA生成，扫码支付',
+    }
     ],
 
     // 子女就学（结构化数据，从原 richtext-school 硬编码文本提取）

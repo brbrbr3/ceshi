@@ -322,11 +322,12 @@
 }
 
 .content-category {
-  font-size: var(--fs-28);
-  font-weight: 500;
+  font-size: var(--fs-30);
+  font-weight: 400;
   color: #1e293b;
-  margin-bottom: 16rpx;
+  margin-bottom: 10rpx;
   padding-left: 4rpx;
+  word-break: break-all;
 }
 
 .content-card {
