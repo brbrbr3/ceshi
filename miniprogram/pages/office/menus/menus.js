@@ -102,6 +102,7 @@ Page({
   },
 
   goMenuDetail(e) {
+    app.subscribeOnTap(app.getSubscribeTypesForUser(app.globalData.userProfile))
     const id = e.currentTarget.dataset.id
     wx.navigateTo({
       url: `/pages/office/menu-detail/menu-detail?id=${id}`
@@ -109,6 +110,7 @@ Page({
   },
 
   goAddMenu() {
+    app.subscribeOnTap(app.getSubscribeTypesForUser(app.globalData.userProfile))
     wx.navigateTo({
       url: '/pages/office/menu-edit/menu-edit'
     })

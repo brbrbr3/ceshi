@@ -84,6 +84,7 @@
     </view>
 
     <view class="office-card profile-logout-btn" bindtap="handleClearCache">清除缓存</view>
+    <view wx:if="{{!isReviewer}}" class="profile-version" style="text-align: left; padding: 10rpx 20rpx;">若小程序运行异常（收不到微信推送消息、权限异常等），请点击“清除缓存”按钮尝试解决</view>
     <view class="office-card profile-logout-btn" bindtap="handleLogout">退出登录</view>
     <view class="profile-version">BXLY报备助手 · V{{version}}</view>
   </view>

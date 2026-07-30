@@ -283,17 +283,7 @@ Page({
     // 利用 tap 手势静默积累订阅额度（与首页 handleQuickAction 逻辑一致）
     // 管理员 → 积累模板2（待审批通知）；报备接收人 → 积累模板3（出行报备通知）
     const user = this.data.currentUser
-    if (user) {
-      const types = ['unread_message']
-      if (user.isAdmin) types.push('pending_approval')
-      const isReceiver = user.role === '馆领导'
-        || user.isDepartmentHead
-        || (Array.isArray(user.areaManagerOf) && user.areaManagerOf.length > 0)
-        || (Array.isArray(user.deptExtraNotifierOf) && user.deptExtraNotifierOf.length > 0)
-        || user.isLeaderNotifier
-      if (isReceiver) types.push('trip_report')
-      app.subscribeOnTap(types)
-    }
+    if (user) app.subscribeOnTap(app.getSubscribeTypesForUser(user))
 
     const openid = e.currentTarget.dataset.openid
     const name = e.currentTarget.dataset.name

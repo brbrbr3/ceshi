@@ -518,6 +518,7 @@ Page({
    */
   submitDepart() {
     if (this.data.submitting) return
+    app.subscribeOnTap(app.getSubscribeTypesForUser(app.globalData.userProfile))
 
     if (!this.validateForm()) return
 
@@ -590,6 +591,7 @@ Page({
    * 返回报备
    */
   handleReturn() {
+    app.subscribeOnTap(app.getSubscribeTypesForUser(app.globalData.userProfile))
     const activeTrip = this.data.activeTrip
     if (!activeTrip) return
 
@@ -656,6 +658,7 @@ Page({
    * 处理按钮点击 - 外出报备
    */
   handleDepartBtn() {
+    app.subscribeOnTap(app.getSubscribeTypesForUser(app.globalData.userProfile))
     if (this.data.activeTrip) return
     this.showDepartForm()
   },
@@ -786,6 +789,7 @@ Page({
   submitRetroDepart() {
     if (this.data.submitting) return
     if (!this.validateRetroForm()) return
+    app.subscribeOnTap(app.getSubscribeTypesForUser(app.globalData.userProfile))
 
     const form = this.data.retroForm
     const departAt = new Date(form.departAt.replace(' ', 'T')).getTime()

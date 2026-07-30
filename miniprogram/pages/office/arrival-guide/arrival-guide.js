@@ -919,6 +919,7 @@ Page({
 
   // 按钮点击
   handleButtonTap(e) {
+    app.subscribeOnTap(app.getSubscribeTypesForUser(app.globalData.userProfile))
     const key = e.currentTarget.dataset.key
 
     if (key === 'arrived') {
@@ -1003,6 +1004,7 @@ Page({
 
   // checklist 打钩
   handleCheckToggle(e) {
+    app.subscribeOnTap(app.getSubscribeTypesForUser(app.globalData.userProfile))
     const id = e.currentTarget.dataset.id
     const checklistItems = this.data.checklistItems.map((item) => {
       if (item.id === id) {
@@ -1084,6 +1086,7 @@ Page({
 
   // 可点击项点击处理
   handleItemTap(e) {
+    app.subscribeOnTap(app.getSubscribeTypesForUser(app.globalData.userProfile))
     const {
       name,
       type

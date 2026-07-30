@@ -87,6 +87,7 @@ Page({
   },
 
   handleNotificationTap(e) {
+    app.subscribeOnTap(app.getSubscribeTypesForUser(app.globalData.userProfile))
     const id = e.currentTarget.dataset.id
     const notification = this.data.list.find(n => n._id === id)
 
@@ -123,6 +124,7 @@ Page({
   },
 
   markAllAsRead() {
+    app.subscribeOnTap(app.getSubscribeTypesForUser(app.globalData.userProfile))
     wx.showLoading({
       title: '加载中',
       mask: true
@@ -159,6 +161,7 @@ Page({
   },
 
   clearAll() {
+    app.subscribeOnTap(app.getSubscribeTypesForUser(app.globalData.userProfile))
     wx.showModal({
       title: '确认清空',
       content: '确定要清空所有消息吗？',

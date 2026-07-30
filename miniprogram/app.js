@@ -849,6 +849,7 @@ App({
    * @param {string[]} types - 订阅类型数组（如 ['unread_message', 'pending_approval', 'trip_report']）
    */
   subscribeOnTap(types) {
+    if (this.globalData.isReviewer) return
     if (!types || types.length === 0) return
 
     const typeToTemplate = {
@@ -901,6 +902,24 @@ App({
         this._subscribing = false
       }
     })
+  },
+
+  /**
+   * 根据用户角色返回应订阅的消息类型
+   * @param {Object} user - 用户对象
+   * @returns {string[]} 订阅类型数组
+   */
+  getSubscribeTypesForUser(user) {
+    if (!user) return []
+    const types = ['unread_message']
+    if (user.isAdmin) types.push('pending_approval')
+    const isReceiver = user.role === '馆领导'
+      || user.isDepartmentHead
+      || (Array.isArray(user.areaManagerOf) && user.areaManagerOf.length > 0)
+      || (Array.isArray(user.deptExtraNotifierOf) && user.deptExtraNotifierOf.length > 0)
+      || user.isLeaderNotifier
+    if (isReceiver) types.push('trip_report')
+    return types
   },
 
   addApprovalNotification(type, content) {

@@ -399,6 +399,7 @@ Page({
   },
 
   handleMenuTap(e) {
+    app.subscribeOnTap(app.getSubscribeTypesForUser(app.globalData.userProfile))
     const label = e.currentTarget.dataset.label
     if (label === '修改个人信息') {
       wx.navigateTo({

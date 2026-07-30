@@ -341,6 +341,8 @@ Page({
   },
 
   goNotifications() {
+    const user = this.data.currentUser || app.globalData.userProfile
+    if (user) app.subscribeOnTap(app.getSubscribeTypesForUser(user))
     wx.navigateTo({
       url: '/pages/office/notifications/notifications'
     })
@@ -487,17 +489,7 @@ Page({
     // 利用用户 tap 手势订阅/充值额度（基于"总是保持以上选择"机制）
     // 全体用户 → 模板4（未读消息提醒）；管理员 → 模板2（待审批通知）；报备接收人 → 模板3（出行报备通知）
     const user = this.data.currentUser || app.globalData.userProfile
-    if (user) {
-      const types = ['unread_message']
-      if (user.isAdmin) types.push('pending_approval')
-      const isReceiver = user.isDepartmentHead ||
-        user.role === '馆领导' ||
-        (Array.isArray(user.areaManagerOf) && user.areaManagerOf.length > 0) ||
-        (Array.isArray(user.deptExtraNotifierOf) && user.deptExtraNotifierOf.length > 0) ||
-        user.isLeaderNotifier
-      if (isReceiver) types.push('trip_report')
-      app.subscribeOnTap(types)
-    }
+    if (user) app.subscribeOnTap(app.getSubscribeTypesForUser(user))
 
     const label = e.currentTarget.dataset.label
     if (label === '每周菜单') {
@@ -571,6 +563,8 @@ Page({
    * 跳转到日历页面
    */
   goCalendar() {
+    const user = this.data.currentUser || app.globalData.userProfile
+    if (user) app.subscribeOnTap(app.getSubscribeTypesForUser(user))
     wx.navigateTo({
       url: '/pages/office/calendar/calendar'
     })
@@ -643,9 +637,9 @@ Page({
     // 使用本地日期字符串，与picker保持一致（避免时区转换问题）
     const todayStr = utils.getLocalDateString()
 
-    // 先检查是否是法定节假日
+    // 先检查是否是馆定节假日
     if (holidayDates.includes(todayStr)) {
-      return '今天是法定节假日'
+      return '今天是馆定节假日'
     }
 
     // 再检查是否是周末

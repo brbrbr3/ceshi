@@ -21,7 +21,7 @@
           <view class="card-title">全馆日历</view>
         </view>
         <view class="card-content">
-          <view class="card-desc">以日历视图展示{{(isReviewer ? '法定节假日' : '馆内节假日和巴西节假日')}}安排</view>
+          <view class="card-desc">以日历视图展示{{(isReviewer ? '法定节假日' : '馆定节假日和巴西节假日')}}安排</view>
           <view class="card-permission">
             <view class="permission-label">权限要求：</view>
             <view class="permission-value">所有用户可查看</view>
