@@ -361,7 +361,7 @@ page {
 .profile-logout-btn {
   margin-top: 24rpx;
   text-align: center;
-  font-size: var(--fs-26);
+  font-size: var(--fs-30);
   font-weight: 600;
   color: #EF4444;
 }
@@ -369,7 +369,7 @@ page {
 .profile-version {
   margin: 24rpx 0 20rpx;
   text-align: center;
-  font-size: var(--fs-22);
+  font-size: var(--fs-26);
   letter-spacing: 2rpx;
   color: #94A3B8;
 }

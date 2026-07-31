@@ -68,6 +68,7 @@ async function getCurrentUser(openid) {
 /**
  * 分页查询
  * 按角色自动过滤查询范围与状态：
+ * - 管理员 → 全体，支持状态筛选（含已结束）
  * - 部门负责人 → 本部门，仅生效中
  * - 馆领导（非部门负责人）→ 全体，仅生效中
  * - 其他 → 仅自己，全部（含已结束）
@@ -84,10 +85,16 @@ async function handleList(openid, params) {
   // 构建查询条件
   const conditions = {}
 
+  const isAdmin = currentUser.isAdmin === true
   const isDeptHead = currentUser.isDepartmentHead === true
   const isLeader = currentUser.role === '馆领导'
 
-  if (isDeptHead) {
+  if (isAdmin) {
+    // 管理员 → 全体 + 支持状态筛选（含已结束）
+    if (status && status !== 'all') {
+      conditions.status = status
+    }
+  } else if (isDeptHead) {
     // 部门负责人 → 本部门 + 仅生效中
     conditions.creatorDepartment = currentUser.department || ''
     conditions.status = 'active'
@@ -106,13 +113,12 @@ async function handleList(openid, params) {
   // 关键词搜索（姓名 / 兴趣班名称）
   if (keyword && keyword.trim()) {
     const reg = db.RegExp({ regexp: keyword.trim(), options: 'i' })
-    conditions.name = conditions.name
-      ? _.and(conditions.name, reg)
-      : reg
-    // 用 _.or 实现 name 或 className 模糊匹配
-    delete conditions.name
     const baseCond = {}
-    if (isDeptHead) {
+    if (isAdmin) {
+      if (status && status !== 'all') {
+        baseCond.status = status
+      }
+    } else if (isDeptHead) {
       baseCond.creatorDepartment = currentUser.department || ''
       baseCond.status = 'active'
     } else if (isLeader) {

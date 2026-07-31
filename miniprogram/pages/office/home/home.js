@@ -120,7 +120,7 @@ Page({
       }, */
       {
         icon: 'ℹ️',
-        label: '实用资讯',
+        label: '生活资讯',
         color: '#0891B2',
         bg: '#EFF6FF',
         implemented: true,
@@ -524,7 +524,7 @@ Page({
       app.navigateWithPermission('car_purchase', '/pages/office/car-purchase/car-purchase', '购车管理')
     } else if (label === '休假申请') {
       app.navigateWithPermission('leave_application', '/pages/office/leave/leave', '休假申请')
-    } else if (label === '实用资讯') {
+    } else if (label === '生活资讯') {
       // 全体用户可用，无需权限检查
       wx.navigateTo({
         url: '/pages/office/arrival-guide/arrival-guide'

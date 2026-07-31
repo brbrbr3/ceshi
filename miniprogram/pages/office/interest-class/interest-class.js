@@ -67,6 +67,7 @@ Page({
         return
       }
       const user = result.user
+      const isAdmin = user.isAdmin === true
       const isDeptHead = user.isDepartmentHead === true
       const isLeader = user.role === '馆领导'
 
@@ -74,10 +75,14 @@ Page({
       let scopeType = 'self'
       let showStatusFilter = false
 
-      if (isDeptHead) {
+      if (isAdmin) {
+        scopeText = '查看范围：全体人员全部备案（含已结束）'
+        scopeType = 'all'
+        showStatusFilter = true
+      } else if (isDeptHead) {
         scopeText = '查看范围：本部门生效中的备案'
         scopeType = 'department'
-      } else if (isLeader) {
+      } else if (isLeader && !isDeptHead) { // 馆领导且非部门负责人
         scopeText = '查看范围：全体人员生效中的备案'
         scopeType = 'all'
       } else {

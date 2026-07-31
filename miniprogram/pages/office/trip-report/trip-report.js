@@ -62,7 +62,11 @@ Page({
     showDestinationHistory: false,
     showCompanionsHistory: false,
     showRetroDestinationHistory: false,
-    showRetroCompanionsHistory: false
+    showRetroCompanionsHistory: false,
+    // 代报备返回弹窗
+    showProxyReturnModal: false,
+    proxyTrips: [],      // [ { _id, userName, departAt, destination } ]
+    proxyReturnSelected: [] // 已勾选的代报备记录 _id
   },
 
   async onLoad() {
@@ -462,21 +466,24 @@ Page({
     })
   },
 
+  /**
+   * 追加单个值到当前输入末尾（空格分隔，去重，不隐藏列表）
+   */
+  _appendToField(fieldKey, newValue) {
+    const current = (this.data.form[fieldKey] || '').trim()
+    const parts = current ? current.split(/\s+/) : []
+    if (parts.includes(newValue)) return // 已存在，跳过
+    const next = current ? current + ' ' + newValue : newValue
+    this.setData({ ['form.' + fieldKey]: next })
+  },
+
   // 选择历史记录
   selectDestinationHistory(e) {
-    const value = e.currentTarget.dataset.value
-    this.setData({
-      'form.destination': value,
-      showDestinationHistory: false
-    })
+    this._appendToField('destination', e.currentTarget.dataset.value)
   },
 
   selectCompanionsHistory(e) {
-    const value = e.currentTarget.dataset.value
-    this.setData({
-      'form.companions': value,
-      showCompanionsHistory: false
-    })
+    this._appendToField('companions', e.currentTarget.dataset.value)
   },
 
   handleTravelModeChange(e) {
@@ -588,28 +595,95 @@ Page({
   },
 
   /**
-   * 返回报备
+   * 返回报备：先检查是否有代报备记录，有则弹窗让用户选择
    */
   handleReturn() {
     app.subscribeOnTap(app.getSubscribeTypesForUser(app.globalData.userProfile))
     const activeTrip = this.data.activeTrip
     if (!activeTrip) return
 
+    // 先查询是否有代他人报备且未返回的记录
+    wx.showLoading({ title: '加载中...', mask: true })
+    wx.cloud.callFunction({
+      name: 'tripReport',
+      data: { action: 'getActiveTripWithProxies' }
+    }).then(res => {
+      wx.hideLoading()
+      if (res.result.code === 0) {
+        const data = res.result.data
+        const proxyTrips = data.proxyTrips || []
+        if (proxyTrips.length > 0) {
+          // 有代报备记录，弹窗询问
+          this.setData({
+            showProxyReturnModal: true,
+            proxyTrips,
+            proxyReturnSelected: proxyTrips.map(t => t._id) // 默认全选
+          })
+        } else {
+          // 无代报备记录，直接确认
+          this._showReturnConfirmModal(activeTrip._id)
+        }
+      } else {
+        utils.showToast({ title: '查询失败', icon: 'none' })
+      }
+    }).catch(() => {
+      wx.hideLoading()
+      utils.showToast({ title: '查询失败', icon: 'none' })
+    })
+  },
+
+  /** 显示普通返回确认弹窗 */
+  _showReturnConfirmModal(tripId) {
     wx.showModal({
       title: '确认返回',
       content: '确认已返回？将记录当前时间为返回时间。',
       success: (res) => {
         if (res.confirm) {
-          this.confirmReturn(activeTrip._id)
+          this.confirmReturn(tripId)
         }
       }
     })
   },
 
+  /** 代报备返回弹窗：切换选中 */
+  handleToggleProxySelect(e) {
+    const id = e.currentTarget.dataset.id
+    const selected = this.data.proxyReturnSelected
+    const idx = selected.indexOf(id)
+    if (idx > -1) {
+      selected.splice(idx, 1)
+    } else {
+      selected.push(id)
+    }
+    this.setData({ proxyReturnSelected: selected })
+  },
+
+  /** 代报备返回弹窗：确认返回 */
+  handleConfirmProxyReturn() {
+    const tripId = this.data.activeTrip._id
+    const proxyIds = this.data.proxyReturnSelected
+    this.setData({ showProxyReturnModal: false })
+    // 直接提交，跳过二次确认
+    this.confirmReturn(tripId, proxyIds)
+  },
+
+  /** 代报备返回弹窗：跳过代报备，仅自己返回 */
+  handleProxyReturnSkip() {
+    this.setData({ showProxyReturnModal: false })
+    this._showReturnConfirmModal(this.data.activeTrip._id)
+  },
+
+  /** 关闭代报备返回弹窗 */
+  hideProxyReturnModal() {
+    this.setData({ showProxyReturnModal: false })
+  },
+
   /**
    * 确认返回
+   * @param {string} tripId - 自己的出行记录 ID
+   * @param {string[]} proxyReturnIds - 代报备记录 ID 数组（可选）
    */
-  confirmReturn(tripId) {
+  confirmReturn(tripId, proxyReturnIds) {
     if (this.data.submitting) return
 
     this.setData({
@@ -621,17 +695,22 @@ Page({
       data: {
         action: 'return',
         params: {
-          tripId
+          tripId,
+          proxyReturnIds: proxyReturnIds && proxyReturnIds.length > 0 ? proxyReturnIds : undefined
         }
       }
     }).then(res => {
       if (res.result.code === 0) {
-        const status = res.result.data.status
-        const message = status === 'overtime' ? '返回报备成功（超时）' : '返回报备成功'
-        utils.showToast({
-          title: message,
-          icon: 'success'
-        })
+        const data = res.result.data
+        const status = data.status
+        const proxyCount = data.proxyReturnedCount || 0
+
+        let message = status === 'overtime' ? '返回报备成功（超时）' : '返回报备成功'
+        if (proxyCount > 0) {
+          message += `，已为 ${proxyCount} 人代报备返回`
+        }
+
+        utils.showToast({ title: message, icon: 'success' })
         // 刷新数据
         this.loadActiveTrip()
         this.refreshList()
@@ -713,21 +792,24 @@ Page({
     })
   },
 
+  /**
+   * 补填表单：追加单个值到当前输入末尾（空格分隔，去重，不隐藏列表）
+   */
+  _appendToRetroField(fieldKey, newValue) {
+    const current = (this.data.retroForm[fieldKey] || '').trim()
+    const parts = current ? current.split(/\s+/) : []
+    if (parts.includes(newValue)) return // 已存在，跳过
+    const next = current ? current + ' ' + newValue : newValue
+    this.setData({ ['retroForm.' + fieldKey]: next })
+  },
+
   // 补填表单选择历史记录
   selectRetroDestinationHistory(e) {
-    const value = e.currentTarget.dataset.value
-    this.setData({
-      'retroForm.destination': value,
-      showRetroDestinationHistory: false
-    })
+    this._appendToRetroField('destination', e.currentTarget.dataset.value)
   },
 
   selectRetroCompanionsHistory(e) {
-    const value = e.currentTarget.dataset.value
-    this.setData({
-      'retroForm.companions': value,
-      showRetroCompanionsHistory: false
-    })
+    this._appendToRetroField('companions', e.currentTarget.dataset.value)
   },
 
   handleRetroDepartAtChange(e) {

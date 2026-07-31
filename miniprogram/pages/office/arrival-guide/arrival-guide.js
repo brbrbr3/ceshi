@@ -893,15 +893,15 @@ Page({
           showArrivedButton: false
         })
       }
-      //导航栏文字改为‘实用资讯’
+      //导航栏文字改为‘生活资讯’
       if (!!result.user.isReviewer) {
         this.setData({
           isReviewer: !!result.user.isReviewer,
-          navTitle: '职工实用资讯'
+          navTitle: '职工生活资讯'
         })
       } else {
         this.setData({
-          navTitle: '巴西利亚实用资讯'
+          navTitle: '巴西利亚生活资讯'
         })
       }
       // 非"待赴任馆员"角色也能查看，但仅"待赴任馆员"登录时自动跳转此页

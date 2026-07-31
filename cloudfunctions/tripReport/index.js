@@ -59,6 +59,8 @@ exports.main = async (event, context) => {
         return await handleDepart(openid, params)
       case 'return':
         return await handleReturn(openid, params)
+      case 'getActiveTripWithProxies':
+        return await getActiveTripWithProxies(openid)
       case 'retroDepart':
         return await handleRetroDepart(openid, params)
       case 'getActiveTrip':
@@ -280,10 +282,38 @@ async function handleDepart(openid, params) {
 }
 
 /**
+ * 获取当前用户的活跃外出记录 + 代他人报备且仍未返回的记录
+ */
+async function getActiveTripWithProxies(openid) {
+  // 1. 查询自己的活跃外出
+  const myTrip = await tripReportsCollection
+    .where({ _openid: openid, status: 'out' })
+    .limit(1)
+    .get()
+
+  // 2. 查询自己代他人报备且仍为 out 状态的记录
+  const proxyTrips = await tripReportsCollection
+    .where({ createdByOpenid: openid, status: 'out' })
+    .field({ _id: true, userName: true, departAt: true, destination: true })
+    .get()
+
+  return success({
+    activeTrip: myTrip.data && myTrip.data[0] ? { _id: myTrip.data[0]._id, userName: myTrip.data[0].userName } : null,
+    proxyTrips: (proxyTrips.data || []).map(t => ({
+      _id: t._id,
+      userName: t.userName,
+      departAt: t.departAt,
+      destination: t.destination
+    }))
+  })
+}
+
+/**
  * 返回报备
+ * 支持 proxyReturnIds 参数：一并返回代报备人员的出行记录
  */
 async function handleReturn(openid, params) {
-  const { tripId } = params
+  const { tripId, proxyReturnIds } = params
 
   if (!tripId) {
     return fail('缺少出行记录ID', 400)
@@ -334,6 +364,49 @@ async function handleReturn(openid, params) {
     console.warn('更新用户在线状态失败:', e)
   }
 
+  // 处理代报备返回
+  let proxyReturnedCount = 0
+  if (proxyReturnIds && proxyReturnIds.length > 0) {
+    try {
+      const proxyTrips = await tripReportsCollection
+        .where({
+          _id: _.in(proxyReturnIds),
+          createdByOpenid: openid,
+          status: 'out'
+        })
+        .get()
+
+      for (const proxyTrip of (proxyTrips.data || [])) {
+        const proxyDeadline = getOvertimeDeadline(proxyTrip.departAt, offsetHours)
+        const proxyStatus = now > proxyDeadline ? 'overtime' : 'returned'
+
+        await tripReportsCollection.doc(proxyTrip._id).update({
+          data: {
+            returnAt: now,
+            status: proxyStatus,
+            updatedAt: now
+          }
+        })
+
+        // 更新被代报备人用户状态为 online
+        try {
+          const proxyUserRes = await usersCollection.where({ openid: proxyTrip._openid }).limit(1).get()
+          if (proxyUserRes.data && proxyUserRes.data.length > 0) {
+            await usersCollection.doc(proxyUserRes.data[0]._id).update({
+              data: { userStatus: 'online', updatedAt: now }
+            })
+          }
+        } catch (e) {
+          console.warn('更新代报备人员在线状态失败:', e)
+        }
+
+        proxyReturnedCount++
+      }
+    } catch (e) {
+      console.warn('处理代报备返回失败:', e)
+    }
+  }
+
   // 推送返回报备通知给片长/部门负责人/馆领导报备接收人
   if (reporterUser) {
     await notifyReportSubscribers(openid, reporterUser, tripId, 'return', { destination: tripRes.data.destination, companions: tripRes.data.companions || '', reportTime: now })
@@ -342,7 +415,8 @@ async function handleReturn(openid, params) {
   return success({
     tripId,
     returnAt: now,
-    status: newStatus
+    status: newStatus,
+    proxyReturnedCount
   }, '返回报备成功')
 }
 
@@ -657,28 +731,44 @@ async function checkOvertime() {
 
 /**
  * 获取历史记录（目的地和同行人）
- * 从数据库获取该用户最近的出行记录
+ * 从数据库按时间倒序分页拉取，去重后取满 10 个目的地和 5 组同行人
  */
 async function getHistory(openid) {
-  // 查询该用户最近的出行记录（最多10条）
-  const result = await tripReportsCollection
-    .where({ _openid: openid })
-    .orderBy('departAt', 'desc')
-    .limit(10)
-    .field({ destination: true, companions: true })
-    .get()
+  const pageSize = 10
+  let skip = 0
+  const destSet = new Set()
+  const compSet = new Set()
+  const destinations = []
+  const companions = []
+  const MAX_DEST = 10
+  const MAX_COMP = 5
 
-  const trips = result.data || []
+  while (destinations.length < MAX_DEST || companions.length < MAX_COMP) {
+    const result = await tripReportsCollection
+      .where({ _openid: openid })
+      .orderBy('departAt', 'desc')
+      .skip(skip)
+      .limit(pageSize)
+      .field({ destination: true, companions: true })
+      .get()
 
-  // 提取目的地并去重（最多10条）
-  const destinations = [...new Set(
-    trips.map(t => t.destination).filter(Boolean)
-  )].slice(0, 10)
+    const trips = result.data || []
+    if (trips.length === 0) break
 
-  // 提取同行人并去重（最多5条）
-  const companions = [...new Set(
-    trips.map(t => t.companions).filter(Boolean)
-  )].slice(0, 5)
+    trips.forEach(t => {
+      if (t.destination && !destSet.has(t.destination)) {
+        destSet.add(t.destination)
+        if (destinations.length < MAX_DEST) destinations.push(t.destination)
+      }
+      if (t.companions && !compSet.has(t.companions)) {
+        compSet.add(t.companions)
+        if (companions.length < MAX_COMP) companions.push(t.companions)
+      }
+    })
+
+    if (trips.length < pageSize) break  // 无更多记录
+    skip += pageSize
+  }
 
   return success({ destinations, companions })
 }

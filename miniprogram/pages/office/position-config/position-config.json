@@ -1,4 +1,7 @@
 {
   "navigationBarTitleText": "岗位配置",
-  "enablePullDownRefresh": false
+  "enablePullDownRefresh": false,
+  "usingComponents": {
+    "watermark": "/components/watermark/watermark"
+  }
 }

@@ -2,8 +2,7 @@
   <view class="office-gradient-header menus-header">
     <view class="office-header-top">
       <view>
-        <view class="menus-title">每周菜单</view>
-        <view class="menus-subtitle">查看本周及历史菜单安排</view>
+        <view class="office-subpage-title">每周菜单</view>
       </view>
       <view wx:if="{{showAddButton}}" class="menus-add-btn" bindtap="goAddMenu">
         <text>＋ 新增</text>
@@ -16,7 +15,7 @@
     <view class="office-card menus-list" wx:if="{{list.length > 0}}">
       <view class="menu-item" wx:for="{{list}}" wx:key="_id" bindtap="goMenuDetail" data-id="{{item._id}}">
         <view class="menu-item-left">
-          <view class="menu-item-icon">📋</view>
+          <!-- <view class="menu-item-icon">📋</view> -->
           <view class="menu-item-main">
             <view class="menu-item-title">{{item.title}}</view>
             <view class="menu-item-meta">

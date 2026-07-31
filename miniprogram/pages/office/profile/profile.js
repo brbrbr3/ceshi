@@ -230,22 +230,25 @@ Page({
         }
       }
       const statusInfo = STATUS_MAP[userStatus] || STATUS_MAP.offline
-
-      // 报备配置：管理员可编辑，馆领导/馆员只读查看
       const systemItems = [{
         icon: 'Aa',
         label: '字体大小'
       }]
-      if (user.isAdmin || user.role === '馆领导' || user.role === '馆员') {
+      
+      // 报备配置：管理员可编辑，馆领导/馆员只读查看
+      if (user.isAdmin || user.role === '馆领导' || user.role === '馆员' || user.role === '工勤') {
         systemItems.push({
           icon: '📣',
           label: '报备配置'
         })
       }
-      /* // 岗位配置：管理员、馆领导、馆员、工勤可见；进入后仅管理员可配置
-      if (user.isAdmin || user.role === '馆领导' || user.role === '馆员' || user.role === '工勤') {
-        systemItems.push({ icon: '📑', label: '岗位配置' })
-      } */
+      // 岗位配置：管理员可见；进入后仅管理员可配置
+      if (user.isAdmin) {
+        systemItems.push({
+          icon: '📑',
+          label: '岗位配置'
+        })
+      }
       const menuGroups = [{
           title: '系统设置',
           items: systemItems
@@ -329,7 +332,10 @@ Page({
       confirmColor: '#e74c3c',
       success: (res) => {
         if (res.confirm) {
-          wx.showLoading({ title: '清除中...', mask: true })
+          wx.showLoading({
+            title: '清除中...',
+            mask: true
+          })
           // 审核模式需先停用：恢复被拦截的 wx.cloud.callFunction 并重置 isReviewer
           // 否则清缓存后仍处于审核态，login 页 onShow 会自动跳回 home
           if (app.globalData.isReviewer) {
@@ -343,9 +349,14 @@ Page({
           // 重置 app 内存状态（身份/常量/权限缓存）
           app.clearOverallState()
           wx.hideLoading()
-          utils.showToast({ title: '缓存已清除', icon: 'success' })
+          utils.showToast({
+            title: '缓存已清除',
+            icon: 'success'
+          })
           setTimeout(() => {
-            wx.reLaunch({ url: '/pages/auth/login/login' })
+            wx.reLaunch({
+              url: '/pages/auth/login/login'
+            })
           }, 300)
         }
       }

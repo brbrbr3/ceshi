@@ -261,4 +261,32 @@
       </scroll-view>
     </view>
   </view>
+
+  <!-- 代报备返回弹窗 -->
+  <view wx:if="{{showProxyReturnModal}}" class="trip-popup-mask is-visible" bindtap="hideProxyReturnModal" catchtouchmove="stopPropagation">
+    <view class="trip-popup-container" catchtap="stopPropagation" style="height: auto; max-height: 70vh;">
+      <view class="trip-popup-header">
+        <view class="trip-popup-title">代报备返回</view>
+        <view class="trip-popup-close" bindtap="hideProxyReturnModal">×</view>
+      </view>
+      <scroll-view class="trip-popup-body" scroll-y enhanced show-scrollbar="{{false}}" style="max-height: 55vh;">
+        <view class="proxy-return-tip">检测到您曾为以下人员代报备外出，是否一并报备返回？</view>
+        <view class="proxy-return-list">
+          <view wx:for="{{proxyTrips}}" wx:key="_id" class="proxy-return-item {{proxyReturnSelected.indexOf(item._id) > -1 ? 'is-selected' : ''}}" data-id="{{item._id}}" bindtap="handleToggleProxySelect">
+            <view class="proxy-return-checkbox">
+              <text wx:if="{{proxyReturnSelected.indexOf(item._id) > -1}}">✓</text>
+            </view>
+            <view class="proxy-return-info">
+              <view class="proxy-return-name">{{item.userName}}</view>
+              <view class="proxy-return-dest">目的地：{{item.destination}}</view>
+            </view>
+          </view>
+        </view>
+      </scroll-view>
+      <view class="proxy-return-footer">
+        <button class="proxy-return-btn proxy-return-btn-skip" bindtap="handleProxyReturnSkip">仅自己返回</button>
+        <button class="proxy-return-btn proxy-return-btn-confirm" bindtap="handleConfirmProxyReturn">一并返回（{{proxyReturnSelected.length}}人）</button>
+      </view>
+    </view>
+  </view>
 </view>

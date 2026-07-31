@@ -19,5 +19,17 @@
     "ignoreDevUnusedFiles": true
   },
   "libVersion": "3.16.2",
-  "condition": {}
+  "condition": {
+    "miniprogram": {
+      "list": [
+        {
+          "name": "pages/office/position-config/position-config",
+          "pathName": "pages/office/position-config/position-config",
+          "query": "",
+          "scene": null,
+          "launchMode": "default"
+        }
+      ]
+    }
+  }
 }
