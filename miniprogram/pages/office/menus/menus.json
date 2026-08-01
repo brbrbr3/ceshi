@@ -1,5 +1,6 @@
 {
   "navigationBarTitleText": "每周菜单",
   "enablePullDownRefresh": false,
+  "navigationBarBackgroundColor": "#FFFFFF",
   "onReachBottomDistance": 50
 }

@@ -84,7 +84,7 @@
           <view class="card-title">外出报备</view>
         </view>
         <view class="card-content">
-          <view class="card-desc">报备外出和返回，出行时可自动为同行人代报备（同行人需为本系统注册用户），返回时可为同行人报备返回。当日超23时未归计为超时。</view>
+          <view class="card-desc">报备外出和返回，出行时可自动为同行人代报备（同行人需为本系统注册用户），返回时可为同行人报备返回。报备后5分钟内可撤回。当日超23时未归计为超时。</view>
           <view class="card-permission">
             <view class="permission-label">权限要求：</view>
             <view class="permission-value">所有用户可使用</view>
@@ -438,7 +438,8 @@
         <view class="tips-item">
           <view class="tips-icon"></view>
           <view class="tips-content">
-            <text class="tips-title">1.0.0731 返回可代报备
+            <text class="tips-title">1.0.0731.2 界面优化，旧文件移除，可撤回报备
+            1.0.0731 返回可代报备
             1.0.3.0729 静默充值消息订阅
             1.0.3.0728 数据板UI优化
             1.0.3 修复数据板列表展示顺序，界面优化

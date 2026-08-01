@@ -66,7 +66,10 @@ Page({
     // 代报备返回弹窗
     showProxyReturnModal: false,
     proxyTrips: [],      // [ { _id, userName, departAt, destination } ]
-    proxyReturnSelected: [] // 已勾选的代报备记录 _id
+    proxyReturnSelected: [], // 已勾选的代报备记录 _id
+    // 撤回报备
+    canCancelTrip: false,
+    cancelTimer: null
   },
 
   async onLoad() {
@@ -103,6 +106,14 @@ Page({
     } finally {
       // 无论成功失败都隐藏 loading
       wx.hideLoading()
+    }
+  },
+
+  onHide() {
+    // 清除撤回报备定时器
+    if (this.data.cancelTimer) {
+      clearTimeout(this.data.cancelTimer)
+      this.data.cancelTimer = null
     }
   },
 
@@ -202,6 +213,12 @@ Page({
    * 获取当前未返回的出行
    */
   async loadActiveTrip() {
+    // 清除之前的定时器
+    if (this.data.cancelTimer) {
+      clearTimeout(this.data.cancelTimer)
+      this.data.cancelTimer = null
+    }
+
     try {
       const res = await wx.cloud.callFunction({
         name: 'tripReport',
@@ -215,6 +232,24 @@ Page({
         if (activeTrip) {
           // 计算已外出时长
           activeTrip.elapsedTimeText = this.calcElapsedTime(activeTrip.departAt)
+
+          // 判断是否在5分钟撤回报备窗口内
+          const now = Date.now()
+          const CANCEL_WINDOW = 5 * 60 * 1000
+          const elapsed = now - activeTrip.departAt
+          const canCancel = elapsed <= CANCEL_WINDOW && !activeTrip.createdByOpenid
+
+          this.setData({ canCancelTrip: canCancel })
+
+          // 如果可撤回，在窗口到期时自动更新按钮状态
+          if (canCancel) {
+            const remaining = CANCEL_WINDOW - elapsed
+            this.data.cancelTimer = setTimeout(() => {
+              this.setData({ canCancelTrip: false })
+            }, remaining + 1000) // 多1秒容错
+          }
+        } else {
+          this.setData({ canCancelTrip: false })
         }
         this.setData({
           activeTrip
@@ -451,35 +486,31 @@ Page({
 
   // 表单输入处理
   handleDestinationInput(e) {
-    const value = e.detail.value
-    this.setData({
-      'form.destination': value,
-      showDestinationHistory: value === '' && this.data.destinationHistory.length > 0
-    })
+    this.setData({ 'form.destination': e.detail.value })
   },
 
   handleCompanionsInput(e) {
-    const value = e.detail.value
-    this.setData({
-      'form.companions': value,
-      showCompanionsHistory: value === '' && this.data.companionsHistory.length > 0
-    })
+    this.setData({ 'form.companions': e.detail.value })
   },
 
   /**
-   * 追加单个值到当前输入末尾（空格分隔，去重，不隐藏列表）
+   * 追加单个值到当前输入末尾（去重，不隐藏列表）
+   * @param {string} fieldKey - 字段名
+   * @param {string} newValue - 要追加的值
+   * @param {string} separator - 分隔符，默认空格
    */
-  _appendToField(fieldKey, newValue) {
+  _appendToField(fieldKey, newValue, separator = ' ') {
     const current = (this.data.form[fieldKey] || '').trim()
-    const parts = current ? current.split(/\s+/) : []
+    // 同时支持顿号和空格分隔，兼容旧数据和新数据
+    const parts = current ? current.split(/[、\s]+/).filter(Boolean) : []
     if (parts.includes(newValue)) return // 已存在，跳过
-    const next = current ? current + ' ' + newValue : newValue
+    const next = current ? current + separator + newValue : newValue
     this.setData({ ['form.' + fieldKey]: next })
   },
 
   // 选择历史记录
   selectDestinationHistory(e) {
-    this._appendToField('destination', e.currentTarget.dataset.value)
+    this._appendToField('destination', e.currentTarget.dataset.value, '、')
   },
 
   selectCompanionsHistory(e) {
@@ -777,35 +808,31 @@ Page({
 
   // 补填表单输入处理
   handleRetroDestinationInput(e) {
-    const value = e.detail.value
-    this.setData({
-      'retroForm.destination': value,
-      showRetroDestinationHistory: value === '' && this.data.destinationHistory.length > 0
-    })
+    this.setData({ 'retroForm.destination': e.detail.value })
   },
 
   handleRetroCompanionsInput(e) {
-    const value = e.detail.value
-    this.setData({
-      'retroForm.companions': value,
-      showRetroCompanionsHistory: value === '' && this.data.companionsHistory.length > 0
-    })
+    this.setData({ 'retroForm.companions': e.detail.value })
   },
 
   /**
-   * 补填表单：追加单个值到当前输入末尾（空格分隔，去重，不隐藏列表）
+   * 补填表单：追加单个值到当前输入末尾（去重，不隐藏列表）
+   * @param {string} fieldKey - 字段名
+   * @param {string} newValue - 要追加的值
+   * @param {string} separator - 分隔符，默认空格
    */
-  _appendToRetroField(fieldKey, newValue) {
+  _appendToRetroField(fieldKey, newValue, separator = ' ') {
     const current = (this.data.retroForm[fieldKey] || '').trim()
-    const parts = current ? current.split(/\s+/) : []
+    // 同时支持顿号和空格分隔，兼容旧数据和新数据
+    const parts = current ? current.split(/[、\s]+/).filter(Boolean) : []
     if (parts.includes(newValue)) return // 已存在，跳过
-    const next = current ? current + ' ' + newValue : newValue
+    const next = current ? current + separator + newValue : newValue
     this.setData({ ['retroForm.' + fieldKey]: next })
   },
 
   // 补填表单选择历史记录
   selectRetroDestinationHistory(e) {
-    this._appendToRetroField('destination', e.currentTarget.dataset.value)
+    this._appendToRetroField('destination', e.currentTarget.dataset.value, '、')
   },
 
   selectRetroCompanionsHistory(e) {
@@ -912,6 +939,44 @@ Page({
       utils.showToast({ title: '补填失败，请重试', icon: 'none' })
     }).finally(() => {
       this.setData({ submitting: false })
+    })
+  },
+
+  /**
+   * 撤回报备
+   */
+  handleCancelTrip() {
+    wx.showModal({
+      title: '撤回报备',
+      content: '外出报备5分钟内可撤回，将删除报备记录（包括同行人的报备记录）。是否撤回？',
+      confirmText: '确认撤回',
+      confirmColor: '#DC2626',
+      success: (res) => {
+        if (!res.confirm) return
+
+        wx.showLoading({ title: '撤回中...', mask: true })
+        wx.cloud.callFunction({
+          name: 'tripReport',
+          data: { action: 'cancelDepart' }
+        }).then((result) => {
+          wx.hideLoading()
+          if (result.result.code === 0) {
+            const data = result.result.data
+            let msg = '报备已撤回'
+            if (data.proxyDeletedCount > 0) {
+              msg += `，同时撤回了 ${data.proxyDeletedCount} 人的同行记录`
+            }
+            utils.showToast({ title: msg, icon: 'success' })
+            this.setData({ canCancelTrip: false, activeTrip: null })
+            this.refreshList()
+          } else {
+            utils.showToast({ title: result.result.message || '撤回失败', icon: 'none' })
+          }
+        }).catch(() => {
+          wx.hideLoading()
+          utils.showToast({ title: '撤回失败，请重试', icon: 'none' })
+        })
+      }
     })
   },
 

@@ -457,7 +457,7 @@
 
 .person-popup-record-header {
   display: flex;
-  align-items: center;
+  align-items: flex-start;
   justify-content: space-between;
   margin-bottom: 16rpx;
 }
@@ -466,12 +466,11 @@
   font-size: var(--fs-30);
   font-weight: 500;
   color: #1E293B;
-  overflow: hidden;
-  text-overflow: ellipsis;
-  white-space: nowrap;
   flex: 1;
   min-width: 0;
   margin-right: 16rpx;
+  word-break: break-all;
+  line-height: 1.4;
 }
 
 .person-popup-record-status {

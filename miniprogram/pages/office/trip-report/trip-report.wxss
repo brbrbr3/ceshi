@@ -196,6 +196,12 @@
   box-shadow: none;
 }
 
+.trip-action-btn-cancel {
+  background: linear-gradient(135deg, #DC2626 0%, #B91C1C 100%);
+  color: #FFFFFF;
+  box-shadow: 0 8rpx 24rpx rgba(220, 38, 38, 0.3);
+}
+
 .trip-action-btn:active {
   transform: scale(0.98);
 }

@@ -23,7 +23,6 @@
 
   <!-- 空状态提示 -->
   <view class="pagination-empty" wx:elif="{{ list.length === 0 && !loading }}">
-    <image class="empty-icon" src="/image/empty.png" mode="aspectFit" />
     <text class="empty-text">暂无数据</text>
   </view>
 </template>

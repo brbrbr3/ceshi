@@ -86,7 +86,7 @@ Page({
    */
   handleShowAddAreaManager(e) {
     if (!this.data.canEdit) {
-      utils.showToast({ title: '无权限操作', icon: 'none' })
+      utils.showToast({ title: '请联系管理员操作', icon: 'none' })
       return
     }
     const area = e.currentTarget.dataset.area
@@ -108,7 +108,7 @@ Page({
    */
   handleShowAddLeaderNotifier(e) {
     if (!this.data.canEdit) {
-      utils.showToast({ title: '无权限操作', icon: 'none' })
+      utils.showToast({ title: '请联系管理员操作', icon: 'none' })
       return
     }
     const { leaderOpenid, leaderName } = e.currentTarget.dataset
@@ -132,7 +132,7 @@ Page({
    */
   handleShowAddDeptNotifier(e) {
     if (!this.data.canEdit) {
-      utils.showToast({ title: '无权限操作', icon: 'none' })
+      utils.showToast({ title: '请联系管理员操作', icon: 'none' })
       return
     }
     const department = e.currentTarget.dataset.department
@@ -191,7 +191,7 @@ Page({
    */
   async handleConfirmAdd(e) {
     if (!this.data.canEdit) {
-      utils.showToast({ title: '无权限操作', icon: 'none' })
+      utils.showToast({ title: '请联系管理员操作', icon: 'none' })
       return
     }
     const { openid } = e.currentTarget.dataset
@@ -232,7 +232,7 @@ Page({
    */
   handleRemoveAreaManager(e) {
     if (!this.data.canEdit) {
-      utils.showToast({ title: '无权限操作', icon: 'none' })
+      utils.showToast({ title: '请联系管理员操作', icon: 'none' })
       return
     }
     const { openid, area } = e.currentTarget.dataset
@@ -264,7 +264,7 @@ Page({
    */
   handleRemoveLeaderNotifier(e) {
     if (!this.data.canEdit) {
-      utils.showToast({ title: '无权限操作', icon: 'none' })
+      utils.showToast({ title: '请联系管理员操作', icon: 'none' })
       return
     }
     const { leaderOpenid, openid } = e.currentTarget.dataset
@@ -296,7 +296,7 @@ Page({
    */
   handleToggleDeptHeadNotify(e) {
     if (!this.data.canEdit) {
-      utils.showToast({ title: '无权限操作', icon: 'none' })
+      utils.showToast({ title: '请联系管理员操作', icon: 'none' })
       return
     }
     const { openid, disabled } = e.currentTarget.dataset
@@ -330,7 +330,7 @@ Page({
    */
   handleRemoveDeptExtraNotifier(e) {
     if (!this.data.canEdit) {
-      utils.showToast({ title: '无权限操作', icon: 'none' })
+      utils.showToast({ title: '请联系管理员操作', icon: 'none' })
       return
     }
     const { openid, department } = e.currentTarget.dataset

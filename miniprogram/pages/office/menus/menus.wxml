@@ -12,10 +12,9 @@
 
   <view class="office-content menus-content">
     <!-- 列表内容 -->
-    <view class="office-card menus-list" wx:if="{{list.length > 0}}">
+    <view class="menus-list" wx:if="{{list.length > 0}}">
       <view class="menu-item" wx:for="{{list}}" wx:key="_id" bindtap="goMenuDetail" data-id="{{item._id}}">
         <view class="menu-item-left">
-          <!-- <view class="menu-item-icon">📋</view> -->
           <view class="menu-item-main">
             <view class="menu-item-title">{{item.title}}</view>
             <view class="menu-item-meta">

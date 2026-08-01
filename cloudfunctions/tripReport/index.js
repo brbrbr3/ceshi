@@ -77,6 +77,8 @@ exports.main = async (event, context) => {
         return await getHistory(openid)
       case 'getBoardData':
         return await getBoardData(openid, params)
+      case 'cancelDepart':
+        return await handleCancelDepart(openid, params)
       case 'getPersonTrips':
         return await getPersonTrips(openid, params)
       default:
@@ -491,6 +493,84 @@ async function handleRetroDepart(openid, params) {
     ...tripData
   }, '补填报备成功')
 }
+/**
+ * 撤回报备（仅外出报备5分钟内有效）
+ * 删除自己的报备记录及自动创建的同行人代报备记录
+ */
+async function handleCancelDepart(openid, params) {
+  const now = Date.now()
+  const CANCEL_WINDOW = 5 * 60 * 1000 // 5分钟
+
+  // 1. 查找自己的未返回外出记录（自己创建的，非代报备）
+  const selfTripRes = await tripReportsCollection
+    .where({
+      _openid: openid,
+      status: 'out',
+      createdByOpenid: null // 仅自己发起的报备可撤回
+    })
+    .orderBy('departAt', 'desc')
+    .limit(1)
+    .get()
+
+  if (!selfTripRes.data || selfTripRes.data.length === 0) {
+    return fail('未找到可撤回的外出记录', 404)
+  }
+
+  const selfTrip = selfTripRes.data[0]
+
+  // 2. 校验5分钟窗口
+  const elapsed = now - selfTrip.departAt
+  if (elapsed > CANCEL_WINDOW) {
+    return fail('外出报备已超过5分钟，无法撤回', 403)
+  }
+
+  // 3. 查找同行人代报备记录（由此用户创建且未返回的）
+  const proxyTripsRes = await tripReportsCollection
+    .where({
+      createdByOpenid: openid,
+      status: 'out'
+    })
+    .get()
+
+  const proxyTrips = proxyTripsRes.data || []
+  const allTripIds = [selfTrip._id, ...proxyTrips.map(t => t._id)]
+  const proxyCount = proxyTrips.length
+
+  // 4. 删除所有相关记录
+  const deletePromises = allTripIds.map(id =>
+    tripReportsCollection.doc(id).remove()
+  )
+  await Promise.all(deletePromises)
+
+  // 5. 恢复同行人的 userStatus
+  if (proxyTrips.length > 0) {
+    try {
+      const companionOpenids = proxyTrips.map(t => t._openid)
+      await usersCollection.where({
+        openid: _.in(companionOpenids)
+      }).update({
+        data: { userStatus: 'online', updatedAt: now }
+      })
+    } catch (e) {
+      console.warn('恢复同行人状态失败:', e)
+    }
+  }
+
+  // 6. 恢复自己的 userStatus
+  try {
+    await usersCollection.where({ openid }).update({
+      data: { userStatus: 'online', updatedAt: now }
+    })
+  } catch (e) {
+    console.warn('恢复自己的状态失败:', e)
+  }
+
+  return success({
+    deletedCount: allTripIds.length,
+    proxyDeletedCount: proxyCount
+  }, '报备已撤回')
+}
+
 async function getActiveTrip(openid) {
   const result = await tripReportsCollection
     .where({

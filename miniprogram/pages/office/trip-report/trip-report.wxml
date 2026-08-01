@@ -49,7 +49,16 @@
       <button wx:else class="trip-action-btn trip-action-btn-depart" bindtap="handleDepartBtn">
         🛴外出报备
       </button>
-      <button class="trip-action-btn trip-action-btn-retro {{activeTrip ? 'is-disabled' : ''}}" bindtap="showRetroForm" disabled="{{!!activeTrip}}">
+      <!-- 5分钟内：可撤回报备 -->
+      <button wx:if="{{activeTrip && canCancelTrip}}" class="trip-action-btn trip-action-btn-cancel" bindtap="handleCancelTrip">
+        ❌撤回报备
+      </button>
+      <!-- 超过5分钟：置灰不可点 -->
+      <button wx:elif="{{activeTrip && !canCancelTrip}}" class="trip-action-btn trip-action-btn-retro is-disabled" disabled>
+        ❌撤回报备
+      </button>
+      <!-- 未外出：正常补填按钮 -->
+      <button wx:else class="trip-action-btn trip-action-btn-retro" bindtap="showRetroForm">
         📝补填外出报备
       </button>
     </view>
