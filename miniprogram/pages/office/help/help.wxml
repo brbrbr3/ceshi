@@ -8,7 +8,7 @@
   </view>
 
   <!-- 内容区域 -->
-  <view class="feedback-content">
+  <view wx:if="{{!isReviewer}}" class="feedback-content">
 
     <!-- ========== 首页 ========== -->
     <view class="help-section">
@@ -427,7 +427,7 @@
 
     <!-- 底部提示 -->
     <view class="help-footer">
-      <view class="footer-text">如有疑问，请联系管理员或点击小程序右上角胶囊按钮"···"选择"反馈与投诉"提交问题。</view>
+      <view class="footer-text">如有疑问，请在"我的"页点击"联系管理员"或点击小程序右上角胶囊按钮"···"选择"反馈与投诉"提交问题。</view>
     </view>
 
     <!-- 更新历史 -->
@@ -438,17 +438,23 @@
         <view class="tips-item">
           <view class="tips-icon"></view>
           <view class="tips-content">
-            <text class="tips-title">1.0.0731.2 界面优化，旧文件移除，可撤回报备
+            <text class="tips-title">1.0.0801 修复超时、菜单微信推送
+            1.0.0731.2 界面优化，旧文件移除，可撤回报备
             1.0.0731 返回可代报备
             1.0.3.0729 静默充值消息订阅
             1.0.3.0728 数据板UI优化
             1.0.3 修复数据板列表展示顺序，界面优化
             1.0.2 修复代报备通知机制，UI优化
             1.0.1 修复登录问题，增加‘清除缓存’功能
-              1.0.0 正式版上线</text>
+            1.0.0 正式版上线</text>
           </view>
         </view>
       </view>
+    </view>
+  </view>
+  <view wx:else class="feedback-content">
+    <view class="help-section">
+      <view class="section-title">暂无数据</view>
     </view>
   </view>
 </view>

@@ -45,11 +45,18 @@ async function sendMenuNoticeToAllUsers(authorName, menuTitle) {
 
     for (const userDoc of res.data) {
       try {
+        const now = new Date()
+        const timezoneOffset = -3 // UTC-3
+        const local = new Date(now.getTime() + timezoneOffset * 3600000)
+        const timeStr = `${local.getFullYear()}-${String(local.getMonth() + 1).padStart(2, '0')}-${String(local.getDate()).padStart(2, '0')} ${String(local.getHours()).padStart(2, '0')}:${String(local.getMinutes()).padStart(2, '0')}`
+
         await cloud.openapi.subscribeMessage.send({
           touser: userDoc.openid,
           templateId: UNREAD_MESSAGE_TEMPLATE_ID,
           page: 'pages/office/menus/menus',
           data: {
+            thing7: { value: '系统' },
+            time2: { value: timeStr },
             thing6: { value: msgType },
             thing3: { value: msgContent },
             thing4: { value: remark }
@@ -57,9 +64,9 @@ async function sendMenuNoticeToAllUsers(authorName, menuTitle) {
         })
         totalSent++
       } catch (error) {
-        const errcode = error.errcode || error.errCode
-        // 43101/-604101 = 额度不足/用户拒绝，属正常情况
-        console.warn('[菜单通知] 发送失败:', userDoc.openid, errcode)
+        const errcode = error.errcode || error.errCode || 'unknown'
+        const errmsg = error.errmsg || error.errMsg || error.message || JSON.stringify(error)
+        console.warn('[菜单通知] 发送失败:', JSON.stringify({ openid: userDoc.openid, errcode, errmsg }))
         totalFailed++
       }
     }

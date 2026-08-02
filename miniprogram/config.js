@@ -4,7 +4,7 @@
 
 const config = {
   // 缓存版本号（修改此值可强制刷新用户端缓存）
-  CACHE_VERSION: '1.0.0731.2',
+  CACHE_VERSION: '1.0.0801',
   //更新说明
   VERSION_DESCRIPTION: '欢迎使用报备助手！\n1.报备后5分钟内可撤回\n2.返回时可选择为同行人报备返回',
 

@@ -787,7 +787,10 @@ async function checkOvertime() {
       })
 
       // 微信订阅消息（未读消息提醒模板）
-      await sendOvertimeSubscribeMessage(trip._openid)
+      const subResult = await sendOvertimeSubscribeMessage(trip._openid)
+      if (!subResult.success) {
+        console.warn(`[超时通知] 用户 ${trip._openid} 的微信订阅消息发送失败:`, JSON.stringify(subResult))
+      }
 
       // 更新已通知标记（防重复）
       await tripReportsCollection.doc(trip._id).update({
@@ -1098,6 +1101,7 @@ async function sendTripReportSubscribeMessage(openid, reporterName, reportTime, 
  * 发送外出超时微信订阅消息（未读消息提醒模板）
  * 盲发模式：不查询用户是否订阅，直接 send，失败仅记日志
  * @param {string} openid - 接收者 openid
+ * @returns {{ success: boolean, errcode?: number, errmsg?: string }}
  */
 async function sendOvertimeSubscribeMessage(openid) {
   const msgType = truncateText('外出超时通知')
@@ -1105,20 +1109,35 @@ async function sendOvertimeSubscribeMessage(openid) {
   const remark = truncateText('请及时返回并报备')
 
   try {
+    const now = new Date()
+    const timezoneOffset = await getTimezoneOffset() // UTC-3
+    const local = new Date(now.getTime() + timezoneOffset * 3600000)
+    const timeStr = `${local.getFullYear()}-${String(local.getMonth() + 1).padStart(2, '0')}-${String(local.getDate()).padStart(2, '0')} ${String(local.getHours()).padStart(2, '0')}:${String(local.getMinutes()).padStart(2, '0')}`
+
     await cloud.openapi.subscribeMessage.send({
       touser: openid,
       templateId: UNREAD_MESSAGE_TEMPLATE_ID,
       page: 'pages/office/trip-board/trip-board',
       data: {
+        thing7: { value: '系统' },
+        time2: { value: timeStr },
         thing6: { value: msgType },
         thing3: { value: msgContent },
         thing4: { value: remark }
       }
     })
-    console.log('外出超时订阅消息已发送:', openid)
+    console.log('[订阅✓] 发送成功:', openid)
+    return { success: true }
   } catch (error) {
-    const errcode = error.errcode || error.errCode
-    console.warn('[订阅] 发送外出超时消息失败:', openid, errcode, error.message || error)
+    const errcode = error.errcode || error.errCode || 'unknown'
+    const errmsg = error.errmsg || error.errMsg || error.message || JSON.stringify(error)
+    console.warn('[订阅✗] 发送失败:', JSON.stringify({
+      openid,
+      errcode,
+      errmsg,
+      templateId: UNREAD_MESSAGE_TEMPLATE_ID
+    }))
+    return { success: false, errcode, errmsg }
   }
 }
 

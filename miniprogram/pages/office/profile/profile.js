@@ -258,7 +258,7 @@ Page({
 
       this.setData({
         userName: user.name,
-        roleLabel: user.isAdmin ? `${user.role} · 管理员` : user.role,
+        roleLabel: user.role + (user.isDepartmentHead ? ' · 部门负责人' : '') + (user.isAdmin ? ' · 管理员' : ''),
         primaryTag: user.isAdmin ? '系统管理员' : '非系统管理员',
         secondaryTag: '状态：' + statusInfo.label,
         avatarText: (user.avatarText || user.name || '巴').slice(0, 1),

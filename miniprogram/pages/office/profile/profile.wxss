@@ -366,6 +366,21 @@ page {
   color: #EF4444;
 }
 
+.profile-contact-btn {
+  padding: 24rpx;
+  text-align: center;
+  font-size: var(--fs-30);
+  font-weight: 600;
+  border: none;
+  line-height: inherit;
+  color: green;
+  box-shadow: none;
+}
+
+.profile-contact-btn::after {
+  border: none;
+}
+
 .profile-version {
   margin: 24rpx 0 20rpx;
   text-align: center;

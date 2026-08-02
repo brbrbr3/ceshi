@@ -4,7 +4,7 @@
   <view class="office-gradient-header calendar-gradient-header">
     <view class="office-header-top calendar-header-top">
       <view>
-        <view class="calendar-title">全馆日历</view>
+        <view class="calendar-title">{{isReviewer ? '' : '全馆'}}日历</view>
         <view class="calendar-subtitle">查看{{isReviewer ? '日历' : '馆定节假日、巴西节假日'}}</view>
       </view>
       <view class="calendar-config-btn" bindtap="handleConfigHolidayTap">配置节假日</view>
