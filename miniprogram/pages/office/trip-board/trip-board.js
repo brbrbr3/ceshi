@@ -43,8 +43,8 @@ Page({
 
   async onLoad() {
     // 计算下拉关闭阈值（弹窗 max-height 为 80vh，阈值 = 高度 / 6）
-    var sysInfo = wx.getWindowInfo ? wx.getWindowInfo() : wx.getSystemInfoSync()
-    this.setData({ pullDownThreshold: Math.round(sysInfo.windowHeight * 0.8 / 6) })
+    const { windowHeight } = wx.getWindowInfo()
+    this.setData({ pullDownThreshold: Math.round(windowHeight * 0.8 / 6) })
 
     try {
       await this.initUserInfo()
@@ -88,7 +88,7 @@ Page({
       }
 
       const user = result.user
-      const isLeader = user.role === '馆领导'
+      const isLeader = user.role === '馆员' && user.department === '无'
       const isAdmin = user.isAdmin
       const isDeptHead = user.isDepartmentHead
       const isAreaManager = Array.isArray(user.areaManagerOf) && user.areaManagerOf.length > 0
@@ -448,13 +448,13 @@ Page({
    * 多身份取并集，各部门去重
    */
   computeViewScopeText(user) {
-    const isLeader = user.role === '馆领导'
+    const isLeader = user.role === '馆员' && user.department === '无'
     const isAdmin = user.isAdmin
     const isDeptHead = user.isDepartmentHead
     const isAreaManager = Array.isArray(user.areaManagerOf) && user.areaManagerOf.length > 0
     const isDeptExtraNotifier = Array.isArray(user.deptExtraNotifierOf) && user.deptExtraNotifierOf.length > 0
 
-    // 全体范围：管理员 或 馆领导（非部门负责人）
+    // 全体范围：管理员 或 馆员且部门为空（原馆领导，非部门负责人）
     if (isAdmin || (isLeader && !isDeptHead)) {
       return '全体人员'
     }

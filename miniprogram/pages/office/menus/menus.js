@@ -46,12 +46,11 @@ Page({
         }
 
         //管理员、工勤、办公室内聘可添加菜单
-        const isWorker = result.user.role === '工勤'
         const isAdmin = result.user.isAdmin
         const isOfficeServant = Array.isArray(result.user.position) && result.user.position.includes('办公室内聘')
 
         this.setData({
-          showAddButton: isWorker || isAdmin || isOfficeServant
+          showAddButton: isAdmin || isOfficeServant
         })
       })
       .catch((error) => {

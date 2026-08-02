@@ -89,7 +89,7 @@
   border-radius: 20rpx;  
   box-shadow: 3rpx 2rpx 8rpx rgba(47, 43, 43, 0.42);
   transition: all 0.2s ease;
-  border-left: 7rpx solid #16A34A;
+  border-left: 4rpx solid gray;
 }
 
 .menu-item:active {

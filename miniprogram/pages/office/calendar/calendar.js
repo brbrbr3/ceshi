@@ -407,7 +407,7 @@ Page({
     // 每次显示时重新加载日程列表（时间轴）
     // 注意：节假日和日程点标记已实现增量加载，不需要在 onShow 重复加载
     if (this.data.selectedDate) {
-      this.loadSchedules(this.data.selectedDate)
+      //this.loadSchedules(this.data.selectedDate)
     }
   },
 
@@ -739,7 +739,7 @@ Page({
     this.removeMonthFromCache(currentYear, currentMonth)
 
     // 重新加载当前月份
-    await this.loadScheduleMarks(currentYear, currentMonth)
+    //await this.loadScheduleMarks(currentYear, currentMonth)
   },
 
   /**
@@ -805,7 +805,7 @@ Page({
       currentMonth: month
     })
 
-    this.loadScheduleMarks(year, month)
+    //this.loadScheduleMarks(year, month)
   },
 
   /**
@@ -827,7 +827,7 @@ Page({
       brazilHolidayInfo: this.getBrazilHolidayInfo(checked)
     })
 
-    this.loadSchedules(checked)
+    //this.loadSchedules(checked)
   },
 
   /**
@@ -852,7 +852,7 @@ Page({
       brazilHolidayInfo: this.getBrazilHolidayInfo(checked)
     })
 
-    this.loadSchedules(checked)
+    //this.loadSchedules(checked)
 
     // 优先从 checked 获取月份信息（checked.month 已经是 1-12 格式）
     let newYear = checked ? checked.year : null
@@ -872,7 +872,7 @@ Page({
       })
 
       // 加载新月份的日程日期标记
-      this.loadScheduleMarks(newYear, newMonth)
+      //this.loadScheduleMarks(newYear, newMonth)
 
       // 如果跨年，刷新节假日标记
       if (newYear !== currentYear) {
@@ -896,7 +896,7 @@ Page({
 
     // 切换到周视图时加载日程
     if (view === 'week' && this.data.selectedDate) {
-      this.loadSchedules(this.data.selectedDate)
+      //this.loadSchedules(this.data.selectedDate)
     }
   },
 
@@ -1820,7 +1820,7 @@ Page({
 
         // 重新加载当日日程
         if (this.data.selectedDate) {
-          this.loadSchedules(this.data.selectedDate)
+          //this.loadSchedules(this.data.selectedDate)
         }
 
         // 强制刷新日程标记（从服务器重新获取）
@@ -1901,7 +1901,7 @@ Page({
 
         // 重新加载当日日程
         if (this.data.selectedDate) {
-          this.loadSchedules(this.data.selectedDate)
+          //this.loadSchedules(this.data.selectedDate)
         }
 
         // 强制刷新日程标记（从服务器重新获取）

@@ -19,16 +19,16 @@ const SYSTEM_CONFIGS = [
   {
     type: 'role',
     key: 'ROLE_OPTIONS',
-    value: ['馆领导', '馆员', '工勤', '物业', '配偶', '家属', '待赴任馆员'],
-    description: '角色选项列表',
+    value: ['馆员', '其他'],
+    description: '角色选项列表（馆员=工作人员，其他=物业/配偶/家属等）',
     sort: 1
   },
 
   {
     type: 'role',
     key: 'NEED_RELATIVE_ROLES',
-    value: ['配偶', '家属'],
-    description: '需要填写亲属信息的角色列表',
+    value: [],
+    description: '需要填写亲属信息的角色列表（已废弃）',
     sort: 3
   },
   {
@@ -59,7 +59,7 @@ const SYSTEM_CONFIGS = [
   {
     type: 'department',
     key: 'DEPARTMENT_OPTIONS',
-    value: ['政治处', '新公处', '经商处', '科技处', '武官处', '领侨处', '文化处', '办公室', 'DW办'],
+    value: ['无', '政', '新', '经', '科', '武', '领', '文', '办', '党'],
     description: '部门选项列表',
     sort: 20
   },
@@ -76,13 +76,8 @@ const SYSTEM_CONFIGS = [
     type: 'role_field_mapping',
     key: 'ROLE_FIELD_VISIBILITY',
     value: {
-      '馆领导': { showPosition: false, showDepartment: true, fixedDepartment: null },
       '馆员': { showPosition: false, showDepartment: true, fixedDepartment: null },
-      '工勤': { showPosition: false, showDepartment: true, fixedDepartment: '办公室' },
-      '物业': { showPosition: false, showDepartment: true, fixedDepartment: '办公室' },
-      '配偶': { showPosition: false, showDepartment: false, fixedDepartment: null },
-      '家属': { showPosition: false, showDepartment: false, fixedDepartment: null },
-      '待赴任馆员': { showPosition: false, showDepartment: false, fixedDepartment: null },
+      '其他': { showPosition: false, showDepartment: false, fixedDepartment: null },
     },
     description: '角色-字段显示映射关系（控制各角色是否显示岗位、部门字段及固定部门）',
     sort: 30
@@ -257,7 +252,7 @@ const SYSTEM_CONFIGS = [
   {
     type: 'approval',
     key: 'APPROVAL_REVIEWER_ROLES',
-    value: ['馆领导'],
+    value: ['馆员'],
     description: '具有审批权限的角色列表（管理员默认有审批权限）',
     sort: 70
   },
@@ -443,71 +438,57 @@ const PERMISSION_CONFIGS = [
     featureKey: 'medical_application',
     featureName: '就医申请',
     description: '提交就医申请',
-    enabledRoles: ['馆领导', '馆员', '工勤'],
+    enabledRoles: ['馆员'],
     requireAdmin: false
   },
   {
     featureKey: 'trip_report',
     featureName: '外出报备',
     description: '提交外出报备',
-    enabledRoles: ['馆领导', '馆员', '工勤', '物业', '配偶', '家属'],
-    requireAdmin: false
-  },
-  {
-    featureKey: 'trip_dashboard',
-    featureName: '出行数据板',
-    description: '查看和管理出行记录（完整版，从首页菜单进入）',
-    enabledRoles: ['馆领导'],
+    enabledRoles: ['馆员', '其他'],
     requireAdmin: false
   },
   {
     featureKey: 'trip_board',
     featureName: '出行数据板',
-    description: '出行数据看板（新版tabBar，馆领导/部门负责人/片长可用）',
-    enabledRoles: ['馆领导'],
+    description: '出行数据看板（新版tabBar，部门负责人/片长可用）',
+    enabledRoles: ['馆员'],
     requireAdmin: false
   },
   {
     featureKey: 'meeting_room',
     featureName: '会议室预约',
     description: '会议室预约功能入口权限',
-    enabledRoles: ['馆领导', '馆员', '工勤', '物业'],
-    requireAdmin: false
-  },
-  {
-    featureKey: 'passport_application',
-    featureName: '护照借用',
-    description: '提交护照借用申请',
-    enabledRoles: ['馆领导', '馆员', '工勤', '物业'],
+    enabledRoles: ['馆员', '其他'],
     requireAdmin: false
   },
   {
     featureKey: 'meal_management',
     featureName: '工作餐与副食',
     description: '工作餐订阅与管理',
-    enabledRoles: ['馆领导', '馆员', '工勤'],
-    specialConditions: [{ role: '配偶', position: '出纳' }],
+    enabledRoles: ['馆员'],
+    specialConditions: [{ role: '其他', position: '出纳' }],
     requireAdmin: false
   },
   {
     featureKey: 'car_purchase',
     featureName: '购车管理',
     description: '购车流程Checklist管理（6组步骤）',
-    enabledRoles: ['馆领导', '馆员', '工勤'],
+    enabledRoles: ['馆员'],
     requireAdmin: false
   },
   {
     featureKey: 'leave_application',
     featureName: '休假申请',
     description: '提交休假申请（年休假、任期假、组合假等）',
-    enabledRoles: ['馆领导', '馆员', '工勤', '配偶'],
+    enabledRoles: ['馆员', '其他'],
     requireAdmin: false
   },
   {
     featureKey: 'manage_positions',
     featureName: '岗位配置',
     description: '管理岗位人员分配（添加/移除岗位人员）',
-    enabledRoles: ['馆领导'],
+    enabledRoles: ['馆员'],
     requireAdmin: false
   },
   {
@@ -521,7 +502,7 @@ const PERMISSION_CONFIGS = [
     featureKey: 'interest_class_report',
     featureName: '兴趣班备案',
     description: '兴趣班备案功能',
-    enabledRoles: ['馆领导', '馆员', '工勤', '物业', '配偶', '家属'],
+    enabledRoles: ['馆员', '其他'],
     requireAdmin: false
   }
 ]

@@ -1,0 +1,6 @@
+{
+  "navigationBarTitleText": "人员配置",
+  "usingComponents": {
+    "watermark": "/components/watermark/watermark"
+  }
+}

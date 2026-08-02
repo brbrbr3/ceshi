@@ -41,15 +41,11 @@ Page({
                 wx.reLaunch({ url: '/pages/auth/login/login' })
                 return
             }
-            if (result.user && result.user.role) {
-                // 已填写详细信息，直接跳走
-                if (result.user.role === '待赴任馆员') {
-                    wx.reLaunch({ url: '/pages/office/arrival-guide/arrival-guide' })
-                } else {
-                    wx.switchTab({ url: '/pages/office/home/home' })
-                }
-                return
-            }
+      if (result.user && result.user.role) {
+        // 已填写详细信息，直接跳走
+        wx.switchTab({ url: '/pages/office/home/home' })
+        return
+      }
             // role 为空，留在本页填写
         }).catch(() => {
             // 静默失败，允许用户在页面上填写
@@ -83,105 +79,88 @@ Page({
         }
     },
 
-    /**
-     * 获取角色的字段显示配置
-     * @param {string} role - 角色名称
-     * @returns {Object} 字段显示配置 { showPosition, showDepartment, fixedDepartment }
-     */
-    getRoleFieldConfig(role) {
-        const { constants } = this.data
-        const roleFieldVisibility = constants.ROLE_FIELD_VISIBILITY || {}
+  /**
+   * 获取角色的字段显示配置
+   * @param {string} role - 角色名称
+   * @returns {Object} 字段显示配置 { showPosition, showDepartment, fixedDepartment }
+   */
+  getRoleFieldConfig(role) {
+    const { constants } = this.data
+    const roleFieldVisibility = constants.ROLE_FIELD_VISIBILITY || {}
 
-        if (roleFieldVisibility[role]) {
-            return roleFieldVisibility[role]
-        }
+    if (roleFieldVisibility[role]) {
+      return roleFieldVisibility[role]
+    }
 
-        return {
-            showPosition: false,
-            showDepartment: true,
-            fixedDepartment: null
-        }
-    },
+    return {
+      showPosition: false,
+      showDepartment: role === '馆员',
+      fixedDepartment: null
+    }
+  },
 
-    handleRoleChange(e) {
-        const roleIndex = Number(e.detail.value)
-        const { roleOptions, allDepartmentOptions, constants } = this.data
-        const role = roleOptions[roleIndex]
+  handleRoleChange(e) {
+    const roleIndex = Number(e.detail.value)
+    const { roleOptions, allDepartmentOptions } = this.data
+    const role = roleOptions[roleIndex]
 
-        const needRelativeRoles = constants.NEED_RELATIVE_ROLES || []
-        const roleConfig = this.getRoleFieldConfig(role)
+    if (role === '其他') {
+      // 其他：不显示部门、不显示亲属、不显示负责人
+      this.setData({
+        roleIndex,
+        'form.role': role,
+        showDepartmentField: false,
+        showRelativeField: false,
+        showDeptHeadCheckbox: false,
+        showLivingArea: true,
+        'form.department': '',
+        'form.isDepartmentHead': false,
+        'form.relativeName': '',
+        departmentIndex: -1,
+        departmentOptions: []
+      })
+      return
+    }
 
-        const showRelativeField = needRelativeRoles.includes(role)
-        const showDepartmentField = roleConfig.showDepartment
-        // 待赴任馆员尚未到任，无需填写居住区域
-        const showLivingArea = role !== '待赴任馆员'
+    // 馆员：显示完整部门列表（'无'已内置在 DEPT_OPTIONS 中）
+    const roleDepartmentOptions = allDepartmentOptions
 
-        let department = ''
-        let departmentIndex = -1
-        let roleDepartmentOptions
-        let showDeptHeadCheckbox = false
-        let isDepartmentHead = false
+    this.setData({
+      roleIndex,
+      'form.role': role,
+      showDepartmentField: true,
+      showRelativeField: false,
+      showDeptHeadCheckbox: false,
+      showLivingArea: true,
+      'form.department': '',
+      'form.isDepartmentHead': false,
+      'form.relativeName': '',
+      departmentIndex: -1,
+      departmentOptions: roleDepartmentOptions
+    })
+  },
 
-        if (role === '馆领导') {
-            // 馆领导：部门选项前加"无"
-            roleDepartmentOptions = ['无', ...allDepartmentOptions]
-        } else if (roleConfig.fixedDepartment) {
-            // 使用配置中的固定部门
-            department = roleConfig.fixedDepartment
-            departmentIndex = 0
-            roleDepartmentOptions = [roleConfig.fixedDepartment]
-        } else {
-            // 其他角色（馆员等）：完整部门列表
-            roleDepartmentOptions = allDepartmentOptions
-        }
+  handleDepartmentChange(e) {
+    const departmentIndex = Number(e.detail.value)
+    const selectedDept = this.data.departmentOptions[departmentIndex]
+    const role = this.data.form.role
 
-        this.setData({
-            roleIndex,
-            'form.role': role,
-            showRelativeField,
-            showDepartmentField,
-            showDeptHeadCheckbox,
-            showLivingArea,
-            'form.relativeName': showRelativeField ? this.data.form.relativeName : '',
-            'form.department': department,
-            'form.isDepartmentHead': isDepartmentHead,
-            // 切换角色时，待赴任馆员清空居住区域；其他角色保留原值
-            'form.livingArea': showLivingArea ? this.data.form.livingArea : '',
-            livingAreaIndex: showLivingArea ? this.data.livingAreaIndex : -1,
-            departmentIndex,
-            departmentOptions: roleDepartmentOptions
-        })
-    },
+    let showDeptHeadCheckbox = false
+    let isDepartmentHead = false
 
-    handleDepartmentChange(e) {
-        const departmentIndex = Number(e.detail.value)
-        const selectedDept = this.data.departmentOptions[departmentIndex]
-        const role = this.data.form.role
+    if (role === '馆员' && selectedDept && selectedDept !== '无') {
+      // 馆员选具体部门：显示「是否部门负责人」checkbox
+      showDeptHeadCheckbox = true
+      isDepartmentHead = this.data.form.isDepartmentHead || false
+    }
 
-        let showDeptHeadCheckbox = false
-        let isDepartmentHead = false
-
-        if (role === '馆领导') {
-            if (selectedDept === '无') {
-                // 馆领导选"无"：清空部门，不是部门负责人
-                isDepartmentHead = false
-            } else {
-                // 馆领导选具体部门：自动成为部门负责人
-                isDepartmentHead = true
-            }
-        } else if (role === '馆员' && selectedDept) {
-            // 馆员选具体部门：显示checkbox（保持上次打勾状态）
-            showDeptHeadCheckbox = true
-            isDepartmentHead = this.data.form.isDepartmentHead || false
-        }
-
-        this.setData({
-            departmentIndex,
-            'form.department': selectedDept === '无' ? '' : selectedDept,
-            'form.isDepartmentHead': isDepartmentHead,
-            showDeptHeadCheckbox
-        })
-    },
+    this.setData({
+      departmentIndex,
+      'form.department': selectedDept,
+      'form.isDepartmentHead': isDepartmentHead,
+      showDeptHeadCheckbox
+    })
+  },
 
     handleDeptHeadChange(e) {
         this.setData({
@@ -204,55 +183,41 @@ Page({
     },
 
     submitDetail() {
-        if (this.data.loading) {
-            return
-        }
+    if (this.data.loading) {
+      return
+    }
 
-        const form = this.data.form
-        const { constants, showLivingArea } = this.data
-        const needRelativeRoles = constants.NEED_RELATIVE_ROLES || []
-        const roleConfig = this.getRoleFieldConfig(form.role)
+    const form = this.data.form
+    const { showLivingArea } = this.data
 
-        if (!form.role) {
-            wx.showToast({ title: '请选择角色', icon: 'none' })
-            return
-        }
-        if (needRelativeRoles.includes(form.role) && !String(form.relativeName || '').trim()) {
-            wx.showToast({ title: '请填写亲属姓名', icon: 'none' })
-            return
-        }
-        if (roleConfig.showDepartment && this.data.departmentIndex < 0) {
-            wx.showToast({ title: '请选择部门', icon: 'none' })
-            return
-        }
-        if (showLivingArea && !form.livingArea) {
-            wx.showToast({ title: '请选择居住区域', icon: 'none' })
-            return
-        }
+    if (!form.role) {
+      wx.showToast({ title: '请选择角色', icon: 'none' })
+      return
+    }
+    if (this.data.showDepartmentField && this.data.departmentIndex < 0) {
+      wx.showToast({ title: '请选择部门', icon: 'none' })
+      return
+    }
+    if (showLivingArea && !form.livingArea) {
+      wx.showToast({ title: '请选择居住区域', icon: 'none' })
+      return
+    }
 
         this.setData({ loading: true })
 
-        app.submitDetailInfo({
-            role: form.role,
-            department: form.department,
-            isDepartmentHead: form.isDepartmentHead,
-            relativeName: String(form.relativeName || '').trim(),
-            livingArea: form.livingArea
-        }).then(() => {
-            wx.showToast({ title: '提交成功', icon: 'success' })
-            // 角色刚填写，权限缓存可能基于"无角色"判定为无权限，需清除以便首页重新加载
-            app.clearPermissionCache()
-            setTimeout(() => {
-                if (form.role === '待赴任馆员') {
-                    wx.reLaunch({
-                        url: '/pages/office/arrival-guide/arrival-guide'
-                    })
-                } else {
-                    wx.switchTab({
-                        url: '/pages/office/home/home'
-                    })
-                }
-            }, 200)
+    app.submitDetailInfo({
+      role: form.role,
+      department: form.department,
+      isDepartmentHead: form.isDepartmentHead,
+      relativeName: String(form.relativeName || '').trim(),
+      livingArea: form.livingArea
+    }).then(() => {
+      wx.showToast({ title: '提交成功', icon: 'success' })
+      // 角色刚填写，权限缓存可能基于"无角色"判定为无权限，需清除以便首页重新加载
+      app.clearPermissionCache()
+      setTimeout(() => {
+        wx.switchTab({ url: '/pages/office/home/home' })
+      }, 200)
         }).catch((error) => {
             wx.showToast({
                 title: error.message || '提交失败',

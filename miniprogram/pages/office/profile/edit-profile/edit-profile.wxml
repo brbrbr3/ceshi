@@ -35,19 +35,6 @@
       </view>
 
       <view class="auth-field">
-        <view class="auth-field-label">出生日期</view>
-        <picker wx:if="{{today}}" mode="date" value="{{form.birthday}}" start="1900-01-01" end="{{today}}" bindchange="handleBirthdayChange">
-          <view class="auth-picker-shell {{form.birthday ? '' : 'is-placeholder'}}">
-            <view class="auth-picker-value">{{form.birthday || '请选择出生日期'}}</view>
-            <view class="auth-picker-arrow">›</view>
-          </view>
-        </picker>
-        <view wx:else class="auth-picker-shell is-placeholder">
-          <view class="auth-picker-value">加载中...</view>
-        </view>
-      </view>
-
-      <view class="auth-field">
         <view class="auth-field-label">角色</view>
         <picker disabled="{{isReviewer}}" mode="selector" range="{{roleOptions}}" value="{{roleIndex}}" bindchange="handleRoleChange">
           <view class="auth-picker-shell {{roleIndex < 0 ? 'is-placeholder' : ''}}">

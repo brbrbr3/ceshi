@@ -235,18 +235,11 @@ Page({
         label: '字体大小'
       }]
       
-      // 报备配置：管理员可编辑，馆领导/馆员只读查看
-      if (user.isAdmin || user.role === '馆领导' || user.role === '馆员' || user.role === '工勤') {
-        systemItems.push({
-          icon: '📣',
-          label: '报备配置'
-        })
-      }
-      // 岗位配置：管理员可见；进入后仅管理员可配置
+      // 报备配置：管理员可编辑，馆员只读查看
       if (user.isAdmin) {
         systemItems.push({
-          icon: '📑',
-          label: '岗位配置'
+          icon: '👥',
+          label: '人员配置'
         })
       }
       const menuGroups = [{
@@ -258,7 +251,7 @@ Page({
 
       this.setData({
         userName: user.name,
-        roleLabel: user.role + (user.isDepartmentHead ? ' · 部门负责人' : '') + (user.isAdmin ? ' · 管理员' : ''),
+        roleLabel: (user.role || '馆员') + (user.isDepartmentHead ? ' · 负责人' : '') + (user.isAdmin ? ' · 管理员' : ''),
         primaryTag: user.isAdmin ? '系统管理员' : '非系统管理员',
         secondaryTag: '状态：' + statusInfo.label,
         avatarText: (user.avatarText || user.name || '巴').slice(0, 1),
@@ -432,13 +425,9 @@ Page({
       wx.navigateTo({
         url: '/pages/office/help/help'
       })
-    } else if (label === '字体大小') {} else if (label === '报备配置') {
+    } else if (label === '字体大小') {    } else if (label === '人员配置') {
       wx.navigateTo({
-        url: '/pages/office/report-config/report-config'
-      })
-    } else if (label === '岗位配置') {
-      wx.navigateTo({
-        url: '/pages/office/position-config/position-config'
+        url: '/pages/office/personnel-config/personnel-config'
       })
     } else {
       utils.showToast({

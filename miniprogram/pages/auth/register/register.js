@@ -6,12 +6,10 @@ Page({
     loading: false,
     mode: 'create',
     reviewRemark: '',
-    today: '',
     isDevEnv: false,
     form: {
       name: '',
       gender: '男',
-      birthday: '',
       isAdmin: false,
       // mobile: '+55 61 ',
       // landline: '+55 61 ',
@@ -21,10 +19,7 @@ Page({
   },
 
   async onLoad(options) {
-    // 设置今天的日期作为最大可选日期
-    const today = await utils.getTodayDate()
     this.setData({
-      today: today,
       mode: options && options.mode === 'reapply' ? 'reapply' : 'create',
       isDevEnv: app.globalData.isDevEnv
     })
@@ -36,10 +31,7 @@ Page({
     if (this.data.fontStyle !== fontStyle) {
       this.setData({ fontStyle })
     }
-    // 每次显示时更新今天的日期
-    const today = await utils.getTodayDate()
     this.setData({
-      today,
       isDevEnv: app.globalData.isDevEnv
     })
   },
@@ -66,7 +58,6 @@ Page({
           form: {
             name: result.request.name || '',
             gender: result.request.gender || '男',
-            birthday: result.request.birthday || '',
             isAdmin: !!result.request.isAdmin,
             // mobile: result.request.mobile || '+55 61 ',
             // landline: result.request.landline || '+55 61 ',
@@ -129,28 +120,6 @@ Page({
     })
   },
 
-  async handleBirthdayChange(e) {
-    const selectedDate = e.detail.value
-    const today = await utils.getTodayDate()
-
-    // 验证选择的日期不能超过今天
-    if (selectedDate > today) {
-      wx.showToast({
-        title: '出生日期不能超过今天',
-        icon: 'none'
-      })
-      return
-    }
-
-    this.setData({
-      'form.birthday': selectedDate
-    })
-  },
-
-  handleBirthdayColumnChange() {
-    // 暂时不需要处理列变化
-  },
-
   handleMobileInput(e) {
     this.setData({
       'form.mobile': e.detail.value
@@ -192,11 +161,6 @@ Page({
       utils.showToast({ title: '请选择性别', icon: 'none' })
       return
     }
-    if (!form.birthday) {
-      utils.showToast({ title: '请选择出生日期', icon: 'none' })
-      return
-    }
-
     this.setData({ loading: true })
 
     // 请求订阅消息（模板1：注册审批结果通知）

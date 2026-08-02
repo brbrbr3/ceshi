@@ -858,11 +858,13 @@ async function getHistory(openid) {
 
 /**
  * 报备通知：根据报备人身份推送站内通知
- * - 馆领导：仅通知其设置的报备人（reportNotifiers），不通知片长/部门负责人
- * - 非馆领导：通知其居住区域片长 + 同部门部门负责人（若报备人本人即部门负责人则不通知部门负责人）
- * 通知对象按 openid 去重，并排除报备人本人。通知写入 notifications 集合。
+ * 通知对象来源（取并集，去重，排除本人）：
+ * 1. 报备人的 reportTo 字段（新：该用户向谁报备）
+ * 2. 报备人的 reportNotifiers 字段（旧，兼容）
+ * 3. 谁订阅了该报备人（subscribers 中含有报备人的 openid）
+ * 4. 自动匹配：片长（同居住区）+ 部门负责人（同部门，若报备人非本人）
  * @param {string} reporterOpenid 报备人 openid
- * @param {object} reporter 报备人完整用户文档（含 role/livingArea/department/isDepartmentHead/reportNotifiers）
+ * @param {object} reporter 报备人完整用户文档
  * @param {string} tripId 出行记录 ID
  * @param {'depart'|'return'} action 报备类型
  * @param {object} extra 附加信息（destination 等）
@@ -870,7 +872,6 @@ async function getHistory(openid) {
 async function notifyReportSubscribers(reporterOpenid, reporter, tripId, action, extra) {
   const now = Date.now()
   const reporterName = reporter ? reporter.name : '未知用户'
-  const isLeader = reporter && reporter.role === '馆领导'
   const destination = (extra && extra.destination) || ''
 
   const title = action === 'depart' ? '外出报备通知' : '返回报备通知'
@@ -883,48 +884,61 @@ async function notifyReportSubscribers(reporterOpenid, reporter, tripId, action,
   const notifierOpenids = new Set()
 
   try {
-    if (isLeader) {
-      // 馆领导：仅通知其设置的报备人
-      const notifiers = reporter && Array.isArray(reporter.reportNotifiers) ? reporter.reportNotifiers : []
-      notifiers.forEach(o => {
-        if (o) notifierOpenids.add(o)
+    // 1. 报备人显式指定的 reportTo（新字段）+ reportNotifiers（旧字段兼容）
+    const reportTo = reporter && Array.isArray(reporter.reportTo) ? reporter.reportTo : []
+    const oldNotifiers = reporter && Array.isArray(reporter.reportNotifiers) ? reporter.reportNotifiers : []
+    ;[...reportTo, ...oldNotifiers].forEach(o => {
+      if (o) notifierOpenids.add(o)
+    })
+
+    // 2. 查询订阅了该报备人的用户（subscribers 数组中包含报备人 openid）
+    const subscriberUsers = await usersCollection
+      .where({ subscribers: reporterOpenid, status: 'approved' })
+      .field({ openid: true })
+      .limit(200)
+      .get()
+    ;(subscriberUsers.data || []).forEach(u => {
+      if (u.openid) notifierOpenids.add(u.openid)
+    })
+
+    // 3. 自动匹配：片长（同居住区，新字段 isAreaManager）+ 部门负责人（同部门）
+    if (reporter && reporter.livingArea) {
+      const areaRes = await usersCollection
+        .where({ status: 'approved', isAreaManager: true, livingArea: reporter.livingArea })
+        .field({ openid: true })
+        .limit(100)
+        .get()
+      ;(areaRes.data || []).forEach(u => {
+        if (u.openid) notifierOpenids.add(u.openid)
       })
-    } else {
-      // 非馆领导：通知居住区域片长
-      if (reporter && reporter.livingArea) {
-        const managerRes = await usersCollection
-          .where({ status: 'approved', areaManagerOf: reporter.livingArea })
-          .field({ openid: true })
-          .limit(100)
-          .get()
-        ;(managerRes.data || []).forEach(u => {
-          if (u.openid) notifierOpenids.add(u.openid)
-        })
-      }
-
-      // 通知部门负责人（报备人本人即部门负责人时不通知；排除已暂停接收的）
-      if (reporter && !reporter.isDepartmentHead && reporter.department) {
-        const deptHeadRes = await usersCollection
-          .where({ status: 'approved', department: reporter.department, isDepartmentHead: true, deptHeadNotifyDisabled: _.neq(true) })
-          .field({ openid: true })
-          .limit(50)
-          .get()
-        ;(deptHeadRes.data || []).forEach(u => {
-          if (u.openid) notifierOpenids.add(u.openid)
-        })
-      }
-
-      // 通知同部门额外报备接收人（deptExtraNotifierOf 含该部门，不限定同部门人员）
-      if (reporter && reporter.department) {
-        const extraRes = await usersCollection
-          .where({ status: 'approved', deptExtraNotifierOf: reporter.department })
-          .field({ openid: true })
-          .limit(100)
-          .get()
-        ;(extraRes.data || []).forEach(u => {
-          if (u.openid) notifierOpenids.add(u.openid)
-        })
-      }
+      // 旧字段兼容
+      const oldAreaRes = await usersCollection
+        .where({ status: 'approved', areaManagerOf: reporter.livingArea })
+        .field({ openid: true })
+        .limit(100)
+        .get()
+      ;(oldAreaRes.data || []).forEach(u => {
+        if (u.openid) notifierOpenids.add(u.openid)
+      })
+    }
+    if (reporter && !reporter.isDepartmentHead && reporter.department) {
+      const deptRes = await usersCollection
+        .where({ status: 'approved', isDepartmentHead: true, department: reporter.department })
+        .field({ openid: true })
+        .limit(50)
+        .get()
+      ;(deptRes.data || []).forEach(u => {
+        if (u.openid) notifierOpenids.add(u.openid)
+      })
+      // 旧字段兼容
+      const oldDeptRes = await usersCollection
+        .where({ status: 'approved', deptExtraNotifierOf: reporter.department })
+        .field({ openid: true })
+        .limit(100)
+        .get()
+      ;(oldDeptRes.data || []).forEach(u => {
+        if (u.openid) notifierOpenids.add(u.openid)
+      })
     }
   } catch (e) {
     console.warn('查询报备通知对象失败:', e)
@@ -1204,14 +1218,14 @@ async function getBoardData(openid, params) {
   }
   const currentUser = userRes.data[0]
 
-  const isLeader = currentUser.role === '馆领导'
+  const isLeader = currentUser.role === '馆员' && currentUser.department === '无'
   const isAdmin = currentUser.isAdmin
   const isDeptHead = currentUser.isDepartmentHead
-  const isAreaManager = Array.isArray(currentUser.areaManagerOf) && currentUser.areaManagerOf.length > 0
-  const isDeptExtraNotifier = Array.isArray(currentUser.deptExtraNotifierOf) && currentUser.deptExtraNotifierOf.length > 0
+  const isAreaManager = !!currentUser.isAreaManager
+  const hasSubscribers = Array.isArray(currentUser.subscribers) && currentUser.subscribers.length > 0
 
-  // 权限校验（含部门额外报备人）
-  if (!isAdmin && !isLeader && !isDeptHead && !isAreaManager && !isDeptExtraNotifier) {
+  // 权限校验（管理员 / 领导 / 部门负责人 / 片长 / 有订阅的人）
+  if (!isAdmin && !isLeader && !isDeptHead && !isAreaManager && !hasSubscribers) {
     return fail('无权限访问出行数据板', 403)
   }
 
@@ -1219,34 +1233,36 @@ async function getBoardData(openid, params) {
   let userQuery = { status: 'approved' }
   let scopeType = 'all'
 
-  // 全体范围：管理员 或 馆领导（非部门负责人）
+  // 全体范围：管理员 或 馆员且部门为空（原馆领导，非部门负责人）
   if (isAdmin || (isLeader && !isDeptHead)) {
     scopeType = 'all'
   } else {
-    // 收集各身份对应的查看范围，取并集（片长 + 部门负责人/额外报备人不再互斥）
     const orConditions = []
 
-    // 片长 → 管辖居住区域
-    if (isAreaManager) {
-      orConditions.push({ livingArea: _.in(currentUser.areaManagerOf) })
+    // 片长 → 管辖居住区域（新版 isAreaManager + 旧版 areaManagerOf 兼容）
+    const areas = new Set()
+    if (isAreaManager && currentUser.livingArea) areas.add(currentUser.livingArea)
+    if (Array.isArray(currentUser.areaManagerOf)) currentUser.areaManagerOf.forEach(a => areas.add(a))
+    if (areas.size > 0) {
+      orConditions.push({ livingArea: _.in(Array.from(areas)) })
     }
 
-    // 部门负责人 + 部门额外报备人 → 相关部门（去重合并）
+    // 部门负责人 → 本部门（新版 isDepartmentHead + 旧版兼容）
     const depts = new Set()
-    if (isDeptHead && currentUser.department) {
-      depts.add(currentUser.department)
-    }
-    if (isDeptExtraNotifier) {
-      currentUser.deptExtraNotifierOf.forEach(d => depts.add(d))
-    }
+    if (isDeptHead && currentUser.department) depts.add(currentUser.department)
+    if (Array.isArray(currentUser.deptExtraNotifierOf)) currentUser.deptExtraNotifierOf.forEach(d => depts.add(d))
     if (depts.size > 0) {
       orConditions.push({ department: _.in(Array.from(depts)) })
     }
 
-    // 合并查询条件：单条件直接并入 userQuery，多条件用 _.or 取并集
+    // 显式订阅的用户（subscribers 字段）
+    if (hasSubscribers) {
+      orConditions.push({ openid: _.in(currentUser.subscribers) })
+    }
+
     if (orConditions.length === 1) {
       Object.assign(userQuery, orConditions[0])
-      scopeType = orConditions[0].livingArea ? 'area' : 'department'
+      scopeType = orConditions[0].livingArea ? 'area' : (orConditions[0].openid ? 'subscribers' : 'department')
     } else if (orConditions.length > 1) {
       userQuery = _.or(orConditions.map(c => ({ status: 'approved', ...c })))
       scopeType = 'mixed'
@@ -1256,7 +1272,7 @@ async function getBoardData(openid, params) {
   // 查询范围内的用户
   const usersRes = await usersCollection
     .where(userQuery)
-    .field({ openid: true, name: true, department: true, livingArea: true, role: true, isDepartmentHead: true, areaManagerOf: true, deptExtraNotifierOf: true })
+    .field({ openid: true, name: true, department: true, livingArea: true, role: true, isDepartmentHead: true, isAreaManager: true })
     .limit(500)
     .get()
   const users = usersRes.data || []
@@ -1313,14 +1329,15 @@ async function getBoardData(openid, params) {
     let groupKey = ''
     if (groupBy === 'department') {
       const role = (item._user && item._user.role) || ''
-      // 馆领导单独成组（第一组）
-      if (role === '馆领导') {
-        groupKey = '馆领导'
-      } else if (role === '配偶' || role === '家属') {
-        // 配偶、家属单独成组（最后一组）
-        groupKey = '配偶及家属'
+      const department = item.department || (item._user && item._user.department) || ''
+      // 部门为'无'（可选领导的馆员）→ 无组名，置顶
+      if (department === '无') {
+        groupKey = ''
+      } else if (role === '其他') {
+        // 其他人员 → 置底
+        groupKey = '其他人员'
       } else {
-        groupKey = item.department || (item._user && item._user.department) || '未分配部门'
+        groupKey = department || '未分配部门'
       }
     } else {
       groupKey = (item._user && item._user.livingArea) || '未分配居住区'
@@ -1363,15 +1380,15 @@ async function getBoardData(openid, params) {
   }))
 
   if (groupBy === 'department') {
-    // 按系统配置的部门顺序排列（馆领导置顶、配偶及家属置底）
+    // 排序：无组名（馆员+部门空，原馆领导）置顶 → 各部门 → 其他人员置底
     const departmentOrder = await getDepartmentOptions()
     groupList.sort((a, b) => {
-      // 馆领导组置顶
-      if (a.groupName === '馆领导') return -1
-      if (b.groupName === '馆领导') return 1
-      // 配偶及家属组置底
-      if (a.groupName === '配偶及家属') return 1
-      if (b.groupName === '配偶及家属') return -1
+      // 无组名置顶
+      if (a.groupName === '') return -1
+      if (b.groupName === '') return 1
+      // 其他人员置底
+      if (a.groupName === '其他人员') return 1
+      if (b.groupName === '其他人员') return -1
       // 按配置顺序排序，未配置的部门（如"未分配部门"）排在其后
       const aIdx = departmentOrder.indexOf(a.groupName)
       const bIdx = departmentOrder.indexOf(b.groupName)
@@ -1416,13 +1433,14 @@ async function getPersonTrips(openid, params) {
   }
   const currentUser = currentUserRes.data[0]
 
-  const isLeader = currentUser.role === '馆领导'
+  const isLeader = currentUser.role === '馆员' && currentUser.department === '无'
   const isAdmin = currentUser.isAdmin
   const isDeptHead = currentUser.isDepartmentHead
-  const isAreaManager = Array.isArray(currentUser.areaManagerOf) && currentUser.areaManagerOf.length > 0
-  const isDeptExtraNotifier = Array.isArray(currentUser.deptExtraNotifierOf) && currentUser.deptExtraNotifierOf.length > 0
+  const isAreaManager = !!currentUser.isAreaManager
+  const oldAreaMgr = Array.isArray(currentUser.areaManagerOf) && currentUser.areaManagerOf.length > 0
+  const hasSubscribers = Array.isArray(currentUser.subscribers) && currentUser.subscribers.length > 0
 
-  if (!isAdmin && !isLeader && !isDeptHead && !isAreaManager && !isDeptExtraNotifier) {
+  if (!isAdmin && !isLeader && !isDeptHead && !isAreaManager && !oldAreaMgr && !hasSubscribers) {
     return fail('无权限查看', 403)
   }
 
@@ -1433,21 +1451,21 @@ async function getPersonTrips(openid, params) {
   }
   const targetUser = targetUserRes.data[0]
 
-  // 校验目标用户在当前用户权限范围内（并集：满足任一范围即可）
+  // 校验目标用户在当前用户权限范围内
   if (!isAdmin && !(isLeader && !isDeptHead)) {
-    // 收集可查看的部门（部门负责人 + 部门额外报备人，去重）
     const allowedDepts = new Set()
-    if (isDeptHead && currentUser.department) {
-      allowedDepts.add(currentUser.department)
-    }
-    if (isDeptExtraNotifier) {
-      currentUser.deptExtraNotifierOf.forEach(d => allowedDepts.add(d))
-    }
+    if (isDeptHead && currentUser.department) allowedDepts.add(currentUser.department)
+    if (Array.isArray(currentUser.deptExtraNotifierOf)) currentUser.deptExtraNotifierOf.forEach(d => allowedDepts.add(d))
 
     const inDept = allowedDepts.size > 0 && targetUser.department && allowedDepts.has(targetUser.department)
-    const inArea = isAreaManager && targetUser.livingArea && currentUser.areaManagerOf.includes(targetUser.livingArea)
+    // 片长范围（新版 isAreaManager + 旧版 areaManagerOf 兼容）
+    const inArea = (isAreaManager || oldAreaMgr) && targetUser.livingArea &&
+      ((currentUser.livingArea === targetUser.livingArea) ||
+       (Array.isArray(currentUser.areaManagerOf) && currentUser.areaManagerOf.includes(targetUser.livingArea)))
+    // 显式订阅的用户
+    const inSubs = hasSubscribers && currentUser.subscribers.includes(targetUser.openid)
 
-    if (!inDept && !inArea) {
+    if (!inDept && !inArea && !inSubs) {
       return fail('无权查看该用户记录', 403)
     }
   }
