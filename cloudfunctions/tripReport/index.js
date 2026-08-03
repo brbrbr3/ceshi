@@ -1224,11 +1224,8 @@ async function getBoardData(openid, params) {
   const isAreaManager = !!currentUser.isAreaManager
   const hasSubscribers = Array.isArray(currentUser.subscribers) && currentUser.subscribers.length > 0
 
-  // 权限校验（管理员 / 领导 / 部门负责人 / 片长 / 有订阅的人）
-  if (!isAdmin && !isLeader && !isDeptHead && !isAreaManager && !hasSubscribers) {
-    return fail('无权限访问出行数据板', 403)
-  }
-
+  // 权限校验已移除，所有用户均可访问（普通用户仅看自己）
+  
   // 计算可查看的用户范围（多身份取并集）
   let userQuery = { status: 'approved' }
   let scopeType = 'all'
@@ -1239,31 +1236,29 @@ async function getBoardData(openid, params) {
   } else {
     const orConditions = []
 
-    // 片长 → 管辖居住区域（新版 isAreaManager + 旧版 areaManagerOf 兼容）
-    const areas = new Set()
-    if (isAreaManager && currentUser.livingArea) areas.add(currentUser.livingArea)
-    if (Array.isArray(currentUser.areaManagerOf)) currentUser.areaManagerOf.forEach(a => areas.add(a))
-    if (areas.size > 0) {
-      orConditions.push({ livingArea: _.in(Array.from(areas)) })
+    // 片长 → 管辖居住区域
+    if (isAreaManager && currentUser.livingArea) {
+      orConditions.push({ livingArea: currentUser.livingArea })
     }
 
-    // 部门负责人 → 本部门（新版 isDepartmentHead + 旧版兼容）
-    const depts = new Set()
-    if (isDeptHead && currentUser.department) depts.add(currentUser.department)
-    if (Array.isArray(currentUser.deptExtraNotifierOf)) currentUser.deptExtraNotifierOf.forEach(d => depts.add(d))
-    if (depts.size > 0) {
-      orConditions.push({ department: _.in(Array.from(depts)) })
+    // 部门负责人 → 本部门
+    if (isDeptHead && currentUser.department) {
+      orConditions.push({ department: currentUser.department })
     }
 
-    // 显式订阅的用户（subscribers 字段）
+    // 显式订阅的用户
     if (hasSubscribers) {
       orConditions.push({ openid: _.in(currentUser.subscribers) })
     }
 
-    if (orConditions.length === 1) {
+    // 普通用户 → 仅自己
+    if (orConditions.length === 0) {
+      orConditions.push({ openid })
+      scopeType = 'self'
+    } else if (orConditions.length === 1) {
       Object.assign(userQuery, orConditions[0])
       scopeType = orConditions[0].livingArea ? 'area' : (orConditions[0].openid ? 'subscribers' : 'department')
-    } else if (orConditions.length > 1) {
+    } else {
       userQuery = _.or(orConditions.map(c => ({ status: 'approved', ...c })))
       scopeType = 'mixed'
     }
@@ -1346,32 +1341,7 @@ async function getBoardData(openid, params) {
     groups[groupKey].push(item)
   })
 
-  // 组内排序：部门 → 部门负责人/额外报备接收人优先；居住区 → 片长优先
-  Object.values(groups).forEach(groupItems => {
-    groupItems.sort((a, b) => {
-      const aUser = a._user || {}
-      const bUser = b._user || {}
-      const aName = a.userName || ''
-      const bName = b.userName || ''
-      if (groupBy === 'department') {
-        // 部门负责人最前
-        const aIsHead = aUser.isDepartmentHead ? 0 : 1
-        const bIsHead = bUser.isDepartmentHead ? 0 : 1
-        if (aIsHead !== bIsHead) return aIsHead - bIsHead
-        // 部门额外报备接收人次之
-        const aIsExtra = (aUser.deptExtraNotifierOf && aUser.deptExtraNotifierOf.length > 0) ? 0 : 1
-        const bIsExtra = (bUser.deptExtraNotifierOf && bUser.deptExtraNotifierOf.length > 0) ? 0 : 1
-        if (aIsExtra !== bIsExtra) return aIsExtra - bIsExtra
-      } else {
-        // 片长最前
-        const aIsManager = (aUser.areaManagerOf && aUser.areaManagerOf.length > 0) ? 0 : 1
-        const bIsManager = (bUser.areaManagerOf && bUser.areaManagerOf.length > 0) ? 0 : 1
-        if (aIsManager !== bIsManager) return aIsManager - bIsManager
-      }
-      // 同优先级按姓名排序
-      return aName.localeCompare(bName)
-    })
-  })
+  // 组内排序已移至前端 trip-board.js → sortBoardItems，云函数不再排序
 
   // 转为数组并排序
   let groupList = Object.entries(groups).map(([key, groupItems]) => ({

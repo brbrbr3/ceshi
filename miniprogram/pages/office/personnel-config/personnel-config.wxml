@@ -20,7 +20,7 @@
 
       <!-- 搜索栏 -->
       <view class="personnel-search">
-        <input class="personnel-search-input" value="{{searchKeyword}}" bindinput="handleSearchInput" placeholder="搜索姓名..." />
+        <input class="personnel-search-input" value="{{searchKeyword}}" bindinput="handleSearchInput" placeholder="🔍搜索姓名..." />
       </view>
 
       <!-- 用户列表（按分组排列） -->

@@ -88,31 +88,6 @@ Page({
       }
 
       const user = result.user
-      const isLeader = user.role === '馆员' && user.department === '无'
-      const isAdmin = user.isAdmin
-      const isDeptHead = user.isDepartmentHead
-      const isAreaManager = Array.isArray(user.areaManagerOf) && user.areaManagerOf.length > 0
-      const isDeptExtraNotifier = Array.isArray(user.deptExtraNotifierOf) && user.deptExtraNotifierOf.length > 0
-      const isLeaderNotifier = !!user.isLeaderNotifier
-
-      if (!isAdmin && !isLeader && !isDeptHead && !isAreaManager && !isDeptExtraNotifier && !isLeaderNotifier) {
-        // 标记已拒，供 onShow 静默切回使用
-        this._denied = true
-        // 先切回首页，切换成功后再弹窗提示
-        wx.switchTab({
-          url: '/pages/office/home/home',
-          success: () => {
-            wx.showModal({
-              title: '权限提示',
-              content: '您没有权限访问出行数据板',
-              showCancel: false,
-              confirmText: '我知道了'
-            })
-          }
-        })
-        return
-      }
-
       this.setData({ currentUser: user, viewScopeText: this.computeViewScopeText(user) })
     } catch (error) {
       console.error('获取用户信息失败:', error)
@@ -141,7 +116,9 @@ Page({
         const data = res.result.data
         const groups = (data.groups || []).map(g => ({
           groupName: g.groupName,
-          items: g.items.map(item => this.formatBoardItem(item, this.data.groupBy))
+          items: g.items
+            .map(item => this.formatBoardItem(item, this.data.groupBy))
+            .sort((a, b) => this.sortBoardItems(a, b, this.data.groupBy))
         }))
 
         this.setData({
@@ -194,13 +171,9 @@ Page({
           roleLabel = '负责人'
           statusColor = '#2563EB'
           statusBg = '#EFF6FF'
-        } else if (Array.isArray(user.deptExtraNotifierOf) && user.deptExtraNotifierOf.length > 0) {
-          roleLabel = '报备接收人'
-          statusColor = '#0D9488'
-          statusBg = '#CCFBF1'
         }
       } else if (groupBy === 'livingArea') {
-        if (Array.isArray(user.areaManagerOf) && user.areaManagerOf.length > 0) {
+        if (user.isAreaManager) {
           roleLabel = '片长'
           statusColor = '#7C3AED'
           statusBg = '#F5F3FF'
@@ -229,6 +202,34 @@ Page({
       hasTrip,
       showStatus: hasTrip || !!roleLabel
     }
+  },
+
+  /**
+   * 组内排序：部门维度 → 负责人置顶；居住区维度 → 片长置顶；其余按姓名（拼音）排序
+   * @param {Object} a - 已格式化的条目
+   * @param {Object} b - 已格式化的条目
+   * @param {string} groupBy - 分组维度 'department' | 'livingArea'
+   */
+  sortBoardItems(a, b, groupBy) {
+    const aUser = a._user || {}
+    const bUser = b._user || {}
+    const aName = a.userName || ''
+    const bName = b.userName || ''
+
+    if (groupBy === 'department') {
+      // 部门负责人最前
+      const aIsHead = aUser.isDepartmentHead ? 0 : 1
+      const bIsHead = bUser.isDepartmentHead ? 0 : 1
+      if (aIsHead !== bIsHead) return aIsHead - bIsHead
+    } else {
+      // 片长最前
+      const aIsManager = aUser.isAreaManager ? 0 : 1
+      const bIsManager = bUser.isAreaManager ? 0 : 1
+      if (aIsManager !== bIsManager) return aIsManager - bIsManager
+    }
+
+    // 其余按姓名（拼音）排序
+    return aName.localeCompare(bName, 'zh')
   },
 
   // ========== 折叠面板：人员类型切换 ==========
@@ -451,35 +452,29 @@ Page({
     const isLeader = user.role === '馆员' && user.department === '无'
     const isAdmin = user.isAdmin
     const isDeptHead = user.isDepartmentHead
-    const isAreaManager = Array.isArray(user.areaManagerOf) && user.areaManagerOf.length > 0
-    const isDeptExtraNotifier = Array.isArray(user.deptExtraNotifierOf) && user.deptExtraNotifierOf.length > 0
+    const isAreaManager = !!user.isAreaManager
+    const hasSubscribers = Array.isArray(user.subscribers) && user.subscribers.length > 0
 
-    // 全体范围：管理员 或 馆员且部门为空（原馆领导，非部门负责人）
+    // 全体范围：管理员 或 馆员且部门为空
     if (isAdmin || (isLeader && !isDeptHead)) {
       return '全体人员'
     }
 
-    // 收集各身份范围描述（并集），与云函数逻辑一致
+    // 收集各身份范围描述（并集）
     const parts = []
 
-    if (isAreaManager) {
-      parts.push('管辖居住区域（' + user.areaManagerOf.join('、') + '）')
+    if (isAreaManager && user.livingArea) {
+      parts.push('管辖居住区域（' + user.livingArea + '）')
     }
     if (isDeptHead && user.department) {
       parts.push('本部门（' + user.department + '）')
     }
-    if (isDeptExtraNotifier) {
-      // 仅当已作为"本部门"显示时，才排除对应部门避免重复
-      const extraDepts = isDeptHead
-        ? user.deptExtraNotifierOf.filter(d => d !== user.department)
-        : user.deptExtraNotifierOf
-      if (extraDepts.length > 0) {
-        parts.push('报备部门（' + extraDepts.join('、') + '）')
-      }
+    if (hasSubscribers) {
+      parts.push('订阅的' + user.subscribers.length + '人')
     }
 
     if (parts.length === 0) {
-      return ''
+      return '仅自己'
     }
     return parts.join('及') + '人员'
   },

@@ -242,6 +242,8 @@ Page({
         department: u.department,
         checked: reportTo.includes(u.openid)
       }))
+      // 不再按部门顺序展示，全部按姓名（拼音）排序
+      .sort((a, b) => (a.name || '').localeCompare(b.name || '', 'zh'))
 
     // 岗位预计算 checked（与订阅列表一致，避免 WXML 中调用 indexOf）
     const userPositions = Array.isArray(user.position) ? user.position : []

@@ -64,8 +64,7 @@
         <text class="board-group-count">{{item.items.length}}人</text>
       </view>
       <view class="board-group-items">
-        <view wx:for="{{item.items}}" wx:for-item="trip" wx:key="_id" class="board-item" data-openid="{{trip._openid}}" data-name="{{trip.userName}}" bindtap="handleItemTap">
-          <view class="board-item-avatar" style="background: {{trip.avatarColor}};">{{trip.avatarText}}</view>
+        <view wx:for="{{item.items}}" wx:for-item="trip" wx:key="_id" class="board-item" data-openid="{{trip._openid}}" data-name="{{trip.userName}}" style="border-color: {{trip.avatarColor}};" bindtap="handleItemTap">
           <view class="board-item-main">
             <view class="board-item-name-row">
               <text class="board-item-name">{{trip.userName}}</text>
@@ -79,7 +78,7 @@
               <text>当前未外出</text>
             </view>
           </view>
-          <!-- <view wx:if="{{trip.hasTrip}}" class="board-item-arrow">›</view> -->
+          <view class="board-item-arrow">›</view>
         </view>
       </view>
     </view>

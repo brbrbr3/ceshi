@@ -176,7 +176,7 @@
   align-items: center;
   justify-content: space-between;
   padding: 16rpx 8rpx 12rpx;
-  font-size: var(--fs-28);
+  font-size: var(--fs-35);
   font-weight: 600;
   color: #1E293B;
 }
@@ -188,36 +188,42 @@
 }
 
 .board-group-items {
-  background: #FFFFFF;
-  border-radius: 20rpx;
-  overflow: hidden;
-  box-shadow: 0 2rpx 12rpx rgba(0, 0, 0, 0.04);
+  /* 卡片式布局，容器不做包裹 */
 }
 
-/* 条目 */
+/* 条目 - 卡片式 */
 .board-item {
   display: flex;
   align-items: center;
   padding: 24rpx;
-  border-bottom: 1rpx solid #F1F5F9;
+  background: #FFFFFF;
+  border-radius: 16rpx;
+  margin-bottom: 12rpx;
+  box-shadow: 0 2rpx 12rpx rgba(0,0,0,0.04);
+  border-left: 6rpx solid;
+  margin-bottom: 25rpx;
 }
 
 .board-item:last-child {
-  border-bottom: none;
+  margin-bottom: 0;
+}
+
+.board-item:active {
+  transform: scale(0.97);
+  opacity: 0.9;
 }
 
 .board-item-avatar {
-  width: 72rpx;
-  height: 72rpx;
+  width: 18rpx;
+  height: 18rpx;
   border-radius: 50%;
   display: flex;
   align-items: center;
   justify-content: center;
-  font-size: var(--fs-30);
+  font-size: var(--fs-40);
   font-weight: 500;
-  color: #FFFFFF;
   flex-shrink: 0;
-  margin-right: 20rpx;
+  margin-left: 10rpx;
 }
 
 .board-item-main {
@@ -239,7 +245,7 @@
 }
 
 .board-item-status {
-  font-size: var(--fs-24);
+  font-size: var(--fs-26);
   padding: 6rpx 16rpx;
   border-radius: 8rpx;
   font-weight: 500;
@@ -253,7 +259,7 @@
 }
 
 .board-item-dest {
-  font-size: var(--fs-26);
+  font-size: var(--fs-28);
   color: #64748B;
   overflow: hidden;
   text-overflow: ellipsis;
@@ -261,7 +267,7 @@
 }
 
 .board-item-time {
-  font-size: var(--fs-26);
+  font-size: var(--fs-28);
   color: #94A3B8;
   flex-shrink: 0;
   padding-right: 15rpx;
@@ -272,7 +278,7 @@
 }
 
 .board-item-info--none text {
-  font-size: var(--fs-26);
+  font-size: var(--fs-28);
   color: #CBD5E1;
 }
 

@@ -154,10 +154,7 @@ Page({
       }
 
       const user = result.user
-      const companyInfo = [{
-          label: '出生日期',
-          value: user.birthday || '未填写'
-        },
+      const companyInfo = [
         {
           label: '角色',
           value: user.role || '未设置'
@@ -208,6 +205,14 @@ Page({
         label: '系统管理员',
         value: user.isAdmin ? '是' : '否'
       })
+      
+      //如果有生日信息，添加到信息卡片中
+      if (user.birthday) {
+        companyInfo.push({
+          label: '出生日期',
+          value: user.birthday || '未填写'
+        })
+      }
 
       // 用户状态映射
       const userStatus = user.userStatus || 'offline'
@@ -236,9 +241,9 @@ Page({
       }]
       
       // 报备配置：管理员可编辑，馆员只读查看
-      if (user.isAdmin) {
+      if (user.role === '馆员') {
         systemItems.push({
-          icon: '👥',
+          icon: '⚙️',
           label: '人员配置'
         })
       }
