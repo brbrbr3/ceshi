@@ -33,6 +33,12 @@
   <!-- 列表区 -->
   <view class="ic-list-section">
 
+    <!-- 首次加载中 -->
+    <view wx:if="{{loading && list.length === 0}}" class="ic-loading">
+      <view class="ic-loading-spinner"></view>
+      <text class="ic-loading-text">加载中...</text>
+    </view>
+
     <!-- 备案卡片 -->
     <view class="ic-card {{!item.isActive ? 'is-ended' : ''}}" wx:for="{{list}}" wx:key="_id" bindtap="handleShowDetail" data-record="{{item}}">
       <view class="ic-card-header">

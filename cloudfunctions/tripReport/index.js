@@ -1218,7 +1218,7 @@ async function getBoardData(openid, params) {
 
     // 普通用户 → 仅自己
     if (orConditions.length === 0) {
-      orConditions.push({ openid })
+      userQuery.openid = openid
       scopeType = 'self'
     } else if (orConditions.length === 1) {
       Object.assign(userQuery, orConditions[0])

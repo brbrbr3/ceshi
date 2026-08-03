@@ -2,6 +2,29 @@ const app = getApp()
 const utils = require('../../../common/utils.js')
 const modalAnimation = require('../../../behaviors/modalAnimation.js')
 
+/**
+ * 构建 disabled 项提示文案（根据双方具体关系）
+ * @param {string} uName 候选人姓名
+ * @param {string} selfName 当前编辑的用户姓名
+ * @param {boolean} selfIsDeptHead 当前用户是否部门负责人
+ * @param {string} selfDepartment 当前用户部门
+ * @param {string} uDepartment 候选人部门
+ * @param {boolean} selfIsAreaManager 当前用户是否片长
+ * @param {string} selfLivingArea 当前用户居住区域
+ * @param {string} uLivingArea 候选人居住区域
+ */
+function buildDisabledReason(uName, selfName, selfIsDeptHead, selfDepartment, uDepartment, selfIsAreaManager, selfLivingArea, uLivingArea) {
+  const parts = []
+  if (selfIsDeptHead && selfDepartment && uDepartment === selfDepartment) {
+    parts.push('所在部门的部门负责人')
+  }
+  if (selfIsAreaManager && selfLivingArea && uLivingArea === selfLivingArea) {
+    parts.push('所居住区域的片长')
+  }
+  if (parts.length === 0) return ''
+  return `${uName}${parts.join('、')}是${selfName}，向${selfName}报备，无法取消勾选`
+}
+
 Page({
   behaviors: [modalAnimation],
 
@@ -234,10 +257,7 @@ Page({
     const currentDepartment = user.department || ''
 
     // 当前编辑用户的角色简称（用于 disabled 提示）
-    const currentRoles = []
-    if (currentIsAreaManager && currentLivingArea) currentRoles.push('片长')
-    if (currentIsDeptHead && currentDepartment) currentRoles.push('部门负责人')
-    const currentRoleText = currentRoles.join('、')
+    // 当前用户身份信息已提取（currentIsDeptHead, currentDepartment, currentIsAreaManager, currentLivingArea）
 
     // 获取现有 reportTo
     const reportTo = Array.isArray(user.reportTo) ? user.reportTo : []
@@ -267,8 +287,8 @@ Page({
     const allCheckedOpenids = new Set([...autoOpenids, ...checkedOpenids])
 
     // 构建 subscriberGroups：按部门分组 + 按居住区分组
-    const subscriberGroups = this.buildSubscriberGroups(allUsers, openid, allCheckedOpenids, autoOpenids, departmentOptions, currentRoleText)
-    const subscriberAreaGroups = this.buildSubscriberAreaGroups(allUsers, openid, allCheckedOpenids, autoOpenids, currentRoleText)
+    const subscriberGroups = this.buildSubscriberGroups(allUsers, openid, allCheckedOpenids, autoOpenids, departmentOptions, user.name, currentIsDeptHead, currentDepartment, currentIsAreaManager, currentLivingArea)
+    const subscriberAreaGroups = this.buildSubscriberAreaGroups(allUsers, openid, allCheckedOpenids, autoOpenids, user.name, currentIsDeptHead, currentDepartment, currentIsAreaManager, currentLivingArea)
 
     // 构建 reportTo 选项（排除自己）
     const reportToOptions = allUsers
@@ -279,8 +299,8 @@ Page({
         const isAutoDeptHead = !!u.isDepartmentHead && u.department === currentDepartment && currentDepartment
         const isAuto = isAutoManager || isAutoDeptHead
         let disabledReason = ''
-        if (isAutoManager) disabledReason = `${u.name}是你所在居住区的片长，无法取消勾选`
-        else if (isAutoDeptHead) disabledReason = `${u.name}是你的部门负责人，无法取消勾选`
+        if (isAutoManager) disabledReason = `${u.name}是${user.name}所在居住区的片长，无法取消勾选`
+        else if (isAutoDeptHead) disabledReason = `${u.name}是${user.name}的部门负责人，无法取消勾选`
         return {
           openid: u.openid,
           name: u.name,
@@ -322,7 +342,7 @@ Page({
   /**
    * 构建按部门分组的订阅候选人列表
    */
-  buildSubscriberGroups(allUsers, selfOpenid, checkedOpenids, autoOpenids, deptOpts, currentRoleText) {
+  buildSubscriberGroups(allUsers, selfOpenid, checkedOpenids, autoOpenids, deptOpts, selfName, selfIsDeptHead, selfDepartment, selfIsAreaManager, selfLivingArea) {
     const groups = []
     const deptMap = {}
     const selfUser = allUsers.find(u => u.openid === selfOpenid)
@@ -347,7 +367,7 @@ Page({
         subText: u.livingArea || '',   // 按部门分组时右侧显示居住区域
         checked: checkedOpenids.has(u.openid),
         disabled: isDisabled,
-        disabledReason: isDisabled ? `${u.name}自动向该${currentRoleText}报备，无法取消勾选` : ''
+        disabledReason: isDisabled ? buildDisabledReason(u.name, selfName, selfIsDeptHead, selfDepartment, u.department, selfIsAreaManager, selfLivingArea, u.livingArea) : ''
       })
     })
 
@@ -387,7 +407,7 @@ Page({
   /**
    * 构建按居住区分组的订阅候选人列表
    */
-  buildSubscriberAreaGroups(allUsers, selfOpenid, checkedOpenids, autoOpenids, currentRoleText) {
+  buildSubscriberAreaGroups(allUsers, selfOpenid, checkedOpenids, autoOpenids, selfName, selfIsDeptHead, selfDepartment, selfIsAreaManager, selfLivingArea) {
     const areaMap = {}
     allUsers.forEach(u => {
       if (u.openid === selfOpenid) return
@@ -403,7 +423,7 @@ Page({
         subText: u.department || '无',  // 按居住区分组时右侧显示部门
         checked: checkedOpenids.has(u.openid),
         disabled: isDisabled,
-        disabledReason: isDisabled ? `${u.name}自动向该${currentRoleText}报备，无法取消勾选` : ''
+        disabledReason: isDisabled ? buildDisabledReason(u.name, selfName, selfIsDeptHead, selfDepartment, u.department, selfIsAreaManager, selfLivingArea, u.livingArea) : ''
       })
     })
     const sortedKeys = Object.keys(areaMap).sort((a, b) => {

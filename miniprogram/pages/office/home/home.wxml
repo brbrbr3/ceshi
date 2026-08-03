@@ -23,7 +23,7 @@
 
   <view class="office-content">
   <!--全馆日历模块-->
- <view class="office-glass-card home-calendar" hover-class="home-btn-active" hover-stay-time="120" bindtap="goCalendar">
+ <view class="office-glass-card home-calendar" hover-class="home-btn-active" hover-stay-time="300" bindtap="goCalendar">
       <view class="home-calendar-main">
         <view class="home-calendar-icon">🗓️</view>
         <view>
@@ -37,7 +37,7 @@
    <view class="home-greeting-row">
       <view class="home-greeting">{{greetingText}}</view>
       <view class="home-actions">
-        <view class="office-icon-btn-wrapper" hover-class="home-btn-active" hover-stay-time="120" bindtap="goNotifications">
+        <view class="office-icon-btn-wrapper" bindtap="goNotifications">
           <view class="office-icon-btn home-icon-btn-ntf">🔔</view>
           <view wx:if="{{unreadNotificationCount > 0}}" class="office-badge">{{unreadNotificationCount}}</view>
         </view>
@@ -61,7 +61,7 @@
       </view>
       <view class="office-card home-grid-card">
         <view class="home-grid">
-          <view wx:for="{{quickActions}}" wx:key="label" class="home-grid-item" hover-class="home-btn-active" hover-stay-time="120" bindtap="handleQuickAction" data-label="{{item.label}}" data-feature="{{item.featureKey}}">
+          <view wx:for="{{quickActions}}" wx:key="label" class="home-grid-item" hover-class="home-btn-active" hover-stay-time="300" bindtap="handleQuickAction" data-label="{{item.label}}" data-feature="{{item.featureKey}}">
             <view class="home-grid-icon {{item.implemented === false ? 'is-implemented' : ''}}" style="background: {{item.bg}}; color: {{item.color}};">{{item.icon}}</view>
             <view class="home-grid-label {{item.implemented === false ? 'is-implemented' : ''}}">{{item.label}}</view>
           </view>

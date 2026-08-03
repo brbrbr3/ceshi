@@ -84,7 +84,7 @@
     </view>
   </view>
 
-  <view class="board-bottom-msg" wx:if="{{viewScopeText}}">- 您可查看{{viewScopeText}}出行情况 -</view>
+  <view class="board-bottom-msg" wx:if="{{viewScopeText}}">您可查看{{viewScopeText}}出行情况</view>
   
   <!-- 底部弹窗：个人全部外出记录 -->
   <view wx:if="{{showPersonPopup}}" class="person-popup-mask trip-pull-mask {{modalAnimating ? 'is-closing' : ''}}" catchtap="hidePersonPopup">

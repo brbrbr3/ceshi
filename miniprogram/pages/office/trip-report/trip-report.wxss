@@ -163,7 +163,7 @@
   font-size: var(--fs-28);
   font-weight: 600;
   padding-left: 0;
-  transition: transform 0.12s ease, opacity 0.12s ease;
+  transition: transform 0.3s ease, opacity 0.3s ease;
   padding-right: 0;
   border: none;
   display: flex;
@@ -611,7 +611,7 @@
   font-size: var(--fs-28);
   font-weight: 600;
   display: flex;
-  transition: transform 0.12s ease, opacity 0.12s ease;
+  transition: transform 0.3s ease, opacity 0.3s ease;
   align-items: center;
   justify-content: center;
   border: none;

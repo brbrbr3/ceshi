@@ -384,7 +384,7 @@ page {
 /* 按钮点击动效 */
 .profile-logout-btn,
 .profile-contact-btn {
-  transition: transform 0.12s ease, opacity 0.12s ease;
+  transition: transform 0.3s ease, opacity 0.3s ease;
 }
 
 .profile-btn-active {

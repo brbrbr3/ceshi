@@ -345,7 +345,7 @@ page {
 .home-calendar,
 .office-icon-btn-wrapper,
 .home-grid-item {
-  transition: transform 0.12s ease, opacity 0.12s ease;
+  transition: transform 0.3s ease, opacity 0.3s ease;
 }
 
 .home-btn-active {
