@@ -4,17 +4,15 @@
 
 const config = {
   // 缓存版本号（修改此值可强制刷新用户端缓存）
-  CACHE_VERSION: '1.0.0802',
+  CACHE_VERSION: '1.0.0803',
   //更新说明
-  VERSION_DESCRIPTION: '欢迎使用报备助手！\n1.报备后5分钟内可撤回\n2.返回时可选择为同行人报备返回',
+  VERSION_DESCRIPTION: '欢迎使用报备助手！\n1.报备后5分钟内可撤回\n2.返回时可选择为同行人报备返回\n3.所有人可访问"出行数据板"',
 
   // 云开发环境 ID
   envId: 'cloud1-d2gyip4xi1fcf54bd',
 
   // 订阅消息模板
   SUBSCRIBE_TEMPLATES: {
-    // 模板1：注册审批结果通知（推送给注册用户）
-    REGISTRATION_RESULT: 'fotJ5c43Hf4OEtR88Mx_bm2CaHKLR6mdrVp4Rz69MSU',
     // 模板2：待审批通知（推送给审批管理员）
     PENDING_APPROVAL: 'qKtP6ndBlIVWCCGLEHAmUfjiPdCiYJqx6TUWI9_-2x8',
     // 模板3：出行报备通知（推送给报备接收人）

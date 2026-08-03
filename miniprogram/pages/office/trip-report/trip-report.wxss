@@ -163,12 +163,12 @@
   font-size: var(--fs-28);
   font-weight: 600;
   padding-left: 0;
+  transition: transform 0.12s ease, opacity 0.12s ease;
   padding-right: 0;
   border: none;
   display: flex;
   align-items: center;
   justify-content: center;
-  transition: all 0.3s ease;
 }
 
 .trip-action-btn-depart {
@@ -203,7 +203,8 @@
 }
 
 .trip-action-btn:active {
-  transform: scale(0.98);
+  transform: scale(0.94);
+  opacity: 0.85;
 }
 
 /* 章节标题 */
@@ -473,6 +474,7 @@
 }
 
 .trip-history-item:active {
+  transform: scale(0.95);
   background: #EEF2FF;
   border-color: #2563EB;
   color: #2563EB;
@@ -609,6 +611,7 @@
   font-size: var(--fs-28);
   font-weight: 600;
   display: flex;
+  transition: transform 0.12s ease, opacity 0.12s ease;
   align-items: center;
   justify-content: center;
   border: none;
@@ -627,5 +630,6 @@
 }
 
 .proxy-return-btn:active {
-  opacity: 0.85;
+  transform: scale(0.94);
+  opacity: 0.8;
 }

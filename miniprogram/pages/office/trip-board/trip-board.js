@@ -453,7 +453,6 @@ Page({
     const isAdmin = user.isAdmin
     const isDeptHead = user.isDepartmentHead
     const isAreaManager = !!user.isAreaManager
-    const hasSubscribers = Array.isArray(user.subscribers) && user.subscribers.length > 0
 
     // 全体范围：管理员 或 馆员且部门为空
     if (isAdmin || (isLeader && !isDeptHead)) {
@@ -468,9 +467,6 @@ Page({
     }
     if (isDeptHead && user.department) {
       parts.push('本部门（' + user.department + '）')
-    }
-    if (hasSubscribers) {
-      parts.push('订阅的' + user.subscribers.length + '人')
     }
 
     if (parts.length === 0) {

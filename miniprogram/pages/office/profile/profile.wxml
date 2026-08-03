@@ -82,11 +82,11 @@
       </view>
     </view>
     <view wx:if="{{!isReviewer}}" class="office-card profile-logout-btn" style="padding: 0;">
-    <button class="office-card profile-contact-btn" open-type="contact">联系管理员</button></view>
+    <button class="office-card profile-contact-btn" hover-class="profile-btn-active" open-type="contact">联系管理员</button></view>
     <view wx:if="{{!isReviewer}}" class="profile-version" style="text-align: left; padding: 10rpx 20rpx;">如有问题，请联系管理员</view>
-    <view class="office-card profile-logout-btn" bindtap="handleClearCache">清除缓存</view>
-    <view wx:if="{{!isReviewer}}" class="profile-version" style="text-align: left; padding: 10rpx 20rpx;">若小程序运行异常（收不到微信推送消息、权限异常等），可点击“清除缓存”按钮尝试解决</view>
-    <view class="office-card profile-logout-btn" bindtap="handleLogout">退出登录</view>
+    <view class="office-card profile-logout-btn" hover-class="profile-btn-active" hover-stay-time="120" bindtap="handleClearCache">清除缓存</view>
+    <view wx:if="{{!isReviewer}}" class="profile-version" style="text-align: left; padding: 10rpx 20rpx;">若小程序运行异常（收不到微信推送消息、权限异常等），可点击"清除缓存"按钮尝试解决</view>
+    <view class="office-card profile-logout-btn" hover-class="profile-btn-active" hover-stay-time="120" bindtap="handleLogout">退出登录</view>
     <view class="profile-version">BXLY报备助手 · V{{version}}</view>
   </view>
 </view>

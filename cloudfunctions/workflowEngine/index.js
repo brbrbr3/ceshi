@@ -1339,8 +1339,8 @@ async function sendOrderTerminatedNotification(order, reason) {
 
 // 订阅消息模板ID
 const SUBSCRIBE_TEMPLATE = {
-  // 模板1：注册审批结果通知（推送给注册用户）
-  REGISTRATION_RESULT: 'fotJ5c43Hf4OEtR88Mx_bm2CaHKLR6mdrVp4Rz69MSU',
+  // 模板1：未读消息提醒（用于注册审批结果通知，推送给注册用户）
+  UNREAD_MESSAGE: 'mJ1CGM8OvpgomnYy0yot4Kk8hD8S-NH06A6ZDywdpGc',
   // 模板2：待审批通知（推送给审批管理员）
   PENDING_APPROVAL: 'qKtP6ndBlIVWCCGLEHAmUfjiPdCiYJqx6TUWI9_-2x8'
 }
@@ -1397,13 +1397,15 @@ async function sendRegistrationResultSubscribeMessage(order, result) {
   const applicantOpenid = order.businessData && order.businessData.applicantId
   if (!applicantOpenid) return
 
-  const templateId = SUBSCRIBE_TEMPLATE.REGISTRATION_RESULT
+  const templateId = SUBSCRIBE_TEMPLATE.UNREAD_MESSAGE
 
   const applicantName = truncateText(order.businessData.applicantName || '用户')
   const offsetHours = await getTimezoneOffset()
   const registerTime = formatSubscribeTime(order.submittedAt || order.createdAt || Date.now(), offsetHours)
-  const tip = result === 'approved'
-    ? '您的注册申请已批准，请重新登录使用'
+  const isApproved = result === 'approved'
+  const messageType = isApproved ? '用户注册通过通知' : '用户注册驳回通知'
+  const tip = isApproved
+    ? '您的注册申请已批准，可登录使用'
     : '您的注册申请未通过，请修改后重新提交'
 
   try {
@@ -1412,9 +1414,11 @@ async function sendRegistrationResultSubscribeMessage(order, result) {
       templateId: templateId,
       page: 'pages/auth/login/login',
       data: {
-        thing1: { value: applicantName },
+        thing7: { value: '系统' },
         time2: { value: registerTime },
-        thing3: { value: truncateText(tip) }
+        thing6: { value: truncateText(messageType) },
+        thing3: { value: truncateText(tip) },
+        thing4: { value: '点击进入小程序' }
       }
     })
     console.log('注册审批结果订阅消息已发送:', applicantOpenid, result)
@@ -1574,7 +1578,6 @@ async function completeWorkflow(orderId, decision, approverId, approverName, com
       avatarUrl: businessData.avatarUrl || '',
       name: businessData.applicantName || '',
       gender: businessData.gender || '',
-      birthday: businessData.birthday || '',
       role: businessData.role || '',
       isAdmin: !!businessData.isAdmin,
       isDepartmentHead: !!businessData.isDepartmentHead,
@@ -1621,7 +1624,6 @@ async function completeWorkflow(orderId, decision, approverId, approverName, com
         nickName: businessData.nickName || '',
         avatarUrl: businessData.avatarUrl || '',
         gender: businessData.gender || '',
-        birthday: businessData.birthday || '',
         role: businessData.role || '',
         isAdmin: !!businessData.isAdmin,
         isDepartmentHead: !!businessData.isDepartmentHead,

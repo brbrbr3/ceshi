@@ -206,14 +206,6 @@ Page({
         value: user.isAdmin ? '是' : '否'
       })
       
-      //如果有生日信息，添加到信息卡片中
-      if (user.birthday) {
-        companyInfo.push({
-          label: '出生日期',
-          value: user.birthday || '未填写'
-        })
-      }
-
       // 用户状态映射
       const userStatus = user.userStatus || 'offline'
       const STATUS_MAP = {

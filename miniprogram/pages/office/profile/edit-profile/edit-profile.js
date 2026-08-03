@@ -22,7 +22,6 @@ Page({
     form: {
       name: '',
       gender: '男',
-      birthday: '',
       role: '',
       isAdmin: false,
       relativeName: '',

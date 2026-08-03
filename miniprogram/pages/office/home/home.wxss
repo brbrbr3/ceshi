@@ -341,6 +341,18 @@ page {
   color: #94A3B8 !important;
 }
 
+/* 通用点击动效 */
+.home-calendar,
+.office-icon-btn-wrapper,
+.home-grid-item {
+  transition: transform 0.12s ease, opacity 0.12s ease;
+}
+
+.home-btn-active {
+  transform: scale(0.93);
+  opacity: 0.75;
+}
+
 .home-grid-label {
   margin-top: 14rpx;
   font-size: var(--fs-28);

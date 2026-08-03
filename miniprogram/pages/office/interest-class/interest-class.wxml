@@ -18,15 +18,7 @@
   <view class="ic-search-bar">
     <view class="ic-search-input-wrapper">
       <text class="ic-search-icon">🔍</text>
-      <input
-        class="ic-search-input"
-        value="{{keyword}}"
-        placeholder="搜索姓名或兴趣班名称"
-        placeholder-class="ic-search-placeholder"
-        bindinput="handleSearchInput"
-        bindconfirm="handleSearchConfirm"
-        confirm-type="search"
-      />
+      <input class="ic-search-input" value="{{keyword}}" placeholder="搜索姓名或兴趣班名称" placeholder-class="ic-search-placeholder" bindinput="handleSearchInput" bindconfirm="handleSearchConfirm" confirm-type="search" />
       <view wx:if="{{keyword}}" class="ic-search-clear" bindtap="handleClearSearch">×</view>
     </view>
   </view>
@@ -58,6 +50,8 @@
             <text class="ic-card-meta-label">时段</text>
             <text class="ic-card-meta-value">{{item.timeSlot}}</text>
           </view>
+        </view>
+        <view class="ic-card-meta">
           <view class="ic-card-meta-item">
             <text class="ic-card-meta-label">教学模式</text>
             <text class="ic-card-meta-value">{{item.teachingMode}}</text>

@@ -789,7 +789,7 @@ App({
    * @returns {Promise<boolean>}
    */
   async requestRegistrationResultSubscribe() {
-    const templateId = config.SUBSCRIBE_TEMPLATES.REGISTRATION_RESULT
+    const templateId = config.SUBSCRIBE_TEMPLATES.UNREAD_MESSAGE
 
     // 确保 openid 已获取（新用户首次注册时 globalData.openid 可能为空）
     if (!this.globalData.openid) {

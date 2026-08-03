@@ -354,7 +354,7 @@ page {
 
 .profile-company-value {
   margin-top: 8rpx;
-  font-size: var(--fs-26);
+  font-size: var(--fs-30);
   color: #1E293B;
 }
 
@@ -379,6 +379,17 @@ page {
 
 .profile-contact-btn::after {
   border: none;
+}
+
+/* 按钮点击动效 */
+.profile-logout-btn,
+.profile-contact-btn {
+  transition: transform 0.12s ease, opacity 0.12s ease;
+}
+
+.profile-btn-active {
+  transform: scale(0.95);
+  opacity: 0.7;
 }
 
 .profile-version {

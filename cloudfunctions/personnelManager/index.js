@@ -28,6 +28,7 @@ exports.main = async (event, context) => {
     switch (action) {
       case 'getAllPersonnel': return await getAllPersonnel()
       case 'updatePersonnel': return await updatePersonnel(params)
+      case 'updateBatchReportTo': return await updateBatchReportTo(params)
       case 'migrateData': return await migrateData()
       default: return fail('未知操作', 400)
     }
@@ -53,7 +54,6 @@ async function getAllPersonnel() {
       position: true,
       livingArea: true,
       isAreaManager: true,
-      subscribers: true,
       reportTo: true,
       avatarUrl: true
     })
@@ -78,7 +78,7 @@ async function updatePersonnel(params) {
   // 只允许更新许可的字段
   const allowedFields = [
     'role', 'department', 'isDepartmentHead', 'position',
-    'livingArea', 'isAreaManager', 'subscribers', 'reportTo'
+    'livingArea', 'isAreaManager', 'reportTo'
   ]
   const data = {}
   for (const key of allowedFields) {
@@ -93,9 +93,59 @@ async function updatePersonnel(params) {
 }
 
 /**
+ * 批量更新其他用户的 reportTo（"谁向该用户报备"）
+ * @param {Object} params
+ * @param {string} params.currentOpenid - 当前编辑的用户
+ * @param {string[]} params.additions - 需要将 currentOpenid 加入 reportTo 的用户
+ * @param {string[]} params.removals - 需要将 currentOpenid 从 reportTo 移除的用户
+ */
+async function updateBatchReportTo(params) {
+  const { currentOpenid, additions = [], removals = [] } = params
+  if (!currentOpenid) return fail('缺少目标用户', 400)
+  const now = Date.now()
+
+  // 将 currentOpenid 加入指定用户的 reportTo
+  for (const openid of additions) {
+    try {
+      const res = await usersCollection.where({ openid }).limit(1).get()
+      if (res.data && res.data.length > 0) {
+        const existing = Array.isArray(res.data[0].reportTo) ? res.data[0].reportTo : []
+        if (!existing.includes(currentOpenid)) {
+          await usersCollection.where({ openid }).update({
+            data: { reportTo: [...existing, currentOpenid], updatedAt: now }
+          })
+        }
+      }
+    } catch (e) {
+      console.warn('batchReportTo 添加失败:', openid, e)
+    }
+  }
+
+  // 将 currentOpenid 从指定用户的 reportTo 移除
+  for (const openid of removals) {
+    try {
+      const res = await usersCollection.where({ openid }).limit(1).get()
+      if (res.data && res.data.length > 0) {
+        const existing = Array.isArray(res.data[0].reportTo) ? res.data[0].reportTo : []
+        const filtered = existing.filter(o => o !== currentOpenid)
+        if (filtered.length !== existing.length) {
+          await usersCollection.where({ openid }).update({
+            data: { reportTo: filtered, updatedAt: now }
+          })
+        }
+      }
+    } catch (e) {
+      console.warn('batchReportTo 移除失败:', openid, e)
+    }
+  }
+
+  return success(null, '批量更新成功')
+}
+
+/**
  * 数据迁移：将旧字段映射到新字段
  * 旧字段: areaManagerOf[], deptExtraNotifierOf[], reportNotifiers[], isLeaderNotifier
- * 新字段: isAreaManager, subscribers[], reportTo[]
+ * 新字段: isAreaManager, reportTo[]
  */
 async function migrateData() {
   const allUsers = await usersCollection.where({ status: 'approved' }).get()
@@ -124,42 +174,7 @@ async function migrateData() {
         updates.reportTo = [...new Set(oldReportNotifiers)]
       }
 
-      // 3. Compute default subscribers
-      const subscribers = new Set()
-      const isAreaManager = oldAreas.length > 0
-      const isDeptHead = !!user.isDepartmentHead
-
-      // 片长默认订阅同居住区
-      if (isAreaManager && user.livingArea) {
-        users.forEach(other => {
-          if (other.openid !== user.openid && other.livingArea === user.livingArea) {
-            subscribers.add(other.openid)
-          }
-        })
-      }
-      // 部门负责人默认订阅同部门
-      if (isDeptHead && user.department) {
-        users.forEach(other => {
-          if (other.openid !== user.openid && other.department === user.department) {
-            subscribers.add(other.openid)
-          }
-        })
-      }
-      // deptExtraNotifierOf → 额外订阅该部门的所有人
-      const oldDeptExtras = Array.isArray(user.deptExtraNotifierOf) ? user.deptExtraNotifierOf : []
-      for (const dept of oldDeptExtras) {
-        users.forEach(other => {
-          if (other.openid !== user.openid && other.department === dept) {
-            subscribers.add(other.openid)
-          }
-        })
-      }
-
-      if (subscribers.size > 0) {
-        updates.subscribers = [...subscribers]
-      }
-
-      // 4. isLeaderNotifier → 将此人添加到各领导（部门空+馆员）的 reportTo 中
+      // 3. isLeaderNotifier → 将此人添加到各领导（部门空+馆员）的 reportTo 中
       if (user.isLeaderNotifier) {
         users.forEach(leader => {
           if (leader.openid === user.openid) return
@@ -177,10 +192,8 @@ async function migrateData() {
 
       if (Object.keys(updates).length > 0) {
         updates.updatedAt = now
-        // 如果已有 subscribers 或 reportTo 字段，不清空
-        const existingSubs = Array.isArray(user.subscribers) ? user.subscribers : []
+        // 如果已有 reportTo 字段，不清空
         const existingRt = Array.isArray(user.reportTo) ? user.reportTo : []
-        if (existingSubs.length > 0) updates.subscribers = existingSubs
         if (existingRt.length > 0) updates.reportTo = existingRt
 
         await usersCollection.where({ openid: user.openid }).update({ data: updates })

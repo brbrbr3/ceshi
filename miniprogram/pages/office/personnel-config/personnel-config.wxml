@@ -36,7 +36,7 @@
               <view class="personnel-card-avatar">{{card.avatarText}}</view>
               <view class="personnel-card-body">
                 <view class="personnel-card-name">{{card.name}}</view>
-                <view class="personnel-card-meta">{{card.livingArea || '未填写'}}</view>
+                <view class="personnel-card-meta">{{card.livingArea || '未填写'}}{{card.displayPosition ? ' · ' + card.displayPosition : ''}}</view>
               </view>
               <view class="personnel-card-label personnel-label-{{card.labelClass}}">{{card.labelText}}</view>
             </view>
@@ -131,7 +131,7 @@
                     <text class="personnel-group-name">{{item.name}}</text>
                     <text class="personnel-group-count">{{item.users.length}}人</text>
                   </view>
-                  <view class="personnel-sub-group-item" wx:for="{{item.users}}" wx:for-item="u" wx:key="openid" catchtap="handleToggleSubscriber" data-openid="{{u.openid}}">
+                  <view class="personnel-sub-group-item {{u.disabled ? 'is-disabled' : ''}}" wx:for="{{item.users}}" wx:for-item="u" wx:key="openid" catchtap="handleToggleSubscriber" data-openid="{{u.openid}}">
                     <view class="personnel-check {{u.checked ? 'is-checked' : ''}}">
                       <text wx:if="{{u.checked}}">✓</text>
                     </view>
@@ -152,7 +152,7 @@
                     <text class="personnel-group-name">{{item.name}}</text>
                     <text class="personnel-group-count">{{item.users.length}}人</text>
                   </view>
-                  <view class="personnel-sub-group-item" wx:for="{{item.users}}" wx:for-item="u" wx:key="openid" catchtap="handleToggleSubscriber" data-openid="{{u.openid}}">
+                  <view class="personnel-sub-group-item {{u.disabled ? 'is-disabled' : ''}}" wx:for="{{item.users}}" wx:for-item="u" wx:key="openid" catchtap="handleToggleSubscriber" data-openid="{{u.openid}}">
                     <view class="personnel-check {{u.checked ? 'is-checked' : ''}}">
                       <text wx:if="{{u.checked}}">✓</text>
                     </view>
@@ -173,7 +173,7 @@
               <view wx:if="{{reportToOptions.length === 0}}" class="personnel-empty-hint">暂无其他用户</view>
 
               <view class="personnel-sub-group-list">
-                <view class="personnel-sub-group-item" wx:for="{{reportToOptions}}" wx:key="openid" catchtap="handleToggleReportTo" data-openid="{{item.openid}}">
+                <view class="personnel-sub-group-item {{item.disabled ? 'is-disabled' : ''}}" wx:for="{{reportToOptions}}" wx:key="openid" catchtap="handleToggleReportTo" data-openid="{{item.openid}}">
                   <view class="personnel-check {{item.checked ? 'is-checked' : ''}}">
                     <text wx:if="{{item.checked}}">✓</text>
                   </view>

@@ -859,10 +859,9 @@ async function getHistory(openid) {
 /**
  * 报备通知：根据报备人身份推送站内通知
  * 通知对象来源（取并集，去重，排除本人）：
- * 1. 报备人的 reportTo 字段（新：该用户向谁报备）
+ * 1. 报备人的 reportTo 字段（该用户向谁报备）
  * 2. 报备人的 reportNotifiers 字段（旧，兼容）
- * 3. 谁订阅了该报备人（subscribers 中含有报备人的 openid）
- * 4. 自动匹配：片长（同居住区）+ 部门负责人（同部门，若报备人非本人）
+ * 3. 自动匹配：片长（同居住区）+ 部门负责人（同部门，若报备人非本人）
  * @param {string} reporterOpenid 报备人 openid
  * @param {object} reporter 报备人完整用户文档
  * @param {string} tripId 出行记录 ID
@@ -891,17 +890,7 @@ async function notifyReportSubscribers(reporterOpenid, reporter, tripId, action,
       if (o) notifierOpenids.add(o)
     })
 
-    // 2. 查询订阅了该报备人的用户（subscribers 数组中包含报备人 openid）
-    const subscriberUsers = await usersCollection
-      .where({ subscribers: reporterOpenid, status: 'approved' })
-      .field({ openid: true })
-      .limit(200)
-      .get()
-    ;(subscriberUsers.data || []).forEach(u => {
-      if (u.openid) notifierOpenids.add(u.openid)
-    })
-
-    // 3. 自动匹配：片长（同居住区，新字段 isAreaManager）+ 部门负责人（同部门）
+    // 2. 自动匹配：片长（同居住区，新字段 isAreaManager）+ 部门负责人（同部门）
     if (reporter && reporter.livingArea) {
       const areaRes = await usersCollection
         .where({ status: 'approved', isAreaManager: true, livingArea: reporter.livingArea })
@@ -909,15 +898,6 @@ async function notifyReportSubscribers(reporterOpenid, reporter, tripId, action,
         .limit(100)
         .get()
       ;(areaRes.data || []).forEach(u => {
-        if (u.openid) notifierOpenids.add(u.openid)
-      })
-      // 旧字段兼容
-      const oldAreaRes = await usersCollection
-        .where({ status: 'approved', areaManagerOf: reporter.livingArea })
-        .field({ openid: true })
-        .limit(100)
-        .get()
-      ;(oldAreaRes.data || []).forEach(u => {
         if (u.openid) notifierOpenids.add(u.openid)
       })
     }
@@ -928,15 +908,6 @@ async function notifyReportSubscribers(reporterOpenid, reporter, tripId, action,
         .limit(50)
         .get()
       ;(deptRes.data || []).forEach(u => {
-        if (u.openid) notifierOpenids.add(u.openid)
-      })
-      // 旧字段兼容
-      const oldDeptRes = await usersCollection
-        .where({ status: 'approved', deptExtraNotifierOf: reporter.department })
-        .field({ openid: true })
-        .limit(100)
-        .get()
-      ;(oldDeptRes.data || []).forEach(u => {
         if (u.openid) notifierOpenids.add(u.openid)
       })
     }
@@ -1222,7 +1193,6 @@ async function getBoardData(openid, params) {
   const isAdmin = currentUser.isAdmin
   const isDeptHead = currentUser.isDepartmentHead
   const isAreaManager = !!currentUser.isAreaManager
-  const hasSubscribers = Array.isArray(currentUser.subscribers) && currentUser.subscribers.length > 0
 
   // 权限校验已移除，所有用户均可访问（普通用户仅看自己）
   
@@ -1246,18 +1216,13 @@ async function getBoardData(openid, params) {
       orConditions.push({ department: currentUser.department })
     }
 
-    // 显式订阅的用户
-    if (hasSubscribers) {
-      orConditions.push({ openid: _.in(currentUser.subscribers) })
-    }
-
     // 普通用户 → 仅自己
     if (orConditions.length === 0) {
       orConditions.push({ openid })
       scopeType = 'self'
     } else if (orConditions.length === 1) {
       Object.assign(userQuery, orConditions[0])
-      scopeType = orConditions[0].livingArea ? 'area' : (orConditions[0].openid ? 'subscribers' : 'department')
+      scopeType = orConditions[0].livingArea ? 'area' : 'department'
     } else {
       userQuery = _.or(orConditions.map(c => ({ status: 'approved', ...c })))
       scopeType = 'mixed'
@@ -1407,11 +1372,11 @@ async function getPersonTrips(openid, params) {
   const isAdmin = currentUser.isAdmin
   const isDeptHead = currentUser.isDepartmentHead
   const isAreaManager = !!currentUser.isAreaManager
-  const oldAreaMgr = Array.isArray(currentUser.areaManagerOf) && currentUser.areaManagerOf.length > 0
-  const hasSubscribers = Array.isArray(currentUser.subscribers) && currentUser.subscribers.length > 0
 
-  if (!isAdmin && !isLeader && !isDeptHead && !isAreaManager && !oldAreaMgr && !hasSubscribers) {
-    return fail('无权限查看', 403)
+  // 权限校验：管理员 / 领导 / 部门负责人 / 片长，或查看自己的记录
+  if (!isAdmin && !isLeader && !isDeptHead && !isAreaManager) {
+    // 普通用户仅能查看自己
+    if (targetOpenid !== openid) return fail('无权查看该用户记录', 403)
   }
 
   // 查目标用户
@@ -1423,19 +1388,11 @@ async function getPersonTrips(openid, params) {
 
   // 校验目标用户在当前用户权限范围内
   if (!isAdmin && !(isLeader && !isDeptHead)) {
-    const allowedDepts = new Set()
-    if (isDeptHead && currentUser.department) allowedDepts.add(currentUser.department)
-    if (Array.isArray(currentUser.deptExtraNotifierOf)) currentUser.deptExtraNotifierOf.forEach(d => allowedDepts.add(d))
+    const inDept = isDeptHead && currentUser.department && targetUser.department === currentUser.department
+    const inArea = isAreaManager && targetUser.livingArea && currentUser.livingArea === targetUser.livingArea
+    const isSelf = targetOpenid === openid
 
-    const inDept = allowedDepts.size > 0 && targetUser.department && allowedDepts.has(targetUser.department)
-    // 片长范围（新版 isAreaManager + 旧版 areaManagerOf 兼容）
-    const inArea = (isAreaManager || oldAreaMgr) && targetUser.livingArea &&
-      ((currentUser.livingArea === targetUser.livingArea) ||
-       (Array.isArray(currentUser.areaManagerOf) && currentUser.areaManagerOf.includes(targetUser.livingArea)))
-    // 显式订阅的用户
-    const inSubs = hasSubscribers && currentUser.subscribers.includes(targetUser.openid)
-
-    if (!inDept && !inArea && !inSubs) {
+    if (!inDept && !inArea && !isSelf) {
       return fail('无权查看该用户记录', 403)
     }
   }

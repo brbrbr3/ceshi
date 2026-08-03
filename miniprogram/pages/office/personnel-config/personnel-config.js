@@ -99,6 +99,9 @@ Page({
         u.labelText = label.text
         u.labelClass = label.cls
         u.displayDept = u.department || (u.role === '其他' ? '其他' : '无')
+        u.displayPosition = (Array.isArray(u.position) && u.position.length > 0)
+          ? u.position.join('、')
+          : ''
       })
       const personnelGroups = this.buildPersonnelGroups(sorted)
       this.setData({
@@ -210,7 +213,8 @@ Page({
     const filtered = keyword
       ? this.data.allUsers.filter(u => u.name.indexOf(keyword) > -1)
       : this.data.allUsers
-    this.setData({ searchKeyword: keyword, filteredUsers: filtered })
+    const personnelGroups = this.buildPersonnelGroups(filtered)
+    this.setData({ searchKeyword: keyword, filteredUsers: filtered, personnelGroups })
   },
 
   // ==================== 打开弹窗 ====================
@@ -223,25 +227,70 @@ Page({
     const departmentOptions = this.data.departmentOptions
     const allUsers = this.data.allUsers
 
-    // 获取现有 subscribers
-    const subscribers = Array.isArray(user.subscribers) ? user.subscribers : []
+    // 当前编辑用户的身份信息（用于自动匹配）
+    const currentIsAreaManager = !!user.isAreaManager
+    const currentLivingArea = user.livingArea || ''
+    const currentIsDeptHead = !!user.isDepartmentHead
+    const currentDepartment = user.department || ''
+
+    // 当前编辑用户的角色简称（用于 disabled 提示）
+    const currentRoles = []
+    if (currentIsAreaManager && currentLivingArea) currentRoles.push('片长')
+    if (currentIsDeptHead && currentDepartment) currentRoles.push('部门负责人')
+    const currentRoleText = currentRoles.join('、')
+
     // 获取现有 reportTo
     const reportTo = Array.isArray(user.reportTo) ? user.reportTo : []
 
+    // 计算自动匹配的 openids（片长管辖同区人员 / 部门负责人管辖同部门人员）
+    const autoOpenids = new Set()
+    allUsers.forEach(u => {
+      if (u.openid === openid) return
+      if ((currentIsAreaManager && currentLivingArea && u.livingArea === currentLivingArea) ||
+          (currentIsDeptHead && currentDepartment && u.department === currentDepartment)) {
+        autoOpenids.add(u.openid)
+      }
+    })
+
+    // 手动配置（反向查询：谁的 reportTo 含当前用户，排除自动匹配）
+    const checkedOpenids = new Set()
+    allUsers.forEach(u => {
+      if (u.openid === openid) return
+      const uReportTo = Array.isArray(u.reportTo) ? u.reportTo : []
+      if (uReportTo.includes(openid) && !autoOpenids.has(u.openid)) {
+        checkedOpenids.add(u.openid)
+      }
+    })
+    this._initialCheckedSet = new Set(checkedOpenids)
+
+    // 合并 checked = auto + manual
+    const allCheckedOpenids = new Set([...autoOpenids, ...checkedOpenids])
+
     // 构建 subscriberGroups：按部门分组 + 按居住区分组
-    const subscriberGroups = this.buildSubscriberGroups(allUsers, openid, subscribers, departmentOptions)
-    const subscriberAreaGroups = this.buildSubscriberAreaGroups(allUsers, openid, subscribers)
+    const subscriberGroups = this.buildSubscriberGroups(allUsers, openid, allCheckedOpenids, autoOpenids, departmentOptions, currentRoleText)
+    const subscriberAreaGroups = this.buildSubscriberAreaGroups(allUsers, openid, allCheckedOpenids, autoOpenids, currentRoleText)
 
     // 构建 reportTo 选项（排除自己）
     const reportToOptions = allUsers
       .filter(u => u.openid !== openid)
-      .map(u => ({
-        openid: u.openid,
-        name: u.name,
-        label: (this.getUserLabel(u)).text,
-        department: u.department,
-        checked: reportTo.includes(u.openid)
-      }))
+      .map(u => {
+        // 自动匹配：候选人是当前用户的片长或部门负责人
+        const isAutoManager = !!u.isAreaManager && u.livingArea === currentLivingArea && currentLivingArea
+        const isAutoDeptHead = !!u.isDepartmentHead && u.department === currentDepartment && currentDepartment
+        const isAuto = isAutoManager || isAutoDeptHead
+        let disabledReason = ''
+        if (isAutoManager) disabledReason = `${u.name}是你所在居住区的片长，无法取消勾选`
+        else if (isAutoDeptHead) disabledReason = `${u.name}是你的部门负责人，无法取消勾选`
+        return {
+          openid: u.openid,
+          name: u.name,
+          label: (this.getUserLabel(u)).text,
+          department: u.department,
+          checked: reportTo.includes(u.openid) || isAuto,
+          disabled: isAuto,
+          disabledReason
+        }
+      })
       // 不再按部门顺序展示，全部按姓名（拼音）排序
       .sort((a, b) => (a.name || '').localeCompare(b.name || '', 'zh'))
 
@@ -273,7 +322,7 @@ Page({
   /**
    * 构建按部门分组的订阅候选人列表
    */
-  buildSubscriberGroups(allUsers, selfOpenid, currentSubscribers, deptOpts) {
+  buildSubscriberGroups(allUsers, selfOpenid, checkedOpenids, autoOpenids, deptOpts, currentRoleText) {
     const groups = []
     const deptMap = {}
     const selfUser = allUsers.find(u => u.openid === selfOpenid)
@@ -288,6 +337,7 @@ Page({
       if (!deptMap[dept]) {
         deptMap[dept] = { name: dept, users: [] }
       }
+      const isDisabled = autoOpenids.has(u.openid)
       deptMap[dept].users.push({
         openid: u.openid,
         name: u.name,
@@ -295,7 +345,9 @@ Page({
         department: u.department,
         livingArea: u.livingArea || '',
         subText: u.livingArea || '',   // 按部门分组时右侧显示居住区域
-        checked: currentSubscribers.includes(u.openid)
+        checked: checkedOpenids.has(u.openid),
+        disabled: isDisabled,
+        disabledReason: isDisabled ? `${u.name}自动向该${currentRoleText}报备，无法取消勾选` : ''
       })
     })
 
@@ -335,12 +387,13 @@ Page({
   /**
    * 构建按居住区分组的订阅候选人列表
    */
-  buildSubscriberAreaGroups(allUsers, selfOpenid, currentSubscribers) {
+  buildSubscriberAreaGroups(allUsers, selfOpenid, checkedOpenids, autoOpenids, currentRoleText) {
     const areaMap = {}
     allUsers.forEach(u => {
       if (u.openid === selfOpenid) return
       const area = u.livingArea || '未分配区域'
       if (!areaMap[area]) areaMap[area] = { name: area, users: [] }
+      const isDisabled = autoOpenids.has(u.openid)
       areaMap[area].users.push({
         openid: u.openid,
         name: u.name,
@@ -348,7 +401,9 @@ Page({
         department: u.department,
         livingArea: u.livingArea || '',
         subText: u.department || '无',  // 按居住区分组时右侧显示部门
-        checked: currentSubscribers.includes(u.openid)
+        checked: checkedOpenids.has(u.openid),
+        disabled: isDisabled,
+        disabledReason: isDisabled ? `${u.name}自动向该${currentRoleText}报备，无法取消勾选` : ''
       })
     })
     const sortedKeys = Object.keys(areaMap).sort((a, b) => {
@@ -406,15 +461,26 @@ Page({
   handleToggleAreaGroup(e) {
     if (!this.data.canEdit) return
     const { group } = e.currentTarget.dataset
-    const groups = this.data.subscriberAreaGroups
-    const target = groups.find(g => g.name === group)
+    const groups = this.data.subscriberGroups
+    const areaGroups = this.data.subscriberAreaGroups
+    const target = areaGroups.find(g => g.name === group)
     if (!target) return
 
+    const affectedOpenids = new Set(target.users.map(u => u.openid))
     const newState = !target.allChecked
-    target.users.forEach(u => { u.checked = newState })
-    target.allChecked = newState
 
-    this.setData({ subscriberAreaGroups: groups })
+    // 同步：更新居住区分组（跳过 disabled）
+    target.users.forEach(u => { if (!u.disabled) u.checked = newState })
+    target.allChecked = target.users.every(u => u.checked || u.disabled)
+    // 同步：更新部门分组中相同的用户（跳过 disabled）
+    groups.forEach(g => {
+      g.users.forEach(u => {
+        if (affectedOpenids.has(u.openid) && !u.disabled) u.checked = newState
+      })
+      g.allChecked = g.users.length > 0 && g.users.every(u => u.checked || u.disabled)
+    })
+
+    this.setData({ subscriberGroups: groups, subscriberAreaGroups: areaGroups })
   },
 
   // ==================== 订阅分组操作 ====================
@@ -424,12 +490,22 @@ Page({
     const groups = this.data.subscriberGroups
     const areaGroups = this.data.subscriberAreaGroups
 
+    // 跳过 disabled 项，弹出提示
+    for (const g of groups) {
+      for (const u of g.users) {
+        if (u.openid === openid && u.disabled) {
+          wx.showToast({ title: u.disabledReason || '无法取消自动匹配', icon: 'none', duration: 2000 })
+          return
+        }
+      }
+    }
+
     const toggleInGroup = (grpList) => {
       for (const g of grpList) {
         for (const u of g.users) {
-          if (u.openid === openid) { u.checked = !u.checked; break }
+          if (u.openid === openid && !u.disabled) { u.checked = !u.checked; break }
         }
-        g.allChecked = g.users.length > 0 && g.users.every(u => u.checked)
+        g.allChecked = g.users.length > 0 && g.users.every(u => u.checked || u.disabled)
       }
     }
     toggleInGroup(groups)
@@ -442,14 +518,25 @@ Page({
     if (!this.data.canEdit) return
     const { group } = e.currentTarget.dataset
     const groups = this.data.subscriberGroups
+    const areaGroups = this.data.subscriberAreaGroups
     const target = groups.find(g => g.name === group)
     if (!target) return
 
+    const affectedOpenids = new Set(target.users.map(u => u.openid))
     const newState = !target.allChecked
-    target.users.forEach(u => { u.checked = newState })
-    target.allChecked = newState
 
-    this.setData({ subscriberGroups: groups })
+    // 同步：更新部门分组（跳过 disabled）
+    target.users.forEach(u => { if (!u.disabled) u.checked = newState })
+    target.allChecked = target.users.every(u => u.checked || u.disabled)
+    // 同步：更新居住区分组中相同的用户（跳过 disabled）
+    areaGroups.forEach(g => {
+      g.users.forEach(u => {
+        if (affectedOpenids.has(u.openid) && !u.disabled) u.checked = newState
+      })
+      g.allChecked = g.users.length > 0 && g.users.every(u => u.checked || u.disabled)
+    })
+
+    this.setData({ subscriberGroups: groups, subscriberAreaGroups: areaGroups })
   },
 
   // ==================== reportTo 操作 ====================
@@ -458,7 +545,12 @@ Page({
     const { openid } = e.currentTarget.dataset
     const reportToOptions = this.data.reportToOptions
     const target = reportToOptions.find(u => u.openid === openid)
-    if (target) target.checked = !target.checked
+    if (!target) return
+    if (target.disabled) {
+      wx.showToast({ title: target.disabledReason || '无法取消自动匹配', icon: 'none', duration: 2000 })
+      return
+    }
+    target.checked = !target.checked
     this.setData({ reportToOptions })
   },
 
@@ -478,19 +570,24 @@ Page({
 
     wx.showLoading({ title: '保存中...', mask: true })
     try {
-      // 收集 subscribers
-      const subscribers = []
+      // 计算"谁向该用户报备"变更（排除 disabled 的自动匹配项）
+      const currentChecked = new Set()
       this.data.subscriberGroups.forEach(group => {
         group.users.forEach(u => {
-          if (u.checked) subscribers.push(u.openid)
+          if (u.checked && !u.disabled) currentChecked.add(u.openid)
         })
       })
+      const initialSet = this._initialCheckedSet || new Set()
+      const additions = [...currentChecked].filter(o => !initialSet.has(o))
+      const removals = [...initialSet].filter(o => !currentChecked.has(o))
+      this._initialCheckedSet = null
 
-      // 收集 reportTo
+      // 收集 reportTo（排除 disabled 的自动匹配项）
       const reportTo = this.data.reportToOptions
-        .filter(u => u.checked)
+        .filter(u => u.checked && !u.disabled)
         .map(u => u.openid)
 
+      // 1. 更新当前用户的基础信息
       const res = await wx.cloud.callFunction({
         name: 'personnelManager',
         data: {
@@ -504,7 +601,6 @@ Page({
               position: this.data.formPositions.filter(p => p.checked).map(p => p.value),
               livingArea: this.data.formLivingArea,
               isAreaManager: this.data.formIsAreaManager,
-              subscribers,
               reportTo
             }
           }
@@ -513,6 +609,18 @@ Page({
 
       wx.hideLoading()
       if (res.result.code !== 0) throw new Error(res.result.message)
+
+      // 2. 批量更新其他用户的 reportTo（"谁向该用户报备"）
+      if (additions.length > 0 || removals.length > 0) {
+        const batchRes = await wx.cloud.callFunction({
+          name: 'personnelManager',
+          data: {
+            action: 'updateBatchReportTo',
+            params: { currentOpenid: this.data.editUser.openid, additions, removals }
+          }
+        })
+        if (batchRes.result.code !== 0) throw new Error(batchRes.result.message)
+      }
 
       utils.showToast({ title: '保存成功', icon: 'success' })
       this.setData({ showEditModal: false, editUser: null })

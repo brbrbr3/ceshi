@@ -155,7 +155,6 @@ function formatUserRecord(record) {
     openid: record.openid,
     name: record.name,
     gender: record.gender,
-    birthday: record.birthday,
     role: record.role,
     isAdmin: !!record.isAdmin,
     isDepartmentHead: !!record.isDepartmentHead || (record.role === '馆领导' && !!record.department),
@@ -220,7 +219,6 @@ async function validateForm(formData) {
   const payload = formData || {}
   const name = String(payload.name || '').trim()
   const gender = String(payload.gender || '').trim()
-  const birthday = String(payload.birthday || '').trim()
   const role = String(payload.role || '').trim()
   const isAdmin = normalizeBoolean(payload.isAdmin)
   const relativeName = String(payload.relativeName || '').trim()
@@ -229,31 +227,13 @@ async function validateForm(formData) {
   const mobile = String(payload.mobile || '').trim()
   const landline = String(payload.landline || '').trim()
   const livingArea = String(payload.livingArea || '').trim()
-  const avatarUrl = String(payload.avatarUrl || '').trim()
-  const nickName = String(payload.nickName || '').trim()
 
   if (!name) {
     throw new Error('请输入姓名')
   }
 
-  if (!avatarUrl) {
-    throw new Error('请选择微信头像')
-  }
-
-  if (!nickName) {
-    throw new Error('请输入微信昵称')
-  }
-
   if (!genderOptions.includes(gender)) {
     throw new Error('请选择性别')
-  }
-
-  if (!birthday) {
-    throw new Error('请选择出生日期')
-  }
-
-  if (!/^\d{4}-\d{2}-\d{2}$/.test(birthday)) {
-    throw new Error('出生日期格式不正确')
   }
 
   // role 为空时跳过角色相关校验（注册阶段不填角色，由 fill-detail 页补充）
@@ -284,7 +264,6 @@ async function validateForm(formData) {
   return {
     name,
     gender,
-    birthday,
     role,
     isAdmin,
     isDepartmentHead,
@@ -294,9 +273,7 @@ async function validateForm(formData) {
     mobile,
     landline,
     livingArea,
-    avatarText: name.slice(0, 1),
-    avatarUrl,
-    nickName
+    avatarText: name.slice(0, 1)
   }
 }
 
@@ -395,7 +372,6 @@ async function checkRegistration(openid, options = {}) {
           openid: openid,
           name: businessData.applicantName || '',
           gender: businessData.gender || '',
-          birthday: businessData.birthday || '',
           role: businessData.role || '',
           isAdmin: !!businessData.isAdmin,
           isDepartmentHead: !!businessData.isDepartmentHead,
@@ -461,7 +437,6 @@ async function checkRegistration(openid, options = {}) {
             reviewRemark: reviewRemark,
             name: businessData.applicantName || '',
             gender: businessData.gender || '',
-            birthday: businessData.birthday || '',
             role: businessData.role || '',
             isAdmin: !!businessData.isAdmin,
             relativeName: businessData.relativeName || '',
@@ -506,6 +481,16 @@ async function submitRegistration(openid, formData) {
   const constants = await getSystemConstants()
   const requestStatus = constants.requestStatus || { PENDING: 'pending', APPROVED: 'approved', REJECTED: 'rejected', TERMINATED: 'terminated' }
   
+  // 注册专属校验：头像和昵称（编辑资料流程不需要）
+  const avatarUrl = String(formData.avatarUrl || '').trim()
+  const nickName = String(formData.nickName || '').trim()
+  if (!avatarUrl) {
+    throw new Error('请选择微信头像')
+  }
+  if (!nickName) {
+    throw new Error('请输入微信昵称')
+  }
+
   const form = await validateForm(formData)
   const existingUser = await findUserByOpenId(openid)
   if (existingUser && existingUser.status === requestStatus.APPROVED) {
@@ -553,7 +538,6 @@ async function submitRegistration(openid, formData) {
           applicantId: openid,
           applicantName: form.name,
           gender: form.gender,
-          birthday: form.birthday,
           role: form.role,
           isAdmin: form.isAdmin,
           isDepartmentHead: form.isDepartmentHead,
@@ -615,8 +599,7 @@ async function submitProfileUpdate(openid, formData) {
     })
   }
 
-  // 编辑资料流程不提交头像/昵称（注册时确定、不可改），
-  // 用已注册用户的现有值补齐，避免共用 validateForm 误报"请选择微信头像"
+  // 编辑资料不传头像/昵称（注册后不可改），用已有值补齐
   const mergedFormData = { ...formData }
   if (!String(mergedFormData.avatarUrl || '').trim()) {
     mergedFormData.avatarUrl = existingUser.avatarUrl || ''
@@ -657,7 +640,6 @@ async function submitProfileUpdate(openid, formData) {
           applicantId: openid,
           applicantName: form.name,
           gender: form.gender,
-          birthday: form.birthday,
           role: form.role,
           isAdmin: form.isAdmin,
           isDepartmentHead: form.isDepartmentHead,
