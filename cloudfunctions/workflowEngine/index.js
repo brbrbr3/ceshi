@@ -1391,8 +1391,10 @@ function truncateText(text, maxLen) {
  * @param {string} result - 'approved' 或 'rejected'
  */
 async function sendRegistrationResultSubscribeMessage(order, result) {
-  // 仅处理注册申请工单
-  if (order.orderType !== 'user_registration') return
+  // 处理注册申请工单 + 信息修改工单
+  const isRegistration = order.orderType === 'user_registration'
+  const isProfileUpdate = order.orderType === 'user_profile_update'
+  if (!isRegistration && !isProfileUpdate) return
 
   const applicantOpenid = order.businessData && order.businessData.applicantId
   if (!applicantOpenid) return
@@ -1403,10 +1405,11 @@ async function sendRegistrationResultSubscribeMessage(order, result) {
   const offsetHours = await getTimezoneOffset()
   const registerTime = formatSubscribeTime(order.submittedAt || order.createdAt || Date.now(), offsetHours)
   const isApproved = result === 'approved'
-  const messageType = isApproved ? '用户注册通过通知' : '用户注册驳回通知'
+  const orderLabel = isRegistration ? '注册' : '信息修改'
+  const messageType = isApproved ? `用户${orderLabel}通过通知` : `用户${orderLabel}驳回通知`
   const tip = isApproved
-    ? '您的注册申请已批准，可登录使用'
-    : '您的注册申请未通过，请修改后重新提交'
+    ? `您的${orderLabel}申请已批准`
+    : `您的${orderLabel}申请未通过，请修改后重新提交`
 
   try {
     await cloud.openapi.subscribeMessage.send({
@@ -1435,8 +1438,10 @@ async function sendRegistrationResultSubscribeMessage(order, result) {
  * @param {Array} approverOpenids - 审批人 openid 列表
  */
 async function sendPendingApprovalSubscribeMessage(order, approverOpenids) {
-  // 仅处理注册申请工单
-  if (order.orderType !== 'user_registration') return
+  // 处理注册申请工单 + 信息修改工单
+  const isRegistration = order.orderType === 'user_registration'
+  const isProfileUpdate = order.orderType === 'user_profile_update'
+  if (!isRegistration && !isProfileUpdate) return
   if (!approverOpenids || approverOpenids.length === 0) return
 
   const templateId = SUBSCRIBE_TEMPLATE.PENDING_APPROVAL
@@ -1444,8 +1449,8 @@ async function sendPendingApprovalSubscribeMessage(order, approverOpenids) {
 
   const applicantName = truncateText(order.businessData.applicantName || '申请人')
   const applyTime = formatSubscribeTime(order.submittedAt || order.createdAt || Date.now(), offsetHours)
-  const applyType = truncateText('新用户注册申请')
-  const remark = truncateText(order.businessData.applyReason || '请尽快审批')
+  const applyType = truncateText(isRegistration ? '新用户注册申请' : '个人信息修改审批')
+  const remark = truncateText(order.businessData.applyReason || order.businessData.updateReason || '请尽快审批')
 
   for (const approverOpenid of approverOpenids) {
     try {

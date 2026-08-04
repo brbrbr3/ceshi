@@ -33,17 +33,22 @@
   <!-- 列表区 -->
   <view class="ic-list-section">
 
-    <!-- 首次加载中 -->
-    <view wx:if="{{loading && list.length === 0}}" class="ic-loading">
+    <!-- 搜索无匹配结果 -->
+    <view wx:if="{{keyword && !loading && list.length === 0}}" class="ic-empty-hint">
+      <text class="ic-empty-text">没有匹配的结果</text>
+    </view>
+
+    <!-- 加载中（首次或搜索中） -->
+    <view wx:elif="{{loading && list.length === 0}}" class="ic-loading">
       <view class="ic-loading-spinner"></view>
-      <text class="ic-loading-text">加载中...</text>
+      <text class="ic-loading-text">{{keyword ? '搜索中...' : '加载中...'}}</text>
     </view>
 
     <!-- 备案卡片 -->
     <view class="ic-card {{!item.isActive ? 'is-ended' : ''}}" wx:for="{{list}}" wx:key="_id" bindtap="handleShowDetail" data-record="{{item}}">
       <view class="ic-card-header">
         <view class="ic-card-name">{{item.name}}</view>
-        <view wx:if="{{item.creatorRole}}" class="ic-card-role-tag">{{item.creatorRole}}</view>
+        <view class="ic-card-role-tag">{{((item.name == item.creatorName)?item.creatorRole:'馆员家属')}}</view>
         <view class="ic-card-status {{item.isActive ? 'is-active' : 'is-ended'}}">
           {{item.isActive ? '生效中' : '已结束'}}
         </view>
@@ -70,6 +75,10 @@
         <view wx:if="{{item.remark}}" class="ic-card-extra">
           <text class="ic-card-extra-label">备注：</text>
           <text class="ic-card-extra-value">{{item.remark}}</text>
+        </view>
+        <view wx:if="{{item.name != item.creatorName}}" class="ic-card-extra">
+          <text class="ic-card-extra-label">备案人：</text>
+          <text class="ic-card-extra-value">{{item.creatorName}}</text>
         </view>
       </view>
 

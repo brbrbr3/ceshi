@@ -45,12 +45,13 @@ Page({
           return
         }
 
-        //管理员、工勤、办公室内聘可添加菜单
+        //管理员、厨师、办公室内聘可添加菜单
         const isAdmin = result.user.isAdmin
+        const isChef = Array.isArray(result.user.position) && result.user.position.includes('厨师')
         const isOfficeServant = Array.isArray(result.user.position) && result.user.position.includes('办公室内聘')
 
         this.setData({
-          showAddButton: isAdmin || isOfficeServant
+          showAddButton: isAdmin || isChef || isOfficeServant 
         })
       })
       .catch((error) => {

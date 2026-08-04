@@ -18,10 +18,30 @@ exports.main = async (event, context) => {
   const wxContext = cloud.getWXContext()
   const openid = wxContext.OPENID
 
-  // 非小程序调用（如 MCP）跳过权限校验
+  // 权限校验：管理员/领导/部门负责人/片长/有报备人 → 可查看；仅管理员可编辑
   if (openid) {
-    const userRes = await usersCollection.where({ openid, status: 'approved', isAdmin: true }).limit(1).get()
-    if (!userRes.data || !userRes.data.length) return fail('仅管理员可操作', 403)
+    const userRes = await usersCollection.where({ openid, status: 'approved' }).limit(1).get()
+    if (!userRes.data || !userRes.data.length) return fail('用户不存在', 403)
+    const u = userRes.data[0]
+
+    const isAdmin = u.isAdmin
+    const isLeader = u.role === '馆员' && u.department === '无'
+    const isDeptHead = u.isDepartmentHead
+    const isAreaManager = !!u.isAreaManager
+
+    let hasReporters = false
+    if (!isAdmin && !isLeader && !isDeptHead && !isAreaManager) {
+      const cntRes = await usersCollection.where({ reportTo: openid, status: 'approved' }).count()
+      hasReporters = cntRes.total > 0
+    }
+
+    const canRead = isAdmin || isLeader || isDeptHead || isAreaManager || hasReporters
+    if (!canRead) return fail('无权查看人员配置', 403)
+
+    // 写入操作仅管理员
+    if (action !== 'getAllPersonnel' && !isAdmin) {
+      return fail('仅管理员可编辑', 403)
+    }
   }
 
   try {

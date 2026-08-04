@@ -1,6 +1,7 @@
 const app = getApp()
 const utils = require('../../../common/utils.js')
 const modalAnimation = require('../../../behaviors/modalAnimation.js')
+const customToast = require('../../../behaviors/customToast.js')
 
 /**
  * 构建 disabled 项提示文案（根据双方具体关系）
@@ -26,10 +27,11 @@ function buildDisabledReason(uName, selfName, selfIsDeptHead, selfDepartment, uD
 }
 
 Page({
-  behaviors: [modalAnimation],
+  behaviors: [modalAnimation, customToast],
 
   data: {
     loading: true,
+    currentUser: null,
     searchKeyword: '',
     allUsers: [],
     filteredUsers: [],
@@ -81,7 +83,7 @@ Page({
     try {
       const result = await app.checkUserRegistration()
       if (result.registered && result.user) {
-        this.setData({ canEdit: !!result.user.isAdmin })
+        this.setData({ currentUser: result.user, canEdit: !!result.user.isAdmin })
       }
     } catch (e) {
       // ignore
@@ -161,7 +163,7 @@ Page({
     })
 
     const displayName = (key) => {
-      if (key === '__leader__') return '领导（馆员无部门）'
+      if (key === '__leader__') return ''
       if (key === '__other__') return '其他人员'
       return key
     }
@@ -242,7 +244,10 @@ Page({
 
   // ==================== 打开弹窗 ====================
   handleUserTap(e) {
-    if (!this.data.canEdit) return
+    // 利用 tap 手势静默积累订阅额度（所有可查看页面的用户均可累积）
+    const current = this.data.currentUser || app.globalData.userProfile
+    if (current) app.subscribeOnTap(app.getSubscribeTypesForUser(current))
+
     const openid = e.currentTarget.dataset.openid
     const user = this.data.allUsers.find(u => u.openid === openid)
     if (!user) return
@@ -398,7 +403,7 @@ Page({
     const sortedKeys = sortKeys(allKeys)
     return sortedKeys.map(key => ({
       ...deptMap[key],
-      name: key === '__leader__' ? 'DW委员（馆员无部门）' : key,
+      name: key === '__leader__' ? '领导' : key,
       allChecked: deptMap[key].users.every(u => u.checked),
       collapsed: false
     }))
@@ -441,30 +446,36 @@ Page({
 
   // ==================== 表单变更 ====================
   handleRoleChange(e) {
+    if (!this.data.canEdit) return
     const idx = Number(e.detail.value)
     this.setData({ formRole: idx === 1 ? '其他' : '馆员' })
   },
 
   handleDeptChange(e) {
+    if (!this.data.canEdit) return
     const idx = e.detail.value
     const dept = this.data.departmentOptions[idx] || ''
     this.setData({ formDepartment: dept })
   },
 
   handleDeptHeadChange(e) {
+    if (!this.data.canEdit) return
     this.setData({ formIsDeptHead: e.detail.value })
   },
 
   handleAreaManagerChange(e) {
+    if (!this.data.canEdit) return
     this.setData({ formIsAreaManager: e.detail.value })
   },
 
   handleAreaChange(e) {
+    if (!this.data.canEdit) return
     const areas = this.data.livingAreas
     this.setData({ formLivingArea: areas[e.detail.value] || '' })
   },
 
   handleTogglePosition(e) {
+    if (!this.data.canEdit) return
     const pos = String(e.currentTarget.dataset.value || '')
     if (!pos) return
     const positions = this.data.formPositions.map(p => ({
@@ -514,7 +525,7 @@ Page({
     for (const g of groups) {
       for (const u of g.users) {
         if (u.openid === openid && u.disabled) {
-          wx.showToast({ title: u.disabledReason || '无法取消自动匹配', icon: 'none', duration: 2000 })
+          this._showCustomToast(u.disabledReason || '无法取消自动匹配', { duration: 2500, fadeOutMs: 500 })
           return
         }
       }
@@ -567,7 +578,7 @@ Page({
     const target = reportToOptions.find(u => u.openid === openid)
     if (!target) return
     if (target.disabled) {
-      wx.showToast({ title: target.disabledReason || '无法取消自动匹配', icon: 'none', duration: 2000 })
+      this._showCustomToast(target.disabledReason || '无法取消自动匹配', { duration: 2500, fadeOutMs: 500 })
       return
     }
     target.checked = !target.checked
@@ -585,7 +596,10 @@ Page({
 
   // ==================== 保存 ====================
   async handleSavePersonnel() {
-    if (!this.data.canEdit) return
+    if (!this.data.canEdit) {
+      utils.showToast({ title: '只读模式，如需修改请联系管理员', icon: 'none' })
+      return
+    }
     if (!this.data.editUser) return
 
     wx.showLoading({ title: '保存中...', mask: true })

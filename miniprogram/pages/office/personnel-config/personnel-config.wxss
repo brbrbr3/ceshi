@@ -515,3 +515,36 @@
   color: #D97706;
   text-align: center;
 }
+
+/* ==================== 自定义 Toast（毛玻璃） ==================== */
+.custom-toast {
+  position: fixed;
+  top: 50%;
+  left: 50%;
+  transform: translate(-50%, -50%) scale(0.9);
+  background: rgba(30, 41, 59, 0.82);
+  backdrop-filter: blur(16px);
+  -webkit-backdrop-filter: blur(16px);
+  border-radius: 20rpx;
+  padding: 28rpx 44rpx;
+  max-width: 620rpx;
+  opacity: 0;
+  pointer-events: none;
+  z-index: 9999;
+  box-shadow: 0 12rpx 48rpx rgba(0, 0, 0, 0.25);
+}
+
+.custom-toast.is-visible {
+  opacity: 1;
+  transform: translate(-50%, -50%) scale(1);
+  transition: opacity 0.18s ease, transform 0.22s cubic-bezier(0.25, 0.1, 0.25, 1);
+}
+
+.custom-toast-text {
+  color: #FFFFFF;
+  font-size: 28rpx;
+  font-weight: 500;
+  line-height: 1.7;
+  text-align: center;
+  word-break: break-all;
+}

@@ -377,7 +377,7 @@ Page({
 
       // 检查权限
       await this.checkConfigHolidayPermission()
-      await this.checkManageSchedulePermission()
+      //await this.checkManageSchedulePermission()
 
       // 加载节假日配置
       await this.loadHolidays()
@@ -406,9 +406,9 @@ Page({
     }
     // 每次显示时重新加载日程列表（时间轴）
     // 注意：节假日和日程点标记已实现增量加载，不需要在 onShow 重复加载
-    if (this.data.selectedDate) {
+    // if (this.data.selectedDate) {
       //this.loadSchedules(this.data.selectedDate)
-    }
+    // }
   },
 
   onUnload() {
@@ -468,13 +468,11 @@ Page({
     return app.checkUserRegistration().then((result) => {
       if (result.registered && result.user) {
         const user = result.user
-        const isAdmin = user.isAdmin || user.role === 'admin'
-        const canConfigHoliday = isAdmin || CONFIG_HOLIDAY_ALLOWED_ROLES.includes(user.role)
 
         this.setData({
-          isReviewer: !!user.isReviewer,
           currentUser: user,
-          canConfigHoliday
+          isReviewer: !!user.isReviewer,
+          canConfigHoliday: !!user.isAdmin
         })
       }
     }).catch(() => {

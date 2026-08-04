@@ -165,8 +165,13 @@ Page({
       statusColor = style.color
       statusBg = style.bg
     } else {
-      // 未外出状态：根据分组维度判断角色标签
-      if (groupBy === 'department') {
+      // 未外出状态：领导优先，然后根据分组维度判断角色标签
+      const isLeader = user.role === '馆员' && user.department === '无'
+      if (isLeader) {
+        roleLabel = '领导'
+        statusColor = '#DC2626'
+        statusBg = '#FEF2F2'
+      } else if (groupBy === 'department') {
         if (user.isDepartmentHead) {
           roleLabel = '负责人'
           statusColor = '#2563EB'
@@ -215,6 +220,11 @@ Page({
     const bUser = b._user || {}
     const aName = a.userName || ''
     const bName = b.userName || ''
+
+    // 领导置顶（优先于负责人/片长）
+    const aIsLeader = (aUser.role === '馆员' && aUser.department === '无') ? 0 : 1
+    const bIsLeader = (bUser.role === '馆员' && bUser.department === '无') ? 0 : 1
+    if (aIsLeader !== bIsLeader) return aIsLeader - bIsLeader
 
     if (groupBy === 'department') {
       // 部门负责人最前

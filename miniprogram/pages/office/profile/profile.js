@@ -10,7 +10,7 @@ Page({
     primaryTag: '微信身份',
     secondaryTag: '状态：未注册',
     avatarStatusClass: 'status-offline',
-    avatarText: 'CHN',
+    avatarText: '未',
     userAvatarUrl: '',
     isAdmin: false,
     isReviewer: false,

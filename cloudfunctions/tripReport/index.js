@@ -1216,10 +1216,22 @@ async function getBoardData(openid, params) {
       orConditions.push({ department: currentUser.department })
     }
 
-    // 普通用户 → 仅自己
+    // 普通用户 → 反查谁的 reportTo 包含自己
     if (orConditions.length === 0) {
-      userQuery.openid = openid
-      scopeType = 'self'
+      const reportToRes = await usersCollection
+        .where({ status: 'approved', reportTo: openid })
+        .field({ openid: true })
+        .limit(100)
+        .get()
+      const includeOpenids = (reportToRes.data || []).map(u => u.openid).filter(Boolean)
+      if (includeOpenids.length > 0) {
+        includeOpenids.push(openid) // 加上自己
+        userQuery.openid = _.in(includeOpenids)
+        scopeType = 'others'
+      } else {
+        userQuery.openid = openid
+        scopeType = 'self'
+      }
     } else if (orConditions.length === 1) {
       Object.assign(userQuery, orConditions[0])
       scopeType = orConditions[0].livingArea ? 'area' : 'department'

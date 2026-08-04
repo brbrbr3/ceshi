@@ -190,4 +190,9 @@
       </view>
     </view>
   </view>
+
+  <!-- 自定义 Toast（毛玻璃风格） -->
+  <view class="custom-toast {{_customToast.visible ? 'is-visible' : ''}}" style="transition-duration: {{_customToast.fadeOutMs}}ms;">
+    <view class="custom-toast-text">{{_customToast.text}}</view>
+  </view>
 </view>

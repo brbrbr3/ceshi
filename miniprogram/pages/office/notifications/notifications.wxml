@@ -39,7 +39,7 @@
     <!-- 空状态 -->
     <view class="empty-state" wx:elif="{{list.length === 0 && !loading}}">
       <view class="empty-icon">📬</view>
-      <view class="empty-text">暂无消息通知</view>
+      <view class="empty-text">暂无消息</view>
     </view>
   </view>
 </view>

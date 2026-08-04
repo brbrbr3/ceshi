@@ -118,6 +118,20 @@
   font-weight: 500;
 }
 
+/* ========== 搜索无结果 ========== */
+.ic-empty-hint {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  padding: 80rpx 0;
+}
+
+.ic-empty-text {
+  font-size: var(--fs-28);
+  color: #94A3B8;
+}
+
 /* ========== 首次加载动画 ========== */
 .ic-loading {
   display: flex;
@@ -183,7 +197,7 @@
 }
 
 .ic-card-role-tag {
-  font-size: var(--fs-22);
+  font-size: var(--fs-26);
   color: #64748B;
   background: #F1F5F9;
   padding: 4rpx 14rpx;
@@ -234,17 +248,17 @@
 }
 
 .ic-card-meta-label {
-  font-size: var(--fs-22);
+  font-size: var(--fs-28);
   color: #94A3B8;
 }
 
 .ic-card-meta-value {
-  font-size: var(--fs-26);
+  font-size: var(--fs-30);
   color: #475569;
 }
 
 .ic-card-extra {
-  font-size: var(--fs-24);
+  font-size: var(--fs-28);
   color: #64748B;
   line-height: 1.5;
 }
@@ -547,13 +561,13 @@
 }
 
 .ic-detail-item-label {
-  font-size: var(--fs-24);
+  font-size: var(--fs-28);
   color: #94A3B8;
   margin-bottom: 8rpx;
 }
 
 .ic-detail-item-value {
-  font-size: var(--fs-28);
+  font-size: var(--fs-30);
   color: #1E293B;
   font-weight: 500;
   line-height: 1.4;
@@ -578,12 +592,12 @@
 }
 
 .ic-detail-info-label {
-  font-size: var(--fs-26);
+  font-size: var(--fs-30);
   color: #94A3B8;
 }
 
 .ic-detail-info-value {
-  font-size: var(--fs-26);
+  font-size: var(--fs-30);
   color: #475569;
   font-weight: 500;
 }

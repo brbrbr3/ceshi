@@ -28,6 +28,7 @@ Page({
     editingRecordId: '',
     detailRecord: null,
     submitting: false,
+    _showGlobalLoading: false,
     // 表单
     form: {
       name: '',
@@ -122,10 +123,14 @@ Page({
             page,
             pageSize,
             keyword: keyword || '',
-            status: scopeType === 'self' ? statusFilter : 'all'
+            status: statusFilter
           }
         }
       }).then(res => {
+        if (this.data._showGlobalLoading) {
+          wx.hideLoading()
+          this.setData({ _showGlobalLoading: false })
+        }
         if (res.result.code === 0) {
           const data = res.result.data
           const list = (data.list || []).map(item => this.formatRecord(item))
@@ -137,6 +142,10 @@ Page({
           reject(new Error(res.result.message))
         }
       }).catch(error => {
+        if (this.data._showGlobalLoading) {
+          wx.hideLoading()
+          this.setData({ _showGlobalLoading: false })
+        }
         console.error('加载兴趣班备案列表失败:', error)
         reject(error)
       })
@@ -164,14 +173,28 @@ Page({
 
   handleSearchInput(e) {
     this.setData({ keyword: e.detail.value })
+    // 防抖 400ms 后自动搜索，无需点确认
+    if (this._searchTimer) clearTimeout(this._searchTimer)
+    this._searchTimer = setTimeout(() => {
+      this._startSearch()
+    }, 400)
   },
 
   handleSearchConfirm() {
+    if (this._searchTimer) clearTimeout(this._searchTimer)
+    this._startSearch()
+  },
+
+  _startSearch() {
+    wx.showLoading({ title: '搜索中...', mask: true })
+    this.setData({ _showGlobalLoading: true })
     this.refreshList()
   },
 
   handleClearSearch() {
     this.setData({ keyword: '' })
+    wx.showLoading({ title: '加载中...', mask: true })
+    this.setData({ _showGlobalLoading: true })
     this.refreshList()
   },
 
@@ -181,6 +204,8 @@ Page({
     const status = e.currentTarget.dataset.status
     if (status === this.data.statusFilter) return
     this.setData({ statusFilter: status })
+    wx.showLoading({ title: '加载中...', mask: true })
+    this.setData({ _showGlobalLoading: true })
     this.refreshList()
   },
 

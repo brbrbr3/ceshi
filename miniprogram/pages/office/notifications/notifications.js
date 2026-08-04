@@ -137,6 +137,7 @@ Page({
       }
     }).then(res => {
       if (res.result.success) {
+        this.setData({ hasUnreadNotifications: false })
         this.loadNotifications().finally(() => {
           wx.hideLoading()
           utils.showToast({
@@ -174,6 +175,7 @@ Page({
 
           app.clearAllNotifications((success) => {
             if (success) {
+              this.setData({ hasUnreadNotifications: false })
               this.loadNotifications().finally(() => {
                 wx.hideLoading()
                 utils.showToast({

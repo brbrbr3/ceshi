@@ -913,11 +913,9 @@ App({
     if (!user) return []
     const types = ['unread_message']
     if (user.isAdmin) types.push('pending_approval')
-    const isReceiver = user.role === '馆领导'
+    const isReceiver = (user.role === '馆员' && user.department === '无')
       || user.isDepartmentHead
-      || (Array.isArray(user.areaManagerOf) && user.areaManagerOf.length > 0)
-      || (Array.isArray(user.deptExtraNotifierOf) && user.deptExtraNotifierOf.length > 0)
-      || user.isLeaderNotifier
+      || user.isAreaManager
     if (isReceiver) types.push('trip_report')
     return types
   },
