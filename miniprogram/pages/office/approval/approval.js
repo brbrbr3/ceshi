@@ -282,7 +282,12 @@ Page({
     roleOptions: null
   },
 
-  async onLoad() {
+  async onLoad(options) {
+    // 从订阅消息或其他入口传入的目标 tab
+    if (options && options.tab) {
+      app.globalData.targetApprovalTab = options.tab
+    }
+    
     // 初始化每个 tab 的分页配置
     this.initPagination({
       initialPageSize: 10,

@@ -49,7 +49,6 @@ exports.main = async (event, context) => {
       case 'getAllPersonnel': return await getAllPersonnel()
       case 'updatePersonnel': return await updatePersonnel(params)
       case 'updateBatchReportTo': return await updateBatchReportTo(params)
-      case 'migrateData': return await migrateData()
       default: return fail('未知操作', 400)
     }
   } catch (error) {
@@ -160,69 +159,4 @@ async function updateBatchReportTo(params) {
   }
 
   return success(null, '批量更新成功')
-}
-
-/**
- * 数据迁移：将旧字段映射到新字段
- * 旧字段: areaManagerOf[], deptExtraNotifierOf[], reportNotifiers[], isLeaderNotifier
- * 新字段: isAreaManager, reportTo[]
- */
-async function migrateData() {
-  const allUsers = await usersCollection.where({ status: 'approved' }).get()
-  const users = allUsers.data || []
-  const stats = { total: users.length, migrated: 0, errors: [] }
-
-  // 构建 openid→user 映射
-  const userMap = {}
-  users.forEach(u => { userMap[u.openid] = u })
-
-  for (const user of users) {
-    try {
-      const updates = {}
-      const now = Date.now()
-
-      // 1. areaManagerOf → isAreaManager
-      const oldAreas = Array.isArray(user.areaManagerOf) ? user.areaManagerOf : []
-      if (oldAreas.length > 0) {
-        updates.isAreaManager = true
-      }
-
-      // 2. reportNotifiers → reportTo
-      const oldReportNotifiers = Array.isArray(user.reportNotifiers) ? user.reportNotifiers : []
-      if (oldReportNotifiers.length > 0) {
-        // deduplicate
-        updates.reportTo = [...new Set(oldReportNotifiers)]
-      }
-
-      // 3. isLeaderNotifier → 将此人添加到各领导（部门空+馆员）的 reportTo 中
-      if (user.isLeaderNotifier) {
-        users.forEach(leader => {
-          if (leader.openid === user.openid) return
-          if (leader.role === '馆员' && leader.department === '无') {
-            const existingRt = Array.isArray(leader.reportTo) ? leader.reportTo : []
-            if (!existingRt.includes(user.openid)) {
-              const newRt = [...new Set([...existingRt, user.openid])]
-              usersCollection.where({ openid: leader.openid }).update({
-                data: { reportTo: newRt, updatedAt: now }
-              }).catch(e => stats.errors.push({ user: leader.openid, error: e.message }))
-            }
-          }
-        })
-      }
-
-      if (Object.keys(updates).length > 0) {
-        updates.updatedAt = now
-        // 如果已有 reportTo 字段，不清空
-        const existingRt = Array.isArray(user.reportTo) ? user.reportTo : []
-        if (existingRt.length > 0) updates.reportTo = existingRt
-
-        await usersCollection.where({ openid: user.openid }).update({ data: updates })
-        stats.migrated++
-      }
-    } catch (e) {
-      stats.errors.push({ user: user.openid, error: e.message })
-    }
-  }
-
-  return success(stats, `迁移完成: ${stats.migrated}/${stats.total}`)
 }

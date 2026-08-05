@@ -1457,7 +1457,7 @@ async function sendPendingApprovalSubscribeMessage(order, approverOpenids) {
       await cloud.openapi.subscribeMessage.send({
         touser: approverOpenid,
         templateId: templateId,
-        page: 'pages/office/approval/approval',
+        page: 'pages/office/approval/approval?tab=pending',
         data: {
           name1: { value: applicantName },
           time2: { value: applyTime },

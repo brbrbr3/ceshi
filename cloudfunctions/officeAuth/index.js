@@ -157,6 +157,7 @@ function formatUserRecord(record) {
     gender: record.gender,
     role: record.role,
     isAdmin: !!record.isAdmin,
+    isAreaManager: !!record.isAreaManager,
     isDepartmentHead: !!record.isDepartmentHead || (record.role === '馆领导' && !!record.department),
     status: record.status,
     avatarText: record.avatarText || (record.name ? record.name.slice(0, 1) : '智'),
@@ -172,9 +173,7 @@ function formatUserRecord(record) {
     userStatus: record.userStatus || 'offline',
     avatarUrl: record.avatarUrl || '',
     nickName: record.nickName || '',
-    areaManagerOf: Array.isArray(record.areaManagerOf) ? record.areaManagerOf : [],
-    deptExtraNotifierOf: Array.isArray(record.deptExtraNotifierOf) ? record.deptExtraNotifierOf : [],
-    reportNotifiers: Array.isArray(record.reportNotifiers) ? record.reportNotifiers : []
+    reportTo: Array.isArray(record.reportTo) ? record.reportTo : []
   }
 }
 
@@ -291,18 +290,6 @@ async function findUserByOpenId(openid) {
   return result.data[0] || null
 }
 
-/**
- * 查询当前用户是否被某馆领导指定为报备人
- * reportNotifiers 存储在馆领导文档上（openid 数组），需反向查询
- */
-async function checkIsLeaderNotifier(openid) {
-  const leaderRes = await usersCollection
-    .where({ status: 'approved', role: '馆领导', reportNotifiers: openid })
-    .limit(1)
-    .get()
-  return !!(leaderRes.data && leaderRes.data.length > 0)
-}
-
 async function ensureAdminUser(openid) {
   const userRecord = await findUserByOpenId(openid)
   const constants = await getSystemConstants()
@@ -335,7 +322,6 @@ async function checkRegistration(openid, options = {}) {
     }
 
     const userObj = formatUserRecord(userRecord)
-    userObj.isLeaderNotifier = await checkIsLeaderNotifier(openid)
     return success({
       openid,
       registered: true,
@@ -399,7 +385,6 @@ async function checkRegistration(openid, options = {}) {
 
         const updatedUser = await findUserByOpenId(openid)
         const approvedUserObj = formatUserRecord(updatedUser)
-        approvedUserObj.isLeaderNotifier = await checkIsLeaderNotifier(openid)
         return success({
           openid,
           registered: true,
@@ -548,8 +533,8 @@ async function submitRegistration(openid, formData) {
           mobile: form.mobile || '',
           landline: form.landline || '',
           livingArea: form.livingArea || '',
-          avatarUrl: form.avatarUrl || '',
-          nickName: form.nickName || '',
+          avatarUrl: formData.avatarUrl || '',
+          nickName: formData.nickName || '',
           phone: formData.phone || '',
           email: formData.email || '',
           applyReason: formData.applyReason || '申请注册系统'
@@ -1118,8 +1103,8 @@ async function getApprovalData(openid, pagination = {}) {
     },
     summary: {
       pendingCount: pendingTotalCount,
-      approvedCount: doneTotalCount > 0 ? doneList.filter(r => r.status === requestStatus.APPROVED).length : 0,
-      rejectedCount: doneTotalCount > 0 ? doneList.filter(r => r.status === requestStatus.REJECTED).length : 0
+      approvedCount: completedOrdersAll.filter(r => r.workflowStatus === 'completed').length,
+      rejectedCount: completedOrdersAll.filter(r => r.workflowStatus === 'rejected').length
     }
   })
 }

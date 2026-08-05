@@ -2,7 +2,8 @@
 
   <!-- 背景装饰图片 -->
   <view class="login-bg-image-wrapper">
-    <image class="login-bg-image" src="/image/congresso.jpg" mode="widthFix" />
+    <image class="login-bg-image login-bg-image-front {{isRegistered ? 'is-hidden' : ''}}" src="/image/congresso.jpg" mode="widthFix" />
+    <image class="login-bg-image login-bg-image-overlay {{isRegistered ? 'is-active' : ''}}" src="/image/emb.jpg" mode="widthFix" />
   </view>
 
   <view class="auth-hero login-hero">
@@ -17,8 +18,8 @@
   </view>
 
   <view class="auth-card">
-    <view class="login-wechat-title">{{statusLoading ? '正在获取用户状态...' : (isRegistered ? '您已注册，点击下方按钮登录：' : (isPendingApproval ? '您已提交注册申请，请等待管理员审核' : '您尚未注册，点击下方按钮注册：'))}}</view>
-    <button class="auth-submit-btn login-submit-btn {{statusLoading ? 'is-disabled' : ''}} {{isPendingApproval ? 'is-pending' : ''}}" loading="{{loading || statusLoading}}" disabled="{{statusLoading}}" bindtap="handleWxLogin">{{statusLoading ? '加载中...' : (isPendingApproval ? '审核中' : (isRegistered ? (isDesktop ? '登录' : '微信一键登录') : '注册'))}}</button>
+    <view class="login-wechat-title {{statusCard.className === 'is-rejected' ? 'is-rejected' : ''}}">{{loginTitleText}}</view>
+    <button class="auth-submit-btn login-submit-btn {{statusLoading ? 'is-disabled' : ''}} {{isPendingApproval ? 'is-pending' : ''}}" loading="{{loading || statusLoading}}" disabled="{{statusLoading}}" bindtap="handleWxLogin">{{loginButtonText}}</button>
     <view wx:if="{{!isRegistered && !isPendingApproval && !statusLoading}}" class="login-reviewer-link" bindtap="showReviewerModal">账号密码登录（仅供审核人员）</view>
     <!-- <view wx:if="{{isRegistered && !isDesktop}}" class="login-wechat-title-desc">您的生物特征仅用于登录验证，小程序不会保存</view> -->
     <view class="login-wechat-panel">
@@ -35,7 +36,7 @@
       未注册用户：将跳转到注册页面填写基础资料</text> -->
   </view>
 
-  <view wx:if="{{statusCard && !isRegistered}}" class="auth-card login-status-card {{statusCard.className}}">
+  <!-- <view wx:if="{{statusCard && !isRegistered}}" class="auth-card login-status-card {{statusCard.className}}">
     <view class="login-status-head">
       <view class="login-status-title">{{statusCard.title}}</view>
       <view class="login-status-tag">{{statusCard.tag}}</view>
@@ -43,7 +44,7 @@
     <view class="login-status-desc">{{statusCard.desc}}</view>
     <view wx:if="{{statusCard.extra}}" class="login-status-extra">{{statusCard.extra}}</view>
     <view wx:if="{{statusCard.time}}" class="login-status-time">{{statusCard.time}}</view>
-  </view>
+  </view> -->
 
   <!-- <view wx:if="{{showRegisterLink}}" class="login-bottom-link" bindtap="goRegister">尚未注册？去填写注册申请</view> -->
 

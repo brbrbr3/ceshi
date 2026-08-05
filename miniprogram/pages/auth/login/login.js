@@ -47,6 +47,28 @@ function buildStatusCard(request) {
   }
 }
 
+/**
+ * 计算登录卡片的提示文案，避免在 WXML 中使用模板字符串导致编译错误
+ */
+function computeLoginTitle(statusLoading, isRegistered, isPendingApproval, statusCard) {
+  if (statusLoading) return '正在获取用户状态...'
+  if (isRegistered) return '您已注册，点击下方按钮登录：'
+  if (isPendingApproval) return '您已提交注册申请，请等待管理员审核'
+  if (statusCard && statusCard.className === 'is-rejected') return '您的注册申请被退回，退回原因：' + (statusCard.desc || '')
+  return '您尚未注册，点击下方按钮注册：'
+}
+
+/**
+ * 计算登录按钮文案，避免在 WXML 中使用模板字符串导致编译错误
+ */
+function computeLoginButtonText(statusLoading, isRegistered, isPendingApproval, isDesktop, statusCard) {
+  if (statusLoading) return '加载中...'
+  if (isPendingApproval) return '审核中'
+  if (statusCard && statusCard.className === 'is-rejected') return '重新提交'
+  if (isRegistered) return isDesktop ? '登录' : '微信一键登录'
+  return '注册'
+}
+
 Page({
   behaviors: [modalAnimation],
 
@@ -60,6 +82,8 @@ Page({
     isDesktop: false,
     isRegistered: false,
     isPendingApproval: false,
+    loginTitleText: '正在获取用户状态...',
+    loginButtonText: '加载中...',
     showDebugPanel: false,
     debugResults: [],
     showClearDbPanel: false,
@@ -175,28 +199,36 @@ Page({
 
       const isAdmin = result.registered && result.user && result.user.isAdmin === true
 
+      const _isRegistered = result.registered
+      const _isPendingApproval = !result.registered && result.request && result.request.status === 'pending'
+
       this.setData({
         statusLoading: false,
         statusCard,
         showRegisterLink: !result.registered && (!result.request || result.request.status === 'rejected'),
         isAdmin,
-        isRegistered: result.registered,
-        isPendingApproval: !result.registered && result.request && result.request.status === 'pending'
+        isRegistered: _isRegistered,
+        isPendingApproval: _isPendingApproval,
+        loginTitleText: computeLoginTitle(false, _isRegistered, _isPendingApproval, statusCard),
+        loginButtonText: computeLoginButtonText(false, _isRegistered, _isPendingApproval, this.data.isDesktop, statusCard)
       })
     }).catch((error) => {
+      const errorCard = {
+        className: 'is-error',
+        title: '连接失败',
+        desc: error.message || '请稍后重试。',
+        tag: '异常',
+        extra: '',
+        time: ''
+      }
       this.setData({
         statusLoading: false,
-        statusCard: {
-          className: 'is-error',
-          title: '连接失败',
-          desc: error.message || '请稍后重试。',
-          tag: '异常',
-          extra: '',
-          time: ''
-        },
+        statusCard: errorCard,
         showRegisterLink: false,
         isRegistered: false,
-        isPendingApproval: false
+        isPendingApproval: false,
+        loginTitleText: computeLoginTitle(false, false, false, errorCard),
+        loginButtonText: computeLoginButtonText(false, false, false, this.data.isDesktop, errorCard)
       })
     })
   },

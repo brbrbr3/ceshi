@@ -124,7 +124,9 @@ Page({
         this.setData({
           groups,
           activeCount: data.activeCount,
-          allCount: data.allCount
+          allCount: data.allCount,
+          // 用云函数算好的 scopeType 覆盖范围文案（含 others/self 分支，与云函数一致）
+          viewScopeText: this.scopeTypeToText(data.scopeType, this.data.currentUser)
         })
       } else {
         wx.showToast({ title: res.result.message, icon: 'none' })
@@ -454,7 +456,7 @@ Page({
   stopPropagation() {},
 
   /**
-   * 根据用户报备配置计算可查看范围文案
+   * 根据用户报备配置计算可查看范围文案（初始兜底，loadBoardData 返回后用云函数值覆盖）
    * 优先级与云函数 getBoardData 的 scopeType 逻辑保持一致
    * 多身份取并集，各部门去重
    */
@@ -483,6 +485,45 @@ Page({
       return '仅自己'
     }
     return parts.join('及') + '人员'
+  },
+
+  /**
+   * 将云函数 getBoardData 返回的 scopeType 映射为可查看范围文案
+   * scopeType 由云函数根据身份 + reportTo 反查计算，前端直接复用，保证一致：
+   * - all        管理员 或 馆员且部门为空（非部门负责人）→ 全体
+   * - area       片长 → 管辖居住区域
+   * - department 部门负责人 → 本部门
+   * - mixed      片长+部门负责人 → 多范围并集
+   * - others     无业务身份，但有人的 reportTo 指向自己 → 自己+向其报备的人员
+   * - self       无业务身份且无人 reportTo 指向自己 → 仅自己
+   */
+  scopeTypeToText(scopeType, user) {
+    const isAreaManager = !!user.isAreaManager
+    const isDeptHead = !!user.isDepartmentHead
+
+    switch (scopeType) {
+      case 'all':
+        return '全体人员'
+      case 'area':
+        return '管辖居住区域（' + (user.livingArea || '') + '）人员'
+      case 'department':
+        return '本部门（' + (user.department || '') + '）人员'
+      case 'mixed': {
+        const parts = []
+        if (isAreaManager && user.livingArea) {
+          parts.push('管辖居住区域（' + user.livingArea + '）')
+        }
+        if (isDeptHead && user.department) {
+          parts.push('本部门（' + user.department + '）')
+        }
+        return parts.join('及') + '人员'
+      }
+      case 'others':
+        return '自己及向您报备人员'
+      case 'self':
+      default:
+        return '仅自己'
+    }
   },
 
   async onPullDownRefresh() {

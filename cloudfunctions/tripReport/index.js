@@ -168,7 +168,7 @@ async function handleDepart(openid, params) {
           name: _.in(companionNames),
           status: 'approved'
         })
-        .field({ openid: true, name: true, department: true, role: true, livingArea: true, isDepartmentHead: true, reportNotifiers: true })
+        .field({ openid: true, name: true, department: true, role: true, livingArea: true, isDepartmentHead: true })
         .get()
 
       const matchedUsers = matchedUsersRes.data || []
@@ -860,8 +860,7 @@ async function getHistory(openid) {
  * 报备通知：根据报备人身份推送站内通知
  * 通知对象来源（取并集，去重，排除本人）：
  * 1. 报备人的 reportTo 字段（该用户向谁报备）
- * 2. 报备人的 reportNotifiers 字段（旧，兼容）
- * 3. 自动匹配：片长（同居住区）+ 部门负责人（同部门，若报备人非本人）
+ * 2. 自动匹配：片长（同居住区，isAreaManager）+ 部门负责人（同部门，若报备人非本人）
  * @param {string} reporterOpenid 报备人 openid
  * @param {object} reporter 报备人完整用户文档
  * @param {string} tripId 出行记录 ID
@@ -883,10 +882,9 @@ async function notifyReportSubscribers(reporterOpenid, reporter, tripId, action,
   const notifierOpenids = new Set()
 
   try {
-    // 1. 报备人显式指定的 reportTo（新字段）+ reportNotifiers（旧字段兼容）
+    // 1. 报备人显式指定的 reportTo
     const reportTo = reporter && Array.isArray(reporter.reportTo) ? reporter.reportTo : []
-    const oldNotifiers = reporter && Array.isArray(reporter.reportNotifiers) ? reporter.reportNotifiers : []
-    ;[...reportTo, ...oldNotifiers].forEach(o => {
+    reportTo.forEach(o => {
       if (o) notifierOpenids.add(o)
     })
 

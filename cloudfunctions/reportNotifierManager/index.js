@@ -48,27 +48,13 @@ async function assertApproved(openid) {
 }
 
 /**
- * 兼容历史数据：确保字段为数组
- */
-async function ensureArrayField(target, field) {
-  if (Array.isArray(target[field])) return
-  const existing = target[field]
-  await usersCollection.doc(target._id).update({
-    data: {
-      [field]: existing ? [existing] : [],
-      updatedAt: Date.now()
-    }
-  })
-}
-
-/**
- * 获取报备配置
+ * 获取报备配置（新字段：isAreaManager / reportTo）
  * 返回：
  * - livingAreas: 居住区域列表（来自 sys_config REPAIR_LIVING_AREAS）
- * - areaManagerGroups: [{ area, managers: [user...] }] 按居住区域分组的片长
- * - leaderNotifierGroups: [{ leader, notifiers: [user...] }] 按馆领导分组的报备人
+ * - areaManagerGroups: [{ area, managers: [user...] }] 按居住区域分组的片长（isAreaManager + livingArea 匹配）
+ * - leaderNotifierGroups: [{ leader, notifiers: [user...] }] 按馆领导分组的报备人（reportTo 反查）
  * - deptNotifierGroups: [{ department, heads: [user...], extraNotifiers: [user...] }] 按部门分组的报备配置
- * - allUsers: 所有已审批用户（含 areaManagerOf/reportNotifiers/deptExtraNotifierOf/deptHeadNotifyDisabled，用于添加弹窗过滤）
+ * - allUsers: 所有已审批用户（含 isAreaManager/reportTo/deptHeadNotifyDisabled，用于添加弹窗过滤）
  */
 async function getReportConfig(openid) {
   await assertApproved(openid)
@@ -90,30 +76,39 @@ async function getReportConfig(openid) {
     department: u.department || '',
     livingArea: u.livingArea || '',
     isDepartmentHead: !!u.isDepartmentHead,
-    areaManagerOf: Array.isArray(u.areaManagerOf) ? u.areaManagerOf : [],
-    reportNotifiers: Array.isArray(u.reportNotifiers) ? u.reportNotifiers : [],
-    deptExtraNotifierOf: Array.isArray(u.deptExtraNotifierOf) ? u.deptExtraNotifierOf : [],
+    isAreaManager: !!u.isAreaManager,
+    reportTo: Array.isArray(u.reportTo) ? u.reportTo : [],
     deptHeadNotifyDisabled: !!u.deptHeadNotifyDisabled,
     avatarText: u.avatarText || (u.name ? u.name.slice(0, 1) : '智')
   }))
 
-  // 片长分组：按居住区域顺序分组
+  // 片长分组：按居住区域分组，片长由 isAreaManager + livingArea 决定
   const areaManagerGroups = livingAreas.map(area => {
-    const managers = users.filter(u => u.areaManagerOf.includes(area))
+    const managers = users.filter(u => u.isAreaManager && u.livingArea === area)
     return { area, managers }
   })
 
-  // 馆领导报备接收人分组：列出所有馆领导
+  // 馆领导报备接收人分组：通过报备人的 reportTo 反查（谁的 reportTo 含该领导）
   const leaders = users.filter(u => u.role === '馆领导')
   const leaderNotifierGroups = leaders.map(leader => {
-    const notifiers = users.filter(u => leader.reportNotifiers.includes(u.openid))
+    const notifiers = users.filter(u => u.reportTo.includes(leader.openid))
     return { leader, notifiers }
   })
 
   // 部门报备配置分组：按部门列表分组，每组含负责人（只读，可暂停/恢复）和额外报备接收人（可增删）
+  // 额外报备接收人：从部门成员的 reportTo 反推（排除部门负责人）
   const deptNotifierGroups = departmentOptions.map(dept => {
     const heads = users.filter(u => u.isDepartmentHead && u.department === dept)
-    const extraNotifiers = users.filter(u => u.deptExtraNotifierOf.includes(dept))
+    // 收集该部门所有成员的 reportTo 中出现过的 openid，排除负责人即为额外报备接收人
+    const deptMembers = users.filter(u => u.department === dept)
+    const headOpenidSet = new Set(heads.map(h => h.openid))
+    const extraOpenidSet = new Set()
+    deptMembers.forEach(member => {
+      (member.reportTo || []).forEach(oid => {
+        if (!headOpenidSet.has(oid)) extraOpenidSet.add(oid)
+      })
+    })
+    const extraNotifiers = users.filter(u => extraOpenidSet.has(u.openid))
     return { department: dept, heads, extraNotifiers }
   })
 
@@ -121,7 +116,8 @@ async function getReportConfig(openid) {
 }
 
 /**
- * 设置片长：为某用户添加某居住区域的片长身份
+ * 设置片长：将目标用户设为指定居住区域的片长
+ * 新逻辑：isAreaManager = true，livingArea = area（片长管自己居住区域）
  */
 async function setAreaManager(openid, targetOpenid, area) {
   await assertAdmin(openid)
@@ -133,23 +129,20 @@ async function setAreaManager(openid, targetOpenid, area) {
     throw new Error('目标用户不存在')
   }
   const target = targetResult.data[0]
-  const currentAreas = Array.isArray(target.areaManagerOf) ? target.areaManagerOf : []
 
-  if (currentAreas.includes(area)) {
+  if (target.isAreaManager && target.livingArea === area) {
     throw new Error('该用户已是该区域片长')
   }
 
-  await ensureArrayField(target, 'areaManagerOf')
-
   await usersCollection.doc(target._id).update({
-    data: { areaManagerOf: _.push(area), updatedAt: Date.now() }
+    data: { isAreaManager: true, livingArea: area, updatedAt: Date.now() }
   })
 
   return success({ targetOpenid, area }, '片长配置成功')
 }
 
 /**
- * 移除片长
+ * 移除片长：取消目标用户的片长身份
  */
 async function removeAreaManager(openid, targetOpenid, area) {
   await assertAdmin(openid)
@@ -161,23 +154,20 @@ async function removeAreaManager(openid, targetOpenid, area) {
     throw new Error('目标用户不存在')
   }
   const target = targetResult.data[0]
-  const currentAreas = Array.isArray(target.areaManagerOf) ? target.areaManagerOf : []
 
-  if (!currentAreas.includes(area)) {
+  if (!target.isAreaManager || target.livingArea !== area) {
     throw new Error('该用户不是该区域片长')
   }
 
-  await ensureArrayField(target, 'areaManagerOf')
-
   await usersCollection.doc(target._id).update({
-    data: { areaManagerOf: _.pull(area), updatedAt: Date.now() }
+    data: { isAreaManager: false, updatedAt: Date.now() }
   })
 
   return success({ targetOpenid, area }, '片长移除成功')
 }
 
 /**
- * 设置馆领导报备接收人：为某馆领导添加报备人
+ * 设置馆领导报备接收人：将报备人的 reportTo 中加入该馆领导
  */
 async function setLeaderNotifier(openid, leaderOpenid, notifierOpenid) {
   await assertAdmin(openid)
@@ -199,118 +189,148 @@ async function setLeaderNotifier(openid, leaderOpenid, notifierOpenid) {
   if (!notifierResult.data || notifierResult.data.length === 0) {
     throw new Error('报备人用户不存在')
   }
+  const notifier = notifierResult.data[0]
+  const currentReportTo = Array.isArray(notifier.reportTo) ? notifier.reportTo : []
 
-  const currentNotifiers = Array.isArray(leader.reportNotifiers) ? leader.reportNotifiers : []
-  if (currentNotifiers.includes(notifierOpenid)) {
+  if (currentReportTo.includes(leaderOpenid)) {
     throw new Error('该用户已是此馆领导的报备人')
   }
 
-  await ensureArrayField(leader, 'reportNotifiers')
-
   const now = Date.now()
-  await usersCollection.doc(leader._id).update({
-    data: { reportNotifiers: _.push(notifierOpenid), updatedAt: now }
-  })
-
-  // 同步更新被指定报备人的 updatedAt，确保 checkRegistration 版本比对能感知变化
-  await usersCollection.doc(notifierResult.data[0]._id).update({
-    data: { updatedAt: now }
+  await usersCollection.doc(notifier._id).update({
+    data: { reportTo: [...currentReportTo, leaderOpenid], updatedAt: now }
   })
 
   return success({ leaderOpenid, notifierOpenid }, '报备人设置成功')
 }
 
 /**
- * 移除馆领导报备接收人
+ * 移除馆领导报备接收人：从报备人的 reportTo 中移除该馆领导
  */
 async function removeLeaderNotifier(openid, leaderOpenid, notifierOpenid) {
   await assertAdmin(openid)
   if (!leaderOpenid) throw new Error('缺少馆领导标识')
   if (!notifierOpenid) throw new Error('缺少报备人标识')
 
+  // 校验馆领导存在
   const leaderResult = await usersCollection.where({ openid: leaderOpenid }).limit(1).get()
   if (!leaderResult.data || leaderResult.data.length === 0) {
     throw new Error('馆领导用户不存在')
   }
-  const leader = leaderResult.data[0]
-  const currentNotifiers = Array.isArray(leader.reportNotifiers) ? leader.reportNotifiers : []
 
-  if (!currentNotifiers.includes(notifierOpenid)) {
+  // 校验报备人存在
+  const notifierResult = await usersCollection.where({ openid: notifierOpenid }).limit(1).get()
+  if (!notifierResult.data || notifierResult.data.length === 0) {
+    throw new Error('报备人用户不存在')
+  }
+  const notifier = notifierResult.data[0]
+  const currentReportTo = Array.isArray(notifier.reportTo) ? notifier.reportTo : []
+
+  if (!currentReportTo.includes(leaderOpenid)) {
     throw new Error('该用户不是此馆领导的报备人')
   }
 
-  await ensureArrayField(leader, 'reportNotifiers')
-
   const now = Date.now()
-  await usersCollection.doc(leader._id).update({
-    data: { reportNotifiers: _.pull(notifierOpenid), updatedAt: now }
+  await usersCollection.doc(notifier._id).update({
+    data: { reportTo: currentReportTo.filter(o => o !== leaderOpenid), updatedAt: now }
   })
-
-  // 同步更新被移除报备人的 updatedAt，确保 checkRegistration 版本比对能感知变化
-  const notifierDoc = await usersCollection.where({ openid: notifierOpenid }).limit(1).get()
-  if (notifierDoc.data && notifierDoc.data.length > 0) {
-    await usersCollection.doc(notifierDoc.data[0]._id).update({
-      data: { updatedAt: now }
-    })
-  }
 
   return success({ leaderOpenid, notifierOpenid }, '报备人移除成功')
 }
 
 /**
- * 设置部门额外报备接收人：为某用户添加某部门的额外报备接收人身份
+ * 设置部门额外报备接收人：将该用户 openid 批量加入该部门所有成员的 reportTo
+ * 注意：大部门场景下可能涉及较多写入，云函数需关注超时
  */
 async function setDeptExtraNotifier(openid, targetOpenid, department) {
   await assertAdmin(openid)
   if (!targetOpenid) throw new Error('缺少目标用户标识')
   if (!department) throw new Error('缺少部门名称')
 
+  // 校验目标用户存在
   const targetResult = await usersCollection.where({ openid: targetOpenid }).limit(1).get()
   if (!targetResult.data || targetResult.data.length === 0) {
     throw new Error('目标用户不存在')
   }
-  const target = targetResult.data[0]
-  const currentDepts = Array.isArray(target.deptExtraNotifierOf) ? target.deptExtraNotifierOf : []
 
-  if (currentDepts.includes(department)) {
+  // 校验未重复：检查是否已有该部门成员的 reportTo 含 targetOpenid
+  const existingCheck = await usersCollection
+    .where({ status: 'approved', department, reportTo: targetOpenid })
+    .limit(1)
+    .get()
+  if (existingCheck.data && existingCheck.data.length > 0) {
     throw new Error('该用户已是此部门的额外报备接收人')
   }
 
-  await ensureArrayField(target, 'deptExtraNotifierOf')
+  // 查询该部门所有已审批用户（排除目标用户本人和部门负责人）
+  const deptUsersRes = await usersCollection
+    .where({ status: 'approved', department, isDepartmentHead: _.neq(true) })
+    .field({ openid: true, reportTo: true })
+    .get()
+  const deptUsers = (deptUsersRes.data || []).filter(u => u.openid !== targetOpenid)
+  const now = Date.now()
 
-  await usersCollection.doc(target._id).update({
-    data: { deptExtraNotifierOf: _.push(department), updatedAt: Date.now() }
-  })
+  // 批量更新：为每个部门成员追加 targetOpenid 到 reportTo
+  let updatedCount = 0
+  for (const user of deptUsers) {
+    const existingRt = Array.isArray(user.reportTo) ? user.reportTo : []
+    if (!existingRt.includes(targetOpenid)) {
+      try {
+        await usersCollection.where({ openid: user.openid }).update({
+          data: { reportTo: [...existingRt, targetOpenid], updatedAt: now }
+        })
+        updatedCount++
+      } catch (e) {
+        console.warn(`更新用户 ${user.openid} 的 reportTo 失败:`, e.message)
+      }
+    }
+  }
 
-  return success({ targetOpenid, department }, '部门额外报备接收人设置成功')
+  return success({ targetOpenid, department, updatedCount }, `已为 ${updatedCount} 名部门成员配置报备接收人`)
 }
 
 /**
- * 移除部门额外报备接收人
+ * 移除部门额外报备接收人：将该用户 openid 从该部门所有成员的 reportTo 中批量移除
  */
 async function removeDeptExtraNotifier(openid, targetOpenid, department) {
   await assertAdmin(openid)
   if (!targetOpenid) throw new Error('缺少目标用户标识')
   if (!department) throw new Error('缺少部门名称')
 
+  // 校验目标用户存在
   const targetResult = await usersCollection.where({ openid: targetOpenid }).limit(1).get()
   if (!targetResult.data || targetResult.data.length === 0) {
     throw new Error('目标用户不存在')
   }
-  const target = targetResult.data[0]
-  const currentDepts = Array.isArray(target.deptExtraNotifierOf) ? target.deptExtraNotifierOf : []
 
-  if (!currentDepts.includes(department)) {
+  // 查询该部门所有含 targetOpenid 的成员
+  const deptUsersRes = await usersCollection
+    .where({ status: 'approved', department, reportTo: targetOpenid })
+    .field({ openid: true, reportTo: true })
+    .get()
+  const deptUsers = deptUsersRes.data || []
+
+  if (deptUsers.length === 0) {
     throw new Error('该用户不是此部门的额外报备接收人')
   }
 
-  await ensureArrayField(target, 'deptExtraNotifierOf')
+  const now = Date.now()
+  let updatedCount = 0
 
-  await usersCollection.doc(target._id).update({
-    data: { deptExtraNotifierOf: _.pull(department), updatedAt: Date.now() }
-  })
+  for (const user of deptUsers) {
+    const existingRt = Array.isArray(user.reportTo) ? user.reportTo : []
+    const newRt = existingRt.filter(o => o !== targetOpenid)
+    try {
+      await usersCollection.where({ openid: user.openid }).update({
+        data: { reportTo: newRt, updatedAt: now }
+      })
+      updatedCount++
+    } catch (e) {
+      console.warn(`更新用户 ${user.openid} 的 reportTo 失败:`, e.message)
+    }
+  }
 
-  return success({ targetOpenid, department }, '部门额外报备接收人移除成功')
+  return success({ targetOpenid, department, updatedCount }, `已从 ${updatedCount} 名部门成员移除报备接收人`)
 }
 
 /**

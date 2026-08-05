@@ -72,7 +72,7 @@
               </picker>
             </view>
 
-            <view class="personnel-field personnel-field-checkbox" wx:if="{{formRole === '馆员'}}">
+            <view class="personnel-field personnel-field-checkbox" wx:if="{{formRole === '馆员' && formDepartment !== '无'}}">
               <view class="personnel-field-label">部门负责人</view>
               <switch checked="{{formIsDeptHead}}" bindchange="handleDeptHeadChange" color="#2563EB" />
             </view>
@@ -110,7 +110,7 @@
             <!-- 谁向该用户报备（订阅列表） -->
             <view class="personnel-subsection">
               <view class="personnel-subsection-header">
-                <text class="personnel-subsection-title">谁向该用户报备\n</text>
+                <text class="personnel-subsection-title">谁向「{{editUser.name}}」报备\n</text>
                 <text class="personnel-subsection-desc">将订阅勾选人员的报备</text>
               </view>
 
@@ -166,7 +166,7 @@
           <!-- 该用户向谁报备 -->
             <view class="personnel-subsection">
               <view class="personnel-subsection-header">
-                <text class="personnel-subsection-title">该用户向谁报备\n</text>
+                <text class="personnel-subsection-title">「{{editUser.name}}」向谁报备\n</text>
                 <text class="personnel-subsection-desc">该用户出行时推送报备给勾选人员</text>
               </view>
 

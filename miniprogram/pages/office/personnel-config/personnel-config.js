@@ -446,36 +446,54 @@ Page({
 
   // ==================== 表单变更 ====================
   handleRoleChange(e) {
-    if (!this.data.canEdit) return
+    if (!this.data.canEdit) {
+      utils.showToast({ title: '只读模式，如需修改请联系管理员', icon: 'none' })
+      return
+    }
     const idx = Number(e.detail.value)
     this.setData({ formRole: idx === 1 ? '其他' : '馆员' })
   },
 
   handleDeptChange(e) {
-    if (!this.data.canEdit) return
+    if (!this.data.canEdit) {
+      utils.showToast({ title: '只读模式，如需修改请联系管理员', icon: 'none' })
+      return
+    }
     const idx = e.detail.value
     const dept = this.data.departmentOptions[idx] || ''
     this.setData({ formDepartment: dept })
   },
 
   handleDeptHeadChange(e) {
-    if (!this.data.canEdit) return
+    if (!this.data.canEdit) {
+      utils.showToast({ title: '只读模式，如需修改请联系管理员', icon: 'none' })
+      return
+    }
     this.setData({ formIsDeptHead: e.detail.value })
   },
 
   handleAreaManagerChange(e) {
-    if (!this.data.canEdit) return
+    if (!this.data.canEdit) {
+      utils.showToast({ title: '只读模式，如需修改请联系管理员', icon: 'none' })
+      return
+    }
     this.setData({ formIsAreaManager: e.detail.value })
   },
 
   handleAreaChange(e) {
-    if (!this.data.canEdit) return
+    if (!this.data.canEdit) {
+      utils.showToast({ title: '只读模式，如需修改请联系管理员', icon: 'none' })
+      return
+    }
     const areas = this.data.livingAreas
     this.setData({ formLivingArea: areas[e.detail.value] || '' })
   },
 
   handleTogglePosition(e) {
-    if (!this.data.canEdit) return
+    if (!this.data.canEdit) {
+      utils.showToast({ title: '只读模式，如需修改请联系管理员', icon: 'none' })
+      return
+    }
     const pos = String(e.currentTarget.dataset.value || '')
     if (!pos) return
     const positions = this.data.formPositions.map(p => ({
@@ -490,7 +508,10 @@ Page({
   },
 
   handleToggleAreaGroup(e) {
-    if (!this.data.canEdit) return
+    if (!this.data.canEdit) {
+      utils.showToast({ title: '只读模式，如需修改请联系管理员', icon: 'none' })
+      return
+    }
     const { group } = e.currentTarget.dataset
     const groups = this.data.subscriberGroups
     const areaGroups = this.data.subscriberAreaGroups
@@ -516,7 +537,6 @@ Page({
 
   // ==================== 订阅分组操作 ====================
   handleToggleSubscriber(e) {
-    if (!this.data.canEdit) return
     const { openid } = e.currentTarget.dataset
     const groups = this.data.subscriberGroups
     const areaGroups = this.data.subscriberAreaGroups
@@ -529,6 +549,11 @@ Page({
           return
         }
       }
+    }
+    
+    if (!this.data.canEdit) {
+      utils.showToast({ title: '只读模式，如需修改请联系管理员', icon: 'none' })
+      return
     }
 
     const toggleInGroup = (grpList) => {
@@ -546,7 +571,10 @@ Page({
   },
 
   handleToggleGroup(e) {
-    if (!this.data.canEdit) return
+    if (!this.data.canEdit) {
+      utils.showToast({ title: '只读模式，如需修改请联系管理员', icon: 'none' })
+      return
+    }
     const { group } = e.currentTarget.dataset
     const groups = this.data.subscriberGroups
     const areaGroups = this.data.subscriberAreaGroups
@@ -572,13 +600,16 @@ Page({
 
   // ==================== reportTo 操作 ====================
   handleToggleReportTo(e) {
-    if (!this.data.canEdit) return
     const { openid } = e.currentTarget.dataset
     const reportToOptions = this.data.reportToOptions
     const target = reportToOptions.find(u => u.openid === openid)
     if (!target) return
     if (target.disabled) {
       this._showCustomToast(target.disabledReason || '无法取消自动匹配', { duration: 2500, fadeOutMs: 500 })
+      return
+    }
+    if (!this.data.canEdit) {
+      utils.showToast({ title: '只读模式，如需修改请联系管理员', icon: 'none' })
       return
     }
     target.checked = !target.checked
