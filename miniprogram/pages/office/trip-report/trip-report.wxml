@@ -19,8 +19,9 @@
             <text wx:else>当前未外出</text>
           </view>
           <view class="trip-status-companion">
-            <text wx:if="{{activeTrip}}">同行人：{{activeTrip.companions}}</text>
-            <text wx:else>点击下方按钮开始报备</text>
+            <text wx:if="{{activeTrip && activeTrip.companionsList.length > 0}}">同行人：</text>
+            <text wx:for="{{activeTrip.companionsList}}" wx:key="*this" class="companion-tag">{{item}}</text>
+            <text wx:if="{{!activeTrip}}">点击下方按钮开始报备</text>
           </view>
         </view>
       </view>
@@ -84,7 +85,8 @@
                 <view class="trip-item-dest">{{trip.destination}}</view>
                 <view class="trip-item-meta">
                   <text class="trip-item-mode">🚗 {{trip.travelMode}}</text>
-                  <text wx:if="{{trip.companions}}" class="trip-item-companions">👥 {{trip.companions}}</text>
+                  <text wx:if="{{trip.companionsList.length > 0}}" class="trip-item-companions">👥</text>
+                  <text wx:for="{{trip.companionsList}}" wx:key="*this" class="companion-tag">{{item}}</text>
                 </view>
               </view>
             </view>
@@ -143,12 +145,12 @@
             <input 
               class="trip-input" 
               value="{{form.companions}}" 
-              placeholder="请输入同行人（选填）" 
+              placeholder="无同行人则无需填写" 
               placeholder-class="trip-input-placeholder"
               bindinput="handleCompanionsInput"
             />
           </view>
-          <view class="trip-field-hint">多个同行人用空格分隔，系统将自动为同行人代报备</view>
+          <view class="trip-field-hint">多个同行人用空格、顿号或逗号分隔，系统将自动为同行人代报备</view>
           <!-- 历史记录快捷选择 -->
           <view wx:if="{{showCompanionsHistory && companionsHistory.length > 0}}" class="trip-history-list">
             <view class="trip-history-title">常用同行人</view>
@@ -216,12 +218,12 @@
             <input 
               class="trip-input" 
               value="{{retroForm.companions}}" 
-              placeholder="请输入同行人（选填）" 
+              placeholder="无同行人则无需填写" 
               placeholder-class="trip-input-placeholder"
               bindinput="handleRetroCompanionsInput"
             />
           </view>
-          <view class="trip-field-hint">多个同行人用空格分隔</view>
+          <view class="trip-field-hint">多个同行人用空格、顿号或逗号分隔</view>
           <!-- 历史记录快捷选择 -->
           <view wx:if="{{showRetroCompanionsHistory && companionsHistory.length > 0}}" class="trip-history-list">
             <view class="trip-history-title">最近使用</view>
@@ -279,11 +281,11 @@
         <view class="trip-popup-close" bindtap="hideProxyReturnModal">×</view>
       </view>
       <scroll-view class="trip-popup-body" scroll-y enhanced show-scrollbar="{{false}}" style="max-height: 55vh;">
-        <view class="proxy-return-tip">检测到您曾为以下人员代报备外出，是否一并报备返回？</view>
+        <view class="proxy-return-tip">检测到您本次出行曾为以下人员代报备外出，是否一并报备返回？</view>
         <view class="proxy-return-list">
-          <view wx:for="{{proxyTrips}}" wx:key="_id" class="proxy-return-item {{proxyReturnSelected.indexOf(item._id) > -1 ? 'is-selected' : ''}}" data-id="{{item._id}}" bindtap="handleToggleProxySelect">
+          <view wx:for="{{proxyTrips}}" wx:key="_id" class="proxy-return-item {{item.checked ? 'is-selected' : ''}}" data-id="{{item._id}}" bindtap="handleToggleProxySelect">
             <view class="proxy-return-checkbox">
-              <text wx:if="{{proxyReturnSelected.indexOf(item._id) > -1}}">✓</text>
+              <text wx:if="{{item.checked}}">✓</text>
             </view>
             <view class="proxy-return-info">
               <view class="proxy-return-name">{{item.userName}}</view>

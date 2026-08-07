@@ -896,57 +896,11 @@ Page({
   },
 
   /**
-   * 从首页返回报备
+   * 从首页返回报备：跳转到出行报备页并自动触发返回流程
    */
   handleReturnFromHome() {
-    const activeTrip = this.data.activeTrip
-    if (!activeTrip) return
-
-    wx.showModal({
-      title: '确认返回',
-      content: '确认已返回？将记录当前时间为返回时间。',
-      success: (res) => {
-        if (res.confirm) {
-          wx.showLoading({
-            title: '处理中...',
-            mask: true
-          })
-          wx.cloud.callFunction({
-            name: 'tripReport',
-            data: {
-              action: 'return',
-              params: {
-                tripId: activeTrip._id
-              }
-            }
-          }).then(res => {
-            wx.hideLoading()
-            if (res.result.code === 0) {
-              const status = res.result.data.status
-              const message = status === 'overtime' ? '返回报备成功（超时）' : '返回报备成功'
-              utils.showToast({
-                title: message,
-                icon: 'success'
-              })
-              this.setData({
-                activeTrip: null
-              })
-            } else {
-              utils.showToast({
-                title: res.result.message || '报备失败',
-                icon: 'none'
-              })
-            }
-          }).catch(err => {
-            wx.hideLoading()
-            console.error('返回报备失败:', err)
-            utils.showToast({
-              title: '报备失败，请重试',
-              icon: 'none'
-            })
-          })
-        }
-      }
+    wx.navigateTo({
+      url: '/pages/office/trip-report/trip-report?autoReturn=1'
     })
   }
 })

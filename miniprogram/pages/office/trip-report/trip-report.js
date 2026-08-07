@@ -30,6 +30,15 @@ const STORAGE_KEY_COMPANIONS = 'trip_companions_history'
 const MAX_DESTINATION_HISTORY = 10
 const MAX_COMPANIONS_HISTORY = 5
 
+/**
+ * 解析同行人字符串，兼容多种分隔符
+ * 支持：顿号（、）、中英文逗号（,，）、中英文分号（;；）、空格/换行
+ */
+function parseCompanions(str) {
+  if (!str) return []
+  return str.split(/[、,，;；\s]+/).map(s => s.trim()).filter(Boolean)
+}
+
 Page({
   behaviors: [paginationBehavior],
 
@@ -72,7 +81,7 @@ Page({
     cancelTimer: null
   },
 
-  async onLoad() {
+  async onLoad(options) {
     // 初始化分页配置
     this.initPagination({
       initialPageSize: 10,
@@ -84,6 +93,11 @@ Page({
 
     // 加载历史记录
     this.loadHistory()
+
+    // 从首页跳转时自动触发返回报备流程
+    if (options.autoReturn === '1') {
+      this.setData({ autoReturnFromHome: true })
+    }
   },
 
   async onShow() {
@@ -106,6 +120,15 @@ Page({
     } finally {
       // 无论成功失败都隐藏 loading
       wx.hideLoading()
+    }
+
+    // 从首页跳转时自动触发返回报备流程（支持代他人报备返回）
+    if (this.data.autoReturnFromHome && this.data.activeTrip) {
+      this.setData({ autoReturnFromHome: false })
+      // 延迟一帧确保页面渲染完成，避免 loading 冲突
+      setTimeout(() => {
+        this.handleReturn()
+      }, 300)
     }
   },
 
@@ -230,6 +253,8 @@ Page({
       if (res.result.code === 0) {
         const activeTrip = res.result.data.activeTrip
         if (activeTrip) {
+          // 解析同行人
+          activeTrip.companionsList = parseCompanions(activeTrip.companions)
           // 计算已外出时长
           activeTrip.elapsedTimeText = this.calcElapsedTime(activeTrip.departAt)
 
@@ -359,7 +384,8 @@ Page({
       statusColor: style.color,
       statusBg: style.bg,
       monthKey: `${date.getFullYear()}-${String(date.getMonth() + 1).padStart(2, '0')}`,
-      monthText: `${date.getFullYear()}年${date.getMonth() + 1}月`
+      monthText: `${date.getFullYear()}年${date.getMonth() + 1}月`,
+      companionsList: parseCompanions(item.companions)
     }
   },
 
@@ -647,8 +673,8 @@ Page({
           // 有代报备记录，弹窗询问
           this.setData({
             showProxyReturnModal: true,
-            proxyTrips,
-            proxyReturnSelected: proxyTrips.map(t => t._id) // 默认全选
+            proxyTrips: proxyTrips.map(t => ({ ...t, checked: true })), // 默认全选
+            proxyReturnSelected: proxyTrips.map(t => t._id)
           })
         } else {
           // 无代报备记录，直接确认
@@ -679,14 +705,12 @@ Page({
   /** 代报备返回弹窗：切换选中 */
   handleToggleProxySelect(e) {
     const id = e.currentTarget.dataset.id
-    const selected = this.data.proxyReturnSelected
-    const idx = selected.indexOf(id)
-    if (idx > -1) {
-      selected.splice(idx, 1)
-    } else {
-      selected.push(id)
-    }
-    this.setData({ proxyReturnSelected: selected })
+    const proxyTrips = this.data.proxyTrips.map(t => {
+      if (t._id === id) return { ...t, checked: !t.checked }
+      return t
+    })
+    const proxyReturnSelected = proxyTrips.filter(t => t.checked).map(t => t._id)
+    this.setData({ proxyTrips, proxyReturnSelected })
   },
 
   /** 代报备返回弹窗：确认返回 */

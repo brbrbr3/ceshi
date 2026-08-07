@@ -304,8 +304,13 @@ Page({
         const isAutoDeptHead = !!u.isDepartmentHead && u.department === currentDepartment && currentDepartment
         const isAuto = isAutoManager || isAutoDeptHead
         let disabledReason = ''
-        if (isAutoManager) disabledReason = `${u.name}是${user.name}所在居住区的片长，无法取消勾选`
-        else if (isAutoDeptHead) disabledReason = `${u.name}是${user.name}的部门负责人，无法取消勾选`
+        if (isAutoManager && isAutoDeptHead) {
+          disabledReason = `${u.name}是${user.name}所在居住区的片长，也是${user.name}的部门负责人，无法取消勾选`
+        } else if (isAutoManager) {
+          disabledReason = `${u.name}是${user.name}所在居住区的片长，无法取消勾选`
+        } else if (isAutoDeptHead) {
+          disabledReason = `${u.name}是${user.name}的部门负责人，无法取消勾选`
+        }
         return {
           openid: u.openid,
           name: u.name,

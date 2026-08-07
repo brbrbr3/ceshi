@@ -116,6 +116,20 @@
 .trip-status-companion {
   font-size: var(--fs-24);
   font-weight: 500;
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 6rpx;
+}
+
+/* 同行人标签 */
+.companion-tag {
+  display: inline-block;
+  background: rgba(255, 255, 255, 0.45);
+  border-radius: 12rpx;
+  padding: 2rpx 12rpx;
+  font-size: var(--fs-24);
+  font-weight: 500;
 }
 
 .trip-status-detail {
@@ -360,7 +374,6 @@
   overflow: hidden;
   display: flex;
   flex-direction: column;
-  margin: 0 28rpx 0;
 }
 
 .trip-popup-mask.is-visible .trip-popup-container {
@@ -532,9 +545,9 @@
 
 /* ========== 代报备返回弹窗 ========== */
 .proxy-return-tip {
-  font-size: var(--fs-28);
+  font-size: var(--fs-30);
   color: #64748B;
-  padding: 24rpx 32rpx 16rpx;
+  padding: 24rpx 40rpx 16rpx;
   line-height: 1.6;
 }
 
@@ -608,7 +621,7 @@
   flex: 1;
   height: 88rpx;
   border-radius: 16rpx;
-  font-size: var(--fs-28);
+  font-size: var(--fs-30);
   font-weight: 600;
   display: flex;
   transition: transform 0.3s ease, opacity 0.3s ease;
@@ -619,11 +632,13 @@
 }
 
 .proxy-return-btn-skip {
+  flex: 0.4;
   background: #F1F5F9;
   color: #64748B;
 }
 
 .proxy-return-btn-confirm {
+  flex: 0.6;
   background: linear-gradient(135deg, #16A34A 0%, #059669 100%);
   color: #FFFFFF;
   box-shadow: 0 6rpx 20rpx rgba(22, 163, 74, 0.3);
