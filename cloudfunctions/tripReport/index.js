@@ -60,7 +60,7 @@ exports.main = async (event, context) => {
       case 'return':
         return await handleReturn(openid, params)
       case 'getActiveTripWithProxies':
-        return await getActiveTripWithProxies(openid)
+        return await getActiveTripWithProxies(openid, params)
       case 'retroDepart':
         return await handleRetroDepart(openid, params)
       case 'getActiveTrip':
@@ -81,6 +81,8 @@ exports.main = async (event, context) => {
         return await handleCancelDepart(openid, params)
       case 'getPersonTrips':
         return await getPersonTrips(openid, params)
+      case 'appendDestination':
+        return await handleAppendDestination(openid, params)
       default:
         return fail('未知的操作类型', 400)
     }
@@ -129,8 +131,8 @@ async function handleDepart(openid, params) {
   const currentUserDepartment = currentUser ? currentUser.department : ''
   const now = Date.now()
 
-  // 解析同行人姓名（空格分隔）
-  const companionNames = companions ? companions.split(/\s+/).filter(Boolean) : []
+  // 解析同行人姓名（空格、顿号、逗号、分号分隔）
+  const companionNames = companions ? companions.split(/[\s、，,;；]+/).filter(Boolean) : []
 
   // 为当前用户创建外出记录
   const tripData = {
@@ -284,30 +286,112 @@ async function handleDepart(openid, params) {
 }
 
 /**
- * 获取当前用户的活跃外出记录 + 代他人报备且仍未返回的记录
+ * 获取当前用户的活跃外出记录 + 本次出行的代报备记录
+ * @param {string} openid
+ * @param {object} params 可选 { tripId }，传入则按 departAt 精确匹配本次出行的代报备记录
  */
-async function getActiveTripWithProxies(openid) {
+async function getActiveTripWithProxies(openid, params) {
+  const tripId = params ? params.tripId : null
+
   // 1. 查询自己的活跃外出
   const myTrip = await tripReportsCollection
     .where({ _openid: openid, status: 'out' })
     .limit(1)
     .get()
 
-  // 2. 查询自己代他人报备且仍为 out 状态的记录
-  const proxyTrips = await tripReportsCollection
-    .where({ createdByOpenid: openid, status: 'out' })
-    .field({ _id: true, userName: true, departAt: true, destination: true })
-    .get()
+  const activeTrip = myTrip.data && myTrip.data[0] ? {
+    _id: myTrip.data[0]._id,
+    userName: myTrip.data[0].userName,
+    departAt: myTrip.data[0].departAt
+  } : null
 
-  return success({
-    activeTrip: myTrip.data && myTrip.data[0] ? { _id: myTrip.data[0]._id, userName: myTrip.data[0].userName } : null,
-    proxyTrips: (proxyTrips.data || []).map(t => ({
+  // 2. 查询本次出行代报备且仍未返回的记录（按同一 departAt 匹配）
+  let proxyTrips = []
+  if (activeTrip) {
+    const query = { createdByOpenid: openid, status: 'out', departAt: activeTrip.departAt }
+    const proxyRes = await tripReportsCollection
+      .where(query)
+      .field({ _id: true, userName: true, departAt: true, destination: true })
+      .get()
+    proxyTrips = (proxyRes.data || []).map(t => ({
       _id: t._id,
       userName: t.userName,
       departAt: t.departAt,
       destination: t.destination
     }))
+  }
+
+  return success({ activeTrip, proxyTrips })
+}
+
+/**
+ * 追加目的地
+ * 外出过程中追加新的目的地，支持同步更新代报备人员的记录
+ * @param {object} params { tripId, newDestination, proxyTripIds }
+ */
+async function handleAppendDestination(openid, params) {
+  const { tripId, newDestination, proxyTripIds } = params
+
+  if (!tripId || !newDestination) {
+    return fail('缺少必填参数', 400)
+  }
+
+  const trimDest = newDestination.trim()
+  if (!trimDest) {
+    return fail('目的地不能为空', 400)
+  }
+
+  const now = Date.now()
+
+  // 1. 更新自己的出行记录
+  const tripRes = await tripReportsCollection.doc(tripId).get()
+  if (!tripRes.data) {
+    return fail('出行记录不存在', 404)
+  }
+  if (tripRes.data._openid !== openid) {
+    return fail('无权操作此记录', 403)
+  }
+  if (tripRes.data.status !== 'out') {
+    return fail('该出行已返回，无法追加目的地', 400)
+  }
+
+  const newDest = tripRes.data.destination ? tripRes.data.destination + '、' + trimDest : trimDest
+  await tripReportsCollection.doc(tripId).update({
+    data: { destination: newDest, updatedAt: now }
   })
+
+  // 2. 处理代报备记录的追加
+  let proxyUpdatedCount = 0
+  const proxyUpdatedNames = []
+  if (proxyTripIds && proxyTripIds.length > 0) {
+    try {
+      const proxyTrips = await tripReportsCollection
+        .where({
+          _id: _.in(proxyTripIds),
+          createdByOpenid: openid,
+          status: 'out'
+        })
+        .get()
+
+      for (const proxyTrip of (proxyTrips.data || [])) {
+        const proxyNewDest = proxyTrip.destination ? proxyTrip.destination + '、' + trimDest : trimDest
+        await tripReportsCollection.doc(proxyTrip._id).update({
+          data: { destination: proxyNewDest, updatedAt: now }
+        })
+        proxyUpdatedCount++
+        proxyUpdatedNames.push(proxyTrip.userName)
+      }
+    } catch (e) {
+      console.warn('追加代报备目的地失败:', e)
+    }
+  }
+
+  return success({
+    tripId,
+    destination: newDest,
+    proxyUpdatedCount,
+    proxyUpdatedNames
+  }, '目的地追加成功')
 }
 
 /**
@@ -368,6 +452,7 @@ async function handleReturn(openid, params) {
 
   // 处理代报备返回
   let proxyReturnedCount = 0
+  const proxyReturnedNames = []
   if (proxyReturnIds && proxyReturnIds.length > 0) {
     try {
       const proxyTrips = await tripReportsCollection
@@ -410,6 +495,7 @@ async function handleReturn(openid, params) {
         }
 
         proxyReturnedCount++
+        proxyReturnedNames.push(proxyTrip.userName)
       }
     } catch (e) {
       console.warn('处理代报备返回失败:', e)
@@ -425,7 +511,8 @@ async function handleReturn(openid, params) {
     tripId,
     returnAt: now,
     status: newStatus,
-    proxyReturnedCount
+    proxyReturnedCount,
+    proxyReturnedNames
   }, '返回报备成功')
 }
 
@@ -1140,8 +1227,8 @@ async function sendOvertimeSubscribeMessage(openid) {
  */
 async function sendProxyReportNotification(openid, reporterName, destination, now) {
   const title = '代报备通知'
-  const content = `${reporterName}已为您代报备出行，目的地：${destination}`
-  const remark = '返回后请自行报备返回'
+  const content = `${reporterName}已为您代报备出行`
+  const remark = '目的地：${destination}'
   const offsetHours = await getTimezoneOffset()
   const timeStr = formatSubscribeTime(now, offsetHours)
 

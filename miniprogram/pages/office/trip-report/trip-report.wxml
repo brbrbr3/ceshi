@@ -1,47 +1,47 @@
 <view class="trip-page" style="{{fontStyle}}">
   <!-- 渐变色头部（带圆角，类似home页） -->
- <!--  <view class="office-gradient-header office-subpage-header">
+  <!--  <view class="office-gradient-header office-subpage-header">
     <view class="office-subpage-header-content">
       <view class="office-subpage-title">外出报备</view>
       <view class="office-subpage-subtitle">记录您的出行信息</view>
     </view>
   </view> -->
-<!-- 状态卡片（半透明玻璃效果，始终显示） -->
-<view class="trip-status-card {{activeTrip ? 'is-active' : 'is-idle'}}">
-      <view class="trip-status-header">
-        <view class="trip-status-icon">
-          <text wx:if="{{activeTrip}}">🚗</text>
-          <text wx:else>🏠</text>
-        </view>
-        <view class="trip-status-info">
-          <view class="trip-status-label">
-            <text wx:if="{{activeTrip}}">当前外出中：{{activeTrip.destination}}</text>
-            <text wx:else>当前未外出</text>
-          </view>
-          <view class="trip-status-companion">
-            <text wx:if="{{activeTrip && activeTrip.companionsList.length > 0}}">同行人：</text>
-            <text wx:for="{{activeTrip.companionsList}}" wx:key="*this" class="companion-tag">{{item}}</text>
-            <text wx:if="{{!activeTrip}}">点击下方按钮开始报备</text>
-          </view>
-        </view>
+  <!-- 状态卡片（半透明玻璃效果，始终显示） -->
+  <view class="trip-status-card {{activeTrip ? 'is-active' : 'is-idle'}}">
+    <view class="trip-status-header">
+      <view class="trip-status-icon">
+        <text wx:if="{{activeTrip}}">🚗</text>
+        <text wx:else>🏠</text>
       </view>
-      <view wx:if="{{activeTrip}}" class="trip-status-detail">
-        <view class="trip-status-item">
-          <text class="trip-status-item-label">已外出</text>
-          <text class="trip-status-item-value">{{activeTrip.elapsedTimeText}}</text>
+      <view class="trip-status-info">
+        <view class="trip-status-label">
+          <text wx:if="{{activeTrip}}">当前外出中：{{activeTrip.destination}}</text>
+          <text wx:else>当前未外出</text>
         </view>
-        <view class="trip-status-item">
-          <text class="trip-status-item-label">出行方式</text>
-          <text class="trip-status-item-value">{{activeTrip.travelMode}}</text>
-        </view>
-        <view wx:if="{{activeTrip.createdByName}}" class="trip-status-item">
-          <text class="trip-status-item-label">代报备人</text>
-          <text class="trip-status-item-value">{{activeTrip.createdByName}}</text>
+        <view class="trip-status-companion">
+          <text wx:if="{{activeTrip && activeTrip.companionsList.length > 0}}">同行人：</text>
+          <text wx:for="{{activeTrip.companionsList}}" wx:key="*this" class="companion-tag">{{item}}</text>
+          <text wx:if="{{!activeTrip}}">点击下方按钮开始报备</text>
         </view>
       </view>
     </view>
+    <view wx:if="{{activeTrip}}" class="trip-status-detail">
+      <view class="trip-status-item">
+        <text class="trip-status-item-label">已外出</text>
+        <text class="trip-status-item-value">{{activeTrip.elapsedTimeText}}</text>
+      </view>
+      <view class="trip-status-item">
+        <text class="trip-status-item-label">出行方式</text>
+        <text class="trip-status-item-value">{{activeTrip.travelMode}}</text>
+      </view>
+      <view wx:if="{{activeTrip.createdByName}}" class="trip-status-item">
+        <text class="trip-status-item-label">代报备人</text>
+        <text class="trip-status-item-value">{{activeTrip.createdByName}}</text>
+      </view>
+    </view>
+  </view>
   <view class="trip-content">
-  
+
     <!-- 主操作按钮 -->
     <view class="trip-action-section">
       <button wx:if="{{activeTrip}}" class="trip-action-btn trip-action-btn-return" bindtap="handleReturn">
@@ -54,9 +54,9 @@
       <button wx:if="{{activeTrip && canCancelTrip}}" class="trip-action-btn trip-action-btn-cancel" bindtap="handleCancelTrip">
         ❌撤回报备
       </button>
-      <!-- 超过5分钟：置灰不可点 -->
-      <button wx:elif="{{activeTrip && !canCancelTrip}}" class="trip-action-btn trip-action-btn-retro is-disabled" disabled>
-        ❌撤回报备
+      <!-- 超过5分钟：追加目的地 -->
+      <button wx:elif="{{activeTrip && !canCancelTrip}}" class="trip-action-btn trip-action-btn-append" bindtap="handleAppendDest">
+        📍追加目的地
       </button>
       <!-- 未外出：正常补填按钮 -->
       <button wx:else class="trip-action-btn trip-action-btn-retro" bindtap="showRetroForm">
@@ -107,7 +107,7 @@
     </view>
   </view>
 
-  <!-- 底部弹出表单 -->
+  <!-- 外出报备弹窗 -->
   <view class="trip-popup-mask {{showFormPopup ? 'is-visible' : ''}}" bindtap="hideFormPopup" catchtouchmove="stopPropagation">
     <view class="trip-popup-container" catchtap="stopPropagation">
       <view class="trip-popup-header">
@@ -117,65 +117,53 @@
 
       <scroll-view class="trip-popup-body" scroll-y enhanced show-scrollbar="{{false}}">
         <view class="trip-popup-form">
-        <view class="trip-field">
-          <view class="trip-field-label">目的地 <text class="trip-required">*</text></view>
-          <view class="trip-input-wrapper">
-            <input 
-              class="trip-input" 
-              value="{{form.destination}}" 
-              placeholder="请输入目的地" 
-              placeholder-class="trip-input-placeholder"
-              bindinput="handleDestinationInput"
-            />
-          </view>
-          <!-- 历史记录快捷选择 -->
-          <view wx:if="{{showDestinationHistory && destinationHistory.length > 0}}" class="trip-history-list">
-            <view class="trip-history-title">常用目的地</view>
-            <view class="trip-history-items">
-              <view wx:for="{{destinationHistory}}" wx:key="index" class="trip-history-item" bindtap="selectDestinationHistory" data-value="{{item}}">
-                {{item}}
+          <view class="trip-field">
+            <view class="trip-field-label">目的地 <text class="trip-required">*</text></view>
+            <view class="trip-input-wrapper">
+              <input class="trip-input" value="{{form.destination}}" placeholder="请输入目的地" placeholder-class="trip-input-placeholder" bindinput="handleDestinationInput" />
+            </view>
+            <!-- 历史记录快捷选择 -->
+            <view wx:if="{{showDestinationHistory && destinationHistory.length > 0}}" class="trip-history-list">
+              <view class="trip-history-title">常用目的地</view>
+              <view class="trip-history-items">
+                <view wx:for="{{destinationHistory}}" wx:key="index" class="trip-history-item" bindtap="selectDestinationHistory" data-value="{{item}}">
+                  {{item}}
+                </view>
               </view>
             </view>
           </view>
-        </view>
 
-        <view class="trip-field">
-          <view class="trip-field-label">同行人</view>
-          <view class="trip-input-wrapper">
-            <input 
-              class="trip-input" 
-              value="{{form.companions}}" 
-              placeholder="无同行人则无需填写" 
-              placeholder-class="trip-input-placeholder"
-              bindinput="handleCompanionsInput"
-            />
-          </view>
-          <view class="trip-field-hint">多个同行人用空格、顿号或逗号分隔，系统将自动为同行人代报备</view>
-          <!-- 历史记录快捷选择 -->
-          <view wx:if="{{showCompanionsHistory && companionsHistory.length > 0}}" class="trip-history-list">
-            <view class="trip-history-title">常用同行人</view>
-            <view class="trip-history-items">
-              <view wx:for="{{companionsHistory}}" wx:key="index" class="trip-history-item" bindtap="selectCompanionsHistory" data-value="{{item}}">
-                {{item}}
+          <view class="trip-field">
+            <view class="trip-field-label">同行人</view>
+            <view class="trip-input-wrapper">
+              <input class="trip-input" value="{{form.companions}}" placeholder="无同行人则留空" placeholder-class="trip-input-placeholder" bindinput="handleCompanionsInput" />
+            </view>
+            <view class="trip-field-hint">多个同行人可用空格、顿号、逗号或分号分隔，系统将自动为同行人代报备</view>
+            <!-- 历史记录快捷选择 -->
+            <view wx:if="{{showCompanionsHistory && companionsHistory.length > 0}}" class="trip-history-list">
+              <view class="trip-history-title">常用同行人</view>
+              <view class="trip-history-items">
+                <view wx:for="{{companionsHistory}}" wx:key="index" class="trip-history-item" bindtap="selectCompanionsHistory" data-value="{{item}}">
+                  {{item}}
+                </view>
               </view>
             </view>
           </view>
-        </view>
 
-        <view class="trip-field">
-          <view class="trip-field-label">出行方式 <text class="trip-required">*</text></view>
-          <picker mode="selector" range="{{travelModes}}" value="{{travelModeIndex >= 0 ? travelModeIndex : 0}}" bindchange="handleTravelModeChange">
-            <view class="trip-picker-wrapper {{form.travelMode ? '' : 'is-placeholder'}}">
-              <view class="trip-picker-value">{{form.travelMode || '请选择出行方式'}}</view>
-              <view class="trip-picker-arrow">›</view>
-            </view>
-          </picker>
-        </view>
+          <view class="trip-field">
+            <view class="trip-field-label">出行方式 <text class="trip-required">*</text></view>
+            <picker mode="selector" range="{{travelModes}}" value="{{travelModeIndex >= 0 ? travelModeIndex : 0}}" bindchange="handleTravelModeChange">
+              <view class="trip-picker-wrapper {{form.travelMode ? '' : 'is-placeholder'}}">
+                <view class="trip-picker-value">{{form.travelMode || '请选择出行方式'}}</view>
+                <view class="trip-picker-arrow">›</view>
+              </view>
+            </picker>
+          </view>
 
-        <button class="auth-submit-btn trip-submit-btn" loading="{{submitting}}" disabled="{{submitting}}" bindtap="submitDepart">
-          确认报备
-        </button>
-      </view>
+          <button class="auth-submit-btn trip-submit-btn" loading="{{submitting}}" disabled="{{submitting}}" bindtap="submitDepart">
+            确认报备
+          </button>
+        </view>
       </scroll-view>
     </view>
   </view>
@@ -184,103 +172,84 @@
   <view class="trip-popup-mask {{showRetroFormPopup ? 'is-visible' : ''}}" bindtap="hideRetroFormPopup" catchtouchmove="stopPropagation">
     <view class="trip-popup-container" catchtap="stopPropagation">
       <view class="trip-popup-header">
-        <view class="trip-popup-title">补填外出报备</view>
+        <view>
+          <view class="trip-popup-title">补填外出报备</view>
+          <view class="trip-popup-subtitle">补填报备将不进行消息推送</view>
+        </view>
         <view class="trip-popup-close" bindtap="hideRetroFormPopup">×</view>
       </view>
 
       <scroll-view class="trip-popup-body" scroll-y enhanced show-scrollbar="{{false}}">
         <view class="trip-popup-form">
-        <view class="trip-field">
-          <view class="trip-field-label">目的地 <text class="trip-required">*</text></view>
-          <view class="trip-input-wrapper">
-            <input 
-              class="trip-input" 
-              value="{{retroForm.destination}}" 
-              placeholder="请输入目的地" 
-              placeholder-class="trip-input-placeholder"
-              bindinput="handleRetroDestinationInput"
-            />
-          </view>
-          <!-- 历史记录快捷选择 -->
-          <view wx:if="{{showRetroDestinationHistory && destinationHistory.length > 0}}" class="trip-history-list">
-            <view class="trip-history-title">最近使用</view>
-            <view class="trip-history-items">
-              <view wx:for="{{destinationHistory}}" wx:key="index" class="trip-history-item" bindtap="selectRetroDestinationHistory" data-value="{{item}}">
-                {{item}}
+          <view class="trip-field">
+            <view class="trip-field-label">目的地 <text class="trip-required">*</text></view>
+            <view class="trip-input-wrapper">
+              <input class="trip-input" value="{{retroForm.destination}}" placeholder="请输入目的地" placeholder-class="trip-input-placeholder" bindinput="handleRetroDestinationInput" />
+            </view>
+            <!-- 历史记录快捷选择 -->
+            <view wx:if="{{showRetroDestinationHistory && destinationHistory.length > 0}}" class="trip-history-list">
+              <view class="trip-history-title">最近使用</view>
+              <view class="trip-history-items">
+                <view wx:for="{{destinationHistory}}" wx:key="index" class="trip-history-item" bindtap="selectRetroDestinationHistory" data-value="{{item}}">
+                  {{item}}
+                </view>
               </view>
             </view>
           </view>
-        </view>
 
-        <view class="trip-field">
-          <view class="trip-field-label">同行人</view>
-          <view class="trip-input-wrapper">
-            <input 
-              class="trip-input" 
-              value="{{retroForm.companions}}" 
-              placeholder="无同行人则无需填写" 
-              placeholder-class="trip-input-placeholder"
-              bindinput="handleRetroCompanionsInput"
-            />
-          </view>
-          <view class="trip-field-hint">多个同行人用空格、顿号或逗号分隔</view>
-          <!-- 历史记录快捷选择 -->
-          <view wx:if="{{showRetroCompanionsHistory && companionsHistory.length > 0}}" class="trip-history-list">
-            <view class="trip-history-title">最近使用</view>
-            <view class="trip-history-items">
-              <view wx:for="{{companionsHistory}}" wx:key="index" class="trip-history-item" bindtap="selectRetroCompanionsHistory" data-value="{{item}}">
-                {{item}}
+          <view class="trip-field">
+            <view class="trip-field-label">同行人</view>
+            <view class="trip-input-wrapper">
+              <input class="trip-input" value="{{retroForm.companions}}" placeholder="无同行人则留空" placeholder-class="trip-input-placeholder" bindinput="handleRetroCompanionsInput" />
+            </view>
+            <view class="trip-field-hint">多个同行人可用空格、顿号、逗号或分号分隔</view>
+            <!-- 历史记录快捷选择 -->
+            <view wx:if="{{showRetroCompanionsHistory && companionsHistory.length > 0}}" class="trip-history-list">
+              <view class="trip-history-title">最近使用</view>
+              <view class="trip-history-items">
+                <view wx:for="{{companionsHistory}}" wx:key="index" class="trip-history-item" bindtap="selectRetroCompanionsHistory" data-value="{{item}}">
+                  {{item}}
+                </view>
               </view>
             </view>
           </view>
-        </view>
 
-        <view class="trip-field">
-          <view class="trip-field-label">出发时间 <text class="trip-required">*</text></view>
-          <datetime-picker 
-            value="{{retroForm.departAt}}"
-            fields="{{['year', 'month', 'day', 'hour', 'minute']}}"
-            placeholder="请选择出发时间"
-            bind:change="handleRetroDepartAtChange"
-          />
-        </view>
+          <view class="trip-field">
+            <view class="trip-field-label">出发时间 <text class="trip-required">*</text></view>
+            <datetime-picker value="{{retroForm.departAt}}" fields="{{['year', 'month', 'day', 'hour', 'minute']}}" placeholder="请选择出发时间" bind:change="handleRetroDepartAtChange" />
+          </view>
 
-        <view class="trip-field">
-          <view class="trip-field-label">返回时间 <text class="trip-required">*</text></view>
-          <datetime-picker 
-            value="{{retroForm.returnAt}}"
-            fields="{{['year', 'month', 'day', 'hour', 'minute']}}"
-            placeholder="请选择返回时间"
-            bind:change="handleRetroReturnAtChange"
-          />
-        </view>
+          <view class="trip-field">
+            <view class="trip-field-label">返回时间 <text class="trip-required">*</text></view>
+            <datetime-picker value="{{retroForm.returnAt}}" fields="{{['year', 'month', 'day', 'hour', 'minute']}}" placeholder="请选择返回时间" bind:change="handleRetroReturnAtChange" />
+          </view>
 
-        <view class="trip-field">
-          <view class="trip-field-label">出行方式 <text class="trip-required">*</text></view>
-          <picker mode="selector" range="{{travelModes}}" value="{{retroTravelModeIndex >= 0 ? retroTravelModeIndex : 0}}" bindchange="handleRetroTravelModeChange">
-            <view class="trip-picker-wrapper {{retroForm.travelMode ? '' : 'is-placeholder'}}">
-              <view class="trip-picker-value">{{retroForm.travelMode || '请选择出行方式'}}</view>
-              <view class="trip-picker-arrow">›</view>
-            </view>
-          </picker>
-        </view>
+          <view class="trip-field">
+            <view class="trip-field-label">出行方式 <text class="trip-required">*</text></view>
+            <picker mode="selector" range="{{travelModes}}" value="{{retroTravelModeIndex >= 0 ? retroTravelModeIndex : 0}}" bindchange="handleRetroTravelModeChange">
+              <view class="trip-picker-wrapper {{retroForm.travelMode ? '' : 'is-placeholder'}}">
+                <view class="trip-picker-value">{{retroForm.travelMode || '请选择出行方式'}}</view>
+                <view class="trip-picker-arrow">›</view>
+              </view>
+            </picker>
+          </view>
 
-        <button class="auth-submit-btn trip-submit-btn" loading="{{submitting}}" disabled="{{submitting}}" bindtap="submitRetroDepart">
-          确认补填
-        </button>
-      </view>
+          <button class="auth-submit-btn trip-submit-btn" loading="{{submitting}}" disabled="{{submitting}}" bindtap="submitRetroDepart">
+            确认补填
+          </button>
+        </view>
       </scroll-view>
     </view>
   </view>
 
   <!-- 代报备返回弹窗 -->
-  <view wx:if="{{showProxyReturnModal}}" class="trip-popup-mask is-visible" bindtap="hideProxyReturnModal" catchtouchmove="stopPropagation">
-    <view class="trip-popup-container" catchtap="stopPropagation" style="height: auto; max-height: 70vh;">
+  <view class="trip-popup-mask {{showProxyReturnModal ? 'is-visible' : ''}}" bindtap="hideProxyReturnModal" catchtouchmove="stopPropagation">
+    <view class="trip-popup-container" catchtap="stopPropagation" style="height: 75vh;">
       <view class="trip-popup-header">
         <view class="trip-popup-title">代报备返回</view>
         <view class="trip-popup-close" bindtap="hideProxyReturnModal">×</view>
       </view>
-      <scroll-view class="trip-popup-body" scroll-y enhanced show-scrollbar="{{false}}" style="max-height: 55vh;">
+      <scroll-view class="trip-popup-body" scroll-y enhanced show-scrollbar="{{false}}">
         <view class="proxy-return-tip">检测到您本次出行曾为以下人员代报备外出，是否一并报备返回？</view>
         <view class="proxy-return-list">
           <view wx:for="{{proxyTrips}}" wx:key="_id" class="proxy-return-item {{item.checked ? 'is-selected' : ''}}" data-id="{{item._id}}" bindtap="handleToggleProxySelect">
@@ -297,6 +266,44 @@
       <view class="proxy-return-footer">
         <button class="proxy-return-btn proxy-return-btn-skip" bindtap="handleProxyReturnSkip">仅自己返回</button>
         <button class="proxy-return-btn proxy-return-btn-confirm" bindtap="handleConfirmProxyReturn">一并返回（{{proxyReturnSelected.length}}人）</button>
+      </view>
+    </view>
+  </view>
+
+  <!-- 追加目的地弹窗 -->
+  <view class="trip-popup-mask {{showAppendDestModal ? 'is-visible' : ''}}" bindtap="hideAppendDestModal" catchtouchmove="stopPropagation">
+    <view class="trip-popup-container" catchtap="stopPropagation" style="height: 75vh;">
+      <view class="trip-popup-header">
+        <view class="trip-popup-title">追加目的地</view>
+        <view class="trip-popup-close" bindtap="hideAppendDestModal">×</view>
+      </view>
+      <scroll-view class="trip-popup-body" scroll-y enhanced show-scrollbar="{{false}}">
+        <view class="append-dest-content">
+            <view class="trip-field-label">您本次出行的目的地</view>
+            <view class="append-dest-tip">{{activeTrip.destination}}</view>
+          <view class="trip-field" style="margin-bottom: 16rpx;">
+            <view class="trip-field-label">新的目的地 <text class="trip-required">*</text></view>
+            <view class="trip-input-wrapper">
+              <input class="trip-input" value="{{appendDestForm.newDestination}}" placeholder="请输入要追加的目的地" placeholder-class="trip-input-placeholder" bindinput="handleAppendDestInput" />
+            </view>
+          </view>
+          <view wx:if="{{appendDestProxyTrips.length > 0}}" class="append-dest-proxy">
+            <view class="trip-field-label">为以下代报备人员同步追加：</view>
+            <view wx:for="{{appendDestProxyTrips}}" wx:key="_id" class="append-dest-proxy-item {{item.checked ? 'is-selected' : ''}}" data-id="{{item._id}}" bindtap="handleToggleAppendProxySelect">
+              <view class="append-dest-proxy-checkbox">
+                <text wx:if="{{item.checked}}">✓</text>
+              </view>
+              <view class="append-dest-proxy-info">
+                <view class="append-dest-proxy-name">{{item.userName}}</view>
+                <view class="append-dest-proxy-dest">目的地：{{item.destination}}</view>
+              </view>
+            </view>
+          </view>
+        </view>
+      </scroll-view>
+      <view class="append-dest-footer">
+        <button class="append-dest-btn append-dest-btn-skip" bindtap="handleAppendDestSkip">仅追加自己</button>
+        <button class="append-dest-btn append-dest-btn-confirm" bindtap="handleAppendDestConfirm">一并追加（{{appendDestSelected.length}}人）</button>
       </view>
     </view>
   </view>

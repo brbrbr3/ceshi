@@ -76,6 +76,11 @@ Page({
     showProxyReturnModal: false,
     proxyTrips: [],      // [ { _id, userName, departAt, destination } ]
     proxyReturnSelected: [], // 已勾选的代报备记录 _id
+    // 追加目的地弹窗
+    showAppendDestModal: false,
+    appendDestForm: { newDestination: '' },
+    appendDestProxyTrips: [],    // [ { _id, userName, departAt, destination, checked } ]
+    appendDestSelected: [],      // 已勾选的记录 _id
     // 撤回报备
     canCancelTrip: false,
     cancelTimer: null
@@ -527,8 +532,8 @@ Page({
    */
   _appendToField(fieldKey, newValue, separator = ' ') {
     const current = (this.data.form[fieldKey] || '').trim()
-    // 同时支持顿号和空格分隔，兼容旧数据和新数据
-    const parts = current ? current.split(/[、\s]+/).filter(Boolean) : []
+    // 统一分隔符：顿号、逗号、分号、空格
+    const parts = current ? current.split(/[\s、，,;；]+/).filter(Boolean) : []
     if (parts.includes(newValue)) return // 已存在，跳过
     const next = current ? current + separator + newValue : newValue
     this.setData({ ['form.' + fieldKey]: next })
@@ -718,19 +723,147 @@ Page({
     const tripId = this.data.activeTrip._id
     const proxyIds = this.data.proxyReturnSelected
     this.setData({ showProxyReturnModal: false })
-    // 直接提交，跳过二次确认
+    wx.showLoading({ title: '请稍候...', mask: true })
     this.confirmReturn(tripId, proxyIds)
   },
 
   /** 代报备返回弹窗：跳过代报备，仅自己返回 */
   handleProxyReturnSkip() {
     this.setData({ showProxyReturnModal: false })
-    this._showReturnConfirmModal(this.data.activeTrip._id)
+    wx.showLoading({ title: '请稍候...', mask: true })
+    wx.cloud.callFunction({
+      name: 'tripReport',
+      data: { action: 'return', params: { tripId: this.data.activeTrip._id } }
+    }).then(res => {
+      wx.hideLoading()
+      if (res.result.code === 0) {
+        const data = res.result.data
+        const status = data.status
+        const message = status === 'overtime' ? '返回报备成功（超时）' : '返回报备成功'
+        wx.showModal({ title: '报备成功', content: message, showCancel: false, confirmText: '好的' })
+        this.loadActiveTrip()
+        this.refreshList()
+      } else {
+        utils.showToast({ title: res.result.message || '报备失败', icon: 'none' })
+      }
+    }).catch(() => {
+      wx.hideLoading()
+      utils.showToast({ title: '报备失败，请重试', icon: 'none' })
+    })
   },
 
   /** 关闭代报备返回弹窗 */
   hideProxyReturnModal() {
     this.setData({ showProxyReturnModal: false })
+  },
+
+  // ========== 追加目的地 ==========
+
+  /** 打开追加目的地弹窗（先查询代报备记录） */
+  handleAppendDest() {
+    const activeTrip = this.data.activeTrip
+    if (!activeTrip) return
+
+    wx.showLoading({ title: '加载中...', mask: true })
+    wx.cloud.callFunction({
+      name: 'tripReport',
+      data: { action: 'getActiveTripWithProxies' }
+    }).then(res => {
+      wx.hideLoading()
+      if (res.result.code === 0) {
+        const data = res.result.data
+        const proxyTrips = (data.proxyTrips || []).map(t => ({ ...t, checked: true }))
+        this.setData({
+          showAppendDestModal: true,
+          appendDestForm: { newDestination: '' },
+          appendDestProxyTrips: proxyTrips,
+          appendDestSelected: proxyTrips.map(t => t._id)
+        })
+      } else {
+        utils.showToast({ title: '查询失败', icon: 'none' })
+      }
+    }).catch(() => {
+      wx.hideLoading()
+      utils.showToast({ title: '查询失败', icon: 'none' })
+    })
+  },
+
+  /** 关闭追加目的地弹窗 */
+  hideAppendDestModal() {
+    this.setData({ showAppendDestModal: false })
+  },
+
+  /** 输入新目的地 */
+  handleAppendDestInput(e) {
+    this.setData({ 'appendDestForm.newDestination': e.detail.value })
+  },
+
+  /** 切换代报备人员勾选 */
+  handleToggleAppendProxySelect(e) {
+    const id = e.currentTarget.dataset.id
+    const proxyTrips = this.data.appendDestProxyTrips.map(t => {
+      if (t._id === id) return { ...t, checked: !t.checked }
+      return t
+    })
+    const appendDestSelected = proxyTrips.filter(t => t.checked).map(t => t._id)
+    this.setData({ appendDestProxyTrips: proxyTrips, appendDestSelected })
+  },
+
+  /** 仅自己追加 */
+  handleAppendDestSkip() {
+    this._submitAppendDest([])
+  },
+
+  /** 一并追加 */
+  handleAppendDestConfirm() {
+    this._submitAppendDest(this.data.appendDestSelected)
+  },
+
+  /** 提交追加目的地 */
+  _submitAppendDest(proxyTripIds) {
+    const newDestination = (this.data.appendDestForm.newDestination || '').trim()
+    if (!newDestination) {
+      utils.showToast({ title: '请输入追加的目的地', icon: 'none' })
+      return
+    }
+
+    if (this.data.submitting) return
+
+    this.setData({ submitting: true, showAppendDestModal: false })
+    wx.showLoading({ title: '请稍候...', mask: true })
+
+    wx.cloud.callFunction({
+      name: 'tripReport',
+      data: {
+        action: 'appendDestination',
+        params: {
+          tripId: this.data.activeTrip._id,
+          newDestination,
+          proxyTripIds: proxyTripIds.length > 0 ? proxyTripIds : undefined
+        }
+      }
+    }).then(res => {
+      wx.hideLoading()
+      if (res.result.code === 0) {
+        const data = res.result.data
+        const proxyNames = data.proxyUpdatedNames || []
+        let message = '目的地追加成功'
+        if (proxyNames.length > 0) {
+          message += `，并已为 ${proxyNames.join('、')} 同步追加新的目的地`
+        }
+        wx.showModal({ title: '追加目的地成功', content: message, showCancel: false, confirmText: '好的' })
+        this.loadActiveTrip()
+        this.refreshList()
+      } else {
+        utils.showToast({ title: res.result.message || '追加失败', icon: 'none' })
+      }
+    }).catch(error => {
+      wx.hideLoading()
+      console.error('追加目的地失败:', error)
+      utils.showToast({ title: '追加失败，请重试', icon: 'none' })
+    }).finally(() => {
+      this.setData({ submitting: false })
+    })
   },
 
   /**
@@ -741,9 +874,8 @@ Page({
   confirmReturn(tripId, proxyReturnIds) {
     if (this.data.submitting) return
 
-    this.setData({
-      submitting: true
-    })
+    this.setData({ submitting: true })
+    wx.showLoading({ title: '请稍候...', mask: true })
 
     wx.cloud.callFunction({
       name: 'tripReport',
@@ -755,32 +887,27 @@ Page({
         }
       }
     }).then(res => {
+      wx.hideLoading()
       if (res.result.code === 0) {
         const data = res.result.data
         const status = data.status
-        const proxyCount = data.proxyReturnedCount || 0
+        const proxyNames = data.proxyReturnedNames || []
 
         let message = status === 'overtime' ? '返回报备成功（超时）' : '返回报备成功'
-        if (proxyCount > 0) {
-          message += `，已为 ${proxyCount} 人代报备返回`
+        if (proxyNames.length > 0) {
+          message += `，并已为 ${proxyNames.join('、')} 代报备返回`
         }
 
-        utils.showToast({ title: message, icon: 'success' })
-        // 刷新数据
+        wx.showModal({ title: '报备成功', content: message, showCancel: false, confirmText: '好的' })
         this.loadActiveTrip()
         this.refreshList()
       } else {
-        utils.showToast({
-          title: res.result.message || '报备失败',
-          icon: 'none'
-        })
+        utils.showToast({ title: res.result.message || '报备失败', icon: 'none' })
       }
     }).catch(error => {
+      wx.hideLoading()
       console.error('返回报备失败:', error)
-      utils.showToast({
-        title: '报备失败，请重试',
-        icon: 'none'
-      })
+      utils.showToast({ title: '报备失败，请重试', icon: 'none' })
     }).finally(() => {
       this.setData({
         submitting: false
@@ -847,8 +974,8 @@ Page({
    */
   _appendToRetroField(fieldKey, newValue, separator = ' ') {
     const current = (this.data.retroForm[fieldKey] || '').trim()
-    // 同时支持顿号和空格分隔，兼容旧数据和新数据
-    const parts = current ? current.split(/[、\s]+/).filter(Boolean) : []
+    // 统一分隔符：顿号、逗号、分号、空格
+    const parts = current ? current.split(/[\s、，,;；]+/).filter(Boolean) : []
     if (parts.includes(newValue)) return // 已存在，跳过
     const next = current ? current + separator + newValue : newValue
     this.setData({ ['retroForm.' + fieldKey]: next })

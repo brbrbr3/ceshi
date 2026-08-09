@@ -227,6 +227,7 @@ page {
   align-items: center;
   justify-content: center;
   font-size: var(--fs-70);
+  padding-right: 8rpx;
 }
 
 .home-calendar-title {
