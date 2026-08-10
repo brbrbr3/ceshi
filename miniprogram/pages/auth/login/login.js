@@ -75,6 +75,7 @@ Page({
   data: {
     loading: false,
     statusLoading: true,
+    constantsReady: false,   // 常量是否加载完成，完成前禁止点击登录
     statusCard: null,
     showRegisterLink: true,
     isAdmin: false,
@@ -127,8 +128,13 @@ Page({
     })
     // 强制刷新注册状态（走网络），不再清空身份/资料缓存
     this.refreshStatus(true)
-    app.loadConstants().catch((err) => {
+    // 等待常量加载完成后才允许点击登录，避免其他页面出现缓存缺失
+    this.setData({ constantsReady: false })
+    app.loadConstants().then(() => {
+      this.setData({ constantsReady: true })
+    }).catch((err) => {
       console.warn('预加载常量失败:', err)
+      this.setData({ constantsReady: true }) // 失败也放行，避免永久阻塞
     })
   },
 
@@ -241,6 +247,15 @@ Page({
     if (this.data.statusLoading) {
       utils.showToast({
         title: '正在获取用户状态，请稍候',
+        icon: 'none'
+      })
+      return
+    }
+
+    // 常量未加载完成，禁止操作（防止缓存缺失导致后续页面异常）
+    if (!this.data.constantsReady) {
+      utils.showToast({
+        title: '正在初始化，请稍候',
         icon: 'none'
       })
       return

@@ -207,26 +207,18 @@ Page({
       })
       
       // 用户状态映射
-      const userStatus = user.userStatus || 'offline'
+      const userStatus = user.userStatus
       const STATUS_MAP = {
         online: {
           label: '在线',
           cls: 'status-online'
         },
-        busy: {
-          label: '忙碌',
-          cls: 'status-busy'
-        },
         out: {
           label: '外出中',
           cls: 'status-out'
-        },
-        offline: {
-          label: '离线',
-          cls: 'status-offline'
         }
       }
-      const statusInfo = STATUS_MAP[userStatus] || STATUS_MAP.offline
+      const statusInfo = STATUS_MAP[userStatus] || STATUS_MAP.online
       const systemItems = [{
         icon: 'Aa',
         label: '字体大小'

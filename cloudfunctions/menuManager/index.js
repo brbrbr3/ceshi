@@ -99,16 +99,17 @@ exports.main = async (event) => {
 
   const user = userResult.data[0]
   const isAdmin = user.isAdmin === true
-  const isWorker = user.role === '工勤'
 
   try {
     switch (action) {
       case 'addMenu':
-        // 工勤和管理员可以添加菜单
-        if (!isWorker && !isAdmin) {
+        // 管理员、厨师、办公室内聘可以添加菜单（与前端 menus.js checkPermission 保持一致）
+        const isChef = Array.isArray(user.position) && user.position.includes('厨师')
+        const isOfficeServant = Array.isArray(user.position) && user.position.includes('办公室内聘')
+        if (!isAdmin && !isChef && !isOfficeServant) {
           return {
             code: 403,
-            message: '只有工勤和管理员可以添加菜单'
+            message: '只有管理员、厨师、办公室内聘可以添加菜单'
           }
         }
 

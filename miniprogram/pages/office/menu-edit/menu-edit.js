@@ -158,6 +158,14 @@ Page({
         }
       })
       .then((res) => {
+        const result = res.result || {}
+        if (result.code !== 0) {
+          utils.showToast({
+            title: result.message || '提交失败',
+            icon: 'none'
+          })
+          return
+        }
         // 只在新增菜单时广播通知
         if (!this.data.isEdit) {
           // 云函数返回结构：{ code: 0, message: '添加成功', data: { _id: xxx, id: xxx } }

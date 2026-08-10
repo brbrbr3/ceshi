@@ -93,8 +93,8 @@ Page({
       loadMorePageSize: 10
     })
 
-    // 加载常量配置
-    this.loadConstants()
+    // 加载常量配置（等待完成，确保出行方式就绪）
+    await this.loadConstants()
 
     // 加载历史记录
     this.loadHistory()
@@ -146,10 +146,22 @@ Page({
   },
 
   /**
-   * 加载常量配置
+   * 加载常量配置（缓存优先，降级到异步网络请求）
    */
-  loadConstants() {
-    const travelModes = app.getConstantSync('TRAVEL_MODES')
+  async loadConstants() {
+    let travelModes = app.getConstantSync('TRAVEL_MODES')
+
+    // 缓存未命中时，异步从数据库加载
+    if (!travelModes || travelModes.length === 0) {
+      try {
+        const allConstants = await app.getAllConstants()
+        travelModes = (allConstants && allConstants.TRAVEL_MODES) || []
+      } catch (error) {
+        console.error('加载出行方式常量失败:', error)
+        travelModes = []
+      }
+    }
+
     this.setData({
       travelModes: travelModes || []
     })
