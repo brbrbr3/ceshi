@@ -4,6 +4,9 @@ const utils = require('../../../common/utils.js')
 // 使用统一的时间格式化函数
 const formatTime = (timestamp) => utils.formatRelativeTime(timestamp)
 
+// 兴趣班备案月度提醒
+const INTEREST_CLASS_REMINDER_KEY = 'interest_class_reminder_month'
+
 Page({
   data: {
     displayName: '访客',
@@ -162,6 +165,7 @@ Page({
     })
     //this.loadBgImage()
     this.syncUserProfile() //同步用户资料
+    this.checkInterestClassReminder() // 每月兴趣班备案更新提示
     this.syncNotifications() //同步消息推送
     // 刷新微信侧订阅状态到本地缓存（供 handleQuickAction tap 时同步读取）
     app.syncSubStatus()
@@ -220,6 +224,62 @@ Page({
       .catch(err => {
         console.error('加载签字失败', err)
       })
+  },
+
+  /**
+   * 每月首次进入首页时，弹窗提示更新兴趣班备案
+   * - 首次（无缓存记录）：提示是否已备案，按钮"无此情况"/"去备案"
+   * - 非首次但跨月：提示是否有变化，按钮"无变化"/"有变化，去更新备案"
+   * - 本月已提示过：跳过
+   */
+  checkInterestClassReminder() {
+    // 审核员不弹
+    if (this.data.isReviewer || app.globalData.isReviewer) return
+
+    const now = new Date()
+    const currentMonth = `${now.getFullYear()}-${String(now.getMonth() + 1).padStart(2, '0')}`
+
+    try {
+      const lastReminderMonth = wx.getStorageSync(INTEREST_CLASS_REMINDER_KEY)
+      // 本月已提示过，跳过
+      if (lastReminderMonth === currentMonth) return
+
+      // 写入当前月份，防止重复弹窗
+      wx.setStorageSync(INTEREST_CLASS_REMINDER_KEY, currentMonth)
+
+      // 首次提示（无缓存记录）vs 每月例行提示
+      if (!lastReminderMonth) {
+        wx.showModal({
+          title: '兴趣班备案提示',
+          content: '您是否已在小程序中备案本人及家属的兴趣班情况？',
+          confirmText: '去备案',
+          cancelText: '无此情况',
+          success: (res) => {
+            if (res.confirm) {
+              wx.navigateTo({
+                url: '/pages/office/interest-class/interest-class'
+              })
+            }
+          }
+        })
+      } else {
+        wx.showModal({
+          title: '更新兴趣班备案提示',
+          content: '您及您的家属本月兴趣班情况是否有变化？如有变化，请及时更新备案。',
+          confirmText: '有变化，去更新备案',
+          cancelText: '无变化',
+          success: (res) => {
+            if (res.confirm) {
+              wx.navigateTo({
+                url: '/pages/office/interest-class/interest-class'
+              })
+            }
+          }
+        })
+      }
+    } catch (e) {
+      // Storage 异常静默跳过
+    }
   },
 
   /**

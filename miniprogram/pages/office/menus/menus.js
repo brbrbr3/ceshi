@@ -20,11 +20,6 @@ Page({
   },
 
   onLoad() {
-    // 初始化分页配置
-    this.initPagination({
-      initialPageSize: 10,
-      loadMorePageSize: 10
-    })
   },
 
   onShow() {

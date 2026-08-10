@@ -42,10 +42,6 @@ Page({
   },
 
   async onLoad() {
-    this.initPagination({
-      initialPageSize: 15,
-      loadMorePageSize: 10
-    })
     await this.initUserInfo()
   },
 
@@ -69,35 +65,19 @@ Page({
       }
       const user = result.user
       const isAdmin = user.isAdmin === true
+      const isLeader = user.role === '馆员' && user.department === '无'
+      const isBanHead = user.role === '馆员' && user.department === '办' && user.isDepartmentHead === true
       const isDeptHead = user.isDepartmentHead === true
-      const isLeader = user.role === '馆领导'
 
-      let scopeText = ''
-      let scopeType = 'self'
-      let showStatusFilter = false
+      // 状态筛选栏：管理员、领导、办部门负责人、普通用户可见（仅部门负责人不可见）
+      const showStatusFilter = isAdmin || isBanHead || (isLeader && !isDeptHead) || (!isAdmin && !isLeader && !isBanHead && !isDeptHead)
 
-      if (isAdmin) {
-        scopeText = '查看范围：全体人员全部备案（含已结束）'
-        scopeType = 'all'
-        showStatusFilter = true
-      } else if (isDeptHead) {
-        scopeText = '查看范围：本部门生效中的备案'
-        scopeType = 'department'
-      } else if (isLeader && !isDeptHead) { // 馆领导且非部门负责人
-        scopeText = '查看范围：全体人员生效中的备案'
-        scopeType = 'all'
-      } else {
-        scopeText = '查看范围：我的全部备案（含已结束）'
-        scopeType = 'self'
-        showStatusFilter = true
-      }
-
+      // scopeType 和 scopeText 由云函数返回后设置
       this.setData({
         currentUser: user,
         isReviewer: !!user.isReviewer,
-        scopeText,
-        scopeType,
-        showStatusFilter
+        showStatusFilter,
+        scopeType: 'self'
       })
 
       // 初始化完成后加载列表
@@ -112,7 +92,7 @@ Page({
    */
   async loadData(params) {
     const { page, pageSize } = params
-    const { keyword, statusFilter, scopeType } = this.data
+    const { keyword, statusFilter } = this.data
 
     return new Promise((resolve, reject) => {
       wx.cloud.callFunction({
@@ -134,6 +114,14 @@ Page({
         if (res.result.code === 0) {
           const data = res.result.data
           const list = (data.list || []).map(item => this.formatRecord(item))
+
+          // 用云函数返回的 scopeType 更新范围文字
+          const scopeType = data.scopeType || 'self'
+          this.setData({
+            scopeType,
+            scopeText: this.scopeTypeToText(scopeType)
+          })
+
           resolve({
             data: list,
             hasMore: data.hasMore
@@ -166,6 +154,30 @@ Page({
       createdAtText: utils.formatRelativeTime(item.createdAt),
       createdDateText: utils.formatDate(item.createdAt),
       endedAtText: item.endedAt ? utils.formatDateTime(item.endedAt) : ''
+    }
+  },
+
+  /**
+   * 将云函数返回的 scopeType 映射为查看范围文案
+   * （仿 trip-board 的 scopeTypeToText 模式）
+   */
+  scopeTypeToText(scopeType) {
+    const user = this.data.currentUser
+    if (!user) return ''
+    const isAdmin = user.isAdmin === true
+    const isBanHead = user.role === '馆员' && user.department === '办' && user.isDepartmentHead === true
+
+    switch (scopeType) {
+      case 'all':
+        if (isAdmin || isBanHead) {
+          return '查看范围：全体人员全部备案（含已结束）'
+        }
+        return '查看范围：全体人员生效中的备案'
+      case 'department':
+        return '查看范围：本部门生效中的备案'
+      case 'self':
+      default:
+        return '查看范围：我的全部备案（含已结束）'
     }
   },
 

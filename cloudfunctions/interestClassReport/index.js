@@ -87,19 +87,30 @@ async function handleList(openid, params) {
 
   const isAdmin = currentUser.isAdmin === true
   const isDeptHead = currentUser.isDepartmentHead === true
-  const isLeader = currentUser.role === '馆领导'
+  const isLeader = currentUser.role === '馆员' && currentUser.department === '无'
+  const isBanHead = currentUser.role === '馆员' && currentUser.department === '办' && currentUser.isDepartmentHead === true
 
-  if (isAdmin) {
-    // 管理员 → 全体 + 支持状态筛选（含已结束）
+  // 计算 scopeType（与 trip-board 模式一致，云函数统一计算）
+  let scopeType
+  if (isAdmin || isBanHead || (isLeader && !isDeptHead)) {
+    scopeType = 'all'
+  } else if (isDeptHead) {
+    scopeType = 'department'
+  } else {
+    scopeType = 'self'
+  }
+
+  if (isAdmin || isBanHead) {
+    // 管理员/办部门负责人 → 全体 + 支持状态筛选（含已结束）
     if (status && status !== 'all') {
       conditions.status = status
     }
+  } else if (isLeader && !isDeptHead) {
+    // 领导（馆员且部门为空，非部门负责人）→ 全体 + 仅生效中
+    conditions.status = 'active'
   } else if (isDeptHead) {
     // 部门负责人 → 本部门 + 仅生效中
     conditions.creatorDepartment = currentUser.department || ''
-    conditions.status = 'active'
-  } else if (isLeader) {
-    // 馆领导（非部门负责人）→ 全体 + 仅生效中
     conditions.status = 'active'
   } else {
     // 其他 → 仅自己 + 全部（含已结束）
@@ -114,14 +125,14 @@ async function handleList(openid, params) {
   if (keyword && keyword.trim()) {
     const reg = db.RegExp({ regexp: keyword.trim(), options: 'i' })
     const baseCond = {}
-    if (isAdmin) {
+    if (isAdmin || isBanHead) {
       if (status && status !== 'all') {
         baseCond.status = status
       }
+    } else if (isLeader && !isDeptHead) {
+      baseCond.status = 'active'
     } else if (isDeptHead) {
       baseCond.creatorDepartment = currentUser.department || ''
-      baseCond.status = 'active'
-    } else if (isLeader) {
       baseCond.status = 'active'
     } else {
       baseCond._openid = openid
@@ -147,7 +158,8 @@ async function handleList(openid, params) {
       total,
       page,
       pageSize,
-      hasMore: skip + (listRes.data || []).length < total
+      hasMore: skip + (listRes.data || []).length < total,
+      scopeType
     })
   }
 
@@ -166,7 +178,8 @@ async function handleList(openid, params) {
     total,
     page,
     pageSize,
-    hasMore: skip + (listRes.data || []).length < total
+    hasMore: skip + (listRes.data || []).length < total,
+    scopeType
   })
 }
 

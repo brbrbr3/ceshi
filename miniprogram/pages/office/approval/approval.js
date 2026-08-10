@@ -288,12 +288,6 @@ Page({
       app.globalData.targetApprovalTab = options.tab
     }
     
-    // 初始化每个 tab 的分页配置
-    this.initPagination({
-      initialPageSize: 10,
-      loadMorePageSize: 10
-    })
-    
     // 加载常量
     await this.loadConstants()
     
@@ -458,7 +452,7 @@ Page({
     })
 
     const currentPage = loadMore ? (page || 1) : 1
-    const pageSize = 10
+    const pageSize = 20
 
     return app.callOfficeAuth('getApprovalData', {
       page: currentPage,

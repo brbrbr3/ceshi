@@ -87,12 +87,6 @@ Page({
   },
 
   async onLoad(options) {
-    // 初始化分页配置
-    this.initPagination({
-      initialPageSize: 10,
-      loadMorePageSize: 10
-    })
-
     // 加载常量配置（等待完成，确保出行方式就绪）
     await this.loadConstants()
 

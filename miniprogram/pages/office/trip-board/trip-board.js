@@ -465,9 +465,10 @@ Page({
     const isAdmin = user.isAdmin
     const isDeptHead = user.isDepartmentHead
     const isAreaManager = !!user.isAreaManager
+    const isBanHead = user.role === '馆员' && user.department === '办' && user.isDepartmentHead === true
 
-    // 全体范围：管理员 或 馆员且部门为空
-    if (isAdmin || (isLeader && !isDeptHead)) {
+    // 全体范围：管理员 或 馆员且部门为空 或 馆员部门为办且为部门负责人
+    if (isAdmin || (isLeader && !isDeptHead) || isBanHead) {
       return '全体人员'
     }
 

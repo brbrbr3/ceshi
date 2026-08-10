@@ -10,9 +10,10 @@
  * 
  * 使用方法：
  * 1. 在页面的 behaviors 中引入此 behavior
- * 2. 在 data 中定义分页相关字段
- * 3. 实现 loadData 方法来加载数据
- * 4. 在 WXML 中使用提供的模板
+ * 2. 实现 loadData 方法来加载数据
+ * 3. 在 WXML 中使用提供的模板
+ * 
+ * pageSize 统一为 20，可通过 initPagination({ pageSize }) 覆盖
  */
 
 module.exports = Behavior({
@@ -25,32 +26,20 @@ module.exports = Behavior({
     hasMore: true,
     loading: false,
     list: [],
-
-    // 分页配置
-    initialPageSize: 20,  // 初始加载数量
-    loadMorePageSize: 10,  // 滚动加载更多时的数量
   },
 
   methods: {
     /**
      * 初始化分页
      * @param {Object} options - 配置选项
-     * @param {number} options.initialPageSize - 初始加载数量
-     * @param {number} options.loadMorePageSize - 加载更多时的数量
-     * @param {number} options.defaultPageSize - 默认每页数量
+     * @param {number} options.pageSize - 每页数量，默认 20
      */
     initPagination(options = {}) {
-      const {
-        initialPageSize = 20,
-        loadMorePageSize = 10,
-        defaultPageSize = 20
-      } = options
+      const { pageSize = 20 } = options
 
       this.setData({
         page: 1,
-        pageSize: initialPageSize,
-        initialPageSize,
-        loadMorePageSize,
+        pageSize,
         hasMore: true,
         loading: false,
         list: []
@@ -63,7 +52,6 @@ module.exports = Behavior({
     resetPagination() {
       this.setData({
         page: 1,
-        pageSize: this.data.initialPageSize || 20,
         hasMore: true,
         loading: false
       })
@@ -98,9 +86,7 @@ module.exports = Behavior({
         this.setData({ loading: true })
 
         const page = loadMore ? this.data.page : 1
-        const pageSize = loadMore 
-          ? (this.data.loadMorePageSize || 10)
-          : (this.data.initialPageSize || 20)
+        const pageSize = this.data.pageSize
 
         // 调用子类实现的 loadData 方法
         const result = await this.loadData({ page, pageSize })

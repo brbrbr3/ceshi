@@ -14,11 +14,6 @@ Page({
   },
 
   onLoad() {
-    this.initPagination({
-      initialPageSize: 10,
-      loadMorePageSize: 10
-    })
-
     // 显示加载中toast
     wx.showLoading({
       title: '加载中',

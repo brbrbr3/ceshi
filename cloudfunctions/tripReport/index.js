@@ -1340,6 +1340,7 @@ async function getBoardData(openid, params) {
   const isAdmin = currentUser.isAdmin
   const isDeptHead = currentUser.isDepartmentHead
   const isAreaManager = !!currentUser.isAreaManager
+  const isBanHead = currentUser.role === '馆员' && currentUser.department === '办' && currentUser.isDepartmentHead === true
 
   // 权限校验已移除，所有用户均可访问（普通用户仅看自己）
   
@@ -1347,8 +1348,8 @@ async function getBoardData(openid, params) {
   let userQuery = { status: 'approved' }
   let scopeType = 'all'
 
-  // 全体范围：管理员 或 馆员且部门为空（原馆领导，非部门负责人）
-  if (isAdmin || (isLeader && !isDeptHead)) {
+  // 全体范围：管理员 或 馆员且部门为空（领导，非部门负责人）或 馆员部门为办且为部门负责人
+  if (isAdmin || (isLeader && !isDeptHead) || isBanHead) {
     scopeType = 'all'
   } else {
     const orConditions = []
