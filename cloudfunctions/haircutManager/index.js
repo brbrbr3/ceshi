@@ -40,7 +40,7 @@ const CANCEL_REASONS = [
 ]
 
 // 可查看理发预约的岗位
-const HAIRCUT_VIEWER_POSITIONS = ['招待员', '会计主管', '会计', '内聘']
+const HAIRCUT_VIEWER_POSITIONS = ['招待员', '会计主管', '会计', '办公室内聘']
 
 // 统一返回格式
 function success(data, message) {
@@ -384,7 +384,13 @@ async function getAppointments(openid, params = {}) {
   }
 
   const user = userResult.data[0]
-  if (!Array.isArray(user.position) || !user.position.some(p => HAIRCUT_VIEWER_POSITIONS.includes(p))) {
+  const isAdmin = user.isAdmin === true
+  const isLeader = user.role === '馆员' && user.department === '无'
+  const isBanHead = user.role === '馆员' && user.department === '办' && user.isDepartmentHead === true
+  const isAllowedPositions = Array.isArray(user.position) && user.position.some(p => HAIRCUT_VIEWER_POSITIONS.includes(p))
+  // 管理员、领导、办负责人、其他允许的岗位人员，可以查看理发统计
+  const canView = isAdmin || isLeader || isBanHead || isAllowedPositions
+  if (!canView) {
     throw new Error('您无权查看理发预约列表')
   }
 

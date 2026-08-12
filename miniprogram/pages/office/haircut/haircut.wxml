@@ -1,11 +1,11 @@
 <view class="haircut-page" style="{{fontStyle}}">
   <!-- 渐变色头部 -->
-  <view class="office-gradient-header haircut-header">
+  <!-- <view class="office-gradient-header haircut-header">
     <view class="haircut-header-content">
       <view class="haircut-title">理发预约</view>
-      <!-- <view class="haircut-subtitle">服务时间：每周一三五下午 14:30~18:00</view> -->
+      <view class="haircut-subtitle">服务时间：每周一三五下午 14:30~18:00</view> 
     </view>
-  </view>
+  </view> -->
 
   <!-- Tab栏 -->
   <view class="haircut-tabs">
@@ -27,9 +27,9 @@
       <!-- 提示信息 -->
       <view class="haircut-info-card">
         <view class="haircut-info-text">
-          • 理发服务仅限周一、三、五14:30~18:00<text>\n</text>
-          • 每半小时1个时段，每时段限预约1人，可为他人代预约<text>\n</text>
-          • 当日14:20后该日锁定，不再允许预约或取消<text wx:if="{{isReceptionist}}">
+          • 周一、三、五14:30~18:00提供理发<text>\n</text>
+          • 每半小时1个时段，每时段限约1人，可代他人预约<text>\n</text>
+          • 当日14:20后该日时段锁定，不再允许预约或取消<text wx:if="{{isReceptionist}}">
           \n• 招待员对时段的操作不受限制</text>
         </view>
       </view>
@@ -75,7 +75,7 @@
             <view class="haircut-slot-left">
               <view class="haircut-slot-time">
                 <text>{{item.display}}</text>
-                <text wx:if="{{(item.status === 'booked' || item.status === 'myBooked') && item.bookingInfo}}">{{' · ' +item.bookingInfo.displayName}}
+                <text wx:if="{{(item.status === 'booked' || item.status === 'myBooked') && item.bookingInfo}}">{{'\n' +item.bookingInfo.displayName}}
                 </text>
               </view>
             </view>

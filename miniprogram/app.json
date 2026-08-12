@@ -17,7 +17,8 @@
     "pages/office/menu-edit/menu-edit",
     "pages/office/calendar/calendar",
     "pages/office/help/help",
-    "pages/office/arrival-guide/arrival-guide"
+    "pages/office/arrival-guide/arrival-guide",
+    "pages/office/haircut/haircut"
   ],
   "window": {
     "navigationBarTextStyle": "black",

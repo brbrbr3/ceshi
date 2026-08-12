@@ -57,6 +57,13 @@ Page({
         implemented: true,
         featureKey: null
       },
+      {
+        icon: '💈',
+        label: '理发预约',
+        color: '#EA580C',
+        bg: '#EFF6FF',
+        implemented: true
+      },
       /*  {
          icon: '📊',
          label: '出行数据板',
@@ -64,8 +71,8 @@ Page({
          bg: '#F3E8FF',
          implemented: true,
          featureKey: 'trip_dashboard'
-       }, */
-      /* {
+       }, 
+       {
         icon: '🏥',
         label: '就医申请',
         color: '#EF4444',
@@ -80,14 +87,6 @@ Page({
         bg: '#E8E4FF',
         implemented: true,
         featureKey: 'meeting_room'
-      },
-      {
-        icon: '💈',
-        label: '理发预约',
-        color: '#EA580C',
-        bg: '#FFF7ED',
-        implemented: true,
-        featureKey: 'haircut_appointment'
       },
       {
         icon: '🛂',
@@ -548,34 +547,15 @@ Page({
       wx.navigateTo({
         url: '/pages/office/menus/menus'
       })
-    } else if (label === '就医申请') {
-      app.navigateWithPermission('medical_application', '/pages/office/medical-application/medical-application', '就医申请')
     } else if (label === '外出报备') {
       app.navigateWithPermission('trip_report', '/pages/office/trip-report/trip-report', '外出报备')
     } else if (label === '兴趣班备案') {
       app.navigateWithPermission('interest_class_report', '/pages/office/interest-class/interest-class', '兴趣班备案')
-    } else if (label === '出行数据板') {
-      app.navigateWithPermission('trip_dashboard', '/pages/office/trip-dashboard/trip-dashboard', '出行数据板（完整版）')
-    } else if (label === '会议室预约') {
-      app.navigateWithPermission('meeting_room', '/pages/office/meeting-room/meeting-room', '会议室预约')
-    } else if (label === '护照管理') {
-      app.navigateWithPermission('passport_application', '/pages/office/passport/passport', '护照管理')
-    } else if (label === '工作餐与副食') {
-      app.navigateWithPermission('meal_management', '/pages/office/meal-management/meal-management', '工作餐与副食')
     } else if (label === '理发预约') {
       // 全体用户可用，无需权限检查
       wx.navigateTo({
         url: '/pages/office/haircut/haircut'
       })
-    } else if (label === '物业报修') {
-      // 全体用户可用，无需权限检查
-      wx.navigateTo({
-        url: '/pages/office/repair/repair'
-      })
-    } else if (label === '购车管理') {
-      app.navigateWithPermission('car_purchase', '/pages/office/car-purchase/car-purchase', '购车管理')
-    } else if (label === '休假申请') {
-      app.navigateWithPermission('leave_application', '/pages/office/leave/leave', '休假申请')
     } else if (label === '生活资讯') {
       // 全体用户可用，无需权限检查
       wx.navigateTo({

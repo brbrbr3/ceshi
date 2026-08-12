@@ -19,7 +19,7 @@ const SYSTEM_CONFIGS = [
   {
     type: 'role',
     key: 'ROLE_OPTIONS',
-    value: ['馆员', '其他'],
+    value: ['馆员', '其他', '待赴任馆员'],
     description: '角色选项列表（馆员=工作人员，其他=物业/配偶/家属等）',
     sort: 1
   },
@@ -44,8 +44,8 @@ const SYSTEM_CONFIGS = [
     type: 'position',
     key: 'POSITION_OPTIONS',
     value: [
-      // '人事主管', '会计主管', '礼宾', '会计', '出纳', '俱乐部', '阳光课堂', '妇女小组', '领事部内聘', '酒水库库管', '文具库库管', '礼品库库管'
-      '招待员', '厨师', '办公室内聘'],
+      // '人事主管', '礼宾', '出纳', '俱乐部', '阳光课堂', '妇女小组', '领事部内聘', '酒水库库管', '文具库库管', '礼品库库管'
+      '会计主管', '会计', '招待员', '厨师', '办公室内聘'],
     description: '岗位选项列表',
     sort: 10
   },
@@ -78,10 +78,11 @@ const SYSTEM_CONFIGS = [
     type: 'role_field_mapping',
     key: 'ROLE_FIELD_VISIBILITY',
     value: {
-      '馆员': { showPosition: false, showDepartment: true, fixedDepartment: null },
-      '其他': { showPosition: false, showDepartment: false, fixedDepartment: null },
+      '馆员': { showPosition: false, showDepartment: true, showLivingArea: true, fixedDepartment: null },
+      '其他': { showPosition: false, showDepartment: false, showLivingArea: true, fixedDepartment: null },
+      '待赴任馆员': { showPosition: false, showDepartment: false, showLivingArea: false, fixedDepartment: null }
     },
-    description: '角色-字段显示映射关系（控制各角色是否显示岗位、部门字段及固定部门）',
+    description: '角色-字段显示映射关系（控制各角色是否显示岗位、部门、居住区域字段及固定部门）',
     sort: 30
   },
 

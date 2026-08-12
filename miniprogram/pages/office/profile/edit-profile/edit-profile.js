@@ -103,6 +103,7 @@ Page({
     const defaults = {
       showPosition: false,
       showDepartment: true,
+      showLivingArea: true,
       fixedDepartment: null
     }
     return defaults
@@ -136,9 +137,10 @@ Page({
         const livingAreaIndex = livingArea ? this.data.livingAreaOptions.indexOf(livingArea) : -1
 
         // 使用常量判断
+        const fieldConfig = this.getRoleFieldConfig(role)
         const showRelativeField = false
-        const showDepartmentField = role === '馆员'
-        const showLivingArea = true
+        const showDepartmentField = fieldConfig.showDepartment === true
+        const showLivingArea = fieldConfig.showLivingArea !== false
 
         let department = user.department || ''
         let departmentIndex = -1
@@ -200,39 +202,22 @@ Page({
     const { roleOptions, allDepartmentOptions } = this.data
     const role = roleOptions[roleIndex]
 
-    if (role === '其他') {
-      // 其他：不显示部门、不显示亲属、不显示负责人
-      this.setData({
-        roleIndex,
-        'form.role': role,
-        showDepartmentField: false,
-        showRelativeField: false,
-        showDeptHeadCheckbox: false,
-        showLivingArea: true,
-        'form.department': '',
-        'form.isDepartmentHead': false,
-        'form.relativeName': '',
-        departmentIndex: -1,
-        departmentOptions: []
-      })
-      return
-    }
-
-    // 馆员：显示完整部门列表（'无'已内置）
-    const roleDepartmentOptions = allDepartmentOptions
+    const fieldConfig = this.getRoleFieldConfig(role)
+    const showDepartmentField = fieldConfig.showDepartment === true
+    const showLivingArea = fieldConfig.showLivingArea !== false
 
     this.setData({
       roleIndex,
       'form.role': role,
-      showDepartmentField: true,
+      showDepartmentField,
       showRelativeField: false,
       showDeptHeadCheckbox: false,
-      showLivingArea: true,
+      showLivingArea,
       'form.department': '',
       'form.isDepartmentHead': false,
       'form.relativeName': '',
       departmentIndex: -1,
-      departmentOptions: roleDepartmentOptions
+      departmentOptions: showDepartmentField ? allDepartmentOptions : []
     })
   },
 

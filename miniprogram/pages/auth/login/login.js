@@ -145,6 +145,17 @@ Page({
   },
 
   loadBootstrapStatus() {
+    // 系统已有管理员，首个管理员引导已不需要
+    const fallback = {
+      bootstrapKeyConfigured: false,
+      hasApprovedAdmin: true,
+      canBootstrap: false
+    }
+    this.setData({ bootstrapStatus: fallback })
+    return Promise.resolve(fallback)
+    
+    // --- 以下原代码保留但不再执行 ---
+    //
     // 初始化状态基本不变：已初始化时长期缓存（24h），未初始化时短缓存（5min）
     const cacheKey = 'bootstrapStatus'
     const cached = wx.getStorageSync(cacheKey)

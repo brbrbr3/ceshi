@@ -661,31 +661,44 @@ Page({
     if (!this.data.editUser) return
 
     const userName = this.data.editUser.name || '该用户'
+
+    // 第一次确认：说明影响
     wx.showModal({
       title: '注销用户',
       content: '确定要注销「' + userName + '」吗？\n注销后该用户将无法登录使用小程序。',
-      confirmText: '确定注销',
+      confirmText: '注销',
       confirmColor: '#DC2626',
-      success: async (res) => {
+      cancelText: '我再想想',
+      success: (res) => {
         if (!res.confirm) return
-        wx.showLoading({ title: '注销中...', mask: true })
-        try {
-          const result = await wx.cloud.callFunction({
-            name: 'personnelManager',
-            data: {
-              action: 'deactivateUser',
-              params: { targetOpenid: this.data.editUser.openid }
+        // 第二次确认：二次确认，防止误操作
+        wx.showModal({
+          title: '二次确认',
+          content: '请再次确认：确定注销「' + userName + '」吗？此操作不可撤销。',
+          confirmText: '确定注销',
+          confirmColor: '#DC2626',
+          success: async (res2) => {
+            if (!res2.confirm) return
+            wx.showLoading({ title: '注销中...', mask: true })
+            try {
+              const result = await wx.cloud.callFunction({
+                name: 'personnelManager',
+                data: {
+                  action: 'deactivateUser',
+                  params: { targetOpenid: this.data.editUser.openid }
+                }
+              })
+              wx.hideLoading()
+              if (result.result.code !== 0) throw new Error(result.result.message)
+              utils.showToast({ title: '已注销', icon: 'success' })
+              this.setData({ showEditModal: false, editUser: null })
+              await this.loadUsers()
+            } catch (err) {
+              wx.hideLoading()
+              utils.showToast({ title: err.message || '注销失败', icon: 'none' })
             }
-          })
-          wx.hideLoading()
-          if (result.result.code !== 0) throw new Error(result.result.message)
-          utils.showToast({ title: '已注销', icon: 'success' })
-          this.setData({ showEditModal: false, editUser: null })
-          await this.loadUsers()
-        } catch (err) {
-          wx.hideLoading()
-          utils.showToast({ title: err.message || '注销失败', icon: 'none' })
-        }
+          }
+        })
       }
     })
   },

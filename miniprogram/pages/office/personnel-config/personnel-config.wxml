@@ -185,9 +185,11 @@
             </view>
           </view>
         </view>
+
+        <!-- 注销用户 -->
         <view class="personnel-btn-deactivate" hover-class="personnel-btn-active" hover-stay-time="120" bindtap="handleDeactivateUser">注销该用户</view>
       </view>
-      <!-- 第三组 注销用户 -->
+      
       <view class="personnel-modal-footer">
         <view class="personnel-footer-btns">
           <button class="personnel-btn-cancel" hover-class="personnel-btn-active" hover-stay-time="120" bindtap="handleCloseModal">取消</button>
