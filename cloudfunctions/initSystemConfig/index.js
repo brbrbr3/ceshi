@@ -43,7 +43,9 @@ const SYSTEM_CONFIGS = [
   {
     type: 'position',
     key: 'POSITION_OPTIONS',
-    value: ['人事主管', '会计主管', '礼宾', '会计', '出纳', '俱乐部', '阳光课堂', '妇女小组', '招待员', '厨师', '领事部内聘', '办公室内聘', '酒水库库管', '文具库库管', '礼品库库管'],
+    value: [
+      // '人事主管', '会计主管', '礼宾', '会计', '出纳', '俱乐部', '阳光课堂', '妇女小组', '领事部内聘', '酒水库库管', '文具库库管', '礼品库库管'
+      '招待员', '厨师', '办公室内聘'],
     description: '岗位选项列表',
     sort: 10
   },
@@ -435,13 +437,6 @@ const SYSTEM_CONFIGS = [
 // 权限配置数据
 const PERMISSION_CONFIGS = [
   {
-    featureKey: 'medical_application',
-    featureName: '就医申请',
-    description: '提交就医申请',
-    enabledRoles: ['馆员'],
-    requireAdmin: false
-  },
-  {
     featureKey: 'trip_report',
     featureName: '外出报备',
     description: '提交外出报备',
@@ -451,7 +446,22 @@ const PERMISSION_CONFIGS = [
   {
     featureKey: 'trip_board',
     featureName: '出行数据板',
-    description: '出行数据看板（新版tabBar，部门负责人/片长可用）',
+    description: '出行数据看板（新版tabBar，所有用户可用）',
+    enabledRoles: ['馆员', '其他'],
+    requireAdmin: false
+  },
+ /*  {
+    featureKey: 'meal_management',
+    featureName: '工作餐与副食',
+    description: '工作餐订阅与管理',
+    enabledRoles: ['馆员'],
+    specialConditions: [{ role: '其他', position: '出纳' }],
+    requireAdmin: false
+  },
+  {
+    featureKey: 'medical_application',
+    featureName: '就医申请',
+    description: '提交就医申请',
     enabledRoles: ['馆员'],
     requireAdmin: false
   },
@@ -461,15 +471,7 @@ const PERMISSION_CONFIGS = [
     description: '会议室预约功能入口权限',
     enabledRoles: ['馆员', '其他'],
     requireAdmin: false
-  },
-  {
-    featureKey: 'meal_management',
-    featureName: '工作餐与副食',
-    description: '工作餐订阅与管理',
-    enabledRoles: ['馆员'],
-    specialConditions: [{ role: '其他', position: '出纳' }],
-    requireAdmin: false
-  },
+  },  
   {
     featureKey: 'car_purchase',
     featureName: '购车管理',
@@ -497,7 +499,7 @@ const PERMISSION_CONFIGS = [
     description: '配置片长与馆领导报备接收人（管理员专用）',
     enabledRoles: [],
     requireAdmin: true
-  },
+  }, */
   {
     featureKey: 'interest_class_report',
     featureName: '兴趣班备案',

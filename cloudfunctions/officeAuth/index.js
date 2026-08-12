@@ -308,6 +308,16 @@ async function checkRegistration(openid, options = {}) {
   
   const userRecord = await findUserByOpenId(openid)
 
+  if (userRecord && userRecord.status === 'deactivated') {
+    return success({
+      openid,
+      registered: false,
+      authStatus: 'deactivated',
+      user: null,
+      request: null
+    })
+  }
+
   if (userRecord && userRecord.status === requestStatus.APPROVED) {
     // 版本比对：如果客户端缓存的 updatedAt 与服务器一致，返回轻量响应
     if (cachedUpdatedAt && userRecord.updatedAt === cachedUpdatedAt) {

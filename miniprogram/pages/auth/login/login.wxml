@@ -19,7 +19,7 @@
 
   <view class="auth-card">
     <view class="login-wechat-title {{statusCard.className === 'is-rejected' ? 'is-rejected' : ''}}">{{loginTitleText}}</view>
-    <button class="auth-submit-btn login-submit-btn {{statusLoading || !constantsReady ? 'is-disabled' : ''}} {{isPendingApproval ? 'is-pending' : ''}}" loading="{{loading || statusLoading || !constantsReady}}" disabled="{{statusLoading || !constantsReady}}" bindtap="handleWxLogin">{{loginButtonText}}</button>
+    <button class="auth-submit-btn login-submit-btn {{statusLoading || !constantsReady || loginButtonText === '不可用' ? 'is-disabled' : ''}} {{isPendingApproval ? 'is-pending' : ''}}" loading="{{loading || statusLoading || !constantsReady || loginButtonText === '不可用'}}" disabled="{{statusLoading || !constantsReady || loginButtonText === '不可用'}}" bindtap="handleWxLogin">{{loginButtonText}}</button>
     <view wx:if="{{!isRegistered && !isPendingApproval && !statusLoading}}" class="login-reviewer-link" bindtap="showReviewerModal">账号密码登录（仅供审核人员）</view>
     <!-- <view wx:if="{{isRegistered && !isDesktop}}" class="login-wechat-title-desc">您的生物特征仅用于登录验证，小程序不会保存</view> -->
     <view class="login-wechat-panel">

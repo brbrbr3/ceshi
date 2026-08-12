@@ -1345,7 +1345,7 @@ async function getBoardData(openid, params) {
   // 权限校验已移除，所有用户均可访问（普通用户仅看自己）
   
   // 计算可查看的用户范围（多身份取并集）
-  let userQuery = { status: 'approved' }
+  let userQuery = { status: _.in(['approved', 'deactivated']) }
   let scopeType = 'all'
 
   // 全体范围：管理员 或 馆员且部门为空（领导，非部门负责人）或 馆员部门为办且为部门负责人
@@ -1367,7 +1367,7 @@ async function getBoardData(openid, params) {
     // 普通用户 → 反查谁的 reportTo 包含自己
     if (orConditions.length === 0) {
       const reportToRes = await usersCollection
-        .where({ status: 'approved', reportTo: openid })
+        .where({ status: _.in(['approved', 'deactivated']), reportTo: openid })
         .field({ openid: true })
         .limit(100)
         .get()
@@ -1384,7 +1384,7 @@ async function getBoardData(openid, params) {
       Object.assign(userQuery, orConditions[0])
       scopeType = orConditions[0].livingArea ? 'area' : 'department'
     } else {
-      userQuery = _.or(orConditions.map(c => ({ status: 'approved', ...c })))
+      userQuery = _.or(orConditions.map(c => ({ status: _.in(['approved', 'deactivated']), ...c })))
       scopeType = 'mixed'
     }
   }
@@ -1392,7 +1392,7 @@ async function getBoardData(openid, params) {
   // 查询范围内的用户
   const usersRes = await usersCollection
     .where(userQuery)
-    .field({ openid: true, name: true, department: true, livingArea: true, role: true, isDepartmentHead: true, isAreaManager: true })
+    .field({ openid: true, name: true, department: true, livingArea: true, role: true, isDepartmentHead: true, isAreaManager: true, status: true })
     .limit(500)
     .get()
   const users = usersRes.data || []

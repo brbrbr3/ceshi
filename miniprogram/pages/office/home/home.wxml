@@ -16,7 +16,7 @@
 
     <!-- 背景装饰图片 -->
     <view class="home-bg-image-wrapper">
-      <image class="home-bg-image" src="/image/br3-low.jpg" mode="widthFix" />
+      <image class="home-bg-image" src="/image/br6-low.jpg" mode="widthFix" />
     </view>
   </view>
 

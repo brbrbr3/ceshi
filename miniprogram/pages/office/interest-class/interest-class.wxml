@@ -14,8 +14,8 @@
     </view>
   </view>
 
-  <!-- 搜索栏 -->
-  <view class="ic-search-bar">
+  <!-- 搜索栏（查看范围不是自己时显示） -->
+  <view wx:if="{{scopeType !== 'self'}}" class="ic-search-bar">
     <view class="ic-search-input-wrapper">
       <text class="ic-search-icon">🔍</text>
       <input class="ic-search-input" value="{{keyword}}" placeholder="搜索姓名或兴趣班名称" placeholder-class="ic-search-placeholder" bindinput="handleSearchInput" bindconfirm="handleSearchConfirm" confirm-type="search" />
@@ -42,6 +42,13 @@
     <view wx:elif="{{loading && list.length === 0}}" class="ic-loading">
       <view class="ic-loading-spinner"></view>
       <text class="ic-loading-text">{{keyword ? '搜索中...' : '加载中...'}}</text>
+    </view>
+
+    <!-- 空状态：暂无备案 -->
+    <view wx:elif="{{!loading && list.length === 0}}" class="ic-empty-state">
+      <text class="ic-empty-icon">🛹</text>
+      <text class="ic-empty-title">暂无备案</text>
+      <text class="ic-empty-desc">点击右上角"新增"来添加兴趣班备案</text>
     </view>
 
     <!-- 备案卡片 -->

@@ -30,9 +30,11 @@
 
       <view wx:else>
         <view wx:for="{{personnelGroups}}" wx:key="groupName" class="personnel-group-section">
-          <view class="personnel-group-label">{{item.groupName}}</view>
-          <view class="personnel-list">
-            <view class="personnel-card" wx:for="{{item.users}}" wx:for-item="card" wx:key="openid" bindtap="handleUserTap" data-openid="{{card.openid}}">
+          <view class="personnel-group-label {{item.collapsed ? 'is-collapsible' : ''}}" bindtap="{{item.collapsed ? 'handleToggleDeactivatedGroup' : ''}}">
+            {{item.groupName}}<text wx:if="{{item.collapsed}}" class="personnel-group-count-text">（{{item.users.length}}人）</text>
+          </view>
+          <view wx:if="{{!item.collapsed || !item._collapsedHidden}}" class="personnel-list">
+            <view class="personnel-card {{card._deactivated ? 'personnel-card--deactivated' : ''}}" wx:for="{{item.users}}" wx:for-item="card" wx:key="openid" bindtap="handleUserTap" data-openid="{{card.openid}}">
               <view class="personnel-card-avatar">{{card.avatarText}}</view>
               <view class="personnel-card-body">
                 <view class="personnel-card-name">{{card.name}}</view>
@@ -54,87 +56,87 @@
         <view class="personnel-modal-close" catchtap="handleCloseModal">✕</view>
       </view>
       <view class="personnel-modal-body">
-          <!-- ===== 第一组：个人信息 ===== -->
-          <view class="personnel-section">
-            <view class="personnel-section-title">个人信息</view>
+        <!-- ===== 第一组：个人信息 ===== -->
+        <view class="personnel-section">
+          <view class="personnel-section-title">个人信息</view>
 
-            <view class="personnel-field">
-              <view class="personnel-field-label">角色</view>
-              <picker mode="selector" range="{{['馆员','其他']}}" value="{{formRole ? (formRole === '其他' ? 1 : 0) : -1}}" bindchange="handleRoleChange">
-                <view class="personnel-picker">{{formRole || '选择角色'}}</view>
-              </picker>
-            </view>
-
-            <view class="personnel-field" wx:if="{{formRole === '馆员'}}">
-              <view class="personnel-field-label">部门</view>
-              <picker mode="selector" range="{{departmentOptions}}" bindchange="handleDeptChange">
-                <view class="personnel-picker">{{formDepartment || '选择部门'}}</view>
-              </picker>
-            </view>
-
-            <view class="personnel-field personnel-field-checkbox" wx:if="{{formRole === '馆员' && formDepartment !== '无'}}">
-              <view class="personnel-field-label">部门负责人</view>
-              <switch checked="{{formIsDeptHead}}" bindchange="handleDeptHeadChange" color="#2563EB" />
-            </view>
-
-            <view class="personnel-field">
-              <view class="personnel-field-label">居住区域</view>
-              <picker mode="selector" range="{{livingAreas}}" bindchange="handleAreaChange">
-                <view class="personnel-picker">{{formLivingArea || '选择居住区域'}}</view>
-              </picker>
-            </view>
-
-            <view class="personnel-field personnel-field-checkbox">
-              <view class="personnel-field-label">是否片长</view>
-              <switch checked="{{formIsAreaManager}}" bindchange="handleAreaManagerChange" color="#2563EB" />
-            </view>
-
-            <view class="personnel-field personnel-field-column">
-              <view class="personnel-field-label">岗位</view>
-              <view class="personnel-position-list">
-                <view class="personnel-position-item {{item.checked ? 'is-active' : ''}}" wx:for="{{formPositions}}" wx:key="value" bindtap="handleTogglePosition" data-value="{{item.value}}">{{item.name}}</view>
-                <view wx:if="{{positionOptions.length === 0}}" class="personnel-empty-hint">暂无可选岗位</view>
-              </view>
-            </view>
+          <view class="personnel-field">
+            <view class="personnel-field-label">角色</view>
+            <picker mode="selector" range="{{['馆员','其他']}}" value="{{formRole ? (formRole === '其他' ? 1 : 0) : -1}}" bindchange="handleRoleChange">
+              <view class="personnel-picker">{{formRole || '选择角色'}}</view>
+            </picker>
           </view>
 
-          <!-- ===== 第二组：报备与权限 ===== -->
-          <view class="personnel-section">
-            <view class="personnel-section-title">报备与权限</view>
+          <view class="personnel-field" wx:if="{{formRole === '馆员'}}">
+            <view class="personnel-field-label">部门</view>
+            <picker mode="selector" range="{{departmentOptions}}" bindchange="handleDeptChange">
+              <view class="personnel-picker">{{formDepartment || '选择部门'}}</view>
+            </picker>
+          </view>
 
-            <!-- 馆员+部门无提示 -->
-            <view wx:if="{{formRole === '馆员' && formDepartment === '无'}}" class="personnel-leader-hint">
-              该用户可查看全体人员出行情况，但不自动接收任何人的报备推送。可手动勾选下方人员为其订阅推送。
+          <view class="personnel-field personnel-field-checkbox" wx:if="{{formRole === '馆员' && formDepartment !== '无'}}">
+            <view class="personnel-field-label">部门负责人</view>
+            <switch checked="{{formIsDeptHead}}" bindchange="handleDeptHeadChange" color="#2563EB" />
+          </view>
+
+          <view class="personnel-field">
+            <view class="personnel-field-label">居住区域</view>
+            <picker mode="selector" range="{{livingAreas}}" bindchange="handleAreaChange">
+              <view class="personnel-picker">{{formLivingArea || '选择居住区域'}}</view>
+            </picker>
+          </view>
+
+          <view class="personnel-field personnel-field-checkbox">
+            <view class="personnel-field-label">是否片长</view>
+            <switch checked="{{formIsAreaManager}}" bindchange="handleAreaManagerChange" color="#2563EB" />
+          </view>
+
+          <view class="personnel-field personnel-field-column">
+            <view class="personnel-field-label">岗位</view>
+            <view class="personnel-position-list">
+              <view class="personnel-position-item {{item.checked ? 'is-active' : ''}}" wx:for="{{formPositions}}" wx:key="value" bindtap="handleTogglePosition" data-value="{{item.value}}">{{item.name}}</view>
+              <view wx:if="{{positionOptions.length === 0}}" class="personnel-empty-hint">暂无可选岗位</view>
+            </view>
+          </view>
+        </view>
+
+        <!-- ===== 第二组：报备与权限 ===== -->
+        <view class="personnel-section">
+          <view class="personnel-section-title">报备与权限</view>
+
+          <!-- 馆员+部门无提示 -->
+          <view wx:if="{{formRole === '馆员' && formDepartment === '无'}}" class="personnel-leader-hint">
+            该用户可查看全体人员出行情况，但不自动接收任何人的报备推送。可手动勾选下方人员为其订阅推送。
+          </view>
+
+          <!-- 谁向该用户报备（订阅列表） -->
+          <view class="personnel-subsection">
+            <view class="personnel-subsection-header">
+              <text class="personnel-subsection-title">谁向「{{editUser.name}}」报备\n</text>
+              <text class="personnel-subsection-desc">将订阅勾选人员的报备</text>
             </view>
 
-            <!-- 谁向该用户报备（订阅列表） -->
-            <view class="personnel-subsection">
-              <view class="personnel-subsection-header">
-                <text class="personnel-subsection-title">谁向「{{editUser.name}}」报备\n</text>
-                <text class="personnel-subsection-desc">将订阅勾选人员的报备</text>
-              </view>
+            <!-- 视图切换 -->
+            <view class="personnel-view-toggle">
+              <view class="personnel-view-btn {{subscriberGroupBy === 'department' ? 'is-active' : ''}}" bindtap="handleToggleSubGroupBy" data-by="department">按部门</view>
+              <view class="personnel-view-btn {{subscriberGroupBy === 'livingArea' ? 'is-active' : ''}}" bindtap="handleToggleSubGroupBy" data-by="livingArea">按居住区</view>
+            </view>
 
-              <!-- 视图切换 -->
-              <view class="personnel-view-toggle">
-                <view class="personnel-view-btn {{subscriberGroupBy === 'department' ? 'is-active' : ''}}" bindtap="handleToggleSubGroupBy" data-by="department">按部门</view>
-                <view class="personnel-view-btn {{subscriberGroupBy === 'livingArea' ? 'is-active' : ''}}" bindtap="handleToggleSubGroupBy" data-by="livingArea">按居住区</view>
-              </view>
-
-              <!-- 按部门分组视图 -->
-              <view wx:if="{{subscriberGroupBy === 'department'}}">
-                <view wx:if="{{subscriberGroups.length === 0}}" class="personnel-empty-hint">暂无其他用户</view>
-                <view wx:for="{{subscriberGroups}}" wx:key="name" class="personnel-sub-group">
-                  <view class="personnel-sub-group-header" catchtap="handleToggleGroup" data-group="{{item.name}}">
-                    <view class="personnel-group-check {{item.allChecked ? 'is-checked' : ''}}">
-                      <text wx:if="{{item.allChecked}}">✓</text>
-                    </view>
-                    <text class="personnel-group-name">{{item.name}}</text>
-                    <text class="personnel-group-count">{{item.users.length}}人</text>
+            <!-- 按部门分组视图 -->
+            <view wx:if="{{subscriberGroupBy === 'department'}}">
+              <view wx:if="{{subscriberGroups.length === 0}}" class="personnel-empty-hint">暂无其他用户</view>
+              <view wx:for="{{subscriberGroups}}" wx:key="name" class="personnel-sub-group">
+                <view class="personnel-sub-group-header" catchtap="handleToggleGroup" data-group="{{item.name}}">
+                  <view class="personnel-group-check {{item.allChecked ? 'is-checked' : ''}}">
+                    <text wx:if="{{item.allChecked}}">✓</text>
                   </view>
-                  <view class="personnel-sub-group-item {{u.disabled ? 'is-disabled' : ''}}" wx:for="{{item.users}}" wx:for-item="u" wx:key="openid" catchtap="handleToggleSubscriber" data-openid="{{u.openid}}">
-                    <view class="personnel-check {{u.checked ? 'is-checked' : ''}}">
-                      <text wx:if="{{u.checked}}">✓</text>
-                    </view>
+                  <text class="personnel-group-name">{{item.name}}</text>
+                  <text class="personnel-group-count">{{item.users.length}}人</text>
+                </view>
+                <view class="personnel-sub-group-item {{u.disabled ? 'is-disabled' : ''}}" wx:for="{{item.users}}" wx:for-item="u" wx:key="openid" catchtap="handleToggleSubscriber" data-openid="{{u.openid}}">
+                  <view class="personnel-check {{u.checked ? 'is-checked' : ''}}">
+                    <text wx:if="{{u.checked}}">✓</text>
+                  </view>
                   <text class="personnel-user-name">{{u.name}}</text>
                   <text class="personnel-user-label">{{u.subText}}</text>
                 </view>
@@ -143,19 +145,19 @@
 
             <!-- 按居住区分组视图 -->
             <view wx:else>
-                <view wx:if="{{subscriberAreaGroups.length === 0}}" class="personnel-empty-hint">暂无其他用户</view>
-                <view wx:for="{{subscriberAreaGroups}}" wx:key="name" class="personnel-sub-group">
-                  <view class="personnel-sub-group-header" catchtap="handleToggleAreaGroup" data-group="{{item.name}}">
-                    <view class="personnel-group-check {{item.allChecked ? 'is-checked' : ''}}">
-                      <text wx:if="{{item.allChecked}}">✓</text>
-                    </view>
-                    <text class="personnel-group-name">{{item.name}}</text>
-                    <text class="personnel-group-count">{{item.users.length}}人</text>
+              <view wx:if="{{subscriberAreaGroups.length === 0}}" class="personnel-empty-hint">暂无其他用户</view>
+              <view wx:for="{{subscriberAreaGroups}}" wx:key="name" class="personnel-sub-group">
+                <view class="personnel-sub-group-header" catchtap="handleToggleAreaGroup" data-group="{{item.name}}">
+                  <view class="personnel-group-check {{item.allChecked ? 'is-checked' : ''}}">
+                    <text wx:if="{{item.allChecked}}">✓</text>
                   </view>
-                  <view class="personnel-sub-group-item {{u.disabled ? 'is-disabled' : ''}}" wx:for="{{item.users}}" wx:for-item="u" wx:key="openid" catchtap="handleToggleSubscriber" data-openid="{{u.openid}}">
-                    <view class="personnel-check {{u.checked ? 'is-checked' : ''}}">
-                      <text wx:if="{{u.checked}}">✓</text>
-                    </view>
+                  <text class="personnel-group-name">{{item.name}}</text>
+                  <text class="personnel-group-count">{{item.users.length}}人</text>
+                </view>
+                <view class="personnel-sub-group-item {{u.disabled ? 'is-disabled' : ''}}" wx:for="{{item.users}}" wx:for-item="u" wx:key="openid" catchtap="handleToggleSubscriber" data-openid="{{u.openid}}">
+                  <view class="personnel-check {{u.checked ? 'is-checked' : ''}}">
+                    <text wx:if="{{u.checked}}">✓</text>
+                  </view>
                   <text class="personnel-user-name">{{u.name}}</text>
                   <text class="personnel-user-label">{{u.subText}}</text>
                 </view>
@@ -164,29 +166,33 @@
           </view>
 
           <!-- 该用户向谁报备 -->
-            <view class="personnel-subsection">
-              <view class="personnel-subsection-header">
-                <text class="personnel-subsection-title">「{{editUser.name}}」向谁报备\n</text>
-                <text class="personnel-subsection-desc">该用户出行时推送报备给勾选人员</text>
-              </view>
+          <view class="personnel-subsection">
+            <view class="personnel-subsection-header">
+              <text class="personnel-subsection-title">「{{editUser.name}}」向谁报备\n</text>
+              <text class="personnel-subsection-desc">该用户出行时推送报备给勾选人员</text>
+            </view>
 
-              <view wx:if="{{reportToOptions.length === 0}}" class="personnel-empty-hint">暂无其他用户</view>
+            <view wx:if="{{reportToOptions.length === 0}}" class="personnel-empty-hint">暂无其他用户</view>
 
-              <view class="personnel-sub-group-list">
-                <view class="personnel-sub-group-item {{item.disabled ? 'is-disabled' : ''}}" wx:for="{{reportToOptions}}" wx:key="openid" catchtap="handleToggleReportTo" data-openid="{{item.openid}}">
-                  <view class="personnel-check {{item.checked ? 'is-checked' : ''}}">
-                    <text wx:if="{{item.checked}}">✓</text>
-                  </view>
-                  <text class="personnel-user-name">{{item.name}}</text>
-                  <text class="personnel-user-label">{{item.label}}</text>
+            <view class="personnel-sub-group-list">
+              <view class="personnel-sub-group-item {{item.disabled ? 'is-disabled' : ''}}" wx:for="{{reportToOptions}}" wx:key="openid" catchtap="handleToggleReportTo" data-openid="{{item.openid}}">
+                <view class="personnel-check {{item.checked ? 'is-checked' : ''}}">
+                  <text wx:if="{{item.checked}}">✓</text>
                 </view>
+                <text class="personnel-user-name">{{item.name}}</text>
+                <text class="personnel-user-label">{{item.label}}</text>
               </view>
             </view>
           </view>
+        </view>
+        <view class="personnel-btn-deactivate" hover-class="personnel-btn-active" hover-stay-time="120" bindtap="handleDeactivateUser">注销该用户</view>
       </view>
+      <!-- 第三组 注销用户 -->
       <view class="personnel-modal-footer">
-        <button class="personnel-btn-cancel" bindtap="handleCloseModal">取消</button>
-        <button class="personnel-btn-save" bindtap="handleSavePersonnel">保存配置</button>
+        <view class="personnel-footer-btns">
+          <button class="personnel-btn-cancel" hover-class="personnel-btn-active" hover-stay-time="120" bindtap="handleCloseModal">取消</button>
+          <button class="personnel-btn-save" hover-class="personnel-btn-active" hover-stay-time="120" bindtap="handleSavePersonnel">保存配置</button>
+        </view>
       </view>
     </view>
   </view>

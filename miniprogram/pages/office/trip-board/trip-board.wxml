@@ -59,11 +59,11 @@
 
     <!-- 分组 -->
     <view wx:for="{{groups}}" wx:key="groupName" class="board-group">
-      <view class="board-group-title">
+      <view class="board-group-title {{item.collapsed ? 'is-collapsible' : ''}}" bindtap="{{item.collapsed ? 'handleToggleDeactivatedGroup' : ''}}">
         <text>{{item.groupName}}</text>
         <text class="board-group-count">{{item.items.length}}人</text>
       </view>
-      <view class="board-group-items">
+      <view wx:if="{{!item.collapsed || item.collapsed === undefined}}" class="board-group-items">
         <view wx:for="{{item.items}}" wx:for-item="trip" wx:key="_id" class="board-item" data-openid="{{trip._openid}}" data-name="{{trip.userName}}" style="border-color: {{trip.avatarColor}};" bindtap="handleItemTap">
           <view class="board-item-main">
             <view class="board-item-name-row">

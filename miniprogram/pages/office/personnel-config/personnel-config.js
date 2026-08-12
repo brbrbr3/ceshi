@@ -117,6 +117,15 @@ Page({
       if (res.result.code !== 0) throw new Error(res.result.message)
 
       const users = res.result.data.users || []
+      const deactivatedUsers = (res.result.data.deactivatedUsers || []).map(u => {
+        u.avatarText = (u.name || '?')[0]
+        u.labelText = '已注销'
+        u.labelClass = 'deactivated'
+        u.displayDept = u.department || (u.role === '其他' ? '其他' : '无')
+        u.displayPosition = ''
+        u._deactivated = true
+        return u
+      })
       const sorted = this.sortUsers(users)
       users.forEach(u => {
         u.avatarText = (u.name || '?')[0]
@@ -128,10 +137,11 @@ Page({
           ? u.position.join('、')
           : ''
       })
-      const personnelGroups = this.buildPersonnelGroups(sorted)
+      const personnelGroups = this.buildPersonnelGroups(sorted, deactivatedUsers)
+      const allUsersList = [...sorted, ...deactivatedUsers]
       this.setData({
-        allUsers: sorted,
-        filteredUsers: sorted,
+        allUsers: allUsersList,
+        filteredUsers: allUsersList,
         personnelGroups,
         loading: false
       })
@@ -144,7 +154,7 @@ Page({
   /**
    * 构建分组展示的用户列表
    */
-  buildPersonnelGroups(users) {
+  buildPersonnelGroups(users, deactivatedUsers = []) {
     const { departmentOptions } = this.data
     const groups = []
     const deptMap = {}
@@ -186,8 +196,9 @@ Page({
     if (unassignedIdx >= 0) ordered.push('未分配部门')
     if (otherIdx >= 0) ordered.push('__other__')
 
-    return ordered.map(key => ({
+    const result = ordered.map(key => ({
       groupName: displayName(key),
+      collapsed: false,
       // 组内排序：部门负责人排第一，其次按姓名
       users: [...deptMap[key]].sort((a, b) => {
         const ha = a.isDepartmentHead ? 0 : 1
@@ -196,6 +207,17 @@ Page({
         return (a.name || '').localeCompare(b.name || '', 'zh')
       })
     }))
+
+    // 追加已注销用户分组（最末，默认折叠）
+    if (deactivatedUsers.length > 0) {
+      result.push({
+        groupName: '▶ 已注销用户',
+        collapsed: true,
+        users: deactivatedUsers
+      })
+    }
+
+    return result
   },
 
   /**
@@ -238,7 +260,9 @@ Page({
     const filtered = keyword
       ? this.data.allUsers.filter(u => u.name.indexOf(keyword) > -1)
       : this.data.allUsers
-    const personnelGroups = this.buildPersonnelGroups(filtered)
+    const approved = filtered.filter(u => !u._deactivated)
+    const deactivated = filtered.filter(u => u._deactivated)
+    const personnelGroups = this.buildPersonnelGroups(approved, deactivated)
     this.setData({ searchKeyword: keyword, filteredUsers: filtered, personnelGroups })
   },
 
@@ -628,7 +652,61 @@ Page({
     })
   },
 
+  // ==================== 注销用户 ====================
+  handleDeactivateUser() {
+    if (!this.data.canEdit) {
+      utils.showToast({ title: '只读模式，如需修改请联系管理员', icon: 'none' })
+      return
+    }
+    if (!this.data.editUser) return
+
+    const userName = this.data.editUser.name || '该用户'
+    wx.showModal({
+      title: '注销用户',
+      content: '确定要注销「' + userName + '」吗？\n注销后该用户将无法登录使用小程序。',
+      confirmText: '确定注销',
+      confirmColor: '#DC2626',
+      success: async (res) => {
+        if (!res.confirm) return
+        wx.showLoading({ title: '注销中...', mask: true })
+        try {
+          const result = await wx.cloud.callFunction({
+            name: 'personnelManager',
+            data: {
+              action: 'deactivateUser',
+              params: { targetOpenid: this.data.editUser.openid }
+            }
+          })
+          wx.hideLoading()
+          if (result.result.code !== 0) throw new Error(result.result.message)
+          utils.showToast({ title: '已注销', icon: 'success' })
+          this.setData({ showEditModal: false, editUser: null })
+          await this.loadUsers()
+        } catch (err) {
+          wx.hideLoading()
+          utils.showToast({ title: err.message || '注销失败', icon: 'none' })
+        }
+      }
+    })
+  },
+
   stopPropagation() {},
+
+  // ==================== 已注销用户分组折叠 ====================
+  handleToggleDeactivatedGroup(e) {
+    const groups = this.data.personnelGroups
+    // 找到已注销分组
+    const target = groups.find(g => g.collapsed === true)
+    if (!target) return
+    target._collapsedHidden = !target._collapsedHidden
+    // 更新标题文字
+    if (target._collapsedHidden) {
+      target.groupName = '▶ 已注销用户'
+    } else {
+      target.groupName = '▼ 已注销用户'
+    }
+    this.setData({ personnelGroups: groups })
+  },
 
   // ==================== 保存 ====================
   async handleSavePersonnel() {

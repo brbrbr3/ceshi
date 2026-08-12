@@ -1277,25 +1277,6 @@ App({
   },
 
   /**
-   * 初始化权限配置（仅管理员可调用）
-   * @returns {Promise<Object>} 初始化结果
-   */
-  initPermissions() {
-    return wx.cloud.callFunction({
-      name: 'permissionManager',
-      data: {
-        action: 'initPermissions'
-      }
-    }).then(res => {
-      const result = res.result || {}
-      if (result.code !== 0) {
-        throw new Error(result.message || '权限初始化失败')
-      }
-      return result.data || {}
-    })
-  },
-
-  /**
    * 获取所有权限配置（仅管理员）
    * @returns {Promise<Object>} 权限配置列表
    */

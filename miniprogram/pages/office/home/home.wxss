@@ -27,6 +27,7 @@ page {
   padding-bottom: 40rpx;
   position: relative;
   overflow: hidden;
+  background: white;
 }
 
 /* 背景装饰图片 */

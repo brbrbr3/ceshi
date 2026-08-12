@@ -10,8 +10,9 @@ function fail(msg, code) { return { code: code || 500, message: msg || 'error', 
 
 /**
  * 支持的 action:
- * - getAllPersonnel: 获取全部已批准用户及其配置
+ * - getAllPersonnel: 获取全部已批准及已注销用户及其配置
  * - updatePersonnel: 更新单个用户的配置
+ * - deactivateUser: 管理员注销用户
  */
 exports.main = async (event, context) => {
   const { action, params } = event
@@ -49,6 +50,7 @@ exports.main = async (event, context) => {
       case 'getAllPersonnel': return await getAllPersonnel()
       case 'updatePersonnel': return await updatePersonnel(params)
       case 'updateBatchReportTo': return await updateBatchReportTo(params)
+      case 'deactivateUser': return await deactivateUser(openid, params)
       default: return fail('未知操作', 400)
     }
   } catch (error) {
@@ -58,11 +60,11 @@ exports.main = async (event, context) => {
 }
 
 /**
- * 获取全部已批准用户及其配置
+ * 获取全部已批准及已注销用户及其配置
  */
 async function getAllPersonnel() {
   const res = await usersCollection
-    .where({ status: 'approved' })
+    .where({ status: _.in(['approved', 'deactivated']) })
     .field({
       _id: true,
       openid: true,
@@ -74,12 +76,17 @@ async function getAllPersonnel() {
       livingArea: true,
       isAreaManager: true,
       reportTo: true,
-      avatarUrl: true
+      avatarUrl: true,
+      status: true
     })
     .limit(200)
     .get()
 
-  return success({ users: res.data || [] })
+  const allUsers = res.data || []
+  return success({
+    users: allUsers.filter(u => u.status === 'approved'),
+    deactivatedUsers: allUsers.filter(u => u.status === 'deactivated')
+  })
 }
 
 /**
@@ -159,4 +166,37 @@ async function updateBatchReportTo(params) {
   }
 
   return success(null, '批量更新成功')
+}
+
+/**
+ * 管理员注销用户
+ * @param {string} operatorOpenid - 操作者 openid
+ * @param {Object} params
+ * @param {string} params.targetOpenid - 要注销的用户 openid
+ */
+async function deactivateUser(operatorOpenid, params) {
+  const { targetOpenid } = params || {}
+  if (!targetOpenid) return fail('缺少目标用户', 400)
+
+  // 不可注销自己
+  if (targetOpenid === operatorOpenid) {
+    return fail('不可注销自己', 400)
+  }
+
+  // 校验目标用户存在且状态为 approved
+  const res = await usersCollection.where({ openid: targetOpenid }).limit(1).get()
+  if (!res.data || !res.data.length) return fail('用户不存在', 404)
+  const target = res.data[0]
+  if (target.status !== 'approved') return fail('该用户当前状态不可注销', 400)
+
+  const now = Date.now()
+  await usersCollection.where({ openid: targetOpenid }).update({
+    data: {
+      status: 'deactivated',
+      deactivatedAt: now,
+      deactivatedBy: operatorOpenid
+    }
+  })
+
+  return success(null, '注销成功')
 }

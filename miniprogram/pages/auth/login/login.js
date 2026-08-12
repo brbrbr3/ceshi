@@ -197,6 +197,20 @@ Page({
       app.checkUserRegistration({ forceRefresh }),
       this.loadBootstrapStatus()
     ]).then(([result]) => {
+      // 已注销用户
+      if (result.authStatus === 'deactivated') {
+        this.setData({
+          statusLoading: false,
+          statusCard: null,
+          showRegisterLink: false,
+          isRegistered: false,
+          isPendingApproval: false,
+          loginTitleText: '您的账号已被管理员注销，如需恢复请联系管理员',
+          loginButtonText: '不可用'
+        })
+        return
+      }
+
       const statusCard = result.registered ?
         buildStatusCard({
           status: 'approved'
@@ -247,6 +261,15 @@ Page({
     if (this.data.statusLoading) {
       utils.showToast({
         title: '正在获取用户状态，请稍候',
+        icon: 'none'
+      })
+      return
+    }
+
+    // 已注销用户禁止登录
+    if (this.data.loginButtonText === '不可用') {
+      utils.showToast({
+        title: '账号已注销，无法登录',
         icon: 'none'
       })
       return

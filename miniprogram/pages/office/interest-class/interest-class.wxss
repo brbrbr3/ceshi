@@ -132,6 +132,33 @@
   color: #94A3B8;
 }
 
+/* ========== 空状态（暂无备案） ========== */
+.ic-empty-state {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  padding: 120rpx 0 80rpx;
+}
+
+.ic-empty-icon {
+  font-size: 96rpx;
+  line-height: 1.2;
+}
+
+.ic-empty-title {
+  font-size: var(--fs-32);
+  color: #1E293B;
+  font-weight: 500;
+  margin-top: 24rpx;
+}
+
+.ic-empty-desc {
+  font-size: var(--fs-26);
+  color: #94A3B8;
+  margin-top: 12rpx;
+}
+
 /* ========== 首次加载动画 ========== */
 .ic-loading {
   display: flex;

@@ -187,6 +187,15 @@
   color: #94A3B8;
 }
 
+.board-group-title.is-collapsible {
+  cursor: pointer;
+  color: #64748B;
+}
+
+.board-item--deactivated {
+  opacity: 0.6;
+}
+
 .board-group-items {
   /* 卡片式布局，容器不做包裹 */
 }

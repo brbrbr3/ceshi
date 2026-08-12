@@ -141,8 +141,6 @@ function getMockResponse(name, data) {
         })
         return { permissions: permissions }
       }
-      case 'initPermissions':
-        return { initialized: true }
       case 'listPermissions':
         return { permissions: [] }
       case 'updatePermission':

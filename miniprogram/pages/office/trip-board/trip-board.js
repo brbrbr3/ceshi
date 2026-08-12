@@ -114,12 +114,36 @@ Page({
 
       if (res.result.code === 0) {
         const data = res.result.data
-        const groups = (data.groups || []).map(g => ({
-          groupName: g.groupName,
-          items: g.items
-            .map(item => this.formatBoardItem(item, this.data.groupBy))
-            .sort((a, b) => this.sortBoardItems(a, b, this.data.groupBy))
-        }))
+        const allDeactivatedItems = []
+
+        // 保持原有分组，但将已注销用户从各组中剔除，收集到一起
+        const groups = (data.groups || []).map(g => {
+          const deactivated = []
+          const approved = []
+          g.items.forEach(item => {
+            const formatted = this.formatBoardItem(item, this.data.groupBy)
+            if (item._user && item._user.status === 'deactivated') {
+              deactivated.push(formatted)
+            } else {
+              approved.push(formatted)
+            }
+          })
+          allDeactivatedItems.push(...deactivated)
+          return {
+            groupName: g.groupName,
+            items: approved.sort((a, b) => this.sortBoardItems(a, b, this.data.groupBy))
+          }
+        })
+
+        // 追加已注销用户分组（最末，默认折叠）
+        if (allDeactivatedItems.length > 0) {
+          allDeactivatedItems.sort((a, b) => (a.userName || '').localeCompare(b.userName || '', 'zh'))
+          groups.push({
+            groupName: '▶ 已注销用户',
+            items: allDeactivatedItems,
+            collapsed: true
+          })
+        }
 
         this.setData({
           groups,
@@ -157,6 +181,23 @@ Page({
     const livingArea = (item._user && item._user.livingArea) || ''
     const user = item._user || {}
     const hasTrip = item.status !== 'none'
+    const isDeactivated = user.status === 'deactivated'
+
+    // 已注销用户直接返回灰色标记
+    if (isDeactivated) {
+      return {
+        ...item,
+        avatarText,
+        avatarColor: utils.getAvatarColor(item.userName),
+        statusText: '已注销',
+        statusColor: '#94A3B8',
+        statusBg: '#F1F5F9',
+        departTimeStr: '',
+        livingArea,
+        hasTrip: false,
+        showStatus: true
+      }
+    }
 
     let roleLabel = ''
     let statusText, statusColor, statusBg
@@ -454,6 +495,20 @@ Page({
   },
 
   stopPropagation() {},
+
+  /**
+   * 切换已注销用户分组的折叠状态
+   */
+  handleToggleDeactivatedGroup() {
+    const groups = this.data.groups.map(g => {
+      if (g.collapsed) {
+        g.collapsed = !g.collapsed
+        g.groupName = g.collapsed ? '▶ 已注销用户' : '▼ 已注销用户'
+      }
+      return g
+    })
+    this.setData({ groups })
+  },
 
   /**
    * 根据用户报备配置计算可查看范围文案（初始兜底，loadBoardData 返回后用云函数值覆盖）
