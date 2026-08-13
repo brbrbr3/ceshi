@@ -189,7 +189,7 @@ function getMockResponse(name, data) {
 
   // ===== generateOrderPdf =====
   if (name === 'generateOrderPdf') {
-    return { fileID: '' }
+    return { fileUrl: '', fileName: '' }
   }
 
   // ===== contentFormManager（信息发布系统）=====
@@ -203,6 +203,19 @@ function getMockResponse(name, data) {
         return { form: null, list: [], total: 0 }
       case 'getStats':
         return { title: '', tag: '', total: 0, blocks: [], submissions: [] }
+      default:
+        return {}
+    }
+  }
+
+  // ===== haircutManager（理发预约）=====
+  if (name === 'haircutManager') {
+    switch (action) {
+      case 'getReservationSlots':
+        return { slotsByDate: {} }
+      case 'getAppointments':
+      case 'getMyAppointments':
+        return { list: [], total: 0, hasMore: false }
       default:
         return {}
     }

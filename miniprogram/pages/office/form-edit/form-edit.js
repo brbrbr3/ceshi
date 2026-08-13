@@ -85,6 +85,7 @@ Page({
     blockTypeList: BLOCK_TYPE_LIST,
     blocks: [],
     deadline: '',
+    deadlineTs: null,
     minDate: '',
     showDeadline: false,
     targetRoles: [],
@@ -179,7 +180,8 @@ Page({
         description: form.description || '',
         tag: form.tag || 'announcement',
         blocks,
-        deadline: form.deadline ? utils.formatDate(form.deadline) : '',
+        deadline: form.deadline ? utils.formatDateTime(form.deadline) : '',
+        deadlineTs: form.deadline || null,
         showDeadline: !!form.deadline,
         targetRoles: form.targetRoles || [],
         targetRoleOptions: this.syncTargetRoleOptions(form.targetRoles || []),
@@ -228,6 +230,7 @@ Page({
         tag: draft.tag || 'announcement',
         blocks,
         deadline: draft.deadline || '',
+        deadlineTs: draft.deadlineTs || null,
         showDeadline: !!draft.deadline,
         targetRoles: draft.targetRoles || [],
         targetRoleOptions: this.syncTargetRoleOptions(draft.targetRoles || []),
@@ -376,9 +379,8 @@ Page({
     this.setData({ 'editingBlock.title': e.detail.value })
   },
 
-  onBlockRequiredToggle(e) {
-    const val = e.detail.value
-    this.setData({ 'editingBlock.required': !!val })
+  onBlockRequiredToggle() {
+    this.setData({ 'editingBlock.required': !this.data.editingBlock.required })
   },
 
   onOptionInput(e) {
@@ -498,12 +500,17 @@ Page({
   handleToggleDeadline() {
     this.setData({ showDeadline: !this.data.showDeadline })
     if (!this.data.showDeadline) {
-      this.setData({ deadline: '' })
+      this.setData({ deadline: '', deadlineTs: null })
     }
   },
 
   onDeadlineChange(e) {
-    this.setData({ deadline: e.detail.value })
+    const detail = e.detail || {}
+    let deadlineTs = null
+    if (detail.year && detail.month) {
+      deadlineTs = new Date(detail.year, detail.month - 1, detail.day, detail.hour || 0, detail.minute || 0, 0).getTime()
+    }
+    this.setData({ deadline: detail.value || '', deadlineTs })
   },
 
   // ===== 目标角色 =====
@@ -538,14 +545,14 @@ Page({
     }))
   },
 
-  onTargetOnlyVisibleChange(e) {
-    this.setData({ isTargetOnlyVisible: e.detail.value })
+  onTargetOnlyVisibleToggle() {
+    this.setData({ isTargetOnlyVisible: !this.data.isTargetOnlyVisible })
   },
 
   // ===== 匿名填写 / 填写次数 =====
 
-  onAnonymousChange(e) {
-    this.setData({ isAnonymous: !!e.detail.value })
+  onAnonymousToggle() {
+    this.setData({ isAnonymous: !this.data.isAnonymous })
   },
 
   onMaxSubmissionsMinus() {
@@ -565,7 +572,7 @@ Page({
    */
   buildFormData() {
     const title = this.data.title.trim()
-    const deadline = this.data.deadline ? utils.parseLocalDate(this.data.deadline).getTime() : null
+    const deadline = this.data.deadlineTs || null
     const blocks = this.data.blocks.map(stripBlock)
     return {
       title,
@@ -588,6 +595,7 @@ Page({
 
     const draft = this.buildFormData()
     draft.deadline = this.data.deadline // 暂存时保留字符串，便于恢复
+    draft.deadlineTs = this.data.deadlineTs
 
     try {
       wx.setStorageSync(DRAFT_KEY, draft)

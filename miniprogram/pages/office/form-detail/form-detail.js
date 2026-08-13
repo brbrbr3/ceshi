@@ -19,6 +19,7 @@ Page({
     hasFillableBlocks: false,
     isAnonymous: false,
     maxSubmissions: 1,
+    canSubmit: true,
     readonly: false,
     submitting: false
   },
@@ -48,7 +49,7 @@ Page({
       if (result.code !== 0) {
         throw new Error(result.message || '加载失败')
       }
-      const { form, mySubmission, isCreator, canPublish } = result.data
+      const { form, mySubmission, isCreator, canPublish, canSubmit } = result.data
       const tagCfg = getTagConfig(form.tag)
       const blocks = this.prepareBlocks(form.blocks || [], mySubmission)
       const hasFillableBlocks = blocks.some(b => ['radio', 'checkbox', 'judge', 'textarea', 'side_dish', 'activity'].includes(b.type))
@@ -68,7 +69,8 @@ Page({
         hasFillableBlocks,
         isAnonymous: !!form.isAnonymous,
         maxSubmissions: form.maxSubmissions || 1,
-        readonly: form.isClosed
+        canSubmit: canSubmit !== false,
+        readonly: form.isClosed || canSubmit === false
       })
     }).catch(err => {
       wx.hideLoading()
@@ -87,8 +89,18 @@ Page({
       mySubmission.answers.forEach(a => { answerMap[a.blockId] = a.value })
     }
 
+    const FILLABLE_TYPES = ['radio', 'checkbox', 'judge', 'textarea', 'side_dish', 'activity']
+    let fillCounter = 0
+
     return (rawBlocks || []).map(b => {
       const block = { ...b }
+      // 连续编号：仅填写类控件编号，text 说明块不编号（分节用）
+      if (FILLABLE_TYPES.includes(b.type)) {
+        fillCounter += 1
+        block.fillIndex = fillCounter
+      } else {
+        block.fillIndex = null
+      }
       if (b.type === 'activity' && !Array.isArray(b.groups)) {
         block.groups = []
       }
@@ -312,6 +324,38 @@ Page({
   goSubmissions() {
     wx.navigateTo({
       url: `/pages/office/form-submissions/form-submissions?id=${this.data.formId}`
+    })
+  },
+
+  /**
+   * 删除信息（仅创建者）
+   */
+  handleDelete() {
+    wx.showModal({
+      title: '删除信息',
+      content: '删除后不可恢复，该信息的所有填报记录也将一并删除。确定删除吗？',
+      confirmText: '删除',
+      confirmColor: '#DC2626',
+      success: (res) => {
+        if (!res.confirm) return
+        wx.showLoading({ title: '删除中...', mask: true })
+        wx.cloud.callFunction({
+          name: 'contentFormManager',
+          data: { action: 'delete', params: { formId: this.data.formId } }
+        }).then(res => {
+          wx.hideLoading()
+          const result = res.result || {}
+          if (result.code !== 0) {
+            throw new Error(result.message || '删除失败')
+          }
+          utils.showToast({ title: '已删除', icon: 'success' })
+          setTimeout(() => wx.navigateBack(), 600)
+        }).catch(err => {
+          wx.hideLoading()
+          console.error('删除失败:', err)
+          utils.showToast({ title: err.message || '删除失败', icon: 'none' })
+        })
+      }
     })
   }
 })

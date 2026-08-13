@@ -5,8 +5,11 @@ Page({
   data: {
     formId: '',
     title: '',
+    tag: '',
     list: [],
-    loading: true
+    loading: true,
+    exporting: false,
+    allExpanded: false
   },
 
   onLoad(options) {
@@ -39,6 +42,7 @@ Page({
       const list = (result.data.list || []).map(s => this.formatSubmission(s, blocks))
       this.setData({
         title: form.title || '',
+        tag: form.tag || '',
         list,
         loading: false
       })
@@ -54,10 +58,11 @@ Page({
    * 格式化单条提交记录
    */
   formatSubmission(s, blocks) {
-    const answerDetails = (s.answers || []).map(a => {
+    const answerDetails = (s.answers || []).map((a, idx) => {
       const block = blocks.find(b => b.id === a.blockId)
       return {
         blockId: a.blockId,
+        index: idx + 1,
         title: block ? block.title : a.blockId,
         type: a.type,
         valueText: this.formatValue(a.type, a.value)
@@ -96,6 +101,65 @@ Page({
     if (!item) return
     this.setData({
       [`list[${index}].expanded`]: !item.expanded
+    })
+  },
+
+  /**
+   * 全部展开 / 全部收起
+   */
+  handleToggleAll() {
+    const allExpanded = !this.data.allExpanded
+    const list = this.data.list.map(item => ({ ...item, expanded: allExpanded }))
+    this.setData({ list, allExpanded })
+  },
+
+  /**
+   * 导出副食订购清单 PDF
+   */
+  handleExportPdf() {
+    if (this.data.exporting) return
+    if (!this.data.formId) return
+
+    this.setData({ exporting: true })
+    wx.showLoading({ title: '生成PDF...', mask: true })
+
+    wx.cloud.callFunction({
+      name: 'generateOrderPdf',
+      data: { type: 'contentFormSideDish', formId: this.data.formId }
+    }).then(async res => {
+      wx.hideLoading()
+      const result = res.result || {}
+      if (result.code !== 0) {
+        throw new Error(result.message || '生成失败')
+      }
+      const { fileUrl, fileName } = result.data || {}
+      if (!fileUrl) {
+        throw new Error('导出地址为空')
+      }
+
+      // 下载并打开 PDF
+      wx.showLoading({ title: '正在打开...', mask: true })
+      const downloadResult = await new Promise((resolve, reject) => {
+        wx.downloadFile({ url: fileUrl, success: resolve, fail: reject })
+      })
+      wx.hideLoading()
+
+      if (downloadResult.statusCode === 200) {
+        wx.openDocument({
+          filePath: downloadResult.tempFilePath,
+          fileType: 'pdf',
+          showMenu: true,
+          fail: () => utils.showToast({ title: '打开文件失败', icon: 'none' })
+        })
+      } else {
+        utils.showToast({ title: '下载文件失败', icon: 'none' })
+      }
+    }).catch(err => {
+      wx.hideLoading()
+      console.error('导出PDF失败:', err)
+      utils.showToast({ title: err.message || '导出失败', icon: 'none' })
+    }).finally(() => {
+      this.setData({ exporting: false })
     })
   }
 })

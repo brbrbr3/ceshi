@@ -12,7 +12,7 @@ const db = cloud.database()
 // 中文字体配置
 const FONT_DIR = '/tmp/fonts'
 const FONT_FILE = path.join(FONT_DIR, 'SourceHanSansSC-Regular.otf')
-const FONT_FILE_ID = 'cloud://cloud1-8gdftlggae64d5d0.636c-cloud1-8gdftlggae64d5d0-1390912780/fonts/SourceHanSansSC-Regular.otf'
+const FONT_FILE_ID = 'cloud://cloud1-d2gyip4xi1fcf54bd.636c-cloud1-d2gyip4xi1fcf54bd-1390912780/fonts/SourceHanSansSC-Regular.otf'
 
 /**
  * 确保字体文件已下载到本地（/tmp 缓存，同一实例只下载一次）
@@ -579,6 +579,227 @@ async function generateSideDishBookingPdf(orderId) {
   })
 }
 
+/**
+ * 信息发布系统 - 副食订购汇总清单 PDF 导出
+ * 接收 formId（content_forms._id），从 blocks 中取 side_dish 块及 categories，
+ * 从 content_form_submissions 的 answers 中汇总每人预订份数，生成表格 PDF。
+ */
+async function generateContentFormSideDishPdf(formId) {
+  // 1. 查询表单
+  const formRes = await db.collection('content_forms').doc(formId).get()
+  if (!formRes.data) {
+    throw new Error('表单不存在')
+  }
+  const form = formRes.data
+
+  // 取副食控件（多个时取第一个）
+  const sideDishBlock = (form.blocks || []).find(b => b.type === 'side_dish')
+  if (!sideDishBlock) {
+    throw new Error('该表单不含副食控件')
+  }
+  const categories = sideDishBlock.categories || []
+  const blockId = sideDishBlock.id
+
+  // 2. 查询提交记录
+  const subsRes = await db.collection('content_form_submissions')
+    .where({ formId })
+    .orderBy('submittedAt', 'asc')
+    .limit(1000)
+    .get()
+  const submissions = subsRes.data || []
+
+  // 提取每人的副食预订
+  const bookings = submissions.map(s => {
+    const answer = (s.answers || []).find(a => a.blockId === blockId)
+    const items = (answer && Array.isArray(answer.value)) ? answer.value : []
+    const count = items.reduce((sum, i) => sum + (Number(i.count) || 0), 0)
+    return { name: s.userName || '匿名', items, count, createdAt: s.submittedAt }
+  }).filter(b => b.items.length > 0)
+
+  const totalCount = bookings.reduce((sum, b) => sum + b.count, 0)
+
+  // 按类别汇总
+  const categorySummaries = categories.map(cat => {
+    let catCount = 0
+    bookings.forEach(b => {
+      const item = b.items.find(i => i.categoryId === cat.id)
+      if (item) catCount += Number(item.count) || 0
+    })
+    return { categoryId: cat.id, categoryName: cat.name, count: catCount, maxCount: cat.maxCount }
+  })
+
+  // 3. 读取时区配置
+  const timezoneOffset = await getTimezoneOffset()
+
+  // 4. 生成 PDF
+  const fontPath = await ensureFont()
+
+  const pdfDoc = new PDFDocument({
+    size: 'A4',
+    margins: { top: 50, bottom: 50, left: 50, right: 50 }
+  })
+  pdfDoc.registerFont('ChineseFont', fontPath)
+
+  const buffers = []
+  pdfDoc.on('data', buffers.push.bind(buffers))
+
+  return new Promise((resolve, reject) => {
+    pdfDoc.on('end', async () => {
+      try {
+        const pdfBuffer = Buffer.concat(buffers)
+        const fileName = `副食订购清单_${form.title}_${Date.now()}.pdf`
+        const uploadResult = await cloud.uploadFile({
+          cloudPath: `content_form_pdfs/${fileName}`,
+          fileContent: pdfBuffer
+        })
+        const tempUrl = await cloud.getTempFileURL({
+          fileList: [uploadResult.fileID]
+        })
+        resolve({
+          code: 0,
+          message: 'ok',
+          data: {
+            fileUrl: tempUrl.fileList[0].tempFileURL,
+            fileName: `副食订购清单_${form.title}.pdf`
+          }
+        })
+      } catch (err) {
+        reject(new Error('PDF上传失败: ' + err.message))
+      }
+    })
+
+    pdfDoc.on('error', (err) => {
+      reject(new Error('PDF生成失败: ' + err.message))
+    })
+
+    // ===== 标题 =====
+    pdfDoc.fontSize(22).font('ChineseFont').text('副食订购清单', { align: 'center' })
+    pdfDoc.moveDown(0.8)
+
+    pdfDoc.moveTo(50, pdfDoc.y).lineTo(545, pdfDoc.y).stroke('#2563EB')
+    pdfDoc.moveDown(0.8)
+
+    // ===== 基本信息 =====
+    pdfDoc.fontSize(13).font('ChineseFont')
+    pdfDoc.text(`标题：`, 50, undefined, { continued: true }).text(form.title)
+    pdfDoc.text(`发布者：`, 50, undefined, { continued: true }).text(form.createdByName || '-')
+    if (form.deadline) {
+      pdfDoc.text(`截止时间：`, 50, undefined, { continued: true })
+        .text(formatLocalTime(new Date(form.deadline), timezoneOffset))
+    }
+    pdfDoc.text(`副食类别：`, 50, undefined, { continued: true })
+    if (categories.length > 0) {
+      pdfDoc.text(categories.map(c => `${c.name}（上限${c.maxCount}份/人）`).join('、'))
+    } else {
+      pdfDoc.text('-')
+    }
+    pdfDoc.moveDown(0.6)
+
+    // ===== 统计信息 =====
+    pdfDoc.fontSize(12).fillColor('#2563EB')
+      .text(`预订总人数：${bookings.length} 人    预订总份数：${totalCount} 份`, { align: 'center' })
+    pdfDoc.fillColor('#000000')
+    pdfDoc.moveDown(0.5)
+
+    if (categorySummaries.length > 0) {
+      pdfDoc.fontSize(11).fillColor('#475569')
+      const catSummaryText = categorySummaries.map(c => `${c.categoryName}：${c.count} 份`).join('    ')
+      pdfDoc.text(catSummaryText, { align: 'center' })
+      pdfDoc.fillColor('#000000')
+    }
+    pdfDoc.moveDown(0.8)
+
+    // ===== 明细表格 =====
+    if (categories.length > 0) {
+      // 有类别模式：序号 | 姓名 | 各类别份数 | 合计 | 提交时间
+      const catColCount = categories.length
+      const fixedWidth = 50 + 80 + 50 + 80
+      const remainingWidth = 495 - fixedWidth
+      const catColWidth = Math.max(50, Math.floor(remainingWidth / catColCount))
+
+      const colX = [50]
+      let xPos = 50
+      xPos += 50
+      colX.push(xPos)
+      xPos += 80
+      for (let i = 0; i < catColCount; i++) {
+        colX.push(xPos)
+        xPos += catColWidth
+      }
+      colX.push(xPos)
+      xPos += 50
+      colX.push(xPos)
+
+      const tableTop = pdfDoc.y
+      pdfDoc.rect(50, tableTop, 495, 28).fill('#EEF2FF')
+      pdfDoc.fillColor('#1E293B').fontSize(9).font('ChineseFont')
+
+      pdfDoc.text('序号', colX[0], tableTop + 8, { width: 50, align: 'center' })
+      pdfDoc.text('姓名', colX[1], tableTop + 8, { width: 80, align: 'center' })
+      categories.forEach((cat, ci) => {
+        pdfDoc.text(cat.name, colX[2 + ci], tableTop + 8, { width: catColWidth, align: 'center' })
+      })
+      pdfDoc.text('合计', colX[2 + catColCount], tableTop + 8, { width: 50, align: 'center' })
+      pdfDoc.text('提交时间', colX[2 + catColCount + 1], tableTop + 8, { width: 80, align: 'center' })
+
+      pdfDoc.fillColor('#000000')
+      let rowY = tableTop + 28
+
+      bookings.forEach((b, idx) => {
+        if (rowY > 750) {
+          pdfDoc.addPage()
+          rowY = 50
+        }
+        if (idx % 2 === 0) {
+          pdfDoc.rect(50, rowY, 495, 26).fill('#FAFAFA')
+        }
+        pdfDoc.rect(50, rowY, 495, 26).stroke('#EEEEEE')
+
+        const timeStr = b.createdAt
+          ? formatLocalTime(new Date(b.createdAt), timezoneOffset).split(' ')[0]
+          : '-'
+
+        pdfDoc.fontSize(9).font('ChineseFont').fillColor('#334155')
+        pdfDoc.text(String(idx + 1), colX[0], rowY + 8, { width: 50, align: 'center' })
+        pdfDoc.text(b.name || '-', colX[1], rowY + 8, { width: 80, align: 'center' })
+
+        categories.forEach((cat, ci) => {
+          let catCount = 0
+          const item = b.items.find(i => i.categoryId === cat.id)
+          if (item) catCount = Number(item.count) || 0
+          pdfDoc.text(String(catCount), colX[2 + ci], rowY + 8, { width: catColWidth, align: 'center' })
+        })
+
+        pdfDoc.text(String(b.count), colX[2 + catColCount], rowY + 8, { width: 50, align: 'center' })
+        pdfDoc.text(timeStr, colX[2 + catColCount + 1], rowY + 8, { width: 80, align: 'center' })
+
+        rowY += 26
+      })
+
+      if (bookings.length === 0) {
+        pdfDoc.fontSize(12).fillColor('#94A3B8')
+          .text('暂无预订记录', 50, rowY + 20, { align: 'center' })
+        pdfDoc.fillColor('#000000')
+      } else {
+        rowY += 20
+      }
+
+      pdfDoc.moveDown(0.6)
+      pdfDoc.moveTo(50, Math.min(rowY, 780)).lineTo(545, Math.min(rowY, 780)).stroke('#DDDDDD')
+      pdfDoc.fontSize(9).fillColor('#999999')
+        .text(`生成时间：${formatLocalTime(new Date(), timezoneOffset)}`, 50, undefined, { width: 495, align: 'center' })
+      pdfDoc.fillColor('#000000')
+    } else {
+      // 无类别兜底（理论上副食控件必有类别）
+      pdfDoc.fontSize(12).fillColor('#94A3B8')
+        .text('该表单未配置副食类别', { align: 'center' })
+      pdfDoc.fillColor('#000000')
+    }
+
+    pdfDoc.end()
+  })
+}
+
 function fail(message, code) {
   return {
     code: code || 500,
@@ -595,9 +816,9 @@ exports.main = async (event) => {
     return fail('获取微信身份失败，请稍后重试', 401)
   }
 
-  const { orderId, type } = event || {}
+  const { orderId, type, formId } = event || {}
 
-  // 副食预订清单导出
+  // 副食预订清单导出（旧副食系统）
   if (type === 'sideDishBookings') {
     if (!orderId) {
       return fail('缺少 orderId 参数', 400)
@@ -606,6 +827,18 @@ exports.main = async (event) => {
       return await generateSideDishBookingPdf(orderId)
     } catch (error) {
       return fail(error.message || '生成预订清单失败', 500)
+    }
+  }
+
+  // 信息发布系统 - 副食订购清单导出
+  if (type === 'contentFormSideDish') {
+    if (!formId) {
+      return fail('缺少 formId 参数', 400)
+    }
+    try {
+      return await generateContentFormSideDishPdf(formId)
+    } catch (error) {
+      return fail(error.message || '生成副食清单失败', 500)
     }
   }
 

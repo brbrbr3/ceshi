@@ -1,4 +1,6 @@
 {
   "navigationBarTitleText": "发布信息",
-  "usingComponents": {}
+  "usingComponents": {
+    "datetime-picker": "/components/datetime-picker/datetime-picker"
+  }
 }

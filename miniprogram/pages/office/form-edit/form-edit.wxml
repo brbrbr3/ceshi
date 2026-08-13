@@ -133,16 +133,19 @@
         </view>
       </view>
       <view wx:if="{{showDeadline}}" class="fe-extra-area">
-        <picker mode="date" value="{{deadline}}" start="{{minDate}}" bindchange="onDeadlineChange">
-          <view class="fe-picker">{{deadline || '请选择截止日期'}}</view>
-        </picker>
+        <datetime-picker
+          value="{{deadline}}"
+          fields="{{['year', 'month', 'day', 'hour', 'minute']}}"
+          placeholder="请选择截止时间"
+          bind:change="onDeadlineChange"
+        />
       </view>
     </view>
 
     <!-- 目标角色 -->
     <view class="office-card form-edit-card">
       <view class="fe-switch-row" bindtap="handleToggleTargetRole">
-        <view class="fe-label" style="margin: 0;">限定可见角色</view>
+        <view class="fe-label" style="margin: 0;">限定可填报用户</view>
         <view class="fe-switch {{showTargetRole ? 'is-on' : ''}}">
           <view class="fe-switch-dot"></view>
         </view>
@@ -158,8 +161,10 @@
           >{{item.value}}</view>
         </view>
         <view class="fe-check-row">
-          <switch checked="{{isTargetOnlyVisible}}" color="#2563EB" bindchange="onTargetOnlyVisibleChange" />
-          <text>仅对以上角色可见</text>
+          <text class="fe-label" style="margin: 0;">该信息仅对以上选中角色可见</text>
+          <view class="fe-switch {{isTargetOnlyVisible ? 'is-on' : ''}}" bindtap="onTargetOnlyVisibleToggle">
+            <view class="fe-switch-dot"></view>
+          </view>
         </view>
       </view>
     </view>
@@ -168,7 +173,9 @@
     <view class="office-card form-edit-card" wx:if="{{tag === 'questionnaire'}}">
       <view class="fe-switch-row">
         <view class="fe-label" style="margin: 0;">匿名填写</view>
-        <switch checked="{{isAnonymous}}" color="#2563EB" bindchange="onAnonymousChange" />
+        <view class="fe-switch {{isAnonymous ? 'is-on' : ''}}" bindtap="onAnonymousToggle">
+          <view class="fe-switch-dot"></view>
+        </view>
       </view>
       <view class="fe-hint">开启后，提交者姓名将以「匿名」展示，不显示真实身份</view>
     </view>
@@ -223,7 +230,9 @@
           <view class="fe-modal-label">是否必填</view>
           <view class="fe-switch-row">
             <text class="fe-switch-hint">{{editingBlock.required ? '必填' : '选填'}}</text>
-            <switch checked="{{editingBlock.required}}" color="#2563EB" bindchange="onBlockRequiredToggle" />
+            <view class="fe-switch {{editingBlock.required ? 'is-on' : ''}}" bindtap="onBlockRequiredToggle">
+              <view class="fe-switch-dot"></view>
+            </view>
           </view>
         </view>
 

@@ -87,6 +87,17 @@ function isCreator(form, openid) {
 }
 
 /**
+ * 判断用户是否可填报（targetRoles 限定填报角色，管理员豁免）
+ */
+function canSubmitForm(form, user) {
+  if (!form) return false
+  const targetRoles = Array.isArray(form.targetRoles) ? form.targetRoles : []
+  if (targetRoles.length === 0) return true
+  if (user && user.isAdmin) return true
+  return targetRoles.includes(user ? user.role : '')
+}
+
+/**
  * 生成短随机 id
  */
 function genId(prefix) {
@@ -535,7 +546,8 @@ async function getForm(openid, user, params) {
       },
       mySubmission,
       isCreator: isCreator(form, openid),
-      canPublish: canPublish(user)
+      canPublish: canPublish(user),
+      canSubmit: canSubmitForm(form, user)
     })
   } catch (error) {
     console.error('获取表单详情失败:', error)
@@ -646,6 +658,11 @@ async function submitForm(openid, user, params) {
     }
     if (form.deadline && form.deadline < Date.now()) {
       return fail('该信息已截止', 400)
+    }
+
+    // 目标角色校验：仅 targetRoles 中的角色可填报（管理员豁免）
+    if (!canSubmitForm(form, user)) {
+      return fail('仅限指定角色填报', 403)
     }
 
     const blocks = form.blocks || []

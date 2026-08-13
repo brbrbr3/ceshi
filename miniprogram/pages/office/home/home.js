@@ -1,6 +1,8 @@
 const app = getApp()
 const utils = require('../../../common/utils.js')
-const { getTagConfig } = require('../../../common/form-constants.js')
+const {
+  getTagConfig
+} = require('../../../common/form-constants.js')
 // home 页面弹窗使用 CSS transition 模式，已有退出动画，无需 modalAnimation
 // 使用统一的时间格式化函数
 const formatTime = (timestamp) => utils.formatRelativeTime(timestamp)
@@ -167,20 +169,21 @@ Page({
     })
     //this.loadBgImage()
     this.syncUserProfile() //同步用户资料
+    this.loadPermissionCache() //加载权限缓存
     this.checkInterestClassReminder() // 每月兴趣班备案更新提示
     this.syncNotifications() //同步消息推送
-    // 刷新微信侧订阅状态到本地缓存（供 handleQuickAction tap 时同步读取）
-    app.syncSubStatus()
+    app.syncSubStatus()// 刷新微信侧订阅状态到本地缓存（供 handleQuickAction tap 时同步读取）
     this.loadContentForms() //加载信息发布
     //this.loadAnnouncements() //加载通知公告
     //this.loadArticles() //加载学习园地
     //this.loadActivities() //加载群团活动
-    this.loadPermissionCache() //加载权限缓存
     this.loadHolidayConfig() //加载节假日配置
     //this.loadTodaySchedules() // 加载今日日程
     this.loadActiveTrip() // 加载外出状态
-    app.updateCacheVersionAndShowWhatsNew() //更新缓存版本号，展示更新说明弹窗
-    //this.loadSignature()
+    if (!app.globalData.isReviewer) {
+      app.updateCacheVersionAndShowWhatsNew()//更新缓存版本号，展示更新说明弹窗
+    } 
+    //this.loadSignature()//加载用户签名
   },
 
   /**
@@ -689,7 +692,9 @@ Page({
     const cached = wx.getStorageSync(cacheKey)
     if (cached && cached.date === today && cached.holidayDates) {
       const todayType = this.getTodayType(cached.holidayDates)
-      this.setData({ todayTypeText: todayType })
+      this.setData({
+        todayTypeText: todayType
+      })
       return
     }
 

@@ -239,14 +239,18 @@ Page({
 
           // 检查该日期是否已锁定（招待员不受限制）
           const isDayLocked = this.isDateLocked(calcDate.date) && !this.data.isReceptionist
+          // 仅"该日已过去"才置为 isDisabled（灰掉、不可选）；过了14:20的当天不灰掉，仅锁定预约
+          const isPastDate = calcDate.date < todayStr
 
           displayDates.push({
             ...calcDate,
             isHoliday: false,
             isToday: calcDate.date === todayStr,
-            isDisabled: isDayLocked,
+            isDisabled: isPastDate,
             isDayLocked,
-            disableReason: isDayLocked ? (calcDate.date === todayStr ? '今日时段已锁定，请联系招待员' : '该日时段已锁定，请联系招待员') : '',
+            disableReason: isPastDate
+              ? '该日已过去'
+              : (isDayLocked ? (calcDate.date === todayStr ? '今日时段已锁定，请联系招待员' : '该日时段已锁定，请联系招待员') : ''),
             reservationCount: 0 // 待后续填充
           })
         }
@@ -498,7 +502,7 @@ Page({
       })
 
       if (res.result.code === 0) {
-        const bookedData = res.result.data.slotsByDate[dateInfo.date] || []
+        const bookedData = ((res.result.data && res.result.data.slotsByDate) || {})[dateInfo.date] || []
 
         // 构建时段列表
         const slots = TIME_SLOTS.map(slot => {
@@ -511,8 +515,16 @@ Page({
             bookingInfo.bookerId === this.data.userOpenId
 
           // 确定时段状态
+          // 日期已锁定（今天过了14:20）或已过去时，未预约的时段不再显示"可预约"
+          const isDateUnbookable = !!(dateInfo && (dateInfo.isDayLocked || dateInfo.isDisabled))
+
           let slotStatus = 'available' // 默认可预约
           let statusLabel = '可预约'
+
+          if (isDateUnbookable) {
+            slotStatus = 'unavailable'
+            statusLabel = '不可预约'
+          }
 
           if (bookingInfo) {
             if (bookingInfo.status === 'unavailable') {

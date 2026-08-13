@@ -9,7 +9,8 @@ Page({
   data: {
     activeTag: 'all',
     tagTabs: [{ key: 'all', label: '全部' }].concat(TAG_LIST.map(t => ({ key: t.key, label: t.icon + t.label }))),
-    canPublish: false
+    canPublish: false,
+    isReviewer: false
   },
 
   onLoad() {
@@ -39,7 +40,10 @@ Page({
       if (!result.registered || !result.user) return
       const user = result.user
       const canPublish = !!user.isAdmin || user.role === '馆员'
-      this.setData({ canPublish })
+      this.setData({ 
+        canPublish,
+        isReviewer: user.isReviewer
+      })
     }).catch(() => {})
   },
 
@@ -75,6 +79,7 @@ Page({
       tagColor: tagCfg.color,
       tagBg: tagCfg.bg,
       timeText: utils.formatRelativeTime(item.publishedAt || item.createdAt),
+      deadlineText: item.deadline ? utils.formatDateTime(item.deadline) : '',
       statusText: item.isClosed ? '已截止' : '进行中',
       isUnread: !item.isRead
     }

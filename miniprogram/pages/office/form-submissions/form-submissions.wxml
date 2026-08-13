@@ -1,7 +1,12 @@
 <view class="office-page form-submissions-page" style="{{fontStyle}}">
   <view class="office-gradient-header form-submissions-header">
-    <view class="form-submissions-title">{{title || '提交明细'}}</view>
-    <view class="form-submissions-total">共 {{list.length}} 人提交</view>
+    <view class="form-submissions-header-row">
+      <view class="form-submissions-header-left">
+        <view class="form-submissions-title">{{title || '提交明细'}}</view>
+        <view class="form-submissions-total">共 {{list.length}} 人提交</view>
+      </view>
+      <view wx:if="{{tag === 'side_dish'}}" class="form-submissions-export {{exporting ? 'is-disabled' : ''}}" bindtap="handleExportPdf">导出PDF</view>
+    </view>
   </view>
 
   <view class="office-content form-submissions-content">
@@ -23,7 +28,7 @@
 
       <view wx:if="{{item.expanded}}" class="fs-answers">
         <view wx:for="{{item.answerDetails}}" wx:for-item="ans" wx:key="blockId" class="fs-answer-row">
-          <view class="fs-answer-title">{{ans.title}}</view>
+          <view class="fs-answer-title">{{ans.index}}. {{ans.title}}</view>
           <view class="fs-answer-value">{{ans.valueText}}</view>
         </view>
         <view wx:if="{{item.answerDetails.length === 0}}" class="fs-answer-empty">（无作答内容）</view>
@@ -31,5 +36,10 @@
     </view>
 
     <view wx:if="{{!loading && list.length === 0}}" class="form-submissions-empty">暂无提交记录</view>
+  </view>
+
+  <!-- 全部展开 / 收起（悬浮固定于底部） -->
+  <view wx:if="{{!loading && list.length > 0}}" class="fs-toggle-all" bindtap="handleToggleAll">
+    {{allExpanded ? '全部收起' : '全部展开'}}
   </view>
 </view>

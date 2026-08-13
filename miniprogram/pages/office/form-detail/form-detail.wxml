@@ -9,8 +9,13 @@
   </view>
 
   <view class="office-content form-detail-content">
+    <!-- 无权填报提示 -->
+    <view wx:if="{{!canSubmit && !isClosed}}" class="form-detail-submitted-tip is-denied">
+      <text>🔒 该信息仅限指定角色填报，你无权填写</text>
+    </view>
+
     <!-- 匿名填写提示 -->
-    <view wx:if="{{!mySubmission && isAnonymous && !isClosed}}" class="form-detail-submitted-tip">
+    <view wx:if="{{!mySubmission && isAnonymous && !isClosed && canSubmit}}" class="form-detail-submitted-tip">
       <text>🔒 本问卷为匿名填写，提交后不显示真实姓名</text>
     </view>
 
@@ -28,120 +33,120 @@
     </view>
 
     <!-- 控件区 -->
-    <view
-      wx:for="{{blocks}}"
-      wx:for-item="bk"
-      wx:key="id"
-      class="office-card form-detail-card"
-    >
-      <view class="fd-block-head">
-        <view class="fd-block-index">{{index + 1}}</view>
-        <view class="fd-block-title">
-          {{bk.title}}
-          <text wx:if="{{bk.required}}" class="fd-required">*</text>
-        </view>
+    <block wx:for="{{blocks}}" wx:for-item="bk" wx:key="id">
+      <!-- text：分节标题（左侧竖条 + 加粗标题，不编号、不套卡片） -->
+      <view wx:if="{{bk.type === 'text'}}" class="fd-section-block">
+        <view class="fd-section-bar"></view>
+        <view class="fd-section-title">{{bk.title}}</view>
       </view>
 
-      <block wx:if="{{bk.type === 'text'}}">
-        <!-- <view class="fd-text-block">{{bk.title}}</view> -->
-      </block>
-
-      <!-- 单选 / 判断：始终渲染选项 -->
-      <block wx:elif="{{bk.type === 'radio' || bk.type === 'judge'}}">
-        <view class="fd-options">
-          <view
-            wx:for="{{bk.options}}"
-            wx:for-item="opt"
-            wx:key="*this"
-            class="fd-option {{readonly ? '' : 'fd-option-tap'}}"
-            data-id="{{bk.id}}"
-            data-value="{{opt}}"
-            bindtap="onOptionTap"
-          >
-            <view class="fd-radio-dot {{bk.answer === opt ? 'is-checked' : ''}}"></view>
-            <text>{{opt}}</text>
+      <!-- 其他填写类控件：卡片 + 连续编号 -->
+      <view wx:else class="office-card form-detail-card">
+        <view class="fd-block-head">
+          <view class="fd-block-index">{{bk.fillIndex}}</view>
+          <view class="fd-block-title">
+            {{bk.title}}
+            <text wx:if="{{bk.required}}" class="fd-required">*</text>
           </view>
         </view>
-      </block>
 
-      <!-- 多选：始终渲染选项 -->
-      <block wx:elif="{{bk.type === 'checkbox'}}">
-        <view class="fd-options">
-          <view
-            wx:for="{{bk.optionItems}}"
-            wx:for-item="opt"
-            wx:key="value"
-            class="fd-option {{readonly ? '' : 'fd-option-tap'}}"
-            data-id="{{bk.id}}"
-            data-value="{{opt.value}}"
-            bindtap="onOptionTap"
-          >
-            <view class="fd-checkbox-box {{opt.checked ? 'is-checked' : ''}}">✓</view>
-            <text>{{opt.value}}</text>
-          </view>
-        </view>
-      </block>
-
-      <!-- 简答 -->
-      <block wx:elif="{{bk.type === 'textarea'}}">
-        <textarea
-          wx:if="{{!readonly}}"
-          class="fd-textarea"
-          value="{{bk.answer}}"
-          bindinput="onTextareaInput"
-          data-id="{{bk.id}}"
-          placeholder="请输入你的回答"
-          placeholder-class="fd-placeholder"
-          maxlength="1000"
-          auto-height
-        ></textarea>
-        <view wx:else class="fd-readonly">{{bk.answerText === '未填写' ? '（暂无填写）' : bk.answerText}}</view>
-      </block>
-
-      <!-- 副食订购：始终渲染类别 -->
-      <block wx:elif="{{bk.type === 'side_dish'}}">
-        <view class="fd-side-dish">
-          <view wx:for="{{bk.categories}}" wx:for-item="cat" wx:key="id" class="fd-cat-row">
-            <view class="fd-cat-info">
-              <view class="fd-cat-name">{{cat.name}}</view>
-              <view class="fd-cat-max">每人最多可订 {{cat.maxCount}} 份<text>\n</text>如配偶随任可订 {{cat.maxCount * 2}} 份</view>
-            </view>
-            <view wx:if="{{!readonly}}" class="fd-stepper">
-              <view class="fd-step-btn" bindtap="onSideDishCountChange" data-id="{{bk.id}}" data-cat-id="{{cat.id}}" data-delta="-1">−</view>
-              <view class="fd-step-val">{{cat.count}}</view>
-              <view class="fd-step-btn" bindtap="onSideDishCountChange" data-id="{{bk.id}}" data-cat-id="{{cat.id}}" data-delta="1">＋</view>
-            </view>
-            <view wx:else class="fd-step-val">{{cat.count}} 份</view>
-          </view>
-        </view>
-      </block>
-
-      <!-- 活动报名 -->
-      <block wx:elif="{{bk.type === 'activity'}}">
-        <block wx:if="{{bk.groups.length > 0}}">
+        <!-- 单选 / 判断：始终渲染选项 -->
+        <block wx:if="{{bk.type === 'radio' || bk.type === 'judge'}}">
           <view class="fd-options">
             <view
-              wx:for="{{bk.groups}}"
-              wx:for-item="g"
+              wx:for="{{bk.options}}"
+              wx:for-item="opt"
               wx:key="*this"
               class="fd-option {{readonly ? '' : 'fd-option-tap'}}"
               data-id="{{bk.id}}"
-              data-value="{{g}}"
+              data-value="{{opt}}"
               bindtap="onOptionTap"
             >
-              <view class="fd-radio-dot {{bk.answer === g ? 'is-checked' : ''}}"></view>
-              <text>{{g}}</text>
+              <view class="fd-radio-dot {{bk.answer === opt ? 'is-checked' : ''}}"></view>
+              <text>{{opt}}</text>
             </view>
           </view>
         </block>
-        <block wx:else>
-          <view wx:if="{{!readonly}}" class="fd-register-btn {{bk.answer === '报名' ? 'is-registered' : ''}}" bindtap="onActivityRegisterToggle" data-id="{{bk.id}}">
-            {{bk.answer === '报名' ? '✓ 已报名，点击取消' : '我要报名'}}
+
+        <!-- 多选：始终渲染选项 -->
+        <block wx:elif="{{bk.type === 'checkbox'}}">
+          <view class="fd-options">
+            <view
+              wx:for="{{bk.optionItems}}"
+              wx:for-item="opt"
+              wx:key="value"
+              class="fd-option {{readonly ? '' : 'fd-option-tap'}}"
+              data-id="{{bk.id}}"
+              data-value="{{opt.value}}"
+              bindtap="onOptionTap"
+            >
+              <view class="fd-checkbox-box {{opt.checked ? 'is-checked' : ''}}">✓</view>
+              <text>{{opt.value}}</text>
+            </view>
           </view>
-          <view wx:else class="fd-readonly">状态：{{bk.answerText}}</view>
         </block>
-      </block>
-    </view>
+
+        <!-- 简答 -->
+        <block wx:elif="{{bk.type === 'textarea'}}">
+          <textarea
+            wx:if="{{!readonly}}"
+            class="fd-textarea"
+            value="{{bk.answer}}"
+            bindinput="onTextareaInput"
+            data-id="{{bk.id}}"
+            placeholder="请输入你的回答"
+            placeholder-class="fd-placeholder"
+            maxlength="1000"
+            auto-height
+          ></textarea>
+          <view wx:else class="fd-readonly">{{bk.answerText === '未填写' ? '（暂无填写）' : bk.answerText}}</view>
+        </block>
+
+        <!-- 副食订购：始终渲染类别 -->
+        <block wx:elif="{{bk.type === 'side_dish'}}">
+          <view class="fd-side-dish">
+            <view wx:for="{{bk.categories}}" wx:for-item="cat" wx:key="id" class="fd-cat-row">
+              <view class="fd-cat-info">
+                <view class="fd-cat-name">{{cat.name}}</view>
+                <view class="fd-cat-max">每人最多可订 {{cat.maxCount}} 份<text>\n</text>如配偶随任可订 {{cat.maxCount * 2}} 份</view>
+              </view>
+              <view wx:if="{{!readonly}}" class="fd-stepper">
+                <view class="fd-step-btn" bindtap="onSideDishCountChange" data-id="{{bk.id}}" data-cat-id="{{cat.id}}" data-delta="-1">−</view>
+                <view class="fd-step-val">{{cat.count}}</view>
+                <view class="fd-step-btn" bindtap="onSideDishCountChange" data-id="{{bk.id}}" data-cat-id="{{cat.id}}" data-delta="1">＋</view>
+              </view>
+              <view wx:else class="fd-step-val">{{cat.count}} 份</view>
+            </view>
+          </view>
+        </block>
+
+        <!-- 活动报名 -->
+        <block wx:elif="{{bk.type === 'activity'}}">
+          <block wx:if="{{bk.groups.length > 0}}">
+            <view class="fd-options">
+              <view
+                wx:for="{{bk.groups}}"
+                wx:for-item="g"
+                wx:key="*this"
+                class="fd-option {{readonly ? '' : 'fd-option-tap'}}"
+                data-id="{{bk.id}}"
+                data-value="{{g}}"
+                bindtap="onOptionTap"
+              >
+                <view class="fd-radio-dot {{bk.answer === g ? 'is-checked' : ''}}"></view>
+                <text>{{g}}</text>
+              </view>
+            </view>
+          </block>
+          <block wx:else>
+            <view wx:if="{{!readonly}}" class="fd-register-btn {{bk.answer === '报名' ? 'is-registered' : ''}}" bindtap="onActivityRegisterToggle" data-id="{{bk.id}}">
+              {{bk.answer === '报名' ? '✓ 已报名，点击取消' : '我要报名'}}
+            </view>
+            <view wx:else class="fd-readonly">状态：{{bk.answerText}}</view>
+          </block>
+        </block>
+      </view>
+    </block>
 
     <!-- 空控件提示 -->
     <view wx:if="{{blocks.length === 0}}" class="office-card form-detail-card">
@@ -149,7 +154,7 @@
     </view>
 
     <!-- 填写操作区（所有用户，含发布者） -->
-    <view class="fd-footer" wx:if="{{hasFillableBlocks && !isClosed}}">
+    <view class="fd-footer" wx:if="{{hasFillableBlocks && !isClosed && canSubmit}}">
       <view wx:if="{{mySubmission && maxSubmissions === 1}}" class="fd-footer-btn is-cancel" bindtap="handleCancelSubmit">取消提交</view>
       <view class="fd-footer-btn is-primary {{submitting ? 'is-disabled' : ''}}" bindtap="handleSubmit">{{maxSubmissions > 1 ? '提交' : (mySubmission ? '更新提交' : '提交')}}</view>
     </view>
@@ -158,7 +163,8 @@
     <view class="fd-footer" wx:if="{{isCreator}}">
       <view class="fd-footer-btn is-ghost" bindtap="goEdit">编辑</view>
       <view class="fd-footer-btn is-ghost" bindtap="goResult">统计</view>
-      <view wx:if="{{form.tag === 'questionnaire' || form.tag === 'quiz'}}" class="fd-footer-btn is-ghost" bindtap="goSubmissions">明细</view>
+      <view wx:if="{{form.tag === 'questionnaire' || form.tag === 'quiz' || form.tag === 'side_dish'}}" class="fd-footer-btn is-ghost" bindtap="goSubmissions">明细</view>
+      <view class="fd-footer-btn is-danger" bindtap="handleDelete">删除</view>
     </view>
   </view>
 </view>

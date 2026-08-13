@@ -1,8 +1,8 @@
 <view class="office-page home-page" style="{{fontStyle}}">
   <view class="office-gradient-header home-header">
-   
 
-   <!--  数据板
+
+    <!--  数据板
     <view class="home-stats-card">
       <view class=" home-stats-grid">
         <view class="office-glass-card home-stat-item" wx:for="{{stats}}" wx:key="label">
@@ -11,8 +11,8 @@
         </view>
       </view>
     </view> -->
- 
-   
+
+
 
     <!-- 背景装饰图片 -->
     <view class="home-bg-image-wrapper">
@@ -22,8 +22,8 @@
 
 
   <view class="office-content">
-  <!--全馆日历模块-->
- <view class="office-glass-card home-calendar" hover-class="home-btn-active" hover-stay-time="300" bindtap="goCalendar">
+    <!--全馆日历模块-->
+    <view class="office-glass-card home-calendar" hover-class="home-btn-active" hover-stay-time="300" bindtap="goCalendar">
       <view class="home-calendar-main">
         <view class="home-calendar-icon">🗓️</view>
         <view>
@@ -33,8 +33,8 @@
       </view>
       <!-- <view class="home-calendar-tag">全馆日历</view> -->
     </view>
-   <!--欢迎词 + 通知、搜索图标-->
-   <view class="home-greeting-row">
+    <!--欢迎词 + 通知、搜索图标-->
+    <view class="home-greeting-row">
       <view class="home-greeting">{{greetingText}}</view>
       <view class="home-actions">
         <view class="office-icon-btn-wrapper" bindtap="goNotifications">
@@ -84,8 +84,12 @@
           </view>
           <view wx:if="{{item.isUnread}}" class="home-news-dot"></view>
         </view>
+        <view wx:if="{{loadingContentForms}}" class="home-news-loading">
+          <view class="home-news-loading-spinner"></view>
+          <text class="home-news-loading-text">加载中...</text>
+        </view>
         <view wx:if="{{!loadingContentForms && contentForms.length === 0}}" class="empty-announcement">
-          <text class="empty-text">暂无信息发布</text>
+          <text class="empty-text">暂无信息</text>
         </view>
       </view>
     </view>

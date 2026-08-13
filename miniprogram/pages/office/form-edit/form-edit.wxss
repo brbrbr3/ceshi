@@ -86,17 +86,19 @@
 .fe-palette {
   display: flex;
   flex-wrap: wrap;
-  gap: 16rpx;
+  justify-content: space-between;
 }
 
 .fe-palette-item {
-  width: calc(50% - 8rpx);
+  width: 48.5%;
   display: flex;
   align-items: center;
   gap: 16rpx;
   padding: 20rpx;
   border-radius: 20rpx;
   box-sizing: border-box;
+  margin-bottom: 16rpx;
+  flex-shrink: 0;
   transition: transform 0.15s ease, opacity 0.15s ease;
 }
 
@@ -269,6 +271,12 @@
   background: #EFF6FF;
   color: #2563EB;
   font-size: var(--fs-24);
+  transition: all 0.3s ease;
+}
+
+.fe-block-btn:active {
+  transform: scale(0.95);
+  opacity: 0.7;
 }
 
 .fe-block-btn.is-danger {
@@ -395,9 +403,10 @@
 .fe-check-row {
   display: flex;
   align-items: center;
+  justify-content: space-between;
   gap: 12rpx;
   margin-top: 16rpx;
-  font-size: var(--fs-26);
+  font-size: var(--fs-28);
   color: #64748B;
 }
 
@@ -418,6 +427,12 @@
   justify-content: center;
   font-size: var(--fs-30);
   font-weight: 600;
+  transition: all 0.3s ease;
+}
+
+.fe-btn:active {
+  transform: scale(0.95);
+  opacity: 0.7;
 }
 
 .fe-btn-draft {

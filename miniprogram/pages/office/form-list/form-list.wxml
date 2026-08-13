@@ -7,7 +7,7 @@
 
   <view class="office-content form-list-content">
     <!-- tag 筛选 -->
-    <scroll-view scroll-x class="form-list-tabs-scroll" enhanced show-scrollbar="false">
+    <scroll-view wx:if="{{!isReviewer}}" scroll-x class="form-list-tabs-scroll" enhanced show-scrollbar="false">
       <view class="form-list-tabs">
         <view
           wx:for="{{tagTabs}}"
@@ -42,6 +42,9 @@
           <text wx:if="{{item.hasFormContent}}" class="form-list-dot">·</text>
           <text wx:if="{{item.hasFormContent}}">{{item.submissionCount}} 人已提交</text>
         </view>
+        <view wx:if="{{item.deadline}}" class="form-list-item-meta">
+          <text>截止时间：{{item.deadlineText}}</text>
+        </view>
       </view>
 
       <!-- 空状态 -->
@@ -55,5 +58,5 @@
       <view wx:if="{{!hasMore && list.length > 0}}" class="form-list-loading">没有更多了</view>
     </view>
   </view>
-  <view wx:if="{{canPublish}}" class="form-list-publish" hover-class="form-list-publish-hover" bindtap="handlePublish">＋</view>
+  <view wx:if="{{canPublish && !isReviewer}}" class="form-list-publish" hover-class="form-list-publish-hover" bindtap="handlePublish">＋</view>
 </view>

@@ -48,7 +48,7 @@ page {
   flex: 1;
   text-align: center;
   padding: 28rpx 0;
-  font-size: var(--fs-28);
+  font-size: var(--fs-32);
   color: #64748B;
   font-weight: 500;
   position: relative;
@@ -92,7 +92,7 @@ page {
 
 .date-list {
   display: inline-flex;
-  padding: 0 32rpx;
+  padding: 8rpx 24rpx;
   gap: 16rpx;
 }
 
@@ -105,12 +105,16 @@ page {
   flex-direction: column;
   align-items: center;
   gap: 8rpx;
-  transition: all 0.3s ease;
+  transition: all 0.2s ease;
   flex-shrink: 0;
 }
 
+.date-item:active {
+  transform: scale(0.95);
+}
+
 .date-item.is-active {
-  border: 4rpx solid #EA580C;
+  border: 3rpx solid #EA580C;
   background: #ea5a0c1f;
 }
 
@@ -171,7 +175,7 @@ page {
 }
 
 .haircut-slots-title {
-  font-size: var(--fs-30);
+  font-size: var(--fs-35);
   font-weight: 600;
   color: #1E293B;
   margin-bottom: 16rpx;
@@ -336,7 +340,7 @@ page {
   padding: 12rpx 24rpx;
   background: #FFFFFF;
   border-radius: 24rpx;
-  font-size: var(--fs-26);
+  font-size: var(--fs-30);
   color: #64748B;
   transition: all 0.3s ease;
 }
@@ -554,7 +558,7 @@ page {
 }
 
 .haircut-field-label {
-  font-size: var(--fs-28);
+  font-size: var(--fs-30);
   color: #1E293B;
   font-weight: 500;
   margin-bottom: 12rpx;
@@ -565,7 +569,7 @@ page {
 }
 
 .haircut-field-hint {
-  font-size: var(--fs-24);
+  font-size: var(--fs-28);
   color: #94A3B8;
   margin-top: 8rpx;
 }
@@ -651,6 +655,7 @@ page {
   border-radius: 16rpx;
   border: none;
   margin-top: 20rpx;
+  margin-bottom: 150rpx;
 }
 
 .haircut-submit-btn[disabled] {
@@ -714,7 +719,7 @@ page {
 }
 
 .haircut-stats-month-title {
-  font-size: var(--fs-28);
+  font-size: var(--fs-30);
   font-weight: 600;
   color: #475569;
   padding: 16rpx 8rpx;

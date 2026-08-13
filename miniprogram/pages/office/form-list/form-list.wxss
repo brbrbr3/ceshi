@@ -20,8 +20,8 @@
 
 .form-list-publish {
   position: fixed;
-  right: 40rpx;
-  bottom: calc(40rpx + env(safe-area-inset-bottom));
+  right: 80rpx;
+  bottom: calc(80rpx + env(safe-area-inset-bottom));
   width: 100rpx;
   height: 100rpx;
   border-radius: 50rpx;
@@ -132,11 +132,12 @@
 }
 
 .form-list-item-meta {
-  font-size: var(--fs-24);
+  font-size: var(--fs-26);
   color: #94A3B8;
   display: flex;
   align-items: center;
   gap: 8rpx;
+  margin-bottom: 4rpx;
 }
 
 .form-list-dot {
