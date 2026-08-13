@@ -192,6 +192,22 @@ function getMockResponse(name, data) {
     return { fileID: '' }
   }
 
+  // ===== contentFormManager（信息发布系统）=====
+  if (name === 'contentFormManager') {
+    switch (action) {
+      case 'list':
+        return { list: [], total: 0, hasMore: false }
+      case 'get':
+        return { form: null, mySubmission: null, isCreator: false, canPublish: false }
+      case 'listSubmissions':
+        return { form: null, list: [], total: 0 }
+      case 'getStats':
+        return { title: '', tag: '', total: 0, blocks: [], submissions: [] }
+      default:
+        return {}
+    }
+  }
+
   // ===== dbManager（审核员不应操作）=====
   if (name === 'dbManager') {
     if (action === 'listCollections') {

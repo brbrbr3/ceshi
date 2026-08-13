@@ -69,29 +69,29 @@
       </view>
     </view>
 
-    <!--通知公告-->
-    <view wx:if="{{isDevEnv}}" class="office-section">
+    <!--信息发布-->
+    <view class="office-section">
       <view class="office-section-header">
-        <view class="office-section-title" bindtap="goAnnouncements">通知公告</view>
-        <view class="office-link" bindtap="goAnnouncements">更多</view>
+        <view class="office-section-title home-section-title" hover-class="home-btn-active" hover-stay-time="300" bindtap="goContentForms">信息发布</view>
+        <view class="office-link home-link" hover-class="home-btn-active" hover-stay-time="300" bindtap="goContentForms">更多</view>
       </view>
       <view class="office-card home-news-card">
-        <view class="home-news-item" wx:for="{{announcements}}" wx:key="_id" bindtap="handleAnnouncementTap" data-id="{{item._id}}">
-          <view class="office-pill home-news-tag" style="background: {{item.tagBg}}; color: {{item.tagColor}};">{{item.tag}}</view>
+        <view class="home-news-item" hover-class="home-btn-active" hover-stay-time="300" wx:for="{{contentForms}}" wx:key="_id" bindtap="handleContentFormTap" data-id="{{item._id}}">
+          <view class="office-pill home-news-tag" style="background: {{item.tagBg}}; color: {{item.tagColor}};">{{item.tagIcon}} {{item.tagLabel}}</view>
           <view class="home-news-main">
-            <view class="home-news-title {{!item.unread ? 'is-read' : ''}}">{{item.title}}</view>
+            <view class="home-news-title">{{item.title}}</view>
             <view class="home-news-time">{{item.time}}</view>
           </view>
-          <view wx:if="{{item.unread}}" class="home-news-dot"></view>
+          <view wx:if="{{item.isUnread}}" class="home-news-dot"></view>
         </view>
-        <view wx:if="{{!loading && announcements.length === 0}}" class="empty-announcement">
-          <text class="empty-text">暂无通知公告</text>
+        <view wx:if="{{!loadingContentForms && contentForms.length === 0}}" class="empty-announcement">
+          <text class="empty-text">暂无信息发布</text>
         </view>
       </view>
     </view>
 
-    <!--今日日程-->
-    <view wx:if="{{isDevEnv}}" class="office-section">
+    <!--今日日程
+    <view wx:if="false" class="office-section">
       <view class="office-section-header">
         <view class="office-section-title">今日日程</view>
         <view class="office-link" bindtap="goCalendar">日历</view>
@@ -114,8 +114,8 @@
       </view>
     </view>
 
-    <!--群团活动-->
-    <view wx:if="{{isDevEnv}}" class="office-section">
+    群团活动
+    <view wx:if="false" class="office-section">
       <view class="office-section-header">
         <view class="office-section-title" bindtap="goActivities">群团活动</view>
         <view class="office-link" style="color: #7C3AED;" bindtap="goActivities">更多</view>
@@ -140,8 +140,8 @@
       </view>
     </view>
 
-    <!--学习园地-->
-    <view wx:if="{{isDevEnv}}" class="office-section">
+    学习园地
+    <view wx:if="false" class="office-section">
       <view class="office-section-header">
         <view class="office-section-title" bindtap="goLearning">学习园地</view>
         <view class="office-link" style="color: #B91C1C;" bindtap="goLearning">更多</view>
@@ -161,7 +161,7 @@
           <text class="empty-text">暂无学习文章</text>
         </view>
       </view>
-    </view>
+    </view>-->
   </view>
 
   <!-- 日程详情弹窗 -->

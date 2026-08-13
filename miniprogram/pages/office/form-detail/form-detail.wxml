@@ -1,0 +1,164 @@
+<view class="office-page form-detail-page" style="{{fontStyle}}">
+  <view class="office-gradient-header form-detail-header">
+    <view class="form-detail-title-row">
+      <view class="form-detail-badge" style="background: {{tagBg}}; color: {{tagColor}};">{{tagIcon}} {{tagLabel}}</view>
+      <view wx:if="{{isClosed}}" class="form-detail-closed">已截止</view>
+    </view>
+    <view class="form-detail-title">{{form.title}}</view>
+    <view class="form-detail-meta">{{form.createdByName}} · {{timeText}}</view>
+  </view>
+
+  <view class="office-content form-detail-content">
+    <!-- 匿名填写提示 -->
+    <view wx:if="{{!mySubmission && isAnonymous && !isClosed}}" class="form-detail-submitted-tip">
+      <text>🔒 本问卷为匿名填写，提交后不显示真实姓名</text>
+    </view>
+
+    <!-- 已提交提示 -->
+    <view wx:if="{{mySubmission && !isClosed}}" class="form-detail-submitted-tip">
+      <text wx:if="{{maxSubmissions > 1}}">✅ 你已提交，可继续填写</text>
+      <text wx:elif="{{isAnonymous}}">✅ 你已匿名提交，可修改后重新提交</text>
+      <text wx:else>✅ 你已提交，可修改后重新提交</text>
+    </view>
+
+    <!-- 正文说明（富文本） -->
+    <view class="office-card form-detail-card" wx:if="{{form.description}}">
+      <!-- <view class="fd-card-label">正文说明</view> -->
+      <rich-text class="fd-rich" nodes="{{form.description}}"></rich-text>
+    </view>
+
+    <!-- 控件区 -->
+    <view
+      wx:for="{{blocks}}"
+      wx:for-item="bk"
+      wx:key="id"
+      class="office-card form-detail-card"
+    >
+      <view class="fd-block-head">
+        <view class="fd-block-index">{{index + 1}}</view>
+        <view class="fd-block-title">
+          {{bk.title}}
+          <text wx:if="{{bk.required}}" class="fd-required">*</text>
+        </view>
+      </view>
+
+      <block wx:if="{{bk.type === 'text'}}">
+        <!-- <view class="fd-text-block">{{bk.title}}</view> -->
+      </block>
+
+      <!-- 单选 / 判断：始终渲染选项 -->
+      <block wx:elif="{{bk.type === 'radio' || bk.type === 'judge'}}">
+        <view class="fd-options">
+          <view
+            wx:for="{{bk.options}}"
+            wx:for-item="opt"
+            wx:key="*this"
+            class="fd-option {{readonly ? '' : 'fd-option-tap'}}"
+            data-id="{{bk.id}}"
+            data-value="{{opt}}"
+            bindtap="onOptionTap"
+          >
+            <view class="fd-radio-dot {{bk.answer === opt ? 'is-checked' : ''}}"></view>
+            <text>{{opt}}</text>
+          </view>
+        </view>
+      </block>
+
+      <!-- 多选：始终渲染选项 -->
+      <block wx:elif="{{bk.type === 'checkbox'}}">
+        <view class="fd-options">
+          <view
+            wx:for="{{bk.optionItems}}"
+            wx:for-item="opt"
+            wx:key="value"
+            class="fd-option {{readonly ? '' : 'fd-option-tap'}}"
+            data-id="{{bk.id}}"
+            data-value="{{opt.value}}"
+            bindtap="onOptionTap"
+          >
+            <view class="fd-checkbox-box {{opt.checked ? 'is-checked' : ''}}">✓</view>
+            <text>{{opt.value}}</text>
+          </view>
+        </view>
+      </block>
+
+      <!-- 简答 -->
+      <block wx:elif="{{bk.type === 'textarea'}}">
+        <textarea
+          wx:if="{{!readonly}}"
+          class="fd-textarea"
+          value="{{bk.answer}}"
+          bindinput="onTextareaInput"
+          data-id="{{bk.id}}"
+          placeholder="请输入你的回答"
+          placeholder-class="fd-placeholder"
+          maxlength="1000"
+          auto-height
+        ></textarea>
+        <view wx:else class="fd-readonly">{{bk.answerText === '未填写' ? '（暂无填写）' : bk.answerText}}</view>
+      </block>
+
+      <!-- 副食订购：始终渲染类别 -->
+      <block wx:elif="{{bk.type === 'side_dish'}}">
+        <view class="fd-side-dish">
+          <view wx:for="{{bk.categories}}" wx:for-item="cat" wx:key="id" class="fd-cat-row">
+            <view class="fd-cat-info">
+              <view class="fd-cat-name">{{cat.name}}</view>
+              <view class="fd-cat-max">每人最多可订 {{cat.maxCount}} 份<text>\n</text>如配偶随任可订 {{cat.maxCount * 2}} 份</view>
+            </view>
+            <view wx:if="{{!readonly}}" class="fd-stepper">
+              <view class="fd-step-btn" bindtap="onSideDishCountChange" data-id="{{bk.id}}" data-cat-id="{{cat.id}}" data-delta="-1">−</view>
+              <view class="fd-step-val">{{cat.count}}</view>
+              <view class="fd-step-btn" bindtap="onSideDishCountChange" data-id="{{bk.id}}" data-cat-id="{{cat.id}}" data-delta="1">＋</view>
+            </view>
+            <view wx:else class="fd-step-val">{{cat.count}} 份</view>
+          </view>
+        </view>
+      </block>
+
+      <!-- 活动报名 -->
+      <block wx:elif="{{bk.type === 'activity'}}">
+        <block wx:if="{{bk.groups.length > 0}}">
+          <view class="fd-options">
+            <view
+              wx:for="{{bk.groups}}"
+              wx:for-item="g"
+              wx:key="*this"
+              class="fd-option {{readonly ? '' : 'fd-option-tap'}}"
+              data-id="{{bk.id}}"
+              data-value="{{g}}"
+              bindtap="onOptionTap"
+            >
+              <view class="fd-radio-dot {{bk.answer === g ? 'is-checked' : ''}}"></view>
+              <text>{{g}}</text>
+            </view>
+          </view>
+        </block>
+        <block wx:else>
+          <view wx:if="{{!readonly}}" class="fd-register-btn {{bk.answer === '报名' ? 'is-registered' : ''}}" bindtap="onActivityRegisterToggle" data-id="{{bk.id}}">
+            {{bk.answer === '报名' ? '✓ 已报名，点击取消' : '我要报名'}}
+          </view>
+          <view wx:else class="fd-readonly">状态：{{bk.answerText}}</view>
+        </block>
+      </block>
+    </view>
+
+    <!-- 空控件提示 -->
+    <view wx:if="{{blocks.length === 0}}" class="office-card form-detail-card">
+      <view class="fd-empty">该信息暂无额外内容</view>
+    </view>
+
+    <!-- 填写操作区（所有用户，含发布者） -->
+    <view class="fd-footer" wx:if="{{hasFillableBlocks && !isClosed}}">
+      <view wx:if="{{mySubmission && maxSubmissions === 1}}" class="fd-footer-btn is-cancel" bindtap="handleCancelSubmit">取消提交</view>
+      <view class="fd-footer-btn is-primary {{submitting ? 'is-disabled' : ''}}" bindtap="handleSubmit">{{maxSubmissions > 1 ? '提交' : (mySubmission ? '更新提交' : '提交')}}</view>
+    </view>
+
+    <!-- 发布者管理入口 -->
+    <view class="fd-footer" wx:if="{{isCreator}}">
+      <view class="fd-footer-btn is-ghost" bindtap="goEdit">编辑</view>
+      <view class="fd-footer-btn is-ghost" bindtap="goResult">统计</view>
+      <view wx:if="{{form.tag === 'questionnaire' || form.tag === 'quiz'}}" class="fd-footer-btn is-ghost" bindtap="goSubmissions">明细</view>
+    </view>
+  </view>
+</view>

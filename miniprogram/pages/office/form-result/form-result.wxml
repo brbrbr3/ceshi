@@ -1,0 +1,66 @@
+<view class="office-page form-result-page" style="{{fontStyle}}">
+  <view class="office-gradient-header form-result-header">
+    <view class="form-result-title">{{title || '统计结果'}}</view>
+    <view class="form-result-total">共 {{total}} 人提交</view>
+  </view>
+
+  <view class="office-content form-result-content">
+    <view wx:if="{{loading}}" class="form-result-loading">加载中...</view>
+
+    <view
+      wx:for="{{stats}}"
+      wx:for-item="bk"
+      wx:key="id"
+      class="office-card form-result-card"
+    >
+      <view class="fr-block-head">
+        <view class="fr-block-icon" style="background: {{bk.typeColor}}20; color: {{bk.typeColor}};">{{bk.typeIcon}}</view>
+        <view class="fr-block-title">{{bk.title}}</view>
+        <view class="fr-block-count">{{bk.answerCount}} 人作答</view>
+      </view>
+
+      <block wx:if="{{bk.type === 'radio' || bk.type === 'checkbox' || bk.type === 'judge'}}">
+        <view wx:for="{{bk.optionStats}}" wx:for-item="opt" wx:key="option" class="fr-option-row">
+          <view class="fr-option-top">
+            <text class="fr-option-name">{{opt.option}}</text>
+            <text class="fr-option-count">{{opt.count}} 票 · {{opt.percent}}%</text>
+          </view>
+          <view class="fr-progress">
+            <view class="fr-progress-bar" style="width: {{opt.percent}}%;"></view>
+          </view>
+        </view>
+      </block>
+
+      <block wx:elif="{{bk.type === 'textarea'}}">
+        <view wx:if="{{bk.textList.length === 0}}" class="fr-empty-inline">暂无回答</view>
+        <view wx:for="{{bk.textList}}" wx:for-item="txt" wx:key="index" class="fr-text-item">
+          <view class="fr-text-user">{{txt.userName}}</view>
+          <view class="fr-text-value">{{txt.value}}</view>
+        </view>
+      </block>
+
+      <block wx:elif="{{bk.type === 'side_dish'}}">
+        <view class="fr-side-total">合计 {{bk.totalCount}} 份</view>
+        <view wx:for="{{bk.categoryStats}}" wx:for-item="cat" wx:key="categoryId" class="fr-side-row">
+          <text class="fr-side-name">{{cat.categoryName}}</text>
+          <text class="fr-side-count">{{cat.count}} 份</text>
+        </view>
+      </block>
+
+      <block wx:elif="{{bk.type === 'activity'}}">
+        <view wx:if="{{bk.maxRegistrations}}" class="fr-side-total">上限 {{bk.maxRegistrations}} 人 · 已报 {{bk.answerCount}} 人</view>
+        <block wx:if="{{bk.groupStats.length > 0}}">
+          <view wx:for="{{bk.groupStats}}" wx:for-item="g" wx:key="group" class="fr-group-row">
+            <view class="fr-group-name">{{g.group}}</view>
+            <view class="fr-group-members">{{g.members.length}} 人：{{g.membersText}}</view>
+          </view>
+        </block>
+        <block wx:else>
+          <view class="fr-group-members">报名名单：{{bk.ungroupedMembersText}}</view>
+        </block>
+      </block>
+    </view>
+
+    <view wx:if="{{!loading && stats.length === 0}}" class="form-result-empty">该信息没有可统计的控件</view>
+  </view>
+</view>

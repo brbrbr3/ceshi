@@ -1,5 +1,6 @@
 const app = getApp()
 const utils = require('../../../common/utils.js')
+const { getTagConfig } = require('../../../common/form-constants.js')
 // home 页面弹窗使用 CSS transition 模式，已有退出动画，无需 modalAnimation
 // 使用统一的时间格式化函数
 const formatTime = (timestamp) => utils.formatRelativeTime(timestamp)
@@ -138,6 +139,8 @@ Page({
       }
     ],
     announcements: [],
+    contentForms: [],
+    loadingContentForms: false,
     articles: [],
     loadingArticles: false,
     todaySchedules: [],
@@ -168,6 +171,7 @@ Page({
     this.syncNotifications() //同步消息推送
     // 刷新微信侧订阅状态到本地缓存（供 handleQuickAction tap 时同步读取）
     app.syncSubStatus()
+    this.loadContentForms() //加载信息发布
     //this.loadAnnouncements() //加载通知公告
     //this.loadArticles() //加载学习园地
     //this.loadActivities() //加载群团活动
@@ -397,6 +401,74 @@ Page({
     wx.navigateTo({
       url: '/pages/office/notifications/notifications'
     })
+  },
+
+  loadContentForms() {
+    this.setData({
+      loadingContentForms: true
+    })
+
+    wx.cloud.callFunction({
+      name: 'contentFormManager',
+      data: {
+        action: 'list',
+        params: {
+          page: 1,
+          pageSize: 3
+        }
+      }
+    }).then(res => {
+      const result = res.result
+      if (result && result.code === 0) {
+        const list = (result.data.list || []).map(item => this.formatContentForm(item))
+        this.setData({
+          contentForms: list,
+          loadingContentForms: false
+        })
+      } else {
+        throw new Error(result.message || '加载失败')
+      }
+    }).catch(error => {
+      console.error('加载信息发布失败:', error)
+      this.setData({
+        loadingContentForms: false
+      })
+    })
+  },
+
+  formatContentForm(item) {
+    const tagCfg = getTagConfig(item.tag)
+    return {
+      _id: item._id,
+      title: item.title,
+      tagLabel: tagCfg.label,
+      tagIcon: tagCfg.icon,
+      tagColor: tagCfg.color,
+      tagBg: tagCfg.bg,
+      time: formatTime(item.publishedAt || item.createdAt),
+      isUnread: !item.isRead
+    }
+  },
+
+  goContentForms() {
+    // 利用用户 tap 手势静默订阅消息
+    const user = this.data.currentUser || app.globalData.userProfile
+    if (user) app.subscribeOnTap(app.getSubscribeTypesForUser(user))
+    wx.navigateTo({
+      url: '/pages/office/form-list/form-list'
+    })
+  },
+
+  handleContentFormTap(e) {
+    // 利用用户 tap 手势静默订阅消息
+    const user = this.data.currentUser || app.globalData.userProfile
+    if (user) app.subscribeOnTap(app.getSubscribeTypesForUser(user))
+    const id = e.currentTarget.dataset.id
+    if (id) {
+      wx.navigateTo({
+        url: `/pages/office/form-detail/form-detail?id=${id}`
+      })
+    }
   },
 
   loadAnnouncements() {

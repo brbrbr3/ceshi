@@ -89,12 +89,13 @@
   border-radius: 20rpx;  
   box-shadow: 3rpx 2rpx 8rpx rgba(47, 43, 43, 0.42);
   transition: all 0.2s ease;
-  border-left: 6rpx solid green;
+  border-left: 6rpx solid #3B82F6;
 }
 
 .menu-item:active {
   transform: scale(0.98);
   box-shadow: 0 1rpx 6rpx rgba(0, 0, 0, 0.06);
+  border-left: 2rpx solid #3B82F6;
 }
 
 .menu-item-left {

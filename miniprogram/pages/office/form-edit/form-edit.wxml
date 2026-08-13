@@ -1,0 +1,293 @@
+<view class="office-page form-edit-page" style="{{fontStyle}}">
+  <view class="office-gradient-header form-edit-header">
+    <view class="form-edit-title">{{isEdit ? '编辑信息' : '发布信息'}}</view>
+  </view>
+
+  <view class="office-content form-edit-content">
+    <!-- 信息类型 -->
+    <view class="office-card form-edit-card">
+      <view class="fe-label">信息类型 <text class="fe-required">*</text></view>
+      <scroll-view scroll-x class="fe-tag-scroll" enhanced show-scrollbar="false">
+        <view class="fe-tag-row">
+          <view
+            wx:for="{{tagList}}"
+            wx:key="key"
+            class="fe-tag-item {{tag === item.key ? 'is-active' : ''}}"
+            style="{{tag === item.key ? 'background:' + item.bg + ';color:' + item.color + ';border-color:' + item.color + ';' : ''}}"
+            bindtap="handleSelectTag"
+            data-tag="{{item.key}}"
+          >
+            <text class="fe-tag-icon">{{item.icon}}</text>
+            <text>{{item.label}}</text>
+          </view>
+        </view>
+      </scroll-view>
+    </view>
+
+    <!-- 标题 -->
+    <view class="office-card form-edit-card">
+      <view class="fe-label">标题 <text class="fe-required">*</text></view>
+      <view class="auth-input-shell">
+        <input
+          value="{{title}}"
+          bindinput="onTitleInput"
+          placeholder="请输入标题"
+          placeholder-class="auth-input-placeholder"
+          maxlength="50"
+        />
+      </view>
+    </view>
+
+    <!-- 正文说明（富文本） -->
+    <view class="office-card form-edit-card">
+      <view class="fe-label">正文说明</view>
+      <view class="fe-editor-wrapper">
+        <editor
+          id="editor"
+          show-img-size
+          show-img-toolbar
+          show-img-resize
+          bindready="onEditorReady"
+          bindinput="onEditorInput"
+          placeholder="请输入正文说明（可选）..."
+        ></editor>
+      </view>
+    </view>
+    
+    <!-- 已添加控件 -->
+    <view class="office-card form-edit-card" wx:if="{{blocks.length > 0}}">
+      <view class="fe-label">内容控件（{{blocks.length}}）</view>
+      <view class="fe-block-list">
+        <view
+          wx:for="{{blocks}}"
+          wx:key="id"
+          class="fe-block-item {{index === removingIndex ? 'is-removing' : ''}} {{item.isNew ? 'is-new' : ''}} {{item.moveAnim === 'up' ? 'is-move-up' : ''}} {{item.moveAnim === 'down' ? 'is-move-down' : ''}}"
+        >
+          <view class="fe-block-head">
+            <view class="fe-block-index">{{index + 1}}</view>
+            <view class="fe-block-type" style="background: {{item.typeBg}}; color: {{item.typeColor}};">{{item.typeIcon}} {{item.typeLabel}}</view>
+            <view class="fe-block-title">{{item.title || '（未填写题干）'}}</view>
+            <view wx:if="{{item.required}}" class="fe-block-required">必填</view>
+          </view>
+          <view class="fe-block-preview">
+            <block wx:if="{{item.type === 'radio' || item.type === 'checkbox' || item.type === 'judge'}}">
+              <view wx:for="{{item.options}}" wx:for-item="opt" wx:key="*this" class="fe-preview-option">
+                <text class="fe-preview-dot {{item.type === 'checkbox' ? 'is-square' : ''}}"></text>
+                <text>{{opt}}</text>
+              </view>
+            </block>
+            <block wx:elif="{{item.type === 'side_dish'}}">
+              <view wx:for="{{item.categories}}" wx:for-item="cat" wx:key="id" class="fe-preview-option">
+                <text>🍱 {{cat.name}}（每人最多 {{cat.maxCount}} 份）</text>
+              </view>
+            </block>
+            <block wx:elif="{{item.type === 'activity'}}">
+              <view class="fe-preview-option">🎟️ 报名{{item.maxRegistrations ? '（上限 ' + item.maxRegistrations + ' 人）' : ''}}</view>
+            </block>
+            <block wx:elif="{{item.type === 'textarea'}}">
+              <view class="fe-preview-option">✏️ 文本框</view>
+            </block>
+            <block wx:elif="{{item.type === 'text'}}">
+              <view class="fe-preview-option">📝 说明段落</view>
+            </block>
+          </view>
+          <view class="fe-block-actions">
+            <view class="fe-block-btn" catchtap="handleMoveBlock" data-index="{{index}}" data-dir="up">⬆ 上移</view>
+            <view class="fe-block-btn" catchtap="handleMoveBlock" data-index="{{index}}" data-dir="down">⬇ 下移</view>
+            <view class="fe-block-btn" catchtap="handleEditBlock" data-index="{{index}}">✎ 编辑</view>
+            <view class="fe-block-btn is-danger" catchtap="handleRemoveBlock" data-index="{{index}}">🗑 删除</view>
+          </view>
+        </view>
+      </view>
+    </view>
+
+    <!-- 控件库 -->
+    <view class="office-card form-edit-card">
+      <view class="fe-label">添加控件</view>
+      <view class="fe-palette">
+        <view
+          wx:for="{{blockTypeList}}"
+          wx:key="type"
+          class="fe-palette-item"
+          hover-class="fe-palette-item-hover"
+          style="background: {{item.bg}}; color: {{item.color}};"
+          bindtap="handleAddBlock"
+          data-type="{{item.type}}"
+        >
+          <view class="fe-palette-icon">{{item.icon}}</view>
+          <view class="fe-palette-text">
+            <view class="fe-palette-label">{{item.label}}</view>
+            <view class="fe-palette-desc">{{item.desc}}</view>
+          </view>
+          <view class="fe-palette-add">＋</view>
+        </view>
+      </view>
+    </view>
+
+    <!-- 截止时间 -->
+    <view class="office-card form-edit-card">
+      <view class="fe-switch-row" bindtap="handleToggleDeadline">
+        <view class="fe-label" style="margin: 0;">设置截止时间</view>
+        <view class="fe-switch {{showDeadline ? 'is-on' : ''}}">
+          <view class="fe-switch-dot"></view>
+        </view>
+      </view>
+      <view wx:if="{{showDeadline}}" class="fe-extra-area">
+        <picker mode="date" value="{{deadline}}" start="{{minDate}}" bindchange="onDeadlineChange">
+          <view class="fe-picker">{{deadline || '请选择截止日期'}}</view>
+        </picker>
+      </view>
+    </view>
+
+    <!-- 目标角色 -->
+    <view class="office-card form-edit-card">
+      <view class="fe-switch-row" bindtap="handleToggleTargetRole">
+        <view class="fe-label" style="margin: 0;">限定可见角色</view>
+        <view class="fe-switch {{showTargetRole ? 'is-on' : ''}}">
+          <view class="fe-switch-dot"></view>
+        </view>
+      </view>
+      <view wx:if="{{showTargetRole}}" class="fe-extra-area">
+        <view class="fe-role-list">
+          <view
+            wx:for="{{targetRoleOptions}}"
+            wx:key="value"
+            class="fe-role-item {{item.checked ? 'is-active' : ''}}"
+            bindtap="handleToggleRole"
+            data-role="{{item.value}}"
+          >{{item.value}}</view>
+        </view>
+        <view class="fe-check-row">
+          <switch checked="{{isTargetOnlyVisible}}" color="#2563EB" bindchange="onTargetOnlyVisibleChange" />
+          <text>仅对以上角色可见</text>
+        </view>
+      </view>
+    </view>
+
+    <!-- 匿名填写（问卷） -->
+    <view class="office-card form-edit-card" wx:if="{{tag === 'questionnaire'}}">
+      <view class="fe-switch-row">
+        <view class="fe-label" style="margin: 0;">匿名填写</view>
+        <switch checked="{{isAnonymous}}" color="#2563EB" bindchange="onAnonymousChange" />
+      </view>
+      <view class="fe-hint">开启后，提交者姓名将以「匿名」展示，不显示真实身份</view>
+    </view>
+
+    <!-- 填写次数（答题） -->
+    <view class="office-card form-edit-card" wx:if="{{tag === 'quiz'}}">
+      <view class="fe-switch-row">
+        <view class="fe-label" style="margin: 0;">每人填写次数</view>
+        <view class="fe-stepper">
+          <view class="fe-step-btn {{maxSubmissions <= 1 ? 'is-disabled' : ''}}" bindtap="onMaxSubmissionsMinus">−</view>
+          <view class="fe-step-val">{{maxSubmissions}}</view>
+          <view class="fe-step-btn" bindtap="onMaxSubmissionsPlus">＋</view>
+        </view>
+      </view>
+      <view class="fe-hint">设定每人最多可填写的次数（默认 1 次，即一人一条）</view>
+    </view>
+
+    <!-- 底部按钮 -->
+    <view class="fe-footer">
+      <view class="fe-btn fe-btn-draft {{saving ? 'is-disabled' : ''}}" bindtap="handleSaveDraft">💾 暂存</view>
+      <view class="fe-btn fe-btn-publish {{publishing ? 'is-disabled' : ''}}" bindtap="handlePublish">{{publishing ? '发布中...' : '🚀 发布'}}</view>
+    </view>
+  </view>
+
+  <!-- 控件配置弹窗 -->
+  <view class="fe-modal-mask {{modalAnimating ? 'is-closing' : ''}}" wx:if="{{showBlockModal}}" catchtap="closeBlockModal" catchtouchmove="stopPropagation">
+    <view class="fe-modal-container" catchtap="stopPropagation">
+      <view class="fe-modal-header">
+        <view class="fe-modal-title">{{editingIndex >= 0 ? '编辑控件' : '添加控件'}}</view>
+        <view class="fe-modal-close" catchtap="closeBlockModal">×</view>
+      </view>
+
+      <scroll-view class="fe-modal-body" scroll-y enhanced show-scrollbar="false" wx:if="{{editingBlock}}">
+        <!-- 题干 -->
+        <view class="fe-modal-field" wx:if="{{editingBlock.type !== 'text'}}">
+          <view class="fe-modal-label">题干</view>
+          <view class="auth-input-shell">
+            <input value="{{editingBlock.title}}" bindinput="onBlockTitleInput" placeholder="请输入题干" placeholder-class="auth-input-placeholder" maxlength="100" />
+          </view>
+        </view>
+
+        <!-- 说明文字内容 -->
+        <view class="fe-modal-field" wx:if="{{editingBlock.type === 'text'}}">
+          <view class="fe-modal-label">说明内容</view>
+          <view class="auth-input-shell">
+            <textarea value="{{editingBlock.title}}" bindinput="onBlockTitleInput" placeholder="请输入说明文字" placeholder-class="auth-input-placeholder" maxlength="500" auto-height></textarea>
+          </view>
+        </view>
+
+        <!-- 必填开关 -->
+        <view class="fe-modal-field" wx:if="{{editingBlock.type !== 'text'}}">
+          <view class="fe-modal-label">是否必填</view>
+          <view class="fe-switch-row">
+            <text class="fe-switch-hint">{{editingBlock.required ? '必填' : '选填'}}</text>
+            <switch checked="{{editingBlock.required}}" color="#2563EB" bindchange="onBlockRequiredToggle" />
+          </view>
+        </view>
+
+        <!-- 选项（radio/checkbox/judge） -->
+        <view class="fe-modal-field" wx:if="{{editingBlock.type === 'radio' || editingBlock.type === 'checkbox' || editingBlock.type === 'judge'}}">
+          <view class="fe-modal-label">选项</view>
+          <view class="fe-option-list">
+            <view wx:for="{{editingBlock.options}}" wx:key="index" class="fe-option-row">
+              <view class="fe-option-dot {{editingBlock.type === 'checkbox' ? 'is-square' : ''}}"></view>
+              <input class="fe-option-input" value="{{item}}" bindinput="onOptionInput" data-index="{{index}}" placeholder="选项内容" />
+              <view class="fe-option-remove" catchtap="onRemoveOption" data-index="{{index}}">×</view>
+            </view>
+          </view>
+          <view class="fe-add-btn" bindtap="onAddOption">＋ 添加选项</view>
+        </view>
+
+        <!-- 副食类别（side_dish） -->
+        <view class="fe-modal-field" wx:if="{{editingBlock.type === 'side_dish'}}">
+          <view class="fe-modal-label">副食类别、每人最大订购数量</view>
+          <view class="fe-category-list">
+            <view wx:for="{{editingBlock.categories}}" wx:key="id" class="fe-category-row">
+              <input class="fe-category-name" value="{{item.name}}" bindinput="onCategoryNameInput" data-index="{{index}}" placeholder="类别名称" />
+              <input class="fe-category-max" type="number" value="{{item.maxCount}}" bindinput="onCategoryMaxInput" data-index="{{index}}" placeholder="份数" />
+              <view class="fe-option-remove" catchtap="onRemoveCategory" data-index="{{index}}">×</view>
+            </view>
+          </view>
+          <view class="fe-add-btn" bindtap="onAddCategory">＋ 添加类别</view>
+        </view>
+
+        <!-- 活动分组 / 人数（activity） -->
+        <view class="fe-modal-field" wx:if="{{editingBlock.type === 'activity'}}">
+          <view class="fe-modal-label">报名分组（可选）</view>
+          <view class="fe-option-list">
+            <view wx:for="{{editingBlock.groups}}" wx:key="index" class="fe-option-row">
+              <input class="fe-option-input" value="{{item}}" bindinput="onGroupInput" data-index="{{index}}" placeholder="分组名称" />
+              <view class="fe-option-remove" catchtap="onRemoveGroup" data-index="{{index}}">×</view>
+            </view>
+          </view>
+          <view class="fe-add-btn" bindtap="onAddGroup">＋ 添加分组</view>
+
+          <view class="fe-modal-label" style="margin-top: 24rpx;">人数上限（可选）</view>
+          <view class="auth-input-shell">
+            <input type="number" value="{{editingBlock.maxRegistrations}}" bindinput="onMaxRegistrationsInput" placeholder="不填则不限制" placeholder-class="auth-input-placeholder" />
+          </view>
+        </view>
+      </scroll-view>
+
+      <view class="fe-modal-footer">
+        <view class="fe-btn fe-btn-draft" catchtap="closeBlockModal">取消</view>
+        <view class="fe-btn fe-btn-publish" catchtap="handleConfirmBlock">确定</view>
+      </view>
+    </view>
+  </view>
+
+  <!-- 恢复草稿提示 -->
+  <view class="fe-modal-mask" wx:if="{{showDraftTip}}" catchtap="handleDiscardDraft" catchtouchmove="stopPropagation">
+    <view class="fe-draft-tip" catchtap="stopPropagation">
+      <view class="fe-draft-tip-icon">💾</view>
+      <view class="fe-draft-tip-title">发现未完成的草稿</view>
+      <view class="fe-draft-tip-desc">是否恢复上次暂存的内容？</view>
+      <view class="fe-draft-tip-actions">
+        <view class="fe-btn fe-btn-draft" catchtap="handleDiscardDraft">放弃</view>
+        <view class="fe-btn fe-btn-publish" catchtap="handleRestoreDraft">恢复</view>
+      </view>
+    </view>
+  </view>
+</view>

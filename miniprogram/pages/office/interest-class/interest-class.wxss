@@ -106,7 +106,7 @@
 .ic-filter-item {
   padding: 10rpx 28rpx;
   border-radius: 30rpx;
-  font-size: var(--fs-26);
+  font-size: var(--fs-28);
   color: #64748B;
   background: #FFFFFF;
   transition: all 0.2s ease;

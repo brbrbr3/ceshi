@@ -1522,6 +1522,135 @@
 
 ---
 
+### 40. content_forms - 信息发布表单主表
+
+**用途**：存储「信息发布」系统的内容表单，通过 `blocks[]` 数组统一表达公告、问卷、副食、活动、答题五种形态。发布者通过问卷星式控件（单选/多选/判断/简答/副食/活动/说明文字）自由组合内容：只写标题正文即为公告，添加控件即为问卷/副食/活动/答题。
+
+**安全规则**：`ADMINWRITE` - 所有用户可读，仅云函数可写
+
+> **重要说明**：表单由 `contentFormManager` 云函数创建和管理。发布权限：管理员、馆员可发布；所有注册用户可查看和填写。
+
+**记录数**：动态
+
+**索引**：
+
+- `_id` - 记录 ID（云开发自动创建）
+- `idx_status_createdAt` - 组合索引：status（升序）+ createdAt（降序）- 优化列表查询
+- `idx_tag_status_createdAt` - 组合索引：tag（升序）+ status（升序）+ createdAt（降序）- 优化 tag 筛选
+- `idx_openid` - 创建者 openid 索引 - 查询「我的发布」
+
+**字段结构**：
+```javascript
+{
+  _id: String,                    // 记录 ID（自动生成）
+  _openid: String,                // 创建者 openid
+  title: String,                  // 标题（必填）
+  description: String,            // 正文说明（富文本 HTML，可为空）
+  tag: String,                    // 类型：'announcement'(公告) | 'questionnaire'(问卷) | 'side_dish'(副食) | 'activity'(活动) | 'quiz'(答题)
+  deadline: Number|null,          // 截止时间戳（公告可为 null）
+  blocks: Array[{                 // 控件列表（驱动填写内容）
+    id: String,                   // 控件 ID（如 'b_xxx'）
+    type: String,                 // 类型：'text'(说明文字) | 'radio'(单选) | 'checkbox'(多选) | 'judge'(判断) | 'textarea'(简答) | 'side_dish'(副食) | 'activity'(活动)
+    title: String,                // 题干
+    required: Boolean,            // 是否必填
+    options: Array[String],       // 选项（radio/checkbox/judge）
+    categories: Array[{           // 副食类别（side_dish）
+      id: String,                 // 类别 ID
+      name: String,               // 类别名称
+      maxCount: Number            // 该类别每人最大份数
+    }],
+    groups: Array[String],        // 报名分组（activity，可选）
+    maxRegistrations: Number|null // 人数上限（activity，可选）
+  }],
+  targetRoles: Array[String],     // 目标角色（限定可见时）
+  isTargetOnlyVisible: Boolean,   // 是否仅对目标角色可见
+  isAnonymous: Boolean,           // 是否匿名填写（tag 为 questionnaire 时有效）
+  maxSubmissions: Number,         // 每人最多填写次数（tag 为 quiz 时有效，默认 1）
+  status: String,                 // 状态：'draft'(草稿) | 'published'(已发布) | 'closed'(已关闭)
+  readUsers: Array[String],       // 已读用户 openid 列表
+  submissionCount: Number,        // 提交人数（冗余字段）
+  publishedAt: Number|null,       // 发布时间戳
+  createdByName: String,          // 创建者姓名
+  createdAt: Number,              // 创建时间戳
+  updatedAt: Number               // 更新时间戳
+}
+```
+
+**业务规则**：
+1. tag 由发布者在编辑页手动选择，不做系统自动推断
+2. 发布权限：管理员（`isAdmin`）或角色为「馆员」的用户
+3. 提交记录存于 `content_form_submissions`：`maxSubmissions` 为 1 时一人一条（upsert），大于 1 时同一用户可多次提交（答题场景）
+4. 截止时间过后，表单视为已截止（前端和云端双重判断）
+5. 目标角色过滤：`isTargetOnlyVisible` 为 true 时，仅 `targetRoles` 包含用户角色的用户可见
+6. 匿名填写：`isAnonymous` 为 true 时，提交记录的 `userName` 存为「匿名」，`role`/`position` 置空
+
+**相关云函数**：
+- `contentFormManager.create`：创建表单（发布或暂存 draft）
+- `contentFormManager.update`：更新表单
+- `contentFormManager.delete`：删除表单（级联删除提交记录）
+- `contentFormManager.close`：关闭表单
+- `contentFormManager.list`：分页列表（支持 tag 筛选、目标角色可见性过滤）
+- `contentFormManager.get`：详情（含当前用户提交状态）
+- `contentFormManager.submit`：提交/修改答案（一人一条 upsert）
+- `contentFormManager.listSubmissions`：提交者列表（含答案明细）
+- `contentFormManager.getStats`：统计聚合
+
+**控制台链接**：
+- [content_forms](https://tcb.cloud.tencent.com/dev?envId=cloud1-d2gyip4xi1fcf54bd#/db/doc/collection/content_forms)
+
+---
+
+### 41. content_form_submissions - 信息发布提交记录
+
+**用途**：存储用户对信息发布表单的提交记录，一人一条（upsert 幂等）。
+
+**安全规则**：`ADMINWRITE` - 所有用户可读，仅云函数可写
+
+> **重要说明**：提交记录由 `contentFormManager` 云函数在用户提交时创建或更新。
+
+**记录数**：动态
+
+**索引**：
+
+- `_id` - 记录 ID（云开发自动创建）
+- `idx_formId_openid` - 组合索引：formId（升序）+ _openid（升序）- 查询用户对某表单的提交（防重复）
+- `idx_formId_submittedAt` - 组合索引：formId（升序）+ submittedAt（降序）- 查询某表单的提交列表
+
+**字段结构**：
+```javascript
+{
+  _id: String,                    // 记录 ID（自动生成）
+  formId: String,                 // 关联的表单 ID（content_forms._id）
+  _openid: String,                // 提交者 openid
+  userName: String,               // 提交者姓名
+  role: String,                   // 提交者角色
+  position: String|Array,         // 提交者岗位
+  answers: Array[{                // 答案明细
+    blockId: String,              // 关联的控件 ID
+    type: String,                 // 控件类型（对应 blocks[].type）
+    value: Any                    // 答案值（随 type 变化：radio/judge 为字符串、checkbox 为数组、side_dish 为数组、activity 为字符串）
+  }],
+  submittedAt: Number,            // 提交时间戳
+  updatedAt: Number               // 更新时间戳
+}
+```
+
+**业务规则**：
+1. 一人一条：同一用户对同一表单只有一条记录，重复提交为 update
+2. 提交时校验截止时间、必填项、副食份数上限、活动人数上限
+3. 取消提交为删除记录（`cancelSubmit`）
+
+**相关云函数**：
+- `contentFormManager.submit`：提交/修改答案
+- `contentFormManager.cancelSubmit`：取消提交
+- `contentFormManager.listSubmissions`：提交者列表
+- `contentFormManager.getStats`：统计聚合
+
+**控制台链接**：
+- [content_form_submissions](https://tcb.cloud.tencent.com/dev?envId=cloud1-d2gyip4xi1fcf54bd#/db/doc/collection/content_form_submissions)
+
+---
+
 ## 命名规范
 
 ### 集合命名规则
@@ -1663,6 +1792,7 @@ const notificationsCollection = db.collection('notifications')  // ✅
 | 2026-04-28 | 更新 side_dish_orders/side_dish_bookings 支持多类别征订（categories/items） | AI |
 | 2026-07-21 | 添加 interest_class_reports 兴趣班备案记录集合（兴趣班备案功能） | AI |
 | 2026-07-26 | 创建 notifications 集合组合索引 `openid_createdAt_idx`（openid升序 + createdAt降序） | AI |
+| 2026-08-13 | 添加 content_forms、content_form_submissions 集合（信息发布系统） | AI |
 
 ---
 

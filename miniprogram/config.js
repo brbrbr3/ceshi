@@ -6,7 +6,7 @@ const config = {
   // 缓存版本号（修改此值可强制刷新用户端缓存）
   CACHE_VERSION: '1.0.2689',
   //更新说明
-  VERSION_DESCRIPTION: '欢迎使用报备助手！\n1.即将赴任的馆员也可注册小程序使用。\n2.理发预约功能上线。',
+  VERSION_DESCRIPTION: '欢迎使用报备助手！\n1.即将赴任的馆员也可注册小程序使用。\n2.理发预约功能上线。\n3.信息发布功能上线，可在此发布公告、订购副食、活动报名、问卷答题。',
 
   // 云开发环境 ID
   envId: 'cloud1-d2gyip4xi1fcf54bd',
