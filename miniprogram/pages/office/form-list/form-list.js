@@ -42,7 +42,7 @@ Page({
       const canPublish = !!user.isAdmin || user.role === '馆员'
       this.setData({ 
         canPublish,
-        isReviewer: user.isReviewer
+        isReviewer: !!user.isReviewer
       })
     }).catch(() => {})
   },
@@ -80,6 +80,10 @@ Page({
       tagBg: tagCfg.bg,
       timeText: utils.formatRelativeTime(item.publishedAt || item.createdAt),
       deadlineText: item.deadline ? utils.formatDateTime(item.deadline) : '',
+      targetRolesText: (item.targetRoles && item.targetRoles.length > 0)
+        ? `该信息仅允许「${item.targetRoles.join('、')}」角色用户填报`
+        : '',
+      activityLimitText: item.maxRegistrations ? `上限 ${item.maxRegistrations} 人` : '',
       statusText: item.isClosed ? '已截止' : '进行中',
       isUnread: !item.isRead
     }

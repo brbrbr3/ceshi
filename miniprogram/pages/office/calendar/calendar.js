@@ -694,8 +694,11 @@ Page({
     }
 
     // 添加巴西法定节假日 festival 标记（替换日期下方农历文字）
-    const brazilMarks = getBrazilHolidayMarks(this.data.currentYear)
-    marks.push(...brazilMarks)
+    // 审核模式（isReviewer）下不计算、不加载巴西节假日
+    if (!this.data.isReviewer) {
+      const brazilMarks = getBrazilHolidayMarks(this.data.currentYear)
+      marks.push(...brazilMarks)
+    }
 
     // 添加日程圆点标记（遍历 Set 中所有已加载的日期）
     if (scheduleDatesSet && scheduleDatesSet.size > 0) {
@@ -905,6 +908,8 @@ Page({
    */
   getBrazilHolidayInfo(date) {
     if (!date) return null
+    // 审核模式（isReviewer）下不计算、不加载巴西节假日
+    if (this.data.isReviewer) return null
     const year = date.year
     const holidays = getBrazilHolidays(year)
     const key = `${year}-${String(date.month).padStart(2, '0')}-${String(date.day).padStart(2, '0')}`

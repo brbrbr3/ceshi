@@ -4,9 +4,9 @@
 
 const config = {
   // 缓存版本号（修改此值可强制刷新用户端缓存）
-  CACHE_VERSION: '1.1',
+  CACHE_VERSION: '1.1.26814',
   //更新说明
-  VERSION_DESCRIPTION: '1.即将赴任的馆员也可注册小程序使用。\n2.[理发预约]上线。\n3.[信息发布]上线，可在此发布公告、订购副食、活动报名、问卷答题。',
+  VERSION_DESCRIPTION: '1.即将赴任的馆员也可注册小程序，查看赴任须知等信息。\n2.[信息发布]上线，可在此发布公告、订购副食、活动报名、问卷答题。',
 
   // 云开发环境 ID
   envId: 'cloud1-d2gyip4xi1fcf54bd',

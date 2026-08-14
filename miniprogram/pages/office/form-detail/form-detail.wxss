@@ -114,6 +114,17 @@
   margin-left: 4rpx;
 }
 
+.fd-score-text {
+  flex-shrink: 0;
+  padding: 4rpx 14rpx;
+  border-radius: 20rpx;
+  background: #FEF3C7;
+  color: #D97706;
+  font-size: var(--fs-24);
+  font-weight: 600;
+  margin-top: 6rpx;
+}
+
 .fd-text-block {
   font-size: var(--fs-28);
   color: #475569;
@@ -283,6 +294,15 @@
   font-size: var(--fs-30);
   font-weight: 600;
   color: #1E293B;
+}
+
+.fd-activity-meta {
+  font-size: var(--fs-28);
+  color: #EA580C;
+  margin-bottom: 16rpx;
+  padding: 12rpx 16rpx;
+  background: #FFF7ED;
+  border-radius: 12rpx;
 }
 
 .fd-register-btn {

@@ -2,7 +2,8 @@
   <view class="office-gradient-header form-detail-header">
     <view class="form-detail-title-row">
       <view class="form-detail-badge" style="background: {{tagBg}}; color: {{tagColor}};">{{tagIcon}} {{tagLabel}}</view>
-      <view wx:if="{{isClosed}}" class="form-detail-closed">已截止</view>
+      <view wx:if="{{isPreview}}" class="form-detail-closed">预览</view>
+      <view wx:elif="{{isClosed}}" class="form-detail-closed">已截止</view>
     </view>
     <view class="form-detail-title">{{form.title}}</view>
     <view class="form-detail-meta">{{form.createdByName}} · {{timeText}}</view>
@@ -48,6 +49,7 @@
             {{bk.title}}
             <text wx:if="{{bk.required}}" class="fd-required">*</text>
           </view>
+          <text wx:if="{{bk.scoreText}}" class="fd-score-text">{{bk.scoreText}}</text>
         </view>
 
         <!-- 单选 / 判断：始终渲染选项 -->
@@ -122,6 +124,7 @@
 
         <!-- 活动报名 -->
         <block wx:elif="{{bk.type === 'activity'}}">
+          <view class="fd-activity-meta">{{bk.activityMetaText}}</view>
           <block wx:if="{{bk.groups.length > 0}}">
             <view class="fd-options">
               <view
@@ -148,13 +151,13 @@
       </view>
     </block>
 
-    <!-- 空控件提示 -->
+    <!-- 空控件提示 
     <view wx:if="{{blocks.length === 0}}" class="office-card form-detail-card">
       <view class="fd-empty">该信息暂无额外内容</view>
-    </view>
+    </view> -->
 
-    <!-- 填写操作区（所有用户，含发布者） -->
-    <view class="fd-footer" wx:if="{{hasFillableBlocks && !isClosed && canSubmit}}">
+    <!-- 填写操作区（所有用户，含发布者；预览模式隐藏） -->
+    <view class="fd-footer" wx:if="{{hasFillableBlocks && !isClosed && canSubmit && !isPreview}}">
       <view wx:if="{{mySubmission && maxSubmissions === 1}}" class="fd-footer-btn is-cancel" bindtap="handleCancelSubmit">取消提交</view>
       <view class="fd-footer-btn is-primary {{submitting ? 'is-disabled' : ''}}" bindtap="handleSubmit">{{maxSubmissions > 1 ? '提交' : (mySubmission ? '更新提交' : '提交')}}</view>
     </view>
@@ -162,7 +165,7 @@
     <!-- 发布者管理入口 -->
     <view class="fd-footer" wx:if="{{isCreator}}">
       <view class="fd-footer-btn is-ghost" bindtap="goEdit">编辑</view>
-      <view class="fd-footer-btn is-ghost" bindtap="goResult">统计</view>
+      <view wx:if="{{form.tag !== 'announcement'}}" class="fd-footer-btn is-ghost" bindtap="goResult">统计</view>
       <view wx:if="{{form.tag === 'questionnaire' || form.tag === 'quiz' || form.tag === 'side_dish'}}" class="fd-footer-btn is-ghost" bindtap="goSubmissions">明细</view>
       <view class="fd-footer-btn is-danger" bindtap="handleDelete">删除</view>
     </view>

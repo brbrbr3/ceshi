@@ -140,6 +140,14 @@
   margin-bottom: 4rpx;
 }
 
+.form-list-item-restrict {
+  color: #EA580C;
+}
+
+.form-list-item-limit {
+  color: #EA580C;
+}
+
 .form-list-dot {
   color: #CBD5E1;
 }

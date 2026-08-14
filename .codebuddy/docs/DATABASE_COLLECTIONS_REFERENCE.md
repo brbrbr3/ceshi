@@ -122,7 +122,7 @@
 **索引**：
 
 - `_id` - 记录 ID（云开发自动创建）
-- `idx_createdAt` - 创建时间索引（降序）- 优化菜单列表查询
+- `createdAt_-1` - 创建时间索引（降序）- 优化菜单列表查询（`orderBy('createdAt', 'desc')`）
 
 **字段结构**：
 ```javascript
@@ -1793,6 +1793,7 @@ const notificationsCollection = db.collection('notifications')  // ✅
 | 2026-07-21 | 添加 interest_class_reports 兴趣班备案记录集合（兴趣班备案功能） | AI |
 | 2026-07-26 | 创建 notifications 集合组合索引 `openid_createdAt_idx`（openid升序 + createdAt降序） | AI |
 | 2026-08-13 | 添加 content_forms、content_form_submissions 集合（信息发布系统） | AI |
+| 2026-08-14 | 创建 menus 集合 `createdAt_-1` 降序索引，消除菜单列表全表扫描告警 | AI |
 
 ---
 

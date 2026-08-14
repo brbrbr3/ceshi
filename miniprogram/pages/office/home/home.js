@@ -65,7 +65,8 @@ Page({
         label: '理发预约',
         color: '#EA580C',
         bg: '#EFF6FF',
-        implemented: true
+        implemented: true,
+        featureKey: null
       },
       /*  {
          icon: '📊',
@@ -272,7 +273,7 @@ Page({
         wx.showModal({
           title: '更新兴趣班备案提示',
           content: '您及您的家属本月兴趣班情况是否有变化？如有变化，请及时更新备案。',
-          confirmText: '有变化，去更新备案',
+          confirmText: '更新备案',
           cancelText: '无变化',
           success: (res) => {
             if (res.confirm) {
@@ -612,12 +613,19 @@ Page({
   },
 
   handleQuickAction(e) {
-    // 利用用户 tap 手势订阅/充值额度（基于"总是保持以上选择"机制）
-    // 全体用户 → 模板4（未读消息提醒）；管理员 → 模板2（待审批通知）；报备接收人 → 模板3（出行报备通知）
     const user = this.data.currentUser || app.globalData.userProfile
+    const label = e.currentTarget.dataset.label
+    // 「理发预约」进入前需弹权限确认弹窗，而订阅授权弹窗会吞掉 showModal，
+    // 故先订阅、在订阅流程完成后再弹权限弹窗（见 handleHaircutEntry）。
+    if (label === '理发预约') {
+      this.openHaircut(user)
+      return
+    }
+
+    // 其余入口：利用用户 tap 手势订阅/充值额度（基于"总是保持以上选择"机制）
+    // 全体用户 → 模板4（未读消息提醒）；管理员 → 模板2（待审批通知）；报备接收人 → 模板3（出行报备通知）
     if (user) app.subscribeOnTap(app.getSubscribeTypesForUser(user))
 
-    const label = e.currentTarget.dataset.label
     if (label === '每周菜单') {
       wx.navigateTo({
         url: '/pages/office/menus/menus'
@@ -626,11 +634,6 @@ Page({
       app.navigateWithPermission('trip_report', '/pages/office/trip-report/trip-report', '外出报备')
     } else if (label === '兴趣班备案') {
       app.navigateWithPermission('interest_class_report', '/pages/office/interest-class/interest-class', '兴趣班备案')
-    } else if (label === '理发预约') {
-      // 全体用户可用，无需权限检查
-      wx.navigateTo({
-        url: '/pages/office/haircut/haircut'
-      })
     } else if (label === '生活资讯') {
       // 全体用户可用，无需权限检查
       wx.navigateTo({
@@ -655,6 +658,55 @@ Page({
       utils.showToast({
         title: '功能开发中，敬请期待',
         icon: 'none'
+      })
+    }
+  },
+
+  /**
+   * 理发预约入口：先订阅，订阅流程完成后再进行权限判断与弹窗
+   * 理发预约权限判断与进入
+   */
+  openHaircut(user) {
+    // 当前暂时仅允许招待员进入测试
+    const isReceptionist = user && Array.isArray(user.position) && user.position.includes('招待员')
+    if (isReceptionist) {
+      wx.showModal({
+        title: '功能测试中',
+        content: '您是「招待员」。该功能尚未正式启用，当前请招待员对该功能进行测试，测试数据将在正式启用前删除',
+        confirmText: '进入测试',
+        success: (res) => {
+          if (res.confirm) {
+            wx.navigateTo({
+              url: '/pages/office/haircut/haircut'
+            })
+          }
+        }
+      })
+    }
+    // 办公室人员可进入测试
+    else if (user && user.department === '办') {
+      wx.showModal({
+        title: '功能测试中',
+        content: '该功能尚未正式启用，当前请办公室人员对该功能进行测试，测试数据将在正式启用前删除',
+        confirmText: '进入测试',
+        success: (res) => {
+          if (res.confirm) {
+            wx.navigateTo({
+              url: '/pages/office/haircut/haircut'
+            })
+          }
+        }
+      })
+    } else if (this.data.isReviewer || app.globalData.isReviewer) {
+      wx.navigateTo({
+        url: '/pages/office/haircut/haircut'
+      })
+    } else {
+      wx.showModal({
+        title: '功能尚未开放',
+        content: '该功能当前尚未开放，正式启用请等待通知',
+        showCancel: false,
+        confirmText: '知道了'
       })
     }
   },
@@ -1004,7 +1056,7 @@ Page({
           activeTrip.elapsedTimeText = hours > 0 ? `${hours}小时${minutes}分钟` : `${minutes}分钟`
         }
         this.setData({
-          activeTrip
+          activeTrip: activeTrip || null
         })
       }
     }).catch(err => {

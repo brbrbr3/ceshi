@@ -25,7 +25,7 @@
     <!-- Tab 1: 预约理发 -->
     <view wx:if="{{activeTab === 'book'}}">
       <!-- 提示信息 -->
-      <view class="haircut-info-card">
+      <view wx:if="{{!isReviewer}}" class="haircut-info-card">
         <view class="haircut-info-text">
           周一、三、五14:30~18:00提供理发<text>\n</text>
           每半小时1个时段，每时段限约1人，可代他人预约<text>\n</text>
@@ -57,7 +57,7 @@
       </view>
 
       <!-- 日期提示（已过去 / 节假日 / 时段锁定） -->
-      <view class="haircut-date-hint" wx:if="{{selectedDateInfo && (selectedDateInfo.isDisabled || selectedDateInfo.isDayLocked)}}">
+      <view class="haircut-date-hint" wx:if="{{!isReviewer && selectedDateInfo && (selectedDateInfo.isDisabled || selectedDateInfo.isDayLocked)}}">
         <view class="haircut-date-hint-text">{{selectedDateInfo.disableReason}}</view>
       </view>
 

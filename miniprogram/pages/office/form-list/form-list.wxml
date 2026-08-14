@@ -41,9 +41,14 @@
           <text>{{item.timeText}}</text>
           <text wx:if="{{item.hasFormContent}}" class="form-list-dot">·</text>
           <text wx:if="{{item.hasFormContent}}">{{item.submissionCount}} 人已提交</text>
+          <text wx:if="{{item.activityLimitText}}" class="form-list-dot">·</text>
+          <text wx:if="{{item.activityLimitText}}" class="form-list-item-limit">{{item.activityLimitText}}</text>
         </view>
         <view wx:if="{{item.deadline}}" class="form-list-item-meta">
           <text>截止时间：{{item.deadlineText}}</text>
+        </view>
+        <view wx:if="{{item.targetRolesText}}" class="form-list-item-meta form-list-item-restrict">
+          <text>{{item.targetRolesText}}</text>
         </view>
       </view>
 

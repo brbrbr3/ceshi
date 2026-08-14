@@ -28,8 +28,8 @@ const BLOCK_TYPE_LIST = [
   { type: 'checkbox', label: '多选题', icon: '☑️', desc: '多选多个选项', color: '#8B5CF6', bg: '#F3E8FF' },
   { type: 'judge', label: '判断题', icon: '⚖️', desc: '正确 / 错误', color: '#10B981', bg: '#D1FAE5' },
   { type: 'textarea', label: '简答题', icon: '✏️', desc: '自由填写文字', color: '#F59E0B', bg: '#FEF3C7' },
-  { type: 'side_dish', label: '副食订购', icon: '🍱', desc: '多类别订购', color: '#16A34A', bg: '#DCFCE7' },
-  { type: 'activity', label: '活动报名', icon: '🎉', desc: '分组 / 人数上限', color: '#EA580C', bg: '#FFEDD5' },
+  { type: 'side_dish', label: '副食订购', icon: '🍱', desc: '支持多类别订购', color: '#16A34A', bg: '#DCFCE7' },
+  { type: 'activity', label: '活动报名', icon: '🎉', desc: '可设置分组 / 人数上限', color: '#EA580C', bg: '#FFEDD5' },
   { type: 'text', label: '说明文字', icon: '📝', desc: '插入说明段落', color: '#64748B', bg: '#F1F5F9' }
 ]
 

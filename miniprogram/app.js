@@ -847,10 +847,19 @@ App({
    * - ''        → 未设"总是"，检查 1 天节流后加入列表（弹微信原生订阅窗）
    * 调用成功后刷新 sub_status_（用户可能在此期间勾选了"总是"）
    * @param {string[]} types - 订阅类型数组（如 ['unread_message', 'pending_approval', 'trip_report']）
+   * @param {Function} [onComplete] - 订阅流程结束后的回调（无论是否实际弹出订阅窗都会触发），
+   *  用于在订阅弹窗关闭后再执行 showModal 等互斥弹窗，避免被吞
    */
-  subscribeOnTap(types) {
-    if (this.globalData.isReviewer) return
-    if (!types || types.length === 0) return
+  subscribeOnTap(types, onComplete) {
+    const done = () => { if (typeof onComplete === 'function') onComplete() }
+    if (this.globalData.isReviewer) {
+      done()
+      return
+    }
+    if (!types || types.length === 0) {
+      done()
+      return
+    }
 
     const typeToTemplate = {
       'pending_approval': config.SUBSCRIBE_TEMPLATES.PENDING_APPROVAL,
@@ -883,10 +892,16 @@ App({
       toRequest.push(id)
     })
 
-    if (toRequest.length === 0) return
+    if (toRequest.length === 0) {
+      done()
+      return
+    }
 
     // 防止并发
-    if (this._subscribing) return
+    if (this._subscribing) {
+      done()
+      return
+    }
     this._subscribing = true
 
     wx.requestSubscribeMessage({
@@ -900,6 +915,7 @@ App({
       },
       complete: () => {
         this._subscribing = false
+        done()
       }
     })
   },

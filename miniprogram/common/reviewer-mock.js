@@ -198,7 +198,7 @@ function getMockResponse(name, data) {
       case 'list':
         return { list: [], total: 0, hasMore: false }
       case 'get':
-        return { form: null, mySubmission: null, isCreator: false, canPublish: false }
+        return { form: null, mySubmission: null, isCreator: false, canPublish: false, canSubmit: false }
       case 'listSubmissions':
         return { form: null, list: [], total: 0 }
       case 'getStats':

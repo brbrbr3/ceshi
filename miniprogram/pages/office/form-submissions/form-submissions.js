@@ -6,7 +6,10 @@ Page({
     formId: '',
     title: '',
     tag: '',
+    isQuiz: false,
     list: [],
+    displayList: [],
+    sortMode: 'time',
     loading: true,
     exporting: false,
     allExpanded: false
@@ -39,13 +42,17 @@ Page({
       }
       const form = result.data.form || {}
       const blocks = form.blocks || []
-      const list = (result.data.list || []).map(s => this.formatSubmission(s, blocks))
+      const isQuiz = form.tag === 'quiz'
+      const list = (result.data.list || []).map(s => this.formatSubmission(s, blocks, isQuiz))
       this.setData({
         title: form.title || '',
         tag: form.tag || '',
+        isQuiz,
         list,
+        sortMode: 'time',
         loading: false
       })
+      this.applySort()
     }).catch(err => {
       wx.hideLoading()
       console.error('加载提交明细失败:', err)
@@ -57,23 +64,70 @@ Page({
   /**
    * 格式化单条提交记录
    */
-  formatSubmission(s, blocks) {
+  formatSubmission(s, blocks, isQuiz) {
+    const scoreDetailMap = {}
+    let scoreTotal = 0
+    if (isQuiz && s.score) {
+      scoreTotal = s.score.totalScore || 0
+      ;(s.score.details || []).forEach(d => { scoreDetailMap[d.blockId] = d })
+    }
     const answerDetails = (s.answers || []).map((a, idx) => {
       const block = blocks.find(b => b.id === a.blockId)
+      const sd = scoreDetailMap[a.blockId]
       return {
         blockId: a.blockId,
         index: idx + 1,
         title: block ? block.title : a.blockId,
         type: a.type,
-        valueText: this.formatValue(a.type, a.value)
+        valueText: this.formatValue(a.type, a.value),
+        scoreText: sd ? `${sd.score} / ${sd.fullScore} 分` : '',
+        isCorrect: sd ? !!sd.correct : null
       }
     })
     return {
       ...s,
+      key: s._id,
       timeText: utils.formatDateTime(s.submittedAt),
+      department: s.department || '',
       answerDetails,
+      scoreTotal,
       expanded: false
     }
+  },
+
+  /**
+   * 根据当前排序模式重排列表并生成展示列表
+   */
+  applySort() {
+    const list = [...this.data.list]
+    const sortMode = this.data.sortMode
+    let displayList = []
+
+    if (sortMode === 'score') {
+      // 按分数从高到低
+      list.sort((a, b) => (b.scoreTotal || 0) - (a.scoreTotal || 0))
+      displayList = list
+    } else if (sortMode === 'department') {
+      // 按部门分组，组内按分数从高到低
+      const groups = {}
+      const order = []
+      list.forEach(item => {
+        const dept = item.department || '未分配部门'
+        if (!groups[dept]) { groups[dept] = []; order.push(dept) }
+        groups[dept].push(item)
+      })
+      order.forEach(dept => {
+        groups[dept].sort((a, b) => (b.scoreTotal || 0) - (a.scoreTotal || 0))
+        displayList.push({ key: `g_${dept}`, isGroup: true, name: dept, count: groups[dept].length })
+        displayList = displayList.concat(groups[dept])
+      })
+    } else {
+      // 按提交时间从早到晚
+      list.sort((a, b) => (a.submittedAt || 0) - (b.submittedAt || 0))
+      displayList = list
+    }
+
+    this.setData({ displayList })
   },
 
   /**
@@ -96,12 +150,11 @@ Page({
    * 展开/收起答案明细
    */
   handleToggleExpand(e) {
-    const index = Number(e.currentTarget.dataset.index)
-    const item = this.data.list[index]
-    if (!item) return
-    this.setData({
-      [`list[${index}].expanded`]: !item.expanded
-    })
+    const id = e.currentTarget.dataset.id
+    if (!id) return
+    const list = this.data.list.map(item => item._id === id ? { ...item, expanded: !item.expanded } : item)
+    this.setData({ list })
+    this.applySort()
   },
 
   /**
@@ -111,6 +164,17 @@ Page({
     const allExpanded = !this.data.allExpanded
     const list = this.data.list.map(item => ({ ...item, expanded: allExpanded }))
     this.setData({ list, allExpanded })
+    this.applySort()
+  },
+
+  /**
+   * 切换排序模式（答题表单）
+   */
+  onSortChange(e) {
+    const mode = e.currentTarget.dataset.mode
+    if (!mode || mode === this.data.sortMode) return
+    this.setData({ sortMode: mode })
+    this.applySort()
   },
 
   /**

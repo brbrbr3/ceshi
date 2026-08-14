@@ -65,7 +65,7 @@ Page({
     isReceptionist: false,
     userName: '',
     userOpenId: '',
-
+    isReviewer: false,
     // Tab
     activeTab: 'book',
 
@@ -157,7 +157,8 @@ Page({
           canView,
           isReceptionist,
           userName: user.name,
-          userOpenId: user.openid || ''
+          userOpenId: user.openid || '',
+          isReviewer: !!user.isReviewer
         })
       }
     } catch (error) {

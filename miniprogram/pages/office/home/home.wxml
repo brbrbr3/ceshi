@@ -75,7 +75,7 @@
         <view class="office-section-title home-section-title" hover-class="home-btn-active" hover-stay-time="300" bindtap="goContentForms">信息发布</view>
         <view class="office-link home-link" hover-class="home-btn-active" hover-stay-time="300" bindtap="goContentForms">更多</view>
       </view>
-      <view class="office-card home-news-card">
+      <view class="office-card home-news-card"  hover-class="{{(!loadingContentForms && contentForms.length === 0) ? 'home-btn-active' : ''}}" hover-stay-time="{{(!loadingContentForms && contentForms.length === 0) ? '300' : ''}}">
         <view class="home-news-item" hover-class="home-btn-active" hover-stay-time="300" wx:for="{{contentForms}}" wx:key="_id" bindtap="handleContentFormTap" data-id="{{item._id}}">
           <view class="office-pill home-news-tag" style="background: {{item.tagBg}}; color: {{item.tagColor}};">{{item.tagIcon}} {{item.tagLabel}}</view>
           <view class="home-news-main">
@@ -88,7 +88,7 @@
           <view class="home-news-loading-spinner"></view>
           <text class="home-news-loading-text">加载中...</text>
         </view>
-        <view wx:if="{{!loadingContentForms && contentForms.length === 0}}" class="empty-announcement">
+        <view wx:if="{{!loadingContentForms && contentForms.length === 0}}" class="empty-announcement" bindtap="goContentForms">
           <text class="empty-text">暂无信息</text>
         </view>
       </view>

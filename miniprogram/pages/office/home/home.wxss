@@ -349,7 +349,8 @@ page {
 .home-grid-item,
 .home-section-title,
 .home-link,
-.home-news-item {
+.home-news-item,
+.home-news-card {
   transition: all 0.3s ease;
 }
 

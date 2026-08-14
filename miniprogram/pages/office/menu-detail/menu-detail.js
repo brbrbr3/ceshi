@@ -36,7 +36,6 @@ Page({
     if (options.id) {
       this.setData({ menuId: options.id })
       this.loadMenu()
-      this.loadRatings()
       //this.loadComments()
       this.checkPermission()
     }
@@ -51,7 +50,6 @@ Page({
     if (this.data.menuId) {
       this.loadMenu()
       //this.loadComments()
-      this.loadRatings()
     }
   },
 
@@ -363,8 +361,11 @@ Page({
       .replace(/&lt;/g, '<')
       .replace(/&gt;/g, '>')
 
-    // 3. 按换行符和空格分词
-    const tokens = text.split(/[\n\r\s：:]+/).map(t => t.trim()).filter(Boolean)    // 4. 过滤并提取菜品名
+    // 3.5 将括号（全角/半角）替换为空格，避免括号内内容与前后菜品粘连
+    text = text.replace(/[（(]/g, ' ').replace(/[）)]/g, ' ')
+
+    // 4. 按换行符和空格分词
+    const tokens = text.split(/[\n\r\s：:]+/).map(t => t.trim()).filter(Boolean)
     const dishes = []
     const seen = new Set()
 

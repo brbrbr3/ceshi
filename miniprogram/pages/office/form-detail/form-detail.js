@@ -2,6 +2,84 @@ const app = getApp()
 const utils = require('../../../common/utils.js')
 const { getTagConfig } = require('../../../common/form-constants.js')
 
+// ===== 答题分值计算（与云函数 contentFormManager 保持一致，仅用于预览模式） =====
+function round2(n) {
+  return Math.round((Number(n) || 0) * 100) / 100
+}
+
+function isScorableChoice(type) {
+  return type === 'radio' || type === 'checkbox' || type === 'judge'
+}
+
+function getCorrectAnswers(block) {
+  if (block.type === 'checkbox') {
+    if (Array.isArray(block.correctAnswers)) return block.correctAnswers.map(a => String(a).trim()).filter(Boolean)
+    return block.correctAnswers ? [String(block.correctAnswers).trim()] : []
+  }
+  return block.correctAnswers ? [String(block.correctAnswers).trim()] : []
+}
+
+function calcFullScores(quizScore, blocks) {
+  const qs = quizScore || {}
+  const scoreMode = qs.scoreMode || 'total'
+  const textareaMode = qs.textareaMode || 'ignore'
+  const choiceBlocks = (blocks || []).filter(b => isScorableChoice(b.type))
+  const textareaBlocks = (blocks || []).filter(b => b.type === 'textarea')
+  const full = {}
+
+  if (scoreMode === 'total') {
+    const totalScore = Number(qs.totalScore) || 100
+    const allocation = qs.totalAllocation || 'byQuestion'
+    if (allocation === 'byCorrectAnswer') {
+      let totalCorrect = 0
+      choiceBlocks.forEach(b => { totalCorrect += getCorrectAnswers(b).length })
+      if (totalCorrect > 0) {
+        const perCorrect = totalScore / totalCorrect
+        choiceBlocks.forEach(b => { full[b.id] = round2(getCorrectAnswers(b).length * perCorrect) })
+      } else {
+        const per = totalScore / Math.max(1, choiceBlocks.length)
+        choiceBlocks.forEach(b => { full[b.id] = round2(per) })
+      }
+      if (textareaMode === 'score') {
+        const per = totalScore / Math.max(1, choiceBlocks.length + textareaBlocks.length)
+        textareaBlocks.forEach(b => { full[b.id] = round2(per) })
+      }
+    } else {
+      const scoredCount = choiceBlocks.length + (textareaMode === 'score' ? textareaBlocks.length : 0)
+      const per = totalScore / Math.max(1, scoredCount)
+      choiceBlocks.forEach(b => { full[b.id] = round2(per) })
+      if (textareaMode === 'score') {
+        textareaBlocks.forEach(b => { full[b.id] = round2(per) })
+      }
+    }
+  } else if (scoreMode === 'byType') {
+    const typeScores = qs.typeScores || {}
+    choiceBlocks.forEach(b => { full[b.id] = round2(Number(typeScores[b.type]) || 0) })
+    if (textareaMode === 'score' && textareaBlocks.length > 0) {
+      // 简答题分值：优先使用用户填写的 typeScores.textarea，否则回退到题型平均值
+      let textareaScore = Number(typeScores.textarea) || 0
+      if (!textareaScore) {
+        const vals = ['radio', 'checkbox', 'judge'].map(t => Number(typeScores[t]) || 0).filter(v => v > 0)
+        textareaScore = vals.length ? vals.reduce((a, b) => a + b, 0) / vals.length : 0
+      }
+      textareaBlocks.forEach(b => { full[b.id] = round2(textareaScore) })
+    }
+  } else if (scoreMode === 'byCorrectAnswer') {
+    const scores = Array.isArray(qs.correctAnswerScores) ? qs.correctAnswerScores : []
+    choiceBlocks.forEach(b => {
+      const sum = scores.filter(x => x && x.blockId === b.id).reduce((a, x) => a + (Number(x.score) || 0), 0)
+      full[b.id] = round2(sum)
+    })
+    if (textareaMode === 'score' && textareaBlocks.length > 0) {
+      const all = scores.map(x => Number(x && x.score) || 0).filter(v => v > 0)
+      const avg = all.length ? all.reduce((a, b) => a + b, 0) / all.length : 0
+      textareaBlocks.forEach(b => { full[b.id] = round2(avg) })
+    }
+  }
+
+  return full
+}
+
 Page({
   data: {
     formId: '',
@@ -21,11 +99,14 @@ Page({
     maxSubmissions: 1,
     canSubmit: true,
     readonly: false,
+    isPreview: false,
     submitting: false
   },
 
   onLoad(options) {
-    if (options.id) {
+    if (options.preview === '1') {
+      this.loadPreview()
+    } else if (options.id) {
       this.setData({ formId: options.id })
       this.loadForm(options.id)
     }
@@ -36,6 +117,62 @@ Page({
     if (this.data.fontStyle !== fontStyle) {
       this.setData({ fontStyle })
     }
+  },
+
+  /**
+   * 预览模式：读取编辑页传入的本地数据直接渲染，不调云函数
+   */
+  loadPreview() {
+    const data = app.globalData.previewForm
+    if (!data) {
+      utils.showToast({ title: '预览数据不存在', icon: 'none' })
+      setTimeout(() => wx.navigateBack(), 800)
+      return
+    }
+    const form = {
+      _id: '',
+      title: data.title || '',
+      description: data.description || '',
+      tag: data.tag || 'announcement',
+      deadline: data.deadline || null,
+      blocks: data.blocks || [],
+      targetRoles: data.targetRoles || [],
+      isTargetOnlyVisible: false,
+      isAnonymous: !!data.isAnonymous,
+      maxSubmissions: data.maxSubmissions || 1,
+      status: 'published',
+      publishedAt: Date.now(),
+      createdAt: Date.now(),
+      createdByName: data.createdByName || '预览',
+      submissionCount: 0,
+      readCount: 0,
+      isClosed: false,
+      quizScore: data.quizScore || null
+    }
+    const tagCfg = getTagConfig(form.tag)
+    let blocks = this.prepareBlocks(form.blocks || [], null)
+    blocks = this.applyScoreText(blocks, form.quizScore)
+    const hasFillableBlocks = blocks.some(b => ['radio', 'checkbox', 'judge', 'textarea', 'side_dish', 'activity'].includes(b.type))
+
+    this.setData({
+      form,
+      blocks,
+      tagLabel: tagCfg.label,
+      tagIcon: tagCfg.icon,
+      tagColor: tagCfg.color,
+      tagBg: tagCfg.bg,
+      timeText: '预览模式',
+      mySubmission: null,
+      isCreator: false,
+      canPublish: false,
+      isClosed: false,
+      hasFillableBlocks,
+      isAnonymous: !!data.isAnonymous,
+      maxSubmissions: data.maxSubmissions || 1,
+      canSubmit: true,
+      readonly: false,
+      isPreview: true
+    })
   },
 
   loadForm(formId) {
@@ -104,6 +241,12 @@ Page({
       if (b.type === 'activity' && !Array.isArray(b.groups)) {
         block.groups = []
       }
+      if (b.type === 'activity') {
+        const regCount = b.registrationCount || 0
+        block.activityMetaText = b.maxRegistrations
+          ? `已报名 ${regCount} 人 · 上限 ${b.maxRegistrations} 人`
+          : `已报名 ${regCount} 人`
+      }
       if (b.type === 'side_dish') {
         const countMap = {}
         const answer = answerMap[b.id]
@@ -129,6 +272,21 @@ Page({
         block.answerText = block.answer !== '' && block.answer !== null ? block.answer : '未填写'
       }
       return block
+    })
+  },
+
+  /**
+   * 答题表单：showScore 开启时为题干注入分值文本（预览模式前端计算）
+   */
+  applyScoreText(blocks, quizScore) {
+    if (!quizScore || !quizScore.showScore) return blocks
+    const full = calcFullScores(quizScore, blocks)
+    return blocks.map(b => {
+      const fs = full[b.id]
+      if (fs !== undefined && (isScorableChoice(b.type) || b.type === 'textarea')) {
+        return { ...b, scoreText: `${fs} 分` }
+      }
+      return b
     })
   },
 

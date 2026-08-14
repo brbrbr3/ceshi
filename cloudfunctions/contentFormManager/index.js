@@ -148,6 +148,20 @@ function normalizeBlocks(blocks) {
         }
         seen.add(String(opt).trim())
       }
+
+      // 正确答案校验：必须存在于选项中（答题场景）
+      const opts = (b.options || []).map(o => String(o).trim())
+      if (b.type === 'checkbox') {
+        if (!Array.isArray(b.correctAnswers)) {
+          b.correctAnswers = []
+        }
+        b.correctAnswers = b.correctAnswers
+          .map(a => String(a).trim())
+          .filter(a => a && opts.includes(a))
+      } else {
+        const c = b.correctAnswers ? String(b.correctAnswers).trim() : ''
+        b.correctAnswers = c && opts.includes(c) ? c : ''
+      }
     }
 
     // 副食控件需要类别
@@ -182,6 +196,256 @@ function normalizeBlocks(blocks) {
   return null
 }
 
+/**
+ * 校验并规范化 quizScore 分数设置（仅 tag==='quiz' 时使用）
+ * @returns {object|null} 规范化后的 quizScore，非答题或非法时返回 null
+ */
+function normalizeQuizScore(qs) {
+  if (!qs || typeof qs !== 'object') return null
+
+  const scoreMode = ['total', 'byType', 'byCorrectAnswer'].includes(qs.scoreMode) ? qs.scoreMode : 'total'
+  const wrongMode = ['zero', 'partial', 'deduct'].includes(qs.wrongMode) ? qs.wrongMode : 'zero'
+
+  const result = {
+    scoreMode,
+    showScore: !!qs.showScore,
+    wrongMode,
+    allowNegative: !!qs.allowNegative,
+    textareaMode: qs.textareaMode === 'ignore' ? 'ignore' : 'score'
+  }
+
+  if (scoreMode === 'total') {
+    result.totalScore = Math.max(0, Number(qs.totalScore) || 100)
+    result.totalAllocation = qs.totalAllocation === 'byCorrectAnswer' ? 'byCorrectAnswer' : 'byQuestion'
+  } else if (scoreMode === 'byType') {
+    const ts = qs.typeScores || {}
+    result.typeScores = {
+      radio: Math.max(0, Number(ts.radio) || 0),
+      checkbox: Math.max(0, Number(ts.checkbox) || 0),
+      judge: Math.max(0, Number(ts.judge) || 0),
+      textarea: Math.max(0, Number(ts.textarea) || 0)
+    }
+  } else if (scoreMode === 'byCorrectAnswer') {
+    result.correctAnswerScores = (Array.isArray(qs.correctAnswerScores) ? qs.correctAnswerScores : [])
+      .map(x => ({
+        blockId: x && x.blockId,
+        answer: x && x.answer,
+        score: Math.max(0, Number(x && x.score) || 0)
+      }))
+      .filter(x => x.blockId && x.answer)
+  }
+
+  return result
+}
+
+/**
+ * 保留两位小数（四舍五入）
+ */
+function round2(n) {
+  return Math.round((Number(n) || 0) * 100) / 100
+}
+
+/**
+ * 判断是否为可评分选择题（单选/多选/判断）
+ */
+function isScorableChoice(type) {
+  return type === 'radio' || type === 'checkbox' || type === 'judge'
+}
+
+/**
+ * 获取控件的正确答案数组（统一返回字符串数组）
+ */
+function getCorrectAnswers(block) {
+  if (block.type === 'checkbox') {
+    if (Array.isArray(block.correctAnswers)) {
+      return block.correctAnswers.map(a => String(a).trim()).filter(Boolean)
+    }
+    return block.correctAnswers ? [String(block.correctAnswers).trim()] : []
+  }
+  return block.correctAnswers ? [String(block.correctAnswers).trim()] : []
+}
+
+/**
+ * 集合相等（忽略顺序、忽略空值）
+ */
+function setsEqual(a, b) {
+  if (!Array.isArray(a) || !Array.isArray(b)) return false
+  if (a.length !== b.length) return false
+  const sa = a.map(x => String(x).trim()).sort()
+  const sb = b.map(x => String(x).trim()).sort()
+  return sa.every((v, i) => v === sb[i])
+}
+
+/**
+ * 计算每道可评分题的满分（按 quizScore 分制）
+ * @param {object} quizScore 分数设置
+ * @param {Array} blocks 控件数组
+ * @returns {{ [blockId]: number }} blockId -> 满分
+ */
+function calcFullScores(quizScore, blocks) {
+  const qs = quizScore || {}
+  const scoreMode = qs.scoreMode || 'total'
+  const textareaMode = qs.textareaMode || 'ignore'
+  const choiceBlocks = (blocks || []).filter(b => isScorableChoice(b.type))
+  const textareaBlocks = (blocks || []).filter(b => b.type === 'textarea')
+  const full = {}
+
+  if (scoreMode === 'total') {
+    const totalScore = Number(qs.totalScore) || 100
+    const allocation = qs.totalAllocation || 'byQuestion'
+    if (allocation === 'byCorrectAnswer') {
+      // 按正确答案平均：先统计全部正确答案总数
+      let totalCorrect = 0
+      choiceBlocks.forEach(b => { totalCorrect += getCorrectAnswers(b).length })
+      if (totalCorrect > 0) {
+        const perCorrect = totalScore / totalCorrect
+        choiceBlocks.forEach(b => { full[b.id] = round2(getCorrectAnswers(b).length * perCorrect) })
+      } else {
+        const per = totalScore / Math.max(1, choiceBlocks.length)
+        choiceBlocks.forEach(b => { full[b.id] = round2(per) })
+      }
+      if (textareaMode === 'score') {
+        // 简答题按「一题」均分
+        const per = totalScore / Math.max(1, choiceBlocks.length + textareaBlocks.length)
+        textareaBlocks.forEach(b => { full[b.id] = round2(per) })
+      }
+    } else {
+      // 按题目平均：选择题 + 计分简答题共同均分
+      const scoredCount = choiceBlocks.length + (textareaMode === 'score' ? textareaBlocks.length : 0)
+      const per = totalScore / Math.max(1, scoredCount)
+      choiceBlocks.forEach(b => { full[b.id] = round2(per) })
+      if (textareaMode === 'score') {
+        textareaBlocks.forEach(b => { full[b.id] = round2(per) })
+      }
+    }
+  } else if (scoreMode === 'byType') {
+    const typeScores = qs.typeScores || {}
+    choiceBlocks.forEach(b => { full[b.id] = round2(Number(typeScores[b.type]) || 0) })
+    if (textareaMode === 'score' && textareaBlocks.length > 0) {
+      // 简答题分值：优先使用用户填写的 typeScores.textarea，否则回退到题型平均值
+      let textareaScore = Number(typeScores.textarea) || 0
+      if (!textareaScore) {
+        const vals = ['radio', 'checkbox', 'judge'].map(t => Number(typeScores[t]) || 0).filter(v => v > 0)
+        textareaScore = vals.length ? vals.reduce((a, b) => a + b, 0) / vals.length : 0
+      }
+      textareaBlocks.forEach(b => { full[b.id] = round2(textareaScore) })
+    }
+  } else if (scoreMode === 'byCorrectAnswer') {
+    const scores = Array.isArray(qs.correctAnswerScores) ? qs.correctAnswerScores : []
+    choiceBlocks.forEach(b => {
+      const sum = scores.filter(x => x && x.blockId === b.id).reduce((a, x) => a + (Number(x.score) || 0), 0)
+      full[b.id] = round2(sum)
+    })
+    if (textareaMode === 'score' && textareaBlocks.length > 0) {
+      // 简答题分值 = 全部正确答案分值的平均
+      const all = scores.map(x => Number(x && x.score) || 0).filter(v => v > 0)
+      const avg = all.length ? all.reduce((a, b) => a + b, 0) / all.length : 0
+      textareaBlocks.forEach(b => { full[b.id] = round2(avg) })
+    }
+  }
+
+  return full
+}
+
+/**
+ * 评分：计算单条提交的每题得分与总分
+ * @param {object} quizScore 分数设置
+ * @param {Array} blocks 控件数组
+ * @param {Array} answers 提交答案数组 [{blockId, type, value}]
+ * @returns {{ totalScore: number, details: Array }}
+ */
+function scoreQuiz(quizScore, blocks, answers) {
+  const qs = quizScore || {}
+  const wrongMode = qs.wrongMode || 'zero'
+  const allowNegative = !!qs.allowNegative
+  const textareaMode = qs.textareaMode || 'ignore'
+  const full = calcFullScores(quizScore, blocks)
+  const answerMap = {}
+  ;(answers || []).forEach(a => { answerMap[a.blockId] = a })
+
+  const details = []
+  let total = 0
+
+  ;(blocks || []).forEach(b => {
+    if (isScorableChoice(b.type)) {
+      const fullScore = full[b.id] !== undefined ? full[b.id] : 0
+      const corrects = getCorrectAnswers(b)
+      const ans = answerMap[b.id]
+      const answer = ans ? ans.value : undefined
+      let score = 0
+      let isCorrect = false
+
+      if (b.type === 'checkbox') {
+        const selected = Array.isArray(answer) ? answer.map(x => String(x).trim()) : []
+        if (wrongMode === 'zero') {
+          isCorrect = setsEqual(selected, corrects)
+          score = isCorrect ? fullScore : 0
+        } else if (wrongMode === 'deduct') {
+          isCorrect = setsEqual(selected, corrects)
+          score = isCorrect ? fullScore : -fullScore
+        } else {
+          // partial：按回答中正确/错误选项算分
+          const opts = (b.options || []).map(o => String(o).trim())
+          const wrongOptions = opts.filter(o => !corrects.includes(o))
+          const perCorrect = corrects.length > 0 ? fullScore / corrects.length : 0
+          const perWrong = wrongOptions.length > 0 ? fullScore / wrongOptions.length : 0
+          let s = 0
+          selected.forEach(v => {
+            if (corrects.includes(v)) s += perCorrect
+            else s -= perWrong
+          })
+          score = round2(s)
+          isCorrect = setsEqual(selected, corrects)
+          if (score > fullScore) score = fullScore
+        }
+      } else {
+        // radio / judge：单选/判断，仅一个选项
+        const selectedVal = answer !== undefined && answer !== null ? String(answer).trim() : ''
+        isCorrect = corrects.length > 0 && selectedVal === corrects[0]
+        if (wrongMode === 'zero') {
+          score = isCorrect ? fullScore : 0
+        } else {
+          // deduct 或 partial：单选答错整题扣分
+          score = isCorrect ? fullScore : -fullScore
+        }
+      }
+
+      if (!allowNegative && score < 0) score = 0
+      score = round2(score)
+      total += score
+      details.push({
+        blockId: b.id,
+        title: b.title || b.type,
+        type: b.type,
+        fullScore: round2(fullScore),
+        score,
+        correct: !!isCorrect
+      })
+    } else if (b.type === 'textarea' && textareaMode === 'score') {
+      // 简答题：填写即得分
+      const fullScore = full[b.id] !== undefined ? full[b.id] : 0
+      const ans = answerMap[b.id]
+      const answer = ans ? ans.value : ''
+      const filled = typeof answer === 'string' && answer.trim() !== ''
+      const score = filled ? fullScore : 0
+      total += score
+      details.push({
+        blockId: b.id,
+        title: b.title || b.type,
+        type: b.type,
+        fullScore: round2(fullScore),
+        score: round2(score),
+        correct: filled
+      })
+    }
+  })
+
+  return {
+    totalScore: round2(total),
+    details
+  }
+}
+
 // ==================== 创建表单 ====================
 
 async function createForm(openid, user, params) {
@@ -190,7 +454,7 @@ async function createForm(openid, user, params) {
       return fail('仅馆员及以上角色可发布信息', 403)
     }
 
-    const { title, description = '', tag, deadline = null, blocks = [], targetRoles = [], isTargetOnlyVisible = false, isAnonymous = false, maxSubmissions = 1, status = 'published' } = params
+    const { title, description = '', tag, deadline = null, blocks = [], targetRoles = [], isTargetOnlyVisible = false, isAnonymous = false, maxSubmissions = 1, status = 'published', quizScore = null } = params
 
     if (!title || !title.trim()) {
       return fail('请输入标题', 400)
@@ -225,6 +489,7 @@ async function createForm(openid, user, params) {
       isAnonymous: !!isAnonymous,
       maxSubmissions: Math.max(1, Number(maxSubmissions) || 1),
       status: formStatus,
+      quizScore: tag === 'quiz' ? normalizeQuizScore(quizScore) : null,
       readUsers: [],
       submissionCount: 0,
       publishedAt: formStatus === 'published' ? now : null,
@@ -303,6 +568,11 @@ async function updateForm(openid, user, params) {
     }
     if (rest.maxSubmissions !== undefined) {
       updateData.maxSubmissions = Math.max(1, Number(rest.maxSubmissions) || 1)
+    }
+    if (rest.quizScore !== undefined) {
+      // 依据本次更新后的 tag 决定是否序列化 quizScore
+      const effectiveTag = rest.tag !== undefined ? rest.tag : form.tag
+      updateData.quizScore = effectiveTag === 'quiz' ? normalizeQuizScore(rest.quizScore) : null
     }
 
     const now = Date.now()
@@ -451,6 +721,9 @@ async function listForms(openid, user, params) {
     const list = (listRes.data || []).map(f => {
       const blocks = f.blocks || []
       const readUsers = Array.isArray(f.readUsers) ? f.readUsers : []
+      // 活动类型：提取活动控件的人数上限
+      const activityBlock = blocks.find(b => b.type === 'activity')
+      const maxRegistrations = activityBlock && activityBlock.maxRegistrations ? activityBlock.maxRegistrations : null
       return {
         _id: f._id,
         title: f.title,
@@ -463,6 +736,8 @@ async function listForms(openid, user, params) {
         blockCount: blocks.length,
         hasFormContent: blocks.some(b => ['radio', 'checkbox', 'judge', 'textarea', 'side_dish', 'activity'].includes(b.type)),
         submissionCount: f.submissionCount || 0,
+        maxRegistrations,
+        targetRoles: Array.isArray(f.targetRoles) ? f.targetRoles : [],
         isClosed: f.status === 'closed' || !!(f.deadline && f.deadline < Date.now()),
         isRead: f._openid === openid || readUsers.includes(openid)
       }
@@ -523,7 +798,43 @@ async function getForm(openid, user, params) {
       }
     }
 
-    const blocks = form.blocks || []
+    // 统计各活动控件的已报名人数（活动块需展示已报名人数）
+    let blocks = form.blocks || []
+    const activityBlocks = blocks.filter(b => b.type === 'activity')
+    if (activityBlocks.length > 0) {
+      try {
+        const allSubs = await submissionsCollection.where({ formId }).field({ answers: true }).limit(1000).get()
+        const submissions = allSubs.data || []
+        blocks = blocks.map(b => {
+          if (b.type !== 'activity') return b
+          let count = 0
+          submissions.forEach(s => {
+            const ans = (s.answers || []).find(a => a.blockId === b.id)
+            if (ans && ans.value !== undefined && ans.value !== null && ans.value !== '') {
+              count++
+            }
+          })
+          return { ...b, registrationCount: count }
+        })
+      } catch (e) {
+        console.error('统计报名人数失败:', e)
+      }
+    }
+
+    const quizScore = form.tag === 'quiz' ? (form.quizScore || null) : null
+
+    // 答题表单：showScore 开启时，为题干注入分值展示文本
+    if (quizScore && quizScore.showScore) {
+      const fullScores = calcFullScores(quizScore, blocks)
+      blocks = blocks.map(b => {
+        const fs = fullScores[b.id]
+        if (fs !== undefined && (isScorableChoice(b.type) || b.type === 'textarea')) {
+          return { ...b, scoreText: `${fs} 分` }
+        }
+        return b
+      })
+    }
+
     return success({
       form: {
         _id: form._id,
@@ -532,6 +843,7 @@ async function getForm(openid, user, params) {
         tag: form.tag,
         deadline: form.deadline || null,
         blocks,
+        quizScore,
         targetRoles: form.targetRoles || [],
         isTargetOnlyVisible: !!form.isTargetOnlyVisible,
         isAnonymous: !!form.isAnonymous,
@@ -715,6 +1027,7 @@ async function submitForm(openid, user, params) {
       userName: isAnonymous ? '匿名' : (user ? user.name : ''),
       role: isAnonymous ? '' : (user ? user.role : ''),
       position: isAnonymous ? '' : (user ? (user.position || '') : ''),
+      department: isAnonymous ? '' : (user ? (user.department || '') : ''),
       answers: cleanedAnswers,
       submittedAt: now,
       updatedAt: now
@@ -823,15 +1136,25 @@ async function listSubmissions(openid, user, params) {
       .limit(1000)
       .get()
 
+    const blocks = form.blocks || []
+    const quizScore = form.tag === 'quiz' ? (form.quizScore || null) : null
+    const list = (listRes.data || []).map(s => {
+      if (quizScore) {
+        return { ...s, score: scoreQuiz(quizScore, blocks, s.answers) }
+      }
+      return s
+    })
+
     return success({
       form: {
         _id: form._id,
         title: form.title,
         tag: form.tag,
-        blocks: form.blocks || []
+        blocks,
+        quizScore
       },
-      list: listRes.data || [],
-      total: (listRes.data || []).length
+      list,
+      total: list.length
     })
   } catch (error) {
     console.error('获取提交列表失败:', error)
