@@ -459,7 +459,7 @@ Page({
     const user = this.data.currentUser || app.globalData.userProfile
     if (user) app.subscribeOnTap(app.getSubscribeTypesForUser(user))
     wx.navigateTo({
-      url: '/pages/office/form-list/form-list'
+      url: '/pages/office/form/form-list/form-list'
     })
   },
 
@@ -470,7 +470,7 @@ Page({
     const id = e.currentTarget.dataset.id
     if (id) {
       wx.navigateTo({
-        url: `/pages/office/form-detail/form-detail?id=${id}`
+        url: `/pages/office/form/form-detail/form-detail?id=${id}`
       })
     }
   },

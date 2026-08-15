@@ -19,11 +19,12 @@
     "pages/office/help/help",
     "pages/office/arrival-guide/arrival-guide",
     "pages/office/haircut/haircut",
-    "pages/office/form-list/form-list",
-    "pages/office/form-detail/form-detail",
-    "pages/office/form-edit/form-edit",
-    "pages/office/form-result/form-result",
-    "pages/office/form-submissions/form-submissions"
+    "pages/office/form/form-list/form-list",
+    "pages/office/form/form-detail/form-detail",
+    "pages/office/form/form-edit/form-edit",
+    "pages/office/form/form-result/form-result",
+    "pages/office/form/form-submissions/form-submissions",
+    "pages/office/form/form-compare/form-compare"
   ],
   "window": {
     "navigationBarTextStyle": "black",

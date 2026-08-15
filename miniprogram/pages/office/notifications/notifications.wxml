@@ -12,7 +12,7 @@
     <view class="office-card notifications-list" wx:if="{{list.length > 0}}">
       <view class="notification-item {{item.read ? 'is-read' : ''}}" wx:for="{{list}}" wx:key="_id" bindtap="handleNotificationTap" data-id="{{item._id}}">
         <view class="notification-left">
-          <view class="notification-icon">{{item.type === 'approval' ? '📋' : (item.type === 'menu' ? '🍽️' : (item.type === 'new_registration' ? '👤' : '📢'))}}</view>
+          <view class="notification-icon">{{item.type === 'approval' ? '📋' : (item.type === 'menu' ? '🍽️' : (item.type === 'new_registration' ? '👤' : (item.type === 'content_form' ? '📨' : '📢')))}}</view>
           <view class="notification-main">
             <view class="notification-title {{!item.read ? 'is-unread' : ''}}">{{item.title}}</view>
             <view class="notification-content">{{item.content}}</view>

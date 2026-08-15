@@ -45,6 +45,18 @@ const VALID_BLOCK_TYPES = ['text', 'radio', 'checkbox', 'judge', 'textarea', 'si
 // 可发布角色（馆员及以上）
 const PUBLISH_ROLES = ['馆领导', '馆员']
 
+// 未读消息提醒订阅消息模板 ID（新信息发布通知）
+const UNREAD_MESSAGE_TEMPLATE_ID = 'mJ1CGM8OvpgomnYy0yot4Kk8hD8S-NH06A6ZDywdpGc'
+
+// tag → 中文标签（用于通知文案）
+const TAG_LABEL = {
+  announcement: '公告',
+  questionnaire: '问卷',
+  side_dish: '副食',
+  activity: '活动',
+  quiz: '答题'
+}
+
 // 统一返回格式
 function success(data, message) {
   return { code: 0, message: message || 'ok', data: data !== undefined ? data : {} }
@@ -448,6 +460,108 @@ function scoreQuiz(quizScore, blocks, answers) {
 
 // ==================== 创建表单 ====================
 
+/**
+ * 截断文本（微信 thing 类型限制 20 字）
+ */
+function truncateText(text, len) {
+  if (!text) return ''
+  const max = len || 20
+  const str = String(text)
+  return str.length > max ? str.substring(0, max) : str
+}
+
+/**
+ * 获取本地时间字符串（UTC-3）
+ */
+function formatLocalTime(ts) {
+  const timezoneOffset = -3
+  const local = new Date(ts + timezoneOffset * 3600000)
+  const p = n => String(n).padStart(2, '0')
+  return `${local.getFullYear()}-${p(local.getMonth() + 1)}-${p(local.getDate())} ${p(local.getHours())}:${p(local.getMinutes())}`
+}
+
+/**
+ * 新信息发布通知：站内通知 + 微信订阅消息（盲发，失败仅记日志）
+ * 收件人：targetRoles 非空 → 匹配角色；为空 → 全体已批准用户
+ */
+async function notifyFormPublish(form, publisherName) {
+  try {
+    const tagLabel = TAG_LABEL[form.tag] || '信息'
+    const msgType = truncateText(`新「${tagLabel}」通知`)
+    const msgContent = truncateText(form.title || '')
+    const remark = truncateText(`${publisherName || '管理员'}发布了新的「${tagLabel}」，点击查看`)
+    // 站内通知内容（不截断，含完整标题）
+    const appContent = `${publisherName || '管理员'}发布了「${form.title || ''}」，点击查看`
+    const page = `pages/office/form/form-detail/form-detail?id=${form._id}`
+    const timeStr = formatLocalTime(Date.now())
+
+    // 解析收件人
+    const targetRoles = Array.isArray(form.targetRoles) ? form.targetRoles : []
+    const where = { status: 'approved' }
+    if (targetRoles.length > 0) {
+      where.role = _.in(targetRoles)
+    }
+
+    const batchSize = 100
+    let offset = 0
+    let totalSent = 0
+    let totalFailed = 0
+
+    while (true) {
+      const res = await usersCollection.where(where).skip(offset).limit(batchSize).get()
+      if (!res.data || res.data.length === 0) break
+
+      for (const userDoc of res.data) {
+        // 站内通知
+        try {
+          await db.collection('notifications').add({
+            data: {
+              openid: userDoc.openid,
+              read: false,
+              createdAt: Date.now(),
+              type: 'content_form',
+              title: `新「${tagLabel}」通知`,
+              content: appContent,
+              formId: form._id
+            }
+          })
+        } catch (e) {
+          console.warn('[信息发布通知] 站内通知写入失败:', e.message)
+        }
+
+        // 微信订阅消息（盲发）
+        try {
+          await cloud.openapi.subscribeMessage.send({
+            touser: userDoc.openid,
+            templateId: UNREAD_MESSAGE_TEMPLATE_ID,
+            page,
+            data: {
+              thing7: { value: '系统' },
+              time2: { value: timeStr },
+              thing6: { value: msgType },
+              thing3: { value: msgContent },
+              thing4: { value: remark }
+            }
+          })
+          totalSent++
+        } catch (error) {
+          const errcode = error.errcode || error.errCode || 'unknown'
+          const errmsg = error.errmsg || error.errMsg || error.message || JSON.stringify(error)
+          console.warn('[信息发布通知] 订阅消息发送失败:', JSON.stringify({ openid: userDoc.openid, errcode, errmsg }))
+          totalFailed++
+        }
+      }
+
+      offset += batchSize
+      if (res.data.length < batchSize) break
+    }
+
+    console.log(`[信息发布通知] 推送完成: 成功 ${totalSent} 失败 ${totalFailed}`)
+  } catch (error) {
+    console.error('[信息发布通知] 推送异常:', error)
+  }
+}
+
 async function createForm(openid, user, params) {
   try {
     if (!canPublish(user)) {
@@ -500,6 +614,11 @@ async function createForm(openid, user, params) {
 
     const addRes = await formsCollection.add({ data: newForm })
     newForm._id = addRes._id
+
+    // 发布成功 → 异步推送通知（不阻塞主流程）
+    if (formStatus === 'published') {
+      //notifyFormPublish(newForm, user.name || '').catch(err => {        console.error('[信息发布通知] 推送失败:', err)      })
+    }
 
     return success(newForm, formStatus === 'published' ? '发布成功' : '暂存成功')
   } catch (error) {
@@ -588,6 +707,14 @@ async function updateForm(openid, user, params) {
     }
 
     await formsCollection.doc(formId).update({ data: updateData })
+
+    // 草稿 → 发布：异步推送通知（编辑已发布表单不重发）
+    if (rest.status === 'published' && form.status === 'draft') {
+      const publishedForm = { ...form, ...updateData, _id: formId }
+      notifyFormPublish(publishedForm, user.name || '').catch(err => {
+        console.error('[信息发布通知] 推送失败:', err)
+      })
+    }
 
     return success({ _id: formId, ...updateData }, '更新成功')
   } catch (error) {
@@ -718,12 +845,21 @@ async function listForms(openid, user, params) {
       formsCollection.where(where).orderBy('createdAt', 'desc').skip(skip).limit(pageSize).get()
     ])
 
+    // 活动控件信息（formId → 控件元数据），用于统计真实报名人数
+    const activityMeta = {}
     const list = (listRes.data || []).map(f => {
       const blocks = f.blocks || []
       const readUsers = Array.isArray(f.readUsers) ? f.readUsers : []
       // 活动类型：提取活动控件的人数上限
       const activityBlock = blocks.find(b => b.type === 'activity')
       const maxRegistrations = activityBlock && activityBlock.maxRegistrations ? activityBlock.maxRegistrations : null
+      if (activityBlock) {
+        activityMeta[f._id] = {
+          blockId: activityBlock.id,
+          maxRegistrations: activityBlock.maxRegistrations || null,
+          hasGroups: !!(activityBlock.groups && activityBlock.groups.length > 0)
+        }
+      }
       return {
         _id: f._id,
         title: f.title,
@@ -742,6 +878,42 @@ async function listForms(openid, user, params) {
         isRead: f._openid === openid || readUsers.includes(openid)
       }
     })
+
+    // 统计活动条目真实报名人数（多人报名 = 姓名总数）
+    const activityFormIds = Object.keys(activityMeta)
+    if (activityFormIds.length > 0) {
+      const subsRes = await submissionsCollection
+        .where({ formId: _.in(activityFormIds) })
+        .field({ formId: true, answers: true })
+        .limit(1000)
+        .get()
+      const subs = subsRes.data || []
+      const regCountMap = {}
+      activityFormIds.forEach(fid => {
+        const meta = activityMeta[fid]
+        let count = 0
+        subs.forEach(s => {
+          if (s.formId !== fid) return
+          const ans = (s.answers || []).find(a => a.blockId === meta.blockId)
+          if (!ans) return
+          if (meta.hasGroups) {
+            if (ans.value !== undefined && ans.value !== null && ans.value !== '') count++
+          } else if (Array.isArray(ans.value)) {
+            count += ans.value.filter(Boolean).length
+          } else if (ans.value === '报名') {
+            count++
+          }
+        })
+        regCountMap[fid] = count
+      })
+      list.forEach(it => {
+        if (regCountMap[it._id] === undefined) return
+        it.registrationCount = regCountMap[it._id]
+        it.isFull = activityMeta[it._id].maxRegistrations
+          ? regCountMap[it._id] >= activityMeta[it._id].maxRegistrations
+          : false
+      })
+    }
 
     return success({
       list,
@@ -777,11 +949,40 @@ async function getForm(openid, user, params) {
       }
     }
 
-    // 查询当前用户提交记录
+    let blocks = form.blocks || []
+    const isQuiz = form.tag === 'quiz'
+    const quizScore = isQuiz ? (form.quizScore || null) : null
+    const maxSubmissions = Math.max(1, Number(form.maxSubmissions) || 1)
+
+    // 查询当前用户全部提交（按提交时间倒序）
     let mySubmission = null
+    let quizResult = null
     if (openid) {
-      const subRes = await submissionsCollection.where({ formId, _openid: openid }).limit(1).get()
-      mySubmission = subRes.data && subRes.data.length > 0 ? subRes.data[0] : null
+      const subRes = await submissionsCollection
+        .where({ formId, _openid: openid })
+        .orderBy('submittedAt', 'desc')
+        .limit(1000)
+        .get()
+      const mySubs = subRes.data || []
+      if (isQuiz) {
+        const submittedCount = mySubs.length
+        const remainingCount = Math.max(0, maxSubmissions - submittedCount)
+        const isExhausted = remainingCount <= 0
+        mySubmission = submittedCount > 0 ? mySubs[0] : null
+        let lastScore = null
+        if (mySubmission && quizScore) {
+          lastScore = scoreQuiz(quizScore, blocks, mySubmission.answers).totalScore
+        }
+        quizResult = {
+          submittedCount,
+          maxSubmissions,
+          remainingCount,
+          isExhausted,
+          lastScore
+        }
+      } else {
+        mySubmission = mySubs.length > 0 ? mySubs[0] : null
+      }
     }
 
     // 记录已读（发布者/管理员自身不记录）
@@ -798,30 +999,35 @@ async function getForm(openid, user, params) {
       }
     }
 
-    // 统计各活动控件的已报名人数（活动块需展示已报名人数）
-    let blocks = form.blocks || []
+    // 统计各活动控件的已报名人数与名单（活动块需展示已报名人员）
     const activityBlocks = blocks.filter(b => b.type === 'activity')
     if (activityBlocks.length > 0) {
       try {
-        const allSubs = await submissionsCollection.where({ formId }).field({ answers: true }).limit(1000).get()
+        const allSubs = await submissionsCollection.where({ formId }).limit(1000).get()
         const submissions = allSubs.data || []
         blocks = blocks.map(b => {
           if (b.type !== 'activity') return b
+          const hasGroups = b.groups && b.groups.length > 0
           let count = 0
+          const names = []
           submissions.forEach(s => {
             const ans = (s.answers || []).find(a => a.blockId === b.id)
-            if (ans && ans.value !== undefined && ans.value !== null && ans.value !== '') {
+            if (!ans) return
+            if (hasGroups) {
+              if (ans.value !== undefined && ans.value !== null && ans.value !== '') count++
+            } else if (Array.isArray(ans.value)) {
+              ans.value.forEach(n => { if (n) { count++; names.push(String(n)) } })
+            } else if (ans.value === '报名') {
               count++
+              if (s.userName) names.push(s.userName) // 兼容旧数据
             }
           })
-          return { ...b, registrationCount: count }
+          return { ...b, registrationCount: count, registeredNames: names }
         })
       } catch (e) {
         console.error('统计报名人数失败:', e)
       }
     }
-
-    const quizScore = form.tag === 'quiz' ? (form.quizScore || null) : null
 
     // 答题表单：showScore 开启时，为题干注入分值展示文本
     if (quizScore && quizScore.showScore) {
@@ -830,6 +1036,18 @@ async function getForm(openid, user, params) {
         const fs = fullScores[b.id]
         if (fs !== undefined && (isScorableChoice(b.type) || b.type === 'textarea')) {
           return { ...b, scoreText: `${fs} 分` }
+        }
+        return b
+      })
+    }
+
+    // 答题期间隐藏正确答案：次数未用完时剥离 correctAnswers（防作弊）
+    if (isQuiz && quizResult && !quizResult.isExhausted) {
+      blocks = blocks.map(b => {
+        if (isScorableChoice(b.type) && b.correctAnswers !== undefined) {
+          const copy = { ...b }
+          delete copy.correctAnswers
+          return copy
         }
         return b
       })
@@ -847,7 +1065,7 @@ async function getForm(openid, user, params) {
         targetRoles: form.targetRoles || [],
         isTargetOnlyVisible: !!form.isTargetOnlyVisible,
         isAnonymous: !!form.isAnonymous,
-        maxSubmissions: Math.max(1, Number(form.maxSubmissions) || 1),
+        maxSubmissions,
         status: form.status,
         publishedAt: form.publishedAt || null,
         createdAt: form.createdAt,
@@ -857,6 +1075,7 @@ async function getForm(openid, user, params) {
         isClosed: form.status === 'closed' || !!(form.deadline && form.deadline < Date.now())
       },
       mySubmission,
+      quizResult,
       isCreator: isCreator(form, openid),
       canPublish: canPublish(user),
       canSubmit: canSubmitForm(form, user)
@@ -937,8 +1156,16 @@ function validateAnswer(block, answer) {
         if (typeof value !== 'string' || !block.groups.includes(value)) {
           return `「${block.title || '活动'}」的分组无效`
         }
-      } else if (typeof value !== 'string') {
-        return `「${block.title || '活动'}」答案格式错误`
+      } else {
+        // 无分组：支持多人报名，value 为姓名数组
+        if (!Array.isArray(value) || value.length === 0) {
+          return `「${block.title || '活动'}」请至少填写一位报名人`
+        }
+        for (const name of value) {
+          if (typeof name !== 'string' || !name.trim()) {
+            return `「${block.title || '活动'}」报名人姓名无效`
+          }
+        }
       }
       break
     }
@@ -1001,21 +1228,33 @@ async function submitForm(openid, user, params) {
 
     // 活动人数上限校验（含本次修改，避免超限）
     for (const block of blocks) {
-      if (block.type === 'activity' && block.maxRegistrations) {
-        const existingRes = await submissionsCollection.where({ formId, _openid: _.neq(openid) }).count()
-        // 当前用户是否已报名该活动块
-        const isRegistering = cleanedAnswers.some(a => a.blockId === block.id)
-        const myExist = await submissionsCollection.where({ formId, _openid: openid }).limit(1).get()
-        const alreadyRegistered = myExist.data && myExist.data.length > 0 &&
-          (myExist.data[0].answers || []).some(a => a.blockId === block.id)
+      if (block.type !== 'activity' || !block.maxRegistrations) continue
+      const hasGroups = block.groups && block.groups.length > 0
 
-        let willRegister = existingRes.total
-        if (isRegistering && !alreadyRegistered) {
-          willRegister += 1
+      // 本次提交该控件的报名人数
+      const myAns = cleanedAnswers.find(a => a.blockId === block.id)
+      let myCount = 0
+      if (myAns) {
+        myCount = hasGroups ? 1 : (Array.isArray(myAns.value) ? myAns.value.length : 1)
+      }
+
+      // 其他用户已报名人数（姓名数或记录数）
+      const otherSubs = await submissionsCollection.where({ formId, _openid: _.neq(openid) }).field({ answers: true }).limit(1000).get()
+      let otherCount = 0
+      ;(otherSubs.data || []).forEach(s => {
+        const ans = (s.answers || []).find(a => a.blockId === block.id)
+        if (!ans) return
+        if (hasGroups) {
+          if (ans.value !== undefined && ans.value !== null && ans.value !== '') otherCount += 1
+        } else if (Array.isArray(ans.value)) {
+          otherCount += ans.value.length
+        } else if (ans.value === '报名') {
+          otherCount += 1 // 兼容旧数据（字符串「报名」）
         }
-        if (willRegister > block.maxRegistrations) {
-          return fail(`「${block.title || '活动'}」报名人数已满`, 400)
-        }
+      })
+
+      if (otherCount + myCount > block.maxRegistrations) {
+        return fail(`「${block.title || '活动'}」报名人数已满`, 400)
       }
     }
 
@@ -1110,6 +1349,91 @@ async function cancelSubmit(openid, params) {
   }
 }
 
+// ==================== 答题对比（查看正确答案） ====================
+
+/**
+ * 获取答题表单的正确答案与用户最后一次作答的对比
+ * 仅当用户答题次数用完（isExhausted）后才可查看，防止答题期间泄露答案
+ */
+async function getQuizCompare(openid, user, params) {
+  try {
+    const { formId } = params
+    if (!formId) {
+      return fail('缺少表单 ID', 400)
+    }
+
+    const formRes = await formsCollection.doc(formId).get()
+    if (!formRes.data) {
+      return fail('表单不存在', 404)
+    }
+    const form = formRes.data
+
+    if (form.tag !== 'quiz') {
+      return fail('该信息不是答题类型', 400)
+    }
+
+    // 查询当前用户全部提交（按提交时间倒序）
+    const subRes = await submissionsCollection
+      .where({ formId, _openid: openid })
+      .orderBy('submittedAt', 'desc')
+      .limit(1000)
+      .get()
+    const mySubs = subRes.data || []
+    if (mySubs.length === 0) {
+      return fail('您尚未作答', 404)
+    }
+
+    const maxSubmissions = Math.max(1, Number(form.maxSubmissions) || 1)
+    const submittedCount = mySubs.length
+    const remainingCount = Math.max(0, maxSubmissions - submittedCount)
+
+    // 次数未用完时不允许查看正确答案（防作弊）
+    if (remainingCount > 0) {
+      return fail('答题未完成，暂不可查看正确答案', 403)
+    }
+
+    const lastSubmission = mySubs[0]
+    const quizScore = form.quizScore || null
+    let blocks = form.blocks || []
+
+    // showScore 开启时注入分值文本
+    if (quizScore && quizScore.showScore) {
+      const fullScores = calcFullScores(quizScore, blocks)
+      blocks = blocks.map(b => {
+        const fs = fullScores[b.id]
+        if (fs !== undefined && (isScorableChoice(b.type) || b.type === 'textarea')) {
+          return { ...b, scoreText: `${fs} 分` }
+        }
+        return b
+      })
+    }
+
+    const score = quizScore
+      ? scoreQuiz(quizScore, blocks, lastSubmission.answers)
+      : { totalScore: 0, details: [] }
+
+    return success({
+      form: {
+        _id: form._id,
+        title: form.title,
+        description: form.description || '',
+        tag: form.tag,
+        isAnonymous: !!form.isAnonymous
+      },
+      blocks,
+      lastSubmission: {
+        _id: lastSubmission._id,
+        submittedAt: lastSubmission.submittedAt,
+        answers: lastSubmission.answers || []
+      },
+      score
+    })
+  } catch (error) {
+    console.error('获取答题对比失败:', error)
+    return fail(error.message || '获取答题对比失败')
+  }
+}
+
 // ==================== 提交者列表 ====================
 
 async function listSubmissions(openid, user, params) {
@@ -1151,7 +1475,8 @@ async function listSubmissions(openid, user, params) {
         title: form.title,
         tag: form.tag,
         blocks,
-        quizScore
+        quizScore,
+        maxSubmissions: Math.max(1, Number(form.maxSubmissions) || 1)
       },
       list,
       total: list.length
@@ -1294,8 +1619,12 @@ function buildBlockStat(block, submissions) {
           } else {
             ungrouped.push(name)
           }
-        } else {
-          ungrouped.push(name)
+        } else if (Array.isArray(a.value)) {
+          a.value.forEach(n => { if (n) ungrouped.push(String(n)) })
+        } else if (a.value === '报名') {
+          ungrouped.push(name) // 兼容旧数据
+        } else if (a.value) {
+          ungrouped.push(String(a.value))
         }
       })
       return {
@@ -1352,6 +1681,9 @@ exports.main = async (event) => {
 
       case 'cancelSubmit':
         return await cancelSubmit(openid, params)
+
+      case 'getQuizCompare':
+        return await getQuizCompare(openid, user, params)
 
       case 'listSubmissions':
         return await listSubmissions(openid, user, params)

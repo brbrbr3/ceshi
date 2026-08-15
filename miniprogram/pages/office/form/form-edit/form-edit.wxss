@@ -28,12 +28,14 @@
   font-weight: 600;
   color: #1E293B;
   margin-bottom: 20rpx;
+  margin-top: 20rpx;
 }
 
 .fe-sub-label {
-  font-size: var(--fs-30);
-  color: #64748B;
-  margin: 8rpx 0;
+  font-size: var(--fs-35);
+  font-weight: 600;
+  color: #1E293B;
+  margin-bottom: 30rpx;
 }
 
 .fe-required {
@@ -334,7 +336,7 @@
 }
 
 .fe-switch.is-on .fe-switch-dot {
-  transform: translateX(42rpx);
+  transform: translateX(41rpx);
 }
 
 .fe-switch-hint {
@@ -395,6 +397,7 @@
 .fe-sub-label,
 .fe-check-row,
 .fe-sub-block,
+.fe-switch-row,
 .fe-hint {
   animation: blockIn 0.3s ease;
 }
@@ -762,6 +765,7 @@
   flex-direction: column;
   gap: 16rpx;
   margin-top: 8rpx;
+  margin-bottom: 16rpx;
 }
 
 .fe-choice-row {

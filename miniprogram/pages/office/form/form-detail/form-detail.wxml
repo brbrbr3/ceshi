@@ -12,7 +12,7 @@
   <view class="office-content form-detail-content">
     <!-- 无权填报提示 -->
     <view wx:if="{{!canSubmit && !isClosed}}" class="form-detail-submitted-tip is-denied">
-      <text>🔒 该信息仅限指定角色填报，你无权填写</text>
+      <text>🔒 该信息仅限指定角色填报，您无权填写</text>
     </view>
 
     <!-- 匿名填写提示 -->
@@ -21,10 +21,11 @@
     </view>
 
     <!-- 已提交提示 -->
-    <view wx:if="{{mySubmission && !isClosed}}" class="form-detail-submitted-tip">
-      <text wx:if="{{maxSubmissions > 1}}">✅ 你已提交，可继续填写</text>
-      <text wx:elif="{{isAnonymous}}">✅ 你已匿名提交，可修改后重新提交</text>
-      <text wx:else>✅ 你已提交，可修改后重新提交</text>
+    <view wx:if="{{mySubmission && !isClosed && !quizAnswering}}" class="form-detail-submitted-tip">
+      <text wx:if="{{isQuiz}}">✅ 您已提交，您的分数为 {{quizResult.lastScore}} 分</text>
+      <text wx:elif="{{maxSubmissions > 1}}">✅ 您已提交，可继续填写</text>
+      <text wx:elif="{{isAnonymous}}">✅ 您已匿名提交，可修改后重新提交</text>
+      <text wx:else>✅ 您已提交，可修改后重新提交</text>
     </view>
 
     <!-- 正文说明（富文本） -->
@@ -96,7 +97,7 @@
             value="{{bk.answer}}"
             bindinput="onTextareaInput"
             data-id="{{bk.id}}"
-            placeholder="请输入你的回答"
+            placeholder="请输入您的回答"
             placeholder-class="fd-placeholder"
             maxlength="1000"
             auto-height
@@ -142,10 +143,16 @@
             </view>
           </block>
           <block wx:else>
-            <view wx:if="{{!readonly}}" class="fd-register-btn {{bk.answer === '报名' ? 'is-registered' : ''}}" bindtap="onActivityRegisterToggle" data-id="{{bk.id}}">
-              {{bk.answer === '报名' ? '✓ 已报名，点击取消' : '我要报名'}}
+            <view wx:if="{{bk.registeredNames.length > 0}}" class="fd-reg-list">
+              <view class="fd-reg-list-title">已报名（{{bk.registeredNames.length}} 人）</view>
+              <view class="fd-reg-chips">
+                <text wx:for="{{bk.registeredNames}}" wx:for-item="name" wx:key="*this" class="fd-reg-chip">{{name}}</text>
+              </view>
             </view>
-            <view wx:else class="fd-readonly">状态：{{bk.answerText}}</view>
+            <view wx:if="{{!readonly}}" class="fd-register-btn {{bk.isFull && bk.answer.length === 0 ? 'is-full' : (bk.answer.length > 0 ? 'is-registered' : '')}}" bindtap="onActivityRegisterToggle" data-id="{{bk.id}}">
+              {{bk.isFull && bk.answer.length === 0 ? '人数已满，无法报名' : (bk.answer.length > 0 ? '已添加 ' + bk.answer.length + ' 人，点击继续添加' : '我要报名')}}
+            </view>
+            <view wx:if="{{readonly}}" class="fd-readonly">状态：{{bk.answerText}}</view>
           </block>
         </block>
       </view>
@@ -156,8 +163,23 @@
       <view class="fd-empty">该信息暂无额外内容</view>
     </view> -->
 
-    <!-- 填写操作区（所有用户，含发布者；预览模式隐藏） -->
-    <view class="fd-footer" wx:if="{{hasFillableBlocks && !isClosed && canSubmit && !isPreview}}">
+    <!-- 填写操作区（答题类型） -->
+    <view class="fd-footer" wx:if="{{hasFillableBlocks && !isClosed && canSubmit && !isPreview && isQuiz}}">
+      <!-- 正在重新作答：提交 + 放弃重答 -->
+      <block wx:if="{{quizAnswering}}">
+        <view class="fd-footer-btn is-ghost" bindtap="handleQuizCancelRetry">放弃重答</view>
+        <view class="fd-footer-btn is-primary {{submitting ? 'is-disabled' : ''}}" bindtap="handleSubmit">提交</view>
+      </block>
+      <!-- 次数用完：查看正确答案 -->
+      <view wx:elif="{{mySubmission && quizResult.isExhausted}}" class="fd-footer-btn is-primary" bindtap="handleQuizViewAnswers">查看正确答案</view>
+      <!-- 未提交：提交 -->
+      <view wx:elif="{{!mySubmission}}" class="fd-footer-btn is-primary {{submitting ? 'is-disabled' : ''}}" bindtap="handleSubmit">提交</view>
+      <!-- 已提交、有剩余次数：再次答题 -->
+      <view wx:else class="fd-footer-btn is-primary" bindtap="handleQuizRetry">再次答题（剩余 {{quizResult.remainingCount}} 次）</view>
+    </view>
+
+    <!-- 填写操作区（非答题类型） -->
+    <view class="fd-footer" wx:if="{{hasFillableBlocks && !isClosed && canSubmit && !isPreview && !isQuiz}}">
       <view wx:if="{{mySubmission && maxSubmissions === 1}}" class="fd-footer-btn is-cancel" bindtap="handleCancelSubmit">取消提交</view>
       <view class="fd-footer-btn is-primary {{submitting ? 'is-disabled' : ''}}" bindtap="handleSubmit">{{maxSubmissions > 1 ? '提交' : (mySubmission ? '更新提交' : '提交')}}</view>
     </view>
@@ -168,6 +190,28 @@
       <view wx:if="{{form.tag !== 'announcement'}}" class="fd-footer-btn is-ghost" bindtap="goResult">统计</view>
       <view wx:if="{{form.tag === 'questionnaire' || form.tag === 'quiz' || form.tag === 'side_dish'}}" class="fd-footer-btn is-ghost" bindtap="goSubmissions">明细</view>
       <view class="fd-footer-btn is-danger" bindtap="handleDelete">删除</view>
+    </view>
+  </view>
+
+  <!-- 活动报名弹窗 -->
+  <view wx:if="{{registerModal.show}}" class="fd-modal-mask {{modalAnimating ? 'is-closing' : ''}}" catchtap="closeRegisterModal">
+    <view class="fd-modal" catchtap="stopPropagation">
+      <view class="fd-modal-title">活动报名</view>
+      <view class="fd-modal-hint">默认为本人，可为他人代报名</view>
+      <view wx:if="{{registerModal.names.length > 0}}" class="fd-reg-modal-list">
+        <view wx:for="{{registerModal.names}}" wx:for-item="name" wx:for-index="idx" wx:key="idx" class="fd-reg-modal-item">
+          <text class="fd-reg-modal-name">{{name}}</text>
+          <text class="fd-reg-modal-del" bindtap="onRemoveRegisterName" data-index="{{idx}}">删除</text>
+        </view>
+      </view>
+      <view class="fd-reg-modal-input-row">
+        <input class="fd-reg-modal-input" value="{{registerModal.input}}" bindinput="onRegisterInput" placeholder="请输入报名人姓名" confirm-type="done" bindconfirm="onAddRegisterName" />
+        <view class="fd-reg-modal-add" bindtap="onAddRegisterName">添加</view>
+      </view>
+      <view class="fd-modal-footer">
+        <view class="fd-modal-btn is-cancel" bindtap="closeRegisterModal">取消</view>
+        <view class="fd-modal-btn is-confirm" bindtap="confirmRegisterModal">确定</view>
+      </view>
     </view>
   </view>
 </view>

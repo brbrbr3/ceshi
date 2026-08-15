@@ -1,0 +1,61 @@
+<view class="office-page form-compare-page" style="{{fontStyle}}">
+  <view class="office-gradient-header form-compare-header">
+    <view class="form-compare-title-row">
+      <view class="form-compare-badge" style="background: {{tagBg}}; color: {{tagColor}};">{{tagIcon}} {{tagLabel}}</view>
+    </view>
+    <view class="form-compare-title">{{form.title}}</view>
+    <view class="form-compare-score">您的得分：{{score.totalScore}} 分</view>
+  </view>
+
+  <view class="office-content form-compare-content">
+    <view wx:if="{{loading}}" class="form-compare-loading">加载中...</view>
+
+    <block wx:for="{{blocks}}" wx:for-item="bk" wx:key="id">
+      <!-- text 说明块 -->
+      <view wx:if="{{bk.type === 'text'}}" class="fc-section-block">
+        <view class="fc-section-bar"></view>
+        <view class="fc-section-title">{{bk.title}}</view>
+      </view>
+
+      <!-- 选择题（单选/判断/多选） -->
+      <view wx:elif="{{bk.type === 'radio' || bk.type === 'judge' || bk.type === 'checkbox'}}" class="office-card fc-card">
+        <view class="fc-block-head">
+          <view class="fc-block-index">{{bk.fillIndex}}</view>
+          <view class="fc-block-title">{{bk.title}}</view>
+          <text class="fc-mark {{bk.isCorrect ? 'is-correct' : 'is-wrong'}}">{{bk.isCorrect ? '✓ 答对' : '✗ 答错'}}</text>
+        </view>
+        <view class="fc-options">
+          <view
+            wx:for="{{bk.optionItems}}"
+            wx:for-item="opt"
+            wx:key="value"
+            class="fc-option {{opt.isCorrect ? 'is-correct' : ''}} {{opt.isMine && !opt.isCorrect ? 'is-wrong' : ''}}"
+          >
+            <view wx:if="{{bk.type === 'checkbox'}}" class="fc-checkbox-box {{opt.isMine ? 'is-checked' : ''}}">✓</view>
+            <view wx:else class="fc-radio-dot {{opt.isMine ? 'is-checked' : ''}}"></view>
+            <text class="fc-opt-text">{{opt.value}}</text>
+          </view>
+        </view>
+        <view class="fc-block-score">
+          <text>得分：{{bk.scoreText}}</text>
+        </view>
+      </view>
+
+      <!-- 简答 -->
+      <view wx:elif="{{bk.type === 'textarea'}}" class="office-card fc-card">
+        <view class="fc-block-head">
+          <view class="fc-block-index">{{bk.fillIndex}}</view>
+          <view class="fc-block-title">{{bk.title}}</view>
+          <text wx:if="{{bk.scoreText}}" class="fc-mark {{bk.isCorrect ? 'is-correct' : 'is-wrong'}}">{{bk.isCorrect ? '✓ 已作答' : '✗ 未作答'}}</text>
+        </view>
+        <view class="fc-my-answer">
+          <view class="fc-my-label">我的答案</view>
+          <view class="fc-my-value">{{bk.myAnswer || '（未作答）'}}</view>
+        </view>
+        <view wx:if="{{bk.scoreText}}" class="fc-block-score">
+          <text>得分：{{bk.scoreText}}</text>
+        </view>
+      </view>
+    </block>
+  </view>
+</view>

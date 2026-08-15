@@ -1,0 +1,234 @@
+.form-compare-page {
+  min-height: 100%;
+  padding-bottom: 40rpx;
+}
+
+.form-compare-header {
+  padding: 30rpx 40rpx 70rpx;
+}
+
+.form-compare-title-row {
+  display: flex;
+  align-items: center;
+  gap: 16rpx;
+  margin-bottom: 20rpx;
+}
+
+.form-compare-badge {
+  padding: 6rpx 18rpx;
+  border-radius: 20rpx;
+  font-size: var(--fs-22);
+  font-weight: 600;
+}
+
+.form-compare-title {
+  font-size: var(--fs-40);
+  font-weight: 700;
+  color: #FFFFFF;
+  line-height: 1.4;
+  margin-bottom: 12rpx;
+}
+
+.form-compare-score {
+  display: inline-block;
+  padding: 10rpx 28rpx;
+  border-radius: 30rpx;
+  background: rgba(255, 255, 255, 0.22);
+  color: #FFFFFF;
+  font-size: var(--fs-30);
+  font-weight: 700;
+}
+
+.form-compare-content {
+  margin-top: -40rpx;
+}
+
+.form-compare-loading {
+  text-align: center;
+  padding: 60rpx 0;
+  font-size: var(--fs-28);
+  color: #94A3B8;
+}
+
+/* ===== 分节标题（text 说明块） ===== */
+.fc-section-block {
+  display: flex;
+  align-items: center;
+  gap: 16rpx;
+  padding: 24rpx 8rpx;
+  margin: 4rpx 0;
+}
+
+.fc-section-bar {
+  width: 10rpx;
+  height: 50rpx;
+  border-radius: 4rpx;
+  background: linear-gradient(180deg, #2563EB, #4F46E5);
+  flex-shrink: 0;
+}
+
+.fc-section-title {
+  flex: 1;
+  font-size: var(--fs-32);
+  font-weight: 700;
+  color: #1E293B;
+  line-height: 1.4;
+}
+
+/* ===== 题目卡片 ===== */
+.fc-card {
+  padding: 28rpx;
+  margin-bottom: 24rpx;
+}
+
+.fc-card:last-child {
+  margin-bottom: 100rpx;
+}
+
+.fc-block-head {
+  display: flex;
+  align-items: flex-start;
+  gap: 12rpx;
+  margin-bottom: 20rpx;
+}
+
+.fc-block-index {
+  width: 40rpx;
+  height: 40rpx;
+  border-radius: 50%;
+  background: #EFF6FF;
+  color: #2563EB;
+  font-size: var(--fs-24);
+  font-weight: 600;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  flex-shrink: 0;
+}
+
+.fc-block-title {
+  flex: 1;
+  font-size: var(--fs-32);
+  font-weight: 600;
+  color: #1E293B;
+  line-height: 1.5;
+}
+
+.fc-mark {
+  flex-shrink: 0;
+  padding: 4rpx 16rpx;
+  border-radius: 20rpx;
+  font-size: var(--fs-24);
+  font-weight: 600;
+  margin-top: 6rpx;
+}
+
+.fc-mark.is-correct {
+  background: #DCFCE7;
+  color: #16A34A;
+}
+
+.fc-mark.is-wrong {
+  background: #FEE2E2;
+  color: #DC2626;
+}
+
+.fc-options {
+  display: flex;
+  flex-direction: column;
+  gap: 10rpx;
+}
+
+.fc-option {
+  display: flex;
+  align-items: center;
+  gap: 16rpx;
+  padding: 16rpx;
+  border-radius: 12rpx;
+  background: #F8FAFC;
+  font-size: var(--fs-30);
+  color: #334155;
+  border: 2rpx solid transparent;
+}
+
+.fc-option.is-correct {
+  background: #F0FDF4;
+  border-color: #86EFAC;
+  color: #166534;
+}
+
+.fc-option.is-wrong {
+  background: #FEF2F2;
+  border-color: #FECACA;
+  color: #991B1B;
+}
+
+/* 选项控件：单选/判断为圆点，多选为方框（选中态 = 我的答案点击态） */
+.fc-radio-dot {
+  width: 32rpx;
+  height: 32rpx;
+  border-radius: 50%;
+  border: 3rpx solid #CBD5E1;
+  box-sizing: border-box;
+  flex-shrink: 0;
+  transition: all 0.15s ease;
+}
+
+.fc-radio-dot.is-checked {
+  border-color: #2563EB;
+  background: radial-gradient(circle, #2563EB 0%, #2563EB 42%, transparent 50%);
+}
+
+.fc-checkbox-box {
+  width: 32rpx;
+  height: 32rpx;
+  border-radius: 8rpx;
+  border: 3rpx solid #CBD5E1;
+  box-sizing: border-box;
+  flex-shrink: 0;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: var(--fs-22);
+  color: transparent;
+  transition: all 0.15s ease;
+}
+
+.fc-checkbox-box.is-checked {
+  border-color: #2563EB;
+  background: #2563EB;
+  color: #FFFFFF;
+}
+
+.fc-opt-text {
+  flex: 1;
+  line-height: 1.5;
+}
+
+.fc-block-score {
+  margin-top: 16rpx;
+  padding-top: 16rpx;
+  border-top: 2rpx dashed #E2E8F0;
+  font-size: var(--fs-26);
+  color: #64748B;
+}
+
+.fc-my-answer {
+  padding: 16rpx 20rpx;
+  background: #F8FAFC;
+  border-radius: 12rpx;
+}
+
+.fc-my-label {
+  font-size: var(--fs-22);
+  color: #94A3B8;
+  margin-bottom: 8rpx;
+}
+
+.fc-my-value {
+  font-size: var(--fs-28);
+  color: #334155;
+  line-height: 1.6;
+  white-space: pre-wrap;
+  word-break: break-all;
+}

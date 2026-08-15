@@ -1,7 +1,7 @@
 const app = getApp()
-const utils = require('../../../common/utils.js')
-const paginationBehavior = require('../../../behaviors/pagination.js')
-const { TAG_LIST, getTagConfig } = require('../../../common/form-constants.js')
+const utils = require('../../../../common/utils.js')
+const paginationBehavior = require('../../../../behaviors/pagination.js')
+const { TAG_LIST, getTagConfig } = require('../../../../common/form-constants.js')
 
 Page({
   behaviors: [paginationBehavior],
@@ -10,7 +10,8 @@ Page({
     activeTag: 'all',
     tagTabs: [{ key: 'all', label: '全部' }].concat(TAG_LIST.map(t => ({ key: t.key, label: t.icon + t.label }))),
     canPublish: false,
-    isReviewer: false
+    isReviewer: false,
+    emptyIcon: '📋' // 空状态图标，随当前选中 tag 变化
   },
 
   onLoad() {
@@ -72,6 +73,8 @@ Page({
    */
   formatItem(item) {
     const tagCfg = getTagConfig(item.tag)
+    const isActivity = item.registrationCount !== undefined
+    const isFull = isActivity && !!item.isFull
     return {
       ...item,
       tagLabel: tagCfg.label,
@@ -84,7 +87,9 @@ Page({
         ? `该信息仅允许「${item.targetRoles.join('、')}」角色用户填报`
         : '',
       activityLimitText: item.maxRegistrations ? `上限 ${item.maxRegistrations} 人` : '',
-      statusText: item.isClosed ? '已截止' : '进行中',
+      submissionText: isActivity ? `${item.registrationCount} 人已报名` : `${item.submissionCount} 人已提交`,
+      isFull,
+      statusText: isFull ? '已满' : (item.isClosed ? '已截止' : '进行中'),
       isUnread: !item.isRead
     }
   },
@@ -95,9 +100,20 @@ Page({
   handleTagChange(e) {
     const tag = e.currentTarget.dataset.tag
     if (tag === this.data.activeTag) return
-    this.setData({ activeTag: tag })
+    this.setData({
+      activeTag: tag,
+      emptyIcon: this.getEmptyIcon(tag)
+    })
     this.resetPagination()
     this.loadListData(false)
+  },
+
+  /**
+   * 根据当前 tag 获取空状态图标
+   */
+  getEmptyIcon(tag) {
+    if (tag === 'all') return '📋'
+    return getTagConfig(tag).icon
   },
 
   /**
@@ -107,7 +123,7 @@ Page({
     const id = e.currentTarget.dataset.id
     if (id) {
       wx.navigateTo({
-        url: `/pages/office/form-detail/form-detail?id=${id}`
+        url: `/pages/office/form/form-detail/form-detail?id=${id}`
       })
     }
   },
@@ -126,7 +142,7 @@ Page({
       return
     }
     wx.navigateTo({
-      url: '/pages/office/form-edit/form-edit'
+      url: '/pages/office/form/form-edit/form-edit'
     })
   }
 })

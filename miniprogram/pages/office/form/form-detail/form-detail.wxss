@@ -1,6 +1,5 @@
 .form-detail-page {
   min-height: 100%;
-  padding-bottom: 40rpx;
 }
 
 .form-detail-header {
@@ -53,7 +52,7 @@
   border: 2rpx solid #86EFAC;
   border-radius: 16rpx;
   color: #16A34A;
-  font-size: var(--fs-26);
+  font-size: var(--fs-28);
 }
 
 .form-detail-submitted-tip.is-denied {
@@ -312,7 +311,7 @@
   background: #EFF6FF;
   border: 2rpx solid #2563EB;
   color: #2563EB;
-  font-size: var(--fs-28);
+  font-size: var(--fs-30);
   font-weight: 600;
   transition: all 0.2s ease;
 }
@@ -321,6 +320,12 @@
   background: #DCFCE7;
   border-color: #16A34A;
   color: #16A34A;
+}
+
+.fd-register-btn.is-full {
+  background: #F1F5F9;
+  border-color: #CBD5E1;
+  color: #94A3B8;
 }
 
 .fd-empty {
@@ -346,6 +351,7 @@
   font-size: var(--fs-30);
   font-weight: 600;
   transition: all 0.3s ease;
+  margin-bottom: 16rpx;
 }
 
 .fd-footer-btn:active {
@@ -378,4 +384,180 @@
 .fd-footer-btn.is-disabled {
   opacity: 0.6;
   pointer-events: none;
+}
+
+/* ===== 活动报名名单 ===== */
+.fd-reg-list {
+  margin-bottom: 16rpx;
+}
+
+.fd-reg-list-title {
+  font-size: var(--fs-30);
+  color: #64748B;
+  font-weight: 600;
+  margin-bottom: 12rpx;
+}
+
+.fd-reg-chips {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 12rpx;
+}
+
+.fd-reg-chip {
+  padding: 8rpx 20rpx;
+  background: #F1F5F9;
+  border-radius: 24rpx;
+  font-size: var(--fs-32);
+  color: #334155;
+}
+
+/* ===== 活动报名弹窗 ===== */
+.fd-modal-mask {
+  position: fixed;
+  top: 0;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  background: rgba(0, 0, 0, 0.5);
+  z-index: 100;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  animation: fdFadeIn 0.2s ease;
+}
+
+.fd-modal-mask.is-closing {
+  animation: fdFadeOut 0.25s ease forwards;
+}
+
+.fd-modal {
+  width: 620rpx;
+  background: #FFFFFF;
+  border-radius: 24rpx;
+  padding: 40rpx 32rpx 32rpx;
+  box-sizing: border-box;
+  animation: fdSlideUp 0.3s cubic-bezier(0.25, 0.1, 0.25, 1);
+}
+
+.is-closing .fd-modal {
+  animation: fdSlideDown 0.25s cubic-bezier(0.25, 0.1, 0.25, 1) forwards;
+}
+
+.fd-modal-title {
+  font-size: var(--fs-34);
+  font-weight: 700;
+  color: #1E293B;
+  text-align: center;
+  margin-bottom: 8rpx;
+}
+
+.fd-modal-hint {
+  font-size: var(--fs-24);
+  color: #94A3B8;
+  text-align: center;
+  margin-bottom: 24rpx;
+}
+
+.fd-reg-modal-list {
+  max-height: 320rpx;
+  overflow-y: auto;
+  margin-bottom: 20rpx;
+}
+
+.fd-reg-modal-item {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 14rpx 16rpx;
+  background: #F8FAFC;
+  border-radius: 12rpx;
+  margin-bottom: 10rpx;
+}
+
+.fd-reg-modal-name {
+  font-size: var(--fs-28);
+  color: #334155;
+}
+
+.fd-reg-modal-del {
+  font-size: var(--fs-24);
+  color: #DC2626;
+}
+
+.fd-reg-modal-input-row {
+  display: flex;
+  align-items: center;
+  gap: 12rpx;
+  margin-bottom: 24rpx;
+}
+
+.fd-reg-modal-input {
+  flex: 1;
+  height: 72rpx;
+  background: #F8FAFC;
+  border: 2rpx solid #E2E8F0;
+  border-radius: 12rpx;
+  padding: 0 20rpx;
+  font-size: var(--fs-28);
+  box-sizing: border-box;
+}
+
+.fd-reg-modal-add {
+  flex-shrink: 0;
+  padding: 0 28rpx;
+  height: 72rpx;
+  line-height: 72rpx;
+  text-align: center;
+  background: #EFF6FF;
+  color: #2563EB;
+  border-radius: 12rpx;
+  font-size: var(--fs-28);
+  font-weight: 600;
+}
+
+.fd-modal-footer {
+  display: flex;
+  gap: 20rpx;
+}
+
+.fd-modal-btn {
+  flex: 1;
+  height: 80rpx;
+  border-radius: 20rpx;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: var(--fs-30);
+  font-weight: 600;
+}
+
+.fd-modal-btn.is-cancel {
+  background: #F1F5F9;
+  color: #64748B;
+}
+
+.fd-modal-btn.is-confirm {
+  background: linear-gradient(135deg, #2563EB, #4F46E5);
+  color: #FFFFFF;
+}
+
+@keyframes fdFadeIn {
+  from { opacity: 0; }
+  to { opacity: 1; }
+}
+
+@keyframes fdFadeOut {
+  from { opacity: 1; }
+  to { opacity: 0; }
+}
+
+@keyframes fdSlideUp {
+  from { transform: translateY(100%); }
+  to { transform: translateY(0); }
+}
+
+@keyframes fdSlideDown {
+  from { transform: translateY(0); }
+  to { transform: translateY(100%); }
 }

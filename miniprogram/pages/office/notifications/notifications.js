@@ -104,6 +104,11 @@ Page({
         wx.navigateTo({
           url: `/pages/office/menu-detail/menu-detail?id=${notification.menuId}`
         })
+      } else if (notification.type === NOTIFICATION_TYPES.CONTENT_FORM && notification.formId) {
+        // 信息发布通知，跳转到详情页
+        wx.navigateTo({
+          url: `/pages/office/form/form-detail/form-detail?id=${notification.formId}`
+        })
       } else {
         // 其他通知类型，根据映射跳转到审批中心的对应tab
         const targetTab = NOTIFICATION_TARGET_TAB[notification.type]

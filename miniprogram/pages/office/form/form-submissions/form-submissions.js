@@ -1,5 +1,13 @@
 const app = getApp()
-const utils = require('../../../common/utils.js')
+const utils = require('../../../../common/utils.js')
+
+// 排序模式循环顺序与文案
+const SORT_MODES = ['time', 'score', 'department']
+const SORT_MODE_TEXT = {
+  time: '按提交时间',
+  score: '按分数',
+  department: '按部门分组'
+}
 
 Page({
   data: {
@@ -10,6 +18,9 @@ Page({
     list: [],
     displayList: [],
     sortMode: 'time',
+    sortModeText: '按提交时间',
+    filterMode: 'all',
+    maxSubmissions: 1,
     loading: true,
     exporting: false,
     allExpanded: false
@@ -48,8 +59,11 @@ Page({
         title: form.title || '',
         tag: form.tag || '',
         isQuiz,
+        maxSubmissions: Math.max(1, Number(form.maxSubmissions) || 1),
         list,
         sortMode: 'time',
+        sortModeText: '按提交时间',
+        filterMode: 'all',
         loading: false
       })
       this.applySort()
@@ -99,8 +113,22 @@ Page({
    * 根据当前排序模式重排列表并生成展示列表
    */
   applySort() {
-    const list = [...this.data.list]
+    let list = [...this.data.list]
     const sortMode = this.data.sortMode
+    const filterMode = this.data.filterMode
+
+    // 只留最高成绩：每个用户仅保留得分最高的一条提交
+    if (filterMode === 'highest') {
+      const bestMap = {}
+      list.forEach(item => {
+        const key = item._openid || item.openid || item.userName || item._id
+        if (!bestMap[key] || (item.scoreTotal || 0) > (bestMap[key].scoreTotal || 0)) {
+          bestMap[key] = item
+        }
+      })
+      list = Object.values(bestMap)
+    }
+
     let displayList = []
 
     if (sortMode === 'score') {
@@ -127,7 +155,7 @@ Page({
       displayList = list
     }
 
-    this.setData({ displayList })
+    this.setData({ displayList, sortModeText: SORT_MODE_TEXT[sortMode] || '按提交时间' })
   },
 
   /**
@@ -140,8 +168,9 @@ Page({
     if (type === 'side_dish') {
       return (value || []).map(v => `${v.categoryName}×${v.count}`).join('、')
     }
-    if (type === 'activity' && value === '报名') {
-      return '已报名'
+    if (type === 'activity') {
+      if (value === '报名') return '已报名'
+      if (Array.isArray(value)) return value.filter(Boolean).join('、')
     }
     return value === undefined || value === null || value === '' ? '（空）' : value
   },
@@ -168,12 +197,21 @@ Page({
   },
 
   /**
-   * 切换排序模式（答题表单）
+   * 循环切换排序方式（答题表单）：时间 → 分数 → 部门 → 时间
    */
-  onSortChange(e) {
-    const mode = e.currentTarget.dataset.mode
-    if (!mode || mode === this.data.sortMode) return
-    this.setData({ sortMode: mode })
+  onSortToggle() {
+    const idx = SORT_MODES.indexOf(this.data.sortMode)
+    const next = SORT_MODES[(idx + 1) % SORT_MODES.length]
+    this.setData({ sortMode: next })
+    this.applySort()
+  },
+
+  /**
+   * 切换筛选模式（不筛选 / 只留最高成绩）
+   */
+  onFilterToggle() {
+    const filterMode = this.data.filterMode === 'highest' ? 'all' : 'highest'
+    this.setData({ filterMode })
     this.applySort()
   },
 

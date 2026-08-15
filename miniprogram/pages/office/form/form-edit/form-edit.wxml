@@ -94,9 +94,9 @@
 
     <!-- 截止时间 -->
     <view class="office-card form-edit-card">
-      <view class="fe-switch-row" bindtap="handleToggleDeadline">
+      <view class="fe-switch-row">
         <view class="fe-label" style="margin: 0;">设置截止时间</view>
-        <view class="fe-switch {{showDeadline ? 'is-on' : ''}}">
+        <view class="fe-switch {{showDeadline ? 'is-on' : ''}}" bindtap="handleToggleDeadline">
           <view class="fe-switch-dot"></view>
         </view>
       </view>
@@ -107,9 +107,9 @@
 
     <!-- 目标角色 -->
     <view class="office-card form-edit-card">
-      <view class="fe-switch-row" bindtap="handleToggleTargetRole">
+      <view class="fe-switch-row">
         <view class="fe-label" style="margin: 0;">限定可填报用户</view>
-        <view class="fe-switch {{showTargetRole ? 'is-on' : ''}}">
+        <view class="fe-switch {{showTargetRole ? 'is-on' : ''}}" bindtap="handleToggleTargetRole">
           <view class="fe-switch-dot"></view>
         </view>
       </view>
@@ -156,7 +156,7 @@
 
     <!-- 分数设置（答题） -->
     <view class="office-card form-edit-card" wx:if="{{tag === 'quiz'}}">
-      <view class="fe-label" style="margin-bottom: 28rpx;">分数设置</view>
+      <view class="fe-sub-label">分数设置</view>
 
       <!-- 分制选择 -->
       <view class="fe-label">分制</view>
@@ -173,7 +173,7 @@
         <view class="auth-input-shell">
           <input type="digit" value="{{quizScore.totalScore}}" bindinput="onTotalScoreInput" placeholder="默认 100 分" placeholder-class="auth-input-placeholder" />
         </view>
-        <view class="fe-label" style="margin-top: 20rpx;">分数分配方式</view>
+        <view class="fe-label">分数分配方式</view>
         <view class="fe-choice-list">
           <view wx:for="{{allocationOptions}}" wx:key="key" class="fe-choice-row {{quizScore.totalAllocation === item.key ? 'is-active' : ''}}" bindtap="onAllocationChange" data-key="{{item.key}}">
             <view class="fe-choice-dot {{quizScore.totalAllocation === item.key ? 'is-checked' : ''}}"></view>
@@ -202,25 +202,9 @@
         </view>
       </view>
 
-      <!-- 通用选项 -->
-
-      <view class="fe-label" style="margin-top: 20rpx;">答错时</view>
-      <view class="fe-choice-list">
-        <view wx:for="{{wrongModeOptions}}" wx:key="key" class="fe-choice-row {{quizScore.wrongMode === item.key ? 'is-active' : ''}}" bindtap="onWrongModeChange" data-key="{{item.key}}">
-          <view class="fe-choice-dot {{quizScore.wrongMode === item.key ? 'is-checked' : ''}}"></view>
-          <text>{{item.label}}</text>
-        </view>
-      </view>
-
-      <view wx:if="{{quizScore.wrongMode === 'partial' || quizScore.wrongMode === 'deduct'}}" class="fe-check-row" style="margin-top: 20rpx;">
-        <text class="fe-label">允许负分</text>
-        <view class="fe-switch {{quizScore.allowNegative ? 'is-on' : ''}}" bindtap="onAllowNegativeToggle">
-          <view class="fe-switch-dot"></view>
-        </view>
-      </view>
 
       <view wx:if="{{hasTextarea}}" class="fe-extra-area">
-        <view class="fe-label" style="margin-top: 20rpx;">简答题的处理</view>
+        <view class="fe-label">简答题的处理</view>
         <view class="fe-choice-list">
           <view wx:for="{{textareaModeOptions}}" wx:key="key" class="fe-choice-row {{quizScore.textareaMode === item.key ? 'is-active' : ''}}" bindtap="onTextareaModeChange" data-key="{{item.key}}">
             <view class="fe-choice-dot {{quizScore.textareaMode === item.key ? 'is-checked' : ''}}"></view>
@@ -228,7 +212,25 @@
           </view>
         </view>
       </view>
-      <view class="fe-check-row">
+
+      <!-- 通用选项 -->
+
+      <view class="fe-label">答错时</view>
+      <view class="fe-choice-list">
+        <view wx:for="{{wrongModeOptions}}" wx:key="key" class="fe-choice-row {{quizScore.wrongMode === item.key ? 'is-active' : ''}}" bindtap="onWrongModeChange" data-key="{{item.key}}">
+          <view class="fe-choice-dot {{quizScore.wrongMode === item.key ? 'is-checked' : ''}}"></view>
+          <text>{{item.label}}</text>
+        </view>
+      </view>
+
+      <view wx:if="{{quizScore.wrongMode === 'partial' || quizScore.wrongMode === 'deduct'}}" class="fe-switch-row">
+        <text class="fe-label">允许负分</text>
+        <view class="fe-switch {{quizScore.allowNegative ? 'is-on' : ''}}" bindtap="onAllowNegativeToggle">
+          <view class="fe-switch-dot"></view>
+        </view>
+      </view>
+
+      <view class="fe-switch-row">
         <text class="fe-label">试卷上展示每道题目的分数</text>
         <view class="fe-switch {{quizScore.showScore ? 'is-on' : ''}}" bindtap="onShowScoreToggle">
           <view class="fe-switch-dot"></view>
@@ -260,81 +262,77 @@
             <view class="auth-input-shell">
               <input value="{{editingBlock.title}}" bindinput="onBlockTitleInput" placeholder="请输入标题" placeholder-class="auth-input-placeholder" maxlength="100" />
             </view>
-            </view>
-            <view wx:else>
-              <view class="fe-modal-label">题干</view>
-              <view class="auth-input-shell">
-                <input value="{{editingBlock.title}}" bindinput="onBlockTitleInput" placeholder="请输入题干" placeholder-class="auth-input-placeholder" maxlength="100" />
-              </view>
-            </view>
           </view>
-
-          <!-- 说明文字内容 -->
-          <view class="fe-modal-field" wx:if="{{editingBlock.type === 'text'}}">
-            <view class="fe-modal-label">说明内容</view>
+          <view wx:else>
+            <view class="fe-modal-label">题干</view>
             <view class="auth-input-shell">
-              <textarea value="{{editingBlock.title}}" bindinput="onBlockTitleInput" placeholder="请输入说明文字" placeholder-class="auth-input-placeholder" maxlength="500" auto-height></textarea>
+              <input value="{{editingBlock.title}}" bindinput="onBlockTitleInput" placeholder="请输入题干" placeholder-class="auth-input-placeholder" maxlength="100" />
             </view>
           </view>
+        </view>
 
-          <!-- 必填开关 -->
-          <view class="fe-modal-field" wx:if="{{editingBlock.type !== 'text'}}">
-            <view class="fe-modal-label">是否必填</view>
-            <view class="fe-switch-row">
-              <text class="fe-switch-hint">{{editingBlock.required ? '必填' : '选填'}}</text>
-              <view class="fe-switch {{editingBlock.required ? 'is-on' : ''}}" bindtap="onBlockRequiredToggle">
-                <view class="fe-switch-dot"></view>
-              </view>
+        <!-- 说明文字内容 -->
+        <view class="fe-modal-field" wx:if="{{editingBlock.type === 'text'}}">
+          <view class="fe-modal-label">说明内容</view>
+          <view class="auth-input-shell">
+            <textarea value="{{editingBlock.title}}" bindinput="onBlockTitleInput" placeholder="请输入说明文字" placeholder-class="auth-input-placeholder" maxlength="500" auto-height></textarea>
+          </view>
+        </view>
+
+        <!-- 必填开关 -->
+        <view class="fe-modal-field" wx:if="{{editingBlock.type !== 'text'}}">
+          <view class="fe-modal-label">是否必填</view>
+          <view class="fe-switch-row">
+            <text class="fe-switch-hint">{{editingBlock.required ? '必填' : '选填'}}</text>
+            <view class="fe-switch {{editingBlock.required ? 'is-on' : ''}}" bindtap="onBlockRequiredToggle">
+              <view class="fe-switch-dot"></view>
             </view>
           </view>
+        </view>
 
-          <!-- 选项（radio/checkbox/judge） -->
-          <view class="fe-modal-field" wx:if="{{editingBlock.type === 'radio' || editingBlock.type === 'checkbox' || editingBlock.type === 'judge'}}">
-            <view class="fe-modal-label">{{tag === 'quiz' ? '选项（点击左侧按钮标记正确答案）' : '选项'}}</view>
-            <view class="fe-option-list">
-              <view wx:for="{{editingBlock.optionItems}}" wx:for-item="opt" wx:key="index" class="fe-option-row">
-                <view
-                  wx:if="{{tag === 'quiz'}}"
-                  class="fe-option-dot {{editingBlock.type === 'checkbox' ? 'is-square' : ''}} {{opt.isCorrect ? 'is-correct' : ''}}"
-                  catchtap="onToggleCorrectAnswer" data-index="{{index}}"
-                >{{opt.isCorrect ? '✓' : ''}}</view>
-                <view wx:else class="fe-option-dot {{editingBlock.type === 'checkbox' ? 'is-square' : ''}}"></view>
-                <input class="fe-option-input" value="{{opt.value}}" bindinput="onOptionInput" data-index="{{index}}" placeholder="选项内容" />
-                <view class="fe-option-remove" catchtap="onRemoveOption" data-index="{{index}}">×</view>
-              </view>
-            </view>
-            <view class="fe-add-btn" bindtap="onAddOption">＋ 添加选项</view>
-          </view>
-
-          <!-- 副食类别（side_dish） -->
-          <view class="fe-modal-field" wx:if="{{editingBlock.type === 'side_dish'}}">
-            <view class="fe-modal-label">副食类别、每人最大订购数量</view>
-            <view class="fe-category-list">
-              <view wx:for="{{editingBlock.categories}}" wx:key="id" class="fe-category-row">
-                <input class="fe-category-name" value="{{item.name}}" bindinput="onCategoryNameInput" data-index="{{index}}" placeholder="类别名称" />
-                <input class="fe-category-max" type="number" value="{{item.maxCount}}" bindinput="onCategoryMaxInput" data-index="{{index}}" placeholder="份数" />
-                <view class="fe-option-remove" catchtap="onRemoveCategory" data-index="{{index}}">×</view>
-              </view>
-            </view>
-            <view class="fe-add-btn" bindtap="onAddCategory">＋ 添加类别</view>
-          </view>
-
-          <!-- 活动分组 / 人数（activity） -->
-          <view class="fe-modal-field" wx:if="{{editingBlock.type === 'activity'}}">
-            <view class="fe-modal-label">报名分组（可选）</view>
-            <view class="fe-option-list">
-              <view wx:for="{{editingBlock.groups}}" wx:key="index" class="fe-option-row">
-                <input class="fe-option-input" value="{{item}}" bindinput="onGroupInput" data-index="{{index}}" placeholder="分组名称" />
-                <view class="fe-option-remove" catchtap="onRemoveGroup" data-index="{{index}}">×</view>
-              </view>
-            </view>
-            <view class="fe-add-btn" bindtap="onAddGroup">＋ 添加分组</view>
-
-            <view class="fe-modal-label" style="margin-top: 24rpx;">人数上限（可选）</view>
-            <view class="auth-input-shell">
-              <input type="number" value="{{editingBlock.maxRegistrations}}" bindinput="onMaxRegistrationsInput" placeholder="不填则不限制" placeholder-class="auth-input-placeholder" />
+        <!-- 选项（radio/checkbox/judge） -->
+        <view class="fe-modal-field" wx:if="{{editingBlock.type === 'radio' || editingBlock.type === 'checkbox' || editingBlock.type === 'judge'}}">
+          <view class="fe-modal-label">{{tag === 'quiz' ? '选项（点击左侧按钮标记正确答案）' : '选项'}}</view>
+          <view class="fe-option-list">
+            <view wx:for="{{editingBlock.optionItems}}" wx:for-item="opt" wx:key="index" class="fe-option-row">
+              <view wx:if="{{tag === 'quiz'}}" class="fe-option-dot {{editingBlock.type === 'checkbox' ? 'is-square' : ''}} {{opt.isCorrect ? 'is-correct' : ''}}" catchtap="onToggleCorrectAnswer" data-index="{{index}}">{{opt.isCorrect ? '✓' : ''}}</view>
+              <view wx:else class="fe-option-dot {{editingBlock.type === 'checkbox' ? 'is-square' : ''}}"></view>
+              <input class="fe-option-input" value="{{opt.value}}" bindinput="onOptionInput" data-index="{{index}}" placeholder="选项内容" />
+              <view class="fe-option-remove" catchtap="onRemoveOption" data-index="{{index}}">×</view>
             </view>
           </view>
+          <view class="fe-add-btn" bindtap="onAddOption">＋ 添加选项</view>
+        </view>
+
+        <!-- 副食类别（side_dish） -->
+        <view class="fe-modal-field" wx:if="{{editingBlock.type === 'side_dish'}}">
+          <view class="fe-modal-label">副食类别、每人最大订购数量</view>
+          <view class="fe-category-list">
+            <view wx:for="{{editingBlock.categories}}" wx:key="id" class="fe-category-row">
+              <input class="fe-category-name" value="{{item.name}}" bindinput="onCategoryNameInput" data-index="{{index}}" placeholder="类别名称" />
+              <input class="fe-category-max" type="number" value="{{item.maxCount}}" bindinput="onCategoryMaxInput" data-index="{{index}}" placeholder="份数" />
+              <view class="fe-option-remove" catchtap="onRemoveCategory" data-index="{{index}}">×</view>
+            </view>
+          </view>
+          <view class="fe-add-btn" bindtap="onAddCategory">＋ 添加类别</view>
+        </view>
+
+        <!-- 活动分组 / 人数（activity） -->
+        <view class="fe-modal-field" wx:if="{{editingBlock.type === 'activity'}}">
+          <view class="fe-modal-label">报名分组（可选）</view>
+          <view class="fe-option-list">
+            <view wx:for="{{editingBlock.groups}}" wx:key="index" class="fe-option-row">
+              <input class="fe-option-input" value="{{item}}" bindinput="onGroupInput" data-index="{{index}}" placeholder="分组名称" />
+              <view class="fe-option-remove" catchtap="onRemoveGroup" data-index="{{index}}">×</view>
+            </view>
+          </view>
+          <view class="fe-add-btn" bindtap="onAddGroup">＋ 添加分组</view>
+
+          <view class="fe-modal-label" style="margin-top: 24rpx;">人数上限（可选）</view>
+          <view class="auth-input-shell">
+            <input type="number" value="{{editingBlock.maxRegistrations}}" bindinput="onMaxRegistrationsInput" placeholder="不填则不限制" placeholder-class="auth-input-placeholder" />
+          </view>
+        </view>
       </scroll-view>
 
       <view class="fe-modal-footer">

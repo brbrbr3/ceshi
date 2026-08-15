@@ -968,7 +968,7 @@ async function notifyReportSubscribers(reporterOpenid, reporter, tripId, action,
 
   const title = action === 'depart' ? '外出报备通知' : '返回报备通知'
   const actionText = action === 'depart' ? '外出报备' : '已返回'
-  let content = `${reporterName} 提交了${actionText}报备`
+  let content = `${reporterName}提交了${actionText}报备`
   if (destination) {
     content += `，目的地：${destination}`
   }
@@ -1228,7 +1228,7 @@ async function sendOvertimeSubscribeMessage(openid) {
 async function sendProxyReportNotification(openid, reporterName, destination, now) {
   const title = '代报备通知'
   const content = `${reporterName}已为您代报备出行`
-  const remark = '目的地：${destination}'
+  const remark = `目的地：${destination}`
   const offsetHours = await getTimezoneOffset()
   const timeStr = formatSubscribeTime(now, offsetHours)
 
@@ -1278,8 +1278,8 @@ async function sendProxyReportNotification(openid, reporterName, destination, no
  */
 async function sendProxyReturnNotification(openid, reporterName, destination, now) {
   const title = '代报备返回通知'
-  const content = `${reporterName}已代您完成返回报备，目的地：${destination}`
-  const remark = '您已返回'
+  const content = `${reporterName}已代您完成返回报备`
+  const remark = `您已从${destination}返回`
   const offsetHours = await getTimezoneOffset()
   const timeStr = formatSubscribeTime(now, offsetHours)
 

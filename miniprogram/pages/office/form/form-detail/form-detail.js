@@ -1,6 +1,7 @@
 const app = getApp()
-const utils = require('../../../common/utils.js')
-const { getTagConfig } = require('../../../common/form-constants.js')
+const utils = require('../../../../common/utils.js')
+const { getTagConfig } = require('../../../../common/form-constants.js')
+const modalAnimation = require('../../../../behaviors/modalAnimation.js')
 
 // ===== 答题分值计算（与云函数 contentFormManager 保持一致，仅用于预览模式） =====
 function round2(n) {
@@ -81,6 +82,8 @@ function calcFullScores(quizScore, blocks) {
 }
 
 Page({
+  behaviors: [modalAnimation],
+
   data: {
     formId: '',
     form: null,
@@ -100,7 +103,11 @@ Page({
     canSubmit: true,
     readonly: false,
     isPreview: false,
-    submitting: false
+    submitting: false,
+    isQuiz: false,
+    quizResult: null,
+    quizAnswering: false,
+    registerModal: { show: false, blockId: '', input: '', names: [] }
   },
 
   onLoad(options) {
@@ -116,6 +123,14 @@ Page({
     const fontStyle = app.globalData.fontStyle
     if (this.data.fontStyle !== fontStyle) {
       this.setData({ fontStyle })
+    }
+    // 编辑返回后刷新（首次进入不重复加载）
+    if (this.data.formId && !this.data.isPreview) {
+      if (this._loaded) {
+        this.loadForm(this.data.formId)
+      } else {
+        this._loaded = true
+      }
     }
   },
 
@@ -186,10 +201,15 @@ Page({
       if (result.code !== 0) {
         throw new Error(result.message || '加载失败')
       }
-      const { form, mySubmission, isCreator, canPublish, canSubmit } = result.data
+      const { form, mySubmission, isCreator, canPublish, canSubmit, quizResult } = result.data
       const tagCfg = getTagConfig(form.tag)
+      const isQuiz = form.tag === 'quiz'
       const blocks = this.prepareBlocks(form.blocks || [], mySubmission)
       const hasFillableBlocks = blocks.some(b => ['radio', 'checkbox', 'judge', 'textarea', 'side_dish', 'activity'].includes(b.type))
+
+      // 答题表单已提交时默认只读展示（最后一次作答），点击「再次答题」后才解锁
+      const quizSubmitted = isQuiz && !!mySubmission
+      const readonly = form.isClosed || canSubmit === false || quizSubmitted
 
       this.setData({
         form,
@@ -207,7 +227,10 @@ Page({
         isAnonymous: !!form.isAnonymous,
         maxSubmissions: form.maxSubmissions || 1,
         canSubmit: canSubmit !== false,
-        readonly: form.isClosed || canSubmit === false
+        isQuiz,
+        quizResult: quizResult || null,
+        quizAnswering: false,
+        readonly
       })
     }).catch(err => {
       wx.hideLoading()
@@ -246,6 +269,7 @@ Page({
         block.activityMetaText = b.maxRegistrations
           ? `已报名 ${regCount} 人 · 上限 ${b.maxRegistrations} 人`
           : `已报名 ${regCount} 人`
+        block.isFull = b.maxRegistrations ? regCount >= b.maxRegistrations : false
       }
       if (b.type === 'side_dish') {
         const countMap = {}
@@ -265,8 +289,17 @@ Page({
           checked: block.answer.indexOf(opt) >= 0
         }))
       } else if (b.type === 'activity' && !(b.groups && b.groups.length > 0)) {
-        block.answer = answerMap[b.id] === '报名' ? '报名' : ''
-        block.answerText = block.answer === '报名' ? '已报名' : '未报名'
+        const myVal = answerMap[b.id]
+        if (Array.isArray(myVal)) {
+          block.answer = myVal.filter(Boolean)
+        } else if (myVal && myVal !== '报名') {
+          block.answer = [myVal]
+        } else if (myVal === '报名' && mySubmission && mySubmission.userName) {
+          block.answer = [mySubmission.userName] // 兼容旧数据
+        } else {
+          block.answer = []
+        }
+        block.answerText = block.answer.length > 0 ? block.answer.join('、') : '未报名'
       } else {
         block.answer = answerMap[b.id] !== undefined ? answerMap[b.id] : ''
         block.answerText = block.answer !== '' && block.answer !== null ? block.answer : '未填写'
@@ -328,12 +361,74 @@ Page({
   },
 
   onActivityRegisterToggle(e) {
+    if (this.data.readonly) return
     const id = e.currentTarget.dataset.id
-    const blocks = this.data.blocks
-    const block = blocks.find(b => b.id === id)
+    const block = this.data.blocks.find(b => b.id === id)
     if (!block) return
-    const newVal = block.answer === '报名' ? '' : '报名'
-    this.updateBlockAnswer(id, newVal)
+    const names = Array.isArray(block.answer) ? [...block.answer] : []
+    // 人数已满且本人未报名 → 禁止报名
+    if (block.isFull && names.length === 0) {
+      utils.showToast({ title: '人数已满，无法报名', icon: 'none' })
+      return
+    }
+    // 首次报名预填本人姓名；继续添加时输入框置空，便于输入他人
+    const myName = names.length === 0 ? ((app.globalData.userProfile || {}).name || '') : ''
+    this.setData({
+      registerModal: { show: true, blockId: id, input: myName, names }
+    })
+  },
+
+  onRegisterInput(e) {
+    this.setData({ 'registerModal.input': e.detail.value })
+  },
+
+  onAddRegisterName() {
+    const { input, names } = this.data.registerModal
+    const name = (input || '').trim()
+    if (!name) {
+      utils.showToast({ title: '请输入报名人姓名', icon: 'none' })
+      return
+    }
+    if (names.indexOf(name) >= 0) {
+      utils.showToast({ title: '该报名人已添加', icon: 'none' })
+      return
+    }
+    this.setData({
+      'registerModal.names': [...names, name],
+      'registerModal.input': ''
+    })
+  },
+
+  onRemoveRegisterName(e) {
+    const index = e.currentTarget.dataset.index
+    const names = [...this.data.registerModal.names]
+    names.splice(index, 1)
+    this.setData({ 'registerModal.names': names })
+  },
+
+  confirmRegisterModal() {
+    const { blockId, input, names } = this.data.registerModal
+    // 输入框还有未确认的姓名时，先加入
+    const name = (input || '').trim()
+    let finalNames = names
+    if (name && names.indexOf(name) < 0) {
+      finalNames = [...names, name]
+    }
+    if (finalNames.length === 0) {
+      utils.showToast({ title: '请至少添加一位报名人', icon: 'none' })
+      return
+    }
+    const blocks = this.data.blocks.map(b => b.id === blockId ? { ...b, answer: finalNames, answerText: finalNames.join('、') } : b)
+    this.setData({ blocks })
+    this._closeModal('registerModal.show', () => {
+      this.setData({ 'registerModal.blockId': '', 'registerModal.input': '', 'registerModal.names': [] })
+    })
+  },
+
+  closeRegisterModal() {
+    this._closeModal('registerModal.show', () => {
+      this.setData({ 'registerModal.blockId': '', 'registerModal.input': '', 'registerModal.names': [] })
+    })
   },
 
   onSideDishCountChange(e) {
@@ -376,6 +471,10 @@ Page({
         if (Array.isArray(b.answer) && b.answer.length > 0) {
           answers.push({ blockId: b.id, type: b.type, value: b.answer })
         }
+      } else if (b.type === 'activity' && !(b.groups && b.groups.length > 0)) {
+        if (Array.isArray(b.answer) && b.answer.length > 0) {
+          answers.push({ blockId: b.id, type: b.type, value: b.answer })
+        }
       } else {
         if (b.answer !== '' && b.answer !== undefined && b.answer !== null) {
           answers.push({ blockId: b.id, type: b.type, value: b.answer })
@@ -392,6 +491,8 @@ Page({
       if (b.type === 'side_dish') {
         empty = !(b.categories || []).some(c => (c.count || 0) > 0)
       } else if (b.type === 'checkbox') {
+        empty = !(Array.isArray(b.answer) && b.answer.length > 0)
+      } else if (b.type === 'activity' && !(b.groups && b.groups.length > 0)) {
         empty = !(Array.isArray(b.answer) && b.answer.length > 0)
       } else {
         empty = b.answer === '' || b.answer === undefined || b.answer === null
@@ -465,23 +566,68 @@ Page({
     })
   },
 
+  // ===== 答题类型交互 =====
+
+  /**
+   * 清空答题表单的所有已填答案（用于「再次答题」）
+   */
+  resetQuizAnswers() {
+    const blocks = this.data.blocks.map(b => {
+      const block = { ...b }
+      if (block.type === 'checkbox') {
+        block.answer = []
+        block.optionItems = (block.options || []).map(opt => ({ value: opt, checked: false }))
+      } else if (block.type === 'side_dish') {
+        block.categories = (block.categories || []).map(c => ({ ...c, count: 0 }))
+      } else if (block.type === 'radio' || block.type === 'judge' || block.type === 'textarea' || block.type === 'activity') {
+        block.answer = ''
+      }
+      return block
+    })
+    this.setData({ blocks })
+  },
+
+  /**
+   * 再次答题：清空表单并解锁进入可编辑态
+   */
+  handleQuizRetry() {
+    this.resetQuizAnswers()
+    this.setData({ quizAnswering: true, readonly: false })
+  },
+
+  /**
+   * 放弃重答：恢复只读展示最后一次作答
+   */
+  handleQuizCancelRetry() {
+    this.loadForm(this.data.formId)
+  },
+
+  /**
+   * 查看正确答案（跳转对比页）
+   */
+  handleQuizViewAnswers() {
+    wx.navigateTo({
+      url: `/pages/office/form/form-compare/form-compare?id=${this.data.formId}`
+    })
+  },
+
   // ===== 发布者入口 =====
 
   goEdit() {
     wx.navigateTo({
-      url: `/pages/office/form-edit/form-edit?id=${this.data.formId}`
+      url: `/pages/office/form/form-edit/form-edit?id=${this.data.formId}`
     })
   },
 
   goResult() {
     wx.navigateTo({
-      url: `/pages/office/form-result/form-result?id=${this.data.formId}`
+      url: `/pages/office/form/form-result/form-result?id=${this.data.formId}`
     })
   },
 
   goSubmissions() {
     wx.navigateTo({
-      url: `/pages/office/form-submissions/form-submissions?id=${this.data.formId}`
+      url: `/pages/office/form/form-submissions/form-submissions?id=${this.data.formId}`
     })
   },
 

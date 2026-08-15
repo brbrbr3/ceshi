@@ -44,8 +44,8 @@ const SYSTEM_CONFIGS = [
     type: 'position',
     key: 'POSITION_OPTIONS',
     value: [
-      // '人事主管', '礼宾', '出纳', '俱乐部', '阳光课堂', '妇女小组', '领事部内聘', '酒水库库管', '文具库库管', '礼品库库管'
-      '会计主管', '会计', '招待员', '厨师', '办公室内聘'],
+      // '人事主管', '礼宾', '出纳', '领事部内聘', '酒水库库管', '文具库库管', '礼品库库管'
+      '会计主管', '会计', '招待员', '厨师', '办公室内聘', '俱乐部', '阳光课堂', '妇女小组'],
     description: '岗位选项列表',
     sort: 10
   },
@@ -301,7 +301,8 @@ const SYSTEM_CONFIGS = [
       TASK_COMPLETED: 'task_completed',     // 审批完成（申请人收到）
       PROCESS_RETURNED: 'process_returned', // 流程退回（申请人收到）
       WORKFLOW_COMPLETED: 'workflow_completed', // 工作流完成（申请人收到）
-      ORDER_TERMINATED: 'order_terminated'  // 工单中止（申请人收到）
+      ORDER_TERMINATED: 'order_terminated',  // 工单中止（申请人收到）
+      CONTENT_FORM: 'content_form'           // 信息发布通知（填报人员收到）
     },
     description: '通知消息类型枚举',
     sort: 90
@@ -316,7 +317,8 @@ const SYSTEM_CONFIGS = [
       task_completed: 'mine',      // 审批完成 → 我的发起
       process_returned: 'mine',    // 流程退回 → 我的发起
       workflow_completed: 'mine',  // 工作流完成 → 我的发起
-      order_terminated: 'mine'     // 工单中止 → 我的发起
+      order_terminated: 'mine',    // 工单中止 → 我的发起
+      content_form: 'none'         // 信息发布 → 跳转详情页，不需要 tab
     },
     description: '通知消息类型与跳转tab映射（pending=待审批, mine=我的发起）',
     sort: 91

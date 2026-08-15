@@ -343,6 +343,14 @@ page {
   color: #94A3B8 !important;
 }
 
+.home-section-title {
+  padding-bottom: 20rpx;
+}
+
+.home-link {
+  padding-bottom: 20rpx;
+}
+
 /* 通用点击动效 */
 .home-calendar,
 .office-icon-btn-wrapper,
@@ -350,10 +358,14 @@ page {
 .home-section-title,
 .home-link,
 .home-news-item,
+.home-section-header,
 .home-news-card {
   transition: all 0.3s ease;
 }
 
+.home-section-header {
+  border-bottom: 1rpx solid #F1F5F9;
+}
 
 .home-btn-active {
   transform: scale(0.93);

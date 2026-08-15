@@ -26,8 +26,8 @@ function truncateNoticeText(text, len) {
  */
 async function sendMenuNoticeToAllUsers(authorName, menuTitle) {
   const msgType = truncateNoticeText('新菜单通知')
-  const msgContent = truncateNoticeText(`${authorName || '管理员'}提交了新的工作餐菜单，点击查看`)
-  const remark = truncateNoticeText(menuTitle || '')
+  const msgContent = truncateNoticeText(menuTitle || '')
+  const remark = truncateNoticeText(`${authorName || '管理员'}发布了新的工作餐菜单，点击查看`)
 
   const batchSize = 100
   let offset = 0

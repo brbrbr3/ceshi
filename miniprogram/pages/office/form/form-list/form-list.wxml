@@ -9,40 +9,29 @@
     <!-- tag 筛选 -->
     <scroll-view wx:if="{{!isReviewer}}" scroll-x class="form-list-tabs-scroll" enhanced show-scrollbar="false">
       <view class="form-list-tabs">
-        <view
-          wx:for="{{tagTabs}}"
-          wx:key="key"
-          class="form-list-tab {{activeTag === item.key ? 'is-active' : ''}}"
-          bindtap="handleTagChange"
-          data-tag="{{item.key}}"
-        >{{item.label}}</view>
+        <view wx:for="{{tagTabs}}" wx:key="key" class="form-list-tab {{activeTag === item.key ? 'is-active' : ''}}" bindtap="handleTagChange" data-tag="{{item.key}}">{{item.label}}</view>
       </view>
     </scroll-view>
 
     <!-- 列表 -->
     <view class="form-list-body">
-      <view
-        wx:for="{{list}}"
-        wx:key="_id"
-        class="office-card form-list-item"
-        hover-class="form-list-item-hover"
-        bindtap="handleItemTap"
-        data-id="{{item._id}}"
-      >
+      <view wx:for="{{list}}" wx:key="_id" class="office-card form-list-item" hover-class="form-list-item-hover" bindtap="handleItemTap" data-id="{{item._id}}">
         <view wx:if="{{item.isUnread}}" class="form-list-dot-badge"></view>
         <view class="form-list-item-top">
           <view class="form-list-badge" style="background: {{item.tagBg}}; color: {{item.tagColor}};">{{item.tagIcon}} {{item.tagLabel}}</view>
-          <view class="form-list-status {{item.isClosed ? 'is-closed' : ''}}">{{item.statusText}}</view>
+          <view class="form-list-status {{item.isClosed ? 'is-closed' : ''}} {{item.isFull ? 'is-full' : ''}}">{{item.statusText}}</view>
         </view>
         <view class="form-list-item-title">{{item.title}}</view>
         <view class="form-list-item-meta">
-          <text>{{item.createdByName || '发布者'}}</text>
-          <text class="form-list-dot">·</text>
-          <text>{{item.timeText}}</text>
-          <text wx:if="{{item.hasFormContent}}" class="form-list-dot">·</text>
-          <text wx:if="{{item.hasFormContent}}">{{item.submissionCount}} 人已提交</text>
+          <text wx:if="{{item.hasFormContent}}">{{item.submissionText}}</text>
           <text wx:if="{{item.activityLimitText}}" class="form-list-dot">·</text>
           <text wx:if="{{item.activityLimitText}}" class="form-list-item-limit">{{item.activityLimitText}}</text>
+        </view>
+        <view class="form-list-item-meta">
+          <text>发布者：{{item.createdByName || ''}}</text>
+        </view>
+        <view class="form-list-item-meta">
+          <text>发布时间：{{item.timeText}}</text>
         </view>
         <view wx:if="{{item.deadline}}" class="form-list-item-meta">
           <text>截止时间：{{item.deadlineText}}</text>
@@ -54,7 +43,7 @@
 
       <!-- 空状态 -->
       <view wx:if="{{!loading && list.length === 0}}" class="form-list-empty">
-        <view class="form-list-empty-icon"></view>
+        <view class="form-list-empty-icon">{{emptyIcon}}</view>
         <view class="form-list-empty-text">暂无相关信息</view>
       </view>
 

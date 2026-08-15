@@ -173,7 +173,7 @@ Page({
           const menuTitle = this.data.form.title
           const userName = this.data.currentUser ? this.data.currentUser.name : '用户'
           const notificationTitle = '新菜单通知'
-          const notificationContent = `${userName}提交了新的工作餐菜单「${menuTitle}」，点击查看`
+          const notificationContent = `${userName}发布了新的工作餐菜单「${menuTitle}」，点击查看`
 
           if (menuId) {
             wx.cloud.callFunction({

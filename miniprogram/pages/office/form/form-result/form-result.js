@@ -1,6 +1,6 @@
 const app = getApp()
-const utils = require('../../../common/utils.js')
-const { getBlockTypeConfig } = require('../../../common/form-constants.js')
+const utils = require('../../../../common/utils.js')
+const { getBlockTypeConfig } = require('../../../../common/form-constants.js')
 
 Page({
   data: {

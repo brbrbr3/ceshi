@@ -110,17 +110,22 @@
 .form-list-badge {
   padding: 6rpx 18rpx;
   border-radius: 20rpx;
-  font-size: var(--fs-22);
+  font-size: var(--fs-26);
   font-weight: 600;
 }
 
 .form-list-status {
-  font-size: var(--fs-22);
+  font-size: var(--fs-26);
   color: #16A34A;
 }
 
 .form-list-status.is-closed {
   color: #94A3B8;
+}
+
+.form-list-status.is-full {
+  color: #DC2626;
+  font-weight: 600;
 }
 
 .form-list-item-title {
@@ -132,7 +137,7 @@
 }
 
 .form-list-item-meta {
-  font-size: var(--fs-26);
+  font-size: var(--fs-30);
   color: #94A3B8;
   display: flex;
   align-items: center;

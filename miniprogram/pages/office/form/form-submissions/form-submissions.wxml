@@ -45,15 +45,14 @@
     <view wx:if="{{!loading && list.length === 0}}" class="form-submissions-empty">暂无提交记录</view>
   </view>
 
-  <!-- 底部操作区（排序栏 + 全部展开/收起） -->
+  <!-- 底部操作区（排序 + 筛选 + 全部展开/收起） -->
   <view wx:if="{{!loading && list.length > 0}}" class="fs-bottom-bar">
-    <view wx:if="{{isQuiz}}" class="fs-sort-bar">
-      <view class="fs-sort-btn {{sortMode === 'time' ? 'is-active' : ''}}" bindtap="onSortChange" data-mode="time">按提交时间</view>
-      <view class="fs-sort-btn {{sortMode === 'score' ? 'is-active' : ''}}" bindtap="onSortChange" data-mode="score">按分数</view>
-      <view class="fs-sort-btn {{sortMode === 'department' ? 'is-active' : ''}}" bindtap="onSortChange" data-mode="department">按部门分组</view>
+    <view wx:if="{{isQuiz}}" class="fs-toggle-all" bindtap="onSortToggle">
+      {{sortModeText}}<text class="fs-btn-arrow">⇄</text>
     </view>
+    <view wx:if="{{isQuiz && maxSubmissions > 1}}" class="fs-toggle-all {{filterMode === 'highest' ? 'is-active' : ''}}" bindtap="onFilterToggle">{{filterMode === 'highest' ? '只留最高成绩' : '不筛选'}}</view>
     <view class="fs-toggle-all" bindtap="handleToggleAll">
-      {{allExpanded ? '全部收起' : '全部展开'}}
+      {{allExpanded ? '全部展开' : '全部收起'}}
     </view>
   </view>
 </view>

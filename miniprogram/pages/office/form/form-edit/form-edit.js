@@ -1,12 +1,12 @@
 const app = getApp()
-const utils = require('../../../common/utils.js')
-const modalAnimation = require('../../../behaviors/modalAnimation.js')
+const utils = require('../../../../common/utils.js')
+const modalAnimation = require('../../../../behaviors/modalAnimation.js')
 const {
   TAG_LIST,
   BLOCK_TYPE_LIST,
   getTagConfig,
   getBlockTypeConfig
-} = require('../../../common/form-constants.js')
+} = require('../../../../common/form-constants.js')
 
 const DRAFT_KEY = 'content_form_draft'
 
@@ -1164,7 +1164,7 @@ Page({
     setTimeout(() => {
       wx.hideLoading()
       wx.navigateTo({
-        url: '/pages/office/form-detail/form-detail?preview=1'
+        url: '/pages/office/form/form-detail/form-detail?preview=1'
       })
     }, 500)
   },

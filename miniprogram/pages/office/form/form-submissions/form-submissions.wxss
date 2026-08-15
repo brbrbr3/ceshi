@@ -1,6 +1,5 @@
 .form-submissions-page {
   min-height: 100%;
-  padding-bottom: 40rpx;
 }
 
 .form-submissions-header {
@@ -47,7 +46,7 @@
 }
 
 .form-submissions-content {
-  margin-top: -40rpx;
+  margin-top: -20rpx;
   padding-bottom: 160rpx;
 }
 
@@ -66,56 +65,64 @@
   bottom: calc(32rpx + env(safe-area-inset-bottom));
   z-index: 50;
   display: flex;
-  flex-direction: column;
-  gap: 20rpx;
+  align-items: stretch;
+  gap: 16rpx;
 }
 
-.fs-sort-bar {
-  display: flex;
-  gap: 12rpx;
-  padding: 12rpx;
-  background: #FFFFFF;
-  border-radius: 48rpx;
-  border: 2rpx solid #E2E8F0;
-  box-shadow: 0 8rpx 24rpx rgba(15, 23, 42, 0.08);
-}
-
-.fs-sort-btn {
+.fs-sort-btn,
+.fs-filter-btn {
   flex: 1;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 6rpx;
+  padding: 22rpx 0;
   text-align: center;
-  padding: 14rpx 0;
-  border-radius: 36rpx;
-  font-size: var(--fs-26);
-  color: #64748B;
+  background: #FFFFFF;
+  border: 2rpx solid #E2E8F0;
+  border-radius: 48rpx;
+  color: #475569;
+  font-size: var(--fs-28);
+  font-weight: 500;
+  box-shadow: 0 8rpx 24rpx rgba(15, 23, 42, 0.06);
 }
 
-.fs-sort-btn.is-active {
-  background: #2563EB;
-  color: #FFFFFF;
+.fs-filter-btn.is-active {
+  background: #EFF6FF;
+  border-color: #2563EB;
+  color: #2563EB;
   font-weight: 600;
 }
 
+.fs-btn-arrow {
+  font-size: var(--fs-24);
+  color: #94A3B8;
+}
+
 .fs-toggle-all {
+  flex: 1.1;
   padding: 22rpx 0;
   text-align: center;
   background: #ffffff;
   border: 2rpx solid #DBEAFE;
   border-radius: 48rpx;
   color: #2563EB;
-  font-size: var(--fs-32);
+  font-size: var(--fs-30);
   font-weight: 600;
   box-shadow: 0 8rpx 24rpx rgba(37, 99, 235, 0.18);
 }
 
 .fs-toggle-all,
-.form-submissions-item,
-.fs-sort-btn {
+.fs-sort-btn,
+.fs-filter-btn,
+.form-submissions-item {
   transition: all 0.3s ease;
 }
 
 .fs-toggle-all:active,
-.form-submissions-item:active,
-.fs-sort-btn:active {
+.fs-sort-btn:active,
+.fs-filter-btn:active,
+.form-submissions-item:active {
   transform: scale(0.95);
   opacity: 0.7;
 }
@@ -123,6 +130,10 @@
 .form-submissions-item {
   padding: 24rpx 28rpx;
   margin-bottom: 20rpx;
+}
+
+.form-submissions-item:last-child {
+  margin-bottom: 80rpx;
 }
 
 .fs-item-head {
@@ -209,13 +220,13 @@
 }
 
 .fs-group-name {
-  font-size: var(--fs-30);
+  font-size: var(--fs-32);
   font-weight: 700;
   color: #1E293B;
 }
 
 .fs-group-count {
-  font-size: var(--fs-24);
+  font-size: var(--fs-28);
   color: #94A3B8;
 }
 
