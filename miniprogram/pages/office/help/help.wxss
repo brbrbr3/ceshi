@@ -168,9 +168,9 @@
 /* 底部提示 */
 .help-footer {
   text-align: left;
-  padding: 0 10rpx 60rpx;
 }
 
 .footer-text {
   font-size: var(--fs-30);
+  padding: 0 0 60rpx;
 }

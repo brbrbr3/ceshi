@@ -19,7 +19,7 @@
         <view wx:if="{{item.isUnread}}" class="form-list-dot-badge"></view>
         <view class="form-list-item-top">
           <view class="form-list-badge" style="background: {{item.tagBg}}; color: {{item.tagColor}};">{{item.tagIcon}} {{item.tagLabel}}</view>
-          <view class="form-list-status {{item.isClosed ? 'is-closed' : ''}} {{item.isFull ? 'is-full' : ''}}">{{item.statusText}}</view>
+          <view class="form-list-status {{item.isClosed ? 'is-closed' : ''}} {{item.isFull ? 'is-full' : ''}} {{item.partialFull ? 'is-partial' : ''}}">{{item.statusText}}</view>
         </view>
         <view class="form-list-item-title">{{item.title}}</view>
         <view class="form-list-item-meta">

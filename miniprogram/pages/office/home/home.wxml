@@ -45,14 +45,14 @@
     </view>
     <!--外出状态栏-->
     <view wx:if="{{activeTrip}}" class="home-trip-status">
-      <view class="home-trip-status-info">
+      <view class="home-trip-status-info" hover-class="home-trip-status-info-active" hover-stay-time="300" bindtap="goTripReport">
         <text class="home-trip-status-icon">🚗</text>
         <view class="home-trip-status-text">
           <view class="home-trip-status-label">外出中：{{activeTrip.destination}}</view>
           <view class="home-trip-status-sub">已外出 {{activeTrip.elapsedTimeText}}</view>
         </view>
       </view>
-      <view class="home-trip-return-btn" bindtap="handleReturnFromHome">返回报备</view>
+      <view class="home-trip-return-btn" hover-class="home-trip-status-info-active" hover-stay-time="300" catchtap="handleReturnFromHome">返回报备</view>
     </view>
     <!--功能面板（所有图标对所有人可见）-->
     <view class="office-section">

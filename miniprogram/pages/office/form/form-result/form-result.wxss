@@ -1,6 +1,5 @@
 .form-result-page {
   min-height: 100%;
-  padding-bottom: 40rpx;
 }
 
 .form-result-header {
@@ -15,7 +14,7 @@
 }
 
 .form-result-total {
-  font-size: var(--fs-26);
+  font-size: var(--fs-28);
   color: rgba(255, 255, 255, 0.9);
 }
 
@@ -50,19 +49,19 @@
   display: flex;
   align-items: center;
   justify-content: center;
-  font-size: var(--fs-30);
+  font-size: var(--fs-35);
   flex-shrink: 0;
 }
 
 .fr-block-title {
   flex: 1;
-  font-size: var(--fs-30);
+  font-size: var(--fs-35);
   font-weight: 600;
   color: #1E293B;
 }
 
 .fr-block-count {
-  font-size: var(--fs-22);
+  font-size: var(--fs-26);
   color: #94A3B8;
   flex-shrink: 0;
 }
@@ -130,7 +129,7 @@
 }
 
 .fr-side-total {
-  font-size: var(--fs-26);
+  font-size: var(--fs-28);
   font-weight: 600;
   color: #16A34A;
   margin-bottom: 16rpx;
@@ -172,7 +171,7 @@
 }
 
 .fr-group-members {
-  font-size: var(--fs-24);
+  font-size: var(--fs-30);
   color: #64748B;
   line-height: 1.6;
 }

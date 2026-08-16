@@ -328,6 +328,11 @@
   color: #94A3B8;
 }
 
+.fd-register-btn:active {
+  transform: scale(0.95);
+  opacity: 0.8;
+}
+
 .fd-empty {
   text-align: center;
   padding: 40rpx 0;

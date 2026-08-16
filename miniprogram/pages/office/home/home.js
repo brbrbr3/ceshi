@@ -1065,6 +1065,15 @@ Page({
   },
 
   /**
+   * 点击外出状态栏：跳转到出行报备页
+   */
+  goTripReport() {
+    wx.navigateTo({
+      url: '/pages/office/trip-report/trip-report'
+    })
+  },
+
+  /**
    * 从首页返回报备：跳转到出行报备页并自动触发返回流程
    */
   handleReturnFromHome() {

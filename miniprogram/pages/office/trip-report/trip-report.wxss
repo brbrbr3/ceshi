@@ -792,6 +792,13 @@
   box-shadow: 0 6rpx 20rpx rgba(249, 115, 22, 0.3);
 }
 
+.append-dest-btn-single {
+  flex: 1;
+  background: linear-gradient(135deg, #F97316 0%, #EA580C 100%);
+  color: #FFFFFF;
+  box-shadow: 0 6rpx 20rpx rgba(249, 115, 22, 0.3);
+}
+
 .append-dest-btn:active {
   transform: scale(0.94);
   opacity: 0.8;

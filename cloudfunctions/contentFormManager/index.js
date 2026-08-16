@@ -850,16 +850,19 @@ async function listForms(openid, user, params) {
     const list = (listRes.data || []).map(f => {
       const blocks = f.blocks || []
       const readUsers = Array.isArray(f.readUsers) ? f.readUsers : []
-      // 活动类型：提取活动控件的人数上限
-      const activityBlock = blocks.find(b => b.type === 'activity')
-      const maxRegistrations = activityBlock && activityBlock.maxRegistrations ? activityBlock.maxRegistrations : null
-      if (activityBlock) {
-        activityMeta[f._id] = {
-          blockId: activityBlock.id,
-          maxRegistrations: activityBlock.maxRegistrations || null,
-          hasGroups: !!(activityBlock.groups && activityBlock.groups.length > 0)
-        }
+      // 提取所有活动控件（支持一个表单多个活动）
+      const activityBlocks = blocks.filter(b => b.type === 'activity')
+      if (activityBlocks.length > 0) {
+        activityMeta[f._id] = activityBlocks.map(b => ({
+          blockId: b.id,
+          maxRegistrations: b.maxRegistrations || null,
+          hasGroups: !!(b.groups && b.groups.length > 0)
+        }))
       }
+      // 仅单个活动控件时展示「上限 X 人」
+      const maxRegistrations = activityBlocks.length === 1
+        ? (activityBlocks[0].maxRegistrations || null)
+        : null
       return {
         _id: f._id,
         title: f.title,
@@ -888,30 +891,32 @@ async function listForms(openid, user, params) {
         .limit(1000)
         .get()
       const subs = subsRes.data || []
-      const regCountMap = {}
-      activityFormIds.forEach(fid => {
-        const meta = activityMeta[fid]
-        let count = 0
-        subs.forEach(s => {
-          if (s.formId !== fid) return
-          const ans = (s.answers || []).find(a => a.blockId === meta.blockId)
-          if (!ans) return
-          if (meta.hasGroups) {
-            if (ans.value !== undefined && ans.value !== null && ans.value !== '') count++
-          } else if (Array.isArray(ans.value)) {
-            count += ans.value.filter(Boolean).length
-          } else if (ans.value === '报名') {
-            count++
-          }
-        })
-        regCountMap[fid] = count
-      })
+
       list.forEach(it => {
-        if (regCountMap[it._id] === undefined) return
-        it.registrationCount = regCountMap[it._id]
-        it.isFull = activityMeta[it._id].maxRegistrations
-          ? regCountMap[it._id] >= activityMeta[it._id].maxRegistrations
-          : false
+        const metas = activityMeta[it._id]
+        if (!metas) return
+        let totalRegCount = 0
+        let fullBlocks = 0
+        metas.forEach(meta => {
+          let count = 0
+          subs.forEach(s => {
+            if (s.formId !== it._id) return
+            const ans = (s.answers || []).find(a => a.blockId === meta.blockId)
+            if (!ans) return
+            if (meta.hasGroups) {
+              if (ans.value !== undefined && ans.value !== null && ans.value !== '') count++
+            } else if (Array.isArray(ans.value)) {
+              count += ans.value.filter(Boolean).length
+            } else if (ans.value === '报名') {
+              count++
+            }
+          })
+          totalRegCount += count
+          if (meta.maxRegistrations && count >= meta.maxRegistrations) fullBlocks++
+        })
+        it.registrationCount = totalRegCount
+        it.isFull = fullBlocks === metas.length       // 所有活动都报满
+        it.partialFull = !it.isFull && fullBlocks > 0 // 部分活动报满
       })
     }
 
@@ -1627,10 +1632,14 @@ function buildBlockStat(block, submissions) {
           ungrouped.push(String(a.value))
         }
       })
+      const groupStats = groups.map(g => ({ group: g, members: groupMap[g] || [] }))
+      let registrationCount = ungrouped.length
+      groupStats.forEach(g => { registrationCount += g.members.length })
       return {
         answerCount: answers.length,
+        registrationCount,
         maxRegistrations: block.maxRegistrations || null,
-        groupStats: groups.map(g => ({ group: g, members: groupMap[g] || [] })),
+        groupStats,
         ungroupedMembers: ungrouped
       }
     }

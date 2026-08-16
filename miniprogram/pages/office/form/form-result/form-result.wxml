@@ -16,7 +16,8 @@
       <view class="fr-block-head">
         <view class="fr-block-icon" style="background: {{bk.typeColor}}20; color: {{bk.typeColor}};">{{bk.typeIcon}}</view>
         <view class="fr-block-title">{{bk.title}}</view>
-        <view class="fr-block-count">{{bk.answerCount}} 人作答</view>
+        <!-- <view class="fr-block-count">{{bk.type === 'activity' ? bk.registrationCount : bk.answerCount}} 人{{bk.type === 'activity' ? '报名' : '提交'}}</view> -->
+        <view class="fr-block-count">{{bk.answerCount}} 人{{bk.type === 'quiz' ? '作答' : '提交'}}</view>
       </view>
 
       <block wx:if="{{bk.type === 'radio' || bk.type === 'checkbox' || bk.type === 'judge'}}">
@@ -48,7 +49,7 @@
       </block>
 
       <block wx:elif="{{bk.type === 'activity'}}">
-        <view wx:if="{{bk.maxRegistrations}}" class="fr-side-total">上限 {{bk.maxRegistrations}} 人 · 已报 {{bk.answerCount}} 人</view>
+        <view wx:if="{{bk.maxRegistrations}}" class="fr-side-total">上限 {{bk.maxRegistrations}} 人 · 已报 {{bk.registrationCount}} 人</view>
         <block wx:if="{{bk.groupStats.length > 0}}">
           <view wx:for="{{bk.groupStats}}" wx:for-item="g" wx:key="group" class="fr-group-row">
             <view class="fr-group-name">{{g.group}}</view>

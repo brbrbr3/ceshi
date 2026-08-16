@@ -286,6 +286,15 @@
             <view class="trip-input-wrapper">
               <input class="trip-input" value="{{appendDestForm.newDestination}}" placeholder="请输入要追加的目的地" placeholder-class="trip-input-placeholder" bindinput="handleAppendDestInput" />
             </view>
+            <!-- 常用目的地快捷选择 -->
+            <view wx:if="{{showAppendDestHistory && destinationHistory.length > 0}}" class="trip-history-list">
+              <view class="trip-history-title">常用目的地</view>
+              <view class="trip-history-items">
+                <view wx:for="{{destinationHistory}}" wx:key="index" class="trip-history-item" bindtap="selectAppendDestHistory" data-value="{{item}}">
+                  {{item}}
+                </view>
+              </view>
+            </view>
           </view>
           <view wx:if="{{appendDestProxyTrips.length > 0}}" class="append-dest-proxy">
             <view class="trip-field-label">为以下代报备人员同步追加：</view>
@@ -302,8 +311,11 @@
         </view>
       </scroll-view>
       <view class="append-dest-footer">
-        <button class="append-dest-btn append-dest-btn-skip" bindtap="handleAppendDestSkip">仅追加自己</button>
-        <button class="append-dest-btn append-dest-btn-confirm" bindtap="handleAppendDestConfirm">一并追加（{{appendDestSelected.length}}人）</button>
+        <button wx:if="{{appendDestProxyTrips.length === 0}}" class="append-dest-btn append-dest-btn-single" bindtap="handleAppendDestSkip">追加</button>
+        <block wx:else>
+          <button class="append-dest-btn append-dest-btn-skip" bindtap="handleAppendDestSkip">仅追加自己</button>
+          <button class="append-dest-btn append-dest-btn-confirm" bindtap="handleAppendDestConfirm">一并追加（{{appendDestSelected.length}}人）</button>
+        </block>
       </view>
     </view>
   </view>

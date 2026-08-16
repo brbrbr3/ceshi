@@ -75,6 +75,7 @@ Page({
     const tagCfg = getTagConfig(item.tag)
     const isActivity = item.registrationCount !== undefined
     const isFull = isActivity && !!item.isFull
+    const partialFull = isActivity && !!item.partialFull
     return {
       ...item,
       tagLabel: tagCfg.label,
@@ -89,7 +90,8 @@ Page({
       activityLimitText: item.maxRegistrations ? `上限 ${item.maxRegistrations} 人` : '',
       submissionText: isActivity ? `${item.registrationCount} 人已报名` : `${item.submissionCount} 人已提交`,
       isFull,
-      statusText: isFull ? '已满' : (item.isClosed ? '已截止' : '进行中'),
+      partialFull,
+      statusText: isFull ? '已报满' : (partialFull ? '部分活动已报满' : (item.isClosed ? '已截止' : '进行中')),
       isUnread: !item.isRead
     }
   },

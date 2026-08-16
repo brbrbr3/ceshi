@@ -84,7 +84,7 @@
           <view class="card-title">外出报备</view>
         </view>
         <view class="card-content">
-          <view class="card-desc">报备外出和返回，出行时可自动为同行人代报备（同行人需为本系统注册用户），返回时可为同行人报备返回。报备后5分钟内可撤回。当日超23时未归计为超时。</view>
+          <view class="card-desc">报备外出和返回，出行时可自动为同行人代报备（同行人需为本系统注册用户），返回时可为同行人报备返回。报备后5分钟内可撤回，可为进行中的外出追加目的地。当日超23时未归计为超时。</view>
           <view class="card-permission">
             <view class="permission-label">权限要求：</view>
             <view class="permission-value">所有用户可使用</view>
@@ -103,10 +103,11 @@
             <view class="feature-item">• 新增备案：填写参与人姓名、兴趣班名称、时段、教学模式、陪同人、备注等。</view>
             <view class="feature-item">• 编辑备案：编辑会结束原备案记录，并新增一条新的备案记录。</view>
             <view class="feature-item">• 结束兴趣班：将备案标记为"已结束"，记录保留不删除。</view>
+            <view class="feature-item">• 每月提醒：每月月初提醒全体用户更新备案。</view>
           </view>
           <view class="card-permission">
             <view class="permission-label">权限要求：</view>
-            <view class="permission-value">馆领导、部门负责人可依据权限查看管辖范围内人员生效中的备案；其他用户可查看自己的全部备案（含已结束）。</view>
+            <view class="permission-value">领导、部门负责人可查看管辖范围人员生效中的备案；其他用户仅可查看自己的备案（含已结束）。</view>
           </view>
         </view>
       </view>
@@ -120,7 +121,7 @@
           <view class="card-desc">查看每周工作餐菜单安排。</view>
           <view class="card-permission">
             <view class="permission-label">权限要求：</view>
-            <view class="permission-value">所有用户可查看菜单并打分，仅工勤角色用户可添加、编辑、删除菜单。</view>
+            <view class="permission-value">所有用户可查看菜单并打分，仅厨师、部分特定岗位人员可发布、编辑、删除菜单。</view>
           </view>
         </view>
       </view>
@@ -139,7 +140,7 @@
           </view>
           <view class="card-permission">
             <view class="permission-label">权限要求：</view>
-            <view class="permission-value">所有用户可预约。招待员、会计主管、会计、出纳可查看理发统计。</view>
+            <view class="permission-value">所有用户可预约。招待员及部分特定岗位人员可查看理发统计。</view>
           </view>
         </view>
       </view>
@@ -271,7 +272,7 @@
           <view class="card-desc">查看和审批小程序用户提交的各类申请。</view>
           <view class="card-permission">
             <view class="permission-label">权限要求：</view>
-            <view class="permission-value">当前仅允许管理员查看</view>
+            <view class="permission-value">当前仅限管理员使用</view>
           </view>
         </view>
       </view>
@@ -282,7 +283,7 @@
           <view class="card-title">信息发布</view>
         </view>
         <view class="card-content">
-          <view class="card-desc">发布公告、问卷、活动报名、副食订购、答题等各类信息，供用户查看、填报。</view>
+          <view class="card-desc">发布公告、问卷、副食订购、活动报名、答题等各类信息，供用户查看、填报。</view>
           <view class="card-permission">
             <view class="permission-label">权限要求：</view>
             <view class="permission-value">馆员可发布。</view>
@@ -305,7 +306,7 @@
           <view class="card-desc">可查看当前人员外出情况，查看个人外出历史记录。</view>
           <view class="card-permission">
             <view class="permission-label">权限要求：</view>
-            <view class="permission-value">馆领导，各部门的负责人、额外报备接收人，各居住区片长可使用</view>
+            <view class="permission-value">领导，部门负责人、报备接收人、居住区片长可查看管辖范围人员出行情况</view>
           </view>
         </view>
       </view>

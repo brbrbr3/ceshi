@@ -81,6 +81,7 @@ Page({
     appendDestForm: { newDestination: '' },
     appendDestProxyTrips: [],    // [ { _id, userName, departAt, destination, checked } ]
     appendDestSelected: [],      // 已勾选的记录 _id
+    showAppendDestHistory: false, // 追加目的地弹窗是否显示常用目的地
     // 撤回报备
     canCancelTrip: false,
     cancelTimer: null
@@ -783,7 +784,8 @@ Page({
           showAppendDestModal: true,
           appendDestForm: { newDestination: '' },
           appendDestProxyTrips: proxyTrips,
-          appendDestSelected: proxyTrips.map(t => t._id)
+          appendDestSelected: proxyTrips.map(t => t._id),
+          showAppendDestHistory: this.data.destinationHistory.length > 0
         })
       } else {
         utils.showToast({ title: '查询失败', icon: 'none' })
@@ -796,12 +798,17 @@ Page({
 
   /** 关闭追加目的地弹窗 */
   hideAppendDestModal() {
-    this.setData({ showAppendDestModal: false })
+    this.setData({ showAppendDestModal: false, showAppendDestHistory: false })
   },
 
   /** 输入新目的地 */
   handleAppendDestInput(e) {
     this.setData({ 'appendDestForm.newDestination': e.detail.value })
+  },
+
+  /** 选择常用目的地（追加弹窗） */
+  selectAppendDestHistory(e) {
+    this.setData({ 'appendDestForm.newDestination': e.currentTarget.dataset.value })
   },
 
   /** 切换代报备人员勾选 */

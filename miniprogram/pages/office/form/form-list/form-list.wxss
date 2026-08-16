@@ -128,6 +128,11 @@
   font-weight: 600;
 }
 
+.form-list-status.is-partial {
+  color: #EA580C;
+  font-weight: 600;
+}
+
 .form-list-item-title {
   font-size: var(--fs-32);
   font-weight: 600;
