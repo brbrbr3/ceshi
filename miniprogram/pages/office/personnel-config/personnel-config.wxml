@@ -203,4 +203,17 @@
   <view class="custom-toast {{_customToast.visible ? 'is-visible' : ''}}" style="transition-duration: {{_customToast.fadeOutMs}}ms;">
     <view class="custom-toast-text">{{_customToast.text}}</view>
   </view>
+
+  <!-- 注销用户二次确认弹窗（倒计时 modal） -->
+  <multiuse-modal
+    visible="{{deactivateConfirmVisible}}"
+    title="二次确认"
+    content="{{deactivateConfirmContent}}"
+    confirmText="确定注销"
+    cancelText="我再想想"
+    danger="{{true}}"
+    countdown="{{3}}"
+    bind:confirm="onDeactivateConfirm"
+    bind:cancel="onDeactivateCancel"
+  />
 </view>

@@ -24,6 +24,7 @@ const PERMISSION_CACHE_KEY = 'app-permission-cache'
 const VERSION_CACHE_KEY = 'app-cache-version'
 const LAST_SHOWN_VERSION_KEY = 'app-last-shown-version'  // 上次展示更新说明的版本（与缓存版本分离）
 const FONTSIZE_CACHE_KEY = 'app-fontsize-cache'
+const HOLIDAY_CACHE_KEY = 'app-holiday-cache'
 // 字体令牌基础值（rpx）
 const FONT_TOKENS = {
   13: 13,
@@ -232,20 +233,22 @@ App({
     }
   },
 
-  //登录后调用，基于"上次展示版本"决定是否展示更新说明modal（与缓存版本解耦）
-  updateCacheVersionAndShowWhatsNew() {
-    const lastShown = readStorage(LAST_SHOWN_VERSION_KEY)
-    if (lastShown !== config.CACHE_VERSION) {
-      writeStorage(LAST_SHOWN_VERSION_KEY, config.CACHE_VERSION)
-      console.log('展示更新说明，版本为' + config.CACHE_VERSION + '（上次展示：' + (lastShown || '无') + '）')
-      wx.showModal({
-        title: '版本' + config.CACHE_VERSION + '更新说明',
-        content: config.VERSION_DESCRIPTION,
-        showCancel: false,
-        confirmText: '我知道了'
-      })
-    } else {
-      console.log('更新说明已展示过，版本为' + lastShown)
+  // 判断是否需要展示更新说明（只读，不修改状态）
+  shouldShowWhatsNew() {
+    return readStorage(LAST_SHOWN_VERSION_KEY) !== config.CACHE_VERSION
+  },
+
+  // 记录更新说明已展示
+  markWhatsNewShown() {
+    writeStorage(LAST_SHOWN_VERSION_KEY, config.CACHE_VERSION)
+    console.log('已记录更新说明展示版本为' + config.CACHE_VERSION)
+  },
+
+  // 获取更新说明的标题与内容
+  getWhatsNewContent() {
+    return {
+      title: '版本' + config.CACHE_VERSION + '更新说明',
+      content: config.VERSION_DESCRIPTION
     }
   },
 
@@ -1460,6 +1463,101 @@ App({
     }
     // 加载常量
     return this.loadConstants()
+  },
+
+  // ========== 节假日缓存相关方法 ==========
+
+  /**
+   * 从本地存储恢复节假日缓存
+   * @returns {Object|null} { list, cachedAt, version } 或 null
+   */
+  restoreHolidaysCache() {
+    const cached = readStorage(HOLIDAY_CACHE_KEY)
+    if (!cached || !cached.list) {
+      return null
+    }
+    this.globalData.holidaysCache = cached
+    return cached
+  },
+
+  /**
+   * 获取节假日缓存（同步，优先内存否则本地存储）
+   */
+  getHolidaysCache() {
+    if (this.globalData.holidaysCache) {
+      return this.globalData.holidaysCache
+    }
+    return this.restoreHolidaysCache()
+  },
+
+  /**
+   * 判断节假日缓存是否有效：跨年失效 + 版本失效
+   */
+  _isHolidayCacheValid(cached) {
+    if (!cached || !cached.list) return false
+    if (cached.version !== config.CACHE_VERSION) return false
+    const cacheYear = new Date(cached.cachedAt).getFullYear()
+    return cacheYear === new Date().getFullYear()
+  },
+
+  /**
+   * 持久化节假日缓存
+   */
+  persistHolidaysCache(list) {
+    const data = {
+      list,
+      cachedAt: Date.now(),
+      version: config.CACHE_VERSION
+    }
+    this.globalData.holidaysCache = data
+    writeStorage(HOLIDAY_CACHE_KEY, data)
+  },
+
+  /**
+   * 获取全部年份节假日（异步，长期缓存，跨年/版本失效）
+   * @param {boolean} forceRefresh 是否强制刷新
+   * @returns {Promise<Array>} 全部年份节假日列表 [{ year, dates, updatedAt }]
+   */
+  async getAllHolidays(forceRefresh) {
+    const cached = this.getHolidaysCache()
+    if (!forceRefresh && this._isHolidayCacheValid(cached)) {
+      return cached.list
+    }
+    const res = await wx.cloud.callFunction({
+      name: 'holidayManager',
+      data: { action: 'getAllYears' }
+    })
+    const list = (res.result.code === 0 && res.result.data && res.result.data.list) || []
+    this.persistHolidaysCache(list)
+    return list
+  },
+
+  /**
+   * 同步获取全部年份节假日（缓存命中返回 list，否则 null）
+   */
+  getAllHolidaysSync() {
+    const cached = this.getHolidaysCache()
+    return this._isHolidayCacheValid(cached) ? cached.list : null
+  },
+
+  /**
+   * 异步获取某年节假日
+   * @param {number} year 年份
+   * @param {boolean} forceRefresh 是否强制刷新
+   * @returns {Promise<Array>} 该年节假日日期数组
+   */
+  async getHolidaysByYear(year, forceRefresh) {
+    const list = await this.getAllHolidays(forceRefresh)
+    const item = list.find(i => Number(i.year) === Number(year))
+    return item ? (item.dates || []) : []
+  },
+
+  /**
+   * 清除节假日缓存
+   */
+  clearHolidaysCache() {
+    this.globalData.holidaysCache = null
+    removeStorage(HOLIDAY_CACHE_KEY)
   },
 
   // ========== 权限缓存相关方法 ==========

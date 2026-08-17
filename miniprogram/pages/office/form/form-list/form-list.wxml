@@ -52,5 +52,5 @@
       <view wx:if="{{!hasMore && list.length > 0}}" class="form-list-loading">没有更多了</view>
     </view>
   </view>
-  <view wx:if="{{canPublish && !isReviewer}}" class="form-list-publish" hover-class="form-list-publish-hover" bindtap="handlePublish">＋</view>
+  <view wx:if="{{canPublish && !isReviewer}}" class="form-list-publish" hover-class="form-list-publish-hover" bindtap="handlePublish"></view>
 </view>

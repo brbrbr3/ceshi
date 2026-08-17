@@ -1364,8 +1364,9 @@
 **索引**：
 
 - `_id` - 记录 ID（云开发自动创建）
-- `idx_menuId_openid_dishName` - 组合索引：menuId（升序）+ openid（升序）+ dishName（升序）- 用于查询某用户对某菜单某菜品的打分及防重复校验
-- `idx_menuId_createdAt` - 组合索引：menuId（升序）+ createdAt（降序）- 用于获取某菜单的所有打分记录
+- `_openid_1` - 创建者 openid 索引（云开发自动创建）
+- `idx_menuId` - menuId 单字段索引（升序）- 加速菜品评分聚合查询（`getRatings` 按 menuId match 聚合）
+- `idx_menuId_openid_dishName` - 组合索引：menuId（升序）+ openid（升序）+ dishName（升序）- 加速 `addRating` 防重复查询（`where({ menuId, openid, dishName })`）
 
 **字段结构**：
 ```javascript
@@ -1794,6 +1795,7 @@ const notificationsCollection = db.collection('notifications')  // ✅
 | 2026-07-26 | 创建 notifications 集合组合索引 `openid_createdAt_idx`（openid升序 + createdAt降序） | AI |
 | 2026-08-13 | 添加 content_forms、content_form_submissions 集合（信息发布系统） | AI |
 | 2026-08-14 | 创建 menus 集合 `createdAt_-1` 降序索引，消除菜单列表全表扫描告警 | AI |
+| 2026-08-16 | 重写 `menuManager.getRatings` 为聚合查询；创建 menu_ratings 集合 `idx_menuId`、`idx_menuId_openid_dishName` 索引，移除无效的 `idx_menuId_createdAt` 说明 | AI |
 
 ---
 

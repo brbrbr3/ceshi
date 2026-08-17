@@ -1,5 +1,8 @@
 {
   "navigationBarTitleText": "首页",
   "navigationBarBackgroundColor": "#FFFFFF",
-  "backgroundColor": "#EEF2FF"
+  "backgroundColor": "#EEF2FF",
+  "usingComponents": {
+    "multiuse-modal": "/components/multiuse-modal/multiuse-modal"
+  }
 }

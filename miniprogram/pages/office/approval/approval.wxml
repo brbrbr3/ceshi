@@ -107,4 +107,16 @@
     bind:terminate="terminateOrder"
     bind:copyMedical="copyAndResubmitMedical"
   />
+
+  <!-- 驳回原因弹窗（多用途弹窗） -->
+  <multiuse-modal
+    visible="{{rejectConfirmVisible}}"
+    title="确认驳回"
+    confirmText="确定驳回"
+    cancelText="取消"
+    danger="{{true}}"
+    inputs="{{rejectInputs}}"
+    bind:confirm="onRejectConfirm"
+    bind:cancel="onRejectCancel"
+  />
 </view>

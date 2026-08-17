@@ -4,6 +4,7 @@
   "backgroundColor": "#EEF2FF",
   "usingComponents": {
     "approval-card": "/components/approval-card/approval-card",
-    "approval-detail": "/components/approval-detail/approval-detail"
+    "approval-detail": "/components/approval-detail/approval-detail",
+    "multiuse-modal": "/components/multiuse-modal/multiuse-modal"
   }
 }

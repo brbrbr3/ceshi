@@ -92,7 +92,16 @@ Page({
     selectedCollections: [],
     clearDbLoading: false,
     showClearDbKeyModal: false,
-    clearDbKey: '',
+    showClearDbFinalConfirm: false,
+    clearDbFinalContent: '',
+    // 清库密钥输入框配置
+    clearDbKeyInputs: [{
+      key: 'clearKey',
+      type: 'password',
+      placeholder: '请输入清库密钥',
+      required: true,
+      emptyTip: '请输入清库密钥'
+    }],
     bootstrapStatus: {
       bootstrapKeyConfigured: false,
       hasApprovedAdmin: true,
@@ -102,9 +111,21 @@ Page({
     bootstrapInviteCode: '',
     bootstrapLoading: false,
     showReviewerModal: false,
-    reviewerAccount: '',
-    reviewerPassword: '',
-    reviewerLoading: false
+    reviewerLoading: false,
+    // 审核员登录输入框配置
+    reviewerInputs: [{
+      key: 'account',
+      type: 'text',
+      placeholder: '请输入账号',
+      required: true,
+      emptyTip: '请输入账号和密码'
+    }, {
+      key: 'password',
+      type: 'password',
+      placeholder: '请输入密码',
+      required: true,
+      emptyTip: '请输入账号和密码'
+    }]
   },
 
   onShow() {
@@ -124,7 +145,8 @@ Page({
     }
     this.setData({
       isDevEnv: app.globalData.isDevEnv,
-      isDesktop: ['windows', 'mac'].includes(app.globalData.platform)
+      isDesktop: ['windows', 'mac'].includes(app.globalData.platform),
+      loading: false // 每次显示登录页时归位登录按钮状态
     })
     // 强制刷新注册状态（走网络），不再清空身份/资料缓存
     this.refreshStatus(true)
@@ -435,10 +457,9 @@ Page({
         }
 
         if (result.request && result.request.status === 'pending') {
-          this.setData({
-            statusCard: buildStatusCard(result.request),
-            showRegisterLink: false
-          })
+          // 审核中：不跳转，恢复按钮并刷新状态
+          this.setData({ loading: false })
+          this.refreshStatus()
           utils.showToast({
             title: '申请审核中',
             icon: 'none'
@@ -453,16 +474,13 @@ Page({
         })
       })
       .catch((error) => {
+        // 失败：恢复按钮并刷新状态
+        this.setData({ loading: false })
+        this.refreshStatus()
         utils.showToast({
           title: error.message || '登录失败',
           icon: 'none'
         })
-      })
-      .finally(() => {
-        this.setData({
-          loading: false
-        })
-        this.refreshStatus()
       })
   },
 
@@ -597,12 +615,8 @@ Page({
     this.setData({
       showClearDbPanel: false,
       dbCollections: [],
-      selectedCollections: []
-    })
-    this._closeModal('showClearDbKeyModal', () => {
-      this.setData({
-        clearDbKey: ''
-      })
+      selectedCollections: [],
+      showClearDbKeyModal: false
     })
   },
 
@@ -662,16 +676,10 @@ Page({
       confirmColor: '#ff4d4f',
       success: (res) => {
         if (res.confirm) {
-          wx.showModal({
-            title: '最终确认',
-            content: `确定要清空以下集合的所有数据吗？\n\n${selectedCollections.join('\n')}`,
-            confirmText: '确认清理',
-            confirmColor: '#ff4d4f',
-            success: (res2) => {
-              if (res2.confirm) {
-                this.showClearDbKeyModal()
-              }
-            }
+          // 二次确认改为倒计时 modal
+          this.setData({
+            showClearDbFinalConfirm: true,
+            clearDbFinalContent: `确定要清空以下集合的所有数据吗？\n> ${selectedCollections.join('\n> ')}`
           })
         }
       }
@@ -680,27 +688,19 @@ Page({
 
   showClearDbKeyModal() {
     this.setData({
-      showClearDbKeyModal: true,
-      clearDbKey: ''
+      showClearDbKeyModal: true
     })
   },
 
-  hideClearDbKeyModal() {
-    this._closeModal('showClearDbKeyModal', () => {
-      this.setData({
-        clearDbKey: ''
-      })
-    })
-  },
-
-  onClearDbKeyInput(e) {
+  onClearDbKeyCancel() {
     this.setData({
-      clearDbKey: e.detail.value
+      showClearDbKeyModal: false
     })
   },
 
-  confirmClearDb() {
-    const clearDbKey = String(this.data.clearDbKey || '').trim()
+  onClearDbKeyConfirm(e) {
+    const values = e.detail.values || {}
+    const clearDbKey = String(values.clearKey || '').trim()
     if (!clearDbKey) {
       utils.showToast({
         title: '请输入清库密钥',
@@ -709,8 +709,17 @@ Page({
       return
     }
 
-    this.hideClearDbKeyModal()
+    this.setData({ showClearDbKeyModal: false })
     this.executeClearDb(clearDbKey)
+  },
+
+  onClearDbFinalConfirm() {
+    this.setData({ showClearDbFinalConfirm: false })
+    this.showClearDbKeyModal()
+  },
+
+  onClearDbFinalCancel() {
+    this.setData({ showClearDbFinalConfirm: false })
   },
 
   async executeClearDb(clearKey) {
@@ -880,32 +889,20 @@ Page({
 
   showReviewerModal() {
     this.setData({
-      showReviewerModal: true,
-      reviewerAccount: '',
-      reviewerPassword: ''
+      showReviewerModal: true
     })
   },
 
-  hideReviewerModal() {
-    this._closeModal('showReviewerModal', () => {
-      this.setData({
-        reviewerAccount: '',
-        reviewerPassword: ''
-      })
+  onReviewerCancel() {
+    this.setData({
+      showReviewerModal: false
     })
   },
 
-  onReviewerAccountInput(e) {
-    this.setData({ reviewerAccount: e.detail.value })
-  },
-
-  onReviewerPasswordInput(e) {
-    this.setData({ reviewerPassword: e.detail.value })
-  },
-
-  async confirmReviewerLogin() {
-    const account = String(this.data.reviewerAccount || '').trim()
-    const password = String(this.data.reviewerPassword || '').trim()
+  async onReviewerConfirm(e) {
+    const values = e.detail.values || {}
+    const account = String(values.account || '').trim()
+    const password = String(values.password || '').trim()
 
     if (!account || !password) {
       utils.showToast({ title: '请输入账号和密码', icon: 'none' })
@@ -933,7 +930,7 @@ Page({
       // 激活审核模式
       app.activateReviewerMode()
 
-      this._closeModal('showReviewerModal')
+      this.setData({ showReviewerModal: false })
 
       utils.showToast({ title: '登录成功', icon: 'success' })
 

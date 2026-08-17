@@ -517,35 +517,12 @@ Page({
     }
 
     try {
-      const res = await wx.cloud.callFunction({
-        name: 'holidayManager',
-        data: {
-          action: 'getByYear',
-          params: {
-            year: currentYear
-          }
-        }
+      const holidayDates = await app.getHolidaysByYear(currentYear)
+      this.setData({
+        holidayDates
       })
-
-      if (res.result.code === 0 && res.result.data.exists) {
-        const config = res.result.data.config
-        // 缓存节假日数据
-        this.setData({
-          holidayDates: config.dates
-        })
-
-        // 记录已加载的年份
-        this.loadedHolidayYearsSet.add(currentYear)
-
-        // 更新标记
-        this.updateMarks()
-      } else {
-        this.setData({
-          holidayDates: []
-        })
-        this.loadedHolidayYearsSet.add(currentYear)
-        this.updateMarks()
-      }
+      this.loadedHolidayYearsSet.add(currentYear)
+      this.updateMarks()
     } catch (error) {
       console.error('加载节假日失败:', error)
     }
@@ -756,19 +733,7 @@ Page({
     }
 
     try {
-      const res = await wx.cloud.callFunction({
-        name: 'holidayManager',
-        data: {
-          action: 'getByYear',
-          params: {
-            year: year
-          }
-        }
-      })
-
-      const holidayDates = (res.result.code === 0 && res.result.data.exists) ?
-        res.result.data.config.dates :
-        []
+      const holidayDates = await app.getHolidaysByYear(year)
 
       // 缓存节假日数据
       this.setData({
@@ -1951,22 +1916,9 @@ Page({
     const year = this.data.configYear
 
     try {
-      const res = await wx.cloud.callFunction({
-        name: 'holidayManager',
-        data: {
-          action: 'getByYear',
-          params: {
-            year
-          }
-        }
-      })
-
-      let holidays = []
-      if (res.result.code === 0 && res.result.data.exists) {
-        holidays = res.result.data.config.dates.map(date => ({
-          date
-        }))
-      }
+      // 强制刷新，确保配置弹窗拿到最新数据
+      const holidayDates = await app.getHolidaysByYear(year, true)
+      const holidays = holidayDates.map(date => ({ date }))
 
       this.setData({
         showConfigHolidayPopup: true,
@@ -2104,6 +2056,8 @@ Page({
           holidayDates: dates
         })
         this.updateMarks()
+        // 清除全局节假日缓存，让其他页面下次拉取最新数据
+        app.clearHolidaysCache()
       } else {
         utils.showToast({
           title: res.result.message || '配置失败',

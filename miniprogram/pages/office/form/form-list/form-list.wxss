@@ -26,15 +26,31 @@
   height: 100rpx;
   border-radius: 50rpx;
   background: linear-gradient(135deg, #1D4ED8 0%, #3B82F6 100%);
-  display: flex;
-  align-items: center;
-  justify-content: center;
   box-shadow: 0 8rpx 24rpx rgba(24, 22, 163, 0.4);
   z-index: 100;
-  font-size: var(--fs-58);
-  font-weight: 700;
-  color: #FFFFFF;
   transition: all 0.2s ease;
+}
+
+/* 用伪元素绘制居中加号（两条线拼十字），避免全角「＋」字形重心偏下 */
+.form-list-publish::before,
+.form-list-publish::after {
+  content: '';
+  position: absolute;
+  top: 50%;
+  left: 50%;
+  transform: translate(-50%, -50%);
+  background: #FFFFFF;
+  border-radius: 3rpx;
+}
+
+.form-list-publish::before {
+  width: 44rpx;
+  height: 6rpx;
+}
+
+.form-list-publish::after {
+  width: 6rpx;
+  height: 44rpx;
 }
 
 .form-list-publish-hover {

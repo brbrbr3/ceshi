@@ -1,0 +1,56 @@
+<view wx:if="{{_show}}" class="mm-mask {{_closing ? 'is-closing' : ''}}" catchtouchmove="stopPropagation" bindtap="handleMaskTap">
+  <view class="mm-modal {{_closing ? 'is-closing' : ''}} {{danger ? 'is-danger' : ''}}" catchtap="stopPropagation">
+
+    <!-- 环形倒计时（居中）+ 标题（居中） -->
+    <view class="mm-header">
+      <view wx:if="{{countdown > 0}}" class="mm-ring" style="background: conic-gradient({{danger ? '#EF4444' : '#2563EB'}} {{ringPercent}}%, rgba(0, 0, 0, 0.06) 0);">
+        <view class="mm-ring-inner">{{remaining}}</view>
+      </view>
+      <view class="mm-title">{{title}}</view>
+    </view>
+
+    <!-- 正文 -->
+    <view wx:if="{{content}}" class="mm-content">{{content}}</view>
+
+    <!-- 输入框 -->
+    <view wx:if="{{inputItems.length > 0}}" class="mm-inputs">
+      <view class="mm-input-wrap" wx:for="{{inputItems}}" wx:key="key" wx:for-index="idx">
+        <textarea
+          wx:if="{{item.type === 'textarea'}}"
+          class="mm-textarea"
+          placeholder="{{item.placeholder}}"
+          placeholder-class="mm-placeholder"
+          value="{{inputValues[item.key]}}"
+          maxlength="{{item.maxlength || -1}}"
+          data-key="{{item.key}}"
+          bindinput="handleInput"
+        />
+        <view wx:else class="mm-input-row">
+          <input
+            class="mm-input"
+            type="text"
+            password="{{item.type === 'password' && !item._pwVisible}}"
+            placeholder="{{item.placeholder}}"
+            placeholder-class="mm-placeholder"
+            value="{{inputValues[item.key]}}"
+            maxlength="{{item.maxlength || 140}}"
+            data-key="{{item.key}}"
+            bindinput="handleInput"
+          />
+          <view wx:if="{{item.type === 'password'}}" class="mm-eye" data-index="{{idx}}" catchtap="handleTogglePassword">
+            {{item._pwVisible ? '✕' : '👁'}}
+          </view>
+        </view>
+      </view>
+    </view>
+
+    <!-- 按钮 -->
+    <view class="mm-actions">
+      <view wx:if="{{cancelText}}" class="mm-btn mm-btn-cancel" catchtap="handleCancel">{{cancelText}}</view>
+      <view class="mm-btn mm-btn-confirm {{(remaining > 0 || confirmLoading) ? 'is-disabled' : ''}}" catchtap="handleConfirm">
+        {{confirmLoading ? '处理中...' : (remaining > 0 ? confirmText + '（' + remaining + 's）' : confirmText)}}
+      </view>
+    </view>
+
+  </view>
+</view>

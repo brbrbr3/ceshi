@@ -98,6 +98,7 @@ async function getAllYears() {
   const result = await holidayConfigsCollection
     .field({ year: true, dates: true, createdByName: true, updatedAt: true })
     .orderBy('year', 'desc')
+    .limit(1000)
     .get()
 
   return success({

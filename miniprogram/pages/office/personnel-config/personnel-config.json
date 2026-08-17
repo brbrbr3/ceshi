@@ -1,6 +1,7 @@
 {
   "navigationBarTitleText": "人员配置",
   "usingComponents": {
-    "watermark": "/components/watermark/watermark"
+    "watermark": "/components/watermark/watermark",
+    "multiuse-modal": "/components/multiuse-modal/multiuse-modal"
   }
 }

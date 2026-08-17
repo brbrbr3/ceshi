@@ -116,6 +116,7 @@ Page({
   },
 
   onLoad() {
+    this._slotsByDateCache = null
     this.checkPermission()
   },
 
@@ -211,8 +212,8 @@ Page({
       // 1. 本地计算应该显示的日期（基于本地时间）
       const calculatedDates = this.calculateDisplayDates()
 
-      // 2. 获取节假日配置（跨年处理）
-      const holidaySet = await this.fetchHolidays(calculatedDates)
+      // 2. 获取节假日配置（全量缓存）
+      const holidaySet = await this.fetchHolidays()
 
       // 3. 过滤节假日，生成最终显示的日期列表
       const displayDates = []
@@ -269,6 +270,8 @@ Page({
 
         if (res.result.code === 0) {
           const slotsByDate = res.result.data.slotsByDate || {}
+          // 缓存完整时段数据，供 buildSlots 复用
+          this._slotsByDateCache = slotsByDate
           // 填充预约数
           displayDates.forEach(d => {
             if (!d.isHoliday && slotsByDate[d.date]) {
@@ -282,16 +285,23 @@ Page({
       this.setData({
         displayDates
       })
-      // 默认选择第一个可用日期
-      const availableIndex = displayDates.findIndex(d => !d.isDisabled)
-      if (availableIndex !== -1) {
+      // 优先保持当前选中日期；若已不可用则回退到第一个可用日期
+      let targetIndex = -1
+      if (this.data.selectedDate) {
+        targetIndex = displayDates.findIndex(d => d.date === this.data.selectedDate && !d.isDisabled)
+      }
+      if (targetIndex === -1) {
+        targetIndex = displayDates.findIndex(d => !d.isDisabled)
+      }
+
+      if (targetIndex !== -1) {
         this.setData({
-          selectedDateIndex: availableIndex,
-          selectedDate: displayDates[availableIndex].date,
-          selectedDateInfo: displayDates[availableIndex]
+          selectedDateIndex: targetIndex,
+          selectedDate: displayDates[targetIndex].date,
+          selectedDateInfo: displayDates[targetIndex]
         })
-        // 本地生成时段列表
-        this.buildSlots(displayDates[availableIndex])
+        // 本地生成时段列表（复用缓存）
+        this.buildSlots(displayDates[targetIndex])
       } else if (displayDates.length > 0) {
         // 没有可用日期，选择第一个显示提示
         this.setData({
@@ -314,44 +324,14 @@ Page({
    * @param {Array} dates - 日期列表，每项包含 date 字段
    * @returns {Set} 节假日日期集合
    */
-  async fetchHolidays(dates) {
+  async fetchHolidays() {
     const holidaySet = new Set()
 
-    if (!dates || dates.length === 0) {
-      return holidaySet
-    }
-
-    // 收集需要查询的年份
-    const years = new Set()
-    dates.forEach(d => {
-      const year = parseInt(d.date.split('-')[0])
-      years.add(year)
-    })
-
-    // 查询各年份的节假日配置
-    const promises = []
-    years.forEach(year => {
-      promises.push(
-        wx.cloud.callFunction({
-          name: 'holidayManager',
-          data: {
-            action: 'getByYear',
-            params: {
-              year
-            }
-          }
-        })
-      )
-    })
-
     try {
-      const results = await Promise.all(promises)
-      results.forEach(res => {
-        if (res.result.code === 0 && res.result.data.exists && res.result.data.config) {
-          const config = res.result.data.config
-          if (config.dates && Array.isArray(config.dates)) {
-            config.dates.forEach(d => holidaySet.add(d))
-          }
+      const allList = await app.getAllHolidays()
+      allList.forEach(item => {
+        if (item.dates && Array.isArray(item.dates)) {
+          item.dates.forEach(d => holidaySet.add(d))
         }
       })
     } catch (error) {
@@ -493,67 +473,71 @@ Page({
       loadingSlots: true
     })
     try {
-      // 查询该日期的已预约时段
-      const res = await wx.cloud.callFunction({
-        name: 'haircutManager',
-        data: {
-          action: 'getReservationSlots',
-          dates: [dateInfo.date]
+      // 优先复用 loadDisplayDates 已缓存的全量数据，未命中才单独请求
+      let bookedData = []
+      if (this._slotsByDateCache && this._slotsByDateCache[dateInfo.date]) {
+        bookedData = this._slotsByDateCache[dateInfo.date] || []
+      } else {
+        const res = await wx.cloud.callFunction({
+          name: 'haircutManager',
+          data: {
+            action: 'getReservationSlots',
+            dates: [dateInfo.date]
+          }
+        })
+        if (res.result.code === 0) {
+          bookedData = ((res.result.data && res.result.data.slotsByDate) || {})[dateInfo.date] || []
+        }
+      }
+
+      // 构建时段列表
+      const slots = TIME_SLOTS.map(slot => {
+        // 查找该时段的预约信息
+        const bookingInfo = bookedData.find(b => b.timeSlot === slot.start)
+
+        // 判断是否为我已预约
+        const isMyBooking = bookingInfo &&
+          bookingInfo.status === 'booked' &&
+          bookingInfo.bookerId === this.data.userOpenId
+
+        // 确定时段状态
+        // 日期已锁定（今天过了14:20）或已过去时，未预约的时段不再显示"可预约"
+        const isDateUnbookable = !!(dateInfo && (dateInfo.isDayLocked || dateInfo.isDisabled))
+
+        let slotStatus = 'available' // 默认可预约
+        let statusLabel = '可预约'
+
+        if (isDateUnbookable) {
+          slotStatus = 'unavailable'
+          statusLabel = '不可预约'
+        }
+
+        if (bookingInfo) {
+          if (bookingInfo.status === 'unavailable') {
+            slotStatus = 'unavailable'
+            statusLabel = '不可预约'
+          } else if (isMyBooking) {
+            slotStatus = 'myBooked'
+            statusLabel = '我已预约'
+          } else {
+            slotStatus = 'booked'
+            statusLabel = '已被预约'
+          }
+        }
+
+        return {
+          ...slot,
+          status: slotStatus,
+          statusLabel,
+          isMyBooking,
+          bookingInfo: bookingInfo || null
         }
       })
 
-      if (res.result.code === 0) {
-        const bookedData = ((res.result.data && res.result.data.slotsByDate) || {})[dateInfo.date] || []
-
-        // 构建时段列表
-        const slots = TIME_SLOTS.map(slot => {
-          // 查找该时段的预约信息
-          const bookingInfo = bookedData.find(b => b.timeSlot === slot.start)
-
-          // 判断是否为我已预约
-          const isMyBooking = bookingInfo &&
-            bookingInfo.status === 'booked' &&
-            bookingInfo.bookerId === this.data.userOpenId
-
-          // 确定时段状态
-          // 日期已锁定（今天过了14:20）或已过去时，未预约的时段不再显示"可预约"
-          const isDateUnbookable = !!(dateInfo && (dateInfo.isDayLocked || dateInfo.isDisabled))
-
-          let slotStatus = 'available' // 默认可预约
-          let statusLabel = '可预约'
-
-          if (isDateUnbookable) {
-            slotStatus = 'unavailable'
-            statusLabel = '不可预约'
-          }
-
-          if (bookingInfo) {
-            if (bookingInfo.status === 'unavailable') {
-              slotStatus = 'unavailable'
-              statusLabel = '不可预约'
-            } else if (isMyBooking) {
-              slotStatus = 'myBooked'
-              statusLabel = '我已预约'
-            } else {
-              slotStatus = 'booked'
-              statusLabel = '已被预约'
-            }
-          }
-
-          return {
-            ...slot,
-            status: slotStatus,
-            statusLabel,
-            isMyBooking,
-            bookingInfo: bookingInfo || null
-          }
-        })
-
-        this.setData({
-          slots,
-          slotsMessage: ''
-        })
-      }
+      this.setData({
+        slots,
+        slotsMessage: ''
+      })
     } catch (error) {
       console.error('加载时段失败:', error)
       wx.showToast({
@@ -636,7 +620,6 @@ Page({
           title: '取消成功',
           icon: 'success'
         })
-        this.buildSlots(this.data.selectedDateInfo)
         this.loadDisplayDates()
       } else {
         wx.showToast({
@@ -694,7 +677,6 @@ Page({
             title: '设置成功',
             icon: 'success'
           })
-          this.buildSlots(this.data.selectedDateInfo)
           this.loadDisplayDates()
         } else {
           wx.showToast({
@@ -739,7 +721,6 @@ Page({
             title: '恢复成功',
             icon: 'success'
           })
-          this.buildSlots(this.data.selectedDateInfo)
           this.loadDisplayDates()
         } else {
           wx.showToast({
@@ -817,7 +798,6 @@ Page({
           cancellingSlot: null,
           cancelReason: ''
         })
-        this.buildSlots(this.data.selectedDateInfo)
         this.loadDisplayDates()
       } else {
         wx.showToast({
@@ -903,9 +883,7 @@ Page({
           icon: 'success'
         })
         this.hideBookingPopup()
-        // 刷新时段列表
-        this.buildSlots(this.data.selectedDateInfo)
-        // 刷新日期列表（更新预约数）
+        // 刷新时段与日期列表（loadDisplayDates 内部会复用缓存刷新时段）
         this.loadDisplayDates()
       } else {
         wx.showToast({
@@ -1189,7 +1167,6 @@ Page({
             icon: 'success'
           })
           this.hideCancelPopup()
-          this.buildSlots(this.data.selectedDateInfo)
           this.loadDisplayDates()
         } else {
           wx.showToast({

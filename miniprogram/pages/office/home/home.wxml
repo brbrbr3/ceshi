@@ -228,4 +228,17 @@
       </scroll-view>
     </view>
   </view>
+
+  <!-- 通用弹窗（队列顺序显示） -->
+  <multiuse-modal
+    visible="{{modalVisible}}"
+    title="{{modalTitle}}"
+    content="{{modalContent}}"
+    confirmText="{{modalConfirmText}}"
+    cancelText="{{modalCancelText}}"
+    danger="{{modalDanger}}"
+    countdown="{{modalCountdown}}"
+    bind:confirm="onModalConfirm"
+    bind:cancel="onModalCancel"
+  />
 </view>

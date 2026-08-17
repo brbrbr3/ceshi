@@ -156,6 +156,14 @@ Page({
     // 日程详情弹窗
     showScheduleDetail: false,
     detailSchedule: null,
+    // 通用弹窗队列（按顺序显示）
+    modalVisible: false,
+    modalTitle: '',
+    modalContent: '',
+    modalConfirmText: '确定',
+    modalCancelText: '',
+    modalDanger: false,
+    modalCountdown: 0,
   },
 
   onShow() {
@@ -171,7 +179,6 @@ Page({
     //this.loadBgImage()
     this.syncUserProfile() //同步用户资料
     this.loadPermissionCache() //加载权限缓存
-    this.checkInterestClassReminder() // 每月兴趣班备案更新提示
     this.syncNotifications() //同步消息推送
     app.syncSubStatus()// 刷新微信侧订阅状态到本地缓存（供 handleQuickAction tap 时同步读取）
     this.loadContentForms() //加载信息发布
@@ -181,10 +188,75 @@ Page({
     this.loadHolidayConfig() //加载节假日配置
     //this.loadTodaySchedules() // 加载今日日程
     this.loadActiveTrip() // 加载外出状态
-    if (!app.globalData.isReviewer) {
-      app.updateCacheVersionAndShowWhatsNew()//更新缓存版本号，展示更新说明弹窗
-    } 
+
+    // 弹窗队列：更新说明优先入队，其次兴趣班提示
+    if (!app.globalData.isReviewer && app.shouldShowWhatsNew()) {
+      const whatsNew = app.getWhatsNewContent()
+      this.enqueueModal({
+        title: whatsNew.title,
+        content: whatsNew.content,
+        confirmText: '我知道了',
+        countdown: 3
+      })
+      app.markWhatsNewShown()
+    }
+    this.checkInterestClassReminder() // 每月兴趣班备案更新提示（入队）
     //this.loadSignature()//加载用户签名
+  },
+
+  // ===== 通用弹窗队列 =====
+
+  /**
+   * 入队一个弹窗配置，自动按顺序显示
+   * cfg: { title, content, confirmText, cancelText, danger, countdown, onConfirm }
+   */
+  enqueueModal(cfg) {
+    this._modalQueue = this._modalQueue || []
+    this._modalQueue.push(cfg)
+    this._processModalQueue()
+  },
+
+  /**
+   * 出队并显示下一个弹窗（当前有弹窗显示或队列空则跳过）
+   */
+  _processModalQueue() {
+    if (this._modalProcessing || this.data.modalVisible) return
+    const cfg = this._modalQueue.shift()
+    if (!cfg) return
+    this._modalProcessing = true
+    this._modalConfirmCb = cfg.onConfirm || null
+    this.setData({
+      modalVisible: true,
+      modalTitle: cfg.title || '',
+      modalContent: cfg.content || '',
+      modalConfirmText: cfg.confirmText || '确定',
+      modalCancelText: cfg.cancelText || '',
+      modalDanger: !!cfg.danger,
+      modalCountdown: cfg.countdown || 0
+    })
+  },
+
+  /**
+   * 关闭当前弹窗，退出动画结束后出队下一个
+   */
+  _closeCurrentModal(next) {
+    this._modalConfirmCb = null
+    this.setData({ modalVisible: false })
+    setTimeout(() => {
+      this._modalProcessing = false
+      if (next) next()
+      this._processModalQueue()
+    }, 260)
+  },
+
+  onModalConfirm(e) {
+    const cb = this._modalConfirmCb
+    const values = (e && e.detail && e.detail.values) || {}
+    this._closeCurrentModal(() => { if (cb) cb(values) })
+  },
+
+  onModalCancel() {
+    this._closeCurrentModal()
   },
 
   /**
@@ -254,34 +326,26 @@ Page({
       // 写入当前月份，防止重复弹窗
       wx.setStorageSync(INTEREST_CLASS_REMINDER_KEY, currentMonth)
 
+      const goInterest = () => wx.navigateTo({
+        url: '/pages/office/interest-class/interest-class'
+      })
+
       // 首次提示（无缓存记录）vs 每月例行提示
       if (!lastReminderMonth) {
-        wx.showModal({
+        this.enqueueModal({
           title: '兴趣班备案提示',
           content: '您是否已在小程序中备案本人及家属的兴趣班情况？',
           confirmText: '去备案',
           cancelText: '无此情况',
-          success: (res) => {
-            if (res.confirm) {
-              wx.navigateTo({
-                url: '/pages/office/interest-class/interest-class'
-              })
-            }
-          }
+          onConfirm: goInterest
         })
       } else {
-        wx.showModal({
+        this.enqueueModal({
           title: '更新兴趣班备案提示',
           content: '您及您的家属本月兴趣班情况是否有变化？如有变化，请及时更新备案。',
           confirmText: '更新备案',
           cancelText: '无变化',
-          success: (res) => {
-            if (res.confirm) {
-              wx.navigateTo({
-                url: '/pages/office/interest-class/interest-class'
-              })
-            }
-          }
+          onConfirm: goInterest
         })
       }
     } catch (e) {
@@ -737,42 +801,9 @@ Page({
    */
   async loadHolidayConfig() {
     const currentYear = new Date().getFullYear()
-    const today = utils.formatDate(Date.now()) // YYYY-MM-DD
-    const cacheKey = 'holidayConfig_' + currentYear
-
-    // 缓存命中：同一天内不重复请求
-    const cached = wx.getStorageSync(cacheKey)
-    if (cached && cached.date === today && cached.holidayDates) {
-      const todayType = this.getTodayType(cached.holidayDates)
-      this.setData({
-        todayTypeText: todayType
-      })
-      return
-    }
 
     try {
-      const res = await wx.cloud.callFunction({
-        name: 'holidayManager',
-        data: {
-          action: 'getByYear',
-          params: {
-            year: currentYear
-          }
-        }
-      })
-
-      let holidayDates = []
-      if (res.result.code === 0 && res.result.data.exists) {
-        holidayDates = res.result.data.config.dates || []
-      }
-
-      // 写入缓存
-      wx.setStorageSync(cacheKey, {
-        holidayDates,
-        date: today
-      })
-
-      // 判断今天类型
+      const holidayDates = await app.getHolidaysByYear(currentYear)
       const todayType = this.getTodayType(holidayDates)
       this.setData({
         todayTypeText: todayType

@@ -271,6 +271,15 @@ Page({
     currentUser: null,
     workflowLogs: [],
     currentOpenid: '',
+    // 驳回原因弹窗
+    rejectConfirmVisible: false,
+    rejectInputs: [{
+      key: 'reason',
+      type: 'textarea',
+      placeholder: '请输入驳回原因（必填）',
+      required: true,
+      emptyTip: '请输入驳回原因'
+    }],
     
     pagination: {
       pending: { page: 1, hasMore: true, loading: false },
@@ -826,25 +835,8 @@ Page({
     }
 
     if (decision === 'reject') {
-      // 驳回时要求填写驳回原因
-      wx.showModal({
-        title: '确认驳回',
-        editable: true,
-        placeholderText: '请输入驳回原因（必填）',
-        confirmText: '确定驳回',
-        cancelText: '取消',
-        confirmColor: '#DC2626',
-        success: (res) => {
-          if (res.confirm) {
-            const reason = (res.content || '').trim()
-            if (!reason) {
-              utils.showToast({ title: '请输入驳回原因', icon: 'none' })
-              return
-            }
-            this.reviewRequest(decision, reason)
-          }
-        }
-      })
+      // 驳回时要求填写驳回原因（改为多用途弹窗）
+      this.setData({ rejectConfirmVisible: true })
     } else {
       // 批准保持原逻辑
       wx.showModal({
@@ -860,6 +852,21 @@ Page({
         }
       })
     }
+  },
+
+  onRejectConfirm(e) {
+    const values = (e.detail && e.detail.values) || {}
+    const reason = String(values.reason || '').trim()
+    if (!reason) {
+      utils.showToast({ title: '请输入驳回原因', icon: 'none' })
+      return
+    }
+    this.setData({ rejectConfirmVisible: false })
+    this.reviewRequest('reject', reason)
+  },
+
+  onRejectCancel() {
+    this.setData({ rejectConfirmVisible: false })
   },
 
   reviewRequest(decision, reason) {

@@ -6,6 +6,9 @@ cloud.init({
 
 const db = cloud.database()
 
+// 聚合操作符
+const $ = db.command.aggregate
+
 // 未读消息提醒模板ID（模板4：新菜单发布等通用消息推送）
 const UNREAD_MESSAGE_TEMPLATE_ID = 'mJ1CGM8OvpgomnYy0yot4Kk8hD8S-NH06A6ZDywdpGc'
 
@@ -306,48 +309,60 @@ exports.main = async (event) => {
           }
         }
 
-        const ratingsResult = await db.collection('menu_ratings')
-          .where({
-            menuId: ratingData.menuId
+        // 1. 聚合统计各菜品评分（不受 100 条默认 limit 限制）
+        const aggRes = await db.collection('menu_ratings')
+          .aggregate()
+          .match({ menuId: ratingData.menuId })
+          .group({
+            _id: '$dishName',
+            total: $.sum(1),
+            scoreSum: $.sum('$score'),
+            c1: $.sum($.cond({ if: $.eq(['$score', 1]), then: 1, else: 0 })),
+            c2: $.sum($.cond({ if: $.eq(['$score', 2]), then: 1, else: 0 })),
+            c3: $.sum($.cond({ if: $.eq(['$score', 3]), then: 1, else: 0 })),
+            c4: $.sum($.cond({ if: $.eq(['$score', 4]), then: 1, else: 0 })),
+            c5: $.sum($.cond({ if: $.eq(['$score', 5]), then: 1, else: 0 }))
           })
-          .orderBy('createdAt', 'desc')
+          .limit(1000)
+          .end()
+
+        // 2. 单独查当前用户已评记录（单用户量小，无需分页）
+        const myRes = await db.collection('menu_ratings')
+          .where({ menuId: ratingData.menuId, openid: openid })
+          .limit(1000)
           .get()
 
-        const ratings = ratingsResult.data || []
+        const myRatings = (myRes.data || []).map(r => ({ dishName: r.dishName, score: r.score }))
+        const ratedDishNames = myRatings.map(r => r.dishName)
 
-        // 计算每个菜品的平均分和评分分布
-        const dishStats = {}
-        ratings.forEach(r => {
-          if (!dishStats[r.dishName]) {
-            dishStats[r.dishName] = { total: 0, sum: 0, countByScore: { 1: 0, 2: 0, 3: 0, 4: 0, 5: 0 } }
-          }
-          dishStats[r.dishName].total++
-          dishStats[r.dishName].sum += r.score
-          dishStats[r.dishName].countByScore[r.score]++
-        })
-
-        // 获取当前用户已打分的菜品列表
-        const userRatings = ratings.filter(r => r.openid === openid)
-        const ratedDishNames = userRatings.map(r => r.dishName)
-
-        const dishRatings = Object.keys(dishStats).map(dishName => {
-          const stats = dishStats[dishName]
+        const dishRatings = (aggRes.list || []).map(item => {
+          const dishName = item._id
+          const total = item.total || 0
+          const scoreSum = item.scoreSum || 0
           return {
             dishName,
-            averageScore: Math.round((stats.sum / stats.total) * 10) / 10,
-            totalRaters: stats.total,
-            countByScore: stats.countByScore,
+            averageScore: total > 0 ? Math.round((scoreSum / total) * 10) / 10 : 0,
+            totalRaters: total,
+            countByScore: {
+              1: item.c1 || 0,
+              2: item.c2 || 0,
+              3: item.c3 || 0,
+              4: item.c4 || 0,
+              5: item.c5 || 0
+            },
             hasRated: ratedDishNames.includes(dishName)
           }
         })
+
+        const totalRatings = dishRatings.reduce((acc, d) => acc + d.totalRaters, 0)
 
         return {
           code: 0,
           message: 'ok',
           data: {
             ratings: dishRatings,
-            myRatings: userRatings.map(r => ({ dishName: r.dishName, score: r.score })),
-            totalRatings: ratings.length
+            myRatings: myRatings,
+            totalRatings: totalRatings
           }
         }
 

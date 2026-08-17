@@ -43,6 +43,9 @@ Page({
     // 弹窗选项卡
     showEditModal: false,
     editUser: null,
+    // 注销用户二次确认弹窗
+    deactivateConfirmVisible: false,
+    deactivateConfirmContent: '',
 
     // 个人信息表单
     formRole: '',
@@ -671,36 +674,44 @@ Page({
       cancelText: '我再想想',
       success: (res) => {
         if (!res.confirm) return
-        // 第二次确认：二次确认，防止误操作
-        wx.showModal({
-          title: '二次确认',
-          content: '请再次确认：确定注销「' + userName + '」吗？此操作不可撤销。',
-          confirmText: '确定注销',
-          confirmColor: '#DC2626',
-          success: async (res2) => {
-            if (!res2.confirm) return
-            wx.showLoading({ title: '注销中...', mask: true })
-            try {
-              const result = await wx.cloud.callFunction({
-                name: 'personnelManager',
-                data: {
-                  action: 'deactivateUser',
-                  params: { targetOpenid: this.data.editUser.openid }
-                }
-              })
-              wx.hideLoading()
-              if (result.result.code !== 0) throw new Error(result.result.message)
-              utils.showToast({ title: '已注销', icon: 'success' })
-              this.setData({ showEditModal: false, editUser: null })
-              await this.loadUsers()
-            } catch (err) {
-              wx.hideLoading()
-              utils.showToast({ title: err.message || '注销失败', icon: 'none' })
-            }
-          }
+        // 第二次确认：改为倒计时 modal
+        this.setData({
+          deactivateConfirmVisible: true,
+          deactivateConfirmContent: '请再次确认：确定注销「' + userName + '」吗？此操作不可撤销。'
         })
       }
     })
+  },
+
+  onDeactivateConfirm() {
+    this.setData({ deactivateConfirmVisible: false })
+    this.doDeactivateUser()
+  },
+
+  onDeactivateCancel() {
+    this.setData({ deactivateConfirmVisible: false })
+  },
+
+  async doDeactivateUser() {
+    if (!this.data.editUser) return
+    wx.showLoading({ title: '注销中...', mask: true })
+    try {
+      const result = await wx.cloud.callFunction({
+        name: 'personnelManager',
+        data: {
+          action: 'deactivateUser',
+          params: { targetOpenid: this.data.editUser.openid }
+        }
+      })
+      wx.hideLoading()
+      if (result.result.code !== 0) throw new Error(result.result.message)
+      utils.showToast({ title: '已注销', icon: 'success' })
+      this.setData({ showEditModal: false, editUser: null })
+      await this.loadUsers()
+    } catch (err) {
+      wx.hideLoading()
+      utils.showToast({ title: err.message || '注销失败', icon: 'none' })
+    }
   },
 
   stopPropagation() {},

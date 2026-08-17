@@ -1,5 +1,8 @@
 {
   "navigationBarTitleText": "登录页",
   "navigationBarBackgroundColor": "#FFFFFF",
-  "enablePullDownRefresh": true
+  "enablePullDownRefresh": true,
+  "usingComponents": {
+    "multiuse-modal": "/components/multiuse-modal/multiuse-modal"
+  }
 }

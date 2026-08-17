@@ -124,17 +124,17 @@ Page({
     targetRoles: [],
     targetRolesText: '',
     targetRoleOptions: [{
-        value: '馆员',
-        checked: false
-      },
-      {
-        value: '其他',
-        checked: false
-      },
-      {
-        value: '待赴任馆员',
-        checked: false
-      }
+      value: '馆员',
+      checked: false
+    },
+    {
+      value: '其他',
+      checked: false
+    },
+    {
+      value: '待赴任馆员',
+      checked: false
+    }
     ],
     targetDepartments: [],
     targetDepartmentsText: '',
@@ -324,7 +324,7 @@ Page({
           showDraftTip: true
         })
       }
-    } catch (e) {}
+    } catch (e) { }
   },
 
   /**
@@ -388,7 +388,7 @@ Page({
     })
     try {
       wx.removeStorageSync(DRAFT_KEY)
-    } catch (e) {}
+    } catch (e) { }
   },
 
   onEditorReady() {
@@ -632,7 +632,7 @@ Page({
     })
   },
 
-  stopPropagation() {},
+  stopPropagation() { },
 
   /**
    * 确认控件配置
@@ -1062,7 +1062,7 @@ Page({
       const depts = (allConstants.DEPARTMENT_OPTIONS || []).filter(d => d !== '无')
       this.setData({
         departmentOptions: depts,
-        targetDepartmentOptions: this.syncTargetDepartmentOptions(this.data.targetDepartments)
+        targetDepartmentOptions: this.syncTargetDepartmentOptions(this.data.targetDepartments, depts)
       })
     } catch (e) {
       console.error('加载部门选项失败:', e)
@@ -1072,8 +1072,9 @@ Page({
   /**
    * 根据选中的部门列表，刷新部门选项的选中态
    */
-  syncTargetDepartmentOptions(targetDepartments) {
-    return this.data.departmentOptions.map(d => ({
+  syncTargetDepartmentOptions(targetDepartments, depts) {
+    const source = depts || this.data.departmentOptions
+    return source.map(d => ({
       value: d,
       checked: (targetDepartments || []).indexOf(d) >= 0
     }))
@@ -1273,7 +1274,7 @@ Page({
 
     // 无填写控件时：开启「对部分用户可见」但未选择任何角色/部门 → 提示
     if (!this.data.hasFillable && formData.isTargetOnlyVisible &&
-        formData.targetRoles.length === 0 && formData.targetDepartments.length === 0) {
+      formData.targetRoles.length === 0 && formData.targetDepartments.length === 0) {
       utils.showToast({
         title: '请选择可见的用户范围',
         icon: 'none'
@@ -1328,7 +1329,7 @@ Page({
       // 清除本地草稿
       try {
         wx.removeStorageSync(DRAFT_KEY)
-      } catch (e) {}
+      } catch (e) { }
       utils.showToast({
         title: '发布成功',
         icon: 'success'
