@@ -86,7 +86,9 @@ Page({
       deadlineText: item.deadline ? utils.formatDateTime(item.deadline) : '',
       targetRolesText: (item.targetRoles && item.targetRoles.length > 0)
         ? `该信息仅允许「${item.targetRoles.join('、')}」角色用户填报`
-        : '',
+        : ((item.targetDepartments && item.targetDepartments.length > 0)
+          ? `该信息仅允许「${item.targetDepartments.join('、')}」部门用户填报`
+          : ''),
       activityLimitText: item.maxRegistrations ? `上限 ${item.maxRegistrations} 人` : '',
       submissionText: isActivity ? `${item.registrationCount} 人已报名` : `${item.submissionCount} 人已提交`,
       isFull,

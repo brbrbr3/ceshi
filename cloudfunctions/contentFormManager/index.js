@@ -104,9 +104,12 @@ function isCreator(form, openid) {
 function canSubmitForm(form, user) {
   if (!form) return false
   const targetRoles = Array.isArray(form.targetRoles) ? form.targetRoles : []
-  if (targetRoles.length === 0) return true
+  const targetDepartments = Array.isArray(form.targetDepartments) ? form.targetDepartments : []
+  if (targetRoles.length === 0 && targetDepartments.length === 0) return true
   if (user && user.isAdmin) return true
-  return targetRoles.includes(user ? user.role : '')
+  if (targetRoles.length > 0 && targetRoles.includes(user ? user.role : '')) return true
+  if (targetDepartments.length > 0 && targetDepartments.includes(user ? user.department : '')) return true
+  return false
 }
 
 /**
@@ -495,11 +498,14 @@ async function notifyFormPublish(form, publisherName) {
     const page = `pages/office/form/form-detail/form-detail?id=${form._id}`
     const timeStr = formatLocalTime(Date.now())
 
-    // 解析收件人
+    // 解析收件人（角色/部门互斥，最多一个非空）
     const targetRoles = Array.isArray(form.targetRoles) ? form.targetRoles : []
+    const targetDepartments = Array.isArray(form.targetDepartments) ? form.targetDepartments : []
     const where = { status: 'approved' }
     if (targetRoles.length > 0) {
       where.role = _.in(targetRoles)
+    } else if (targetDepartments.length > 0) {
+      where.department = _.in(targetDepartments)
     }
 
     const batchSize = 100
@@ -568,7 +574,7 @@ async function createForm(openid, user, params) {
       return fail('仅馆员及以上角色可发布信息', 403)
     }
 
-    const { title, description = '', tag, deadline = null, blocks = [], targetRoles = [], isTargetOnlyVisible = false, isAnonymous = false, maxSubmissions = 1, status = 'published', quizScore = null } = params
+    const { title, description = '', tag, deadline = null, blocks = [], targetRoles = [], targetDepartments = [], isTargetOnlyVisible = false, isAnonymous = false, maxSubmissions = 1, status = 'published', quizScore = null } = params
 
     if (!title || !title.trim()) {
       return fail('请输入标题', 400)
@@ -599,6 +605,7 @@ async function createForm(openid, user, params) {
       deadline: deadline || null,
       blocks,
       targetRoles: Array.isArray(targetRoles) ? targetRoles : [],
+      targetDepartments: Array.isArray(targetDepartments) ? targetDepartments : [],
       isTargetOnlyVisible: !!isTargetOnlyVisible,
       isAnonymous: !!isAnonymous,
       maxSubmissions: Math.max(1, Number(maxSubmissions) || 1),
@@ -678,6 +685,9 @@ async function updateForm(openid, user, params) {
     }
     if (rest.targetRoles !== undefined) {
       updateData.targetRoles = Array.isArray(rest.targetRoles) ? rest.targetRoles : []
+    }
+    if (rest.targetDepartments !== undefined) {
+      updateData.targetDepartments = Array.isArray(rest.targetDepartments) ? rest.targetDepartments : []
     }
     if (rest.isTargetOnlyVisible !== undefined) {
       updateData.isTargetOnlyVisible = !!rest.isTargetOnlyVisible
@@ -813,11 +823,13 @@ async function listForms(openid, user, params) {
     const { page = 1, pageSize = 20, tag = 'all', scope = 'all' } = params
     const skip = (page - 1) * pageSize
     const userRole = user ? user.role : ''
+    const userDept = user ? user.department : ''
 
-    // 目标角色可见性过滤
+    // 目标角色/部门可见性过滤
     const visibilityCond = _.or([
       { isTargetOnlyVisible: _.neq(true) },
-      { targetRoles: userRole }
+      { targetRoles: userRole },
+      { targetDepartments: userDept }
     ])
 
     let where
@@ -877,6 +889,7 @@ async function listForms(openid, user, params) {
         submissionCount: f.submissionCount || 0,
         maxRegistrations,
         targetRoles: Array.isArray(f.targetRoles) ? f.targetRoles : [],
+        targetDepartments: Array.isArray(f.targetDepartments) ? f.targetDepartments : [],
         isClosed: f.status === 'closed' || !!(f.deadline && f.deadline < Date.now()),
         isRead: f._openid === openid || readUsers.includes(openid)
       }
@@ -946,11 +959,18 @@ async function getForm(openid, user, params) {
     }
     const form = formRes.data
 
-    // 目标角色可见性校验
-    if (form.isTargetOnlyVisible && Array.isArray(form.targetRoles) && form.targetRoles.length > 0) {
-      const userRole = user ? user.role : ''
-      if (!canPublish(user) && !form.targetRoles.includes(userRole)) {
-        return fail('该信息仅对特定角色可见', 403)
+    // 目标角色/部门可见性校验
+    if (form.isTargetOnlyVisible) {
+      const targetRoles = Array.isArray(form.targetRoles) ? form.targetRoles : []
+      const targetDepartments = Array.isArray(form.targetDepartments) ? form.targetDepartments : []
+      const hasRestriction = targetRoles.length > 0 || targetDepartments.length > 0
+      if (hasRestriction && !canPublish(user)) {
+        const userRole = user ? user.role : ''
+        const userDept = user ? user.department : ''
+        const allowed = targetRoles.includes(userRole) || targetDepartments.includes(userDept)
+        if (!allowed) {
+          return fail('该信息仅对特定用户可见', 403)
+        }
       }
     }
 
@@ -1068,6 +1088,7 @@ async function getForm(openid, user, params) {
         blocks,
         quizScore,
         targetRoles: form.targetRoles || [],
+        targetDepartments: form.targetDepartments || [],
         isTargetOnlyVisible: !!form.isTargetOnlyVisible,
         isAnonymous: !!form.isAnonymous,
         maxSubmissions,

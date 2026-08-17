@@ -418,6 +418,7 @@
 }
 
 .fe-role-item {
+  flex-shrink: 0;
   padding: 12rpx 28rpx;
   border-radius: 40rpx;
   background: #F1F5F9;
@@ -431,6 +432,19 @@
   background: #EFF6FF;
   border-color: #2563EB;
   color: #2563EB;
+}
+
+/* 部门横向滚动列表 */
+.fe-dept-scroll {
+  margin-top: 16rpx;
+  white-space: nowrap;
+  width: 100%;
+}
+
+.fe-dept-list {
+  display: inline-flex;
+  gap: 16rpx;
+  padding: 4rpx 2rpx;
 }
 
 .fe-check-row {

@@ -4,6 +4,7 @@ const modalAnimation = require('../../../../behaviors/modalAnimation.js')
 const {
   TAG_LIST,
   BLOCK_TYPE_LIST,
+  FILLABLE_TYPES,
   getTagConfig,
   getBlockTypeConfig
 } = require('../../../../common/form-constants.js')
@@ -135,6 +136,11 @@ Page({
         checked: false
       }
     ],
+    targetDepartments: [],
+    targetDepartmentsText: '',
+    departmentOptions: [],
+    targetDepartmentOptions: [],
+    hasFillable: false,
     isTargetOnlyVisible: false,
     showTargetRole: false,
     isAnonymous: false,
@@ -191,6 +197,7 @@ Page({
       minDate: utils.getLocalDateString()
     })
     this.checkPublishPermission()
+    this.loadDepartmentOptions()
 
     if (options.id) {
       this.setData({
@@ -279,12 +286,16 @@ Page({
         targetRoles: form.targetRoles || [],
         targetRolesText: (form.targetRoles || []).join('、'),
         targetRoleOptions: this.syncTargetRoleOptions(form.targetRoles || []),
+        targetDepartments: form.targetDepartments || [],
+        targetDepartmentsText: (form.targetDepartments || []).join('、'),
+        targetDepartmentOptions: this.syncTargetDepartmentOptions(form.targetDepartments || []),
         isTargetOnlyVisible: !!form.isTargetOnlyVisible,
-        showTargetRole: !!(form.targetRoles && form.targetRoles.length > 0),
+        showTargetRole: !!((form.targetRoles && form.targetRoles.length > 0) || (form.targetDepartments && form.targetDepartments.length > 0)),
         isAnonymous: !!form.isAnonymous,
         maxSubmissions: form.maxSubmissions || 1,
         quizScore: this.normalizeQuizScore(form.quizScore)
       })
+      this.refreshHasFillable()
       this.refreshQuizDerived()
       // 富文本内容回填
       if (this.data.editorCtx && form.description) {
@@ -340,13 +351,17 @@ Page({
         targetRoles: draft.targetRoles || [],
         targetRolesText: (draft.targetRoles || []).join('、'),
         targetRoleOptions: this.syncTargetRoleOptions(draft.targetRoles || []),
+        targetDepartments: draft.targetDepartments || [],
+        targetDepartmentsText: (draft.targetDepartments || []).join('、'),
+        targetDepartmentOptions: this.syncTargetDepartmentOptions(draft.targetDepartments || []),
         isTargetOnlyVisible: !!draft.isTargetOnlyVisible,
-        showTargetRole: !!(draft.targetRoles && draft.targetRoles.length > 0),
+        showTargetRole: !!((draft.targetRoles && draft.targetRoles.length > 0) || (draft.targetDepartments && draft.targetDepartments.length > 0)),
         isAnonymous: !!draft.isAnonymous,
         maxSubmissions: draft.maxSubmissions || 1,
         quizScore: this.normalizeQuizScore(draft.quizScore),
         showDraftTip: false
       })
+      this.refreshHasFillable()
       this.refreshQuizDerived()
       if (this.data.editorCtx && draft.description) {
         this.data.editorCtx.setContents({
@@ -703,6 +718,7 @@ Page({
       blocks
     })
     this.closeBlockModal()
+    this.refreshHasFillable()
     this.refreshQuizDerived()
 
     // 清理 isNew 标记（动画结束后）
@@ -957,6 +973,7 @@ Page({
         blocks,
         removingIndex: -1
       })
+      this.refreshHasFillable()
       this.refreshQuizDerived()
     }, 320)
   },
@@ -998,6 +1015,9 @@ Page({
         targetRoles: [],
         targetRolesText: '',
         targetRoleOptions: this.syncTargetRoleOptions([]),
+        targetDepartments: [],
+        targetDepartmentsText: '',
+        targetDepartmentOptions: this.syncTargetDepartmentOptions([]),
         isTargetOnlyVisible: false
       })
     }
@@ -1012,11 +1032,14 @@ Page({
     } else {
       targetRoles.push(role)
     }
-    const targetRoleOptions = this.syncTargetRoleOptions(targetRoles)
+    // 互斥：选择角色时清空部门
     this.setData({
       targetRoles,
       targetRolesText: targetRoles.join('、'),
-      targetRoleOptions
+      targetRoleOptions: this.syncTargetRoleOptions(targetRoles),
+      targetDepartments: [],
+      targetDepartmentsText: '',
+      targetDepartmentOptions: this.syncTargetDepartmentOptions([])
     })
   },
 
@@ -1028,6 +1051,63 @@ Page({
       ...o,
       checked: (targetRoles || []).indexOf(o.value) >= 0
     }))
+  },
+
+  /**
+   * 加载部门选项（排除「无」）
+   */
+  async loadDepartmentOptions() {
+    try {
+      const allConstants = await app.getAllConstants()
+      const depts = (allConstants.DEPARTMENT_OPTIONS || []).filter(d => d !== '无')
+      this.setData({
+        departmentOptions: depts,
+        targetDepartmentOptions: this.syncTargetDepartmentOptions(this.data.targetDepartments)
+      })
+    } catch (e) {
+      console.error('加载部门选项失败:', e)
+    }
+  },
+
+  /**
+   * 根据选中的部门列表，刷新部门选项的选中态
+   */
+  syncTargetDepartmentOptions(targetDepartments) {
+    return this.data.departmentOptions.map(d => ({
+      value: d,
+      checked: (targetDepartments || []).indexOf(d) >= 0
+    }))
+  },
+
+  /**
+   * 切换部门（与角色互斥）
+   */
+  handleToggleDepartment(e) {
+    const dept = e.currentTarget.dataset.dept
+    let targetDepartments = [...this.data.targetDepartments]
+    const idx = targetDepartments.indexOf(dept)
+    if (idx >= 0) {
+      targetDepartments.splice(idx, 1)
+    } else {
+      targetDepartments.push(dept)
+    }
+    // 互斥：选择部门时清空角色
+    this.setData({
+      targetDepartments,
+      targetDepartmentsText: targetDepartments.join('、'),
+      targetDepartmentOptions: this.syncTargetDepartmentOptions(targetDepartments),
+      targetRoles: [],
+      targetRolesText: '',
+      targetRoleOptions: this.syncTargetRoleOptions([])
+    })
+  },
+
+  /**
+   * 刷新 hasFillable（是否含有需要填写的控件）
+   */
+  refreshHasFillable() {
+    const hasFillable = this.data.blocks.some(b => FILLABLE_TYPES.includes(b.type))
+    this.setData({ hasFillable })
   },
 
   onTargetOnlyVisibleToggle() {
@@ -1067,14 +1147,26 @@ Page({
     const title = this.data.title.trim()
     const deadline = this.data.deadlineTs || null
     const blocks = this.data.blocks.map(stripBlock)
+    const showTarget = this.data.showTargetRole
+    const targetRoles = showTarget ? this.data.targetRoles : []
+    const targetDepartments = showTarget ? this.data.targetDepartments : []
+    let isTargetOnlyVisible = false
+    if (this.data.hasFillable) {
+      // 有填写控件：isTargetOnlyVisible 为独立子开关（表单仅对选中用户可见）
+      isTargetOnlyVisible = showTarget && this.data.isTargetOnlyVisible
+    } else {
+      // 无填写控件：开关本身即「对部分用户可见」
+      isTargetOnlyVisible = showTarget
+    }
     return {
       title,
       description: this.data.description || '',
       tag: this.data.tag,
       deadline,
       blocks,
-      targetRoles: this.data.showTargetRole ? this.data.targetRoles : [],
-      isTargetOnlyVisible: this.data.showTargetRole ? this.data.isTargetOnlyVisible : false,
+      targetRoles,
+      targetDepartments,
+      isTargetOnlyVisible,
       isAnonymous: this.data.tag === 'questionnaire' ? this.data.isAnonymous : false,
       maxSubmissions: this.data.tag === 'quiz' ? this.data.maxSubmissions : 1,
       quizScore: this.data.tag === 'quiz' ? this.buildQuizScore() : null
@@ -1153,6 +1245,7 @@ Page({
       deadline: formData.deadline,
       blocks: formData.blocks,
       targetRoles: formData.targetRoles,
+      targetDepartments: formData.targetDepartments,
       isAnonymous: formData.isAnonymous,
       maxSubmissions: formData.maxSubmissions,
       quizScore: formData.quizScore,
@@ -1177,6 +1270,16 @@ Page({
     if (!this.validateBasic()) return
 
     const formData = this.buildFormData()
+
+    // 无填写控件时：开启「对部分用户可见」但未选择任何角色/部门 → 提示
+    if (!this.data.hasFillable && formData.isTargetOnlyVisible &&
+        formData.targetRoles.length === 0 && formData.targetDepartments.length === 0) {
+      utils.showToast({
+        title: '请选择可见的用户范围',
+        icon: 'none'
+      })
+      return
+    }
 
     // 确认发布
     wx.showModal({

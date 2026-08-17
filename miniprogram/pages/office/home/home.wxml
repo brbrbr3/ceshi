@@ -89,7 +89,7 @@
           <text class="home-news-loading-text">加载中...</text>
         </view>
         <view wx:if="{{!loadingContentForms && contentForms.length === 0}}" class="empty-announcement" bindtap="goContentForms">
-          <text class="empty-text">暂无信息</text>
+          <text class="empty-text">暂无内容</text>
         </view>
       </view>
     </view>

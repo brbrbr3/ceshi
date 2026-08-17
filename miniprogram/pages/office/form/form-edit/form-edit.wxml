@@ -105,10 +105,10 @@
       </view>
     </view>
 
-    <!-- 目标角色 -->
+    <!-- 目标角色 / 部门 -->
     <view class="office-card form-edit-card">
       <view class="fe-switch-row">
-        <view class="fe-label" style="margin: 0;">限定可填报用户</view>
+        <view class="fe-label" style="margin: 0;">{{hasFillable ? '仅允许选中用户填报' : '仅选中用户可见'}}</view>
         <view class="fe-switch {{showTargetRole ? 'is-on' : ''}}" bindtap="handleToggleTargetRole">
           <view class="fe-switch-dot"></view>
         </view>
@@ -117,16 +117,24 @@
         <view class="fe-role-list">
           <view wx:for="{{targetRoleOptions}}" wx:key="value" class="fe-role-item {{item.checked ? 'is-active' : ''}}" bindtap="handleToggleRole" data-role="{{item.value}}">{{item.value}}</view>
         </view>
-        <block class="fe-sub-block" wx:if="{{targetRoles.length > 0}}">
-          <view class="fe-hint">该表单仅允许「{{targetRolesText}}」用户填报</view>
+        <scroll-view class="fe-dept-scroll" scroll-x enhanced show-scrollbar="{{false}}">
+          <view class="fe-dept-list">
+            <view wx:for="{{targetDepartmentOptions}}" wx:key="value" class="fe-role-item {{item.checked ? 'is-active' : ''}}" bindtap="handleToggleDepartment" data-dept="{{item.value}}">{{item.value}}</view>
+          </view>
+        </scroll-view>
+        <!-- 有填写控件：填报限制提示 + 可见性子开关 -->
+        <block class="fe-sub-block" wx:if="{{hasFillable && (targetRoles.length > 0 || targetDepartments.length > 0)}}">
+          <view class="fe-hint">该表单仅允许「{{targetRolesText || targetDepartmentsText}}」用户填报</view>
           <view class="fe-check-row">
-            <text class="fe-label" style="margin: 0;">表单仅对选中用户可见</text>
+            <text class="fe-label" style="margin: 0;">仅对选中用户可见</text>
             <view class="fe-switch {{isTargetOnlyVisible ? 'is-on' : ''}}" bindtap="onTargetOnlyVisibleToggle">
               <view class="fe-switch-dot"></view>
             </view>
           </view>
-          <view wx:if="{{isTargetOnlyVisible}}" class="fe-hint">该表单仅「{{targetRolesText}}」用户可见</view>
+          <view wx:if="{{isTargetOnlyVisible}}" class="fe-hint">该表单仅「{{targetRolesText || targetDepartmentsText}}」用户可见</view>
         </block>
+        <!-- 无填写控件：提示可见范围 -->
+        <view wx:elif="{{!hasFillable && (targetRoles.length > 0 || targetDepartments.length > 0)}}" class="fe-hint">该表单仅「{{targetRolesText || targetDepartmentsText}}」用户可见</view>
       </view>
     </view>
 
