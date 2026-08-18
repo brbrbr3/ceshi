@@ -180,7 +180,7 @@
       </view>
 
       <scroll-view class="trip-popup-body" scroll-y enhanced show-scrollbar="{{false}}">
-        <view class="trip-popup-form">
+        <view class="trip-popup-form" style="padding-bottom: 140rpx;">
           <view class="trip-field">
             <view class="trip-field-label">目的地 <text class="trip-required">*</text></view>
             <view class="trip-input-wrapper">

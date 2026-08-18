@@ -61,12 +61,17 @@
 .menus-add-btn {
   align-self: flex-end;
   padding: 12rpx 24rpx;
-  border-radius: 24rpx;
+  border-radius: 40rpx;
   background: rgba(255, 255, 255, 0.2);
   color: #FFFFFF;
   font-size: var(--fs-26);
-  font-weight: 400;
-  border: 1rpx solid rgba(255, 255, 255, 0.3);
+  font-weight: 500;
+  transition: all 0.2s ease;
+}
+
+.menus-add-btn:active {
+  background: rgba(255, 255, 255, 0.3);
+  transform: scale(0.95);
 }
 
 .menus-content {

@@ -63,7 +63,9 @@ Page({
 
     return new Promise((resolve, reject) => {
       const db = wx.cloud.database()
+      const _ = db.command
       db.collection('menus')
+        .where({ createdAt: _.gte(0) })
         .orderBy('createdAt', 'desc')
         .skip(skipCount)
         .limit(pageSize)

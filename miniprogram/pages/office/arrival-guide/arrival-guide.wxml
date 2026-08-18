@@ -27,7 +27,7 @@
   </view>
 
   <!-- 底部弹窗 -->
-  <view wx:if="{{showPopup}}" class="popup-mask {{popupAnimating ? 'is-visible' : ''}}" bindtap="handleClosePopup">
+  <view wx:if="{{showPopup}}" class="popup-mask {{popupAnimating ? 'is-visible' : ''}}" bindtap="handleClosePopup" catch:touchmove="stopPropagation">
     <view class="popup-container {{popupAnimating ? 'is-visible' : ''}}" catchtap="stopPropagation">
       <!-- 弹窗头部 -->
       <view class="popup-header">
@@ -36,7 +36,8 @@
       </view>
 
       <!-- 弹窗内容 -->
-      <scroll-view class="popup-body" scroll-y enhanced show-scrollbar="{{false}}">
+      <scroll-view class="popup-body" scroll-y>
+        <view class="popup-body-inner">
         <!-- Checklist 类型 -->
         <block wx:if="{{popupType === 'checklist'}}">
           <view class="checklist-toolbar">
@@ -110,8 +111,7 @@
             </view>
           </view>
         </block>
-
-
+        </view>
       </scroll-view>
     </view>
   </view>

@@ -340,7 +340,7 @@
 }
 
 .fe-switch-hint {
-  font-size: var(--fs-26);
+  font-size: var(--fs-30);
   color: #64748B;
 }
 
@@ -662,7 +662,7 @@
   border: 2rpx solid #E2E8F0;
   border-radius: 12rpx;
   padding: 0 20rpx;
-  font-size: var(--fs-26);
+  font-size: var(--fs-28);
 }
 
 .fe-category-max {
@@ -672,7 +672,7 @@
   border: 2rpx solid #E2E8F0;
   border-radius: 12rpx;
   padding: 0 20rpx;
-  font-size: var(--fs-26);
+  font-size: var(--fs-28);
   text-align: center;
 }
 

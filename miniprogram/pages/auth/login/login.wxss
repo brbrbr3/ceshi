@@ -21,12 +21,6 @@ page {
 }
 
 .login-submit-btn {
-  transition: all 0.3s ease;
-}
-
-.login-submit-btn:active {
-  transform: scale(0.95);
-  opacity: 0.7;
 }
 
 .login-wechat-panel {
@@ -114,9 +108,9 @@ page {
 
 /* 调试模式入口 */
 .auth-debug-entry {
-  margin: 40rpx auto;
-  padding: 20rpx 40rpx 180rpx;
-  font-size: var(--fs-24);
+  margin: 20rpx auto;
+  padding: 20rpx 40rpx 80rpx;
+  font-size: var(--fs-26);
   color: #999;
   text-align: center;
   text-decoration: underline;

@@ -131,6 +131,12 @@ input {
   font-size: var(--fs-24);
   font-weight: 600;
   box-shadow: 0 14rpx 28rpx rgba(37, 99, 235, 0.16);
+  transition: all 0.3s ease;
+}
+
+.office-btn-primary:active {
+  transform: scale(0.95);
+  opacity: 0.75;
 }
 
 .office-btn-secondary {
@@ -143,6 +149,12 @@ input {
   color: #2563EB;
   font-size: var(--fs-24);
   font-weight: 600;
+  transition: all 0.3s ease;
+}
+
+.office-btn-secondary:active {
+  transform: scale(0.95);
+  opacity: 0.75;
 }
 
 .office-empty {
@@ -247,6 +259,12 @@ input {
   margin: 28rpx;
   justify-content: center;
   padding: 24rpx 12rpx;
+  transition: all 0.3s ease;
+}
+
+.auth-submit-btn:active {
+  transform: scale(0.95);
+  opacity: 0.7;
 }
 
 .auth-submit-btn::after {

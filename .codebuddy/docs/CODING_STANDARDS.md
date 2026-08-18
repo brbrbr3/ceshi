@@ -895,6 +895,44 @@ Page({
 - `meal-management` 页面：5 个弹窗，使用 `modal-closing` + `@keyframes` 方案
 - `arrival-guide` 页面：1 个弹窗，使用 `transition` + `popupAnimating` 方案（DOM 常驻模式）
 
+### 13.8 弹窗内 scroll-view 滚动穿透规范（重要）
+
+**核心规律**：弹窗内 `scroll-view` 发生「滚动穿透」（滚到边界继续滑，底层页面跟着滚）的根因，是 **scroll-view 存在「空滚动空间」——即 scroll-view 高度大于内容高度**。
+
+**规则**：弹窗容器及其内部 `scroll-view` **必须使用 `max-height`，禁止使用固定 `height`**。
+
+| 写法 | 行为 | 结果 |
+|------|------|------|
+| `height: 85vh`（固定） | scroll-view 始终固定高度，内容不满时底部留有空滚动空间 | ❌ 穿透 |
+| `max-height: 85vh`（自适应） | scroll-view 高度 = `min(内容高度, max-height)`，内容不满时收缩、无空滚动空间 | ✅ 不穿透 |
+
+**机制说明**：
+- `max-height` 下，内容不满时 scroll-view 收缩到内容高度，无空滚动空间，手指滑动不被 scroll-view 消费，touchmove 冒泡到遮罩的 `catchtouchmove` 被拦截 → 底层不动；
+- 固定 `height` 下，内容不满时也留有空滚动空间，iOS 原生滚动触发边界 overscroll，顺着 scroll chaining 传给底层 page → 穿透；
+- 「字体大小影响穿透」现象也由本机制解释：字体改变内容高度 → 改变「空滚动空间」大小。
+
+**已验证无效的做法**（勿依赖）：
+- `catchtap="stopPropagation"` 加在 scroll-view 上
+- scroll-view 的 `enhanced` 属性
+- scroll-view 的 `bounces` 属性
+
+**正确示例**：
+
+```css
+.trip-popup-container {
+  max-height: 85vh;      /* 用 max-height，不用 height */
+  display: flex;
+  flex-direction: column;
+}
+
+.trip-popup-body {
+  flex: 1;
+  max-height: 80vh;      /* scroll-view 同样用 max-height */
+}
+```
+
+> 参考：`trip-report` 页弹窗（`trip-popup-container` + `trip-popup-body`）、`arrival-guide` 页弹窗（`popup-container` + `popup-body`）均为此正确写法。
+
 ---
 
 ## 14. 审核模式规范

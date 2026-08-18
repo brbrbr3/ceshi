@@ -88,6 +88,8 @@ const DB_COLLECTIONS = [
   'side_dish_orders',
   'side_dish_bookings',
   'car_purchase_records',
+  'content_forms',
+  'content_form_submissions',
   'leave_records',
   'leave_quotas'
 ]

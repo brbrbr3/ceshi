@@ -1,9 +1,18 @@
 /* 全屏背景 */
 .arrival-guide-page {
   position: relative;
-  min-height: 100vh;
-  /*overflow: hidden;*/
+}
+
+/* fixed 背景层：固定在视口，滚动不露底 */
+.arrival-guide-page::before {
+  content: '';
+  position: fixed;
+  top: 0;
+  left: 0;
+  right: 0;
+  bottom: 0;
   background: linear-gradient(135deg, #64748b 0%, #b9c4bf 100%);
+  z-index: 0;
 }
 
 .bg-image {
@@ -66,7 +75,6 @@
   position: relative;
   z-index: 1;
   padding: 40rpx 40rpx 60rpx;
-  min-height: 100vh;
   display: flex;
   flex-direction: column;
   box-sizing: border-box;
@@ -80,14 +88,14 @@
 }
 
 .welcome-title {
-  font-size: var(--fs-48);
-  font-weight: 700;
+  font-size: var(--fs-45);
+  font-weight: 600;
   color: #ffffff;
   text-shadow: 0 2rpx 8rpx rgba(0, 0, 0, 0.3);
 }
 
 .welcome-desc {
-  font-size: var(--fs-28);
+  font-size: var(--fs-32);
   color: rgba(255, 255, 255, 0.85);
   text-shadow: 0 1rpx 4rpx rgba(0, 0, 0, 0.3);
 }
@@ -171,6 +179,7 @@
   transition: transform 0.3s cubic-bezier(0.4, 0, 0.2, 1);
   display: flex;
   flex-direction: column;
+
 }
 
 .popup-container.is-visible {
@@ -206,8 +215,11 @@
 
 .popup-body {
   flex: 1;
-  padding: 24rpx 40rpx 90rpx;
-  overflow-y: auto;
+  max-height: 75vh;
+}
+
+.popup-body-inner {
+  padding: 16rpx 40rpx 90rpx;
   box-sizing: border-box;
 }
 
@@ -220,12 +232,12 @@
 }
 
 .checklist-progress {
-  font-size: var(--fs-26);
+  font-size: var(--fs-30);
   color: #64748b;
 }
 
 .checklist-all {
-  font-size: var(--fs-26);
+  font-size: var(--fs-28);
   color: #2563eb;
   font-weight: 600;
   padding: 8rpx 20rpx;
@@ -287,7 +299,7 @@
 }
 
 .checklist-category {
-  font-size: var(--fs-28);
+  font-size: var(--fs-32);
   font-weight: 600;
   color: #2563eb;
 }
@@ -297,7 +309,7 @@
 }
 
 .checklist-detail {
-  font-size: var(--fs-26);
+  font-size: var(--fs-30);
   color: #334155;
   line-height: 1.5;
 }
@@ -307,7 +319,7 @@
 }
 
 .checklist-note {
-  font-size: var(--fs-26);
+  font-size: var(--fs-28);
   color: #94a3b8;
   line-height: 1.5;
 }
@@ -322,7 +334,7 @@
 }
 
 .content-category {
-  font-size: var(--fs-30);
+  font-size: var(--fs-32);
   font-weight: 400;
   color: #1e293b;
   margin-bottom: 10rpx;
@@ -343,7 +355,7 @@
 }
 
 .content-card-name {
-  font-size: var(--fs-28);
+  font-size: var(--fs-30);
   font-weight: 400;
   color: #1e293b;
   margin-bottom: 8rpx;
@@ -391,7 +403,7 @@
 }
 
 .content-card-desc {
-  font-size: var(--fs-26);
+  font-size: var(--fs-28);
   color: #64748b;
   line-height: 1.5;
   word-break: break-all;

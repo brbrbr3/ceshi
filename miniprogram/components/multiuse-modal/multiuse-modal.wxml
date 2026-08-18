@@ -1,4 +1,4 @@
-<view wx:if="{{_show}}" class="mm-mask {{_closing ? 'is-closing' : ''}}" catchtouchmove="stopPropagation" bindtap="handleMaskTap">
+<view wx:if="{{_show}}" class="mm-mask {{_closing ? 'is-closing' : ''}}" catchtouchmove="stopPropagation">
   <view class="mm-modal {{_closing ? 'is-closing' : ''}} {{danger ? 'is-danger' : ''}}" catchtap="stopPropagation">
 
     <!-- 环形倒计时（居中）+ 标题（居中） -->
@@ -9,8 +9,8 @@
       <view class="mm-title">{{title}}</view>
     </view>
 
-    <!-- 正文 -->
-    <view wx:if="{{content}}" class="mm-content">{{content}}</view>
+    <!-- 正文（可滚动） -->
+    <scroll-view wx:if="{{content}}" class="mm-content" scroll-y>{{content}}</scroll-view>
 
     <!-- 输入框 -->
     <view wx:if="{{inputItems.length > 0}}" class="mm-inputs">

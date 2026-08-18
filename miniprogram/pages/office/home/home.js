@@ -365,21 +365,12 @@ Page({
       return
     }
 
-    // 显示加载提示
-    wx.showToast({
-      title: '缓存用户权限中',
-      icon: 'loading',
-      duration: 2000
-    })
-
     // 批量检查权限（不传参，云函数自动查询所有权限 key，缓存由 app.js 统一管理）
     app.loadPermissionCache()
       .then(() => {
-        wx.hideToast()
       })
       .catch((error) => {
         console.error('批量检查权限失败:', error)
-        wx.hideToast()
       })
   },
 

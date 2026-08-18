@@ -108,7 +108,7 @@
   </view>
 
   <!-- ========== 表单弹窗 ========== -->
-  <view class="ic-popup-mask {{showFormPopup ? 'is-visible' : ''}} {{modalAnimating ? 'is-closing' : ''}}" catchtap="hideFormPopup">
+  <view class="ic-popup-mask {{showFormPopup ? 'is-visible' : ''}} {{modalAnimating ? 'is-closing' : ''}}" bind:tap="hideFormPopup" catch:touchmove="stopPropagation">
     <view class="ic-popup-container" catchtap="stopPropagation">
       <view class="ic-popup-header">
         <view class="ic-popup-title">{{formMode === 'edit' ? '编辑兴趣班备案' : '新增兴趣班备案'}}</view>
@@ -164,19 +164,19 @@
             <view class="ic-field">
               <view class="ic-field-label">陪同人</view>
               <view class="ic-input-wrapper">
-                <input class="ic-input" value="{{form.companion}}" placeholder="请输入陪同人（选填）" placeholder-class="ic-input-placeholder" bindinput="handleCompanionInput" />
+                <input class="ic-input" value="{{form.companion}}" placeholder="如无陪同人可不填" placeholder-class="ic-input-placeholder" bindinput="handleCompanionInput" />
               </view>
             </view>
 
             <view class="ic-field">
               <view class="ic-field-label">备注</view>
               <view class="ic-input-wrapper">
-                <input class="ic-input" value="{{form.remark}}" placeholder="如：女儿" placeholder-class="ic-input-placeholder" bindinput="handleRemarkInput" />
+                <input class="ic-input" value="{{form.remark}}" placeholder="说明参与人与备案人关系，如XX之子等" placeholder-class="ic-input-placeholder" bindinput="handleRemarkInput" />
               </view>
             </view>
           </view>
 
-          <button class="ic-submit-btn" loading="{{submitting}}" disabled="{{submitting}}" bindtap="handleSubmit">
+          <button class="auth-submit-btn" loading="{{submitting}}" disabled="{{submitting}}" bindtap="handleSubmit">
             {{formMode === 'edit' ? '确认编辑' : '确认备案'}}
           </button>
 
@@ -186,7 +186,7 @@
   </view>
 
   <!-- ========== 详情弹窗 ========== -->
-  <view class="ic-popup-mask {{showDetailPopup ? 'is-visible' : ''}} {{modalAnimating ? 'is-closing' : ''}}" catchtap="hideDetailPopup">
+  <view class="ic-popup-mask {{showDetailPopup ? 'is-visible' : ''}} {{modalAnimating ? 'is-closing' : ''}}" bind:tap="hideDetailPopup" catch:touchmove="stopPropagation">
     <view class="ic-popup-container ic-popup-container-detail" catchtap="stopPropagation">
       <view class="ic-popup-header">
         <view class="ic-popup-title">备案详情</view>

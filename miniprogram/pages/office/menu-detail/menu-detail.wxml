@@ -4,7 +4,7 @@
       <view class="menu-detail-title">{{menu.title}}</view>
       <view class="menu-detail-meta">
         <text>{{menu.authorName}}</text>
-        <text> · {{menu.timeText}}提交</text>
+        <text> · {{menu.timeText}} 发布</text>
       </view>
     </view>
   </view>
@@ -72,8 +72,8 @@
           </view>
         </scroll-view>
         <view class="rating-popup-footer">
-          <view class="rating-popup-cancel" catchtap="closeRatingPopup">取消</view>
-          <view class="rating-popup-submit {{hasTempRatings ? '' : 'is-disabled'}}" catchtap="submitRatings">提交打分</view>
+          <view class="rating-popup-btn rating-popup-cancel" catchtap="closeRatingPopup">取消</view>
+          <view class="rating-popup-btn rating-popup-submit {{hasTempRatings ? '' : 'is-disabled'}}" catchtap="submitRatings">提交打分</view>
         </view>
       </view>
     </view>

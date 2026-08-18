@@ -365,7 +365,7 @@
   right: 0;
   background: #FFFFFF;
   border-radius: 32rpx 32rpx 0 0;
-  height: 85vh;
+  max-height: 85vh;
   overflow: hidden;
   display: flex;
   flex-direction: column;
@@ -383,7 +383,7 @@
 }
 
 .ic-popup-container-detail {
-  height: 70vh;
+  height: 80vh;
 }
 
 .ic-popup-header {
@@ -410,6 +410,7 @@
 
 .ic-popup-body {
   flex: 1;
+  max-height: 80vh;
   overflow: hidden;
 }
 
@@ -434,7 +435,7 @@
 }
 
 .ic-form-section-title {
-  font-size: var(--fs-28);
+  font-size: var(--fs-32);
   font-weight: 600;
   color: #2563EB;
   margin-bottom: 20rpx;
@@ -447,7 +448,7 @@
 }
 
 .ic-field-label {
-  font-size: var(--fs-28);
+  font-size: var(--fs-30);
   color: #1E293B;
   font-weight: 600;
   margin-bottom: 12rpx;

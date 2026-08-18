@@ -152,13 +152,6 @@ Component({
       this.triggerEvent('cancel')
     },
 
-    // 遮罩点击：倒计时期间不关闭，倒计时结束后等同取消
-    handleMaskTap() {
-      if (this.data._closing) return
-      if (this.data.remaining > 0) return
-      this.triggerEvent('cancel')
-    },
-
     stopPropagation() {}
   }
 })
