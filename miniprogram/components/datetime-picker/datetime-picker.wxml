@@ -10,17 +10,13 @@
   <!-- 遮罩层 -->
   <view 
     class="picker-mask {{visible ? 'picker-mask--show' : ''}}" 
-    wx:if="{{visible}}" 
     bindtap="onMaskTap"
-    animation="{{maskAnimation}}"
   ></view>
 
   <!-- 弹出层 -->
   <view 
     class="picker-popup {{visible ? 'picker-popup--show' : ''}}" 
-    wx:if="{{visible}}" 
     catchtouchmove="stopPropagation"
-    animation="{{animationData}}"
   >
     <!-- 头部 -->
     <view class="picker-header">

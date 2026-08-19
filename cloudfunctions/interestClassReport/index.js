@@ -87,7 +87,7 @@ async function handleList(openid, params) {
 
   const isAdmin = currentUser.isAdmin === true
   const isDeptHead = currentUser.isDepartmentHead === true
-  const isLeader = currentUser.role === '馆员' && currentUser.department === '无'
+  const isLeader = currentUser.role === '馆员' && currentUser.department === '无' && !currentUser.isRestrictedLeader
   const isBanHead = currentUser.role === '馆员' && currentUser.department === '办' && currentUser.isDepartmentHead === true
 
   // 计算 scopeType（与 trip-board 模式一致，云函数统一计算）

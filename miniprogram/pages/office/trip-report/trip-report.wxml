@@ -172,15 +172,12 @@
   <view class="trip-popup-mask {{showRetroFormPopup ? 'is-visible' : ''}}" bindtap="hideRetroFormPopup" catchtouchmove="stopPropagation">
     <view class="trip-popup-container" catchtap="stopPropagation">
       <view class="trip-popup-header">
-        <view>
-          <view class="trip-popup-title">补填外出报备</view>
-          <view class="trip-popup-subtitle">补填报备将不进行消息推送</view>
-        </view>
+        <view class="trip-popup-title">补填外出报备</view>
         <view class="trip-popup-close" bindtap="hideRetroFormPopup">×</view>
       </view>
 
       <scroll-view class="trip-popup-body" scroll-y enhanced show-scrollbar="{{false}}">
-        <view class="trip-popup-form" style="padding-bottom: 140rpx;">
+        <view class="trip-popup-form">
           <view class="trip-field">
             <view class="trip-field-label">目的地 <text class="trip-required">*</text></view>
             <view class="trip-input-wrapper">
@@ -233,6 +230,7 @@
               </view>
             </picker>
           </view>
+          <view class="trip-field-hint">注：补填报备将不进行消息推送</view>
 
           <button class="auth-submit-btn trip-submit-btn" loading="{{submitting}}" disabled="{{submitting}}" bindtap="submitRetroDepart">
             确认补填
@@ -279,8 +277,8 @@
       </view>
       <scroll-view class="trip-popup-body" scroll-y enhanced show-scrollbar="{{false}}">
         <view class="append-dest-content">
-            <view class="trip-field-label">您本次出行的目的地</view>
-            <view class="append-dest-tip">{{activeTrip.destination}}</view>
+          <view class="trip-field-label">您本次出行的目的地</view>
+          <view class="append-dest-tip">{{activeTrip.destination}}</view>
           <view class="trip-field" style="margin-bottom: 16rpx;">
             <view class="trip-field-label">新的目的地 <text class="trip-required">*</text></view>
             <view class="trip-input-wrapper">

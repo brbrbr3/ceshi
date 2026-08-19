@@ -38,6 +38,7 @@ Page({
     departmentOptions: [],
     livingAreas: [],
     positionOptions: [],
+    roleOptions: [],
     canEdit: false,
 
     // 弹窗选项卡
@@ -49,11 +50,13 @@ Page({
 
     // 个人信息表单
     formRole: '',
+    formRoleIndex: -1,
     formDepartment: '',
     formIsDeptHead: false,
     formPositions: [],
     formLivingArea: '',
     formIsAreaManager: false,
+    formIsRestrictedLeader: false,
 
     // 弹窗中订阅列表的展示维度
     subscriberGroupBy: 'department',
@@ -102,7 +105,8 @@ Page({
           livingAreas: constants.REPAIR_LIVING_AREAS || [],
           positionOptions: (constants.POSITION_OPTIONS || []).map(p =>
             typeof p === 'string' ? { name: p, value: p } : p
-          )
+          ),
+          roleOptions: constants.ROLE_OPTIONS || []
         })
       }
     } catch (e) {
@@ -362,11 +366,13 @@ Page({
       showEditModal: true,
       editUser: { ...user },
       formRole: user.role || '',
+      formRoleIndex: user.role ? this.data.roleOptions.indexOf(user.role) : -1,
       formDepartment: user.department || '',
       formIsDeptHead: !!user.isDepartmentHead,
       formPositions,
       formLivingArea: user.livingArea || '',
       formIsAreaManager: !!user.isAreaManager,
+      formIsRestrictedLeader: !!user.isRestrictedLeader,
       subscriberGroups,
       subscriberAreaGroups,
       subscriberGroupBy: 'department',
@@ -483,7 +489,11 @@ Page({
       return
     }
     const idx = Number(e.detail.value)
-    this.setData({ formRole: idx === 1 ? '其他' : '馆员' })
+    const role = this.data.roleOptions[idx] || ''
+    this.setData({
+      formRole: role,
+      formRoleIndex: idx
+    })
   },
 
   handleDeptChange(e) {
@@ -510,6 +520,14 @@ Page({
       return
     }
     this.setData({ formIsAreaManager: e.detail.value })
+  },
+
+  handleRestrictLeaderChange(e) {
+    if (!this.data.canEdit) {
+      utils.showToast({ title: '只读模式，如需修改请联系管理员', icon: 'none' })
+      return
+    }
+    this.setData({ formIsRestrictedLeader: e.detail.value })
   },
 
   handleAreaChange(e) {
@@ -773,6 +791,7 @@ Page({
               position: this.data.formPositions.filter(p => p.checked).map(p => p.value),
               livingArea: this.data.formLivingArea,
               isAreaManager: this.data.formIsAreaManager,
+              isRestrictedLeader: this.data.formIsRestrictedLeader,
               reportTo
             }
           }

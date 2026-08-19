@@ -8,7 +8,7 @@
       <view class="auth-form">
         <view class="auth-field">
           <view class="auth-field-label">菜单标题</view>
-          <view class="auth-input-shell">
+          <view class="auth-input-shell menu-edit-input-shell">
             <input
               value="{{form.title}}"
               bindinput="onTitleInput"

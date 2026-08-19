@@ -26,7 +26,7 @@ exports.main = async (event, context) => {
     const u = userRes.data[0]
 
     const isAdmin = u.isAdmin
-    const isLeader = u.role === '馆员' && u.department === '无'
+    const isLeader = u.role === '馆员' && u.department === '无' && !u.isRestrictedLeader
     const isDeptHead = u.isDepartmentHead
     const isAreaManager = !!u.isAreaManager
 
@@ -77,7 +77,8 @@ async function getAllPersonnel() {
       isAreaManager: true,
       reportTo: true,
       avatarUrl: true,
-      status: true
+      status: true,
+      isRestrictedLeader: true
     })
     .limit(200)
     .get()
@@ -104,7 +105,7 @@ async function updatePersonnel(params) {
   // 只允许更新许可的字段
   const allowedFields = [
     'role', 'department', 'isDepartmentHead', 'position',
-    'livingArea', 'isAreaManager', 'reportTo'
+    'livingArea', 'isAreaManager', 'reportTo', 'isRestrictedLeader'
   ]
   const data = {}
   for (const key of allowedFields) {

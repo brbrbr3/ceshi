@@ -97,17 +97,16 @@ page {
 }
 
 .date-item {
-  width: 140rpx;
-  padding: 20rpx 0;
+  padding: 20rpx 10rpx;
   border-radius: 24rpx;
   background: #F8FAFC;
   border: 3rpx solid transparent;
   display: flex;
-  flex-direction: column;
   align-items: center;
-  gap: 8rpx;
+  justify-content: space-between;
   transition: all 0.2s ease;
   flex-shrink: 0;
+  gap: 8rpx;
 }
 
 .date-item:active {
@@ -122,6 +121,13 @@ page {
 .date-item.is-disabled {
   opacity: 0.5;
   background: #F1F5F9;
+}
+
+.date-item-left {
+  display: flex;
+  align-items: center;
+  flex-direction: column;
+  gap: 8rpx;
 }
 
 .date-weekday {
@@ -158,6 +164,10 @@ page {
   font-weight: 500;
 }
 
+.date-item-right {
+  color: #EA580C;
+  font-size: var(--fs-35);
+}
 /* ========== 日期提示 ========== */
 .haircut-date-hint {
   padding: 20rpx 24rpx;
@@ -254,7 +264,6 @@ page {
 /* 时段左侧 */
 .haircut-slot-left {
   display: flex;
-  flex-direction: column;
   gap: 4rpx;
 }
 
@@ -274,15 +283,22 @@ page {
 }
 
 /* 操作按钮 */
+.haircut-slot-btn {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding-right: 10rpx;
+  margin-left: -10rpx;
+}
+
 .haircut-slot-action {
-  width: 44rpx;
-  height: 44rpx;
+  width: 54rpx;
+  height: 54rpx;
   border-radius: 50%;
   display: flex;
   align-items: center;
   justify-content: center;
-  font-size: var(--fs-32);
-  font-weight: bold;
+  font-size: var(--fs-40);
 }
 
 /* 设为不可预约按钮 - 红色 */
@@ -301,6 +317,14 @@ page {
 .haircut-slot-action.is-cancel {
   background: #FEE2E2;
   color: #DC2626;
+}
+
+/* 换日提示 */
+.haircut-change-hint {
+  font-size: 28rpx;
+  color: #64748B;
+  margin-bottom: 24rpx;
+  line-height: 1.5;
 }
 
 .haircut-slot-item.is-selected .haircut-slot-status.is-available {
@@ -552,7 +576,7 @@ page {
 
 /* ========== 表单 ========== */
 .haircut-popup-form {
-  padding: 32rpx 32rpx 0;
+  padding: 32rpx 32rpx 40rpx;
 }
 
 .haircut-field {
@@ -649,7 +673,7 @@ page {
 /* ========== 提交按钮 ========== */
 .haircut-submit-btn {
   background: linear-gradient(135deg, #EA580C 0%, #C2410C 100%);
-  margin-bottom: 150rpx;
+  margin-bottom: 90rpx;
 }
 
 .haircut-submit-btn[disabled] {

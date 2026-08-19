@@ -516,7 +516,7 @@ Page({
    * 多身份取并集，各部门去重
    */
   computeViewScopeText(user) {
-    const isLeader = user.role === '馆员' && user.department === '无'
+    const isLeader = user.role === '馆员' && user.department === '无' && !user.isRestrictedLeader
     const isAdmin = user.isAdmin
     const isDeptHead = user.isDepartmentHead
     const isAreaManager = !!user.isAreaManager

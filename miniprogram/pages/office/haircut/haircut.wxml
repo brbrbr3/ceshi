@@ -27,10 +27,9 @@
       <!-- 提示信息 -->
       <view wx:if="{{!isReviewer}}" class="haircut-info-card">
         <view class="haircut-info-text">
-          周一、三、五14:30~18:00提供理发<text>\n</text>
-          每半小时1个时段，每时段限约1人，可代他人预约<text>\n</text>
-          当日14:20后该日时段锁定，不再允许预约或取消<text wx:if="{{isReceptionist}}">
-          \n招待员对时段的操作不受限制</text>
+          每周一、三、五下午提供理发<text>\n</text>
+          当日14:20后该日锁定，不再允许预约或取消预约
+          <text wx:if="{{isReceptionist}}">\n招待员对理发日和预约的操作不受限制</text>
         </view>
       </view>
 
@@ -38,18 +37,16 @@
       <view class="date-selector">
         <scroll-view class="date-scroll" scroll-x enhanced show-scrollbar="{{false}}">
           <view class="date-list">
-            <view 
-              class="date-item {{selectedDateIndex === index ? 'is-active' : ''}} {{item.isDisabled ? 'is-disabled' : ''}}" 
-              wx:for="{{displayDates}}" 
-              wx:key="date" 
-              bindtap="handleDateSelect" 
-              data-index="{{index}}"
-              data-date="{{item}}"
-            >
-              <view class="date-weekday">{{item.weekDay}}</view>
-              <view class="date-day">{{item.monthDay}}</view>
-              <view class="date-count-badge">
-                <text>{{item.reservationCount}}</text>
+            <view class="date-item {{selectedDateIndex === index ? 'is-active' : ''}} {{item.isDisabled ? 'is-disabled' : ''}}" wx:for="{{displayDates}}" wx:key="date" bindtap="handleDateSelect" data-index="{{index}}" data-date="{{item}}">
+              <view class="date-item-left">
+                <view class="date-weekday">{{item.weekDay}}</view>
+                <view class="date-day">{{item.monthDay}}</view>
+                <view class="date-count-badge">
+                  <text>{{item.reservationCount}}</text>
+                </view>
+              </view>
+              <view wx:if="{{selectedDateIndex === index && isReceptionist}}">
+                <view class="haircut-slot-action is-restore" catchtap="handleOpenChangeDate">↻</view>
               </view>
             </view>
           </view>
@@ -65,14 +62,19 @@
       <view class="haircut-slots-section" wx:if="{{selectedDate && (selectedDateInfo && !selectedDateInfo.isDisabled) || (selectedDateInfo && selectedDateInfo.isDayLocked)}}">
         <view class="haircut-slots-title">选择时段</view>
         <view class="haircut-slots-list">
-          <view 
-            class="haircut-slot-item {{selectedSlot === item.start ? 'is-selected' : ''}} {{item.status === 'booked' || item.status === 'myBooked' || item.status === 'unavailable' ? 'is-booked' : ''}}" 
-            wx:for="{{slots}}" 
-            wx:key="start" 
-            bindtap="handleSlotSelect" 
-            data-slot="{{item}}"
-          >
+          <view class="haircut-slot-item {{selectedSlot === item.start ? 'is-selected' : ''}} {{item.status === 'booked' || item.status === 'myBooked' || item.status === 'unavailable' ? 'is-booked' : ''}}" wx:for="{{slots}}" wx:key="start" bindtap="handleSlotSelect" data-slot="{{item}}">
             <view class="haircut-slot-left">
+              <!-- 按钮部分 -->
+              <view class="haircut-slot-btn">
+                <!-- 招待员操作按钮 -->
+                <view wx:if="{{isReceptionist && (item.status === 'available' || item.status === 'unavailable')}}" class="haircut-slot-action is-{{item.status === 'unavailable' ? 'restore' : 'disable'}}" catchtap="handleSlotAction" data-slot="{{item}}">
+                  {{item.status === 'unavailable' ? '+' : '×'}}
+                </view>
+                <!-- 招待员取消他人预约按钮 -->
+                <view wx:if="{{isReceptionist && item.status === 'booked'}}" class="haircut-slot-action is-cancel" catchtap="handleSlotAction" data-slot="{{item}}">×</view>
+                <!-- 用户取消自己预约按钮（普通用户14:20后当天不显示） -->
+                <view wx:if="{{item.status === 'myBooked' && (isReceptionist || !selectedDateInfo.isDayLocked)}}" class="haircut-slot-action is-cancel" catchtap="handleSlotAction" data-slot="{{item}}">×</view>
+              </view>
               <view class="haircut-slot-time">
                 <text>{{item.display}}</text>
                 <text wx:if="{{(item.status === 'booked' || item.status === 'myBooked') && item.bookingInfo}}">{{'\n' +item.bookingInfo.displayName}}
@@ -83,29 +85,6 @@
               <view class="haircut-slot-status is-{{item.status}}">
                 {{item.statusLabel}}
               </view>
-              <!-- 招待员操作按钮 -->
-              <view 
-                wx:if="{{isReceptionist && (item.status === 'available' || item.status === 'unavailable')}}" 
-                class="haircut-slot-action is-{{item.status === 'unavailable' ? 'restore' : 'disable'}}"
-                catchtap="handleSlotAction"
-                data-slot="{{item}}"
-              >
-                {{item.status === 'unavailable' ? '+' : '×'}}
-              </view>
-              <!-- 招待员取消他人预约按钮 -->
-              <view 
-                wx:if="{{isReceptionist && item.status === 'booked'}}" 
-                class="haircut-slot-action is-cancel"
-                catchtap="handleSlotAction"
-                data-slot="{{item}}"
-              >×</view>
-              <!-- 用户取消自己预约按钮（普通用户14:20后当天不显示） -->
-              <view 
-                wx:if="{{item.status === 'myBooked' && (isReceptionist || !selectedDateInfo.isDayLocked)}}" 
-                class="haircut-slot-action is-cancel"
-                catchtap="handleSlotAction"
-                data-slot="{{item}}"
-              >×</view>
             </view>
           </view>
         </view>
@@ -260,7 +239,7 @@
       <view class="haircut-popup-form">
         <view class="haircut-field">
           <view class="haircut-field-label">预约时段</view>
-            <view class="haircut-input">{{selectedDate}}（{{selectedDateInfo.weekDay}}）{{selectedSlotDisplay}}</view>
+          <view class="haircut-input">{{selectedDate}}（{{selectedDateInfo.weekDay}}）{{selectedSlotDisplay}}</view>
         </view>
         <view class="haircut-field">
           <view class="haircut-field-label">理发人 <text class="haircut-required">*</text></view>
@@ -287,13 +266,7 @@
 
       <view class="haircut-popup-form">
         <view class="haircut-radio-group">
-          <view 
-            class="haircut-radio-item {{cancelReason === item ? 'is-active' : ''}}" 
-            wx:for="{{cancelReasons}}" 
-            wx:key="*this" 
-            bindtap="handleCancelReasonSelect" 
-            data-reason="{{item}}"
-          >
+          <view class="haircut-radio-item {{cancelReason === item ? 'is-active' : ''}}" wx:for="{{cancelReasons}}" wx:key="*this" bindtap="handleCancelReasonSelect" data-reason="{{item}}">
             <view class="haircut-radio-dot">
               <view class="haircut-radio-dot-inner" wx:if="{{cancelReason === item}}"></view>
             </view>
@@ -308,4 +281,48 @@
       </view>
     </view>
   </view>
+
+  <!-- 换日日期选择弹窗（招待员） -->
+  <view class="haircut-popup-mask {{showChangeDatePicker ? 'is-visible' : ''}}" catchtouchmove="stopPropagation" bindtap="closeChangeDatePicker">
+    <view class="haircut-popup-container" catchtap="stopPropagation">
+      <view class="haircut-popup-header">
+        <view class="haircut-popup-title">选择目标日期</view>
+        <view class="haircut-popup-close" bindtap="closeChangeDatePicker">×</view>
+      </view>
+      <view class="haircut-popup-form" style="padding-bottom: 400rpx;">
+        <view class="haircut-field-label">将 {{changeDateSource}} 的预约改到以下日期</view>
+        <datetime-picker
+          class="haircut-change-picker"
+          value=""
+          fields="{{['year','month','day','weekday']}}"
+          startDate="{{changeDateStart}}"
+          endDate="{{changeDateEnd}}"
+          bind:change="handleChangeDatePicked"
+        />
+      </view>
+    </view>
+  </view>
+
+  <!-- 换日二次确认弹窗 -->
+  <multiuse-modal
+    visible="{{changeDateConfirmVisible}}"
+    title="理发日调整"
+    content="{{changeDateConfirmInfo}}"
+    confirmText="确认调整"
+    cancelText="取消"
+    danger="{{true}}"
+    confirmLoading="{{changingDate}}"
+    bind:confirm="handleChangeDateConfirm"
+    bind:cancel="closeChangeDateConfirm"
+  />
+
+  <!-- 预约成功 / 换日成功弹窗 -->
+  <multiuse-modal
+    visible="{{successModalVisible}}"
+    title="{{successModalTitle}}"
+    content="{{successModalInfo}}"
+    confirmText="好的"
+    bind:confirm="closeSuccessModal"
+    bind:cancel="closeSuccessModal"
+  />
 </view>

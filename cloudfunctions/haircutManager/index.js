@@ -98,7 +98,7 @@ async function getHolidays(years) {
  */
 async function getReservationSlots(dates) {
   if (!Array.isArray(dates) || dates.length === 0) {
-    return success({ slotsByDate: {} })
+    return success({ slotsByDate: {}, changedDates: [] })
   }
 
   // 查询这些日期的所有有效预约和不可预约记录
@@ -143,7 +143,19 @@ async function getReservationSlots(dates) {
     })
   }
 
-  return success({ slotsByDate })
+  // 查询换日标记（临时理发日 + 被换走的源日期）
+  const changedResult = await appointmentsCollection
+    .where({
+      date: _.in(dates),
+      status: 'date_changed'
+    })
+    .field({ date: true, sourceDate: true })
+    .get()
+
+  const changedDates = (changedResult.data || []).map(r => r.date)
+  const movedSourceDates = (changedResult.data || []).map(r => r.sourceDate).filter(Boolean)
+
+  return success({ slotsByDate, changedDates, movedSourceDates })
 }
 
 /**
@@ -192,10 +204,17 @@ async function createAppointment(openid, appointmentData) {
     throw new Error('该日期为节假日，不提供理发服务')
   }
 
-  // 检查是否为理发日
+  // 检查是否为理发日（标准 135 或换日后的临时理发日）
   const dayOfWeek = targetDate.getDay()
   if (![1, 3, 5].includes(dayOfWeek)) {
-    throw new Error('该日期非理发日（仅周一、三、五提供理发服务）')
+    // 非标准理发日，检查是否有换日标记
+    const markerRes = await appointmentsCollection
+      .where({ date, status: 'date_changed' })
+      .limit(1)
+      .get()
+    if (!markerRes.data || markerRes.data.length === 0) {
+      throw new Error('该日期非理发日（仅周一、三、五提供理发服务）')
+    }
   }
 
   const now = Date.now()
@@ -385,7 +404,7 @@ async function getAppointments(openid, params = {}) {
 
   const user = userResult.data[0]
   const isAdmin = user.isAdmin === true
-  const isLeader = user.role === '馆员' && user.department === '无'
+  const isLeader = user.role === '馆员' && user.department === '无' && !user.isRestrictedLeader
   const isBanHead = user.role === '馆员' && user.department === '办' && user.isDepartmentHead === true
   const isAllowedPositions = Array.isArray(user.position) && user.position.some(p => HAIRCUT_VIEWER_POSITIONS.includes(p))
   // 管理员、领导、办负责人、其他允许的岗位人员，可以查看理发统计
@@ -672,6 +691,213 @@ async function cancelAppointmentByReceptionist(openid, date, timeSlot, cancelRea
   return success({}, '取消成功')
 }
 
+/**
+ * 截断文本（微信 thing 类型限制20字）
+ */
+function truncateText(text, len) {
+  if (!text) return ''
+  return text.length > len ? text.slice(0, len) : text
+}
+
+/**
+ * 从 sys_config 读取时区偏移（小时，默认 -3）
+ */
+async function getTimezoneOffset() {
+  try {
+    const configRes = await db.collection('sys_config')
+      .where({ type: 'timezone', key: 'TIMEZONE_OFFSET' })
+      .limit(1)
+      .get()
+    if (configRes.data && configRes.data.length > 0) {
+      const val = configRes.data[0].value
+      return val !== undefined && val !== null ? Number(val) : -3
+    }
+  } catch (e) {
+    // 降级使用默认值
+  }
+  return -3
+}
+
+/**
+ * 把时间戳转成指定时区的 YYYY-MM-DD 日期字符串
+ */
+function formatLocalDate(timestamp, offsetHours) {
+  const date = new Date(timestamp)
+  const utc = date.getTime() + date.getTimezoneOffset() * 60000
+  const local = new Date(utc + (offsetHours || 0) * 3600000)
+  const pad = (n) => String(n).padStart(2, '0')
+  return `${local.getFullYear()}-${pad(local.getMonth() + 1)}-${pad(local.getDate())}`
+}
+
+/**
+ * 换日（招待员专用）
+ * 将源日期的全部预约合并填充到目标日期的空位，并在目标日期标记临时理发日
+ */
+async function changeDate(openid, sourceDate, targetDate) {
+  // 1. 校验招待员权限
+  const userResult = await usersCollection.where({ openid }).limit(1).get()
+  if (!userResult.data || userResult.data.length === 0) {
+    throw new Error('用户不存在')
+  }
+  const user = userResult.data[0]
+  if (!(Array.isArray(user.position) && user.position.includes('招待员'))) {
+    throw new Error('只有招待员可以换日')
+  }
+
+  // 2. 校验日期格式
+  if (!/^\d{4}-\d{2}-\d{2}$/.test(sourceDate) || !/^\d{4}-\d{2}-\d{2}$/.test(targetDate)) {
+    throw new Error('日期格式不正确')
+  }
+  if (sourceDate === targetDate) {
+    throw new Error('目标日期不能与源日期相同')
+  }
+
+  // 3. 校验目标日期非过去（按本地时区计算「今天」）
+  const offsetHours = await getTimezoneOffset()
+  const todayStr = formatLocalDate(Date.now(), offsetHours)
+  if (targetDate < todayStr) {
+    throw new Error('目标日期不能早于今天')
+  }
+
+  // 4. 校验目标日期非节假日
+  const targetYear = parseInt(targetDate.split('-')[0], 10)
+  const holidays = await getHolidays([targetYear])
+  if (holidays.includes(targetDate)) {
+    throw new Error('目标日期为节假日，不提供理发服务')
+  }
+
+  // 5. 查源日期的 booked 记录（按时段排序）
+  const sourceBooked = await appointmentsCollection
+    .where({ date: sourceDate, status: 'booked' })
+    .orderBy('timeSlot', 'asc')
+    .get()
+
+  // 6. 查目标日期已占用时段
+  const targetOccupied = await appointmentsCollection
+    .where({ date: targetDate, status: _.in(['booked', 'unavailable', 'date_changed']) })
+    .field({ timeSlot: true })
+    .get()
+  const occupiedSlots = (targetOccupied.data || []).map(r => r.timeSlot)
+
+  // 7. 计算目标空位（按 TIME_SLOTS 顺序）
+  const freeSlots = TIME_SLOTS.map(s => s.start).filter(s => !occupiedSlots.includes(s))
+
+  // 8. 容量检查
+  const sourceCount = (sourceBooked.data || []).length
+  if (sourceCount > freeSlots.length) {
+    throw new Error(`目标日期空位不足（剩 ${freeSlots.length} 个空位，需容纳 ${sourceCount} 个预约）`)
+  }
+
+  // 9. 按顺序填充：源预约按时段升序，逐个填到目标空位
+  const moves = []
+  const nowTs = Date.now()
+  for (let i = 0; i < sourceCount; i++) {
+    const booking = sourceBooked.data[i]
+    const newSlot = freeSlots[i]
+    const slotConfig = TIME_SLOTS.find(s => s.start === newSlot)
+
+    await appointmentsCollection.doc(booking._id).update({
+      data: {
+        date: targetDate,
+        timeSlot: newSlot,
+        timeSlotDisplay: slotConfig.display,
+        movedFromDate: sourceDate,
+        movedAt: nowTs,
+        updatedAt: nowTs
+      }
+    })
+
+    moves.push({
+      appointeeName: booking.appointeeName,
+      bookerId: booking.bookerId,
+      oldSlotDisplay: booking.timeSlotDisplay,
+      newSlotDisplay: slotConfig.display
+    })
+  }
+
+  // 10. 删除源日期的 unavailable 记录；查源日期是否本身是临时理发日（追溯最初源日期）
+  await appointmentsCollection.where({ date: sourceDate, status: 'unavailable' }).remove()
+
+  const sourceMarkerRes = await appointmentsCollection
+    .where({ date: sourceDate, status: 'date_changed' })
+    .limit(1)
+    .get()
+  const originSourceDate = (sourceMarkerRes.data && sourceMarkerRes.data.length > 0)
+    ? (sourceMarkerRes.data[0].sourceDate || sourceDate)
+    : sourceDate
+
+  // 删除源日期的 date_changed 标记
+  await appointmentsCollection.where({ date: sourceDate, status: 'date_changed' }).remove()
+
+  // 11. 写入/更新目标日期的 date_changed 标记（sourceDate 用最初源日期）
+  const existingMarker = await appointmentsCollection
+    .where({ date: targetDate, status: 'date_changed' })
+    .limit(1)
+    .get()
+
+  if (existingMarker.data && existingMarker.data.length > 0) {
+    await appointmentsCollection.doc(existingMarker.data[0]._id).update({
+      data: {
+        sourceDate: originSourceDate,
+        changedBy: user.name,
+        changedAt: nowTs,
+        updatedAt: nowTs
+      }
+    })
+  } else {
+    await appointmentsCollection.add({
+      data: {
+        date: targetDate,
+        timeSlot: '__date_changed__',
+        timeSlotDisplay: '换日标记',
+        status: 'date_changed',
+        sourceDate: originSourceDate,
+        changedBy: user.name,
+        changedAt: nowTs,
+        createdAt: nowTs,
+        updatedAt: nowTs
+      }
+    })
+  }
+
+  // 12. 给被挪动的预约人发订阅消息
+  await notifyMovedBookers(moves, targetDate)
+
+  return success({ moves, movedCount: moves.length }, '换日成功')
+}
+
+/**
+ * 通知被挪动的预约人（订阅消息模板4：未读消息提醒）
+ */
+async function notifyMovedBookers(moves, targetDate) {
+  const templateId = 'mJ1CGM8OvpgomnYy0yot4Kk8hD8S-NH06A6ZDywdpGc'
+
+  for (const move of moves) {
+    if (!move.bookerId) continue
+    try {
+      const timeStr = `${targetDate} ${move.newSlotDisplay.split('~')[0] || ''}`
+      await cloud.openapi.subscribeMessage.send({
+        touser: move.bookerId,
+        templateId,
+        page: 'pages/office/haircut/haircut',
+        data: {
+          thing7: { value: truncateText('理发预约调整', 20) },
+          time2: { value: timeStr },
+          thing6: { value: truncateText('换日通知', 20) },
+          thing3: { value: truncateText(`您的理发预约已改至 ${targetDate} ${move.newSlotDisplay}`, 20) },
+          thing4: { value: truncateText('请按新时段前往理发', 20) }
+        }
+      })
+      console.log('[换日通知✓] 已通知:', move.bookerId, move.appointeeName)
+    } catch (error) {
+      console.warn('[换日通知✗] 发送失败:', move.bookerId, JSON.stringify({
+        errcode: error.errcode || error.errCode || 'unknown',
+        errmsg: error.errmsg || error.errMsg || error.message
+      }))
+    }
+  }
+}
+
 // 云函数入口
 exports.main = async (event) => {
   const wxContext = cloud.getWXContext()
@@ -708,6 +934,9 @@ exports.main = async (event) => {
 
       case 'cancelAppointmentByReceptionist':
         return await cancelAppointmentByReceptionist(openid, event.date, event.timeSlot, event.cancelReason)
+
+      case 'changeDate':
+        return await changeDate(openid, event.sourceDate, event.targetDate)
 
       default:
         return fail('不支持的操作类型', 400)

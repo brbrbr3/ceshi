@@ -112,7 +112,22 @@ Page({
     cancelling: false,
 
     // 时间状态
-    todayStr: ''
+    todayStr: '',
+
+    // 预约成功弹窗
+    successModalVisible: false,
+    successModalTitle: '',
+    successModalInfo: '',
+
+    // 换日功能（招待员）
+    showChangeDatePicker: false,
+    changeDateStart: '',
+    changeDateEnd: '',
+    changeDateSource: '',
+    changeDateTarget: '',
+    changeDateConfirmVisible: false,
+    changeDateConfirmInfo: '',
+    changingDate: false
   },
 
   onLoad() {
@@ -212,6 +227,9 @@ Page({
       // 1. 本地计算应该显示的日期（基于本地时间）
       const calculatedDates = this.calculateDisplayDates()
 
+      // 1.5 计算候选日期（今天到下周五的工作日，用于查询临时理发日）
+      const candidateDates = this.calculateCandidateDates()
+
       // 2. 获取节假日配置（全量缓存）
       const holidaySet = await this.fetchHolidays()
 
@@ -258,18 +276,25 @@ Page({
         }
       })
 
-      // 4. 获取非节假日日期的预约情况
-      if (nonHolidayDates.length > 0) {
+      // 4. 合并查询日期：135 非节假日 + 候选日期（非节假日）
+      const queryDates = [...new Set([
+        ...nonHolidayDates,
+        ...candidateDates.filter(d => !holidaySet.has(d))
+      ])]
+
+      if (queryDates.length > 0) {
         const res = await wx.cloud.callFunction({
           name: 'haircutManager',
           data: {
             action: 'getReservationSlots',
-            dates: nonHolidayDates
+            dates: queryDates
           }
         })
 
         if (res.result.code === 0) {
           const slotsByDate = res.result.data.slotsByDate || {}
+          const changedDates = res.result.data.changedDates || []
+          const movedSourceDates = res.result.data.movedSourceDates || []
           // 缓存完整时段数据，供 buildSlots 复用
           this._slotsByDateCache = slotsByDate
           // 填充预约数
@@ -278,10 +303,42 @@ Page({
               d.reservationCount = slotsByDate[d.date].length
             }
           })
+
+          // 移除被换走的源日期（标准 135 中被换走的，不再显示、不再接收预约）
+          if (movedSourceDates.length > 0) {
+            for (let i = displayDates.length - 1; i >= 0; i--) {
+              if (movedSourceDates.includes(displayDates[i].date)) {
+                displayDates.splice(i, 1)
+              }
+            }
+          }
+
+          // 追加临时理发日（changedDates 中非 135、非过去、非节假日的日期）
+          const existingDates = new Set(displayDates.map(d => d.date))
+          changedDates.forEach(dateStr => {
+            if (existingDates.has(dateStr)) return
+            if (dateStr < todayStr) return
+            if (holidaySet.has(dateStr)) return
+
+            const isDayLocked = this.isDateLocked(dateStr) && !this.data.isReceptionist
+            displayDates.push({
+              ...this.buildDateInfo(dateStr),
+              isHoliday: false,
+              isToday: dateStr === todayStr,
+              isDisabled: false,
+              isDayLocked,
+              isChangedDate: true,
+              disableReason: '',
+              reservationCount: (slotsByDate[dateStr] || []).length
+            })
+          })
         }
       }
 
-      // 5. 更新数据
+      // 5. 按日期升序排序（临时理发日可能插在 135 之间）
+      displayDates.sort((a, b) => a.date.localeCompare(b.date))
+
+      // 6. 更新数据
       this.setData({
         displayDates
       })
@@ -385,6 +442,48 @@ Page({
    * 计算应该显示的日期（本地时间）
    * 规则：周五18:00后、周六、周日显示下周的周一三五，否则显示本周的周一三五
    */
+  /**
+   * 构建日期显示信息（weekDay/monthDay/dayOfWeek）
+   */
+  buildDateInfo(dateStr) {
+    const [year, month, day] = dateStr.split('-').map(Number)
+    const dateObj = new Date(year, month - 1, day)
+    const dayOfWeek = dateObj.getDay()
+    const weekDays = ['周一', '周二', '周三', '周四', '周五', '周六', '周日']
+    return {
+      date: dateStr,
+      weekDay: weekDays[dayOfWeek === 0 ? 6 : dayOfWeek - 1],
+      monthDay: `${month}月${day}日`,
+      dayOfWeek: ['日', '一', '二', '三', '四', '五', '六'][dayOfWeek]
+    }
+  },
+
+  /**
+   * 计算候选日期（今天到下周五的所有工作日）
+   * 用于查询临时理发日（换日标记）
+   */
+  calculateCandidateDates() {
+    const now = new Date()
+    const today = new Date(now.getFullYear(), now.getMonth(), now.getDate())
+    const dayOfWeek = today.getDay()
+
+    // 本周五距今天数，下周五 = 本周五 + 7 天
+    const daysToThisFriday = (5 - dayOfWeek + 7) % 7
+    const nextFriday = new Date(today)
+    nextFriday.setDate(today.getDate() + daysToThisFriday + 7)
+
+    const candidates = []
+    const cursor = new Date(today)
+    while (cursor <= nextFriday) {
+      const dow = cursor.getDay()
+      if (dow >= 1 && dow <= 5) {
+        candidates.push(this.formatLocalDate(cursor))
+      }
+      cursor.setDate(cursor.getDate() + 1)
+    }
+    return candidates
+  },
+
   calculateDisplayDates() {
     const now = new Date()
     const currentDayOfWeek = now.getDay() // 0=周日, 5=周五, 6=周六
@@ -878,11 +977,13 @@ Page({
       })
 
       if (res.result.code === 0) {
-        wx.showToast({
-          title: '预约成功',
-          icon: 'success'
-        })
         this.hideBookingPopup()
+        // 弹窗提示预约成功
+        this.setData({
+          successModalVisible: true,
+          successModalTitle: '预约成功',
+          successModalInfo: `${this.data.selectedDate} ${this.data.selectedSlotDisplay}\n理发人：${appointeeName.trim()}`
+        })
         // 刷新时段与日期列表（loadDisplayDates 内部会复用缓存刷新时段）
         this.loadDisplayDates()
       } else {
@@ -901,6 +1002,145 @@ Page({
       this.setData({
         submitting: false
       })
+    }
+  },
+
+  /**
+   * 关闭预约成功弹窗
+   */
+  closeSuccessModal() {
+    this.setData({ successModalVisible: false })
+  },
+
+  // ==================== 换日功能（招待员） ====================
+
+  /**
+   * 打开换日日期选择器
+   */
+  handleOpenChangeDate() {
+    const dateInfo = this.data.selectedDateInfo
+    if (!dateInfo) return
+
+    const now = new Date()
+    const today = new Date(now.getFullYear(), now.getMonth(), now.getDate())
+    const dayOfWeek = today.getDay()
+    const daysToThisFriday = (5 - dayOfWeek + 7) % 7
+    const nextFriday = new Date(today)
+    nextFriday.setDate(today.getDate() + daysToThisFriday + 7)
+
+    this.setData({
+      showChangeDatePicker: true,
+      changeDateStart: this.formatLocalDate(today),
+      changeDateEnd: this.formatLocalDate(nextFriday),
+      changeDateSource: dateInfo.date,
+      changeDateTarget: ''
+    })
+  },
+
+  /**
+   * 校验换日目标日期
+   * 规则：非过去、非源日期、非周末、本周仅二四、下周为周一至周五
+   */
+  /**
+   * 把 YYYY-MM-DD 转成中文「X年X月X日周X」
+   */
+  formatChineseDate(dateStr) {
+    const info = this.buildDateInfo(dateStr)
+    const [year] = dateStr.split('-')
+    return `${year}年${info.monthDay}（${info.weekDay}）`
+  },
+
+  validateChangeDateTarget(targetDate, sourceDate) {
+    const todayStr = this.formatLocalDate(new Date())
+    if (targetDate < todayStr) {
+      return { ok: false, msg: '目标日期不能早于今天' }
+    }
+    if (targetDate === sourceDate) {
+      return { ok: false, msg: '目标日期不能与当前日期相同' }
+    }
+
+    const [y, m, d] = targetDate.split('-').map(Number)
+    const dow = new Date(y, m - 1, d).getDay()
+
+    if (dow === 0 || dow === 6) {
+      return { ok: false, msg: '仅可选择工作日' }
+    }
+
+    return { ok: true }
+  },
+
+  /**
+   * 日期选择器确认
+   */
+  handleChangeDatePicked(e) {
+    const targetDate = e.detail.value
+    if (!targetDate) return
+
+    const sourceDate = this.data.changeDateSource
+    const check = this.validateChangeDateTarget(targetDate, sourceDate)
+    if (!check.ok) {
+      wx.showToast({ title: check.msg, icon: 'none' })
+      return
+    }
+
+    this.setData({
+      showChangeDatePicker: false,
+      changeDateTarget: targetDate,
+      changeDateConfirmVisible: true,
+      changeDateConfirmInfo: `确认将理发日从${this.formatChineseDate(sourceDate)}调整到${this.formatChineseDate(targetDate)}吗？\n已有的理发预约将同步调整至新日期，部分预约时段可能会顺延调整。`
+    })
+  },
+
+  /**
+   * 取消换日日期选择
+   */
+  closeChangeDatePicker() {
+    this.setData({ showChangeDatePicker: false })
+  },
+
+  /**
+   * 取消换日二次确认
+   */
+  closeChangeDateConfirm() {
+    this.setData({ changeDateConfirmVisible: false })
+  },
+
+  /**
+   * 确认换日
+   */
+  async handleChangeDateConfirm() {
+    if (this.data.changingDate) return
+    const sourceDate = this.data.changeDateSource
+    const targetDate = this.data.changeDateTarget
+    if (!sourceDate || !targetDate) return
+
+    this.setData({ changingDate: true })
+    try {
+      const res = await wx.cloud.callFunction({
+        name: 'haircutManager',
+        data: {
+          action: 'changeDate',
+          sourceDate,
+          targetDate
+        }
+      })
+
+      if (res.result.code === 0) {
+        this.setData({
+          changeDateConfirmVisible: false,
+          successModalVisible: true,
+          successModalTitle: '理发日调整成功',
+          successModalInfo: `理发日已由${this.formatChineseDate(sourceDate)}改至 ${this.formatChineseDate(targetDate)}，预约（如有）已同步调整至新日期。`
+        })
+        this.loadDisplayDates()
+      } else {
+        wx.showToast({ title: res.result.message || '换日失败', icon: 'none' })
+      }
+    } catch (error) {
+      console.error('换日失败:', error)
+      wx.showToast({ title: '换日失败', icon: 'none' })
+    } finally {
+      this.setData({ changingDate: false })
     }
   },
 

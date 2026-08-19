@@ -72,11 +72,12 @@
   position: relative;
   margin-bottom: 16rpx;
   flex-shrink: 0;
+  transition: all 0.3s ease;
 }
 
 .personnel-card:active {
-  transform: scale(0.97);
-  opacity: 0.9;
+  transform: scale(0.95);
+  opacity: 0.7;
 }
 
 .personnel-card-avatar {

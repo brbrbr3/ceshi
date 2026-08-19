@@ -1336,7 +1336,7 @@ async function getBoardData(openid, params) {
   }
   const currentUser = userRes.data[0]
 
-  const isLeader = currentUser.role === '馆员' && currentUser.department === '无'
+  const isLeader = currentUser.role === '馆员' && currentUser.department === '无' && !currentUser.isRestrictedLeader
   const isAdmin = currentUser.isAdmin
   const isDeptHead = currentUser.isDepartmentHead
   const isAreaManager = !!currentUser.isAreaManager
@@ -1528,7 +1528,7 @@ async function getPersonTrips(openid, params) {
   }
   const currentUser = currentUserRes.data[0]
 
-  const isLeader = currentUser.role === '馆员' && currentUser.department === '无'
+  const isLeader = currentUser.role === '馆员' && currentUser.department === '无' && !currentUser.isRestrictedLeader
   const isAdmin = currentUser.isAdmin
   const isDeptHead = currentUser.isDepartmentHead
   const isAreaManager = !!currentUser.isAreaManager

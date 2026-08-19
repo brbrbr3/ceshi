@@ -670,22 +670,7 @@ Component({
     showPicker() {
       if (this.data.disabled) return
 
-      // 创建动画
-      const animation = wx.createAnimation({
-        duration: 300,
-        timingFunction: 'cubic-bezier(0.25, 0.1, 0.25, 1)'
-      })
-
-      const maskAnimation = wx.createAnimation({
-        duration: 300,
-        timingFunction: 'ease'
-      })
-
-      this.setData({
-        visible: true,
-        animationData: animation.translateY(0).step().export(),
-        maskAnimation: maskAnimation.opacity(1).step().export()
-      })
+      this.setData({ visible: true })
 
       // 如果没有初始值，使用最小可选日期作为默认值
       if (!this.data.value) {
@@ -706,24 +691,7 @@ Component({
      * 隐藏picker
      */
     hidePicker() {
-      const animation = wx.createAnimation({
-        duration: 250,
-        timingFunction: 'cubic-bezier(0.25, 0.1, 0.25, 1)'
-      })
-
-      const maskAnimation = wx.createAnimation({
-        duration: 250,
-        timingFunction: 'ease'
-      })
-
-      this.setData({
-        animationData: animation.translateY('100%').step().export(),
-        maskAnimation: maskAnimation.opacity(0).step().export()
-      })
-
-      setTimeout(() => {
-        this.setData({ visible: false })
-      }, 250)
+      this.setData({ visible: false })
     },
 
     /**
