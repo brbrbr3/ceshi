@@ -187,6 +187,26 @@
   color: #94A3B8;
 }
 
+/* ========== 加载更多 / 没有更多（列表底部） ========== */
+.ic-load-more {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  padding: 40rpx 0;
+}
+
+.ic-load-more .ic-loading-spinner {
+  width: 40rpx;
+  height: 40rpx;
+  border-width: 3rpx;
+}
+
+.ic-no-more-text {
+  font-size: var(--fs-24);
+  color: #94A3B8;
+}
+
 /* ========== 列表 ========== */
 .ic-list-section {
   padding: 20rpx 24rpx 120rpx;

@@ -624,7 +624,7 @@ async function createForm(openid, user, params) {
 
     // 发布成功 → 异步推送通知（不阻塞主流程）
     if (formStatus === 'published') {
-      //notifyFormPublish(newForm, user.name || '').catch(err => {        console.error('[信息发布通知] 推送失败:', err)      })
+      notifyFormPublish(newForm, user.name || '').catch(err => {        console.error('[信息发布通知] 推送失败:', err)      })
     }
 
     return success(newForm, formStatus === 'published' ? '发布成功' : '暂存成功')

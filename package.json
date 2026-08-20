@@ -3,7 +3,6 @@
   "version": "1.0.0",
   "description": "WeChat miniprogram demo",
   "scripts": {
-    "lint": "eslint ."
   },
   "repository": {
     "type": "git",
@@ -16,15 +15,9 @@
     "url": "https://github.com/wechat-miniprogram/miniprogram-demo/issues"
   },
   "homepage": "https://github.com/wechat-miniprogram/miniprogram-demo#readme",
-  "devDependencies": {
-    "eslint": "^5.5.0",
-    "eslint-config-airbnb-base": "13.1.0",
-    "eslint-plugin-import": "^2.14.0",
-    "eslint-plugin-node": "^7.0.1",
-    "eslint-plugin-promise": "^4.0.0"
-  },
   "dependencies": {
     "@lspriv/wc-plugin-lunar": "^1.0.3-alpha.0",
-    "@lspriv/wx-calendar": "^1.8.5-alpha.4"
+    "@lspriv/wx-calendar": "^1.8.5-alpha.4",
+    "mp-html": "^2.5.2"
   }
 }

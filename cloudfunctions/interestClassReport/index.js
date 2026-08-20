@@ -187,9 +187,10 @@ async function handleList(openid, params) {
  * 校验备案字段
  */
 function validateReportData(params) {
-  const { name, className, timeSlot, teachingMode } = params || {}
+  const { name, className, location, timeSlot, teachingMode } = params || {}
   if (!String(name || '').trim()) return '请填写姓名'
   if (!String(className || '').trim()) return '请填写兴趣班名称'
+  if (!String(location || '').trim()) return '请填写兴趣班地点'
   if (!String(timeSlot || '').trim()) return '请填写兴趣班时段'
   if (!String(teachingMode || '').trim()) return '请填写教学模式'
   return null
@@ -212,6 +213,7 @@ async function handleCreate(openid, params) {
     _openid: openid,
     name: String(params.name).trim(),
     className: String(params.className).trim(),
+    location: String(params.location).trim(),
     timeSlot: String(params.timeSlot).trim(),
     teachingMode: String(params.teachingMode).trim(),
     companion: String(params.companion || '').trim(),
@@ -266,6 +268,7 @@ async function handleEdit(openid, params) {
     _openid: openid,
     name: String(params.name).trim(),
     className: String(params.className).trim(),
+    location: String(params.location).trim(),
     timeSlot: String(params.timeSlot).trim(),
     teachingMode: String(params.teachingMode).trim(),
     companion: String(params.companion || '').trim(),

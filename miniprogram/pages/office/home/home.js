@@ -342,7 +342,7 @@ Page({
       } else {
         this.enqueueModal({
           title: '更新兴趣班备案提示',
-          content: '您及您的家属本月兴趣班情况是否有变化？如有变化，请及时更新备案。',
+          content: '您及您的家属本月兴趣班情况是否有变化？如有变化，请及时更新备案。\n\n提示：兴趣班备案已新增「兴趣班地点」必填项，更新备案时请一并补充地点信息。',
           confirmText: '更新备案',
           cancelText: '无变化',
           onConfirm: goInterest

@@ -20,6 +20,22 @@ function getCorrectAnswers(block) {
   return block.correctAnswers ? [String(block.correctAnswers).trim()] : []
 }
 
+/**
+ * 把纯文本中的 http/https 链接自动转成 <a> 标签
+ * （editor 录入的是纯文本网址，需转成链接才能渲染）
+ */
+function autoLinkify(html) {
+  if (!html) return html
+  const protectedTags = []
+  html = html.replace(/<(img|a)\b[^>]*>/gi, (m) => {
+    protectedTags.push(m)
+    return `\u0000${protectedTags.length - 1}\u0000`
+  })
+  html = html.replace(/(https?:\/\/[^\s<>"'&]+)/g, '<a href="$1">$1</a>')
+  html = html.replace(/\u0000(\d+)\u0000/g, (m, i) => protectedTags[Number(i)])
+  return html
+}
+
 function calcFullScores(quizScore, blocks) {
   const qs = quizScore || {}
   const scoreMode = qs.scoreMode || 'total'
@@ -164,6 +180,7 @@ Page({
       isClosed: false,
       quizScore: data.quizScore || null
     }
+    form.description = autoLinkify(form.description || '')
     const tagCfg = getTagConfig(form.tag)
     let blocks = this.prepareBlocks(form.blocks || [], null)
     blocks = this.applyScoreText(blocks, form.quizScore)
@@ -202,6 +219,7 @@ Page({
         throw new Error(result.message || '加载失败')
       }
       const { form, mySubmission, isCreator, canPublish, canSubmit, quizResult } = result.data
+      form.description = autoLinkify(form.description || '')
       const tagCfg = getTagConfig(form.tag)
       const isQuiz = form.tag === 'quiz'
       const blocks = this.prepareBlocks(form.blocks || [], mySubmission)
@@ -238,6 +256,15 @@ Page({
       utils.showToast({ title: err.message || '加载失败', icon: 'none' })
       setTimeout(() => wx.navigateBack(), 800)
     })
+  },
+
+  /**
+   * 富文本链接点击：复制到剪贴板
+   */
+  onLinkTap(e) {
+    const href = e.detail && e.detail.href
+    if (!href) return
+    wx.setClipboardData({ data: href })
   },
 
   /**

@@ -1,4 +1,6 @@
 {
   "navigationBarTitleText": "信息详情",
-  "usingComponents": {}
+  "usingComponents": {
+    "mp-html": "mp-html"
+  }
 }

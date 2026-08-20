@@ -31,7 +31,12 @@
     <!-- 正文说明（富文本） -->
     <view class="office-card form-detail-card" wx:if="{{form.description}}">
       <!-- <view class="fd-card-label">正文说明</view> -->
-      <rich-text class="fd-rich" nodes="{{form.description}}"></rich-text>
+      <mp-html
+        container-style="font-size:var(--fs-30);color:#334155;line-height:1.7"
+        content="{{form.description}}"
+        selectable
+        bind:linktap="onLinkTap"
+      />
     </view>
 
     <!-- 控件区 -->

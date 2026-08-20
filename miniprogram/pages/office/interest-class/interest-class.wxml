@@ -65,6 +65,12 @@
         <view class="ic-card-classname">{{item.className}}</view>
         <view class="ic-card-meta">
           <view class="ic-card-meta-item">
+            <text class="ic-card-meta-label">地点</text>
+            <text class="ic-card-meta-value">{{item.location || '--'}}</text>
+          </view>
+        </view>
+        <view class="ic-card-meta">
+          <view class="ic-card-meta-item">
             <text class="ic-card-meta-label">时段</text>
             <text class="ic-card-meta-value">{{item.timeSlot}}</text>
           </view>
@@ -101,9 +107,16 @@
       </view>
     </view>
 
-    <!-- 分页加载状态 -->
-    <import src="/components/pagination-loading/pagination-loading.wxml" />
-    <template is="pagination-loading" data="{{ ...$root }}" />
+    <!-- 加载更多中（列表非空时） -->
+    <view wx:if="{{loading && list.length > 0}}" class="ic-load-more">
+      <view class="ic-loading-spinner"></view>
+      <text class="ic-loading-text">加载中...</text>
+    </view>
+
+    <!-- 没有更多数据 -->
+    <view wx:if="{{!loading && !hasMore && list.length > 0}}" class="ic-load-more">
+      <text class="ic-no-more-text">没有更多数据了</text>
+    </view>
 
   </view>
 
@@ -141,6 +154,13 @@
             </view>
 
             <view class="ic-field">
+              <view class="ic-field-label">兴趣班地点 <text class="ic-required">*</text></view>
+              <view class="ic-input-wrapper">
+                <input class="ic-input" value="{{form.location}}" placeholder="请输入兴趣班地点" placeholder-class="ic-input-placeholder" bindinput="handleLocationInput" />
+              </view>
+            </view>
+
+            <view class="ic-field">
               <view class="ic-field-label">兴趣班时段 <text class="ic-required">*</text></view>
               <view class="ic-input-wrapper">
                 <input class="ic-input" value="{{form.timeSlot}}" placeholder="如：每周三11:30——12:30" placeholder-class="ic-input-placeholder" bindinput="handleTimeSlotInput" />
@@ -171,7 +191,7 @@
             <view class="ic-field">
               <view class="ic-field-label">备注</view>
               <view class="ic-input-wrapper">
-                <input class="ic-input" value="{{form.remark}}" placeholder="说明参与人与备案人关系，如XX之子等" placeholder-class="ic-input-placeholder" bindinput="handleRemarkInput" />
+                <input class="ic-input" value="{{form.remark}}" placeholder="参与人与备案人关系，以及其他说明等" placeholder-class="ic-input-placeholder" bindinput="handleRemarkInput" />
               </view>
             </view>
           </view>
@@ -206,6 +226,10 @@
           <view class="ic-detail-classname">{{detailRecord.className}}</view>
 
           <view class="ic-detail-grid">
+            <view class="ic-detail-item">
+              <view class="ic-detail-item-label">地点</view>
+              <view class="ic-detail-item-value">{{detailRecord.location || '--'}}</view>
+            </view>
             <view class="ic-detail-item">
               <view class="ic-detail-item-label">时段</view>
               <view class="ic-detail-item-value">{{detailRecord.timeSlot}}</view>

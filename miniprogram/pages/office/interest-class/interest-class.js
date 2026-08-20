@@ -33,6 +33,7 @@ Page({
     form: {
       name: '',
       className: '',
+      location: '',
       timeSlot: '',
       teachingMode: '',
       companion: '',
@@ -231,6 +232,7 @@ Page({
       form: {
         name: '',
         className: '',
+        location: '',
         timeSlot: '',
         teachingMode: '',
         companion: '',
@@ -249,6 +251,7 @@ Page({
       form: {
         name: record.name || '',
         className: record.className || '',
+        location: record.location || '',
         timeSlot: record.timeSlot || '',
         teachingMode: record.teachingMode || '',
         companion: record.companion || '',
@@ -274,6 +277,9 @@ Page({
   handleClassNameInput(e) {
     this.setData({ 'form.className': e.detail.value })
   },
+  handleLocationInput(e) {
+    this.setData({ 'form.location': e.detail.value })
+  },
   handleTimeSlotInput(e) {
     this.setData({ 'form.timeSlot': e.detail.value })
   },
@@ -297,13 +303,17 @@ Page({
    * 表单校验
    */
   validateForm() {
-    const { name, className, timeSlot, teachingMode } = this.data.form
+    const { name, className, location, timeSlot, teachingMode } = this.data.form
     if (!String(name || '').trim()) {
       utils.showToast({ title: '请填写姓名', icon: 'none' })
       return false
     }
     if (!String(className || '').trim()) {
       utils.showToast({ title: '请填写兴趣班名称', icon: 'none' })
+      return false
+    }
+    if (!String(location || '').trim()) {
+      utils.showToast({ title: '请填写兴趣班地点', icon: 'none' })
       return false
     }
     if (!String(timeSlot || '').trim()) {
@@ -328,6 +338,7 @@ Page({
     const submitData = {
       name: form.name.trim(),
       className: form.className.trim(),
+      location: form.location.trim(),
       timeSlot: form.timeSlot.trim(),
       teachingMode: form.teachingMode.trim(),
       companion: form.companion.trim(),

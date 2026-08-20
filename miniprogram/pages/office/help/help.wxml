@@ -134,7 +134,7 @@
         <view class="card-content">
           <view class="card-desc">在线预约理发服务，支持以下功能：</view>
           <view class="card-features">
-            <view class="feature-item">• 预约理发：选择日期和时段进行预约，支持为他人代约。招待员可进行时段管理。</view>
+            <view class="feature-item">• 预约理发：选择日期和时段进行预约，支持为他人代约。招待员可进行理发日更换、时段管理。</view>
             <view class="feature-item">• 理发统计：按月统计每人理发次数。</view>
             <view class="feature-item">• 我的预约：查看历史预约记录。</view>
           </view>
