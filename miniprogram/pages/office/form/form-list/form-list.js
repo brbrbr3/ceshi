@@ -89,6 +89,13 @@ Page({
         : ((item.targetDepartments && item.targetDepartments.length > 0)
           ? `该信息仅允许「${item.targetDepartments.join('、')}」部门用户填报`
           : ''),
+      visibleScopeText: item.isTargetOnlyVisible
+        ? (item.targetRoles && item.targetRoles.length > 0)
+          ? `该信息仅对「${item.targetRoles.join('、')}」角色用户可见`
+          : ((item.targetDepartments && item.targetDepartments.length > 0)
+            ? `该信息仅对「${item.targetDepartments.join('、')}」部门用户可见`
+            : '该信息仅对指定用户可见')
+        : '',
       activityLimitText: item.maxRegistrations ? `上限 ${item.maxRegistrations} 人` : '',
       submissionText: isActivity ? `${item.registrationCount} 人已报名` : `${item.submissionCount} 人已提交`,
       isFull,

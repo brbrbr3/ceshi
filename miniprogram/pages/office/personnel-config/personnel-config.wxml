@@ -103,6 +103,11 @@
             <view class="personnel-field-label">限制权限</view>
             <switch checked="{{formIsRestrictedLeader}}" bindchange="handleRestrictLeaderChange" color="#DC2626" />
           </view>
+
+          <view class="personnel-field personnel-field-checkbox" wx:if="{{canEdit && !(formRole === '馆员' && formDepartment === '无')}}">
+            <view class="personnel-field-label">扩大权限</view>
+            <switch checked="{{formIsExpandedPrivilege}}" bindchange="handleExpandedPrivilegeChange" color="#EA580C" />
+          </view>
         </view>
 
         <!-- ===== 第二组：报备与权限 ===== -->

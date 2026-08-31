@@ -408,7 +408,7 @@ async function getAppointments(openid, params = {}) {
   const isBanHead = user.role === '馆员' && user.department === '办' && user.isDepartmentHead === true
   const isAllowedPositions = Array.isArray(user.position) && user.position.some(p => HAIRCUT_VIEWER_POSITIONS.includes(p))
   // 管理员、领导、办负责人、其他允许的岗位人员，可以查看理发统计
-  const canView = isAdmin || isLeader || isBanHead || isAllowedPositions
+  const canView = isAdmin || isLeader || isBanHead || isAllowedPositions || user.isExpandedPrivilege === true
   if (!canView) {
     throw new Error('您无权查看理发预约列表')
   }

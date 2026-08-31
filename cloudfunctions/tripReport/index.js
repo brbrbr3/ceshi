@@ -1337,6 +1337,7 @@ async function getBoardData(openid, params) {
   const currentUser = userRes.data[0]
 
   const isLeader = currentUser.role === '馆员' && currentUser.department === '无' && !currentUser.isRestrictedLeader
+  const isExpanded = currentUser.isExpandedPrivilege === true
   const isAdmin = currentUser.isAdmin
   const isDeptHead = currentUser.isDepartmentHead
   const isAreaManager = !!currentUser.isAreaManager
@@ -1348,8 +1349,8 @@ async function getBoardData(openid, params) {
   let userQuery = { status: _.in(['approved', 'deactivated']) }
   let scopeType = 'all'
 
-  // 全体范围：管理员 或 馆员且部门为空（领导，非部门负责人）或 馆员部门为办且为部门负责人
-  if (isAdmin || (isLeader && !isDeptHead) || isBanHead) {
+  // 全体范围：管理员 或 馆员且部门为空（领导，非部门负责人）或 馆员部门为办且为部门负责人 或 扩大权限
+  if (isAdmin || (isLeader && !isDeptHead) || isBanHead || isExpanded) {
     scopeType = 'all'
   } else {
     const orConditions = []
@@ -1453,6 +1454,9 @@ async function getBoardData(openid, params) {
       // 部门为'无'（可选领导的馆员）→ 无组名，置顶
       if (department === '无') {
         groupKey = ''
+      } else if (role === '待赴任馆员') {
+        // 待赴任馆员 → 各部门之后、其他人员之前
+        groupKey = '待赴任馆员'
       } else if (role === '其他') {
         // 其他人员 → 置底
         groupKey = '其他人员'
@@ -1485,10 +1489,11 @@ async function getBoardData(openid, params) {
       if (a.groupName === '其他人员') return 1
       if (b.groupName === '其他人员') return -1
       // 按配置顺序排序，未配置的部门（如"未分配部门"）排在其后
+      // 待赴任馆员紧随最后一个配置部门（党）之后
       const aIdx = departmentOrder.indexOf(a.groupName)
       const bIdx = departmentOrder.indexOf(b.groupName)
-      const aOrder = aIdx === -1 ? Number.MAX_SAFE_INTEGER : aIdx
-      const bOrder = bIdx === -1 ? Number.MAX_SAFE_INTEGER : bIdx
+      const aOrder = a.groupName === '待赴任馆员' ? departmentOrder.length : (aIdx === -1 ? Number.MAX_SAFE_INTEGER : aIdx)
+      const bOrder = b.groupName === '待赴任馆员' ? departmentOrder.length : (bIdx === -1 ? Number.MAX_SAFE_INTEGER : bIdx)
       if (aOrder !== bOrder) return aOrder - bOrder
       return a.groupName.localeCompare(b.groupName)
     })
@@ -1529,12 +1534,13 @@ async function getPersonTrips(openid, params) {
   const currentUser = currentUserRes.data[0]
 
   const isLeader = currentUser.role === '馆员' && currentUser.department === '无' && !currentUser.isRestrictedLeader
+  const isExpanded = currentUser.isExpandedPrivilege === true
   const isAdmin = currentUser.isAdmin
   const isDeptHead = currentUser.isDepartmentHead
   const isAreaManager = !!currentUser.isAreaManager
 
-  // 权限校验：管理员 / 领导 / 部门负责人 / 片长，或查看自己的记录
-  if (!isAdmin && !isLeader && !isDeptHead && !isAreaManager) {
+  // 权限校验：管理员 / 领导 / 扩大权限 / 部门负责人 / 片长，或查看自己的记录
+  if (!isAdmin && !isLeader && !isExpanded && !isDeptHead && !isAreaManager) {
     // 普通用户仅能查看自己
     if (targetOpenid !== openid) return fail('无权查看该用户记录', 403)
   }
@@ -1547,7 +1553,7 @@ async function getPersonTrips(openid, params) {
   const targetUser = targetUserRes.data[0]
 
   // 校验目标用户在当前用户权限范围内
-  if (!isAdmin && !(isLeader && !isDeptHead)) {
+  if (!isAdmin && !isExpanded && !(isLeader && !isDeptHead)) {
     const inDept = isDeptHead && currentUser.department && targetUser.department === currentUser.department
     const inArea = isAreaManager && targetUser.livingArea && currentUser.livingArea === targetUser.livingArea
     const isSelf = targetOpenid === openid

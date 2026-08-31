@@ -517,13 +517,14 @@ Page({
    */
   computeViewScopeText(user) {
     const isLeader = user.role === '馆员' && user.department === '无' && !user.isRestrictedLeader
+    const isExpanded = user.isExpandedPrivilege === true
     const isAdmin = user.isAdmin
     const isDeptHead = user.isDepartmentHead
     const isAreaManager = !!user.isAreaManager
     const isBanHead = user.role === '馆员' && user.department === '办' && user.isDepartmentHead === true
 
-    // 全体范围：管理员 或 馆员且部门为空 或 馆员部门为办且为部门负责人
-    if (isAdmin || (isLeader && !isDeptHead) || isBanHead) {
+    // 全体范围：管理员 或 馆员且部门为空 或 馆员部门为办且为部门负责人 或 扩大权限
+    if (isAdmin || (isLeader && !isDeptHead) || isBanHead || isExpanded) {
       return '全体人员'
     }
 

@@ -890,6 +890,7 @@ async function listForms(openid, user, params) {
         maxRegistrations,
         targetRoles: Array.isArray(f.targetRoles) ? f.targetRoles : [],
         targetDepartments: Array.isArray(f.targetDepartments) ? f.targetDepartments : [],
+        isTargetOnlyVisible: !!f.isTargetOnlyVisible,
         isClosed: f.status === 'closed' || !!(f.deadline && f.deadline < Date.now()),
         isRead: f._openid === openid || readUsers.includes(openid)
       }
@@ -1028,7 +1029,7 @@ async function getForm(openid, user, params) {
     const activityBlocks = blocks.filter(b => b.type === 'activity')
     if (activityBlocks.length > 0) {
       try {
-        const allSubs = await submissionsCollection.where({ formId }).limit(1000).get()
+        const allSubs = await submissionsCollection.where({ formId }).orderBy('submittedAt', 'asc').limit(1000).get()
         const submissions = allSubs.data || []
         blocks = blocks.map(b => {
           if (b.type !== 'activity') return b

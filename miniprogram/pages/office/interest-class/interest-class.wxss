@@ -447,7 +447,7 @@
 /* ========== 表单 ========== */
 .ic-popup-form {
   padding: 28rpx 32rpx;
-  padding-bottom: calc(40rpx + env(safe-area-inset-bottom));
+  padding-bottom: 90rpx;
 }
 
 .ic-form-section {

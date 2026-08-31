@@ -6,7 +6,8 @@
       <view wx:elif="{{isClosed}}" class="form-detail-closed">已截止</view>
     </view>
     <view class="form-detail-title">{{form.title}}</view>
-    <view class="form-detail-meta">{{form.createdByName}} · {{timeText}}</view>
+    <view class="form-detail-meta">{{form.createdByName}} · 发布于 {{timeText}}</view>
+    <view wx:if="{{form.deadline}}" class="form-detail-meta">{{form.tag === 'activity' ? '报名截止' :(form.tag === 'quiz' || form.tag ==='questionnaire' ? '答题截止' :'截止时间')}}：{{deadlineText}}</view>
   </view>
 
   <view class="office-content form-detail-content">
@@ -149,15 +150,15 @@
           </block>
           <block wx:else>
             <view wx:if="{{bk.registeredNames.length > 0}}" class="fd-reg-list">
-              <view class="fd-reg-list-title">已报名（{{bk.registeredNames.length}} 人）</view>
+              <view class="fd-reg-list-title">报名名单（{{bk.registeredNames.length}} 人）：</view>
               <view class="fd-reg-chips">
                 <text wx:for="{{bk.registeredNames}}" wx:for-item="name" wx:key="*this" class="fd-reg-chip">{{name}}</text>
               </view>
             </view>
             <view wx:if="{{!readonly}}" class="fd-register-btn {{bk.isFull && bk.answer.length === 0 ? 'is-full' : (bk.answer.length > 0 ? 'is-registered' : '')}}" bindtap="onActivityRegisterToggle" data-id="{{bk.id}}">
-              {{bk.isFull && bk.answer.length === 0 ? '人数已满，无法报名' : (bk.answer.length > 0 ? '已添加 ' + bk.answer.length + ' 人，点击继续添加' : '我要报名')}}
+              {{bk.isFull && bk.answer.length === 0 ? '人数已满，无法报名' : (bk.answer.length > 0 ? '已为 ' + bk.answer.length + ' 人报名，点击继续添加' : '我要报名')}}
             </view>
-            <view wx:if="{{readonly}}" class="fd-readonly">状态：{{bk.answerText}}</view>
+            <view wx:if="{{readonly}}" class="fd-readonly">您的报名：{{bk.answerText}}</view>
           </block>
         </block>
       </view>

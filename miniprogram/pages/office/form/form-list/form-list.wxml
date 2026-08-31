@@ -39,6 +39,9 @@
         <view wx:if="{{item.targetRolesText}}" class="form-list-item-meta form-list-item-restrict">
           <text>{{item.targetRolesText}}</text>
         </view>
+        <view wx:if="{{item.visibleScopeText}}" class="form-list-item-meta form-list-item-visible">
+          <text>{{item.visibleScopeText}}</text>
+        </view>
       </view>
 
       <!-- 空状态 -->

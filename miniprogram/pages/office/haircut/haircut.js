@@ -982,7 +982,7 @@ Page({
         this.setData({
           successModalVisible: true,
           successModalTitle: '预约成功',
-          successModalInfo: `${this.data.selectedDate} ${this.data.selectedSlotDisplay}\n理发人：${appointeeName.trim()}`
+          successModalInfo: `时段：${this.data.selectedDate} ${this.data.selectedSlotDisplay}\n理发人：${appointeeName.trim()}\n请等待招待员在相应时段与您联系`
         })
         // 刷新时段与日期列表（loadDisplayDates 内部会复用缓存刷新时段）
         this.loadDisplayDates()

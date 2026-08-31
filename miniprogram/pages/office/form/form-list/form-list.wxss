@@ -170,6 +170,10 @@
   color: #EA580C;
 }
 
+.form-list-item-visible {
+  color: #DC2626;
+}
+
 .form-list-item-limit {
   color: #EA580C;
 }

@@ -89,10 +89,11 @@ async function handleList(openid, params) {
   const isDeptHead = currentUser.isDepartmentHead === true
   const isLeader = currentUser.role === '馆员' && currentUser.department === '无' && !currentUser.isRestrictedLeader
   const isBanHead = currentUser.role === '馆员' && currentUser.department === '办' && currentUser.isDepartmentHead === true
+  const isExpanded = currentUser.isExpandedPrivilege === true
 
   // 计算 scopeType（与 trip-board 模式一致，云函数统一计算）
   let scopeType
-  if (isAdmin || isBanHead || (isLeader && !isDeptHead)) {
+  if (isAdmin || isBanHead || (isLeader && !isDeptHead) || isExpanded) {
     scopeType = 'all'
   } else if (isDeptHead) {
     scopeType = 'department'
@@ -105,8 +106,8 @@ async function handleList(openid, params) {
     if (status && status !== 'all') {
       conditions.status = status
     }
-  } else if (isLeader && !isDeptHead) {
-    // 领导（馆员且部门为空，非部门负责人）→ 全体 + 仅生效中
+  } else if ((isLeader && !isDeptHead) || isExpanded) {
+    // 领导/扩大权限 → 全体 + 仅生效中
     conditions.status = 'active'
   } else if (isDeptHead) {
     // 部门负责人 → 本部门 + 仅生效中
@@ -129,7 +130,7 @@ async function handleList(openid, params) {
       if (status && status !== 'all') {
         baseCond.status = status
       }
-    } else if (isLeader && !isDeptHead) {
+    } else if ((isLeader && !isDeptHead) || isExpanded) {
       baseCond.status = 'active'
     } else if (isDeptHead) {
       baseCond.creatorDepartment = currentUser.department || ''

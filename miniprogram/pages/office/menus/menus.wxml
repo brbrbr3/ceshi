@@ -18,8 +18,8 @@
           <view class="menu-item-main">
             <view class="menu-item-title">{{item.title}}</view>
             <view class="menu-item-meta">
-              <text class="menu-item-time">提交于 {{item.timeText}}</text>
-              <text class="menu-item-author">· {{item.authorName}}</text>
+              <text class="menu-item-time">{{item.authorName}}</text>
+              <text class="menu-item-author">· 发布于 {{item.timeText}}</text>
             </view>
           </view>
         </view>

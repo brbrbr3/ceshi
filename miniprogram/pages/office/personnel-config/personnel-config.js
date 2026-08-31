@@ -57,6 +57,7 @@ Page({
     formLivingArea: '',
     formIsAreaManager: false,
     formIsRestrictedLeader: false,
+    formIsExpandedPrivilege: false,
 
     // 弹窗中订阅列表的展示维度
     subscriberGroupBy: 'department',
@@ -170,6 +171,8 @@ Page({
       let key = ''
       if (u.role === '馆员' && u.department === '无') {
         key = '__leader__'
+      } else if (u.role === '待赴任馆员') {
+        key = '__pending__'
       } else if (u.role === '其他') {
         key = '__other__'
       } else {
@@ -181,16 +184,18 @@ Page({
 
     const displayName = (key) => {
       if (key === '__leader__') return ''
+      if (key === '__pending__') return '待赴任馆员'
       if (key === '__other__') return '其他人员'
       return key
     }
 
     const sortKeys = Object.keys(deptMap)
     const leaderIdx = sortKeys.indexOf('__leader__')
+    const pendingIdx = sortKeys.indexOf('__pending__')
     const otherIdx = sortKeys.indexOf('__other__')
     const unassignedIdx = sortKeys.indexOf('未分配部门')
 
-    const normalKeys = sortKeys.filter(k => !['__leader__', '__other__', '未分配部门'].includes(k))
+    const normalKeys = sortKeys.filter(k => !['__leader__', '__pending__', '__other__', '未分配部门'].includes(k))
     normalKeys.sort((a, b) => {
       const ai = departmentOptions.indexOf(a)
       const bi = departmentOptions.indexOf(b)
@@ -200,6 +205,7 @@ Page({
     let ordered = []
     if (leaderIdx >= 0) ordered.push('__leader__')
     ordered = ordered.concat(normalKeys)
+    if (pendingIdx >= 0) ordered.push('__pending__')
     if (unassignedIdx >= 0) ordered.push('未分配部门')
     if (otherIdx >= 0) ordered.push('__other__')
 
@@ -373,6 +379,7 @@ Page({
       formLivingArea: user.livingArea || '',
       formIsAreaManager: !!user.isAreaManager,
       formIsRestrictedLeader: !!user.isRestrictedLeader,
+      formIsExpandedPrivilege: !!user.isExpandedPrivilege,
       subscriberGroups,
       subscriberAreaGroups,
       subscriberGroupBy: 'department',
@@ -528,6 +535,14 @@ Page({
       return
     }
     this.setData({ formIsRestrictedLeader: e.detail.value })
+  },
+
+  handleExpandedPrivilegeChange(e) {
+    if (!this.data.canEdit) {
+      utils.showToast({ title: '只读模式，如需修改请联系管理员', icon: 'none' })
+      return
+    }
+    this.setData({ formIsExpandedPrivilege: e.detail.value })
   },
 
   handleAreaChange(e) {
@@ -792,6 +807,7 @@ Page({
               livingArea: this.data.formLivingArea,
               isAreaManager: this.data.formIsAreaManager,
               isRestrictedLeader: this.data.formIsRestrictedLeader,
+              isExpandedPrivilege: this.data.formIsExpandedPrivilege,
               reportTo
             }
           }

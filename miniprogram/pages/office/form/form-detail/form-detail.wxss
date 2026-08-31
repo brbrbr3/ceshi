@@ -37,7 +37,7 @@
 }
 
 .form-detail-meta {
-  font-size: var(--fs-24);
+  font-size: var(--fs-28);
   color: rgba(255, 255, 255, 0.85);
 }
 
@@ -92,7 +92,7 @@
   border-radius: 50%;
   background: #EFF6FF;
   color: #2563EB;
-  font-size: var(--fs-24);
+  font-size: var(--fs-28);
   font-weight: 600;
   display: flex;
   align-items: center;
@@ -102,7 +102,7 @@
 
 .fd-block-title {
   flex: 1;
-  font-size: var(--fs-32);
+  font-size: var(--fs-35);
   font-weight: 600;
   color: #1E293B;
   line-height: 1.5;
@@ -152,7 +152,7 @@
 
 .fd-section-title {
   flex: 1;
-  font-size: var(--fs-32);
+  font-size: var(--fs-35);
   font-weight: 700;
   color: #1E293B;
   line-height: 1.4;
@@ -348,7 +348,7 @@
 
 .fd-footer-btn {
   flex: 1;
-  height: 92rpx;
+  height: 100rpx;
   border-radius: 24rpx;
   display: flex;
   align-items: center;
@@ -401,12 +401,14 @@
   color: #64748B;
   font-weight: 600;
   margin-bottom: 12rpx;
+  margin-top: 36rpx;
 }
 
 .fd-reg-chips {
   display: flex;
   flex-wrap: wrap;
   gap: 12rpx;
+  margin-bottom: 60rpx;
 }
 
 .fd-reg-chip {

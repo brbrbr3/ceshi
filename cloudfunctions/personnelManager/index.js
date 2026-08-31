@@ -27,16 +27,17 @@ exports.main = async (event, context) => {
 
     const isAdmin = u.isAdmin
     const isLeader = u.role === '馆员' && u.department === '无' && !u.isRestrictedLeader
+    const isExpanded = u.isExpandedPrivilege === true
     const isDeptHead = u.isDepartmentHead
     const isAreaManager = !!u.isAreaManager
 
     let hasReporters = false
-    if (!isAdmin && !isLeader && !isDeptHead && !isAreaManager) {
+    if (!isAdmin && !isLeader && !isExpanded && !isDeptHead && !isAreaManager) {
       const cntRes = await usersCollection.where({ reportTo: openid, status: 'approved' }).count()
       hasReporters = cntRes.total > 0
     }
 
-    const canRead = isAdmin || isLeader || isDeptHead || isAreaManager || hasReporters
+    const canRead = isAdmin || isLeader || isExpanded || isDeptHead || isAreaManager || hasReporters
     if (!canRead) return fail('无权查看人员配置', 403)
 
     // 写入操作仅管理员
@@ -78,7 +79,8 @@ async function getAllPersonnel() {
       reportTo: true,
       avatarUrl: true,
       status: true,
-      isRestrictedLeader: true
+      isRestrictedLeader: true,
+      isExpandedPrivilege: true
     })
     .limit(200)
     .get()
@@ -105,7 +107,7 @@ async function updatePersonnel(params) {
   // 只允许更新许可的字段
   const allowedFields = [
     'role', 'department', 'isDepartmentHead', 'position',
-    'livingArea', 'isAreaManager', 'reportTo', 'isRestrictedLeader'
+    'livingArea', 'isAreaManager', 'reportTo', 'isRestrictedLeader', 'isExpandedPrivilege'
   ]
   const data = {}
   for (const key of allowedFields) {
