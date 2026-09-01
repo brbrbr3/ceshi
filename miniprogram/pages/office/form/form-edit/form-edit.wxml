@@ -1,4 +1,4 @@
-<view class="office-page form-edit-page" style="{{fontStyle}}">
+<view wx:if="{{!isReviewer}}" class="office-page form-edit-page" style="{{fontStyle}}">
   <view class="office-gradient-header form-edit-header">
     <view class="form-edit-title">{{isEdit ? '编辑信息' : '发布信息'}}</view>
   </view>
@@ -363,3 +363,4 @@
     </view>
   </view>
 </view>
+<view wx:else>暂无内容</view>

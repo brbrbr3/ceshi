@@ -57,7 +57,7 @@
           </view>
         </block>
         <block wx:else>
-          <view class="fr-group-members">报名名单：{{bk.ungroupedMembersText}}</view>
+          <text user-select="true" class="fr-group-members">报名名单（共{{bk.registrationCount}}人）：\n{{bk.ungroupedMembersText}}</text>
         </block>
       </block>
     </view>

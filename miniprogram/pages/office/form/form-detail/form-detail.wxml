@@ -6,7 +6,8 @@
       <view wx:elif="{{isClosed}}" class="form-detail-closed">已截止</view>
     </view>
     <view class="form-detail-title">{{form.title}}</view>
-    <view class="form-detail-meta">{{form.createdByName}} · 发布于 {{timeText}}</view>
+    <view class="form-detail-meta">{{form.createdByName}}</view>
+    <view class="form-detail-meta">发布时间：{{timeText}}</view>
     <view wx:if="{{form.deadline}}" class="form-detail-meta">{{form.tag === 'activity' ? '报名截止' :(form.tag === 'quiz' || form.tag ==='questionnaire' ? '答题截止' :'截止时间')}}：{{deadlineText}}</view>
   </view>
 

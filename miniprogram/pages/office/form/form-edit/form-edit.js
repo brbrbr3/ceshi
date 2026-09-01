@@ -189,7 +189,9 @@ Page({
     showDraftTip: false,
     // 提交状态
     saving: false,
-    publishing: false
+    publishing: false,
+    //审核模式
+    isReviewer: false
   },
 
   onLoad(options) {
@@ -233,7 +235,8 @@ Page({
       const user = result.user
       const canPublish = !!user.isAdmin || user.role === '馆员'
       this.setData({
-        canPublish
+        canPublish,
+        isReviewer: !!user.isReviewer
       })
       if (!canPublish) {
         wx.showModal({

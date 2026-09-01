@@ -48,50 +48,24 @@ async function assertAdmin(openid) {
 }
 
 // 项目数据库集合列表（来自 .codebuddy/docs/DATABASE_COLLECTIONS_REFERENCE.md）
+// 已按当前云环境（cloud1-d2gyip4xi1fcf54bd）实际存在的集合校准
 const DB_COLLECTIONS = [
-  'announcements',
-  'activities',
-  'activity_registrations',
-  'calendar_schedules',
-  'feedback_posts',
-  'feedback_replies',
+  'content_form_submissions',
+  'content_forms',
   'haircut_appointments',
   'holiday_configs',
-  'learning_articles',
-  'medical_records',
-  'meeting_room_reservations',
-  'menu_comments',
+  'interest_class_reports',
   'menu_ratings',
   'menus',
-  'news_articles',
   'notifications',
-  'office_registration_requests',
   'office_users',
-  'passport_info',
-  'passport_records',
-  'repair_orders',
   'permissions',
-  'schedule_subscriptions',
   'sys_config',
   'trip_reports',
-  'user_signatures',
   'work_orders',
   'workflow_logs',
   'workflow_tasks',
-  'workflow_templates',
-  'greenbook_posts',
-  'greenbook_comments',
-  'greenbook_likes',
-  'interest_class_reports',
-  'meal_subscriptions',
-  'meal_adjustments',
-  'side_dish_orders',
-  'side_dish_bookings',
-  'car_purchase_records',
-  'content_forms',
-  'content_form_submissions',
-  'leave_records',
-  'leave_quotas'
+  'workflow_templates'
 ]
 
 /**

@@ -16,7 +16,7 @@
 
     <!-- 背景装饰图片 -->
     <view class="home-bg-image-wrapper">
-      <image class="home-bg-image" src="/image/br6-low.jpg" mode="widthFix" />
+      <image class="home-bg-image" src="/image/nm-low.jpg" mode="widthFix" />
     </view>
   </view>
 
@@ -70,7 +70,7 @@
     </view>
 
     <!--信息发布-->
-    <view class="office-section">
+    <view wx:if="{{!currentUser.isReviewer}}" class="office-section">
       <view class="office-card home-news-card" hover-class="{{(!loadingContentForms && contentForms.length === 0) ? 'home-btn-active' : ''}}" hover-stay-time="{{(!loadingContentForms && contentForms.length === 0) ? '300' : ''}}">
       <view class="office-section-header home-section-header" hover-class="{{(!loadingContentForms && contentForms.length === 0) ? '' : 'home-btn-active'}}" hover-stay-time="{{(!loadingContentForms && contentForms.length === 0) ? '' : '300'}}" bindtap="goContentForms">
         <view class="office-section-title home-section-title">📢信息发布</view>

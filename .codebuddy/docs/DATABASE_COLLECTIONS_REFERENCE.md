@@ -6,6 +6,10 @@
 
 **重要**：所有新增功能涉及数据库操作时，必须先参考本文档！如果需要新的集合，请添加到本文档中。
 
+> **环境说明**：当前有效的云环境为 `cloud1-d2gyip4xi1fcf54bd`。本文档列出的集合为 2026-08-31 从该环境实际读取的集合列表（共 16 个）。
+>
+> 各集合的「记录数」为 2026-08-31 查询时的快照，会随业务动态变化。
+
 ---
 
 ## 安全规则说明
@@ -51,77 +55,332 @@
 
 ## 集合列表
 
-### 1. announcements - 通知公告
+### 1. content_form_submissions - 信息发布提交记录
 
-**用途**：存储系统通知公告
+**用途**：存储用户对信息发布表单的提交记录，一人一条（upsert 幂等）。
 
-**安全规则**：`ADMINWRITE` - 所有用户可读，仅管理员可写
+**安全规则**：`ADMINWRITE` - 所有用户可读，仅云函数可写
 
-**记录数**：0
+> **重要说明**：提交记录由 `contentFormManager` 云函数在用户提交时创建或更新。
+
+**记录数**：15
 
 **索引**：
 
 - `_id` - 记录 ID（云开发自动创建）
+- `_openid_1` - 提交者 openid 索引（云开发自动创建）
+- `idx_formId_openid` - 组合索引：formId（升序）+ _openid（升序）- 查询用户对某表单的提交（防重复）
+- `idx_formId_submittedAt` - 组合索引：formId（升序）+ submittedAt（降序）- 查询某表单的提交列表
 
 **字段结构**：
 ```javascript
 {
   _id: String,                    // 记录 ID（自动生成）
-  orderId: String,                 // 关联的工作订单 ID
-  title: String,                   // 通知标题
-  content: String,                 // 通知内容
-  type: String,                   // 通知类型：'urgent'（紧急）| 'important'（重要）| 'normal'（普通）
-  publisherId: String,             // 发布者 openid
-  publisherName: String,           // 发布者姓名
-  publishedAt: Number,             // 发布时间戳
-  status: String,                 // 状态：'published'（已发布）| 'revoked'（已撤回）
-  readCount: Number,               // 阅读次数
-  readUsers: Array[String],         // 已读用户 openid 列表
-  createdAt: Number,               // 创建时间戳
-  updatedAt: Number                // 更新时间戳
+  formId: String,                 // 关联的表单 ID（content_forms._id）
+  _openid: String,                // 提交者 openid
+  userName: String,               // 提交者姓名
+  role: String,                   // 提交者角色
+  position: String|Array,         // 提交者岗位
+  answers: Array[{                // 答案明细
+    blockId: String,              // 关联的控件 ID
+    type: String,                 // 控件类型（对应 blocks[].type）
+    value: Any                    // 答案值（随 type 变化：radio/judge 为字符串、checkbox 为数组、side_dish 为数组、activity 为字符串）
+  }],
+  submittedAt: Number,            // 提交时间戳
+  updatedAt: Number               // 更新时间戳
 }
 ```
 
+**业务规则**：
+1. 一人一条：同一用户对同一表单只有一条记录，重复提交为 update
+2. 提交时校验截止时间、必填项、副食份数上限、活动人数上限
+3. 取消提交为删除记录（`cancelSubmit`）
+
+**相关云函数**：
+- `contentFormManager.submit`：提交/修改答案
+- `contentFormManager.cancelSubmit`：取消提交
+- `contentFormManager.listSubmissions`：提交者列表
+- `contentFormManager.getStats`：统计聚合
+
 ---
 
-### 2. menu_comments - 菜单评论
+### 2. content_forms - 信息发布表单主表
 
-**用途**：存储每周菜单的用户评论
+**用途**：存储「信息发布」系统的内容表单，通过 `blocks[]` 数组统一表达公告、问卷、副食、活动、答题五种形态。发布者通过问卷星式控件（单选/多选/判断/简答/副食/活动/说明文字）自由组合内容：只写标题正文即为公告，添加控件即为问卷/副食/活动/答题。
 
-**安全规则**：`ADMINWRITE` - 所有用户可读，仅管理员可写
+**安全规则**：`ADMINWRITE` - 所有用户可读，仅云函数可写
 
-**记录数**：2
+> **重要说明**：表单由 `contentFormManager` 云函数创建和管理。发布权限：管理员、馆员可发布；所有注册用户可查看和填写。
+
+**记录数**：1
 
 **索引**：
 
 - `_id` - 记录 ID（云开发自动创建）
-- `idx_menuId_createdAt` - 组合索引：menuId（升序）+ createdAt（升序）- 优化菜单评论查询
+- `_openid_1` - 创建者 openid 索引（云开发自动创建）
+- `idx_status_createdAt` - 组合索引：status（升序）+ createdAt（降序）- 优化列表查询
+- `idx_tag_status_createdAt` - 组合索引：tag（升序）+ status（升序）+ createdAt（降序）- 优化 tag 筛选
 
 **字段结构**：
 ```javascript
 {
   _id: String,                    // 记录 ID（自动生成）
-  menuId: String,                  // 关联的菜单 ID
-  openid: String,                  // 评论者 openid
-  content: String,                 // 评论内容
-  createdAt: Number,               // 创建时间戳
-  updatedAt: Number                // 更新时间戳
+  _openid: String,                // 创建者 openid
+  title: String,                  // 标题（必填）
+  description: String,            // 正文说明（富文本 HTML，可为空）
+  tag: String,                    // 类型：'announcement'(公告) | 'questionnaire'(问卷) | 'side_dish'(副食) | 'activity'(活动) | 'quiz'(答题)
+  deadline: Number|null,          // 截止时间戳（公告可为 null）
+  blocks: Array[{                 // 控件列表（驱动填写内容）
+    id: String,                   // 控件 ID（如 'b_xxx'）
+    type: String,                 // 类型：'text'(说明文字) | 'radio'(单选) | 'checkbox'(多选) | 'judge'(判断) | 'textarea'(简答) | 'side_dish'(副食) | 'activity'(活动)
+    title: String,                // 题干
+    required: Boolean,            // 是否必填
+    options: Array[String],       // 选项（radio/checkbox/judge）
+    categories: Array[{           // 副食类别（side_dish）
+      id: String,                 // 类别 ID
+      name: String,               // 类别名称
+      maxCount: Number            // 该类别每人最大份数
+    }],
+    groups: Array[String],        // 报名分组（activity，可选）
+    maxRegistrations: Number|null // 人数上限（activity，可选）
+  }],
+  targetRoles: Array[String],     // 目标角色（限定可见时）
+  isTargetOnlyVisible: Boolean,   // 是否仅对目标角色可见
+  isAnonymous: Boolean,           // 是否匿名填写（tag 为 questionnaire 时有效）
+  maxSubmissions: Number,         // 每人最多填写次数（tag 为 quiz 时有效，默认 1）
+  status: String,                 // 状态：'draft'(草稿) | 'published'(已发布) | 'closed'(已关闭)
+  readUsers: Array[String],       // 已读用户 openid 列表
+  submissionCount: Number,        // 提交人数（冗余字段）
+  publishedAt: Number|null,       // 发布时间戳
+  createdByName: String,          // 创建者姓名
+  createdAt: Number,              // 创建时间戳
+  updatedAt: Number               // 更新时间戳
 }
 ```
 
+**业务规则**：
+1. tag 由发布者在编辑页手动选择，不做系统自动推断
+2. 发布权限：管理员（`isAdmin`）或角色为「馆员」的用户
+3. 提交记录存于 `content_form_submissions`：`maxSubmissions` 为 1 时一人一条（upsert），大于 1 时同一用户可多次提交（答题场景）
+4. 截止时间过后，表单视为已截止（前端和云端双重判断）
+5. 目标角色过滤：`isTargetOnlyVisible` 为 true 时，仅 `targetRoles` 包含用户角色的用户可见
+6. 匿名填写：`isAnonymous` 为 true 时，提交记录的 `userName` 存为「匿名」，`role`/`position` 置空
+
+**相关云函数**：
+- `contentFormManager.create`：创建表单（发布或暂存 draft）
+- `contentFormManager.update`：更新表单
+- `contentFormManager.delete`：删除表单（级联删除提交记录）
+- `contentFormManager.close`：关闭表单
+- `contentFormManager.list`：分页列表（支持 tag 筛选、目标角色可见性过滤）
+- `contentFormManager.get`：详情（含当前用户提交状态）
+- `contentFormManager.submit`：提交/修改答案（一人一条 upsert）
+- `contentFormManager.listSubmissions`：提交者列表（含答案明细）
+- `contentFormManager.getStats`：统计聚合
+
 ---
 
-### 3. menus - 每周菜单
+### 3. haircut_appointments - 理发预约记录
+
+**用途**：存储理发预约记录
+
+**安全规则**：`ADMINWRITE` - 所有用户可读，仅管理员可写
+
+> **重要说明**：预约记录由云函数 `haircutManager` 创建和管理，使用 `ADMINWRITE` 规则，用户可读取所有预约记录用于查看时段占用情况。
+
+**记录数**：12
+
+**索引**：
+
+- `_id` - 记录 ID（云开发自动创建）
+- `_openid_1` - 创建者 openid 索引（云开发自动创建）
+- `idx_date_timeSlot` - 组合索引：date（升序）+ timeSlot（升序）- 时段排序与防重复
+- `idx_bookerId_createdAt` - 组合索引：bookerId（升序）+ createdAt（降序）- 用户预约列表
+
+**字段结构**：
+```javascript
+{
+  _id: String,                    // 记录 ID（自动生成）
+  date: String,                   // 预约日期 YYYY-MM-DD
+  timeSlot: String,               // 预约时段（如 "14:30-15:00"）
+  // 预约人信息
+  bookerId: String,               // 预约人 openid
+  bookerName: String,             // 预约人姓名
+  bookerRole: String,             // 预约人角色
+  bookerDepartment: String,       // 预约人部门
+  // 预约对象
+  forSelf: Boolean,               // 是否为自己预约
+  actualUserName: String,         // 实际理发人姓名（代约时为被代约人）
+  actualUserId: String,           // 实际理发人 openid（代约时）
+  // 状态
+  status: String,                 // 状态：'booked'（已预约）| 'cancelled'（已取消）
+  // 取消信息（未取消时为 null）
+  cancelledAt: Number,            // 取消时间戳
+  cancelledBy: String,            // 取消操作人 openid
+  cancelledByName: String,        // 取消操作人姓名
+  cancelReason: String,           // 取消原因
+  // 时间戳
+  createdAt: Number,              // 创建时间戳
+  updatedAt: Number               // 更新时间戳
+}
+```
+
+**业务规则**：
+1. 服务时间：周一、三、五下午 14:30~18:00
+2. 当日 14:20 后禁止预约当日时段
+3. 周五 18:00 后自动切换显示下周日期
+4. 节假日自动排除（依赖 `holiday_configs` 集合）
+5. 代约显示格式："理发人（代约人）"
+
+**相关云函数**：
+- `haircutManager`：处理时段查询、预约创建/取消、列表查询等操作
+
+---
+
+### 4. holiday_configs - 节假日配置
+
+**用途**：存储节假日日期配置，用于日历组件显示"休"角标
+
+**安全规则**：`ADMINWRITE` - 所有用户可读，仅管理员可写
+
+**记录数**：1
+
+**索引**：
+
+- `_id` - 记录 ID（云开发自动创建）
+- `_openid_1` - 创建者 openid 索引（云开发自动创建）
+- `idx_year` - year 单字段索引（降序）- 按年份排序
+
+**字段结构**：
+```javascript
+{
+  _id: String,                    // 记录 ID（自动生成）
+  year: Number,                   // 配置年份（如 2026）
+  dates: Array[String],           // 节假日日期数组 ['2026-01-01', '2026-01-02', ...]
+  createdBy: String,              // 创建者 openid
+  createdByName: String,          // 创建者姓名
+  createdAt: Number,              // 创建时间戳
+  updatedAt: Number               // 更新时间戳
+}
+```
+
+**使用说明**：
+- 每年一条记录，包含该年所有节假日日期
+- 日期格式为 `YYYY-MM-DD`
+- 日历组件根据此数据显示"休"角标
+
+---
+
+### 5. interest_class_reports - 兴趣班备案记录
+
+**用途**：存储用户提交的兴趣班备案记录，支持分级查看（馆领导看全体生效中、部门负责人看本部门生效中、普通用户看自己全部含已结束）。备案不可删除，只能"结束"；编辑备案时结束原记录并新增一条（保留备查历史）。
+
+**安全规则**：`ADMINONLY` - 仅管理员可读写
+
+> **重要说明**：所有数据读写均通过云函数 `interestClassReport` 进行，云函数内部按角色过滤查询范围。集合设为 ADMINONLY，确保数据只能通过云函数访问。
+
+**记录数**：47
+
+**索引**：
+
+- `_id` - 记录 ID（云开发自动创建）
+- `_openid_1` - 创建者 openid 索引（云开发自动创建）
+- `idx_openid_status` - 组合索引：_openid（升序）+ status（升序）- 优化用户查询自己的备案
+- `idx_creatorDepartment_status` - 组合索引：creatorDepartment（升序）+ status（升序）- 优化部门负责人按部门筛选
+- `idx_createdAt` - 创建时间索引（降序）- 优化时间排序查询
+
+**字段结构**：
+```javascript
+{
+  _id: String,                    // 记录 ID（自动生成）
+  _openid: String,                // 创建者 openid（云函数自动写入）
+  name: String,                   // 参与人姓名（可能与创建者不同，如子女）
+  className: String,              // 兴趣班名称
+  timeSlot: String,               // 兴趣班时段（文本，如"每周三11:30——12:30"）
+  teachingMode: String,           // 教学模式（文本，如"集体教学"/"一对一"）
+  companion: String,              // 陪同人（可选）
+  remark: String,                 // 备注（可选，如"女儿"）
+  creatorName: String,            // 创建者姓名（冗余，列表展示）
+  creatorDepartment: String,      // 创建者部门（冗余，部门负责人筛选）
+  creatorRole: String,            // 创建者角色（冗余，列表展示）
+  status: String,                 // 状态：'active'（生效中）| 'ended'（已结束）
+  endedAt: Number,                // 结束时间戳（null/不存在表示生效中）
+  createdAt: Number,              // 创建时间戳
+  updatedAt: Number               // 更新时间戳
+}
+```
+
+**业务规则**：
+1. 备案不可删除，只能"结束"（设置 status='ended'）
+2. 编辑备案 = 结束原记录 + 新增一条记录（保留备查历史）
+3. 分级查看：
+   - 部门负责人 → 查看本部门人员**生效中**备案
+   - 馆领导（非部门负责人）→ 查看全体人员**生效中**备案
+   - 其他用户 → 查看自己的**全部**备案（含已结束）
+4. 仅创建者可编辑/结束自己的生效中备案
+
+**相关云函数**：
+- `interestClassReport.list`：分页查询备案列表（按角色自动过滤范围与状态）
+- `interestClassReport.create`：新增备案（status 默认 'active'）
+- `interestClassReport.edit`：编辑备案（结束原记录 + 新增新记录）
+- `interestClassReport.end`：结束备案（设置 status='ended'）
+
+---
+
+### 6. menu_ratings - 菜品打分记录
+
+**用途**：存储用户对菜单中各菜品的评分（1-5星），每个用户对同一菜单的同一道菜只能打一次分。
+
+**安全规则**：`READONLY` - 所有用户可读，仅创建者可写。
+
+> **重要说明**：打分记录由 `menuManager` 云函数在用户提交评分时创建。使用 `READONLY` 规则，云函数以管理员权限写入，用户只读。
+
+**记录数**：861
+
+**索引**：
+
+- `_id` - 记录 ID（云开发自动创建）
+- `_openid_1` - 创建者 openid 索引（云开发自动创建）
+- `idx_menuId` - menuId 单字段索引（升序）- 加速菜品评分聚合查询（`getRatings` 按 menuId match 聚合）
+- `idx_menuId_openid_dishName` - 组合索引：menuId（升序）+ openid（升序）+ dishName（升序）- 加速 `addRating` 防重复查询（`where({ menuId, openid, dishName })`）
+
+**字段结构**：
+```javascript
+{
+  _id: String,                    // 记录 ID（自动生成）
+  menuId: String,                 // 关联的菜单 ID（menus._id）
+  openid: String,                 // 评分人 openid
+  authorOpenid: String,           // 评分人 openid（冗余，与 openid 一致）
+  authorName: String,             // 评分人姓名
+  dishName: String,               // 菜品名称（从菜单富文本内容中提取）
+  score: Number,                  // 评分：1~5 星（整数）
+  createdAt: Number               // 提交时间戳（毫秒）
+}
+```
+
+**业务规则**：
+1. 同一 openid + menuId + dishName 组合只能有一条打分记录（唯一约束，云函数层校验）
+2. score 取值范围：1 ~ 5 的整数，提交时由云函数校验
+3. 菜品名称由前端从菜单富文本 HTML 中智能提取（去标签→按行分割→过滤停用词→去重）
+4. 已评过的菜品不可修改分数
+
+**相关云函数**：
+- `menuManager.addRating`：提交菜品评分（含防重复校验）
+- `menuManager.getRatings`：获取某菜单所有菜品的平均分、评分人数、评分分布、当前用户已评状态
+
+---
+
+### 7. menus - 每周菜单
 
 **用途**：存储每周菜单信息
 
 **安全规则**：`ADMINWRITE` - 所有用户可读，仅管理员可写
 
-**记录数**：2
+**记录数**：8
 
 **索引**：
 
 - `_id` - 记录 ID（云开发自动创建）
+- `_openid_1` - 创建者 openid 索引（云开发自动创建）
 - `createdAt_-1` - 创建时间索引（降序）- 优化菜单列表查询（`orderBy('createdAt', 'desc')`）
 
 **字段结构**：
@@ -139,7 +398,7 @@
 
 ---
 
-### 4. notifications - 用户通知
+### 8. notifications - 用户通知
 
 **用途**：存储用户个人通知（如审批通知、系统通知等）
 
@@ -147,11 +406,12 @@
 
 > **重要说明**：通知记录由云函数创建（而非用户），`PRIVATE` 规则会导致用户无法查看自己的通知。使用 `READONLY` 规则，用户可读取所有通知，云函数以管理员权限写入。前端通过 `openid` 字段过滤只显示当前用户的通知。
 
-**记录数**：4
+**记录数**：2305
 
 **索引**：
 
 - `_id` - 记录 ID（云开发自动创建）
+- `_openid_1` - 创建者 openid 索引（云开发自动创建）
 - `openid_createdAt_idx` - 组合索引：openid（升序）+ createdAt（降序）- 优化消息列表查询
 
 **字段结构**：
@@ -170,58 +430,21 @@
 
 ---
 
-### 5. office_registration_requests - 用户注册请求
-
-**用途**：存储用户注册申请
-
-**安全规则**：`READONLY` - 所有用户可读，仅创建者可写
-
-**记录数**：0
-
-**索引**：
-
-- `_id` - 记录 ID（云开发自动创建）
-- `status_updatedAt_idx` - 状态 + 更新时间复合索引
-- `openid_idx` - 用户 openid 索引
-
-**字段结构**：
-```javascript
-{
-  _id: String,                    // 记录 ID（自动生成）
-  openid: String,                  // 申请者 openid
-  status: String,                 // 状态：'pending'（待审批）| 'approved'（已通过）| 'rejected'（已拒绝）
-  formData: Object,                // 申请表单数据
-  createdAt: Number,               // 创建时间戳
-  updatedAt: Number                // 更新时间戳
-}
-
-**formData 字段结构**：
-```javascript
-{
-  name: String,                   // 姓名
-  gender: String,                 // 性别：'男' | '女'
-  birthday: String,               // 生日
-  role: String,                   // 角色：'馆领导' | '部门负责人' | '馆员' | '工勤' | '物业' | '配偶' | '家属'
-  position: String,               // 职位
-  isAdmin: Boolean,              // 是否管理员
-  relativeName: String,           // 关系人姓名（紧急联系人）
-  department: String              // 部门：'政治处' | '新公处' | '经商处' | '科技处' | '武官处' | '领侨处' | '文化处' | '办公室' | '党委办'
-}
-```
-
----
-
-### 6. office_users - 办公系统用户
+### 9. office_users - 办公系统用户
 
 **用途**：存储注册用户信息
 
 **安全规则**：`ADMINONLY` - 仅管理员可读写
 
-**记录数**：3
+**记录数**：94
 
 **索引**：
 
 - `_id` - 记录 ID（云开发自动创建）
+- `_openid_1` - 用户 openid 索引（云开发自动创建）
+- `openid_unique` - openid 唯一索引（升序）- 用户唯一标识，高频查询
+- `idx_reportTo` - reportTo 单字段索引（升序）- 反查谁向该用户报备
+- `idx_status` - status 单字段索引（升序）- 状态筛选
 
 **字段结构**：
 ```javascript
@@ -233,13 +456,19 @@
   email: String,                  // 邮箱地址
   gender: String,                  // 性别：'男' | '女'
   birthday: String,                // 生日
-  role: String,                   // 角色：'admin'（管理员）| 'department_head'（部门负责人）| 'accountant_supervisor'（会计主管）| 'library_leader'（馆领导）| '馆员'
-  position: String,                // 职位
+  role: String,                   // 角色：'馆员' | '其他' | '待赴任馆员' 等
+  position: String|Array,         // 岗位（会计主管/会计/出纳等）
   isAdmin: Boolean,                // 是否管理员
-  status: String,                 // 状态：'approved'（已通过）| 'pending'（待审批）| 'rejected'（已拒绝）
+  isDepartmentHead: Boolean,       // 是否部门负责人
+  isAreaManager: Boolean,          // 是否片长
+  isRestrictedLeader: Boolean,     // 是否限制权限（馆员+部门无时有效）
+  isExpandedPrivilege: Boolean,    // 是否扩大权限（非领导角色时有效）
+  status: String,                 // 状态：'approved'（已通过）| 'deactivated'（已注销）等
   avatarText: String,              // 头像文字（取姓名第一个字）
   relativeName: String,            // 关系人姓名（紧急联系人）
-  department: String               // 部门：'政治处' | '新公处' | '经商处' | '科技处' | '武官处' | '领侨处' | '文化处' | '办公室' | '党委办'
+  department: String,              // 部门：'无' | '政' | '新' | '经' | '科' | '武' | '领' | '文' | '办' | '党'
+  livingArea: String,              // 居住区域
+  reportTo: Array[String],         // 向谁报备（openid 列表）
   createdAt: Number,               // 创建时间戳
   updatedAt: Number,               // 更新时间戳
   approvedAt: Number               // 审批通过时间戳
@@ -248,17 +477,19 @@
 
 ---
 
-### 7. permissions - 权限配置
+### 10. permissions - 权限配置
 
 **用途**：存储功能权限配置
 
 **安全规则**：`ADMINWRITE` - 所有用户可读，仅管理员可写
 
-**记录数**：2
+**记录数**：12
 
 **索引**：
 
 - `_id` - 记录 ID（云开发自动创建）
+- `_openid_1` - 创建者 openid 索引（云开发自动创建）
+- `idx_createdAt` - createdAt 单字段索引（升序）- 按创建时间排序
 
 **字段结构**：
 ```javascript
@@ -276,24 +507,26 @@
 
 ---
 
-### 8. sys_config - 系统配置
+### 11. sys_config - 系统配置
 
 **用途**：存储系统配置常量（角色选项、部门选项、医疗机构等）
 
 **安全规则**：`READONLY` - 所有用户可读，仅创建者可写
 
-**记录数**：动态
+**记录数**：36
 
 **索引**：
 
 - `_id` - 记录 ID（云开发自动创建）
+- `_openid_1` - 创建者 openid 索引（云开发自动创建）
+- `idx_type_key` - 组合唯一索引：type（升序）+ key（升序）- 配置项查询
 
 **字段结构**：
 ```javascript
 {
   _id: String,                    // 记录 ID（自动生成）
   type: String,                   // 配置类型：'role' | 'department' | 'institution' 等
-  key: String,                    // 配置键名（如 'ROLE_OPTIONS', 'DEPARTMENTS'）
+  key: String,                    // 配置键名（如 'ROLE_OPTIONS', 'DEPARTMENT_OPTIONS'）
   value: Any,                     // 配置值（可以是数组、对象等）
   description: String,            // 配置描述
   sort: Number,                   // 排序权重
@@ -305,61 +538,104 @@
 **常用配置项**：
 | type | key | 说明 |
 |------|-----|------|
-| role | ROLE_OPTIONS | 角色选项列表 |
-| department | DEPARTMENTS | 部门选项列表 |
-| institution | MEDICAL_INSTITUTIONS | 医疗机构列表 |
-| relation | RELATION_OPTIONS | 关系选项列表 |
+| role | ROLE_OPTIONS | 角色选项列表（馆员/其他/待赴任馆员） |
+| department | DEPARTMENT_OPTIONS | 部门选项列表 |
 | role_field_mapping | ROLE_FIELD_VISIBILITY | 角色字段显示映射 |
 
 ---
 
-### 9. work_orders - 工作订单（重要：不是 workflow_orders）
+### 12. trip_reports - 外出报备记录
+
+**用途**：存储用户外出报备记录，支持同行人代报备功能
+
+**安全规则**：`READONLY` - 所有用户可读，仅创建者可写
+
+> **重要说明**：使用 READONLY 规则，用户可以提交自己的报备（前端创建），所有人可读以便 Dashboard 权限过滤。前端按角色过滤显示数据。
+
+**记录数**：647
+
+**索引**：
+
+- `_id` - 记录 ID（云开发自动创建）
+- `_openid_1` - 创建者 openid 索引（云开发自动创建）
+- `idx_departAt` - departAt 单字段索引（降序）- 时间排序
+- `idx_openid_departAt` - 组合索引：_openid（升序）+ departAt（降序）- 用户记录查询
+- `idx_status_departAt` - 组合索引：status（升序）+ departAt（降序）- 状态筛选+排序
+
+**字段结构**：
+```javascript
+{
+  _id: String,                    // 记录 ID（自动生成）
+  _openid: String,                // 创建者 openid（READONLY 规则检查此字段）
+  userName: String,               // 用户姓名
+  department: String,             // 所属部门（用于 Dashboard 过滤）
+  destination: String,            // 目的地
+  companions: String,             // 同行人（多个用空格分隔）
+  plannedReturnAt: Number,        // 计划返回时间戳
+  travelMode: String,             // 出行方式：'自驾' | '搭车' | '打车' | '步行'
+  departAt: Number,               // 外出时间戳
+  returnAt: Number,               // 实际返回时间戳（null 表示未返回）
+  status: String,                 // 状态：'out'（外出中）| 'returned'（已返回）| 'overtime'（超时）
+  overtimeNotified: Boolean,      // 是否已发送超时通知
+  createdByOpenid: String,        // 代报备人 openid（为 null 表示自己报备）
+  createdByName: String,          // 代报备人姓名（为 null 表示自己报备）
+  createdAt: Number,              // 创建时间戳
+  updatedAt: Number               // 更新时间戳
+}
+```
+
+**代报备说明**：
+- 当用户A报备外出时，输入同行人B（为系统注册用户）
+- 系统会自动为B创建一条报备记录，设置 `createdByOpenid` 和 `createdByName` 字段
+- B的 `companions` 字段会包含本次出行的其他所有人（A + 其他同行人）
+- 返回报备时只更新当前用户自己的记录，同行人需自行报备返回
+
+---
+
+### 13. work_orders - 工作订单（重要：不是 workflow_orders）
 
 **用途**：存储工作流工单记录
 
 **安全规则**：`ADMINWRITE` - 所有用户可读，仅管理员可写
 
-> **重要说明**：工单由云函数创建，`PRIVATE` 规则会导致申请人无法查看自己的工单。使用 `ADMINWRITE` 规则，用户可读取所有工单，云函数以管理员权限写入。前端通过 `initiatorId` 过滤只显示当前用户的工单。
+> **重要说明**：工单由云函数创建，`PRIVATE` 规则会导致申请人无法查看自己的工单。使用 `ADMINWRITE` 规则，用户可读取所有工单，云函数以管理员权限写入。前端通过 `businessData.applicantId` 过滤只显示当前用户的工单。
 
-**记录数**：4
+**记录数**：97
 
 **索引**：
 
 - `_id` - 记录 ID（云开发自动创建）
-- `idx_applicantId` - 申请人 ID 索引
-- `idx_orderType` - 工单类型索引
-- `idx_status` - 状态索引
-- `idx_createTime` - 创建时间索引（降序）
-- `idx_updateTime` - 更新时间索引（降序）
+- `_openid_1` - 创建者 openid 索引（云开发自动创建）
+- `idx_createdAt` - createdAt 单字段索引（降序）- 时间排序
+- `idx_workflowStatus` - workflowStatus 单字段索引（升序）- 状态筛选
+- `idx_orderType` - orderType 单字段索引（升序）- 类型筛选
+- `idx_businessData_applicantId` - businessData.applicantId 嵌套字段索引（升序）- 申请人查询
 
 **字段结构**：
 ```javascript
 {
   _id: String,                    // 记录 ID（自动生成）
   orderNo: String,                 // 工单编号（唯一）
-  orderType: String,               // 工单类型（如 'medical_application', 'notification_publish'）
+  orderType: String,               // 工单类型（如 'medical_application', 'notification_publish', 'leave_application'）
   templateId: String,              // 关联的模板 ID
-  templateVersion: Number,          // 模板版本
-  businessData: Object,            // 业务数据（根据工单类型不同）
+  templateName: String,            // 模板名称
+  templateVersion: Number,         // 模板版本
+  businessData: Object,            // 业务数据（随工单类型变化；申请人信息存于 businessData.applicantId / applicantName）
+  workflowSnapshot: Object,        // 工作流模板快照（{ templateId, version, steps, displayConfig }）
+  workflowStatus: String,          // 工作流状态：'pending'（待处理）| 'approved'（已通过）| 'rejected'（已拒绝）| 'supplement'（待补充）等
   currentStep: Number,             // 当前步骤编号
+  supplementCount: Number,         // 补充次数
   needSupplement: Boolean,         // 是否需要补充材料
-  supplementCount: Number,          // 补充次数
-  workflowStatus: String,           // 工作流状态：'pending'（待处理）| 'in_progress'（进行中）| 'completed'（已完成）| 'rejected'（已拒绝）| 'returned'（已退回）
-  workflowSnapshot: Object,         // 工作流模板快照（包含 steps 等）
-  initiatorId: String,             // 发起人 openid
-  initiatorName: String,           // 发起人姓名
-  initiatorRole: String,            // 发起人角色
-  completedAt: Number,             // 完成时间戳
-  createdAt: Number,               // 创建时间戳
-  startedAt: Number,               // 开始时间戳
   submittedAt: Number,             // 提交时间戳
+  startedAt: Number,               // 开始时间戳
+  createdAt: Number,               // 创建时间戳
   updatedAt: Number                // 更新时间戳
 }
 ```
 
 ---
 
-### 10. workflow_logs - 工作流日志
+### 14. workflow_logs - 工作流日志
 
 **用途**：记录工作流操作日志
 
@@ -367,77 +643,83 @@
 
 > **重要说明**：日志由云函数创建，`PRIVATE` 规则会导致用户无法查看工单操作历史。使用 `ADMINWRITE` 规则，用户可读取日志查看审批流程。
 
-**记录数**：7
+**记录数**：303
 
 **索引**：
 
 - `_id` - 记录 ID（云开发自动创建）
-- `idx_action` - 操作类型索引
-- `idx_operatorId` - 操作人 ID 索引
-- `idx_orderId` - 工单 ID 索引
-- `idx_operateTime` - 操作时间索引（降序）
-- `idx_eventType` - 事件类型索引
+- `_openid_1` - 创建者 openid 索引（云开发自动创建）
+- `idx_orderId_createdAt` - 组合索引：orderId（升序）+ createdAt（降序）- 工单日志查询
 
 **字段结构**：
 ```javascript
 {
   _id: String,                    // 记录 ID（自动生成）
   orderId: String,                 // 关联的工单 ID
-  action: String,                  // 操作类型：'submit'（提交）| 'approve'（同意）| 'reject'（拒绝）| 'return'（退回）| 'supplement'（补充）| 'revoke'（撤回）
-  operatorId: String,              // 操作人 openid
+  taskId: String,                  // 关联的任务 ID（可为空）
+  stepName: String,                // 步骤名称
+  action: String,                  // 操作类型（如 'submit'、'approve'、'reject'、'return' 等）
+  operatorType: String,            // 操作人类型：'user' | 'system'
+  operatorId: String,              // 操作人 openid（系统操作为 'system'）
   operatorName: String,            // 操作人姓名
-  operateTime: Number,             // 操作时间戳
-  eventType: String,               // 事件类型：'task_assigned'（任务分配）| 'task_completed'（任务完成）| 'order_status_changed'（状态变更）
-  templateId: String,              // 模板 ID（可选）
   description: String,             // 操作描述
+  detail: String,                  // 详情（冗余，与 description 一致）
+  beforeData: Object,              // 变更前数据（可选）
+  afterData: Object,               // 变更后数据（可选）
+  changes: Object,                 // 变更内容（可选）
   createdAt: Number                // 创建时间戳
 }
 ```
 
 ---
 
-### 11. workflow_tasks - 工作流任务
+### 15. workflow_tasks - 工作流任务
 
 **用途**：存储工作流任务（审批任务）
 
 **安全规则**：`ADMINWRITE` - 所有用户可读，仅管理员可写
 
-> **重要说明**：任务由云函数创建，`PRIVATE` 规则会导致审批人无法查看分配给自己的任务。使用 `ADMINWRITE` 规则，用户可读取所有任务，前端通过 `approverId` 过滤只显示当前用户的待办。
+> **重要说明**：任务由云函数创建，`PRIVATE` 规则会导致审批人无法查看分配给自己的任务。使用 `ADMINWRITE` 规则，用户可读取所有任务，前端通过 `actualApproverId` 过滤只显示当前用户的待办。
 
-**记录数**：18
+**记录数**：103
 
 **索引**：
 
 - `_id` - 记录 ID（云开发自动创建）
-- `idx_approverId` - 审批人 ID 索引
-- `idx_orderId` - 工单 ID 索引
-- `idx_status` - 状态索引
-- `idx_assignTime` - 分配时间索引（降序）
+- `_openid_1` - 创建者 openid 索引（云开发自动创建）
+- `idx_orderId_stepNo` - 组合索引：orderId（升序）+ stepNo（升序）- 工单任务列表
+- `idx_taskStatus_assignedAt` - 组合索引：taskStatus（升序）+ assignedAt（降序）- 待办查询
+- `idx_actualApproverId_updatedAt` - 组合索引：actualApproverId（升序）+ updatedAt（降序）- 审批人记录查询
 
 **字段结构**：
 ```javascript
 {
   _id: String,                    // 记录 ID（自动生成）
   orderId: String,                 // 关联的工单 ID
-  templateId: String,              // 模板 ID
-  stepId: String,                  // 步骤 ID（如 'step_1'）
+  stepNo: Number,                  // 步骤编号
   stepName: String,                // 步骤名称
-  approverId: String,              // 审批人 openid
-  approverName: String,            // 审批人姓名
-  status: String,                 // 状态：'pending'（待审批）| 'approved'（已同意）| 'rejected'（已拒绝）| 'returned'（已退回）
-  assignTime: Number,              // 分配时间戳
-  completeTime: Number,             // 完成时间戳
-  approvalComment: String,          // 审批意见
-  timeout: Number,                 // 超时时间（小时）
-  timeoutAction: String,            // 超时动作：'remind'（提醒）| 'auto_approve'（自动通过）| 'auto_reject'（自动拒绝）
+  stepType: String,                // 步骤类型：'serial'（串行）| 'parallel'（并行）
+  approverType: String,            // 审批人类型：'role' | 'dept_head' | 'user'
+  approverId: String,              // 审批人 ID（角色 ID 或 openid）
+  approverName: String,            // 审批人名称
+  approverList: Array,             // 所有有权限的审批人列表
+  actualApproverId: String,        // 实际审批人 openid（审批后填充，初始为 null）
+  actualApproverName: String,      // 实际审批人姓名（审批后填充）
+  taskStatus: String,              // 任务状态：'pending'（待审批）| 'approved'（已同意）| 'rejected'（已拒绝）| 'returned'（已退回）等
   createdAt: Number,               // 创建时间戳
-  updatedAt: Number                // 更新时间戳
+  assignedAt: Number,              // 分配时间戳
+  timeoutAt: Number,               // 超时时间戳
+  timeoutAction: String,           // 超时动作：'remind' | 'auto_approve' | 'auto_reject'
+  isTimeout: Boolean,              // 是否已超时
+  parallelGroupId: String,         // 并行分组 ID（并行步骤使用）
+  comment: String,                 // 审批意见
+  attachments: Array               // 附件列表
 }
 ```
 
 ---
 
-### 12. workflow_templates - 工作流模板
+### 16. workflow_templates - 工作流模板
 
 **用途**：存储工作流模板配置
 
@@ -445,14 +727,13 @@
 
 > **重要说明**：模板用于提交工单时查询，`PRIVATE` 规则会导致用户无法提交工单。使用 `ADMINWRITE` 规则，用户可读取模板列表。
 
-**记录数**：3
+**记录数**：8
 
 **索引**：
 
 - `_id` - 记录 ID（云开发自动创建）
-- `idx_name_version` - 名称 + 版本复合索引（唯一）
-- `idx_status` - 状态索引
-- `idx_createTime` - 创建时间索引（降序）
+- `_openid_1` - 创建者 openid 索引（云开发自动创建）
+- `idx_code_status` - 组合索引：code（升序）+ status（升序）- 模板查询
 
 **字段结构**：
 ```javascript
@@ -525,1130 +806,6 @@
   timeoutAction: String,         // 超时动作：'remind'（提醒）| 'auto_approve'（自动通过）| 'auto_reject'（自动拒绝）
 }
 ```
-
----
-
-### 13. trip_reports - 外出报备记录
-
-**用途**：存储用户外出报备记录，支持同行人代报备功能
-
-**安全规则**：`READONLY` - 所有用户可读，仅创建者可写
-
-> **重要说明**：使用 READONLY 规则，用户可以提交自己的报备（前端创建），所有人可读以便 Dashboard 权限过滤。前端按角色过滤显示数据。
-
-**记录数**：动态
-
-**索引**：
-
-- `_id` - 记录 ID（云开发自动创建）
-- `idx_openid_status` - openid + status 组合索引 - 优化用户出行记录查询
-- `idx_departAt` - departAt 降序索引 - 优化时间排序查询
-- `idx_department` - department 索引 - 优化 Dashboard 部门筛选
-
-**字段结构**：
-```javascript
-{
-  _id: String,                    // 记录 ID（自动生成）
-  _openid: String,                // 创建者 openid（READONLY 规则检查此字段）
-  userName: String,               // 用户姓名
-  department: String,             // 所属部门（用于 Dashboard 过滤）
-  destination: String,            // 目的地
-  companions: String,             // 同行人（多个用空格分隔）
-  plannedReturnAt: Number,        // 计划返回时间戳
-  travelMode: String,             // 出行方式：'自驾' | '搭车' | '打车' | '步行'
-  departAt: Number,               // 外出时间戳
-  returnAt: Number,               // 实际返回时间戳（null 表示未返回）
-  status: String,                 // 状态：'out'（外出中）| 'returned'（已返回）| 'overtime'（超时）
-  overtimeNotified: Boolean,      // 是否已发送超时通知
-  createdByOpenid: String,        // 代报备人 openid（为 null 表示自己报备）
-  createdByName: String,          // 代报备人姓名（为 null 表示自己报备）
-  createdAt: Number,              // 创建时间戳
-  updatedAt: Number               // 更新时间戳
-}
-```
-
-**代报备说明**：
-- 当用户A报备外出时，输入同行人B（为系统注册用户）
-- 系统会自动为B创建一条报备记录，设置 `createdByOpenid` 和 `createdByName` 字段
-- B的 `companions` 字段会包含本次出行的其他所有人（A + 其他同行人）
-- 返回报备时只更新当前用户自己的记录，同行人需自行报备返回
-
----
-
-### 14. holiday_configs - 节假日配置
-
-**用途**：存储节假日日期配置，用于日历组件显示"休"角标
-
-**安全规则**：`ADMINWRITE` - 所有用户可读，仅管理员可写
-
-**记录数**：动态
-
-**索引**：
-
-- `_id` - 记录 ID（云开发自动创建）
-- `idx_year` - 年份索引 - 优化按年份查询
-
-**字段结构**：
-```javascript
-{
-  _id: String,                    // 记录 ID（自动生成）
-  year: Number,                   // 配置年份（如 2026）
-  dates: Array[String],           // 节假日日期数组 ['2026-01-01', '2026-01-02', ...]
-  createdBy: String,              // 创建者 openid
-  createdByName: String,          // 创建者姓名
-  createdAt: Number,              // 创建时间戳
-  updatedAt: Number               // 更新时间戳
-}
-```
-
-**使用说明**：
-- 每年一条记录，包含该年所有节假日日期
-- 日期格式为 `YYYY-MM-DD`
-- 日历组件根据此数据显示"休"角标
-
----
-
-### 15. calendar_schedules - 日程记录
-
-**用途**：存储用户日程数据
-
-**安全规则**：`READONLY` - 所有用户可读，仅创建者可写
-
-**记录数**：动态
-
-**索引**：
-
-- `_id` - 记录 ID（云开发自动创建）
-- `idx_creatorId_startDate` - 创建者 + 开始日期组合索引
-- `idx_startDate` - 开始日期索引
-
-**字段结构**：
-```javascript
-{
-  _id: String,              // 记录 ID（自动生成）
-  title: String,            // 日程标题
-  isAllDay: Boolean,        // 是否全天
-  startDate: String,        // 开始日期 YYYY-MM-DD
-  endDate: String,          // 结束日期 YYYY-MM-DD
-  startTime: String,        // 开始时间 HH:mm（非全天）
-  endTime: String,          // 结束时间 HH:mm（非全天）
-  type: String,             // 类型：'meeting'|'training'|'visit'|'banquet'|'other'
-  typeName: String,         // 类型显示名
-  color: String,            // 颜色值
-  repeat: String,           // 重复：'none'|'daily'|'weekly'|'monthly'|'workdayDaily'|'workdayWeekly'
-  repeatEndDate: String,    // 重复截止日期 YYYY-MM-DD（仅当 repeat !== 'none' 时有效）
-  location: String,         // 地点（可选）
-  description: String,      // 备注（可选）
-  creatorId: String,        // 创建者 openid
-  creatorName: String,      // 创建者姓名
-  createdAt: Number,        // 创建时间戳
-  updatedAt: Number         // 更新时间戳
-}
-```
-
-**类型配置**：
-| type | typeName | color |
-|------|----------|-------|
-| meeting | 会议 | #3B82F6 |
-| training | 培训 | #10B981 |
-| visit | 会见 | #8B5CF6 |
-| banquet | 宴请 | #F59E0B |
-| other | 其他 | #6B7280 |
-
-**重复类型说明**：
-| repeat | 说明 |
-|--------|------|
-| none | 不重复（默认） |
-| daily | 每天重复 |
-| weekly | 每周同星期几重复 |
-| monthly | 每月同日期重复 |
-| workdayDaily | 工作日每天重复（排除节假日和周末） |
-| workdayWeekly | 工作日每周重复（仅工作日） |
-
-**重复截止日期规则**：
-- 当 `repeat !== 'none'` 时，`repeatEndDate` 必填
-- 有效范围：`startDate` 至当年最后一天（如 2026-12-31）
-- 工作日类型依赖 `holiday_configs` 集合的节假日配置
-
----
-
-### 16. feedback_posts - 意见反馈帖子
-
-**用途**：存储用户提交的意见反馈
-
-**安全规则**：`ADMINWRITE` - 所有用户可读，仅管理员可写
-
-**记录数**：动态
-
-**索引**：
-
-- `_id` - 记录 ID（云开发自动创建）
-- `idx_createdAt` - 创建时间索引（降序）- 优化意见列表查询
-
-**字段结构**：
-```javascript
-{
-  _id: String,              // 记录 ID（自动生成）
-  openid: String,           // 提交者 openid
-  authorName: String,       // 提交者姓名
-  content: String,          // 意见内容
-  createdAt: Number         // 创建时间戳
-}
-```
-
----
-
-### 17. feedback_replies - 意见反馈回复
-
-**用途**：存储管理员对意见反馈的回复
-
-**安全规则**：`ADMINWRITE` - 所有用户可读，仅管理员可写
-
-**记录数**：动态
-
-**索引**：
-
-- `_id` - 记录 ID（云开发自动创建）
-- `idx_postId_createdAt` - 组合索引：postId（升序）+ createdAt（升序）- 优化回复列表查询
-
-**字段结构**：
-```javascript
-{
-  _id: String,              // 记录 ID（自动生成）
-  postId: String,           // 关联的意见帖子 ID
-  openid: String,           // 回复者 openid
-  authorName: String,       // 回复者姓名
-  isAdmin: Boolean,         // 是否为管理员回复
-  content: String,          // 回复内容
-  createdAt: Number         // 创建时间戳
-}
-```
-
----
-
-### 18. meeting_room_reservations - 会议室预约
-
-**用途**：存储会议室预约记录
-
-**安全规则**：`READONLY` - 所有用户可读，仅创建者可写
-
-**记录数**：动态
-
-**索引**：
-
-- `_id` - 记录 ID（云开发自动创建）
-- `idx_roomId_date` - 组合索引：roomId + date - 优化会议室预约查询
-- `idx_creatorId` - 创建者索引
-
-**字段结构**：
-```javascript
-{
-  _id: String,              // 记录 ID（自动生成）
-  title: String,            // 预约标题/会议名称
-  roomId: String,           // 会议室 ID
-  roomName: String,         // 会议室名称
-  date: String,             // 预约日期 YYYY-MM-DD
-  startTime: String,        // 开始时间 HH:mm
-  endTime: String,          // 结束时间 HH:mm
-  description: String,      // 备注（可选）
-  creatorId: String,        // 创建者 openid
-  creatorName: String,      // 创建者姓名
-  creatorRole: String,      // 创建者角色
-  createdAt: Number,        // 创建时间戳
-  updatedAt: Number         // 更新时间戳
-}
-```
-
----
-
-### 19. schedule_subscriptions - 日程订阅
-
-**用途**：存储用户对日程的订阅关系
-
-**安全规则**：`READONLY` - 所有用户可读，仅创建者可写
-
-**记录数**：动态
-
-**索引**：
-
-- `_id` - 记录 ID（云开发自动创建）
-- `idx_userId` - 用户索引 - 查询用户订阅列表
-- `idx_scheduleId` - 日程索引 - 查询日程订阅者
-
-**字段结构**：
-```javascript
-{
-  _id: String,              // 记录 ID（自动生成）
-  scheduleId: String,       // 订阅的日程 ID
-  userId: String,           // 订阅者 openid
-  createdAt: Number         // 创建时间戳
-}
-```
-
----
-
-### 20. passport_info - 护照信息
-
-**用途**：存储用户的护照信息（由用户自行录入）
-
-**安全规则**：`READONLY` - 所有用户可读，仅创建者可写
-
-> **重要说明**：用户通过云函数 `passportManager` 管理护照信息（添加、更新、删除），云函数以管理员权限写入。使用 `READONLY` 规则，用户可查看自己的护照信息，便于护照过期检查。
-
-**记录数**：动态
-
-**索引**：
-
-- `_id` - 记录 ID（云开发自动创建）
-- `idx_openid` - 用户 openid 索引 - 查询用户护照列表
-- `idx_expiryDate` - 有效期索引 - 护照过期检查
-
-**字段结构**：
-```javascript
-{
-  _id: String,                    // 记录 ID（自动生成）
-  openid: String,                  // 所属用户 openid
-  ownerName: String,               // 持有人姓名
-  gender: String,                  // 性别：'男' | '女'
-  passportNo: String,              // 护照号
-  issueDate: String,               // 签发日期 YYYY-MM-DD
-  expiryDate: String,              // 有效期至 YYYY-MM-DD
-  createdAt: Number,               // 创建时间戳
-  updatedAt: Number                // 更新时间戳
-}
-```
-
-**业务流程说明**：
-1. 用户通过小程序页面录入护照信息
-2. 调用 `passportManager.addPassportInfo` 添加护照
-3. 定时云函数 `passportExpiryChecker` 检查护照有效期
-4. 即将过期（180天内）时发送通知提醒用户
-
----
-
-### 21. passport_records - 护照借用记录
-
-**用途**：存储护照借用记录，审批通过后自动创建
-
-**安全规则**：`ADMINWRITE` - 所有用户可读，仅管理员可写
-
-> **重要说明**：借用记录由云函数创建（审批通过后自动创建），使用 `ADMINWRITE` 规则，用户可读取自己的借用记录。
-
-**记录数**：动态
-
-**索引**：
-
-- `_id` - 记录 ID（云开发自动创建）
-- `idx_applicantId` - 申请人 ID 索引
-- `idx_borrowerOpenids` - 借用人 openid 索引
-- `idx_status` - 状态索引
-- `idx_borrowedAt` - 借用时间索引（降序）
-
-**字段结构**：
-```javascript
-{
-  _id: String,                    // 记录 ID（自动生成）
-  orderId: String,                // 关联的工单 ID
-  orderNo: String,                // 工单编号
-  // 申请人信息
-  applicantId: String,            // 申请人 openid
-  applicantName: String,          // 申请人姓名
-  // 借用的护照信息
-  borrowerNames: Array[String],   // 借用人姓名列表
-  borrowerOpenids: Array[String], // 借用人 openid 列表
-  borrowerInfoList: Array[Object],// 借用人详细信息列表 [{ name, openid }]
-  // 借用信息
-  borrowDate: String,             // 借用日期 YYYY-MM-DD
-  expectedReturnDate: String,     // 预计归还日期 YYYY-MM-DD
-  reason: String,                 // 借用原因
-  // 状态
-  status: String,                 // 状态：'borrowed'（借用中）| 'returned'（已归还）
-  // 借用操作信息
-  borrowedAt: Number,             // 借用审批通过时间戳
-  borrowedBy: String,             // 审批人 openid
-  borrowedByName: String,         // 审批人姓名
-  // 归还信息（未归还时为 null）
-  returnedAt: Number,             // 归还时间戳（null 表示未归还）
-  returnedBy: String,             // 归还操作人 openid
-  returnedByName: String,         // 归还操作人姓名
-  // 时间戳
-  createdAt: Number,              // 创建时间戳
-  updatedAt: Number               // 更新时间戳
-}
-```
-
-**业务流程说明**：
-1. 用户提交护照借用申请 → 创建 `work_orders` 工单
-2. 审批通过后 → 工作流引擎自动创建 `passport_records` 记录
-3. 归还护照 → 更新 `status` 为 `returned`，记录归还信息
-
----
-
-### 22. medical_records - 就医申请记录
-
-**用途**：存储审批通过后的就医申请记录
-
-**安全规则**：`ADMINWRITE` - 所有用户可读，仅管理员可写
-
-> **重要说明**：就医记录由云函数创建（审批通过后自动创建），使用 `ADMINWRITE` 规则，用户可读取自己的就医记录用于查看和导出。
-
-**记录数**：动态
-
-**索引**：
-
-- `_id` - 记录 ID（云开发自动创建）
-- `idx_applicantId` - 申请人 ID 索引
-- `idx_createdAt` - 创建时间索引（降序）
-- `idx_medicalDate` - 就医日期索引（降序）
-
-**字段结构**：
-```javascript
-{
-  _id: String,                    // 记录 ID（自动生成）
-  orderId: String,                // 关联的工单 ID
-  orderNo: String,                // 工单编号
-  // 申请人信息
-  applicantId: String,            // 申请人 openid
-  applicantName: String,          // 申请人姓名
-  applicantRole: String,          // 申请人角色
-  // 就医信息
-  patientName: String,            // 就医人姓名
-  relation: String,               // 与申请人关系
-  medicalDate: String,            // 就医日期 YYYY-MM-DD
-  institution: String,            // 就医机构
-  otherInstitution: String,       // 其他机构名称（institution='其他'时）
-  reasonForSelection: String,     // 选择此机构的原因
-  reason: String,                 // 就医原因
-  // 状态
-  status: String,                 // 状态：'approved'（已通过）
-  // 时间戳
-  createdAt: Number,              // 创建时间戳
-  updatedAt: Number               // 更新时间戳
-}
-```
-
-**业务流程说明**：
-1. 用户提交就医申请 → 创建 `work_orders` 工单
-2. 审批通过后 → 工作流引擎自动创建 `medical_records` 记录
-3. 用户可查看已通过的就医记录列表，点击查看详情
-4. 支持导出PDF（通过 `medicalApplication.generatePdf` 云函数）
-
-**相关云函数**：
-- `medicalApplication`：处理就医申请提交、记录查询、详情查看、PDF生成等操作
-- `workflowEngine`：审批通过后自动创建 `medical_records` 记录
-
----
-
-### 23. haircut_appointments - 理发预约记录
-
-**用途**：存储理发预约记录
-
-**安全规则**：`ADMINWRITE` - 所有用户可读，仅管理员可写
-
-> **重要说明**：预约记录由云函数 `haircutManager` 创建和管理，使用 `ADMINWRITE` 规则，用户可读取所有预约记录用于查看时段占用情况。
-
-**记录数**：动态
-
-**索引**：
-
-- `_id` - 记录 ID（云开发自动创建）
-- `date_timeSlot_unique` - 唯一索引：date + timeSlot - 防止同一时段重复预约
-- `bookerId_idx` - 预约人 ID 索引 - 查询用户预约记录
-- `status_idx` - 状态索引 - 筛选有效/已取消预约
-
-**字段结构**：
-```javascript
-{
-  _id: String,                    // 记录 ID（自动生成）
-  date: String,                   // 预约日期 YYYY-MM-DD
-  timeSlot: String,               // 预约时段（如 "14:30-15:00"）
-  // 预约人信息
-  bookerId: String,               // 预约人 openid
-  bookerName: String,             // 预约人姓名
-  bookerRole: String,             // 预约人角色
-  bookerDepartment: String,       // 预约人部门
-  // 预约对象
-  forSelf: Boolean,               // 是否为自己预约
-  actualUserName: String,         // 实际理发人姓名（代约时为被代约人）
-  actualUserId: String,           // 实际理发人 openid（代约时）
-  // 状态
-  status: String,                 // 状态：'booked'（已预约）| 'cancelled'（已取消）
-  // 取消信息（未取消时为 null）
-  cancelledAt: Number,            // 取消时间戳
-  cancelledBy: String,            // 取消操作人 openid
-  cancelledByName: String,        // 取消操作人姓名
-  cancelReason: String,           // 取消原因
-  // 时间戳
-  createdAt: Number,              // 创建时间戳
-  updatedAt: Number               // 更新时间戳
-}
-```
-
-**业务规则**：
-1. 服务时间：周一、三、五下午 14:30~18:00
-2. 当日 14:20 后禁止预约当日时段
-3. 周五 18:00 后自动切换显示下周日期
-4. 节假日自动排除（依赖 `holiday_configs` 集合）
-5. 代约显示格式："理发人（代约人）"
-
-**相关云函数**：
-- `haircutManager`：处理时段查询、预约创建/取消、列表查询等操作
-
----
-
-### 24. learning_articles - 学习园地文章
-
-**用途**：存储学习园地模块的文章，支持富文本编辑、图片插入、置顶等功能
-
-**安全规则**：`ADMINWRITE` - 所有用户可读，仅管理员可写
-
-> **重要说明**：文章由云函数 `articleManager` 创建和管理。所有用户可发布文章（通过云函数以管理员权限写入），管理员可置顶文章，管理员和文章发布者可删除文章。
-
-**记录数**：动态
-
-**索引**：
-
-- `_id` - 记录 ID（云开发自动创建）
-- `idx_status_createdAt` - 组合索引：status（升序）+ createdAt（降序）- 优化已发布文章列表查询
-- `idx_isPinned_pinnedAt` - 组合索引：isPinned（降序）+ pinnedAt（降序）- 优化置顶排序
-- `idx_authorId` - 作者 ID 索引 - 查询用户发布的文章
-
-**字段结构**：
-```javascript
-{
-  _id: String,                    // 记录 ID（自动生成）
-  title: String,                   // 文章标题（必填，最长100字符）
-  content: String,                 // 富文本 HTML 内容
-  plainText: String,               // 纯文本摘要（最长200字符，用于列表展示）
-  // 作者信息
-  authorId: String,                // 发布者 openid
-  authorName: String,              // 发布者姓名
-  authorAvatar: String,            // 发布者头像 URL（可选）
-  // 封面图
-  coverImage: String,              // 封面图 URL（可选，取编辑器第一张图）
-  // 状态
-  isPinned: Boolean,               // 是否置顶
-  pinnedAt: Number,                // 置顶时间戳（未置顶时为 0）
-  readCount: Number,               // 阅读量
-  status: String,                  // 状态：'published'（已发布）| 'deleted'（已删除）
-  // 时间戳
-  createdAt: Number,               // 创建时间戳
-  updatedAt: Number                // 更新时间戳
-}
-```
-
-**业务流程说明**：
-1. 用户通过发布页（富文本编辑器）创建文章 → 调用 `articleManager.create`
-2. 列表页展示已发布文章，按置顶 > 创建时间排序 → 调用 `articleManager.list`
-3. 详情页查看文章内容，自动递增阅读量 → 调用 `articleManager.get`
-4. 管理员可置顶/取消置顶文章 → 调用 `articleManager.pin`
-5. 管理员或文章发布者可删除文章（软删除，更新 status 为 deleted）→ 调用 `articleManager.delete`
-
-**排序规则**：
-- 列表排序：`isPinned desc` > `pinnedAt desc` > `createdAt desc`
-- 置顶文章始终排在最前面，多个置顶文章按置顶时间倒序
-
-**相关云函数**：
-- `articleManager`：处理文章的创建、列表、详情、置顶、删除等操作
-
----
-
-### 25. user_signatures - 用户签字
-
-**用途**：存储用户的手写签字图片（用于审批申请表PDF导出等场景）
-
-**安全规则**：`PRIVATE` - 仅创建者可读写
-
-> **重要说明**：签字是用户个人数据，使用 `PRIVATE` 规则，用户只能查看和管理自己的签字。云函数（如PDF生成）以管理员权限运行，可绕过安全规则读取任意用户的签字。
-
-**记录数**：动态
-
-**索引**：
-
-- `_id` - 记录 ID（云开发自动创建）
-- `idx_openid` - 用户 openid 索引 - 优化按用户查询
-
-**字段结构**：
-```javascript
-{
-  _id: String,                    // 记录 ID（自动生成）
-  _openid: String,                // 创建者 openid（PRIVATE 规则自动填充）
-  fileID: String,                 // 云存储文件 ID
-  label: String,                  // 签字标签（如 '签字 1'、'签字 2'）
-  index: Number,                  // 排序序号（0 或 1）
-  createdAt: Number,              // 创建时间戳
-  updatedAt: Number               // 更新时间戳
-}
-```
-
-**业务规则**：
-1. 每个用户最多保存 2 个签字
-2. 签字图片通过 `signature-pad` 组件手写生成，上传到云存储
-3. 云存储路径格式：`signatures/{openid}/{timestamp}_{index}.png`
-4. 签字可通过前端 SDK 进行添加、替换、删除操作
-5. 审批通过后的PDF导出功能可通过云函数读取用户的签字图片
-
----
-
-### 26. greenbook_posts - 小绿书帖子
-
-**用途**：存储小绿书模块的用户帖子（图片+文字社交内容）
-
-**安全规则**：`READONLY` - 所有用户可读，仅创建者可写
-
-> **重要说明**：帖子由用户通过云函数 `greenbookManager` 创建（云函数以管理员权限写入）。使用 `READONLY` 规则，用户可读取所有帖子，通过 `_openid` 字段过滤"我的帖子"。
-
-**记录数**：动态
-
-**索引**：
-
-- `_id` - 记录 ID（云开发自动创建）
-- `_openid_1` - 创建者 openid 索引 - 优化"我的帖子"查询
-- `idx_category_createdAt` - 组合索引：category（升序）+ createdAt（降序）- 优化分类筛选查询
-- `idx_createdAt` - 创建时间索引（降序）- 优化时间排序查询
-
-**字段结构**：
-```javascript
-{
-  _id: String,                    // 记录 ID（自动生成）
-  _openid: String,                // 创建者 openid（READONLY 规则检查此字段）
-  // 作者信息
-  authorName: String,             // 作者姓名
-  authorAvatar: String,           // 作者头像 URL
-  // 帖子内容
-  title: String,                  // 帖子标题（可选）
-  content: String,                // 帖子正文
-  images: Array[String],          // 图片 fileID 列表（1~9张）
-  imageRatios: Array[Number],     // 图片宽高比列表（与 images 一一对应）
-  tags: Array[String],            // 话题标签列表（最多5个）
-  category: String,               // 分类：'美食'|'生活'|'出行'|'运动'|'学习'|'分享'
-  // 统计
-  likeCount: Number,              // 点赞数
-  commentCount: Number,           // 评论数
-  collectCount: Number,           // 收藏数
-  // 时间戳
-  createdAt: Number,              // 创建时间戳
-  updatedAt: Number               // 更新时间戳
-}
-```
-
-**业务流程说明**：
-1. 用户选择图片 + 编辑内容 → 调用 `greenbookManager.create` 创建帖子
-2. 列表页按分类筛选、按热度或最新排序 → 调用 `greenbookManager.list`
-3. 详情页展示完整内容和评论 → 调用 `greenbookManager.detail`
-4. 用户点赞/收藏 → 调用 `greenbookManager.toggleLike` / `toggleCollect`
-5. 删除帖子（作者或管理员）→ 同时删除相关评论和点赞/收藏记录
-
-**排序规则**：
-- 最新：`createdAt desc`
-- 热门：`likeCount desc, createdAt desc`
-
-**相关云函数**：
-- `greenbookManager`：处理帖子的创建、列表、详情、删除、点赞、收藏等操作
-
----
-
-### 27. greenbook_comments - 小绿书评论
-
-**用途**：存储小绿书帖子的评论（支持一级评论和二级回复）
-
-**安全规则**：`READONLY` - 所有用户可读，仅创建者可写
-
-> **重要说明**：评论由用户通过云函数 `greenbookManager` 创建。使用 `READONLY` 规则，用户可读取所有评论。
-
-**记录数**：动态
-
-**索引**：
-
-- `_id` - 记录 ID（云开发自动创建）
-- `_openid_1` - 创建者 openid 索引
-- `idx_postId_createdAt` - 组合索引：postId（升序）+ createdAt（降序）- 优化帖子评论列表查询
-- `idx_replyToId` - 回复目标索引 - 优化二级回复查询
-
-**字段结构**：
-```javascript
-{
-  _id: String,                    // 记录 ID（自动生成）
-  _openid: String,                // 评论者 openid（READONLY 规则检查此字段）
-  // 关联
-  postId: String,                 // 关联的帖子 ID
-  replyToId: String | null,       // 回复的目标评论 ID（一级评论为 null）
-  replyToName: String | null,     // 回复的目标评论者姓名
-  // 评论内容
-  authorName: String,             // 评论者姓名
-  authorAvatar: String,           // 评论者头像 URL
-  content: String,                // 评论内容
-  // 统计
-  likeCount: Number,              // 点赞数
-  // 时间戳
-  createdAt: Number               // 创建时间戳
-}
-```
-
-**评论层级说明**：
-- **一级评论**：`replyToId` 为 `null`，直接评论帖子
-- **二级回复**：`replyToId` 指向某条一级评论，回复该评论者
-- 获取评论列表时，后端会自动加载每条一级评论的最近3条回复
-
-**相关云函数**：
-- `greenbookManager`：处理评论的添加、删除、列表查询等操作
-
----
-
-### 28. greenbook_likes - 小绿书点赞与收藏
-
-**用途**：统一存储小绿书模块的点赞和收藏记录（帖子和评论共用）
-
-**安全规则**：`READONLY` - 所有用户可读，仅创建者可写
-
-> **重要说明**：点赞/收藏由用户通过云函数 `greenbookManager` 创建。使用 `READONLY` 规则。
-
-**记录数**：动态
-
-**索引**：
-
-- `_id` - 记录 ID（云开发自动创建）
-- `_openid_1` - 创建者 openid 索引 - 高频访问索引（点赞查询最频繁）
-- `idx_targetId_targetType` - 组合索引：targetId（升序）+ targetType（升序）- 优化点赞状态查询
-
-**字段结构**：
-```javascript
-{
-  _id: String,                    // 记录 ID（自动生成）
-  _openid: String,                // 操作者 openid（READONLY 规则检查此字段）
-  targetId: String,               // 目标对象 ID（帖子 ID 或评论 ID）
-  targetType: String,             // 目标类型：'post'（点赞帖子）| 'comment'（点赞评论）| 'collect'（收藏帖子）
-  createdAt: Number               // 创建时间戳
-}
-```
-
-**targetType 说明**：
-| targetType | 含义 | 关联集合 | 影响 |
-|------------|------|---------|------|
-| `post` | 点赞帖子 | `greenbook_posts` | 帖子 `likeCount` ±1 |
-| `comment` | 点赞评论 | `greenbook_comments` | 评论 `likeCount` ±1 |
-| `collect` | 收藏帖子 | `greenbook_posts` | 帖子 `collectCount` ±1 |
-
-**业务规则**：
-- 切换机制：点赞/收藏为 toggle 操作，已存在则删除（取消），不存在则新增
-- 删除帖子时级联删除：同时删除该帖子下所有评论的点赞、帖子的点赞和收藏
-
-**相关云函数**：
-- `greenbookManager`：处理点赞切换（`toggleLike`）和收藏切换（`toggleCollect`）
-
----
-
-### 29. repair_orders - 物业报修记录
-
-**用途**：存储用户提交的物业报修申请
-
-**安全规则**：`ADMINWRITE` - 所有用户可读，仅管理员可写
-
-> **重要说明**：报修记录由云函数 `repairManager` 创建和管理。用户可读取所有报修记录（列表页），物业角色可查看全部记录并标记完成。
-
-**记录数**：动态
-
-**索引**：
-
-- `_id` - 记录 ID（云开发自动创建）
-- `_openid_1` - 创建者 openid 索引 - 优化"我的报修"查询
-- `idx_status` - 状态索引 - 优化状态筛选
-- `idx_createdAt` - 创建时间索引（降序）- 优化时间排序查询
-
-**字段结构**：
-```javascript
-{
-  _id: String,                    // 记录 ID（自动生成）
-  // 报修人信息
-  openid: String,                 // 报修人 openid
-  reporterName: String,           // 报修人姓名
-  reporterDepartment: String,     // 报修人部门
-  // 报修内容
-  livingArea: String,             // 居住区
-  address: String,                // 报修地址
-  content: String,                // 报修内容描述
-  images: Array[String],          // 报修图片 fileID 列表（最多3张）
-  // 状态
-  status: String,                 // 状态：'pending'（待处理）| 'completed'（已完成）
-  // 完成信息（未完成时为 null）
-  completedAt: Number,            // 完成时间戳（null 表示未完成）
-  completedByName: String,        // 完成操作人姓名（物业角色）
-  // 时间戳
-  createdAt: Number,              // 创建时间戳
-  updatedAt: Number               // 更新时间戳
-}
-```
-
-**业务流程说明**：
-1. 用户提交报修 → 调用 `repairManager.submit`，状态为 `pending`
-2. 物业角色查看全部报修记录 → 调用 `repairManager.getAllList`
-3. 用户查看自己的报修记录 → 调用 `repairManager.getMyList`
-4. 物业角色标记维修完成 → 调用 `repairManager.complete`，状态更新为 `completed`
-
-**权限规则**：
-- 所有注册用户可提交报修
-- 用户可查看自己的报修记录
-- 仅物业角色（`user.role === '物业'`）可查看全部记录和标记完成
-
-**相关云函数**：
-- `repairManager`：处理报修的提交、列表查询、标记完成、历史地址查询等操作
-
----
-
-### 30. news_articles - 新闻文章
-
-**用途**：存储从巴西主流媒体网站爬取的新闻文章（标题、正文、来源等）
-
-**安全规则**：`ADMINWRITE` - 所有用户可读，仅管理员可写
-
-> **重要说明**：新闻由云函数 `newsFetcher` 爬取并写入数据库，所有用户可阅读。使用 `ADMINWRITE` 规则，云函数以管理员权限写入，用户只读。
-
-**记录数**：动态（由定时爬取刷新）
-
-**索引**：
-
-- `_id` - 记录 ID（云开发自动创建）
-- `idx_source_scrapedAt` - 组合索引：source（升序）+ scrapedAt（降序）- 优化按来源筛选和时间排序查询
-- `idx_url` - 原文 URL 唯一索引 - 防止重复抓取同一篇文章
-
-**字段结构**：
-```javascript
-{
-  _id: String,                    // 记录 ID（自动生成）
-  title: String,                  // 新闻标题
-  summary: String,               // 新闻摘要（截取正文前 150 字符）
-  content: String,               // 新闻正文 HTML（经 cheerio 清理后）
-  coverImage: String,            // 封面图 URL（可选）
-  source: String,                // 新闻来源标识：'g1'（G1 Globo）| 'folha'（Folha de S.Paulo）| 'estadao'（Estadão）
-  sourceName: String,            // 来源显示名称：'G1' | 'Folha' | 'Estadão'
-  author: String,                // 作者姓名（可选）
-  originalUrl: String,           // 原文链接
-  publishedAt: String,           // 原文发布日期（ISO 8601 格式，如 '2026-04-02T10:30:00-03:00'）
-  category: String,              // 新闻分类（可选，从原文提取）
-  scrapedAt: Number,             // 爬取时间戳（毫秒）
-  updatedAt: Number              // 更新时间戳
-}
-```
-
-**业务流程说明**：
-1. 定时云函数触发器每 15 分钟调用 `newsFetcher.refresh`
-2. `newsFetcher.refresh` 从各新闻源爬取最新文章列表
-3. 通过 `originalUrl` 唯一索引去重，已存在的文章不重复写入
-4. 前端新闻列表页调用 `newsFetcher.list` 获取新闻（支持按来源筛选、分页）
-5. 前端新闻详情页调用 `newsFetcher.detail` 获取完整内容
-6. 前端本地缓存 5 分钟，减少云函数调用
-
-**新闻源扩展**：
-- 新增新闻源只需在 `cloudfunctions/newsFetcher/index.js` 的 `SOURCES` 注册表中添加配置
-- 配置项包括：`id`、`name`、`listUrl`（文章列表页）、`articleSelector`、`itemSelectors`（标题/摘要/链接/日期等选择器）
-- 添加后无需修改前端代码，新闻列表页会自动显示新的来源 Tab
-
-**相关云函数**：
-- `newsFetcher`：处理新闻的爬取（refresh）、列表查询（list）、详情获取（detail）
-
-**控制台链接**：
-- [news_articles](https://tcb.cloud.tencent.com/dev?envId=cloud1-8gdftlggae64d5d0#/db/doc/collection/news_articles)
-
----
-
-### 35. menu_ratings - 菜品打分记录
-
-**用途**：存储用户对菜单中各菜品的评分（1-5星），每个用户对同一菜单的同一道菜只能打一次分。
-
-**安全规则**：`READONLY` - 所有用户可读，仅创建者可写。
-
-> **重要说明**：打分记录由 `menuManager` 云函数在用户提交评分时创建。使用 `READONLY` 规则，云函数以管理员权限写入，用户只读。
-
-**记录数**：动态
-
-**索引**：
-
-- `_id` - 记录 ID（云开发自动创建）
-- `_openid_1` - 创建者 openid 索引（云开发自动创建）
-- `idx_menuId` - menuId 单字段索引（升序）- 加速菜品评分聚合查询（`getRatings` 按 menuId match 聚合）
-- `idx_menuId_openid_dishName` - 组合索引：menuId（升序）+ openid（升序）+ dishName（升序）- 加速 `addRating` 防重复查询（`where({ menuId, openid, dishName })`）
-
-**字段结构**：
-```javascript
-{
-  _id: String,                    // 记录 ID（自动生成）
-  menuId: String,                 // 关联的菜单 ID（menus._id）
-  openid: String,                 // 评分人 openid
-  authorOpenid: String,           // 评分人 openid（冗余，与 openid 一致）
-  authorName: String,             // 评分人姓名
-  dishName: String,               // 菜品名称（从菜单富文本内容中提取）
-  score: Number,                  // 评分：1~5 星（整数）
-  createdAt: Number               // 提交时间戳（毫秒）
-}
-```
-
-**业务规则**：
-1. 同一 openid + menuId + dishName 组合只能有一条打分记录（唯一约束，云函数层校验）
-2. score 取值范围：1 ~ 5 的整数，提交时由云函数校验
-3. 菜品名称由前端从菜单富文本 HTML 中智能提取（去标签→按行分割→过滤停用词→去重）
-4. 已评过的菜品不可修改分数
-
-**相关云函数**：
-- `menuManager.addRating`：提交菜品评分（含防重复校验）
-- `menuManager.getRatings`：获取某菜单所有菜品的平均分、评分人数、评分分布、当前用户已评状态
-
-**控制台链接**：
-- [menu_ratings](https://tcb.cloud.tencent.com/dev?envId=cloud1-8gdftlggae64d5d0#/db/doc/collection/menu_ratings)
-
----
-
-### 38. car_purchase_records - 购车记录
-
-**用途**：存储购车管理Checklist模式的购车流程记录（6组步骤：购车准备→免税审批→付款提车→上牌准备→验车上牌→后续手续）
-
-**安全规则**：`ADMINWRITE` - 所有用户可读，仅云函数可写
-
-> **重要说明**：购车记录由 `carPurchase` 云函数创建和管理。用户可读取自己的购车记录，办公室人员可查看全部记录。
-
-**记录数**：动态
-
-**索引**：
-
-- `_id` - 记录 ID（云开发自动创建）
-- `idx_applicant_status` - 组合索引：applicantOpenid（升序）+ status（升序）- 优化用户购车列表查询
-- `idx_createdat` - 创建时间索引（降序）- 优化时间排序查询
-
-**字段结构**：
-```javascript
-{
-  _id: String,                    // 记录 ID（自动生成）
-  // 申请人信息
-  applicantOpenid: String,        // 申请人 openid
-  applicantName: String,          // 申请人姓名
-  applicantRole: String,          // 申请人角色
-  // 车辆信息
-  carModel: String,               // 选定车型
-  // Checklist 步骤组（6组）
-  groups: Array[{                 // 步骤组列表
-    groupId: Number,              // 组编号（1~6）
-    groupName: String,            // 组名称
-    groupOwner: String,           // 组负责人类型：'staff'(用户) | 'office'(办公室)
-    steps: Array[{                // 该组的步骤列表
-      stepKey: String,            // 步骤键（如 '1_1', '2_3'）
-      title: String,              // 步骤标题
-      inputType: String,          // 输入类型：'text'|'checkbox'|'upload'|'date'|'remark'
-      completed: Boolean,         // 是否已完成
-      value: String|Array,        // 用户输入的值（文本/图片fileID数组/日期等）
-      remark: String,             // 备注
-      attachments: Array[String], // 上传附件 fileID 列表
-      completedAt: Number,        // 完成时间戳
-      completedBy: String         // 完成人 openid
-    }]
-  }],
-  // 状态
-  status: String,                 // 状态：'active'(进行中) | 'completed'(已完成) | 'cancelled'(已取消)
-  // 当前激活组（用于通知推送判断）
-  currentActiveGroup: Number,     // 当前待完成的组编号（1~6）
-  // 时间戳
-  createdAt: Number,              // 创建时间戳
-  updatedAt: Number               // 更新时间戳
-}
-```
-
-**业务规则**：
-1. 每个用户可创建多条购车记录（支持多次购车）
-2. 6组步骤交替由用户和办公室负责完成：
-   - G1(用户) → G2(办公室) → G3(用户) → G4(办公室) → G5(用户) → G6(办公室)
-3. 一组内所有步骤完成后，系统自动推送通知给下一组负责人
-4. 输入类型支持：text(文本)、checkbox(勾选)、upload(图片上传)、date(日期选择)、remark(备注)
-
-**相关云函数**：
-- `carPurchase.create`：创建购车记录（初始化6组步骤模板）
-- `carPurchase.getMyList`：获取当前用户的购车列表（分页）
-- `carPurchase.getAllList`：获取全部购车记录（办公室管理用，分页）
-- `carPurchase.getDetail`：获取购车详情（含完整 groups + steps）
-- `carPurchase.toggleStep`：切换步骤完成状态（打钩/取消打钩）
-- `carPurchase.uploadAttachments`：上传步骤附件图片
-- `carPurchase.updateStepRemark`：更新步骤备注或文本值
-
----
-
-### 39. interest_class_reports - 兴趣班备案记录
-
-**用途**：存储用户提交的兴趣班备案记录，支持分级查看（馆领导看全体生效中、部门负责人看本部门生效中、普通用户看自己全部含已结束）。备案不可删除，只能"结束"；编辑备案时结束原记录并新增一条（保留备查历史）。
-
-**安全规则**：`ADMINONLY` - 仅管理员可读写
-
-> **重要说明**：所有数据读写均通过云函数 `interestClassReport` 进行，云函数内部按角色过滤查询范围。集合设为 ADMINONLY，确保数据只能通过云函数访问。
-
-**记录数**：动态
-
-**索引**：
-
-- `_id` - 记录 ID（云开发自动创建）
-- `idx_openid_status` - 组合索引：_openid（升序）+ status（升序）- 优化用户查询自己的备案
-- `idx_creatorDepartment_status` - 组合索引：creatorDepartment（升序）+ status（升序）- 优化部门负责人按部门筛选
-- `idx_createdAt` - 创建时间索引（降序）- 优化时间排序查询
-
-**字段结构**：
-```javascript
-{
-  _id: String,                    // 记录 ID（自动生成）
-  _openid: String,                // 创建者 openid（云函数自动写入）
-  name: String,                   // 参与人姓名（可能与创建者不同，如子女）
-  className: String,              // 兴趣班名称
-  timeSlot: String,               // 兴趣班时段（文本，如"每周三11:30——12:30"）
-  teachingMode: String,           // 教学模式（文本，如"集体教学"/"一对一"）
-  companion: String,              // 陪同人（可选）
-  remark: String,                 // 备注（可选，如"女儿"）
-  creatorName: String,            // 创建者姓名（冗余，列表展示）
-  creatorDepartment: String,      // 创建者部门（冗余，部门负责人筛选）
-  creatorRole: String,            // 创建者角色（冗余，列表展示）
-  status: String,                 // 状态：'active'（生效中）| 'ended'（已结束）
-  endedAt: Number,                // 结束时间戳（null/不存在表示生效中）
-  createdAt: Number,              // 创建时间戳
-  updatedAt: Number               // 更新时间戳
-}
-```
-
-**业务规则**：
-1. 备案不可删除，只能"结束"（设置 status='ended'）
-2. 编辑备案 = 结束原记录 + 新增一条记录（保留备查历史）
-3. 分级查看：
-   - 部门负责人 → 查看本部门人员**生效中**备案
-   - 馆领导（非部门负责人）→ 查看全体人员**生效中**备案
-   - 其他用户 → 查看自己的**全部**备案（含已结束）
-4. 仅创建者可编辑/结束自己的生效中备案
-
-**相关云函数**：
-- `interestClassReport.list`：分页查询备案列表（按角色自动过滤范围与状态）
-- `interestClassReport.create`：新增备案（status 默认 'active'）
-- `interestClassReport.edit`：编辑备案（结束原记录 + 新增新记录）
-- `interestClassReport.end`：结束备案（设置 status='ended'）
-
----
-
-### 40. content_forms - 信息发布表单主表
-
-**用途**：存储「信息发布」系统的内容表单，通过 `blocks[]` 数组统一表达公告、问卷、副食、活动、答题五种形态。发布者通过问卷星式控件（单选/多选/判断/简答/副食/活动/说明文字）自由组合内容：只写标题正文即为公告，添加控件即为问卷/副食/活动/答题。
-
-**安全规则**：`ADMINWRITE` - 所有用户可读，仅云函数可写
-
-> **重要说明**：表单由 `contentFormManager` 云函数创建和管理。发布权限：管理员、馆员可发布；所有注册用户可查看和填写。
-
-**记录数**：动态
-
-**索引**：
-
-- `_id` - 记录 ID（云开发自动创建）
-- `idx_status_createdAt` - 组合索引：status（升序）+ createdAt（降序）- 优化列表查询
-- `idx_tag_status_createdAt` - 组合索引：tag（升序）+ status（升序）+ createdAt（降序）- 优化 tag 筛选
-- `idx_openid` - 创建者 openid 索引 - 查询「我的发布」
-
-**字段结构**：
-```javascript
-{
-  _id: String,                    // 记录 ID（自动生成）
-  _openid: String,                // 创建者 openid
-  title: String,                  // 标题（必填）
-  description: String,            // 正文说明（富文本 HTML，可为空）
-  tag: String,                    // 类型：'announcement'(公告) | 'questionnaire'(问卷) | 'side_dish'(副食) | 'activity'(活动) | 'quiz'(答题)
-  deadline: Number|null,          // 截止时间戳（公告可为 null）
-  blocks: Array[{                 // 控件列表（驱动填写内容）
-    id: String,                   // 控件 ID（如 'b_xxx'）
-    type: String,                 // 类型：'text'(说明文字) | 'radio'(单选) | 'checkbox'(多选) | 'judge'(判断) | 'textarea'(简答) | 'side_dish'(副食) | 'activity'(活动)
-    title: String,                // 题干
-    required: Boolean,            // 是否必填
-    options: Array[String],       // 选项（radio/checkbox/judge）
-    categories: Array[{           // 副食类别（side_dish）
-      id: String,                 // 类别 ID
-      name: String,               // 类别名称
-      maxCount: Number            // 该类别每人最大份数
-    }],
-    groups: Array[String],        // 报名分组（activity，可选）
-    maxRegistrations: Number|null // 人数上限（activity，可选）
-  }],
-  targetRoles: Array[String],     // 目标角色（限定可见时）
-  isTargetOnlyVisible: Boolean,   // 是否仅对目标角色可见
-  isAnonymous: Boolean,           // 是否匿名填写（tag 为 questionnaire 时有效）
-  maxSubmissions: Number,         // 每人最多填写次数（tag 为 quiz 时有效，默认 1）
-  status: String,                 // 状态：'draft'(草稿) | 'published'(已发布) | 'closed'(已关闭)
-  readUsers: Array[String],       // 已读用户 openid 列表
-  submissionCount: Number,        // 提交人数（冗余字段）
-  publishedAt: Number|null,       // 发布时间戳
-  createdByName: String,          // 创建者姓名
-  createdAt: Number,              // 创建时间戳
-  updatedAt: Number               // 更新时间戳
-}
-```
-
-**业务规则**：
-1. tag 由发布者在编辑页手动选择，不做系统自动推断
-2. 发布权限：管理员（`isAdmin`）或角色为「馆员」的用户
-3. 提交记录存于 `content_form_submissions`：`maxSubmissions` 为 1 时一人一条（upsert），大于 1 时同一用户可多次提交（答题场景）
-4. 截止时间过后，表单视为已截止（前端和云端双重判断）
-5. 目标角色过滤：`isTargetOnlyVisible` 为 true 时，仅 `targetRoles` 包含用户角色的用户可见
-6. 匿名填写：`isAnonymous` 为 true 时，提交记录的 `userName` 存为「匿名」，`role`/`position` 置空
-
-**相关云函数**：
-- `contentFormManager.create`：创建表单（发布或暂存 draft）
-- `contentFormManager.update`：更新表单
-- `contentFormManager.delete`：删除表单（级联删除提交记录）
-- `contentFormManager.close`：关闭表单
-- `contentFormManager.list`：分页列表（支持 tag 筛选、目标角色可见性过滤）
-- `contentFormManager.get`：详情（含当前用户提交状态）
-- `contentFormManager.submit`：提交/修改答案（一人一条 upsert）
-- `contentFormManager.listSubmissions`：提交者列表（含答案明细）
-- `contentFormManager.getStats`：统计聚合
-
-**控制台链接**：
-- [content_forms](https://tcb.cloud.tencent.com/dev?envId=cloud1-d2gyip4xi1fcf54bd#/db/doc/collection/content_forms)
-
----
-
-### 41. content_form_submissions - 信息发布提交记录
-
-**用途**：存储用户对信息发布表单的提交记录，一人一条（upsert 幂等）。
-
-**安全规则**：`ADMINWRITE` - 所有用户可读，仅云函数可写
-
-> **重要说明**：提交记录由 `contentFormManager` 云函数在用户提交时创建或更新。
-
-**记录数**：动态
-
-**索引**：
-
-- `_id` - 记录 ID（云开发自动创建）
-- `idx_formId_openid` - 组合索引：formId（升序）+ _openid（升序）- 查询用户对某表单的提交（防重复）
-- `idx_formId_submittedAt` - 组合索引：formId（升序）+ submittedAt（降序）- 查询某表单的提交列表
-
-**字段结构**：
-```javascript
-{
-  _id: String,                    // 记录 ID（自动生成）
-  formId: String,                 // 关联的表单 ID（content_forms._id）
-  _openid: String,                // 提交者 openid
-  userName: String,               // 提交者姓名
-  role: String,                   // 提交者角色
-  position: String|Array,         // 提交者岗位
-  answers: Array[{                // 答案明细
-    blockId: String,              // 关联的控件 ID
-    type: String,                 // 控件类型（对应 blocks[].type）
-    value: Any                    // 答案值（随 type 变化：radio/judge 为字符串、checkbox 为数组、side_dish 为数组、activity 为字符串）
-  }],
-  submittedAt: Number,            // 提交时间戳
-  updatedAt: Number               // 更新时间戳
-}
-```
-
-**业务规则**：
-1. 一人一条：同一用户对同一表单只有一条记录，重复提交为 update
-2. 提交时校验截止时间、必填项、副食份数上限、活动人数上限
-3. 取消提交为删除记录（`cancelSubmit`）
-
-**相关云函数**：
-- `contentFormManager.submit`：提交/修改答案
-- `contentFormManager.cancelSubmit`：取消提交
-- `contentFormManager.listSubmissions`：提交者列表
-- `contentFormManager.getStats`：统计聚合
-
-**控制台链接**：
-- [content_form_submissions](https://tcb.cloud.tencent.com/dev?envId=cloud1-d2gyip4xi1fcf54bd#/db/doc/collection/content_form_submissions)
 
 ---
 
@@ -1788,7 +945,7 @@ const notificationsCollection = db.collection('notifications')  // ✅
 | 2026-04-03 | 添加 meal_subscriptions 用户订餐状态、meal_adjustments 调整记录集合（工作餐与副食功能） | AI |
 | 2026-04-04 | 添加 side_dish_orders 副食征订单、side_dish_bookings 副食预订记录集合（副食预订/管理功能） | AI |
 | 2026-04-05 | 添加 menu_ratings 菜品打分记录集合（菜单详情页菜品评分功能） | AI |
-| 2026-04-06 |添加 activities 活动主表、activity_registrations 报名记录集合（活动管理模块） | AI |
+| 2026-04-06 | 添加 activities 活动主表、activity_registrations 报名记录集合（活动管理模块） | AI |
 | 2026-04-07 | 添加 car_purchase_records 购车记录集合（购车管理Checklist功能） | AI |
 | 2026-04-28 | 更新 side_dish_orders/side_dish_bookings 支持多类别征订（categories/items） | AI |
 | 2026-07-21 | 添加 interest_class_reports 兴趣班备案记录集合（兴趣班备案功能） | AI |
@@ -1796,300 +953,10 @@ const notificationsCollection = db.collection('notifications')  // ✅
 | 2026-08-13 | 添加 content_forms、content_form_submissions 集合（信息发布系统） | AI |
 | 2026-08-14 | 创建 menus 集合 `createdAt_-1` 降序索引，消除菜单列表全表扫描告警 | AI |
 | 2026-08-16 | 重写 `menuManager.getRatings` 为聚合查询；创建 menu_ratings 集合 `idx_menuId`、`idx_menuId_openid_dishName` 索引，移除无效的 `idx_menuId_createdAt` 说明 | AI |
-
----
-
-### 36. activities - 活动主表
-
-**用途**：存储活动管理模块的活动数据，支持目标用户筛选、分组报名、人数上限、可见性控制等
-
-**安全规则**：`ADMINWRITE` - 所有用户可读，仅云函数可写
-
-> **重要说明**：活动由 `activityManager` 云函数创建和管理。所有登录用户均可创建和参与活动。
-
-**记录数**：动态
-
-**索引**：
-
-- `_id` - 记录 ID（云开发自动创建）
-- `idx_status_createdAt` - 组合索引：status（升序）+ createdAt（降序）- 优化列表查询
-- `idx_creatorOpenid` - 创建者 openid 索引
-
-**字段结构**：
-```javascript
-{
-  _id: String,                    // 记录 ID（自动生成）
-  title: String,                   // 活动标题（必填，最长50字符）
-  content: String,                 // 活动内容（富文本 HTML 或纯文本）
-  // 创建者信息
-  creatorOpenid: String,            // 创建者 openid
-  creatorName: String,             // 创建者姓名
-  // 目标用户配置
-  isTargetRoleEnabled: Boolean,     // 是否启用目标用户限制（默认 false）
-  targetRoles: Array[String],      // 目标角色列表（isTargetRoleEnabled=true 时有效）
-  // 分组配置
-  isGroupedActivity: Boolean,       // 是否为分组活动（默认 false）
-  groups: Array[{                  // 分组列表
-    name: String                   // 分组名称
-  }],
-  // 人数上限配置
-  isMaxRegistrationsEnabled: Boolean, // 是否启用人数上限（默认 false）
-  maxRegistrations: Number | null,   // 报名上限人数（启用时有效，否则为 null）
-  // 可见性控制
-  isTargetOnlyVisible: Boolean,     // 只对目标用户展示（默认 false）
-  isRegistrationVisible: Boolean,   // 报名情况对用户可见（默认 true）
-  // 状态与统计
-  status: String,                  // 'active'(报名中) | 'ended'(已结束)
-  registrationCount: Number,        // 报名人数（冗余字段）
-  // 时间戳
-  createdAt: Number,               // 创建时间戳
-  updatedAt: Number                // 更新时间戳
-}
-```
-
-**业务规则**：
-1. 所有已登录用户均可创建活动和报名
-2. 活动创建者和管理员可以删除活动
-3. 同一用户对同一活动只能报名一次
-4. 开启人数上限后，报名数达到上限则不可再报名
-5. 非目标用户在「只对目标用户展示」开启时看不到该活动
-
----
-
-### 37. activity_registrations - 活动报名记录
-
-**用途**：存储用户的报名参与记录
-
-**安全规则**：`READONLY` - 所有用户可读，仅云函数可写
-
-> **重要说明**：报名记录由 `activityManager` 云函数在用户报名/取消时创建或删除。
-
-**记录数**：动态
-
-**索引**：
-
-- `_id` - 记录 ID（云开发自动创建）
-- `idx_activityId_openid` - 组合索引：activityId（升序）+ openid（升序）- 防重复报名校验
-- `idx_activityId` - 活动 ID 索引 - 查询某活动的所有报名记录
-
-**字段结构**：
-```javascript
-{
-  _id: String,                    // 记录 ID（自动生成）
-  activityId: String,              // 关联的活动 ID（activities._id）
-  openid: String,                 // 报名人 openid
-  name: String,                    // 报名人姓名
-  groupName: String | null,        // 所选分组名（非分组活动为 null）
-  createdAt: Number               // 报名时间戳
-}
-```
-
-**相关云函数**：
-- `activityManager.create`：创建活动
-- `activityManager.list`：分页查询活动列表
-- `activityManager.get`：获取详情 + 当前用户报名状态 + 剩余名额
-- `activityManager.register`：报名参与（含人数上限校验）
-- `activityManager.cancelRegistration`：取消报名
-- `activityManager.delete`：删除活动（级联删除报名记录）
-
-### 31. meal_subscriptions - 用户工作餐订阅状态
-
-**用途**：存储用户的工作餐入伙/退伙/停餐状态，每用户一条记录
-
-**安全规则**：`ADMINWRITE` - 所有用户可读，仅云函数可写
-
-> **重要说明**：订阅记录由 `mealManager` 云函数创建和管理。用户通过小程序页面设置入伙状态和调整操作。
-
-**记录数**：动态
-
-**索引**：
-
-- `_id` - 记录 ID（云开发自动创建）
-- `idx_openid` - 唯一索引：openid（每用户仅一条记录）- 用于快速查询当前用户状态
-- `idx_status` - 状态索引：status - 筛选特定状态的订阅
-
-**字段结构**：
-```javascript
-{
-  _id: String,                    // 记录 ID（自动生成）
-  openid: String,                 // 用户 openid（唯一标识）
-  name: String,                   // 用户姓名
-  role: String,                   // 角色（馆领导/部门负责人/馆员/工勤等）
-  position: String,               // 岗位（会计主管/会计/出纳等）
-  isEnrolled: Boolean,            // 是否已入伙
-  mealCount: Number,              // 订餐份数（默认1，最大值由业务决定）
-  status: String,                 // 当前状态: 'active'(正常) | 'suspended'(停餐中) | 'withdrawn'(已退伙) | 'none'（未入伙）
-  createdAt: Number,              // 创建时间戳
-  updatedAt: Number               // 更新时间戳
-}
-```
-
-**状态流转**：
-```
-none ──(入伙)──→ active ──(停餐)──→ suspended ──(恢复)──→ active
-                    │
-                    └─(退伙)──→ withdrawn
-                    (withdrawn 可重新 enroll → active)
-```
-
-**相关云函数**：
-- `mealManager.getMyMealStatus`：获取当前用户订阅状态
-- `mealManager.saveMealStatus`：首次保存或更新入伙信息
-- `mealManager.submitMealAdjustment`：提交调整申请（同时更新本表 status 字段）
-
----
-
-### 32. meal_adjustments - 工作餐调整记录
-
-**用途**：存储每次工作餐调整操作的详细记录（入伙、退伙、停餐），管理端用于查看历史
-
-**安全规则**：`ADMINWRITE` - 所有用户可读，仅云函数可写
-
-> **重要说明**：调整记录由 `mealManager` 云函数在用户提交调整时自动创建。每条操作生成一条记录。
-
-**记录数**：动态
-
-**索引**：
-
-- `_id` - 记录 ID（云开发自动创建）
-- `idx_createdAt` - 创建时间降序索引 - 管理端列表排序
-- `idx_monthKey_createdAt` - 组合索引：monthKey（升序）+ createdAt（降序）- 按月分组查询
-- `idx_openid_createdAt` - 组合索引：openid（升序）+ createdAt（降序）- 查询某用户的调整历史
-
-**字段结构**：
-```javascript
-{
-  _id: String,                    // 记录 ID（自动生成）
-  openid: String,                 // 操作人 openid
-  name: String,                   // 操作人姓名
-  adjustmentType: String,         // 类型: 'enroll'(入伙) | 'withdraw'(退伙) | 'suspend'(临时停餐)
-  startDate: String,              // 开始日期 YYYY-MM-DD（纯字符串，避免时区问题）
-  endDate: String|null,           // 结束日期 YYYY-MM-DD（仅停餐时有值）
-  count: Number,                  // 涉及份数
-  monthKey: String,                // 月份键 YYYY-MM（用于按月聚合显示）
-  remark: String|null,            // 备注（预留字段）
-  createdAt: Number               // 提交时间戳
-}
-```
-
-**adjustmentType 说明**：
-| adjustmentType | 含义 | startDate | endDate | count |
-|----------------|------|-----------|---------|-------|
-| `enroll` | 入伙 | 空 | null | 订餐份数 |
-| `withdraw` | 退伙日期 | 退伙开始日期 | null | 退伙份数 |
-| `suspend` | 临时停餐 | 停餐开始日期 | 停餐结束日期 | 停餐份数 |
-
-**相关云函数**：
-- `mealManager.submitMealAdjustment`：提交时自动创建调整记录
-- `mealManager.getAdjustmentList`：管理端获取调整记录列表（分页、倒序）
-
-**控制台链接**：
-- [meal_subscriptions](https://tcb.cloud.tencent.com/dev?envId=cloud1-8gdftlggae64d5d0#/db/doc/collection/meal_subscriptions)
-- [meal_adjustments](https://tcb.cloud.tencent.com/dev?envId=cloud1-8gdftlggae64d5d0#/db/doc/collection/meal_adjustments)
-- [side_dish_orders](https://tcb.cloud.tencent.com/dev?envId=cloud1-8gdftlggae64d5d0#/db/doc/collection/side_dish_orders)
-- [side_dish_bookings](https://tcb.cloud.tencent.com/dev?envId=cloud1-8gdftlggae64d5d0#/db/doc/collection/side_dish_bookings)
-
----
-
-### 33. side_dish_orders - 副食征订单
-
-**用途**：存储副食征订信息，由管理岗位人员创建，供普通用户预订。支持多类别征订，每个类别有独立的名称和最大预订份数/人。
-
-**安全规则**：`ADMINWRITE` - 所有用户可读，仅云函数可写
-
-> **重要说明**：征订单由 `mealManager` 云函数创建和管理。用户可读取所有征订单进行预订。
-
-**记录数**：动态
-
-**索引**：
-
-- `_id` - 记录 ID（云开发自动创建）
-- `idx_status_createdAt` - 组合索引：status（升序）+ createdAt（降序）- 优化有效征订单列表查询
-- `idx_creatorOpenid` - 创建者 openid 索引
-
-**字段结构**：
-```javascript
-{
-  _id: String,                    // 记录 ID（自动生成）
-  title: String,                   // 征订标题
-  description: String,             // 副食详情描述
-  maxCount: Number,                // 总最大预订份数/人（= 各类别 maxCount 之和，冗余字段便于列表展示）
-  categories: Array[{              // 类别列表（支持多类别征订）
-    id: String,                    // 类别 ID（如 'cat_1745800000000_0'）
-    name: String,                  // 类别名称（如 '粽子'、'月饼'）
-    maxCount: Number               // 该类别每人最大预订份数
-  }],
-  deadline: String,                // 截止日期 YYYY-MM-DD（纯字符串，避免时区问题）
-  creatorOpenid: String,           // 创建者 openid
-  creatorName: String,             // 创建者姓名
-  status: String,                  // 状态: 'active'(有效) | 'expired'(已截止)
-  totalBookedCount: Number,        // 已被预订总份数（冗余字段，便于列表展示）
-  createdAt: Number,               // 创建时间戳
-  updatedAt: Number                // 更新时间戳
-}
-```
-
-**业务规则**：
-1. 截止日期过后，status 自动变为 expired（前端和云端双重判断）
-2. categories 至少包含1个类别，每个类别有独立的 maxCount
-3. maxCount 为所有类别 maxCount 之和，用于列表摘要展示
-4. 每人每个类别预订上限为 category.maxCount * 2（允许超额预订以应对需求波动）
-5. totalBookedCount 在每次 book/cancel 操作时重新统计更新
-
-**相关云函数**：
-- `mealManager.createSideDishOrder`：创建新征订单（含 categories）
-- `mealManager.getSideDishOrders`：获取有效征订单列表（含 myBookedItems）
-- `mealManager.getSideDishBookings`：获取某征订单的预订明细（含按类别统计）
-
----
-
-### 34. side_dish_bookings - 副食预订记录
-
-**用途**：存储用户的副食预订记录，每人对每份征订单仅一条有效记录。支持按类别预订，items 数组记录每个类别的份数。
-
-**安全规则**：`ADMINWRITE` - 所有用户可读，仅云函数可写
-
-> **重要说明**：预订记录由 `mealManager` 云函数在用户提交/取消预订时创建或更新。
-
-**记录数**：动态
-
-**索引**：
-
-- `_id` - 记录 ID（云开发自动创建）
-- `idx_orderId_openid` - 组合索引：orderId（升序）+ openid（升序）- 快速查询用户对某征订单的预订
-- `idx_orderId_status` - 组合索引：orderId（升序）+ status（升序）- 查询某征订单的有效预订
-- `idx_openid` - 用户 openid 索引 - 查询用户的所有预订
-
-**字段结构**：
-```javascript
-{
-  _id: String,                    // 记录 ID（自动生成）
-  orderId: String,                 // 关联的征订单 ID（side_dish_orders._id）
-  openid: String,                  // 预订人 openid
-  name: String,                    // 预订人姓名
-  count: Number,                   // 预订总份数（= 各 items count 之和，冗余字段）
-  items: Array[{                   // 按类别预订明细
-    categoryId: String,            // 关联 categories.id
-    categoryName: String,          // 类别名称（冗余存储，避免关联查询）
-    count: Number                  // 该类别预订份数（1 ~ category.maxCount*2）
-  }],
-  status: String,                  // 状态: 'booked'(已预订) | 'cancelled'(已取消)
-  createdAt: Number,               // 创建时间戳
-  updatedAt: Number                // 更新时间戳
-}
-```
-
-**业务规则**：
-1. 幂等性：同一用户对同一征订单只有一条有效 booking（status='booked'），重复提交为 update
-2. 取消预订时将 status 改为 cancelled，而非删除记录
-3. items 中每个类别的 count 范围：1 ≤ count ≤ category.maxCount*2
-4. count 为所有 items 的 count 之和，用于统计汇总
-5. categoryName 冗余存储类别名称，避免关联查询
-
-**相关云函数**：
-- `mealManager.bookSideDish`：提交/修改/取消预订（支持按类别 items 提交）
-- `mealManager.getMySideDishBookings`：获取当前用户的预订汇总
-- `mealManager.getSideDishBookings`：获取某征订单的所有预订记录（管理端用，含按类别统计）
+| 2026-08-31 | 按当前云环境（cloud1-d2gyip4xi1fcf54bd）实际集合列表校准，移除已删除集合，同步更新记录数与 `dbManager` 云函数 | AI |
+| 2026-08-31 | 按云环境实际索引核对：移除不存在的自定义索引声明（haircut/holiday/trip_reports/work_orders/workflow_* 等），补充各集合 `_openid_1` 自动索引 | AI |
+| 2026-08-31 | 按代码查询模式为 10 个集合补建 20 个索引（office_users 的 openid/reportTo/status、trip_reports 的 departAt 系列、work_orders/workflow_* 的查询索引、haircut/sys_config/holiday/permissions 等） | AI |
+| 2026-08-31 | 校正过时字段名：work_orders（移除 initiatorId/initiatorName/initiatorRole/completedAt，补充 templateName，申请人改用 businessData.applicantId）、workflow_tasks（stepId→stepNo、status→taskStatus、assignTime→assignedAt、approvalComment→comment 等）、workflow_logs（operateTime/eventType/templateId→taskId/stepName/operatorType/detail/beforeData/afterData/changes） | AI |
 
 ---
 
@@ -2097,44 +964,23 @@ none ──(入伙)──→ active ──(停餐)──→ suspended ──(恢
 
 **云开发控制台**：
 ```
-https://tcb.cloud.tencent.com/dev?envId=cloud1-8gdftlggae64d5d0#/db/doc
+https://tcb.cloud.tencent.com/dev?envId=cloud1-d2gyip4xi1fcf54bd#/db/doc
 ```
 
-**集合列表**：
-- [announcements](https://tcb.cloud.tencent.com/dev?envId=cloud1-8gdftlggae64d5d0#/db/doc/collection/announcements)
-- [calendar_schedules](https://tcb.cloud.tencent.com/dev?envId=cloud1-8gdftlggae64d5d0#/db/doc/collection/calendar_schedules)
-- [feedback_posts](https://tcb.cloud.tencent.com/dev?envId=cloud1-8gdftlggae64d5d0#/db/doc/collection/feedback_posts)
-- [feedback_replies](https://tcb.cloud.tencent.com/dev?envId=cloud1-8gdftlggae64d5d0#/db/doc/collection/feedback_replies)
-- [greenbook_comments](https://tcb.cloud.tencent.com/dev?envId=cloud1-8gdftlggae64d5d0#/db/doc/collection/greenbook_comments)
-- [greenbook_likes](https://tcb.cloud.tencent.com/dev?envId=cloud1-8gdftlggae64d5d0#/db/doc/collection/greenbook_likes)
-- [greenbook_posts](https://tcb.cloud.tencent.com/dev?envId=cloud1-8gdftlggae64d5d0#/db/doc/collection/greenbook_posts)
-- [haircut_appointments](https://tcb.cloud.tencent.com/dev?envId=cloud1-8gdftlggae64d5d0#/db/doc/collection/haircut_appointments)
-- [holiday_configs](https://tcb.cloud.tencent.com/dev?envId=cloud1-8gdftlggae64d5d0#/db/doc/collection/holiday_configs)
-- [learning_articles](https://tcb.cloud.tencent.com/dev?envId=cloud1-8gdftlggae64d5d0#/db/doc/collection/learning_articles)
-- [medical_records](https://tcb.cloud.tencent.com/dev?envId=cloud1-8gdftlggae64d5d0#/db/doc/collection/medical_records)
-- [meeting_room_reservations](https://tcb.cloud.tencent.com/dev?envId=cloud1-8gdftlggae64d5d0#/db/doc/collection/meeting_room_reservations)
-- [menu_comments](https://tcb.cloud.tencent.com/dev?envId=cloud1-8gdftlggae64d5d0#/db/doc/collection/menu_comments)
-- [menus](https://tcb.cloud.tencent.com/dev?envId=cloud1-8gdftlggae64d5d0#/db/doc/collection/menus)
-- [news_articles](https://tcb.cloud.tencent.com/dev?envId=cloud1-8gdftlggae64d5d0#/db/doc/collection/news_articles)
-- [notifications](https://tcb.cloud.tencent.com/dev?envId=cloud1-8gdftlggae64d5d0#/db/doc/collection/notifications)
-- [office_registration_requests](https://tcb.cloud.tencent.com/dev?envId=cloud1-8gdftlggae64d5d0#/db/doc/collection/office_registration_requests)
-- [office_users](https://tcb.cloud.tencent.com/dev?envId=cloud1-8gdftlggae64d5d0#/db/doc/collection/office_users)
-- [passport_info](https://tcb.cloud.tencent.com/dev?envId=cloud1-8gdftlggae64d5d0#/db/doc/collection/passport_info)
-- [passport_records](https://tcb.cloud.tencent.com/dev?envId=cloud1-8gdftlggae64d5d0#/db/doc/collection/passport_records)
-- [permissions](https://tcb.cloud.tencent.com/dev?envId=cloud1-8gdftlggae64d5d0#/db/doc/collection/permissions)
-- [repair_orders](https://tcb.cloud.tencent.com/dev?envId=cloud1-8gdftlggae64d5d0#/db/doc/collection/repair_orders)
-- [schedule_subscriptions](https://tcb.cloud.tencent.com/dev?envId=cloud1-8gdftlggae64d5d0#/db/doc/collection/schedule_subscriptions)
-- [sys_config](https://tcb.cloud.tencent.com/dev?envId=cloud1-8gdftlggae64d5d0#/db/doc/collection/sys_config)
-- [trip_reports](https://tcb.cloud.tencent.com/dev?envId=cloud1-8gdftlggae64d5d0#/db/doc/collection/trip_reports)
-- [user_signatures](https://tcb.cloud.tencent.com/dev?envId=cloud1-8gdftlggae64d5d0#/db/doc/collection/user_signatures)
-- [work_orders](https://tcb.cloud.tencent.com/dev?envId=cloud1-8gdftlggae64d5d0#/db/doc/collection/work_orders)
-- [workflow_logs](https://tcb.cloud.tencent.com/dev?envId=cloud1-8gdftlggae64d5d0#/db/doc/collection/workflow_logs)
-- [workflow_tasks](https://tcb.cloud.tencent.com/dev?envId=cloud1-8gdftlggae64d5d0#/db/doc/collection/workflow_tasks)
-- [workflow_templates](https://tcb.cloud.tencent.com/dev?envId=cloud1-8gdftlggae64d5d0#/db/doc/collection/workflow_templates)
-- [meal_subscriptions](https://tcb.cloud.tencent.com/dev?envId=cloud1-8gdftlggae64d5d0#/db/doc/collection/meal_subscriptions)
-- [meal_adjustments](https://tcb.cloud.tencent.com/dev?envId=cloud1-8gdftlggae64d5d0#/db/doc/collection/meal_adjustments)
-- [menu_ratings](https://tcb.cloud.tencent.com/dev?envId=cloud1-8gdftlggae64d5d0#/db/doc/collection/menu_ratings)
-- [activities](https://tcb.cloud.tencent.com/dev?envId=cloud1-8gdftlggae64d5d0#/db/doc/collection/activities)
-- [activity_registrations](https://tcb.cloud.tencent.com/dev?envId=cloud1-8gdftlggae64d5d0#/db/doc/collection/activity_registrations)
-- [car_purchase_records](https://tcb.cloud.tencent.com/dev?envId=cloud1-8gdftlggae64d5d0#/db/doc/collection/car_purchase_records)
-- [interest_class_reports](https://tcb.cloud.tencent.com/dev?envId=cloud1-8gdftlggae64d5d0#/db/doc/collection/interest_class_reports)
+**集合列表**（当前 16 个）：
+- [content_form_submissions](https://tcb.cloud.tencent.com/dev?envId=cloud1-d2gyip4xi1fcf54bd#/db/doc/collection/content_form_submissions)
+- [content_forms](https://tcb.cloud.tencent.com/dev?envId=cloud1-d2gyip4xi1fcf54bd#/db/doc/collection/content_forms)
+- [haircut_appointments](https://tcb.cloud.tencent.com/dev?envId=cloud1-d2gyip4xi1fcf54bd#/db/doc/collection/haircut_appointments)
+- [holiday_configs](https://tcb.cloud.tencent.com/dev?envId=cloud1-d2gyip4xi1fcf54bd#/db/doc/collection/holiday_configs)
+- [interest_class_reports](https://tcb.cloud.tencent.com/dev?envId=cloud1-d2gyip4xi1fcf54bd#/db/doc/collection/interest_class_reports)
+- [menu_ratings](https://tcb.cloud.tencent.com/dev?envId=cloud1-d2gyip4xi1fcf54bd#/db/doc/collection/menu_ratings)
+- [menus](https://tcb.cloud.tencent.com/dev?envId=cloud1-d2gyip4xi1fcf54bd#/db/doc/collection/menus)
+- [notifications](https://tcb.cloud.tencent.com/dev?envId=cloud1-d2gyip4xi1fcf54bd#/db/doc/collection/notifications)
+- [office_users](https://tcb.cloud.tencent.com/dev?envId=cloud1-d2gyip4xi1fcf54bd#/db/doc/collection/office_users)
+- [permissions](https://tcb.cloud.tencent.com/dev?envId=cloud1-d2gyip4xi1fcf54bd#/db/doc/collection/permissions)
+- [sys_config](https://tcb.cloud.tencent.com/dev?envId=cloud1-d2gyip4xi1fcf54bd#/db/doc/collection/sys_config)
+- [trip_reports](https://tcb.cloud.tencent.com/dev?envId=cloud1-d2gyip4xi1fcf54bd#/db/doc/collection/trip_reports)
+- [work_orders](https://tcb.cloud.tencent.com/dev?envId=cloud1-d2gyip4xi1fcf54bd#/db/doc/collection/work_orders)
+- [workflow_logs](https://tcb.cloud.tencent.com/dev?envId=cloud1-d2gyip4xi1fcf54bd#/db/doc/collection/workflow_logs)
+- [workflow_tasks](https://tcb.cloud.tencent.com/dev?envId=cloud1-d2gyip4xi1fcf54bd#/db/doc/collection/workflow_tasks)
+- [workflow_templates](https://tcb.cloud.tencent.com/dev?envId=cloud1-d2gyip4xi1fcf54bd#/db/doc/collection/workflow_templates)
