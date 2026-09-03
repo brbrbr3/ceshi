@@ -248,6 +248,40 @@ exports.main = async (event) => {
           message: '删除成功'
         }
 
+      case 'listComments': {
+        // 按权限返回评论：领导/后勤管理/管理员看全部，其他人只看自己的
+        const isLeader = user.role === '馆员' && user.department === '无' && !user.isRestrictedLeader
+        const isLogistics = Array.isArray(user.position) && user.position.includes('后勤管理')
+        const canViewAll = isAdmin || isLeader || isLogistics
+
+        const commentQuery = { menuId: menuId }
+        if (!canViewAll) {
+          commentQuery.authorOpenid = openid
+        }
+
+        const commentsResult = await db.collection('menu_comments')
+          .where(commentQuery)
+          .orderBy('createdAt', 'asc')
+          .limit(200)
+          .get()
+
+        const comments = (commentsResult.data || []).map(item => ({
+          _id: item._id,
+          menuId: item.menuId,
+          authorOpenid: item.authorOpenid || '',
+          authorName: item.authorName || '用户',
+          content: item.content,
+          createdAt: item.createdAt,
+          canDelete: isAdmin || item.authorOpenid === openid
+        }))
+
+        return {
+          code: 0,
+          message: 'ok',
+          data: { comments, canViewAll }
+        }
+      }
+
       case 'addRating':
         // 所有已登录用户可以为菜品打分
         if (!ratingData || !ratingData.menuId || !ratingData.dishName || !ratingData.score) {

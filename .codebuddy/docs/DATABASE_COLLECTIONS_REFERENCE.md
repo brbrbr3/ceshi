@@ -6,7 +6,7 @@
 
 **重要**：所有新增功能涉及数据库操作时，必须先参考本文档！如果需要新的集合，请添加到本文档中。
 
-> **环境说明**：当前有效的云环境为 `cloud1-d2gyip4xi1fcf54bd`。本文档列出的集合为 2026-08-31 从该环境实际读取的集合列表（共 16 个）。
+> **环境说明**：当前有效的云环境为 `cloud1-d2gyip4xi1fcf54bd`。本文档列出的集合为 2026-08-31 从该环境实际读取的集合列表（共 17 个，含 2026-09-03 新建的 menu_comments）。
 >
 > 各集合的「记录数」为 2026-08-31 查询时的快照，会随业务动态变化。
 
@@ -807,6 +807,47 @@
 }
 ```
 
+### 17. menu_comments - 菜单评论
+
+**用途**：存储用户对菜单的评论。仅通过云函数访问，按权限返回（领导/后勤管理/管理员看全部，其他人只看自己的）。
+
+**安全规则**：`ADMINONLY` - 仅管理员可读写
+
+> **重要说明**：评论的查询/新增/删除均通过云函数 `menuManager` 进行。`listComments` 按调用者身份决定返回范围（领导/后勤管理/管理员返回全部，其他人只返回自己的），普通用户无法获取他人评论数据。
+
+**记录数**：0（新建）
+
+**索引**：
+
+- `_id` - 记录 ID（云开发自动创建）
+- `_openid_1` - 创建者 openid 索引（云开发自动创建）
+- `idx_menuId_createdAt` - 组合索引：menuId（升序）+ createdAt（升序）- 按菜单查询评论并按时间排序
+- `idx_menuId_openid` - 组合索引：menuId（升序）+ authorOpenid（升序）- 查询某用户对某菜单的评论
+
+**字段结构**：
+```javascript
+{
+  _id: String,                    // 记录 ID（自动生成）
+  menuId: String,                 // 关联的菜单 ID（menus._id）
+  openid: String,                 // 评论者 openid（兼容字段，与 authorOpenid 一致）
+  authorOpenid: String,           // 评论者 openid
+  authorName: String,             // 评论者姓名
+  content: String,                // 评论内容
+  createdAt: Number               // 创建时间戳
+}
+```
+
+**业务规则**：
+1. 所有已批准用户可发布评论（云函数 addComment 校验 status='approved'）
+2. 删除评论：仅作者本人或管理员（云函数 deleteComment 校验 openid）
+3. 查询评论：领导/后勤管理/管理员看全部，其他人只看自己的（云函数 listComments 按权限过滤）
+4. 审核人员（isReviewer）不显示评论区
+
+**相关云函数**：
+- `menuManager.listComments`：按权限返回评论列表（返回 comments + canViewAll）
+- `menuManager.addComment`：新增评论
+- `menuManager.deleteComment`：删除评论（仅作者/管理员）
+
 ---
 
 ## 命名规范
@@ -957,6 +998,7 @@ const notificationsCollection = db.collection('notifications')  // ✅
 | 2026-08-31 | 按云环境实际索引核对：移除不存在的自定义索引声明（haircut/holiday/trip_reports/work_orders/workflow_* 等），补充各集合 `_openid_1` 自动索引 | AI |
 | 2026-08-31 | 按代码查询模式为 10 个集合补建 20 个索引（office_users 的 openid/reportTo/status、trip_reports 的 departAt 系列、work_orders/workflow_* 的查询索引、haircut/sys_config/holiday/permissions 等） | AI |
 | 2026-08-31 | 校正过时字段名：work_orders（移除 initiatorId/initiatorName/initiatorRole/completedAt，补充 templateName，申请人改用 businessData.applicantId）、workflow_tasks（stepId→stepNo、status→taskStatus、assignTime→assignedAt、approvalComment→comment 等）、workflow_logs（operateTime/eventType/templateId→taskId/stepName/operatorType/detail/beforeData/afterData/changes） | AI |
+| 2026-09-03 | 创建 menu_comments 集合（菜单评论），含索引 idx_menuId_createdAt、idx_menuId_openid，安全规则 ADMINONLY，同步更新 dbManager 云函数 | AI |
 
 ---
 
@@ -967,12 +1009,13 @@ const notificationsCollection = db.collection('notifications')  // ✅
 https://tcb.cloud.tencent.com/dev?envId=cloud1-d2gyip4xi1fcf54bd#/db/doc
 ```
 
-**集合列表**（当前 16 个）：
+**集合列表**（当前 17 个）：
 - [content_form_submissions](https://tcb.cloud.tencent.com/dev?envId=cloud1-d2gyip4xi1fcf54bd#/db/doc/collection/content_form_submissions)
 - [content_forms](https://tcb.cloud.tencent.com/dev?envId=cloud1-d2gyip4xi1fcf54bd#/db/doc/collection/content_forms)
 - [haircut_appointments](https://tcb.cloud.tencent.com/dev?envId=cloud1-d2gyip4xi1fcf54bd#/db/doc/collection/haircut_appointments)
 - [holiday_configs](https://tcb.cloud.tencent.com/dev?envId=cloud1-d2gyip4xi1fcf54bd#/db/doc/collection/holiday_configs)
 - [interest_class_reports](https://tcb.cloud.tencent.com/dev?envId=cloud1-d2gyip4xi1fcf54bd#/db/doc/collection/interest_class_reports)
+- [menu_comments](https://tcb.cloud.tencent.com/dev?envId=cloud1-d2gyip4xi1fcf54bd#/db/doc/collection/menu_comments)
 - [menu_ratings](https://tcb.cloud.tencent.com/dev?envId=cloud1-d2gyip4xi1fcf54bd#/db/doc/collection/menu_ratings)
 - [menus](https://tcb.cloud.tencent.com/dev?envId=cloud1-d2gyip4xi1fcf54bd#/db/doc/collection/menus)
 - [notifications](https://tcb.cloud.tencent.com/dev?envId=cloud1-d2gyip4xi1fcf54bd#/db/doc/collection/notifications)

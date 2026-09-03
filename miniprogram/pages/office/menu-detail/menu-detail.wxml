@@ -78,7 +78,7 @@
       </view>
     </view>
 
-    <!-- <view class="office-section">
+    <view class="office-section" wx:if="{{showComments}}">
       <view class="office-section-header">
         <view class="office-section-title">评论</view>
         <view class="office-link menu-detail-link">{{comments.length}} 条</view>
@@ -86,7 +86,7 @@
 
       <view class="office-card menu-comments-card">
         <view class="menu-comment-input">
-          <textarea value="{{commentText}}" bindinput="onCommentInput" placeholder="言语友善，共建和谐" placeholder-class="menu-comment-placeholder" maxlength="500" auto-height></textarea>
+          <textarea class="menu-comment-input-ta" value="{{commentText}}" bindinput="onCommentInput" placeholder="言语友善，共建和谐" placeholder-class="menu-comment-placeholder" maxlength="500" auto-height></textarea>
           <view class="menu-comment-submit">
             <text class="menu-comment-count">{{commentText.length}}/500</text>
             <view class="office-btn-primary menu-comment-btn" bindtap="submitComment">发布</view>
@@ -94,7 +94,7 @@
         </view>
 
         <view wx:if="{{comments.length === 0}}" class="empty-state is-mini">
-          <view class="empty-text">暂无评论，快来抢沙发吧~</view>
+          <view class="empty-text">暂无评论</view>
         </view>
 
         <view class="menu-comment-list">
@@ -104,15 +104,16 @@
               <view class="menu-comment-header">
                 <text class="menu-comment-author">{{item.authorName}}</text>
                 <text class="menu-comment-time">{{item.timeText}}</text>
-              </view>
-              <view class="menu-comment-text">{{item.content}}</view>
-            </view>
             <view wx:if="{{item.canDelete}}" class="menu-comment-delete" bindtap="deleteComment" data-id="{{item._id}}">
               <text>删除</text>
             </view>
+              </view>
+              <view class="menu-comment-text">{{item.content}}</view>
+            </view>
           </view>
         </view>
+      <view class="menu-comment-scope">【{{commentScopeText}}】</view>
       </view>
-    </view> -->
+    </view>
   </view>
 </view>

@@ -226,6 +226,8 @@ Page({
     try {
       // 1. 本地计算应该显示的日期（基于本地时间）
       const calculatedDates = this.calculateDisplayDates()
+      // 本周周一（显示下周时为下周一周一），传给云函数查询本周涉及的换日标记
+      const weekMonday = calculatedDates[0] ? calculatedDates[0].date : ''
 
       // 1.5 计算候选日期（今天到下周五的工作日，用于查询临时理发日）
       const candidateDates = this.calculateCandidateDates()
@@ -287,7 +289,8 @@ Page({
           name: 'haircutManager',
           data: {
             action: 'getReservationSlots',
-            dates: queryDates
+            dates: queryDates,
+            weekMonday
           }
         })
 
@@ -313,22 +316,24 @@ Page({
             }
           }
 
-          // 追加临时理发日（changedDates 中非 135、非过去、非节假日的日期）
+          // 追加临时理发日（changedDates 中非 135、非本周一之前、非节假日的日期）
+          // 本周内的换日标记（含已过去的）都需显示，便于查看已完成预约；仅过滤本周一之前的旧标记
           const existingDates = new Set(displayDates.map(d => d.date))
           changedDates.forEach(dateStr => {
             if (existingDates.has(dateStr)) return
-            if (dateStr < todayStr) return
+            if (dateStr < weekMonday) return
             if (holidaySet.has(dateStr)) return
 
             const isDayLocked = this.isDateLocked(dateStr) && !this.data.isReceptionist
+            const isPastDate = dateStr < todayStr
             displayDates.push({
               ...this.buildDateInfo(dateStr),
               isHoliday: false,
               isToday: dateStr === todayStr,
-              isDisabled: false,
+              isDisabled: isPastDate,
               isDayLocked,
               isChangedDate: true,
-              disableReason: '',
+              disableReason: isPastDate ? '该日已过去' : '',
               reservationCount: (slotsByDate[dateStr] || []).length
             })
           })

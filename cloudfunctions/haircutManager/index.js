@@ -96,7 +96,7 @@ async function getHolidays(years) {
  * @param {Array} dates - 前端计算并过滤节假日后的日期列表
  * @returns {Object} slotsByDate - 各日期预约详情
  */
-async function getReservationSlots(dates) {
+async function getReservationSlots(dates, weekMonday) {
   if (!Array.isArray(dates) || dates.length === 0) {
     return success({ slotsByDate: {}, changedDates: [] })
   }
@@ -143,13 +143,21 @@ async function getReservationSlots(dates) {
     })
   }
 
-  // 查询换日标记（临时理发日 + 被换走的源日期）
+  // 查询涉及本周的换日标记：date 或 sourceDate >= 本周一（weekMonday 由前端传入）
+  // date 是目标日期（可能不在 135，如换到周二），sourceDate 是被换走的源日期；两者任一 >= 本周一即涉及本周
+  let changedWhere
+  if (weekMonday) {
+    changedWhere = _.and([
+      { status: 'date_changed' },
+      _.or([{ date: _.gte(weekMonday) }, { sourceDate: _.gte(weekMonday) }])
+    ])
+  } else {
+    changedWhere = { status: 'date_changed' }
+  }
   const changedResult = await appointmentsCollection
-    .where({
-      date: _.in(dates),
-      status: 'date_changed'
-    })
+    .where(changedWhere)
     .field({ date: true, sourceDate: true })
+    .limit(100)
     .get()
 
   const changedDates = (changedResult.data || []).map(r => r.date)
@@ -912,7 +920,7 @@ exports.main = async (event) => {
   try {
     switch (action) {
       case 'getReservationSlots':
-        return await getReservationSlots(event.dates)
+        return await getReservationSlots(event.dates, event.weekMonday)
 
       case 'createAppointment':
         return await createAppointment(openid, event.appointmentData)

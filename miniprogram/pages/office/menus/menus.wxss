@@ -74,6 +74,98 @@
   transform: scale(0.95);
 }
 
+/* 头部按钮区 */
+.menus-header-actions {
+  display: flex;
+  align-items: center;
+  gap: 16rpx;
+}
+
+/* 导出评分按钮 */
+.menus-export-btn {
+  align-self: flex-end;
+  padding: 12rpx 24rpx;
+  border-radius: 40rpx;
+  background: rgba(255, 255, 255, 0.2);
+  color: #FFFFFF;
+  font-size: var(--fs-26);
+  font-weight: 500;
+  transition: all 0.2s ease;
+}
+
+.menus-export-btn:active {
+  background: rgba(255, 255, 255, 0.3);
+  transform: scale(0.95);
+}
+
+.menus-export-btn.is-disabled {
+  opacity: 0.4;
+  pointer-events: none;
+}
+
+/* 导出模式：选中态 */
+.menu-item.is-selected {
+  border-left-color: #16A34A;
+  background: #F0FDF4;
+}
+
+/* 方形复选框 */
+.menu-checkbox {
+  width: 40rpx;
+  height: 40rpx;
+  border-radius: 8rpx;
+  border: 3rpx solid #CBD5E1;
+  background: #FFFFFF;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  flex-shrink: 0;
+  transition: all 0.15s ease;
+}
+
+.menu-checkbox.is-checked {
+  border-color: #16A34A;
+  background: #16A34A;
+}
+
+.menu-checkbox-tick {
+  color: #FFFFFF;
+  font-size: var(--fs-26);
+  font-weight: 700;
+}
+
+/* 自定义 Toast（毛玻璃风格） */
+.custom-toast {
+  position: fixed;
+  top: 50%;
+  left: 50%;
+  transform: translate(-50%, -50%) scale(0.9);
+  background: rgba(30, 41, 59, 0.8);
+  backdrop-filter: blur(16px);
+  -webkit-backdrop-filter: blur(16px);
+  border-radius: 20rpx;
+  padding: 24rpx 40rpx;
+  max-width: 600rpx;
+  opacity: 0;
+  pointer-events: none;
+  z-index: 9999;
+  box-shadow: 0 8rpx 40rpx rgba(0, 0, 0, 0.2);
+}
+
+.custom-toast.is-visible {
+  opacity: 1;
+  transform: translate(-50%, -50%) scale(1);
+  transition: opacity 0.18s ease, transform 0.22s cubic-bezier(0.25, 0.1, 0.25, 1);
+}
+
+.custom-toast-text {
+  color: #fff;
+  font-size: var(--fs-28);
+  line-height: 1.7;
+  text-align: center;
+  word-break: break-all;
+}
+
 .menus-content {
   margin-top: -30rpx;
 }

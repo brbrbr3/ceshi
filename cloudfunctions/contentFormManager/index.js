@@ -82,12 +82,13 @@ async function getUser(openid) {
 
 /**
  * 判断用户是否可发布
- * 规则：管理员、部门负责人、馆领导、馆员可发布
+ * 规则：管理员、部门负责人、馆领导、馆员、办公室内聘岗位可发布
  */
 function canPublish(user) {
   if (!user) return false
   if (user.isAdmin) return true
   if (user.isDepartmentHead) return true
+  if (Array.isArray(user.position) && user.position.includes('办公室内聘')) return true
   return PUBLISH_ROLES.includes(user.role)
 }
 

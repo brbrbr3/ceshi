@@ -22,6 +22,9 @@ Page({
     currentUser: null,
     canEdit: false,
     canDelete: false,
+    isReviewer: false,
+    showComments: false,
+    commentScopeText: '',
     // 菜品打分相关数据
     dishRatings: [],
     extractedDishes: [],
@@ -36,7 +39,6 @@ Page({
     if (options.id) {
       this.setData({ menuId: options.id })
       this.loadMenu()
-      //this.loadComments()
       this.checkPermission()
     }
   },
@@ -49,7 +51,7 @@ Page({
     // 每次显示页面时刷新数据（从编辑页返回时自动更新）
     if (this.data.menuId) {
       this.loadMenu()
-      //this.loadComments()
+      if (this.data.showComments) this.loadComments()
     }
   },
 
@@ -63,12 +65,22 @@ Page({
         const currentUser = result.user
         const isWorker = currentUser.role === '工勤'
         const isAdmin = currentUser.isAdmin
+        // 审核人员：不显示评论区
+        const isReviewer = !!currentUser.isReviewer
+        // 评论区显示：审核人员不显示（评论可见范围由云函数 listComments 按权限控制）
+        const showComments = !isReviewer
 
         this.setData({
           currentUser,
           canEdit: isWorker || isAdmin,
-          canDelete: isWorker || isAdmin
+          canDelete: isWorker || isAdmin,
+          isReviewer,
+          showComments
         })
+        // 权限确定后加载评论
+        if (showComments) {
+          this.loadComments()
+        }
       })
       .catch((error) => {
         console.error('检查权限失败', error)
@@ -91,7 +103,7 @@ Page({
         this.loadRatings()
       })
       .catch(error => {
-        console.error('加载菜单失败', error)
+        console.error('加载菜单失败:', error)
         utils.showToast({
           title: '加载失败',
           icon: 'none'
@@ -100,67 +112,31 @@ Page({
   },
 
   loadComments() {
-    // 先获取当前用户信息
-    app.checkUserRegistration()
-      .then((result) => {
-        const currentUser = result.user
-        const isAdmin = result.user ? result.user.isAdmin : false
-        const currentOpenid = app.globalData.openid || ''
-
-        const db = wx.cloud.database()
-        db.collection('menu_comments')
-          .where({
-            menuId: this.data.menuId
-          })
-          .orderBy('createdAt', 'asc')
-          .get()
-          .then(res => {
-            const comments = (res.data || []).map(item => {
-              return {
-                ...item,
-                authorName: item.authorName || '用户',
-                authorOpenid: item.authorOpenid || '',
-                timeText: formatTime(item.createdAt),
-                avatar: (item.authorName || '用户').slice(0, 1),
-                avatarBg: utils.getAvatarColor(item.authorName || '用户'),
-                canDelete: isAdmin || item.authorOpenid === currentOpenid
-              }
-            })
-
-            this.setData({ comments })
-          })
-          .catch(error => {
-            console.error('加载评论失败', error)
-          })
-      })
-      .catch(() => {
-        // 未登录用户，加载评论但不设置删除权限
-        const db = wx.cloud.database()
-        db.collection('menu_comments')
-          .where({
-            menuId: this.data.menuId
-          })
-          .orderBy('createdAt', 'asc')
-          .get()
-          .then(res => {
-            const comments = (res.data || []).map(item => {
-              return {
-                ...item,
-                authorName: item.authorName || '用户',
-                authorOpenid: item.authorOpenid || '',
-                timeText: formatTime(item.createdAt),
-                avatar: (item.authorName || '用户').slice(0, 1),
-                avatarBg: utils.getAvatarColor(item.authorName || '用户'),
-                canDelete: false
-              }
-            })
-
-            this.setData({ comments })
-          })
-          .catch(error => {
-            console.error('加载评论失败', error)
-          })
-      })
+    // 评论查询走云函数，由云函数按调用者权限决定返回范围
+    // 领导/后勤管理/管理员返回全部评论，其他人只返回自己的评论（避免数据泄露）
+    wx.cloud.callFunction({
+      name: 'menuManager',
+      data: {
+        action: 'listComments',
+        menuId: this.data.menuId
+      }
+    }).then(res => {
+      const result = res.result || {}
+      if (result.code !== 0) {
+        console.error('加载评论失败:', result.message)
+        return
+      }
+      const comments = (result.data.comments || []).map(item => ({
+        ...item,
+        timeText: formatTime(item.createdAt),
+        avatar: (item.authorName || '用户').slice(0, 1),
+        avatarBg: utils.getAvatarColor(item.authorName || '用户')
+      }))
+      const commentScopeText = result.data.canViewAll ? '您负责后勤管理，可查看所有评论' : '您仅可查看自己的评论'
+      this.setData({ comments, commentScopeText })
+    }).catch(error => {
+      console.error('加载评论失败:', error)
+    })
   },
 
   onCommentInput(e) {
@@ -213,13 +189,15 @@ Page({
           .then(() => {
             this.setData({ commentText: '' })
             this.loadComments()
-            utils.showToast({
-              title: '评论成功',
-              icon: 'success'
+            wx.showModal({
+              title: '评论已提交',
+              content: '按照要求，您的评论仅后勤部门可见。',
+              showCancel: false,
+              confirmText: '知道了'
             })
           })
           .catch(error => {
-            console.error('提交评论失败', error)
+            console.error('提交评论失败:', error)
             utils.showToast({
               title: '提交失败',
               icon: 'none'
@@ -256,7 +234,7 @@ Page({
               })
             })
             .catch(error => {
-              console.error('删除评论失败', error)
+              console.error('删除评论失败:', error)
               utils.showToast({
                 title: '删除失败',
                 icon: 'none'
@@ -296,7 +274,7 @@ Page({
               }, 500)
             })
             .catch(error => {
-              console.error('删除菜单失败', error)
+              console.error('删除菜单失败:', error)
               utils.showToast({
                 title: '删除失败',
                 icon: 'none'

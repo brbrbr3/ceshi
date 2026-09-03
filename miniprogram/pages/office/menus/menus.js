@@ -1,6 +1,7 @@
 const app = getApp()
 const utils = require('../../../common/utils.js')
 const paginationBehavior = require('../../../behaviors/pagination.js')
+const customToast = require('../../../behaviors/customToast.js')
 
 function formatTime(timestamp) {
   if (!timestamp) {
@@ -12,11 +13,15 @@ function formatTime(timestamp) {
 }
 
 Page({
-  behaviors: [paginationBehavior],
+  behaviors: [paginationBehavior, customToast],
 
   data: {
     menuList: [],
-    showAddButton: false
+    showAddButton: false,
+    canExportRatings: false,
+    exportMode: false,
+    selectedMenuIds: [],
+    exporting: false
   },
 
   onLoad() {
@@ -45,8 +50,15 @@ Page({
         const isChef = Array.isArray(result.user.position) && result.user.position.includes('厨师')
         const isOfficeServant = Array.isArray(result.user.position) && result.user.position.includes('办公室内聘')
 
+        // 导出评分权限：管理员 / 领导（馆员+部门无，排除限制权限）/ 办部门负责人
+        const u = result.user
+        const isLeader = u.role === '馆员' && u.department === '无' && !u.isRestrictedLeader
+        const isBanHead = u.role === '馆员' && u.department === '办' && u.isDepartmentHead
+        const canExportRatings = !!isAdmin || isLeader || isBanHead
+
         this.setData({
-          showAddButton: isAdmin || isChef || isOfficeServant 
+          showAddButton: isAdmin || isChef || isOfficeServant,
+          canExportRatings
         })
       })
       .catch((error) => {
@@ -114,6 +126,80 @@ Page({
     wx.navigateTo({
       url: '/pages/office/menu-edit/menu-edit'
     })
+  },
+
+  // ===== 评分导出 =====
+  handleStartExport() {
+    app.subscribeOnTap(app.getSubscribeTypesForUser(app.globalData.userProfile))
+    // WXML 不支持数组 indexOf 调用，预计算每项 checked
+    const list = this.data.list.map(item => ({ ...item, checked: false }))
+    this.setData({ exportMode: true, selectedMenuIds: [], list })
+    this._showCustomToast('请选择您想导出评分的菜单，可多选', { duration: 2500, fadeOutMs: 400 })
+  },
+
+  handleCancelExport() {
+    const list = this.data.list.map(item => ({ ...item, checked: false }))
+    this.setData({ exportMode: false, selectedMenuIds: [], list })
+  },
+
+  toggleMenuSelect(e) {
+    const id = e.currentTarget.dataset.id
+    if (!id) return
+    const selected = [...this.data.selectedMenuIds]
+    const idx = selected.indexOf(id)
+    if (idx >= 0) {
+      selected.splice(idx, 1)
+    } else {
+      selected.push(id)
+    }
+    // 预计算 list 每项 checked，避免 WXML 调用 indexOf
+    const list = this.data.list.map(item => ({
+      ...item,
+      checked: selected.indexOf(item._id) >= 0
+    }))
+    this.setData({ selectedMenuIds: selected, list })
+  },
+
+  async handleExportRatings() {
+    if (this.data.exporting) return
+    const { selectedMenuIds } = this.data
+    if (!selectedMenuIds.length) {
+      this._showCustomToast('请先选择至少一个菜单', { duration: 1800, fadeOutMs: 400 })
+      return
+    }
+    this.setData({ exporting: true })
+    wx.showLoading({ title: '生成中...', mask: true })
+    try {
+      const res = await wx.cloud.callFunction({
+        name: 'generateOrderPdf',
+        data: { type: 'menuRatings', menuIds: selectedMenuIds }
+      })
+      wx.hideLoading()
+      const result = res.result || {}
+      if (result.code !== 0) {
+        throw new Error(result.message || '生成失败')
+      }
+      const fileID = result.data && result.data.fileID
+      if (!fileID) throw new Error('未获取到文件')
+      // 下载并打开 PDF
+      const dl = await wx.cloud.downloadFile({ fileID })
+      wx.openDocument({
+        filePath: dl.tempFilePath,
+        fileType: 'pdf',
+        showMenu: true,
+        success: () => {
+          this.setData({ exportMode: false, selectedMenuIds: [], exporting: false })
+        },
+        fail: () => {
+          this.setData({ exporting: false })
+          utils.showToast({ title: '打开失败', icon: 'none' })
+        }
+      })
+    } catch (err) {
+      wx.hideLoading()
+      this.setData({ exporting: false })
+      utils.showToast({ title: err.message || '导出失败', icon: 'none' })
+    }
   },
 
   /**

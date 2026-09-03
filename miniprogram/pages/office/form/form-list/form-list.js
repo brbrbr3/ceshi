@@ -34,13 +34,14 @@ Page({
   },
 
   /**
-   * 检查发布权限（馆员 / 管理员）
+   * 检查发布权限（馆员 / 管理员 / 办公室内聘岗位）
    */
   checkPublishPermission() {
     app.checkUserRegistration().then((result) => {
       if (!result.registered || !result.user) return
       const user = result.user
-      const canPublish = !!user.isAdmin || user.role === '馆员'
+      const isOfficeServant = Array.isArray(user.position) && user.position.includes('办公室内聘')
+      const canPublish = !!user.isAdmin || user.role === '馆员' || isOfficeServant
       this.setData({ 
         canPublish,
         isReviewer: !!user.isReviewer

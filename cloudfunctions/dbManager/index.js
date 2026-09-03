@@ -55,6 +55,7 @@ const DB_COLLECTIONS = [
   'haircut_appointments',
   'holiday_configs',
   'interest_class_reports',
+  'menu_comments',
   'menu_ratings',
   'menus',
   'notifications',

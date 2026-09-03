@@ -74,7 +74,7 @@
       <view class="office-card home-news-card" hover-class="{{(!loadingContentForms && contentForms.length === 0) ? 'home-btn-active' : ''}}" hover-stay-time="{{(!loadingContentForms && contentForms.length === 0) ? '300' : ''}}">
       <view class="office-section-header home-section-header" hover-class="{{(!loadingContentForms && contentForms.length === 0) ? '' : 'home-btn-active'}}" hover-stay-time="{{(!loadingContentForms && contentForms.length === 0) ? '' : '300'}}" bindtap="goContentForms">
         <view class="office-section-title home-section-title">📢信息发布</view>
-        <view class="office-link home-link">更多</view>
+        <view class="office-link home-link">进入栏目</view>
       </view>
         <view class="home-news-item" hover-class="home-btn-active" hover-stay-time="300" wx:for="{{contentForms}}" wx:key="_id" bindtap="handleContentFormTap" data-id="{{item._id}}">
           <view class="office-pill home-news-tag" style="background: {{item.tagBg}}; color: {{item.tagColor}};">{{item.tagIcon}} {{item.tagLabel}}</view>

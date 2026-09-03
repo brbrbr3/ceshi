@@ -4,8 +4,17 @@
       <view>
         <view class="office-subpage-title">每周菜单</view>
       </view>
-      <view wx:if="{{showAddButton}}" class="menus-add-btn" bindtap="goAddMenu">
-        <text>＋ 新增</text>
+      <view class="menus-header-actions">
+        <!-- 导出模式：显示取消导出 + 导出评分按钮；非导出模式：显示新增 + 导出评分按钮 -->
+        <view wx:if="{{exportMode}}" class="menus-add-btn" bindtap="handleCancelExport">
+          <text>✕ 取消导出</text>
+        </view>
+        <view wx:else="{{!exportMode && showAddButton}}" class="menus-add-btn" bindtap="goAddMenu">
+          <text>＋ 新增</text>
+        </view>
+        <view wx:if="{{canExportRatings}}" class="menus-export-btn {{(exportMode && selectedMenuIds.length === 0) || exporting ? 'is-disabled' : ''}}" bindtap="{{exportMode ? 'handleExportRatings' : 'handleStartExport'}}">
+          <text>{{exporting ? '生成中...' : '导出评分'}}</text>
+        </view>
       </view>
     </view>
   </view>
@@ -13,8 +22,11 @@
   <view class="office-content menus-content">
     <!-- 列表内容 -->
     <view class="menus-list" wx:if="{{list.length > 0}}">
-      <view class="menu-item" wx:for="{{list}}" wx:key="_id" bindtap="goMenuDetail" data-id="{{item._id}}">
+      <view class="menu-item {{exportMode && item.checked ? 'is-selected' : ''}}" wx:for="{{list}}" wx:key="_id" bindtap="{{exportMode ? 'toggleMenuSelect' : 'goMenuDetail'}}" data-id="{{item._id}}">
         <view class="menu-item-left">
+          <view wx:if="{{exportMode}}" class="menu-checkbox {{item.checked ? 'is-checked' : ''}}">
+            <text wx:if="{{item.checked}}" class="menu-checkbox-tick">✓</text>
+          </view>
           <view class="menu-item-main">
             <view class="menu-item-title">{{item.title}}</view>
             <view class="menu-item-meta">
@@ -45,6 +57,11 @@
       <view class="empty-icon">🍽️</view>
       <view class="empty-text">暂无菜单</view>
     </view>
+  </view>
+
+  <!-- 自定义 Toast（毛玻璃风格） -->
+  <view class="custom-toast {{_customToast.visible ? 'is-visible' : ''}}" style="transition-duration: {{_customToast.fadeOutMs}}ms;">
+    <view class="custom-toast-text">{{_customToast.text}}</view>
   </view>
 </view>
 

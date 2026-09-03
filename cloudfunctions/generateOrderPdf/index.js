@@ -808,6 +808,156 @@ function fail(message, code) {
   }
 }
 
+// ===== 菜单评分导出 =====
+// 从菜单富文本内容提取菜品名（与前端 menu-detail.js extractDishesFromContent 保持一致）
+function extractDishesFromContent(content) {
+  if (!content) return []
+  const SINGLE_CHAR_CATEGORIES = new Set(['汤', '粥', '饭', '面', '粉'])
+  const STOP_WORDS = new Set([
+    '菜单', '今日菜单', '本周菜单', '午餐', '晚餐', '早餐',
+    '主食', '副菜', '汤类', '甜品', '饮品', '凉菜', '热菜',
+    '荤菜', '素菜', '推荐', '特别推荐', '厨师推荐',
+    '备注', '说明', '注意', '温馨提示'
+  ])
+  const DATE_PATTERN = /星期[一二三四五六日天]|周[一二三四五六日天]/
+  let text = content.replace(/<\/?(?:p|div|section|article|h[1-6]|li|tr)[^>]*>/gi, '\n')
+  text = text.replace(/<br\s*\/?>/gi, '\n')
+  text = text.replace(/<[^>]+>/g, '')
+  text = text.replace(/&nbsp;/g, ' ').replace(/&amp;/g, '&').replace(/&lt;/g, '<').replace(/&gt;/g, '>')
+  text = text.replace(/[（(]/g, ' ').replace(/[）)]/g, ' ')
+  const tokens = text.split(/[\n\r\s：:]+/).map(t => t.trim()).filter(Boolean)
+  const dishes = []
+  const seen = new Set()
+  tokens.forEach(token => {
+    if (token.length < 2 || token.length > 20) return
+    if (DATE_PATTERN.test(token)) return
+    if (/^[\d\-+*.=!@#$%^&()]+$/.test(token)) return
+    if (STOP_WORDS.has(token)) return
+    if (!/[\u4e00-\u9fa5]/.test(token)) return
+    const cleanToken = token.replace(/^[•·\-\*\.\s:：]+/, '').replace(/[•·\-\*\.\s:：]+$/, '')
+    if (!cleanToken || cleanToken.length < 2 || cleanToken.length > 20) return
+    if (DATE_PATTERN.test(cleanToken)) return
+    if (SINGLE_CHAR_CATEGORIES.has(cleanToken)) return
+    if (!seen.has(cleanToken)) { seen.add(cleanToken); dishes.push(cleanToken) }
+  })
+  return dishes
+}
+
+/**
+ * 菜单评分汇总 PDF 导出
+ * 权限：管理员 / 领导（馆员+部门无，排除限制权限）/ 办部门负责人
+ * 内容：按选中菜单分组，组内菜品按平均分降序，无评分菜品标注【无人评分】
+ */
+async function generateMenuRatingsPdf(openid, menuIds) {
+  const _ = db.command
+
+  // 1. 权限校验
+  const userRes = await db.collection('office_users').where({ openid, status: 'approved' }).limit(1).get()
+  if (!userRes.data || userRes.data.length === 0) {
+    throw new Error('无导出权限')
+  }
+  const u = userRes.data[0]
+  const isLeader = u.role === '馆员' && u.department === '无' && !u.isRestrictedLeader
+  const isBanHead = u.role === '馆员' && u.department === '办' && u.isDepartmentHead
+  if (!u.isAdmin && !isLeader && !isBanHead) {
+    throw new Error('无导出权限')
+  }
+
+  // 2. 查菜单
+  const menusRes = await db.collection('menus').where({ _id: _.in(menuIds) }).limit(100).get()
+  // 按创建时间降序（最近的菜单在前）
+  const menus = (menusRes.data || []).sort((a, b) => (b.createdAt || 0) - (a.createdAt || 0))
+  if (menus.length === 0) {
+    throw new Error('菜单不存在')
+  }
+
+  // 3. 查所有评分（一次查询，内存按 menuId + dishName 聚合）
+  const ratingsRes = await db.collection('menu_ratings').where({ menuId: _.in(menuIds) }).limit(1000).get()
+  const ratings = ratingsRes.data || []
+  const ratingMap = {}  // menuId -> { dishName -> { sum, count } }
+  ratings.forEach(r => {
+    if (!ratingMap[r.menuId]) ratingMap[r.menuId] = {}
+    if (!ratingMap[r.menuId][r.dishName]) ratingMap[r.menuId][r.dishName] = { sum: 0, count: 0 }
+    ratingMap[r.menuId][r.dishName].sum += Number(r.score) || 0
+    ratingMap[r.menuId][r.dishName].count += 1
+  })
+
+  // 4. 按菜单分组：有评分菜品（按均分降序）在前，无评分菜品在后
+  const groups = menus.map(m => {
+    const allDishes = extractDishesFromContent(m.content)
+    const rmap = ratingMap[m._id] || {}
+    const withScore = []
+    const noScore = []
+    allDishes.forEach(d => {
+      if (rmap[d]) {
+        withScore.push({ dishName: d, avg: (rmap[d].sum / rmap[d].count).toFixed(2), count: rmap[d].count })
+      } else {
+        noScore.push({ dishName: d })
+      }
+    })
+    withScore.sort((a, b) => parseFloat(b.avg) - parseFloat(a.avg))
+    return { title: m.title || '未命名菜单', dishes: [...withScore, ...noScore] }
+  })
+
+  // 5. 生成 PDF
+  const fontPath = await ensureFont()
+  const pdfDoc = new PDFDocument({ size: 'A4', margins: { top: 50, bottom: 50, left: 50, right: 50 } })
+  pdfDoc.registerFont('ChineseFont', fontPath)
+  const buffers = []
+  pdfDoc.on('data', buffers.push.bind(buffers))
+
+  return new Promise((resolve, reject) => {
+    pdfDoc.on('end', async () => {
+      try {
+        const pdfBuffer = Buffer.concat(buffers)
+        const fileName = `菜单评分汇总_${Date.now()}.pdf`
+        const uploadResult = await cloud.uploadFile({
+          cloudPath: `menu_ratings_pdfs/${fileName}`,
+          fileContent: pdfBuffer
+        })
+        resolve({ code: 0, message: 'ok', data: { fileID: uploadResult.fileID } })
+      } catch (err) {
+        reject(new Error('PDF上传失败: ' + err.message))
+      }
+    })
+    pdfDoc.on('error', (err) => reject(new Error('PDF生成失败: ' + err.message)))
+
+    // 标题
+    pdfDoc.fontSize(22).font('ChineseFont').fillColor('#1E293B').text('菜单评分汇总', { align: 'center' })
+    pdfDoc.moveDown(0.6)
+    pdfDoc.moveTo(50, pdfDoc.y).lineTo(545, pdfDoc.y).stroke('#2563EB')
+    pdfDoc.moveDown(0.6)
+    const timeStr = new Date().toLocaleString('zh-CN', { timeZone: 'America/Sao_Paulo' })
+    pdfDoc.fontSize(10).font('ChineseFont').fillColor('#94A3B8').text(`生成时间：${timeStr}`, { align: 'right' })
+    pdfDoc.moveDown(1)
+
+    // 每个菜单一组
+    groups.forEach(g => {
+      pdfDoc.fontSize(14).font('ChineseFont').fillColor('#1E293B').text(`【${g.title}】`, 50)
+      pdfDoc.moveDown(0.4)
+      if (g.dishes.length === 0) {
+        pdfDoc.fontSize(11).fillColor('#94A3B8').text('该菜单未提取到菜品', 60)
+        pdfDoc.moveDown(0.5)
+      } else {
+        // 菜品名左对齐（x=60，宽 300，超长截断），分数固定从 x=370 开始（页面中间位置，纵向对齐）
+        g.dishes.forEach(d => {
+          if (pdfDoc.y > 780) pdfDoc.addPage()  // 手动换页，避免行内定位错位
+          const rowY = pdfDoc.y
+          pdfDoc.fontSize(11)
+          const scoreText = d.count ? `${d.avg}（${d.count}人评）` : '无人评分'
+          pdfDoc.fillColor(d.count ? '#334155' : '#94A3B8')
+          pdfDoc.text(d.dishName, 60, rowY, { width: 300, ellipsis: true, lineBreak: false })
+          pdfDoc.text(scoreText, 370, rowY, { width: 175, lineBreak: false })
+          pdfDoc.y = rowY + 16
+        })
+      }
+      pdfDoc.moveDown(0.6)
+    })
+
+    pdfDoc.end()
+  })
+}
+
 exports.main = async (event) => {
   const wxContext = cloud.getWXContext()
   const openid = wxContext.OPENID
@@ -816,7 +966,19 @@ exports.main = async (event) => {
     return fail('获取微信身份失败，请稍后重试', 401)
   }
 
-  const { orderId, type, formId } = event || {}
+  const { orderId, type, formId, menuIds } = event || {}
+
+  // 菜单评分导出
+  if (type === 'menuRatings') {
+    if (!Array.isArray(menuIds) || menuIds.length === 0) {
+      return fail('未选择菜单', 400)
+    }
+    try {
+      return await generateMenuRatingsPdf(openid, menuIds)
+    } catch (error) {
+      return fail(error.message || '生成评分PDF失败', 500)
+    }
+  }
 
   // 副食预订清单导出（旧副食系统）
   if (type === 'sideDishBookings') {

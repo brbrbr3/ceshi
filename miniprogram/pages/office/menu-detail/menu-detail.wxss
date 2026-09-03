@@ -78,7 +78,7 @@
   border-radius: 16rpx;
   background: #F8FAFC;
   border: 2rpx solid transparent;
-  font-size: var(--fs-26);
+  font-size: var(--fs-30);
   color: #0F172A;
   box-sizing: border-box;
   margin-bottom: 16rpx;
@@ -95,13 +95,13 @@
 }
 
 .menu-comment-count {
-  font-size: var(--fs-24);
+  font-size: var(--fs-28);
   color: #94A3B8;
 }
 
 .menu-comment-btn {
   padding: 12rpx 32rpx;
-  font-size: var(--fs-24);
+  font-size: var(--fs-28);
 }
 
 .menu-comment-list {
@@ -127,7 +127,7 @@
   align-items: center;
   justify-content: center;
   color: #FFFFFF;
-  font-size: var(--fs-26);
+  font-size: var(--fs-30);
   font-weight: 600;
   flex-shrink: 0;
 }
@@ -145,18 +145,18 @@
 }
 
 .menu-comment-author {
-  font-size: var(--fs-26);
+  font-size: var(--fs-32);
   font-weight: 600;
   color: #1E293B;
 }
 
 .menu-comment-time {
-  font-size: var(--fs-24);
+  font-size: var(--fs-30);
   color: #94A3B8;
 }
 
 .menu-comment-text {
-  font-size: var(--fs-26);
+  font-size: var(--fs-30);
   line-height: 1.6;
   color: #475569;
   word-break: break-all;
@@ -164,8 +164,9 @@
 
 .menu-comment-delete {
   flex-shrink: 0;
+  margin-left: auto;
   padding: 8rpx 16rpx;
-  font-size: var(--fs-24);
+  font-size: var(--fs-28);
   color: #DC2626;
 }
 
@@ -405,6 +406,14 @@
   border-radius: 44rpx;
   font-size: var(--fs-30);
   font-weight: 500;
+}
+
+/* 评论区可见范围提示 */
+.menu-comment-scope {
+  text-align: center;
+  font-size: var(--fs-28);
+  color: #94A3B8;
+  padding: 12rpx 0 4rpx;
 }
 
 .rating-popup-cancel {
