@@ -273,6 +273,20 @@ App({
       return
     }
     this.globalData.theme = theme
+    // 同步系统 UI（导航栏 / tabBar）
+    this.applySystemUITheme(theme)
+    // 实时刷新已加载页面的主题 class（前台切换系统主题时立即生效）
+    const pages = getCurrentPages()
+    pages.forEach((page) => {
+      if (page && page.setData) {
+        try {
+          page.setData({
+            themeClass: this.getThemeClass(),
+            pageStyle: this.getPageStyle()
+          })
+        } catch (e) {}
+      }
+    })
     themeListeners.forEach((listener) => {
       listener(theme)
     })
@@ -298,12 +312,7 @@ App({
     const mode = readStorage(THEME_MODE_KEY) || 'auto'
     this.globalData.themeMode = mode
     this.applyTheme()
-    // 监听系统主题变化（auto 模式下跟随；手动模式忽略）
-    if (wx.onThemeChange) {
-      wx.onThemeChange((res) => {
-        this.onThemeChange(res)
-      })
-    }
+    // 系统主题变化由 App.onThemeChange 生命周期自动触发（需 app.json 配置 darkmode: true）
   },
 
   // 根据 themeMode 计算实际生效主题（light/dark）
@@ -416,6 +425,9 @@ App({
     this.globalData.hasLogin = true
     this.globalData.openid = '__reviewer__'
     this.globalData.userProfile = reviewerMock.mockReviewerProfile
+
+    // 清空常量缓存，确保审核模式下通过 mock 拦截加载空常量（而非复用登录前预加载的真实常量）
+    this.clearConstantsCache()
 
     if (!isRestore) {
       writeStorage(REVIEWER_SESSION_KEY, {

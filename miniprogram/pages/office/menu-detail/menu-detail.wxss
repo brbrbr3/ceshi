@@ -79,7 +79,7 @@
   background: var(--bg-input);
   border: 2rpx solid transparent;
   font-size: var(--fs-30);
-  color: #0F172A;
+  color: var(--text-secondary);
   box-sizing: border-box;
   margin-bottom: 16rpx;
 }

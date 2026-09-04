@@ -36,6 +36,15 @@ const BLOCK_TYPE_LIST = [
 // 可填写控件类型（text 除外）
 const FILLABLE_TYPES = ['radio', 'checkbox', 'judge', 'textarea', 'side_dish', 'activity']
 
+// tag → 可用控件类型映射（公告无控件，活动/副食专属，问卷/答题为通用控件）
+const TAG_BLOCKS = {
+  announcement: [],
+  activity: ['activity'],
+  side_dish: ['side_dish'],
+  questionnaire: ['radio', 'checkbox', 'judge', 'textarea', 'text'],
+  quiz: ['radio', 'checkbox', 'judge', 'textarea', 'text']
+}
+
 function getTagConfig(tag) {
   return TAG_CONFIG[tag] || TAG_CONFIG.announcement
 }
@@ -44,11 +53,20 @@ function getBlockTypeConfig(type) {
   return BLOCK_TYPE_LIST.find(b => b.type === type) || { type, label: type, icon: '📄', color: '#64748B', bg: '#F1F5F9' }
 }
 
+// 根据 tag 过滤可用控件（list 可选，默认用 BLOCK_TYPE_LIST）
+function getBlocksByTag(tag, list) {
+  const blockList = list || BLOCK_TYPE_LIST
+  const allowed = TAG_BLOCKS[tag] || []
+  return blockList.filter(b => allowed.indexOf(b.type) >= 0)
+}
+
 module.exports = {
   TAG_CONFIG,
   TAG_LIST,
   BLOCK_TYPE_LIST,
   FILLABLE_TYPES,
+  TAG_BLOCKS,
   getTagConfig,
-  getBlockTypeConfig
+  getBlockTypeConfig,
+  getBlocksByTag
 }

@@ -386,6 +386,56 @@ const SYSTEM_CONFIGS = [
     ],
     description: '休假申请类型选项列表',
     sort: 110
+  },
+
+  // ==================== 信息发布（form）相关 ====================
+  {
+    type: 'form',
+    key: 'FORM_TAG_LIST',
+    value: [
+      { key: 'announcement', label: '公告', icon: '📢', color: '#0284C7', bg: '#E0F2FE' },
+      { key: 'activity', label: '活动', icon: '🎉', color: '#EA580C', bg: '#FFEDD5' },
+      { key: 'side_dish', label: '副食', icon: '🍱', color: '#16A34A', bg: '#DCFCE7' },
+      { key: 'questionnaire', label: '问卷', icon: '📊', color: '#7C3AED', bg: '#F3E8FF' },
+      { key: 'quiz', label: '答题', icon: '✍️', color: '#DC2626', bg: '#FEE2E2' }
+    ],
+    description: '信息发布-类型列表',
+    sort: 120
+  },
+  {
+    type: 'form',
+    key: 'FORM_BLOCK_TYPE_LIST',
+    value: [
+      { type: 'activity', label: '活动报名', icon: '🎉', desc: '可设置分组 / 人数上限', color: '#EA580C', bg: '#FFEDD5' },
+      { type: 'side_dish', label: '副食订购', icon: '🍱', desc: '支持多类别订购', color: '#16A34A', bg: '#DCFCE7' },
+      { type: 'radio', label: '单选题', icon: '🔘', desc: '单选一个选项', color: '#3B82F6', bg: '#EFF6FF' },
+      { type: 'checkbox', label: '多选题', icon: '☑️', desc: '多选多个选项', color: '#8B5CF6', bg: '#F3E8FF' },
+      { type: 'judge', label: '判断题', icon: '⚖️', desc: '正确 / 错误', color: '#10B981', bg: '#D1FAE5' },
+      { type: 'textarea', label: '简答题', icon: '✏️', desc: '自由填写文字', color: '#F59E0B', bg: '#FEF3C7' },
+      { type: 'text', label: '说明文字', icon: '📝', desc: '插入说明段落', color: '#64748B', bg: '#F1F5F9' }
+    ],
+    description: '信息发布-控件类型列表',
+    sort: 121
+  },
+  {
+    type: 'form',
+    key: 'FORM_TAG_BLOCKS',
+    value: {
+      announcement: [],
+      activity: ['activity'],
+      side_dish: ['side_dish'],
+      questionnaire: ['radio', 'checkbox', 'judge', 'textarea', 'text'],
+      quiz: ['radio', 'checkbox', 'judge', 'textarea', 'text']
+    },
+    description: '信息发布-类型与可用控件映射（公告无控件，活动/副食专属，问卷/答题为通用控件）',
+    sort: 122
+  },
+  {
+    type: 'form',
+    key: 'FORM_FILLABLE_TYPES',
+    value: ['radio', 'checkbox', 'judge', 'textarea', 'side_dish', 'activity'],
+    description: '信息发布-可填写控件类型',
+    sort: 123
   }
 ]
 

@@ -87,7 +87,7 @@
 
       <view class="office-card menu-comments-card">
         <view class="menu-comment-input">
-          <textarea class="menu-comment-input-ta" value="{{commentText}}" bindinput="onCommentInput" placeholder="言语友善，共建和谐" placeholder-class="menu-comment-placeholder" maxlength="500" auto-height></textarea>
+          <textarea value="{{commentText}}" bindinput="onCommentInput" placeholder="言语友善，共建和谐" placeholder-class="menu-comment-placeholder" maxlength="500" auto-height></textarea>
           <view class="menu-comment-submit">
             <text class="menu-comment-count">{{commentText.length}}/500</text>
             <view class="office-btn-primary menu-comment-btn" bindtap="submitComment">发布</view>

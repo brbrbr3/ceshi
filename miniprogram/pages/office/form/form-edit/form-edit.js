@@ -5,6 +5,7 @@ const {
   TAG_LIST,
   BLOCK_TYPE_LIST,
   FILLABLE_TYPES,
+  TAG_BLOCKS,
   getTagConfig,
   getBlockTypeConfig
 } = require('../../../../common/form-constants.js')
@@ -113,9 +114,12 @@ Page({
     canPublish: false,
     title: '',
     description: '',
-    tag: 'announcement',
+    tag: '',
     tagList: TAG_LIST,
-    blockTypeList: BLOCK_TYPE_LIST,
+    allBlockTypeList: BLOCK_TYPE_LIST,
+    blockTypeList: [],
+    tagBlocks: TAG_BLOCKS,
+    fillableTypes: FILLABLE_TYPES,
     blocks: [],
     deadline: '',
     deadlineTs: null,
@@ -123,19 +127,7 @@ Page({
     showDeadline: false,
     targetRoles: [],
     targetRolesText: '',
-    targetRoleOptions: [{
-      value: '馆员',
-      checked: false
-    },
-    {
-      value: '其他',
-      checked: false
-    },
-    {
-      value: '待赴任馆员',
-      checked: false
-    }
-    ],
+    targetRoleOptions: [],
     targetDepartments: [],
     targetDepartmentsText: '',
     departmentOptions: [],
@@ -191,15 +183,20 @@ Page({
     saving: false,
     publishing: false,
     //审核模式
-    isReviewer: false
+    isSpecialLogIn: false,
+    // 审核员会话模式（app.globalData.isReviewer，控制台改 isSpecialLogIn 不影响此项）
+    isSpecialMode: false
   },
 
   onLoad(options) {
     this.setData({
-      minDate: utils.getLocalDateString()
+      minDate: utils.getLocalDateString(),
+      isSpecialMode: !!app.globalData.isReviewer
     })
     this.checkPublishPermission()
+    this.loadFormConstants()
     this.loadDepartmentOptions()
+    this.loadRoleOptions()
 
     if (options.id) {
       this.setData({
@@ -238,7 +235,7 @@ Page({
       const canPublish = !!user.isAdmin || user.role === '馆员'
       this.setData({
         canPublish,
-        isReviewer: !!user.isReviewer
+        isSpecialLogIn: !!user.isReviewer
       })
       if (!canPublish) {
         wx.showModal({
@@ -423,13 +420,47 @@ Page({
   },
 
   /**
+   * 从常量缓存加载 form 常量（后端可配置，审核员 mock 返回空）
+   */
+  async loadFormConstants() {
+    try {
+      const c = await app.getAllConstants()
+      const tagList = c.FORM_TAG_LIST !== undefined ? c.FORM_TAG_LIST : TAG_LIST
+      const allBlockTypeList = c.FORM_BLOCK_TYPE_LIST !== undefined ? c.FORM_BLOCK_TYPE_LIST : BLOCK_TYPE_LIST
+      const tagBlocks = c.FORM_TAG_BLOCKS !== undefined ? c.FORM_TAG_BLOCKS : TAG_BLOCKS
+      const fillableTypes = c.FORM_FILLABLE_TYPES !== undefined ? c.FORM_FILLABLE_TYPES : FILLABLE_TYPES
+      this.setData({
+        tagList,
+        allBlockTypeList,
+        tagBlocks,
+        fillableTypes,
+        blockTypeList: this.filterBlocksByTag(this.data.tag, allBlockTypeList, tagBlocks)
+      })
+    } catch (e) {
+      console.warn('加载 form 常量失败，使用默认值:', e)
+      this.setData({
+        blockTypeList: this.filterBlocksByTag(this.data.tag, BLOCK_TYPE_LIST, TAG_BLOCKS)
+      })
+    }
+  },
+
+  /**
+   * 根据 tag 过滤可用控件
+   */
+  filterBlocksByTag(tag, blockList, tagBlocks) {
+    const allowed = tagBlocks[tag] || []
+    return blockList.filter(b => allowed.indexOf(b.type) >= 0)
+  },
+
+  /**
    * 选择 tag
    */
   handleSelectTag(e) {
     const tag = e.currentTarget.dataset.tag
     if (!tag || tag === this.data.tag) return
     this.setData({
-      tag
+      tag,
+      blockTypeList: this.filterBlocksByTag(tag, this.data.allBlockTypeList, this.data.tagBlocks)
     })
   },
 
@@ -1059,6 +1090,21 @@ Page({
   },
 
   /**
+   * 加载角色选项（从常量读取，审核员 mock 下 ROLE_OPTIONS 为空 → 角色列表为空）
+   */
+  async loadRoleOptions() {
+    try {
+      const allConstants = await app.getAllConstants()
+      const roles = allConstants.ROLE_OPTIONS || []
+      this.setData({
+        targetRoleOptions: roles.map(r => ({ value: r, checked: (this.data.targetRoles || []).indexOf(r) >= 0 }))
+      })
+    } catch (e) {
+      console.warn('加载角色选项失败:', e)
+    }
+  },
+
+  /**
    * 加载部门选项（排除「无」）
    */
   async loadDepartmentOptions() {
@@ -1112,7 +1158,7 @@ Page({
    * 刷新 hasFillable（是否含有需要填写的控件）
    */
   refreshHasFillable() {
-    const hasFillable = this.data.blocks.some(b => FILLABLE_TYPES.includes(b.type))
+    const hasFillable = this.data.blocks.some(b => (this.data.fillableTypes || FILLABLE_TYPES).includes(b.type))
     this.setData({ hasFillable })
   },
 

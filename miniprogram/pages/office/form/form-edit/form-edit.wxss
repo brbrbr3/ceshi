@@ -402,7 +402,8 @@
 .fe-check-row,
 .fe-sub-block,
 .fe-switch-row,
-.fe-hint {
+.fe-hint,
+.form-edit-card {
   animation: blockIn 0.3s ease;
 }
 

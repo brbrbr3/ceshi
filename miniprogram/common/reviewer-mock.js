@@ -152,7 +152,15 @@ function getMockResponse(name, data) {
 
   // ===== getSystemConfig / initSystemConfig =====
   if (name === 'getSystemConfig') {
-    return {}
+    // 审核员 mock：返回空 form 常量（按 type 分组，与真实 getSystemConfig 返回结构一致）
+    return {
+      form: {
+        FORM_TAG_LIST: [],
+        FORM_BLOCK_TYPE_LIST: [],
+        FORM_TAG_BLOCKS: {},
+        FORM_FILLABLE_TYPES: []
+      }
+    }
   }
   if (name === 'initSystemConfig') {
     return { initialized: true }
