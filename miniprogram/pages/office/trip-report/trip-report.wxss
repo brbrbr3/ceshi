@@ -2,7 +2,7 @@
 
 .trip-page {
   min-height: 100vh;
-  background: #EEF2FF;
+  background: var(--bg-page);
 }
 
 /* 头部 - 使用圆角渐变 */
@@ -205,8 +205,8 @@
 
 .trip-action-btn-retro.is-disabled,
 .trip-action-btn-retro[disabled] {
-  background: #E2E8F0;
-  color: #94A3B8;
+  background: var(--border-soft);
+  color: var(--text-muted);
   box-shadow: none;
 }
 
@@ -229,7 +229,7 @@
 .trip-section-title {
   font-size: var(--fs-30);
   font-weight: 600;
-  color: #1E293B;
+  color: var(--text-primary);
   margin-bottom: 20rpx;
   padding-left: 8rpx;
 }
@@ -241,7 +241,7 @@
 
 .trip-month-title {
   font-size: var(--fs-26);
-  color: #64748B;
+  color: var(--text-tertiary);
   margin-bottom: 16rpx;
   padding-left: 8rpx;
 }
@@ -255,7 +255,7 @@
 
 /* 记录卡片 */
 .trip-item {
-  background: #FFFFFF;
+  background: var(--bg-card);
   border-radius: 20rpx;
   padding: 24rpx;
   box-shadow: 0 2rpx 12rpx rgba(0, 0, 0, 0.04);
@@ -270,13 +270,13 @@
 .trip-item-date {
   font-size: var(--fs-32);
   font-weight: 600;
-  color: #1E293B;
+  color: var(--text-primary);
   margin-right: 16rpx;
 }
 
 .trip-item-time {
   font-size: var(--fs-26);
-  color: #64748B;
+  color: var(--text-tertiary);
   flex: 1;
 }
 
@@ -295,7 +295,7 @@
 
 .trip-item-dest {
   font-size: var(--fs-28);
-  color: #1E293B;
+  color: var(--text-primary);
   font-weight: 500;
 }
 
@@ -307,7 +307,7 @@
 .trip-item-mode,
 .trip-item-companions {
   font-size: var(--fs-24);
-  color: #64748B;
+  color: var(--text-tertiary);
 }
 
 /* 空状态 */
@@ -326,7 +326,7 @@
 
 .trip-empty-text {
   font-size: var(--fs-28);
-  color: #94A3B8;
+  color: var(--text-muted);
 }
 
 /* 加载状态 */
@@ -338,7 +338,7 @@
 
 .trip-loading-text {
   font-size: var(--fs-26);
-  color: #94A3B8;
+  color: var(--text-muted);
 }
 
 /* 弹窗遮罩 */
@@ -366,7 +366,7 @@
   bottom: 0;
   left: 0;
   right: 0;
-  background: #FFFFFF;
+  background: var(--bg-card);
   border-radius: 32rpx 32rpx 0 0;
   transform: translateY(100%);
   transition: transform 0.3s ease; 
@@ -386,7 +386,7 @@
   align-items: center;
   justify-content: space-between;
   padding: 32rpx;
-  border-bottom: 1rpx solid #F1F5F9;
+  border-bottom: 1rpx solid var(--bg-soft-2);
   flex-shrink: 0;
 }
 
@@ -400,17 +400,17 @@
 .trip-popup-title {
   font-size: var(--fs-34);
   font-weight: 600;
-  color: #1E293B;
+  color: var(--text-primary);
 }
 
 .trip-popup-subtitle {
   font-size: var(--fs-28);
-  color: #1E293B;
+  color: var(--text-primary);
 }
 
 .trip-popup-close {
   font-size: var(--fs-48);
-  color: #94A3B8;
+  color: var(--text-muted);
   line-height: 1;
   padding: 0 8rpx;
 }
@@ -427,7 +427,7 @@
 
 .trip-field-label {
   font-size: var(--fs-30);
-  color: #1E293B;
+  color: var(--text-primary);
   font-weight: 600;
   margin-bottom: 24rpx;
 }
@@ -438,12 +438,12 @@
 
 .trip-field-hint {
   font-size: var(--fs-26);
-  color: #94A3B8;
+  color: var(--text-muted);
   margin-top: 8rpx;
 }
 
 .trip-input-wrapper {
-  background: #F8FAFC;
+  background: var(--bg-input);
   border-radius: 16rpx;
   padding: 0 24rpx;
   height: 88rpx;
@@ -454,17 +454,17 @@
 .trip-input {
   flex: 1;
   font-size: var(--fs-28);
-  color: #1E293B;
+  color: var(--text-primary);
 }
 
 .trip-input-placeholder {
-  color: #94A3B8;
+  color: var(--text-muted);
 }
 
 /* 历史记录列表 */
 .trip-history-list {
   margin-top: 12rpx;
-  background: #F8FAFC;
+  background: var(--bg-input);
   border-radius: 12rpx;
   padding: 16rpx;
 }
@@ -472,7 +472,7 @@
 .trip-history-title {
   font-size: var(--fs-26);
   font-weight: 500;
-  color: #94A3B8;
+  color: var(--text-muted);
   margin-bottom: 12rpx;
 }
 
@@ -483,18 +483,18 @@
 }
 
 .trip-history-item {
-  background: #FFFFFF;
-  border: 1rpx solid #E2E8F0;
+  background: var(--bg-card);
+  border: 1rpx solid var(--border-soft);
   border-radius: 8rpx;
   padding: 10rpx 20rpx;
   font-size: var(--fs-24);
-  color: #475569;
+  color: var(--text-secondary);
   transition: all 0.2s ease;
 }
 
 .trip-history-item:active {
   transform: scale(0.95);
-  background: #EEF2FF;
+  background: var(--bg-page);
   border-color: #2563EB;
   color: #2563EB;
 }
@@ -510,19 +510,19 @@
 }
 
 .trip-picker-value {
-  background: #F8FAFC;
+  background: var(--bg-input);
   border-radius: 16rpx;
   padding: 0 24rpx;
   height: 88rpx;
   display: flex;
   align-items: center;
   font-size: var(--fs-28);
-  color: #1E293B;
+  color: var(--text-primary);
 }
 
 /* 下拉选择器 */
 .trip-picker-wrapper {
-  background: #F8FAFC;
+  background: var(--bg-input);
   border-radius: 16rpx;
   padding: 0 24rpx;
   height: 88rpx;
@@ -532,18 +532,18 @@
 }
 
 .trip-picker-wrapper.is-placeholder .trip-picker-value {
-  color: #94A3B8;
+  color: var(--text-muted);
 }
 
 .trip-picker-arrow {
   font-size: var(--fs-36);
-  color: #94A3B8;
+  color: var(--text-muted);
   font-weight: 300;
 }
 
 /* 提交按钮 */
 .trip-submit-btn[disabled] {
-  background: #94A3B8;
+  background: var(--text-muted);
 }
 
 /* ========== 代报备返回弹窗 ========== */
@@ -563,9 +563,9 @@
   gap: 20rpx;
   padding: 20rpx 24rpx;
   margin-bottom: 12rpx;
-  background: #F8FAFC;
+  background: var(--bg-input);
   border-radius: 16rpx;
-  border: 2rpx solid #E2E8F0;
+  border: 2rpx solid var(--border-soft);
   transition: all 0.2s ease;
 }
 
@@ -578,7 +578,7 @@
   width: 40rpx;
   height: 40rpx;
   border-radius: 10rpx;
-  border: 2rpx solid #CBD5E1;
+  border: 2rpx solid var(--border-soft);
   display: flex;
   align-items: center;
   justify-content: center;
@@ -601,13 +601,13 @@
 .proxy-return-name {
   font-size: var(--fs-30);
   font-weight: 500;
-  color: #1E293B;
+  color: var(--text-primary);
   margin-bottom: 4rpx;
 }
 
 .proxy-return-dest {
   font-size: var(--fs-26);
-  color: #94A3B8;
+  color: var(--text-muted);
 }
 
 .proxy-return-footer {
@@ -615,7 +615,7 @@
   gap: 16rpx;
   padding: 20rpx 32rpx;
   padding-bottom: calc(20rpx + env(safe-area-inset-bottom));
-  border-top: 1rpx solid #F1F5F9;
+  border-top: 1rpx solid var(--bg-soft-2);
   flex-shrink: 0;
 }
 
@@ -635,8 +635,8 @@
 
 .proxy-return-btn-skip {
   flex: 0.4;
-  background: #F1F5F9;
-  color: #64748B;
+  background: var(--bg-soft-2);
+  color: var(--text-tertiary);
 }
 
 .proxy-return-btn-confirm {
@@ -679,13 +679,13 @@
 
 .append-dest-current-label {
   font-size: var(--fs-24);
-  color: #94A3B8;
+  color: var(--text-muted);
   margin-bottom: 6rpx;
 }
 
 .append-dest-current-value {
   font-size: var(--fs-28);
-  color: #1E293B;
+  color: var(--text-primary);
   font-weight: 500;
   word-break: break-all;
 }
@@ -696,7 +696,7 @@
 
 .append-dest-proxy-label {
   font-size: var(--fs-30);
-  color: #94A3B8;
+  color: var(--text-muted);
   margin-bottom: 12rpx;
   padding-left: 4rpx;
 }
@@ -707,9 +707,9 @@
   gap: 20rpx;
   padding: 20rpx 24rpx;
   margin-bottom: 12rpx;
-  background: #F8FAFC;
+  background: var(--bg-input);
   border-radius: 16rpx;
-  border: 2rpx solid #E2E8F0;
+  border: 2rpx solid var(--border-soft);
   transition: all 0.2s ease;
 }
 
@@ -722,7 +722,7 @@
   width: 40rpx;
   height: 40rpx;
   border-radius: 10rpx;
-  border: 2rpx solid #CBD5E1;
+  border: 2rpx solid var(--border-soft);
   display: flex;
   align-items: center;
   justify-content: center;
@@ -745,13 +745,13 @@
 .append-dest-proxy-name {
   font-size: var(--fs-30);
   font-weight: 500;
-  color: #1E293B;
+  color: var(--text-primary);
   margin-bottom: 4rpx;
 }
 
 .append-dest-proxy-dest {
   font-size: var(--fs-26);
-  color: #94A3B8;
+  color: var(--text-muted);
 }
 
 .append-dest-footer {
@@ -759,7 +759,7 @@
   gap: 16rpx;
   padding: 20rpx 32rpx;
   padding-bottom: calc(20rpx + env(safe-area-inset-bottom));
-  border-top: 1rpx solid #F1F5F9;
+  border-top: 1rpx solid var(--bg-soft-2);
   flex-shrink: 0;
 }
 
@@ -779,8 +779,8 @@
 
 .append-dest-btn-skip {
   flex: 0.4;
-  background: #F1F5F9;
-  color: #64748B;
+  background: var(--bg-soft-2);
+  color: var(--text-tertiary);
 }
 
 .append-dest-btn-confirm {

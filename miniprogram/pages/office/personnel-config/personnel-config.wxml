@@ -1,6 +1,7 @@
 <watermark />
 
-<view class="office-page personnel-page" style="{{fontStyle}}">
+<page-meta page-style="{{pageStyle}}" />
+<view class="office-page personnel-page {{themeClass}}" style="{{fontStyle}}">
   <view class="office-gradient-header office-subpage-header">
     <view class="office-subpage-header-content">
       <view class="office-subpage-title">人员配置</view>

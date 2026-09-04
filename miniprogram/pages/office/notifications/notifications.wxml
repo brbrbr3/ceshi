@@ -1,4 +1,5 @@
-<view class="office-page notifications-page" style="{{fontStyle}}">
+<page-meta page-style="{{pageStyle}}" />
+<view class="office-page notifications-page {{themeClass}}" style="{{fontStyle}}">
   <view class="office-header">
     <view class="office-header-title">消息中心</view>
     <view class="office-header-actions">

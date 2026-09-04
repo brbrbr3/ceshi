@@ -27,6 +27,8 @@ Page({
 
   onShow() {
     const fontStyle = app.globalData.fontStyle
+    this.setData({ themeClass: app.getThemeClass(), pageStyle: app.getPageStyle() })
+    app.applySystemUITheme(app.globalData.theme)
   if (this.data.fontStyle !== fontStyle) {
     this.setData({ fontStyle })
   }

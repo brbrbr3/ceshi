@@ -103,6 +103,8 @@ Page({
     //字体缩放，并记录设置
     const fontScale = app.globalData.fontScale || 1.1
     const fontStyle = app.globalData.fontStyle
+    this.setData({ themeClass: app.getThemeClass(), pageStyle: app.getPageStyle() })
+    app.applySystemUITheme(app.globalData.theme)
     const scaleIndex = this.data.fontscaleValues.indexOf(fontScale)
     this.setData({
       fontScale,

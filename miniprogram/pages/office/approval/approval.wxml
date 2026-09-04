@@ -1,4 +1,5 @@
-<view class="office-page approval-page" style="{{fontStyle}}">
+<page-meta page-style="{{pageStyle}}" />
+<view class="office-page approval-page {{themeClass}}" style="{{fontStyle}}">
   <view class="office-gradient-header approval-header">
     <view class="office-header-top">
       <view>

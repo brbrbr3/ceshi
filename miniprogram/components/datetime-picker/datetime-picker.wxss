@@ -13,7 +13,7 @@
   justify-content: space-between;
   height: 88rpx;
   padding: 0 24rpx;
-  background: linear-gradient(135deg, #F8FAFC 0%, #F1F5F9 100%);
+  background: linear-gradient(135deg, var(--bg-input) 0%, var(--bg-soft-2) 100%);
   border-radius: 16rpx;
   transition: all 0.3s ease;
   position: relative;
@@ -42,17 +42,17 @@
 
 /* 触发器样式变体 */
 .picker-trigger--default {
-  background: linear-gradient(135deg, #F8FAFC 0%, #F1F5F9 100%);
+  background: linear-gradient(135deg, var(--bg-input) 0%, var(--bg-soft-2) 100%);
 }
 
 .picker-trigger--card {
-  background: #FFFFFF;
+  background: var(--bg-card);
   box-shadow: 0 2rpx 12rpx rgba(0, 0, 0, 0.06);
 }
 
 .picker-trigger--border {
   background: transparent;
-  border: 2rpx solid #E2E8F0;
+  border: 2rpx solid var(--border-soft);
 }
 
 .picker-trigger--border::before {
@@ -68,13 +68,13 @@
 /* 显示值 */
 .picker-value {
   font-size: var(--fs-28);
-  color: #1E293B;
+  color: var(--text-primary);
   font-weight: 500;
   letter-spacing: 0.5rpx;
 }
 
 .picker-placeholder {
-  color: #94A3B8;
+  color: var(--text-muted);
   font-weight: 400;
 }
 
@@ -122,17 +122,19 @@
   left: 0;
   right: 0;
   bottom: 0;
-  background: #FFFFFF;
+  background: var(--bg-card);
   border-radius: 32rpx 32rpx 0 0;
   z-index: 10000;
   transform: translateY(100%);
-  transition: transform 0.3s cubic-bezier(0.25, 0.1, 0.25, 1);
+  visibility: hidden;
+  transition: transform 0.3s cubic-bezier(0.25, 0.1, 0.25, 1), visibility 0.3s ease;
   box-shadow: 0 -8rpx 40rpx rgba(0, 0, 0, 0.12);
   overflow: hidden;
 }
 
 .picker-popup--show {
   transform: translateY(0);
+  visibility: visible;
 }
 
 /* 头部 */
@@ -141,7 +143,7 @@
   align-items: center;
   justify-content: space-between;
   padding: 32rpx 40rpx;
-  background: linear-gradient(180deg, #FFFFFF 0%, #FAFAFA 100%);
+  background: linear-gradient(180deg, var(--bg-card) 0%, var(--bg-soft-2) 100%);
 }
 
 .picker-btn {
@@ -172,7 +174,7 @@
 }
 
 .picker-btn--cancel {
-  color: #64748B;
+  color: var(--text-tertiary);
   background: rgba(100, 116, 139, 0.1);
 }
 
@@ -193,14 +195,14 @@
 .picker-title {
   font-size: var(--fs-32);
   font-weight: 600;
-  color: #1E293B;
+  color: var(--text-primary);
   letter-spacing: 1rpx;
 }
 
 /* 分隔线 */
 .picker-divider {
   height: 2rpx;
-  background: linear-gradient(90deg, transparent 0%, #E2E8F0 20%, #E2E8F0 80%, transparent 100%);
+  background: linear-gradient(90deg, transparent 0%, var(--border-soft) 20%, var(--border-soft) 80%, transparent 100%);
 }
 
 /* 选择器视图 */
@@ -216,7 +218,7 @@
   align-items: center;
   justify-content: center;
   font-size: var(--fs-32);
-  color: #1E293B;
+  color: var(--text-primary);
   font-weight: 500;
   white-space: nowrap;
   flex-wrap: nowrap;
@@ -236,7 +238,7 @@
 
 .picker-column-unit {
   font-size: var(--fs-24);
-  color: #64748B;
+  color: var(--text-tertiary);
   font-weight: 400;
   margin-left: 2rpx;
 }
@@ -244,7 +246,7 @@
 /* 星期文本样式 */
 .picker-column-weekday {
   font-size: var(--fs-22);
-  color:  #64748B;
+  color:  var(--text-tertiary);
   font-weight: 400;
   margin-left: 4rpx;
 }
@@ -252,7 +254,7 @@
 .picker-column-item--weekday {
   font-size: var(--fs-30);
   font-weight: 500;
-  color: #1E293B;
+  color: var(--text-primary);
 }
 
 .picker-column-item--weekday .picker-column-num {
@@ -268,43 +270,7 @@
 .picker-safe-area {
   height: env(safe-area-inset-bottom);
   min-height: 20rpx;
-  background: #FFFFFF;
-}
-
-/* 深色模式支持 */
-@media (prefers-color-scheme: dark) {
-  .picker-trigger {
-    background: linear-gradient(135deg, #1E293B 0%, #334155 100%);
-  }
-  
-  .picker-value:not(.picker-placeholder) {
-    color: #F1F5F9;
-  }
-  
-  .picker-popup {
-    background: #1E293B;
-  }
-  
-  .picker-header {
-    background: linear-gradient(180deg, #1E293B 0%, #0F172A 100%);
-  }
-  
-  .picker-title {
-    color: #F1F5F9;
-  }
-  
-  .picker-btn--cancel {
-    background: rgba(148, 163, 184, 0.2);
-    color: #94A3B8;
-  }
-  
-  .picker-column-item {
-    color: #F1F5F9;
-  }
-  
-  .picker-column-unit {
-    color: #94A3B8;
-  }
+  background: var(--bg-card);
 }
 
 /* 动画关键帧 */

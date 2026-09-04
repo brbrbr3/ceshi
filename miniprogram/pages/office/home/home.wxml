@@ -1,4 +1,5 @@
-<view class="office-page home-page" style="{{fontStyle}}">
+<page-meta page-style="{{pageStyle}}" />
+<view class="office-page home-page {{themeClass}}" style="{{fontStyle}}">
   <view class="office-gradient-header home-header">
 
 
@@ -37,6 +38,9 @@
     <view class="home-greeting-row">
       <view class="home-greeting">{{greetingText}}</view>
       <view class="home-actions">
+        <view class="office-icon-btn-wrapper" bindtap="toggleTheme">
+          <view class="office-icon-btn home-icon-btn-theme">{{themeIcon}}</view>
+        </view>
         <view class="office-icon-btn-wrapper" bindtap="goNotifications">
           <view class="office-icon-btn home-icon-btn-ntf">🔔</view>
           <view wx:if="{{unreadNotificationCount > 0}}" class="office-badge">{{unreadNotificationCount}}</view>

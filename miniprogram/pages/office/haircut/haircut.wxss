@@ -1,7 +1,7 @@
 /* 理发预约页面样式 */
 
 page {
-  background: #ffffff;
+  background: var(--bg-card);
   height: 100%;
 }
 
@@ -35,10 +35,10 @@ page {
 
 /* ========== Tab栏 ========== */
 .haircut-tabs {
-  background: #FFFFFF;
+  background: var(--bg-card);
   display: flex;
   padding: 0 16rpx;
-  border-bottom: 1rpx solid #F1F5F9;
+  border-bottom: 1rpx solid var(--bg-soft-2);
   position: sticky;
   top: 0;
   z-index: 50;
@@ -49,7 +49,7 @@ page {
   text-align: center;
   padding: 28rpx 0;
   font-size: var(--fs-32);
-  color: #64748B;
+  color: var(--text-tertiary);
   font-weight: 500;
   position: relative;
   transition: all 0.3s ease;
@@ -80,9 +80,9 @@ page {
 
 /* ========== 日期选择器（完全仿会议室样式） ========== */
 .date-selector {
-  background: #FFFFFF;
+  background: var(--bg-card);
   padding: 24rpx 0 5rpx;
-  border-top: 1rpx solid #E2E8F0;
+  border-top: 1rpx solid var(--border-soft);
 }
 
 .date-scroll {
@@ -99,7 +99,7 @@ page {
 .date-item {
   padding: 20rpx 10rpx;
   border-radius: 24rpx;
-  background: #F8FAFC;
+  background: var(--bg-input);
   border: 3rpx solid transparent;
   display: flex;
   align-items: center;
@@ -120,7 +120,7 @@ page {
 
 .date-item.is-disabled {
   opacity: 0.5;
-  background: #F1F5F9;
+  background: var(--bg-soft-2);
 }
 
 .date-item-left {
@@ -132,13 +132,13 @@ page {
 
 .date-weekday {
   font-size: var(--fs-28);
-  color: #94A3B8;
+  color: var(--text-muted);
 }
 
 .date-day {
   font-size: var(--fs-28);
   font-weight: 600;
-  color: #1E293B;
+  color: var(--text-primary);
 }
 
 .date-item.is-active .date-day,
@@ -189,7 +189,7 @@ page {
 .haircut-slots-title {
   font-size: var(--fs-35);
   font-weight: 600;
-  color: #1E293B;
+  color: var(--text-primary);
   margin-bottom: 16rpx;
   padding-left: 8rpx;
 }
@@ -206,9 +206,9 @@ page {
   align-items: center;
   justify-content: space-between;
   padding: 24rpx;
-  background: #FFFFFF;
+  background: var(--bg-card);
   border-radius: 16rpx;
-  border: 4rpx solid #E2E8F0;
+  border: 4rpx solid var(--border-soft);
   transition: all 0.3s ease;
 }
 
@@ -219,18 +219,18 @@ page {
 
 .haircut-slot-item.is-booked {
   opacity: 0.8;
-  background: #F1F5F9;
+  background: var(--bg-soft-2);
   border-color: transparent;
 }
 
 .haircut-slot-time {
   font-size: var(--fs-32);
   font-weight: 600;
-  color: #1E293B;
+  color: var(--text-primary);
 }
 
 .haircut-slot-item.is-booked .haircut-slot-time {
-  color: #94A3B8;
+  color: var(--text-muted);
 }
 
 .haircut-slot-status {
@@ -257,7 +257,7 @@ page {
 
 /* 不可预约 - 灰色 */
 .haircut-slot-status.is-unavailable {
-  background: #F3F4F6;
+  background: var(--bg-soft-2);
   color: #6B7280;
 }
 
@@ -322,7 +322,7 @@ page {
 /* 换日提示 */
 .haircut-change-hint {
   font-size: 28rpx;
-  color: #64748B;
+  color: var(--text-tertiary);
   margin-bottom: 24rpx;
   line-height: 1.5;
 }
@@ -352,7 +352,7 @@ page {
 }
 
 .haircut-booking-btn[disabled] {
-  background: #94A3B8;
+  background: var(--text-muted);
 }
 
 /* ========== 排序切换 ========== */
@@ -364,10 +364,10 @@ page {
 
 .haircut-sort-btn {
   padding: 12rpx 24rpx;
-  background: #FFFFFF;
+  background: var(--bg-card);
   border-radius: 24rpx;
   font-size: var(--fs-30);
-  color: #64748B;
+  color: var(--text-tertiary);
   transition: all 0.3s ease;
 }
 
@@ -385,11 +385,11 @@ page {
 
 /* ========== 记录卡片 ========== */
 .haircut-item {
-  background: #FFFFFF;
+  background: var(--bg-card);
   border-radius: 20rpx;
   padding: 24rpx;
   box-shadow: 0 2rpx 12rpx rgba(0, 0, 0, 0.04);
-  border: 4rpx solid #E2E8F0;
+  border: 4rpx solid var(--border-soft);
 }
 
 .haircut-item-header {
@@ -407,12 +407,12 @@ page {
 .haircut-item-date {
   font-size: var(--fs-30);
   font-weight: 600;
-  color: #1E293B;
+  color: var(--text-primary);
 }
 
 .haircut-item-time {
   font-size: var(--fs-24);
-  color: #64748B;
+  color: var(--text-tertiary);
   margin-top: 4rpx;
 }
 
@@ -434,7 +434,7 @@ page {
 }
 
 .haircut-item-status.is-completed {
-  background: #EFF6FF;
+  background: var(--bg-soft);
   color: #2563EB;
 }
 
@@ -446,13 +446,13 @@ page {
 
 .haircut-item-name {
   font-size: var(--fs-28);
-  color: #1E293B;
+  color: var(--text-primary);
   font-weight: 500;
 }
 
 .haircut-item-meta {
   font-size: var(--fs-24);
-  color: #64748B;
+  color: var(--text-tertiary);
 }
 
 .haircut-item-reason {
@@ -466,7 +466,7 @@ page {
   gap: 24rpx;
   padding-top: 16rpx;
   margin-top: 16rpx;
-  border-top: 1rpx solid #F1F5F9;
+  border-top: 1rpx solid var(--bg-soft-2);
 }
 
 .haircut-item-action {
@@ -495,7 +495,7 @@ page {
 
 .haircut-empty-text {
   font-size: var(--fs-28);
-  color: #94A3B8;
+  color: var(--text-muted);
 }
 
 /* ========== 加载状态 ========== */
@@ -507,7 +507,7 @@ page {
 
 .haircut-loading-text {
   font-size: var(--fs-26);
-  color: #94A3B8;
+  color: var(--text-muted);
 }
 
 /* ========== 弹窗遮罩 ========== */
@@ -535,7 +535,7 @@ page {
   bottom: 0;
   left: 0;
   right: 0;
-  background: #FFFFFF;
+  background: var(--bg-card);
   border-radius: 32rpx 32rpx 0 0;
   transform: translateY(100%);
   transition: transform 0.3s ease;
@@ -554,22 +554,22 @@ page {
   align-items: center;
   justify-content: space-between;
   padding: 32rpx;
-  border-bottom: 1rpx solid #F1F5F9;
+  border-bottom: 1rpx solid var(--bg-soft-2);
   position: sticky;
   top: 0;
-  background: #FFFFFF;
+  background: var(--bg-card);
   z-index: 1;
 }
 
 .haircut-popup-title {
   font-size: var(--fs-34);
   font-weight: 600;
-  color: #1E293B;
+  color: var(--text-primary);
 }
 
 .haircut-popup-close {
   font-size: var(--fs-48);
-  color: #94A3B8;
+  color: var(--text-muted);
   line-height: 1;
   padding: 0 8rpx;
 }
@@ -585,7 +585,7 @@ page {
 
 .haircut-field-label {
   font-size: var(--fs-32);
-  color: #1E293B;
+  color: var(--text-primary);
   font-weight: 600;
   margin-bottom: 18rpx;
 }
@@ -596,12 +596,12 @@ page {
 
 .haircut-field-hint {
   font-size: var(--fs-28);
-  color: #94A3B8;
+  color: var(--text-muted);
   margin-top: 8rpx;
 }
 
 .haircut-input-wrapper {
-  background: #F8FAFC;
+  background: var(--bg-input);
   border-radius: 16rpx;
   padding: 0 24rpx;
   height: 88rpx;
@@ -612,11 +612,11 @@ page {
 .haircut-input {
   flex: 1;
   font-size: var(--fs-30);
-  color: #1E293B;
+  color: var(--text-primary);
 }
 
 .haircut-input-placeholder {
-  color: #94A3B8;
+  color: var(--text-muted);
 }
 
 /* ========== 单选组 ========== */
@@ -630,7 +630,7 @@ page {
   display: flex;
   align-items: center;
   padding: 24rpx;
-  background: #F8FAFC;
+  background: var(--bg-input);
   border-radius: 16rpx;
   border: 2rpx solid transparent;
   transition: all 0.3s ease;
@@ -662,12 +662,12 @@ page {
   width: 16rpx;
   height: 16rpx;
   border-radius: 50%;
-  background: #FFFFFF;
+  background: var(--bg-card);
 }
 
 .haircut-radio-text {
   font-size: var(--fs-28);
-  color: #1E293B;
+  color: var(--text-primary);
 }
 
 /* ========== 提交按钮 ========== */
@@ -677,7 +677,7 @@ page {
 }
 
 .haircut-submit-btn[disabled] {
-  background: #94A3B8;
+  background: var(--text-muted);
 }
 
 /* ========== 弹窗操作按钮 ========== */
@@ -703,8 +703,8 @@ page {
 }
 
 .haircut-action-btn.is-secondary {
-  background: #F1F5F9;
-  color: #64748B;
+  background: var(--bg-soft-2);
+  color: var(--text-tertiary);
 }
 
 .haircut-action-btn.is-danger {
@@ -713,13 +713,13 @@ page {
 }
 
 .haircut-action-btn[disabled] {
-  background: #94A3B8;
+  background: var(--text-muted);
   color: #FFFFFF;
 }
 
 /* ========== 提示信息 ========== */
 .haircut-info-card {
-  background: #EFF6FF;
+  background: var(--bg-soft);
   border-radius: 12rpx;
   padding: 20rpx 24rpx;
   margin-bottom: 20rpx;
@@ -739,21 +739,21 @@ page {
 .haircut-stats-month-title {
   font-size: var(--fs-30);
   font-weight: 600;
-  color: #475569;
+  color: var(--text-secondary);
   padding: 16rpx 8rpx;
   border-left: 6rpx solid #EA580C;
-  background: #F8FAFC;
+  background: var(--bg-input);
   border-radius: 0 12rpx 12rpx 0;
   margin-bottom: 16rpx;
 }
 
 /* ========== 按人员排序 - 人名列表 ========== */
 .haircut-stats-name-list {
-  background: #FFFFFF;
+  background: var(--bg-card);
   border-radius: 16rpx;
   padding: 16rpx 24rpx;
   box-shadow: 0 2rpx 12rpx rgba(0, 0, 0, 0.04);
-  border: 4rpx solid #E2E8F0;
+  border: 4rpx solid var(--border-soft);
 }
 
 .haircut-stats-name-item {
@@ -761,7 +761,7 @@ page {
   align-items: center;
   justify-content: space-between;
   padding: 16rpx 0;
-  border-bottom: 1rpx solid #F1F5F9;
+  border-bottom: 1rpx solid var(--bg-soft-2);
 }
 
 .haircut-stats-name-item:last-child {
@@ -770,14 +770,14 @@ page {
 
 .haircut-stats-name-text {
   font-size: var(--fs-28);
-  color: #1E293B;
+  color: var(--text-primary);
   font-weight: 500;
 }
 
 .haircut-stats-count-text {
   font-size: var(--fs-26);
-  color: #64748B;
-  background: #F1F5F9;
+  color: var(--text-tertiary);
+  background: var(--bg-soft-2);
   padding: 4rpx 16rpx;
   border-radius: 20rpx;
 }
@@ -788,7 +788,7 @@ page {
   align-items: center;
   justify-content: center;
   padding: 32rpx 0;
-  background-color: #f5f5f5;
+  background-color: var(--bg-soft-2);
 }
 
 .loading-spinner {

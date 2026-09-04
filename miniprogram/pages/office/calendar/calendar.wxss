@@ -2,7 +2,7 @@
 
 .calendar-page {
   min-height: 100vh;
-  background: #EEF2FF;
+  background: var(--bg-page);
 }
 .calendar-gradient-header{
   padding: 30rpx 28rpx 32rpx;
@@ -50,7 +50,7 @@
   gap: 16rpx;
   margin: 8rpx 24rpx 0;
   padding: 20rpx 28rpx;
-  background: linear-gradient(135deg, #EFF6FF 0%, #DBEAFE 100%);
+  background: linear-gradient(135deg, var(--bg-soft) 0%, var(--bg-soft) 100%);
   border-radius: 16rpx;
   border: 1rpx solid #BFDBFE;
 }
@@ -102,7 +102,7 @@
   bottom: 0;
   left: 0;
   right: 0;
-  background: #FFFFFF;
+  background: var(--bg-card);
   border-radius: 32rpx 32rpx 0 0;
   transform: translateY(100%);
   transition: transform 0.3s ease;
@@ -127,19 +127,19 @@
   align-items: center;
   justify-content: space-between;
   padding: 32rpx;
-  border-bottom: 1rpx solid #F1F5F9;
+  border-bottom: 1rpx solid var(--bg-soft-2);
 }
 
 /* 弹窗标题 */
 .config-popup-title {
   font-size: var(--fs-34);
   font-weight: 600;
-  color: #1E293B;
+  color: var(--text-primary);
 }
 
 .config-popup-close {
   font-size: var(--fs-48);
-  color: #94A3B8;
+  color: var(--text-muted);
   line-height: 1;
   padding: 0 8rpx;
 }
@@ -149,7 +149,7 @@
   display: flex;
   align-items: center;
   padding: 16rpx 32rpx;
-  border-bottom: 1rpx solid #F1F5F9;
+  border-bottom: 1rpx solid var(--bg-soft-2);
 }
 
 /* 可滚动区域 */
@@ -166,20 +166,20 @@
 
 .config-field-label {
   font-size: var(--fs-28);
-  color: #1E293B;
+  color: var(--text-primary);
   font-weight: 500;
 }
 
 .config-field-label-inline {
   font-size: var(--fs-28);
-  color: #1E293B;
+  color: var(--text-primary);
   font-weight: 500;
 }
 
 .config-year-picker {
   display: flex;
   align-items: center;
-  background: #F8FAFC;
+  background: var(--bg-input);
   border-radius: 12rpx;
   padding: 16rpx 24rpx;
   margin: 0 16rpx;
@@ -193,7 +193,7 @@
 
 .config-picker-arrow {
   font-size: var(--fs-22);
-  color: #94A3B8;
+  color: var(--text-muted);
   margin-left: 8rpx;
 }
 
@@ -213,7 +213,7 @@
 
 .config-holiday-label {
   font-size: var(--fs-26);
-  color: #64748B;
+  color: var(--text-tertiary);
   width: 180rpx;
   flex-shrink: 0;
 }
@@ -223,7 +223,7 @@
   display: flex;
   align-items: center;
   justify-content: space-between;
-  background: #F8FAFC;
+  background: var(--bg-input);
   border-radius: 16rpx;
   padding: 0 24rpx;
   height: 80rpx;
@@ -231,7 +231,7 @@
 
 .config-date-picker text:first-child {
   font-size: var(--fs-28);
-  color: #1E293B;
+  color: var(--text-primary);
 }
 
 .config-delete-btn {
@@ -257,7 +257,7 @@
   font-weight: 600;
   border-radius: 16rpx;
   border: none;
-  background: #EFF6FF;
+  background: var(--bg-soft);
   border: 2rpx dashed #2563EB;
   color: #2563EB;
 }
@@ -271,7 +271,7 @@
 .config-popup-footer {
   padding: 24rpx 32rpx;
   padding-bottom: calc(24rpx + env(safe-area-inset-bottom));
-  border-top: 1rpx solid #F1F5F9;
+  border-top: 1rpx solid var(--bg-soft-2);
   flex-shrink: 0;
   z-index: 100;
 }
@@ -289,7 +289,7 @@
 }
 
 .config-submit-btn[disabled] {
-  background: #94A3B8;
+  background: var(--text-muted);
 }
 
 /* ========================================
@@ -299,7 +299,7 @@
 /* 日程区域容器 */
 .schedule-section {
   margin: 4rpx 8rpx 0;
-  background: #FFFFFF;
+  background: var(--bg-card);
   border-radius: 24rpx;
   overflow: hidden;
   position: relative;
@@ -312,18 +312,18 @@
   justify-content: space-between;
   align-items: center;
   padding: 28rpx 32rpx;
-  border-bottom: 1rpx solid #F1F5F9;
+  border-bottom: 1rpx solid var(--bg-soft-2);
 }
 
 .schedule-date-title {
   font-size: var(--fs-30);
   font-weight: 600;
-  color: #1E293B;
+  color: var(--text-primary);
 }
 
 .schedule-date-count {
   font-size: var(--fs-26);
-  color: #64748B;
+  color: var(--text-tertiary);
 }
 
 /* 全天日程区域 */
@@ -331,14 +331,14 @@
   display: flex;
   align-items: flex-start;
   padding: 20rpx 24rpx;
-  border-bottom: 1rpx solid #F1F5F9;
-  background: #F8FAFC;
+  border-bottom: 1rpx solid var(--bg-soft-2);
+  background: var(--bg-input);
 }
 
 .all-day-label {
   width: 80rpx;
   font-size: var(--fs-24);
-  color: #64748B;
+  color: var(--text-tertiary);
   flex-shrink: 0;
   padding-top: 8rpx;
 }
@@ -359,7 +359,7 @@
 
 .all-day-event-title {
   font-size: var(--fs-26);
-  color: #1E293B;
+  color: var(--text-primary);
   font-weight: 500;
 }
 
@@ -383,13 +383,13 @@
   display: flex;
   align-items: flex-start;
   height: 100rpx;
-  border-bottom: 1rpx solid #F1F5F9;
+  border-bottom: 1rpx solid var(--bg-soft-2);
 }
 
 .hour-label {
   width: 80rpx;
   font-size: var(--fs-24);
-  color: #94A3B8;
+  color: var(--text-muted);
   text-align: center;
   padding-top: 4rpx;
   flex-shrink: 0;
@@ -398,7 +398,7 @@
 /* .hour-line {
   flex: 1;
   height: 1rpx;
-  background: #E2E8F0;
+  background: var(--border-soft);
   margin-top: 16rpx;
 } */
 
@@ -537,7 +537,7 @@
   bottom: 0;
   left: 0;
   right: 0;
-  background: #F8FAFC;
+  background: var(--bg-input);
   border-radius: 32rpx 32rpx 0 0;
   transform: translateY(100%);
   transition: transform 0.3s ease;
@@ -556,22 +556,22 @@
   align-items: center;
   justify-content: space-between;
   padding: 28rpx 32rpx;
-  background: #FFFFFF;
-  border-bottom: 1rpx solid #E2E8F0;
+  background: var(--bg-card);
+  border-bottom: 1rpx solid var(--border-soft);
   border-radius: 32rpx 32rpx 0 0;
   flex-shrink: 0;
 }
 
 .schedule-popup-cancel {
   font-size: var(--fs-28);
-  color: #64748B;
+  color: var(--text-tertiary);
   padding: 8rpx 16rpx;
 }
 
 .schedule-popup-title {
   font-size: var(--fs-32);
   font-weight: 600;
-  color: #1E293B;
+  color: var(--text-primary);
 }
 
 .schedule-popup-save {
@@ -594,7 +594,7 @@
 
 /* 表单卡片 */
 .schedule-form-card {
-  background: #FFFFFF;
+  background: var(--bg-card);
   border-radius: 24rpx;
   padding: 8rpx 24rpx;
   margin-bottom: 20rpx;
@@ -603,7 +603,7 @@
 /* 表单字段 */
 .schedule-field {
   padding: 20rpx 0;
-  border-bottom: 1rpx solid #F1F5F9;
+  border-bottom: 1rpx solid var(--bg-soft-2);
 }
 
 .schedule-field:last-child {
@@ -626,7 +626,7 @@
   display: flex;
   align-items: center;
   font-size: var(--fs-28);
-  color: #1E293B;
+  color: var(--text-primary);
   font-weight: 500;
 }
 
@@ -634,7 +634,7 @@
   display: flex;
   align-items: center;
   font-size: var(--fs-28);
-  color: #64748B;
+  color: var(--text-tertiary);
 }
 
 .schedule-field-value-content-repeatEndDate{
@@ -658,8 +658,8 @@
   width: 100%;
   height: 80rpx;
   font-size: var(--fs-28);
-  color: #1E293B;
-  background: #F8FAFC;
+  color: var(--text-primary);
+  background: var(--bg-input);
   border-radius: 16rpx;
   padding: 0 20rpx;
   margin-top: 12rpx;
@@ -670,8 +670,8 @@
   width: 100%;
   min-height: 120rpx;
   font-size: var(--fs-28);
-  color: #1E293B;
-  background: #F8FAFC;
+  color: var(--text-primary);
+  background: var(--bg-input);
   border-radius: 16rpx;
   padding: 16rpx 20rpx;
   margin-top: 12rpx;
@@ -688,7 +688,7 @@
 /* datetime-picker 包装器样式 */
 .schedule-picker-wrapper {
   flex: 1;
-  background: #F8FAFC;
+  background: var(--bg-input);
   border-radius: 16rpx;
   overflow: hidden;
 }
@@ -699,7 +699,7 @@
 
 /* 全宽选择器样式 */
 .schedule-picker-full {
-  background: #F8FAFC;
+  background: var(--bg-input);
   border-radius: 16rpx;
   overflow: hidden;
   margin-top: 12rpx;
@@ -711,7 +711,7 @@
   display: flex;
   align-items: center;
   justify-content: space-between;
-  background: #F8FAFC;
+  background: var(--bg-input);
   border-radius: 16rpx;
   padding: 0 20rpx;
   height: 80rpx;
@@ -719,7 +719,7 @@
 
 .schedule-picker text:first-child {
   font-size: var(--fs-28);
-  color: #1E293B;
+  color: var(--text-primary);
 }
 
 .schedule-picker-time {
@@ -728,7 +728,7 @@
 
 .schedule-picker-arrow {
   font-size: var(--fs-28);
-  color: #94A3B8;
+  color: var(--text-muted);
 }
 
 /* 删除按钮 */
@@ -767,7 +767,7 @@
   bottom: 0;
   left: 0;
   right: 0;
-  background: #FFFFFF;
+  background: var(--bg-card);
   border-radius: 32rpx 32rpx 0 0;
   transform: translateY(100%);
   transition: transform 0.3s ease;
@@ -782,18 +782,18 @@
   align-items: center;
   justify-content: space-between;
   padding: 32rpx;
-  border-bottom: 1rpx solid #F1F5F9;
+  border-bottom: 1rpx solid var(--bg-soft-2);
 }
 
 .type-popup-title {
   font-size: var(--fs-32);
   font-weight: 600;
-  color: #1E293B;
+  color: var(--text-primary);
 }
 
 .type-popup-close {
   font-size: var(--fs-48);
-  color: #94A3B8;
+  color: var(--text-muted);
   line-height: 1;
 }
 
@@ -811,11 +811,11 @@
 }
 
 .type-item:active {
-  background: #F8FAFC;
+  background: var(--bg-input);
 }
 
 .type-item.is-active {
-  background: #EFF6FF;
+  background: var(--bg-soft);
 }
 
 .type-item-dot {
@@ -828,7 +828,7 @@
 .type-item-name {
   flex: 1;
   font-size: var(--fs-30);
-  color: #1E293B;
+  color: var(--text-primary);
 }
 
 .type-item-check {
@@ -862,7 +862,7 @@
   bottom: 0;
   left: 0;
   right: 0;
-  background: #F8FAFC;
+  background: var(--bg-input);
   border-radius: 32rpx 32rpx 0 0;
   transform: translateY(100%);
   transition: transform 0.3s ease;
@@ -881,15 +881,15 @@
   align-items: center;
   justify-content: space-between;
   padding: 28rpx 32rpx;
-  background: #FFFFFF;
-  border-bottom: 1rpx solid #E2E8F0;
+  background: var(--bg-card);
+  border-bottom: 1rpx solid var(--border-soft);
   border-radius: 32rpx 32rpx 0 0;
   flex-shrink: 0;
 }
 
 .detail-popup-close {
   font-size: var(--fs-48);
-  color: #94A3B8;
+  color: var(--text-muted);
   line-height: 1;
   padding: 8rpx;
 }
@@ -897,7 +897,7 @@
 .detail-popup-title {
   font-size: var(--fs-32);
   font-weight: 600;
-  color: #1E293B;
+  color: var(--text-primary);
 }
 
 .detail-popup-edit {
@@ -920,7 +920,7 @@
 
 /* 详情头部 */
 .detail-header {
-  background: #FFFFFF;
+  background: var(--bg-card);
   border-radius: 24rpx;
   padding: 32rpx;
   margin-bottom: 24rpx;
@@ -940,21 +940,21 @@
 .detail-title {
   font-size: var(--fs-36);
   font-weight: 600;
-  color: #1E293B;
+  color: var(--text-primary);
   line-height: 1.4;
 }
 
 .detail-type-name {
   font-size: var(--fs-24);
-  color: #64748B;
-  background: #F1F5F9;
+  color: var(--text-tertiary);
+  background: var(--bg-soft-2);
   padding: 8rpx 16rpx;
   border-radius: 8rpx;
 }
 
 /* 详情区块 */
 .detail-section {
-  background: #FFFFFF;
+  background: var(--bg-card);
   border-radius: 24rpx;
   padding: 24rpx 32rpx;
   margin-bottom: 16rpx;
@@ -962,14 +962,14 @@
 
 .detail-section-title {
   font-size: var(--fs-24);
-  color: #94A3B8;
+  color: var(--text-muted);
   margin-bottom: 12rpx;
   font-weight: 500;
 }
 
 .detail-section-value {
   font-size: var(--fs-28);
-  color: #1E293B;
+  color: var(--text-primary);
   line-height: 1.6;
 }
 
@@ -988,14 +988,14 @@
 
 .detail-time-label {
   font-size: var(--fs-26);
-  color: #64748B;
+  color: var(--text-tertiary);
   width: 80rpx;
   flex-shrink: 0;
 }
 
 .detail-time-value {
   font-size: var(--fs-26);
-  color: #1E293B;
+  color: var(--text-primary);
 }
 
 /* 重复信息 */
@@ -1007,41 +1007,41 @@
 
 .detail-repeat-label {
   font-size: var(--fs-26);
-  color: #1E293B;
+  color: var(--text-primary);
 }
 
 .detail-repeat-end {
   font-size: var(--fs-24);
-  color: #64748B;
+  color: var(--text-tertiary);
 }
 
 /* 日期选择器容器 */
 .date-picker-container {
   padding: 32rpx;
-  background: #F8FAFC;
+  background: var(--bg-input);
   border-radius: 16rpx;
   margin: 16rpx;
 }
 
 /* 占位符样式 */
 .is-placeholder {
-  color: #94A3B8 !important;
-  color: #64748B;
+  color: var(--text-muted) !important;
+  color: var(--text-tertiary);
   width: 60rpx;
   flex-shrink: 0;
 }
 
 .detail-time-value {
   font-size: var(--fs-28);
-  color: #1E293B;
+  color: var(--text-primary);
   font-weight: 500;
 }
 
 /* 详情弹窗底部按钮区 */
 .detail-popup-footer {
   padding: 5rpx 0 24rpx;
-  background: #FFFFFF;
-  border-top: 1rpx solid #E5E7EB;
+  background: var(--bg-card);
+  border-top: 1rpx solid var(--border-soft);
   flex-shrink: 0;
 }
 
@@ -1067,8 +1067,8 @@
 }
 
 .detail-subscribe-btn.is-subscribed {
-  background: #F1F5F9;
-  color: #64748B;
+  background: var(--bg-soft-2);
+  color: var(--text-tertiary);
 }
 
 .detail-subscribe-btn::after {

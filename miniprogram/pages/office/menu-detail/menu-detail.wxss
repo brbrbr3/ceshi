@@ -32,14 +32,14 @@
 .menu-content-title {
   font-size: var(--fs-36);
   font-weight: 600;
-  color: #1E293B;
+  color: var(--text-primary);
   margin-bottom: 20rpx;
 }
 
 .menu-content-html {
   font-size: var(--fs-32);
   line-height: 1.8;
-  color: #475569;
+  color: var(--text-secondary);
 }
 
 .menu-detail-actions {
@@ -76,7 +76,7 @@
   max-height: 180rpx;
   padding: 20rpx;
   border-radius: 16rpx;
-  background: #F8FAFC;
+  background: var(--bg-input);
   border: 2rpx solid transparent;
   font-size: var(--fs-30);
   color: #0F172A;
@@ -85,7 +85,7 @@
 }
 
 .menu-comment-placeholder {
-  color: #94A3B8;
+  color: var(--text-muted);
 }
 
 .menu-comment-submit {
@@ -96,7 +96,7 @@
 
 .menu-comment-count {
   font-size: var(--fs-28);
-  color: #94A3B8;
+  color: var(--text-muted);
 }
 
 .menu-comment-btn {
@@ -147,18 +147,18 @@
 .menu-comment-author {
   font-size: var(--fs-32);
   font-weight: 600;
-  color: #1E293B;
+  color: var(--text-primary);
 }
 
 .menu-comment-time {
   font-size: var(--fs-30);
-  color: #94A3B8;
+  color: var(--text-muted);
 }
 
 .menu-comment-text {
   font-size: var(--fs-30);
   line-height: 1.6;
-  color: #475569;
+  color: var(--text-secondary);
   word-break: break-all;
 }
 
@@ -204,7 +204,7 @@
   flex-shrink: 0;
   font-size: var(--fs-28);
   font-weight: 500;
-  color: #1E293B;
+  color: var(--text-primary);
 }
 
 .rating-score-area {
@@ -237,7 +237,7 @@
 
 .rating-count {
   font-size: var(--fs-24);
-  color: #94A3B8;
+  color: var(--text-muted);
 }
 
 .rating-tag {
@@ -248,7 +248,7 @@
 }
 
 .rating-tag.is-rated {
-  background: #DBEAFE;
+  background: var(--bg-soft);
   color: #2563EB;
 }
 
@@ -270,7 +270,7 @@
   text-align: center;
   padding: 32rpx;
   font-size: var(--fs-24);
-  color: #94A3B8;
+  color: var(--text-muted);
 }
 
 /* 打分弹窗样式 */
@@ -298,7 +298,7 @@
 .rating-popup {
   width: 100%;
   max-height: 80vh;
-  background: #FFFFFF;
+  background: var(--bg-card);
   border-radius: 32rpx 32rpx 0 0;
   display: flex;
   flex-direction: column;
@@ -321,12 +321,12 @@
 .rating-popup-title {
   font-size: var(--fs-34);
   font-weight: 600;
-  color: #1E293B;
+  color: var(--text-primary);
 }
 
 .rating-popup-close {
   font-size: var(--fs-48);
-  color: #94A3B8;
+  color: var(--text-muted);
   line-height: 1;
   padding: 0 12rpx;
 }
@@ -347,7 +347,7 @@
   width: 250rpx;
   flex-shrink: 0;
   font-size: var(--fs-28);
-  color: #334155;
+  color: var(--text-secondary);
 }
 
 .rating-dish-stars {
@@ -412,12 +412,12 @@
 .menu-comment-scope {
   text-align: center;
   font-size: var(--fs-28);
-  color: #94A3B8;
+  color: var(--text-muted);
   padding: 12rpx 0 4rpx;
 }
 
 .rating-popup-cancel {
-  background: #F1F5F9;
+  background: var(--bg-soft-2);
   color: #64748B;
 }
 

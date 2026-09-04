@@ -1,4 +1,5 @@
-<view class="office-page form-edit-page" style="{{fontStyle}}">
+<page-meta page-style="{{pageStyle}}" />
+<view class="office-page form-edit-page {{themeClass}}" style="{{fontStyle}}">
   <view class="office-gradient-header form-edit-header">
     <view class="form-edit-title">{{isEdit ? '编辑信息' : '发布信息'}}</view>
   </view>

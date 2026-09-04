@@ -29,7 +29,7 @@
   flex-direction: column;
   width: 100%;
   border-radius: 32rpx;
-  background: #FFFFFF;
+  background: var(--bg-card);
   box-sizing: border-box;
   height: 85vh;
   transform: translateY(100%);
@@ -62,20 +62,20 @@
 .approval-modal-title {
   font-size: var(--fs-30);
   font-weight: 600;
-  color: #1E293B;
+  color: var(--text-primary);
 }
 
 .approval-modal-sub {
   font-size: var(--fs-24);
-  color: #94A3B8;
+  color: var(--text-muted);
 }
 
 .approval-modal-close {
   width: 56rpx;
   height: 56rpx;
   border-radius: 28rpx;
-  background: #F8FAFC;
-  color: #64748B;
+  background: var(--bg-input);
+  color: var(--text-tertiary);
   display: flex;
   align-items: center;
   justify-content: center;
@@ -100,12 +100,12 @@
 
 .approval-modal-label {
   font-size: var(--fs-24);
-  color: #94A3B8;
+  color: var(--text-muted);
 }
 
 .approval-modal-value {
   font-size: var(--fs-24);
-  color: #1E293B;
+  color: var(--text-primary);
   font-weight: 500;
 }
 
@@ -117,7 +117,7 @@
 
 .approval-modal-table-title {
   font-size: var(--fs-24);
-  color: #94A3B8;
+  color: var(--text-muted);
   margin-bottom: 12rpx;
   display: block;
 }
@@ -126,18 +126,18 @@
   width: 100%;
   border-radius: 12rpx;
   overflow: hidden;
-  border: 1rpx solid #E2E8F0;
+  border: 1rpx solid var(--border-soft);
 }
 
 .approval-modal-table-header {
   display: flex;
-  background: #F1F5F9;
+  background: var(--bg-soft-2);
 }
 
 .approval-modal-table-header .approval-modal-table-cell {
   font-size: var(--fs-24);
   font-weight: 600;
-  color: #475569;
+  color: var(--text-secondary);
   padding: 14rpx 8rpx;
   text-align: center;
   overflow-wrap: break-word;
@@ -145,16 +145,16 @@
 
 .approval-modal-table-row {
   display: flex;
-  border-top: 1rpx solid #F1F5F9;
+  border-top: 1rpx solid var(--bg-soft-2);
 }
 
 .approval-modal-table-row + .approval-modal-table-row {
-  border-top: 1rpx solid #F1F5F9;
+  border-top: 1rpx solid var(--bg-soft-2);
 }
 
 .approval-modal-table-row .approval-modal-table-cell {
   font-size: var(--fs-24);
-  color: #334155;
+  color: var(--text-secondary);
   padding: 12rpx 8rpx;
   text-align: center;
   overflow-wrap: break-word;
@@ -162,7 +162,7 @@
 
 .approval-modal-table-empty {
   font-size: var(--fs-24);
-  color: #9CA3AF;
+  color: var(--text-muted);
   text-align: center;
   padding: 24rpx 0;
 }
@@ -172,7 +172,7 @@
   width: 80rpx;
   height: 80rpx;
   border-radius: 50%;
-  background: #F1F5F9;
+  background: var(--bg-soft-2);
 }
 
 /* 图片点击反馈 */
@@ -188,8 +188,8 @@
   margin-top: 24rpx;
   padding: 20rpx;
   border-radius: 24rpx;
-  background: #F8FAFC;
-  color: #475569;
+  background: var(--bg-input);
+  color: var(--text-secondary);
   font-size: var(--fs-24);
   line-height: 1.7;
 }
@@ -198,7 +198,7 @@
 .approval-modal-progress {
   margin-top: 24rpx;
   padding: 24rpx;
-  background: #F9FAFB;
+  background: var(--bg-soft-2);
   border-radius: 12rpx;
 }
 
@@ -219,18 +219,18 @@
 .approval-modal-progress-step {
   font-size: var(--fs-24);
   font-weight: 600;
-  color: #1E293B;
+  color: var(--text-primary);
 }
 
 .approval-modal-progress-text {
   font-size: var(--fs-24);
-  color: #9CA3AF;
+  color: var(--text-muted);
 }
 
 .approval-modal-progress-bar {
   width: 100%;
   height: 8rpx;
-  background: #E5E7EB;
+  background: var(--border-soft);
   border-radius: 4rpx;
   overflow: hidden;
 }
@@ -246,14 +246,14 @@
 .approval-modal-logs {
   margin-top: 24rpx;
   padding: 24rpx;
-  background: #F8FAFC;
+  background: var(--bg-input);
   border-radius: 12rpx;
 }
 
 .approval-modal-logs-title {
   font-size: var(--fs-28);
   font-weight: 600;
-  color: #1E293B;
+  color: var(--text-primary);
   margin-bottom: 16rpx;
 }
 
@@ -265,7 +265,7 @@
 
 .approval-modal-logs-item {
   padding: 16rpx;
-  background: #FFFFFF;
+  background: var(--bg-card);
   border-radius: 8rpx;
   border-left: 3rpx solid #2563EB;
 }
@@ -281,13 +281,13 @@
 .approval-modal-logs-action {
   font-size: var(--fs-26);
   font-weight: 600;
-  color: #1F2937;
+  color: var(--text-primary);
   margin-bottom: 8rpx;
 }
 
 .approval-modal-logs-step {
   font-size: var(--fs-24);
-  color: #6B7280;
+  color: var(--text-tertiary);
   margin-bottom: 6rpx;
 }
 
@@ -300,28 +300,28 @@
 
 .approval-modal-logs-operator {
   font-size: var(--fs-24);
-  color: #6B7280;
+  color: var(--text-tertiary);
   font-weight: 500;
 }
 
 .approval-modal-logs-time {
   font-size: var(--fs-24);
-  color: #9CA3AF;
+  color: var(--text-muted);
 }
 
 .approval-modal-logs-desc {
   font-size: var(--fs-24);
-  color: #6B7280;
+  color: var(--text-tertiary);
   line-height: 1.6;
   padding-top: 8rpx;
-  border-top: 1rpx solid #F3F4F6;
+  border-top: 1rpx solid var(--bg-soft-2);
   margin-top: 8rpx;
 }
 
 /* 空状态提示 */
 .approval-modal-logs-empty {
   font-size: var(--fs-24);
-  color: #9CA3AF;
+  color: var(--text-muted);
   text-align: center;
   padding: 32rpx 0;
   line-height: 1.6;
@@ -353,8 +353,8 @@
 }
 
 .approval-reject-btn {
-  background: #F8FAFC;
-  color: #4B6080;
+  background: var(--bg-input);
+  color: var(--text-secondary);
 }
 
 .approval-reject-btn.is-disabled,

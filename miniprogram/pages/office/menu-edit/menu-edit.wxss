@@ -5,7 +5,7 @@
 .menu-edit-page .auth-field-label {
   font-size: var(--fs-34);
   font-weight: 600;
-  color: #1E293B;
+  color: var(--text-primary);
 }
 
 .menu-edit-header {
@@ -34,7 +34,7 @@
 .menu-editor-wrapper {
   border-radius: 24rpx;
   overflow: hidden;
-  background: #F8FAFC;
+  background: var(--bg-input);
   border: 2rpx solid transparent;
 }
 
@@ -43,6 +43,10 @@
   padding: 20rpx;
   box-sizing: border-box;
   font-size: var(--fs-32);
+}
+
+.menu-editor-wrapper .ql-editor.ql-blank::before {
+  color: var(--text-muted);
 }
 
 .menu-edit-submit {

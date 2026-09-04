@@ -1,4 +1,5 @@
-<view class="feedback-container" style="{{fontStyle}}">
+<page-meta page-style="{{pageStyle}}" />
+<view class="feedback-container {{themeClass}}" style="{{fontStyle}}">
   <!-- 头部区域 -->
   <view class="office-gradient-header office-subpage-header">
     <view class="office-subpage-header-content">

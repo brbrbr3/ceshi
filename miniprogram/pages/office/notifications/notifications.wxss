@@ -1,22 +1,22 @@
 .notifications-page {
-  background: #F7F8FA;
+  background: var(--bg-page);
   min-height: 100vh;
 }
 
 .office-header {
-  background: #FFFFFF;
+  background: var(--bg-card);
   padding: 24rpx 32rpx 20rpx;
   display: flex;
   justify-content: space-between;
   align-items: center;
-  border-bottom: 1rpx solid #E5E7EB;
+  border-bottom: 1rpx solid var(--border-soft);
   padding-top: calc(24rpx + env(safe-area-inset-top));
 }
 
 .office-header-title {
   font-size: var(--fs-36);
   font-weight: 600;
-  color: #1F2937;
+  color: var(--text-primary);
 }
 
 .office-header-actions {
@@ -42,7 +42,7 @@
 
 .empty-text {
   font-size: var(--fs-28);
-  color: #9CA3AF;
+  color: var(--text-muted);
 }
 
 .notifications-list {
@@ -54,7 +54,7 @@
   justify-content: space-between;
   align-items: flex-start;
   padding: 24rpx 0;
-  border-bottom: 1rpx solid #F3F4F6;
+  border-bottom: 1rpx solid var(--bg-soft-2);
   background: transparent !important;
 }
 
@@ -77,7 +77,7 @@
   width: 80rpx;
   height: 80rpx;
   border-radius: 16rpx;
-  background: #EFF6FF;
+  background: var(--bg-soft);
   display: flex;
   align-items: center;
   justify-content: center;
@@ -93,7 +93,7 @@
 .notification-title {
   font-size: var(--fs-28);
   font-weight: 500;
-  color: #1F2937;
+  color: var(--text-primary);
   margin-bottom: 8rpx;
 }
 
@@ -104,7 +104,7 @@
 
 .notification-content {
   font-size: var(--fs-24);
-  color: #6B7280;
+  color: var(--text-tertiary);
   line-height: 1.6;
   margin-bottom: 8rpx;
   overflow: hidden;
@@ -116,7 +116,7 @@
 
 .notification-time {
   font-size: var(--fs-24);
-  color: #9CA3AF;
+  color: var(--text-muted);
 }
 
 .notification-right {

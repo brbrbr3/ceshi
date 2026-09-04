@@ -25,6 +25,7 @@ const VERSION_CACHE_KEY = 'app-cache-version'
 const LAST_SHOWN_VERSION_KEY = 'app-last-shown-version'  // 上次展示更新说明的版本（与缓存版本分离）
 const FONTSIZE_CACHE_KEY = 'app-fontsize-cache'
 const HOLIDAY_CACHE_KEY = 'app-holiday-cache'
+const THEME_MODE_KEY = 'app-theme-mode'
 // 字体令牌基础值（rpx）
 const FONT_TOKENS = {
   13: 13,
@@ -180,6 +181,9 @@ App({
 
     this.readAndSetFontScale()
 
+    // 初始化主题（默认跟随系统，支持手动切换）
+    this.initTheme()
+
     // 恢复审核员会话（如果存在）
     this.restoreReviewerSession()
   },
@@ -253,7 +257,8 @@ App({
   },
 
   onShow(opts) {
-    // App 显示
+    // App 显示时同步系统 UI 主题（首次启动 onLaunch 时 tabBar 可能尚未初始化）
+    this.applySystemUITheme(this.globalData.theme)
   },
 
   onHide() {
@@ -263,6 +268,10 @@ App({
   onThemeChange({
     theme
   }) {
+    // 仅 auto 模式跟随系统主题；手动模式忽略系统变化
+    if (this.globalData.themeMode && this.globalData.themeMode !== 'auto') {
+      return
+    }
     this.globalData.theme = theme
     themeListeners.forEach((listener) => {
       listener(theme)
@@ -282,8 +291,91 @@ App({
     }
   },
 
+  // ========== 主题管理（夜间模式） ==========
+
+  // 初始化主题：读取用户偏好，计算实际生效主题
+  initTheme() {
+    const mode = readStorage(THEME_MODE_KEY) || 'auto'
+    this.globalData.themeMode = mode
+    this.applyTheme()
+    // 监听系统主题变化（auto 模式下跟随；手动模式忽略）
+    if (wx.onThemeChange) {
+      wx.onThemeChange((res) => {
+        this.onThemeChange(res)
+      })
+    }
+  },
+
+  // 根据 themeMode 计算实际生效主题（light/dark）
+  applyTheme() {
+    const mode = this.globalData.themeMode || 'auto'
+    let theme = 'light'
+    if (mode === 'auto') {
+      theme = (wx.getWindowInfo().theme || 'light') === 'dark' ? 'dark' : 'light'
+    } else {
+      theme = mode
+    }
+    this.globalData.theme = theme
+    this.applySystemUITheme(theme)
+  },
+
+  // 同步导航栏 / tabBar 等系统 UI 颜色
+  applySystemUITheme(theme) {
+    const isDark = theme === 'dark'
+    try {
+      wx.setNavigationBarColor({
+        frontColor: isDark ? '#ffffff' : '#000000',
+        backgroundColor: isDark ? '#1F1F1F' : '#EEF2FF',
+        animation: { duration: 0, timingFunc: 'linear' }
+      })
+    } catch (e) {}
+    try {
+      wx.setTabBarStyle({
+        color: isDark ? '#FFFFFF' : '#94A3B8',
+        selectedColor: isDark ? '#51A937' : '#2563EB',
+        backgroundColor: isDark ? '#1F1F1F' : '#FFFFFF',
+        borderStyle: 'white'
+      })
+    } catch (e) {}
+  },
+
+  // 返回 page 元素背景色的内联样式（供页面 page-meta 使用，解决滚动露出浅色背景）
+  getPageStyle() {
+    return this.globalData.theme === 'dark'
+      ? 'background-color: #0B1220;'
+      : 'background-color: #EEF2FF;'
+  },
+
+  // 当前应注入根 view 的主题 class（'theme-dark' 或 ''）
+  getThemeClass() {
+    return this.globalData.theme === 'dark' ? 'theme-dark' : ''
+  },
+
+  // 首页开关图标（浅色显示月亮，深色显示太阳）
+  getThemeIcon() {
+    return this.globalData.theme === 'dark' ? '☀️' : '🌙'
+  },
+
+  // 手动在深/浅色之间切换，并进入手动模式
+  toggleTheme() {
+    const next = this.globalData.theme === 'dark' ? 'light' : 'dark'
+    this.setThemeMode(next)
+  },
+
+  // 设置主题模式（auto/light/dark），持久化并通知页面
+  setThemeMode(mode) {
+    if (['auto', 'light', 'dark'].indexOf(mode) < 0) {
+      mode = 'auto'
+    }
+    this.globalData.themeMode = mode
+    writeStorage(THEME_MODE_KEY, mode)
+    this.applyTheme()
+    themeListeners.forEach((listener) => listener(this.globalData.theme))
+  },
+
   globalData: Object.assign({
     theme: wx.getWindowInfo().theme || 'light',
+    themeMode: 'auto', // 主题模式：auto（跟随系统）| light | dark
     platform: wx.getDeviceInfo().platform || 'unknown',
     targetApprovalTab: null, // 目标审批tab（用于消息跳转：'pending'=待审批, 'mine'=我的发起）
     constantsCache: null, // 常量缓存

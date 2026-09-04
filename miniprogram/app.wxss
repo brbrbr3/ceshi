@@ -1,5 +1,18 @@
 /* reset */
 page {
+  /* 主题颜色变量（浅色默认值，office 页面通过 .theme-dark 覆盖为深色） */
+  --bg-page: #EEF2FF;
+  --bg-card: #FFFFFF;
+  --bg-input: #F8FAFC;
+  --bg-soft: #EFF6FF;
+  --bg-soft-2: #F1F5F9;
+  --text-strong: #0F172A;
+  --text-primary: #1E293B;
+  --text-secondary: #475569;
+  --text-tertiary: #64748B;
+  --text-muted: #94A3B8;
+  --border-soft: #CBD5E1;
+  --shadow-card: rgba(37, 99, 235, 0.08);
   background-color: #EEF2FF;
   height: 100%;
   font-size: 16px;
@@ -7,6 +20,22 @@ page {
   color: #1E293B;
   display: flex;
   justify-content: center;
+}
+
+/* 深色主题变量（附加在 office 页面根 view 上） */
+.theme-dark {
+  --bg-page: #0B1220;
+  --bg-card: #1E293B;
+  --bg-input: #111827;
+  --bg-soft: #1E3A5F;
+  --bg-soft-2: #0F172A;
+  --text-strong: #F8FAFC;
+  --text-primary: #E2E8F0;
+  --text-secondary: #CBD5E1;
+  --text-tertiary: #94A3B8;
+  --text-muted: #64748B;
+  --border-soft: #334155;
+  --shadow-card: rgba(0, 0, 0, 0.4);
 }
 
 page>view {
@@ -37,8 +66,8 @@ input {
 /* 业务样式 */
 .office-page {
   min-height: 100%;
-  background: #EEF2FF;
-  color: #1E293B;
+  background: var(--bg-page);
+  color: var(--text-primary);
 }
 
 .office-gradient-header {
@@ -83,9 +112,9 @@ input {
 }
 
 .office-card {
-  background: #FFFFFF;
+  background: var(--bg-card);
   border-radius: 32rpx;
-  box-shadow: 0 16rpx 42rpx rgba(37, 99, 235, 0.08);
+  box-shadow: 0 16rpx 42rpx var(--shadow-card);
 }
 
 .office-section {
@@ -102,7 +131,7 @@ input {
 .office-section-title {
   font-size: var(--fs-36);
   font-weight: 600;
-  color: #1E293B;
+  color: var(--text-primary);
 }
 
 .office-link {
@@ -145,7 +174,7 @@ input {
   justify-content: center;
   padding: 18rpx 32rpx;
   border-radius: 999rpx;
-  background: #EFF6FF;
+  background: var(--bg-soft);
   color: #2563EB;
   font-size: var(--fs-24);
   font-weight: 600;
@@ -160,7 +189,7 @@ input {
 .office-empty {
   padding: 80rpx 24rpx;
   text-align: center;
-  color: #94A3B8;
+  color: var(--text-muted);
 }
 
 .auth-page {
@@ -323,37 +352,37 @@ input {
   min-height: 92rpx;
   padding: 0 24rpx;
   border-radius: 24rpx;
-  background: #F8FAFC;
+  background: var(--bg-input);
   border: 2rpx solid transparent;
   box-sizing: border-box;
 }
 
 .auth-picker-shell.is-placeholder,
 .auth-input-placeholder {
-  color: #94A3B8;
+  color: var(--text-muted);
 }
 
 .auth-input-shell.is-focused {
   border-color: #93C5FD;
-  background: #FFFFFF;
+  background: var(--bg-card);
 }
 
 .auth-input-shell input {
   width: 100%;
   font-size: var(--fs-28);
-  color: #0F172A;
+  color: var(--text-strong);
 }
 
 .auth-picker-value {
   flex: 1;
   font-size: var(--fs-28);
-  color: #0F172A;
+  color: var(--text-strong);
 }
 
 .auth-picker-arrow {
   margin-left: 16rpx;
   font-size: var(--fs-28);
-  color: #94A3B8;
+  color: var(--text-muted);
 }
 
 .auth-segment {
@@ -365,8 +394,8 @@ input {
   flex: 1;
   height: 88rpx;
   border-radius: 24rpx;
-  background: #F8FAFC;
-  color: #475569;
+  background: var(--bg-input);
+  color: var(--text-secondary);
   font-size: var(--fs-26);
   display: flex;
   align-items: center;

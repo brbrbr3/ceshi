@@ -1,4 +1,5 @@
-<view class="arrival-guide-page" style="{{fontStyle}}">
+<page-meta page-style="{{pageStyle}}" />
+<view class="arrival-guide-page {{themeClass}}" style="{{fontStyle}}">
   <!-- 全屏背景 -->
   <image class="bg-image" src="/image/nm-low.jpg" mode="heightFix" />
 

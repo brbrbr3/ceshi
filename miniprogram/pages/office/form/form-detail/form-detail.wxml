@@ -1,4 +1,5 @@
-<view class="office-page form-detail-page" style="{{fontStyle}}">
+<page-meta page-style="{{pageStyle}}" />
+<view class="office-page form-detail-page {{themeClass}}" style="{{fontStyle}}">
   <view class="office-gradient-header form-detail-header">
     <view class="form-detail-title-row">
       <view class="form-detail-badge" style="background: {{tagBg}}; color: {{tagColor}};">{{tagIcon}} {{tagLabel}}</view>
@@ -34,7 +35,7 @@
     <view class="office-card form-detail-card" wx:if="{{form.description}}">
       <!-- <view class="fd-card-label">正文说明</view> -->
       <mp-html
-        container-style="font-size:var(--fs-30);color:#334155;line-height:1.7"
+        container-style="font-size:var(--fs-30);color:var(--text-secondary);line-height:1.7"
         content="{{form.description}}"
         selectable
         bind:linktap="onLinkTap"

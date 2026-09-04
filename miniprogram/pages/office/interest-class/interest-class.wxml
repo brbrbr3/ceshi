@@ -1,4 +1,5 @@
-<view class="ic-page" style="{{fontStyle}}">
+<page-meta page-style="{{pageStyle}}" />
+<view class="ic-page {{themeClass}}" style="{{fontStyle}}">
 
   <!-- 渐变色头部 -->
   <view class="office-gradient-header ic-header">

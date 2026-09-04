@@ -1,4 +1,5 @@
-<view class="office-page form-compare-page" style="{{fontStyle}}">
+<page-meta page-style="{{pageStyle}}" />
+<view class="office-page form-compare-page {{themeClass}}" style="{{fontStyle}}">
   <view class="office-gradient-header form-compare-header">
     <view class="form-compare-title-row">
       <view class="form-compare-badge" style="background: {{tagBg}}; color: {{tagColor}};">{{tagIcon}} {{tagLabel}}</view>

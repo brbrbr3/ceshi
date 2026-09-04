@@ -47,7 +47,7 @@
   text-align: center;
   padding: 60rpx 0;
   font-size: var(--fs-28);
-  color: #94A3B8;
+  color: var(--text-muted);
 }
 
 /* ===== 分节标题（text 说明块） ===== */
@@ -71,7 +71,7 @@
   flex: 1;
   font-size: var(--fs-32);
   font-weight: 700;
-  color: #1E293B;
+  color: var(--text-primary);
   line-height: 1.4;
 }
 
@@ -96,7 +96,7 @@
   width: 40rpx;
   height: 40rpx;
   border-radius: 50%;
-  background: #EFF6FF;
+  background: var(--bg-soft);
   color: #2563EB;
   font-size: var(--fs-24);
   font-weight: 600;
@@ -110,7 +110,7 @@
   flex: 1;
   font-size: var(--fs-32);
   font-weight: 600;
-  color: #1E293B;
+  color: var(--text-primary);
   line-height: 1.5;
 }
 
@@ -145,9 +145,9 @@
   gap: 16rpx;
   padding: 16rpx;
   border-radius: 12rpx;
-  background: #F8FAFC;
+  background: var(--bg-input);
   font-size: var(--fs-30);
-  color: #334155;
+  color: var(--text-secondary);
   border: 2rpx solid transparent;
 }
 
@@ -210,24 +210,24 @@
   padding-top: 16rpx;
   border-top: 2rpx dashed #E2E8F0;
   font-size: var(--fs-26);
-  color: #64748B;
+  color: var(--text-tertiary);
 }
 
 .fc-my-answer {
   padding: 16rpx 20rpx;
-  background: #F8FAFC;
+  background: var(--bg-input);
   border-radius: 12rpx;
 }
 
 .fc-my-label {
   font-size: var(--fs-22);
-  color: #94A3B8;
+  color: var(--text-muted);
   margin-bottom: 8rpx;
 }
 
 .fc-my-value {
   font-size: var(--fs-28);
-  color: #334155;
+  color: var(--text-secondary);
   line-height: 1.6;
   white-space: pre-wrap;
   word-break: break-all;

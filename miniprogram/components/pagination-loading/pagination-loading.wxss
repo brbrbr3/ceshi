@@ -8,13 +8,13 @@
   align-items: center;
   justify-content: center;
   padding: 32rpx 0;
-  background-color: #f5f5f5;
+  background-color: var(--bg-soft-2);
 }
 
 .loading-spinner {
   width: 32rpx;
   height: 32rpx;
-  border: 3rpx solid #e0e0e0;
+  border: 3rpx solid var(--border-soft);
   border-top-color: #1890ff;
   border-radius: 50%;
   animation: spin 0.8s linear infinite;
@@ -29,7 +29,7 @@
 
 .loading-text {
   font-size: var(--fs-28);
-  color: #999;
+  color: var(--text-muted);
 }
 
 /* 没有更多数据提示 */
@@ -38,12 +38,12 @@
   align-items: center;
   justify-content: center;
   padding: 32rpx 0;
-  background-color: #f5f5f5;
+  background-color: var(--bg-soft-2);
 }
 
 .no-more-text {
   font-size: var(--fs-24);
-  color: #ccc;
+  color: var(--text-muted);
 }
 
 /* 空状态提示 */
@@ -64,7 +64,7 @@
 
 .empty-text {
   font-size: var(--fs-28);
-  color: #999;
+  color: var(--text-muted);
 }
 
 /* 列表容器 */
@@ -73,19 +73,4 @@ scroll-view {
   box-sizing: border-box;
 }
 
-/* 适配深色模式 */
-@media (prefers-color-scheme: dark) {
-  .pagination-loading {
-    background-color: #1a1a1a;
-  }
 
-  .loading-text,
-  .no-more-text,
-  .empty-text {
-    color: #666;
-  }
-
-  .pagination-no-more {
-    background-color: #1a1a1a;
-  }
-}

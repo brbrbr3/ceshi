@@ -1,5 +1,5 @@
 page {
-  background: #EEF2FF;
+  background: var(--bg-page);
 }
 
 .profile-header {
@@ -71,7 +71,7 @@ page {
 }
 
 .profile-avatar-status.status-offline {
-  background: #94A3B8;
+  background: var(--text-muted);
 }
 
 .profile-user-main {
@@ -219,7 +219,7 @@ page {
   width: 64rpx;
   height: 64rpx;
   border-radius: 20rpx;
-  background: #EFF6FF;
+  background: var(--bg-soft);
   color: #2563EB;
   display: flex;
   align-items: center;
@@ -232,7 +232,7 @@ page {
 .profile-menu-label {
   margin-left: 16rpx;
   font-size: var(--fs-30);
-  color: #1E293B;
+  color: var(--text-primary);
   font-weight: 600;
 }
 
@@ -250,12 +250,12 @@ page {
 .profile-group-title,
 .profile-company-label {
   font-size: var(--fs-28);
-  color: #94A3B8;
+  color: var(--text-muted);
 }
 
 .profile-company-address {
   font-size: var(--fs-30);
-  color: #1E293B;
+  color: var(--text-primary);
   font-weight: 400;
 }
 
@@ -289,10 +289,10 @@ page {
 .fontsize-stepper-control {
   display: flex;
   align-items: center;
-  border: 2rpx solid #E2E8F0;
+  border: 2rpx solid var(--border-soft);
   border-radius: 12rpx;
   overflow: hidden;
-  background: #FFFFFF;
+  background: var(--bg-card);
 }
 
 .fontsize-stepper-btn {
@@ -303,12 +303,12 @@ page {
   justify-content: center;
   font-size: var(--fs-36);
   color: #2563EB;
-  background: #FAFAFA;
+  background: var(--bg-soft-2);
   transition: background 0.2s;
 }
 
 .fontsize-stepper-btn:active {
-  background: #EFF6FF;
+  background: var(--bg-soft);
 }
 
 .fontsize-stepper-value {
@@ -316,22 +316,22 @@ page {
   height: 60rpx;
   text-align: center;
   font-size: var(--fs-28);
-  color: #1E293B;
+  color: var(--text-primary);
   font-weight: 600;
-  border-left: 2rpx solid #E2E8F0;
-  border-right: 2rpx solid #E2E8F0;
+  border-left: 2rpx solid var(--border-soft);
+  border-right: 2rpx solid var(--border-soft);
 }
 
 .fontsize-stepper-unit {
   font-size: var(--fs-26);
-  color: #94A3B8;
+  color: var(--text-muted);
   flex-shrink: 0;
 }
 
 .profile-menu-arrow {
   margin-left: 12rpx;
   font-size: var(--fs-34);
-  color: #94A3B8;
+  color: var(--text-muted);
 }
 
 .profile-company-card {
@@ -355,7 +355,7 @@ page {
 .profile-company-value {
   margin-top: 8rpx;
   font-size: var(--fs-30);
-  color: #1E293B;
+  color: var(--text-primary);
 }
 
 .profile-logout-btn {
@@ -397,5 +397,5 @@ page {
   text-align: center;
   font-size: var(--fs-26);
   letter-spacing: 2rpx;
-  color: #94A3B8;
+  color: var(--text-muted);
 }

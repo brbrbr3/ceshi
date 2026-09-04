@@ -1,4 +1,5 @@
-<view class="office-page form-result-page" style="{{fontStyle}}">
+<page-meta page-style="{{pageStyle}}" />
+<view class="office-page form-result-page {{themeClass}}" style="{{fontStyle}}">
   <view class="office-gradient-header form-result-header">
     <view class="form-result-title">{{title || '统计结果'}}</view>
     <view class="form-result-total">共 {{total}} 人提交</view>

@@ -19,6 +19,8 @@ Page({
     roleLabel: '待认证用户',
     unreadNotificationCount: 0,
     loading: false,
+    themeClass: '',
+    themeIcon: '🌙',
     currentUser: null,
     // 权限缓存（统一由 app.js 管理）
     // 背景图片云存储链接
@@ -173,6 +175,13 @@ Page({
         fontStyle
       })
     }
+    // 同步主题
+    this.setData({
+      themeClass: app.getThemeClass(),
+      themeIcon: app.getThemeIcon(),
+      pageStyle: app.getPageStyle()
+    })
+    app.applySystemUITheme(app.globalData.theme)
     this.setData({
       currentDateText: this.getCurrentDateText()
     })
@@ -202,6 +211,15 @@ Page({
     }
     this.checkInterestClassReminder() // 每月兴趣班备案更新提示（入队）
     //this.loadSignature()//加载用户签名
+  },
+
+  // 切换夜间/日间主题
+  toggleTheme() {
+    app.toggleTheme()
+    this.setData({
+      themeClass: app.getThemeClass(),
+      themeIcon: app.getThemeIcon()
+    })
   },
 
   // ===== 通用弹窗队列 =====

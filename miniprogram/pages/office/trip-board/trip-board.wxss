@@ -2,7 +2,7 @@
 
 .board-page {
   min-height: 100vh;
-  background: #EEF2FF;
+  background: var(--bg-page);
   padding-bottom: 100rpx;
 }
 
@@ -10,7 +10,7 @@
 
 .board-chart-section {
   margin: 24rpx;
-  background: #FFFFFF;
+  background: var(--bg-card);
   border-radius: 20rpx;
   padding: 32rpx 24rpx;
   box-shadow: 0 2rpx 12rpx rgba(0, 0, 0, 0.04);
@@ -19,7 +19,7 @@
 .board-chart-title {
   font-size: var(--fs-34);
   font-weight: 600;
-  color: #1E293B;
+  color: var(--text-primary);
   margin-bottom: 20rpx;
 }
 
@@ -28,13 +28,13 @@
   align-items: center;
   justify-content: center;
   height: 200rpx;
-  background: #F8FAFC;
+  background: var(--bg-input);
   border-radius: 16rpx;
 }
 
 .board-chart-placeholder-text {
   font-size: var(--fs-26);
-  color: #94A3B8;
+  color: var(--text-muted);
 }
 
 /* ========== 吸顶区域 ========== */
@@ -43,7 +43,7 @@
   position: sticky;
   top: 0;
   z-index: 20;
-  background: #EEF2FF;
+  background: var(--bg-page);
   padding: 30rpx 24rpx 0;
 }
 
@@ -53,7 +53,7 @@
   align-items: center;
   justify-content: flex-start;
   gap: 12rpx;
-  background: #FFFFFF;
+  background: var(--bg-card);
   padding: 24rpx 28rpx;
   border-radius: 16rpx;
   box-shadow: 0 2rpx 12rpx rgba(0, 0, 0, 0.04);
@@ -66,7 +66,7 @@
   flex: 1;
   font-size: var(--fs-34);
   font-weight: 600;
-  color: #1E293B;
+  color: var(--text-primary);
 }
 
 .board-dropdown-title {
@@ -82,7 +82,7 @@
 
 .board-dropdown-arrow {
   font-size: var(--fs-28);
-  color: #64748B;
+  color: var(--text-tertiary);
   transition: transform 0.2s ease;
 }
 
@@ -93,7 +93,7 @@
 /* 下拉菜单 */
 .board-dropdown-menu {
   margin-top: 8rpx;
-  background: #FFFFFF;
+  background: var(--bg-card);
   border-radius: 16rpx;
   box-shadow: 0 4rpx 20rpx rgba(0, 0, 0, 0.08);
   overflow: hidden;
@@ -111,8 +111,8 @@
   justify-content: space-between;
   padding: 24rpx 28rpx;
   font-size: var(--fs-28);
-  color: #1E293B;
-  border-bottom: 1rpx solid #F1F5F9;
+  color: var(--text-primary);
+  border-bottom: 1rpx solid var(--bg-soft-2);
 }
 
 .board-dropdown-menu-item:last-child {
@@ -122,12 +122,12 @@
 .board-dropdown-menu-item.is-active {
   color: #2563EB;
   font-weight: 500;
-  background: #EFF6FF;
+  background: var(--bg-soft);
 }
 
 .board-dropdown-menu-count {
   font-size: var(--fs-26);
-  color: #64748B;
+  color: var(--text-tertiary);
 }
 
 .board-dropdown-menu-item.is-active .board-dropdown-menu-count {
@@ -141,7 +141,7 @@
   gap: 8rpx;
   padding: 20rpx 8rpx;
   font-size: var(--fs-32);
-  color: #64748B;
+  color: var(--text-tertiary);
 }
 
 .board-group-arrow {
@@ -178,18 +178,18 @@
   padding: 16rpx 8rpx 12rpx;
   font-size: var(--fs-36);
   font-weight: 600;
-  color: #1E293B;
+  color: var(--text-primary);
 }
 
 .board-group-count {
   font-size: var(--fs-30);
   font-weight: 400;
-  color: #94A3B8;
+  color: var(--text-muted);
 }
 
 .board-group-title.is-collapsible {
   cursor: pointer;
-  color: #64748B;
+  color: var(--text-tertiary);
 }
 
 .board-item--deactivated {
@@ -205,7 +205,7 @@
   display: flex;
   align-items: center;
   padding: 24rpx;
-  background: #FFFFFF;
+  background: var(--bg-card);
   border-radius: 16rpx;
   margin-bottom: 12rpx;
   box-shadow: 0 2rpx 12rpx rgba(0,0,0,0.04);
@@ -252,7 +252,7 @@
 .board-item-name {
   font-size: var(--fs-32);
   font-weight: 500;
-  color: #1E293B;
+  color: var(--text-primary);
 }
 
 .board-item-status {
@@ -271,7 +271,7 @@
 
 .board-item-dest {
   font-size: var(--fs-28);
-  color: #64748B;
+  color: var(--text-tertiary);
   overflow: hidden;
   text-overflow: ellipsis;
   white-space: nowrap;
@@ -279,7 +279,7 @@
 
 .board-item-time {
   font-size: var(--fs-28);
-  color: #94A3B8;
+  color: var(--text-muted);
   flex-shrink: 0;
   padding-right: 15rpx;
 }
@@ -306,7 +306,7 @@
   justify-content: center;
   padding: 60rpx 0;
   font-size: var(--fs-28);
-  color: #94A3B8;
+  color: var(--text-muted);
 }
 
 .board-empty {
@@ -323,7 +323,7 @@
 
 .board-empty-text {
   font-size: var(--fs-28);
-  color: #94A3B8;
+  color: var(--text-muted);
 }
 
 /* ========== 个人记录弹窗 ========== */
@@ -350,7 +350,7 @@
   right: 0;
   height: 80vh;
   max-height: 80vh;
-  background: #FFFFFF;
+  background: var(--bg-card);
   border-radius: 32rpx 32rpx 0 0;
   display: flex;
   flex-direction: column;
@@ -370,7 +370,7 @@
 .person-popup-header {
   position: relative;
   padding: 32rpx 28rpx 24rpx;
-  border-bottom: 1rpx solid #F1F5F9;
+  border-bottom: 1rpx solid var(--bg-soft-2);
   flex-shrink: 0;
 }
 
@@ -392,13 +392,13 @@
 .person-popup-title {
   font-size: var(--fs-32);
   font-weight: 600;
-  color: #1E293B;
+  color: var(--text-primary);
   padding-right: 60rpx;
 }
 
 .person-popup-subtitle {
   font-size: var(--fs-26);
-  color: #94A3B8;
+  color: var(--text-muted);
   margin-top: 8rpx;
 }
 
@@ -407,7 +407,7 @@
   top: 32rpx;
   right: 28rpx;
   font-size: var(--fs-32);
-  color: #94A3B8;
+  color: var(--text-muted);
   width: 60rpx;
   height: 60rpx;
   display: flex;
@@ -436,7 +436,7 @@
   align-items: center;
   padding: 80rpx 0;
   font-size: var(--fs-28);
-  color: #94A3B8;
+  color: var(--text-muted);
 }
 
 /* 年月分组 */
@@ -460,7 +460,7 @@
 
 /* 记录卡片 */
 .person-popup-record {
-  background: #F8FAFC;
+  background: var(--bg-input);
   border-radius: 16rpx;
   padding: 24rpx;
   margin-bottom: 16rpx;
@@ -482,7 +482,7 @@
 .person-popup-record-dest {
   font-size: var(--fs-30);
   font-weight: 500;
-  color: #1E293B;
+  color: var(--text-primary);
   flex: 1;
   min-width: 0;
   margin-right: 16rpx;
@@ -507,14 +507,14 @@
 
 .person-popup-record-label {
   font-size: var(--fs-26);
-  color: #64748B;
+  color: var(--text-tertiary);
   flex-shrink: 0;
   margin-right: 16rpx;
 }
 
 .person-popup-record-value {
   font-size: var(--fs-26);
-  color: #1E293B;
+  color: var(--text-primary);
   flex: 1;
   min-width: 0;
   text-align: right;
@@ -545,7 +545,7 @@
 
 .loading-text {
   font-size: var(--fs-28);
-  color: #94A3B8;
+  color: var(--text-muted);
 }
 
 .pagination-no-more {
@@ -566,5 +566,5 @@
   text-align: center;
   padding: 0 48rpx 54rpx;
   font-size: var(--fs-30);
-  color: #94A3B8;
+  color: var(--text-muted);
 }
