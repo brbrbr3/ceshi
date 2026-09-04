@@ -1344,7 +1344,18 @@ App({
    */
   restoreConstantsCache() {
     const cached = readStorage(CONSTANTS_CACHE_KEY)
+    // 缓存不存在或缺少版本号，视为无效
     if (!cached || !cached.version) {
+      return null
+    }
+    // 版本号不一致：常量结构可能随版本变化，视为无效缓存，触发重新加载
+    if (cached.version !== config.CACHE_VERSION) {
+      removeStorage(CONSTANTS_CACHE_KEY)
+      return null
+    }
+    // 数据缺失/损坏：data 必须是非空对象，否则视为无效缓存，触发重新加载
+    if (!cached.data || typeof cached.data !== 'object' || Array.isArray(cached.data) || Object.keys(cached.data).length === 0) {
+      removeStorage(CONSTANTS_CACHE_KEY)
       return null
     }
 

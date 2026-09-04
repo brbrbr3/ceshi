@@ -1,12 +1,12 @@
-<view wx:if="{{!isReviewer}}" class="office-page form-edit-page" style="{{fontStyle}}">
+<view class="office-page form-edit-page" style="{{fontStyle}}">
   <view class="office-gradient-header form-edit-header">
     <view class="form-edit-title">{{isEdit ? '编辑信息' : '发布信息'}}</view>
   </view>
 
   <view class="office-content form-edit-content">
     <!-- 信息类型 -->
-    <view class="office-card form-edit-card">
-      <view class="fe-label">信息类型 <text class="fe-required">*</text></view>
+    <view wx:if="{{!isReviewer}}" class="office-card form-edit-card">
+      <view  class="fe-label">信息类型 <text class="fe-required">*</text></view>
       <scroll-view scroll-x class="fe-tag-scroll" enhanced show-scrollbar="false">
         <view class="fe-tag-row">
           <view wx:for="{{tagList}}" wx:key="key" class="fe-tag-item {{tag === item.key ? 'is-active' : ''}}" style="{{tag === item.key ? 'background:' + item.bg + ';color:' + item.color + ';border-color:' + item.color + ';' : ''}}" bindtap="handleSelectTag" data-tag="{{item.key}}">
@@ -34,7 +34,7 @@
     </view>
 
     <!-- 已添加控件 -->
-    <view class="office-card form-edit-card" wx:if="{{blocks.length > 0}}">
+    <view wx:if="{{!isReviewer}}" class="office-card form-edit-card" wx:if="{{blocks.length > 0}}">
       <view class="fe-label">内容控件（{{blocks.length}}）</view>
       <view class="fe-block-list">
         <view wx:for="{{blocks}}" wx:key="id" class="fe-block-item {{index === removingIndex ? 'is-removing' : ''}} {{item.isNew ? 'is-new' : ''}} {{item.moveAnim === 'up' ? 'is-move-up' : ''}} {{item.moveAnim === 'down' ? 'is-move-down' : ''}}">
@@ -78,7 +78,7 @@
     </view>
 
     <!-- 控件库 -->
-    <view class="office-card form-edit-card">
+    <view wx:if="{{!isReviewer}}" class="office-card form-edit-card">
       <view class="fe-label">添加控件</view>
       <view class="fe-palette">
         <view wx:for="{{blockTypeList}}" wx:key="type" class="fe-palette-item" hover-class="fe-palette-item-hover" style="background: {{item.bg}}; color: {{item.color}};" bindtap="handleAddBlock" data-type="{{item.type}}">
@@ -106,7 +106,7 @@
     </view>
 
     <!-- 目标角色 / 部门 -->
-    <view class="office-card form-edit-card">
+    <view wx:if="{{!isReviewer}}" class="office-card form-edit-card">
       <view class="fe-switch-row">
         <view class="fe-label" style="margin: 0;">{{hasFillable ? '仅允许选中用户填报' : '仅选中用户可见'}}</view>
         <view class="fe-switch {{showTargetRole ? 'is-on' : ''}}" bindtap="handleToggleTargetRole">
@@ -363,4 +363,3 @@
     </view>
   </view>
 </view>
-<view wx:else>暂无内容</view>

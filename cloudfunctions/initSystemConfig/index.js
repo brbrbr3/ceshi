@@ -281,15 +281,6 @@ const SYSTEM_CONFIGS = [
     sort: 72
   },
 
-  // ==================== 就医申请相关 ====================
-  {
-    type: 'medical',
-    key: 'RELATION_OPTIONS',
-    value: ['本人', '配偶', '未成年子女'],
-    description: '就医申请-与申请人关系选项',
-    sort: 80
-  },
-
   // ==================== 通知消息类型 ====================
   {
     type: 'notification',
@@ -322,45 +313,6 @@ const SYSTEM_CONFIGS = [
     },
     description: '通知消息类型与跳转tab映射（pending=待审批, mine=我的发起）',
     sort: 91
-  },
-  {
-    type: 'medical',
-    key: 'MEDICAL_INSTITUTIONS',
-    value: [
-      'Hospital Sírio-Libanês（私立综合性医院）',
-      'DF Star-Rede D\'OR（私立综合性医院）',
-      'Hospital Brasília（私立综合性医院）',
-      'Hospital Daher（私立综合性医院）',
-      'Hospital Santa Lúcia（私立综合性医院）',
-      'Hospital Santa Luzia（私立综合性医院）',
-      'Hospital Home（私立综合性医院，骨科专长）',
-      'Sarah Kubitschek（公立医院 – 残障人士友好）',
-      'Hospital das Forças Armadas （公立综合性医院）',
-      'Rita Trindade（牙科）',
-      'Clínica Implanto Odontologia Especializada（牙科）',
-      'Moreti Odontologia（牙科）',
-      'Crool by Rios（牙科）',
-      'CBV（眼科）',
-      'Laboratório Sabin（巴西临床医学典范）',
-      'Exame Imagem e Laboratório（临床医学检查与疫苗注射）',
-      'IMEB Crispim（临床医学检查）',
-      'Cote Brasília（骨科）',
-      'Aluma Dermatologia e Laser（皮肤科）',
-      'Verveine（皮肤科）',
-      'Inovaderm（皮肤科）',
-      'Consultório Natasha Ferraroni（过敏）',
-      'Rheos. Reumatologia e Clínica Médica（风湿科）',
-      'Prodigest（消化科）',
-      'CEOL ENT-Otorrinolaringology Clinic（耳鼻喉科）',
-      'Centro de Acupuntura Shen（针灸）',
-      'Clínica de Acupuntura Chinesa Brasília（针灸）',
-      'Maternidade Brasília（妇产科）',
-      'Hospital Materno Infantil de Brasília（妇幼专科）',
-      'CRIAPP（多种专科）',
-      '其他'
-    ],
-    description: '就医申请-医疗机构选项列表',
-    sort: 81
   },
 
   // ==================== 物业报修相关 ====================
