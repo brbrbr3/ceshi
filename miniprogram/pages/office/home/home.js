@@ -42,7 +42,7 @@ Page({
         icon: '🛴',
         label: '外出报备',
         color: '#2563EB',
-        bg: '#EFF6FF',
+        bg: 'var(--bg-soft)',
         implemented: true,
         featureKey: 'trip_report'
       },
@@ -50,7 +50,7 @@ Page({
         icon: '🛹',
         label: '兴趣班备案',
         color: '#2563EB',
-        bg: '#EFF6FF',
+        bg: 'var(--bg-soft)',
         implemented: true,
         featureKey: 'interest_class_report'
       },
@@ -58,7 +58,7 @@ Page({
         icon: '🍽️',
         label: '每周菜单',
         color: '#16A34A',
-        bg: '#EFF6FF',
+        bg: 'var(--bg-soft)',
         implemented: true,
         featureKey: null
       },
@@ -66,7 +66,7 @@ Page({
         icon: '💈',
         label: '理发预约',
         color: '#EA580C',
-        bg: '#EFF6FF',
+        bg: 'var(--bg-soft)',
         implemented: true,
         featureKey: null
       },
@@ -130,7 +130,7 @@ Page({
         icon: 'ℹ️',
         label: '生活资讯',
         color: '#0891B2',
-        bg: '#EFF6FF',
+        bg: 'var(--bg-soft)',
         implemented: true,
         featureKey: 'arrival_guide'
       },
@@ -138,7 +138,7 @@ Page({
         icon: '📝',
         label: '审批中心',
         color: '#2563EB',
-        bg: '#EFF6FF',
+        bg: 'var(--bg-soft)',
         implemented: true,
         featureKey: 'approval'
       }

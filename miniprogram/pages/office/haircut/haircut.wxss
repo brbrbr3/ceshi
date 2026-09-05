@@ -81,8 +81,9 @@ page {
 /* ========== 日期选择器（完全仿会议室样式） ========== */
 .date-selector {
   background: var(--bg-card);
-  padding: 24rpx 0 5rpx;
+  padding: 5rpx 0 5rpx;
   border-top: 1rpx solid var(--border-soft);
+  border-bottom: 1rpx solid var(--border-soft);
 }
 
 .date-scroll {
@@ -97,7 +98,7 @@ page {
 }
 
 .date-item {
-  padding: 20rpx 10rpx;
+  padding: 20rpx 24rpx;
   border-radius: 24rpx;
   background: var(--bg-input);
   border: 3rpx solid transparent;
@@ -173,6 +174,7 @@ page {
   padding: 20rpx 24rpx;
   background: #FEF3C7;
   border-radius: 12rpx;
+  margin-top: 20rpx;
   margin-bottom: 20rpx;
 }
 
@@ -719,15 +721,14 @@ page {
 
 /* ========== 提示信息 ========== */
 .haircut-info-card {
-  background: var(--bg-soft);
   border-radius: 12rpx;
-  padding: 20rpx 24rpx;
+  padding: 12rpx 12rpx;
   margin-bottom: 20rpx;
 }
 
 .haircut-info-text {
-  font-size: var(--fs-26);
-  color: #1E40AF;
+  font-size: var(--fs-28);
+  color: var(--text-tertiary);
   line-height: 1.6;
 }
 
@@ -737,12 +738,12 @@ page {
 }
 
 .haircut-stats-month-title {
-  font-size: var(--fs-30);
+  font-size: var(--fs-32);
   font-weight: 600;
-  color: var(--text-secondary);
-  padding: 16rpx 8rpx;
+  color: var(--text-primary);
+  padding: 16rpx 24rpx;
   border-left: 6rpx solid #EA580C;
-  background: var(--bg-input);
+  background: var(--bg-card);
   border-radius: 0 12rpx 12rpx 0;
   margin-bottom: 16rpx;
 }

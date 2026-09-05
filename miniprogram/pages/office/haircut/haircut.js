@@ -365,7 +365,7 @@ Page({
           selectedDateInfo: displayDates[targetIndex]
         })
         // 本地生成时段列表（复用缓存）
-        this.buildSlots(displayDates[targetIndex])
+        await this.buildSlots(displayDates[targetIndex])
       } else if (displayDates.length > 0) {
         // 没有可用日期，选择第一个显示提示
         this.setData({
@@ -373,6 +373,8 @@ Page({
           selectedDate: displayDates[0].date,
           selectedDateInfo: displayDates[0]
         })
+        // 修复：即使无可用日期也加载时段，避免首次进入时段为空
+        await this.buildSlots(displayDates[0])
       }
     } catch (error) {
       console.error('加载日期失败:', error)

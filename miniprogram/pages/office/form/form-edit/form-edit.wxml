@@ -79,7 +79,7 @@
     </view>
 
     <!-- 组件库 -->
-    <view wx:if="{{tag !== 'announcement'}}" class="office-card form-edit-card">
+    <view wx:if="{{!(tag === 'announcement' || tag === '')}}" class="office-card form-edit-card">
       <view class="fe-label">添加组件</view>
       <view class="fe-palette">
         <view wx:for="{{blockTypeList}}" wx:key="type" class="fe-palette-item" hover-class="fe-palette-item-hover" style="background: {{item.bg}}; color: {{item.color}};" bindtap="handleAddBlock" data-type="{{item.type}}">

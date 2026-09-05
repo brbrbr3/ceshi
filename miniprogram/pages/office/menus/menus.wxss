@@ -140,7 +140,7 @@
   top: 50%;
   left: 50%;
   transform: translate(-50%, -50%) scale(0.9);
-  background: rgba(30, 41, 59, 0.8);
+  background: var(--toast-bg);
   backdrop-filter: blur(16px);
   -webkit-backdrop-filter: blur(16px);
   border-radius: 20rpx;
@@ -159,7 +159,7 @@
 }
 
 .custom-toast-text {
-  color: #fff;
+  color: var(--toast-text);
   font-size: var(--fs-28);
   line-height: 1.7;
   text-align: center;

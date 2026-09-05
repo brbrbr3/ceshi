@@ -1,6 +1,5 @@
-<watermark />
-
 <page-meta page-style="{{pageStyle}}" />
+<watermark />
 <view class="office-page personnel-page {{themeClass}}" style="{{fontStyle}}">
   <view class="office-gradient-header office-subpage-header">
     <view class="office-subpage-header-content">

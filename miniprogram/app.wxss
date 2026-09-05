@@ -1,6 +1,6 @@
 /* reset */
 page {
-  /* 主题颜色变量（浅色默认值，office 页面通过 .theme-dark 覆盖为深色） */
+  /* 主题颜色变量（浅色默认值） */
   --bg-page: #EEF2FF;
   --bg-card: #FFFFFF;
   --bg-input: #F8FAFC;
@@ -13,6 +13,10 @@ page {
   --text-muted: #94A3B8;
   --border-soft: #CBD5E1;
   --shadow-card: rgba(37, 99, 235, 0.08);
+  --header-grad-start: #1D4ED8;
+  --header-grad-end: #3B82F6;
+  --toast-bg: rgba(30, 41, 59, 0.82);
+  --toast-text: #FFFFFF;
   background-color: #EEF2FF;
   height: 100%;
   font-size: 16px;
@@ -22,7 +26,30 @@ page {
   justify-content: center;
 }
 
-/* 深色主题变量（附加在 office 页面根 view 上） */
+/* 系统深色模式：跟随系统主题（@media 不受 darkmode 开关影响，仍生效） */
+@media (prefers-color-scheme: dark) {
+  page {
+    --bg-page: #0B1220;
+    --bg-card: #1E293B;
+    --bg-input: #111827;
+    --bg-soft: #1E3A5F;
+    --bg-soft-2: #0F172A;
+    --text-strong: #F8FAFC;
+    --text-primary: #E2E8F0;
+    --text-secondary: #CBD5E1;
+    --text-tertiary: #94A3B8;
+    --text-muted: #64748B;
+    --border-soft: #334155;
+    --shadow-card: rgba(0, 0, 0, 0.4);
+    --header-grad-start: #1E3A8A;
+    --header-grad-end: #1D4ED8;
+    --toast-bg: rgba(255, 255, 255, 0.94);
+    --toast-text: #0F172A;
+    background-color: #0B1220;
+  }
+}
+
+/* 手动深色（附加在 office 页面根 view 上，覆盖系统主题） */
 .theme-dark {
   --bg-page: #0B1220;
   --bg-card: #1E293B;
@@ -36,6 +63,30 @@ page {
   --text-muted: #64748B;
   --border-soft: #334155;
   --shadow-card: rgba(0, 0, 0, 0.4);
+  --header-grad-start: #1E3A8A;
+  --header-grad-end: #1D4ED8;
+  --toast-bg: rgba(255, 255, 255, 0.94);
+  --toast-text: #0F172A;
+}
+
+/* 手动浅色（附加在 office 页面根 view 上，覆盖系统深色） */
+.theme-light {
+  --bg-page: #EEF2FF;
+  --bg-card: #FFFFFF;
+  --bg-input: #F8FAFC;
+  --bg-soft: #EFF6FF;
+  --bg-soft-2: #F1F5F9;
+  --text-strong: #0F172A;
+  --text-primary: #1E293B;
+  --text-secondary: #475569;
+  --text-tertiary: #64748B;
+  --text-muted: #94A3B8;
+  --border-soft: #CBD5E1;
+  --shadow-card: rgba(37, 99, 235, 0.08);
+  --header-grad-start: #1D4ED8;
+  --header-grad-end: #3B82F6;
+  --toast-bg: rgba(30, 41, 59, 0.82);
+  --toast-text: #FFFFFF;
 }
 
 page>view {
@@ -72,7 +123,7 @@ input {
 
 .office-gradient-header {
   padding: calc(100rpx + env(safe-area-inset-top)) 32rpx 0;
-  background: linear-gradient(135deg, #1D4ED8 0%, #3B82F6 100%);
+  background: linear-gradient(135deg, var(--header-grad-start) 0%, var(--header-grad-end) 100%);
   color: #FFFFFF;
   border-bottom-left-radius: 60rpx;
   border-bottom-right-radius: 60rpx;

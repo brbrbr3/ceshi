@@ -181,17 +181,12 @@ Page({
     showDraftTip: false,
     // 提交状态
     saving: false,
-    publishing: false,
-    //审核模式
-    isSpecialLogIn: false,
-    // 审核员会话模式（app.globalData.isReviewer，控制台改 isSpecialLogIn 不影响此项）
-    isSpecialMode: false
+    publishing: false
   },
 
   onLoad(options) {
     this.setData({
-      minDate: utils.getLocalDateString(),
-      isSpecialMode: !!app.globalData.isReviewer
+      minDate: utils.getLocalDateString()
     })
     this.checkPublishPermission()
     this.loadFormConstants()
@@ -234,8 +229,7 @@ Page({
       const user = result.user
       const canPublish = !!user.isAdmin || user.role === '馆员'
       this.setData({
-        canPublish,
-        isSpecialLogIn: !!user.isReviewer
+        canPublish
       })
       if (!canPublish) {
         wx.showModal({

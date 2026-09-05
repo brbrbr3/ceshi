@@ -269,24 +269,12 @@ App({
     theme
   }) {
     // 仅 auto 模式跟随系统主题；手动模式忽略系统变化
+    // 注：darkmode: false 时此回调不触发；页面内容由 @media 自动跟随系统
     if (this.globalData.themeMode && this.globalData.themeMode !== 'auto') {
       return
     }
     this.globalData.theme = theme
-    // 同步系统 UI（导航栏 / tabBar）
     this.applySystemUITheme(theme)
-    // 实时刷新已加载页面的主题 class（前台切换系统主题时立即生效）
-    const pages = getCurrentPages()
-    pages.forEach((page) => {
-      if (page && page.setData) {
-        try {
-          page.setData({
-            themeClass: this.getThemeClass(),
-            pageStyle: this.getPageStyle()
-          })
-        } catch (e) {}
-      }
-    })
     themeListeners.forEach((listener) => {
       listener(theme)
     })
@@ -349,19 +337,27 @@ App({
   },
 
   // 返回 page 元素背景色的内联样式（供页面 page-meta 使用，解决滚动露出浅色背景）
+  // auto 模式返回空（靠 @media 跟随系统），手动模式返回对应背景色覆盖系统
   getPageStyle() {
-    return this.globalData.theme === 'dark'
-      ? 'background-color: #0B1220;'
-      : 'background-color: #EEF2FF;'
+    const mode = this.globalData.themeMode
+    if (mode === 'dark') return 'background-color: #0B1220;'
+    if (mode === 'light') return 'background-color: #EEF2FF;'
+    return ''
   },
 
-  // 当前应注入根 view 的主题 class（'theme-dark' 或 ''）
+  // 当前应注入根 view 的主题 class（auto 模式靠 @media，手动模式用 class 覆盖）
   getThemeClass() {
-    return this.globalData.theme === 'dark' ? 'theme-dark' : ''
+    const mode = this.globalData.themeMode
+    if (mode === 'dark') return 'theme-dark'
+    if (mode === 'light') return 'theme-light'
+    return ''
   },
 
   // 首页开关图标（浅色显示月亮，深色显示太阳）
   getThemeIcon() {
+    const mode = this.globalData.themeMode
+    if (mode === 'dark') return '☀️'
+    if (mode === 'light') return '🌙'
     return this.globalData.theme === 'dark' ? '☀️' : '🌙'
   },
 

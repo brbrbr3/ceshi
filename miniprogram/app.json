@@ -69,7 +69,7 @@
   "cloud": true,
   "sitemapLocation": "sitemap.json",
   "themeLocation": "theme.json",
-  "darkmode": true,
+  "darkmode": false,
   "resizable": true,
   "useExtendedLib": {
     "weui": true

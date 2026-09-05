@@ -303,7 +303,7 @@
 .personnel-subsection-title {
   font-size: var(--fs-32);
   font-weight: 600;
-  color: #334155;
+  color: var(--text-primary);
 }
 
 .personnel-subsection-desc {
@@ -349,7 +349,7 @@
 .personnel-group-name {
   font-size: var(--fs-32);
   font-weight: 600;
-  color: #334155;
+  color: var(--text-tertiary);
   flex: 1;
 }
 
@@ -580,7 +580,7 @@
   top: 50%;
   left: 50%;
   transform: translate(-50%, -50%) scale(0.9);
-  background: rgba(30, 41, 59, 0.82);
+  background: var(--toast-bg);
   backdrop-filter: blur(16px);
   -webkit-backdrop-filter: blur(16px);
   border-radius: 20rpx;
@@ -599,7 +599,7 @@
 }
 
 .custom-toast-text {
-  color: #FFFFFF;
+  color: var(--toast-text);
   font-size: 28rpx;
   font-weight: 500;
   line-height: 1.7;

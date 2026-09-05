@@ -54,7 +54,7 @@
   text-align: center;
   font-size: 45rpx;
   font-weight: 600;
-  color: #1E293B;
+  color: var(--text-primary);
   line-height: 1.4;
   word-break: break-all;
 }
@@ -81,13 +81,13 @@
   justify-content: center;
   font-size: 32rpx;
   font-weight: 700;
-  color: #1E293B;
+  color: var(--text-primary);
 }
 
 /* ===== 正文（scroll-view 可滚动） ===== */
 .mm-content {
   font-size: 36rpx;
-  color: #475569;
+  color: var(--text-secondary);
   line-height: 1.7;
   word-break: break-all;
   white-space: pre-wrap;
@@ -115,9 +115,9 @@
   padding: 0 80rpx 0 28rpx;
   box-sizing: border-box;
   border-radius: 20rpx;
-  background: #F1F5F9;
+  background: var(--bg-soft-2);
   font-size: 36rpx;
-  color: #1E293B;
+  color: var(--text-primary);
   border: 2rpx solid transparent;
   transition: all 0.25s ease;
 }
@@ -146,9 +146,9 @@
   padding: 22rpx 28rpx;
   box-sizing: border-box;
   border-radius: 20rpx;
-  background: #F1F5F9;
+  background: var(--bg-soft-2);
   font-size: 36rpx;
-  color: #1E293B;
+  color: var(--text-primary);
   line-height: 1.6;
   border: 2rpx solid transparent;
   transition: all 0.25s ease;
@@ -161,7 +161,7 @@
 }
 
 .mm-placeholder {
-  color: #94A3B8;
+  color: var(--text-muted);
 }
 
 /* ===== 按钮 ===== */
@@ -189,8 +189,8 @@
 }
 
 .mm-btn-cancel {
-  background: #F1F5F9;
-  color: #475569;
+  background: var(--bg-soft-2);
+  color: var(--text-secondary);
 }
 
 .mm-btn-confirm {
@@ -200,8 +200,8 @@
 }
 
 .mm-btn-confirm.is-disabled {
-  background: #E2E8F0;
-  color: #94A3B8;
+  background: var(--border-soft);
+  color: var(--text-muted);
   box-shadow: none;
 }
 

@@ -159,7 +159,7 @@ page {
 
 .approval-summary-card {
   margin-top: 24rpx;
-  background: linear-gradient(180deg, #F5FAFF 0%, #FFFFFF 100%);
+  background: linear-gradient(180deg, var(--bg-soft) 0%, var(--bg-card) 100%);
 }
 
 .approval-summary-top {
