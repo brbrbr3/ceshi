@@ -1,5 +1,5 @@
 <page-meta page-style="{{pageStyle}}" />
-<view class="office-page menu-edit-page {{themeClass}}" style="{{fontStyle}}">
+<view wx:if="{{guardReady}}" class="office-page menu-edit-page {{themeClass}}" style="{{fontStyle}}">
   <view class="office-gradient-header menu-edit-header">
     <view class="menu-edit-title">{{isEdit ? '修改菜单' : '新增菜单'}}</view>
   </view>

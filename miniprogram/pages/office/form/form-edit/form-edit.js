@@ -2,10 +2,10 @@ const app = getApp()
 const utils = require('../../../../common/utils.js')
 const modalAnimation = require('../../../../behaviors/modalAnimation.js')
 const {
-  TAG_LIST,
-  BLOCK_TYPE_LIST,
-  FILLABLE_TYPES,
-  TAG_BLOCKS,
+  getTagList,
+  getBlockTypeList,
+  getFillableTypes,
+  getTagBlocks,
   getTagConfig,
   getBlockTypeConfig
 } = require('../../../../common/form-constants.js')
@@ -115,11 +115,11 @@ Page({
     title: '',
     description: '',
     tag: '',
-    tagList: TAG_LIST,
-    allBlockTypeList: BLOCK_TYPE_LIST,
+    tagList: [],
+    allBlockTypeList: [],
     blockTypeList: [],
-    tagBlocks: TAG_BLOCKS,
-    fillableTypes: FILLABLE_TYPES,
+    tagBlocks: {},
+    fillableTypes: [],
     blocks: [],
     deadline: '',
     deadlineTs: null,
@@ -181,27 +181,32 @@ Page({
     showDraftTip: false,
     // 提交状态
     saving: false,
-    publishing: false
+    publishing: false,
+    guardReady: false
   },
 
   onLoad(options) {
-    this.setData({
-      minDate: utils.getLocalDateString()
-    })
-    this.checkPublishPermission()
-    this.loadFormConstants()
-    this.loadDepartmentOptions()
-    this.loadRoleOptions()
-
-    if (options.id) {
+    app.guardRegistered().then((user) => {
+      if (!user) return
       this.setData({
-        formId: options.id,
-        isEdit: true
+        guardReady: true,
+        minDate: utils.getLocalDateString()
       })
-      this.loadForm(options.id)
-    } else {
-      this.checkDraft()
-    }
+      this.checkPublishPermission(user)
+      this.loadFormConstants()
+      this.loadDepartmentOptions()
+      this.loadRoleOptions()
+
+      if (options.id) {
+        this.setData({
+          formId: options.id,
+          isEdit: true
+        })
+        this.loadForm(options.id)
+      } else {
+        this.checkDraft()
+      }
+    })
   },
 
   onShow() {
@@ -216,35 +221,22 @@ Page({
   },
 
   /**
-   * 检查发布权限（馆员 / 管理员）
+   * 检查发布权限（馆员 / 管理员），user 由守卫传入
    */
-  checkPublishPermission() {
-    app.checkUserRegistration().then((result) => {
-      if (!result.registered || !result.user) {
-        this.setData({
-          canPublish: false
-        })
-        return
-      }
-      const user = result.user
-      const canPublish = !!user.isAdmin || user.role === '馆员'
-      this.setData({
-        canPublish
-      })
-      if (!canPublish) {
-        wx.showModal({
-          title: '提示',
-          content: '仅馆员可发布信息',
-          showCancel: false,
-          confirmText: '知道了',
-          success: () => wx.navigateBack()
-        })
-      }
-    }).catch(() => {
-      this.setData({
-        canPublish: false
-      })
+  checkPublishPermission(user) {
+    const canPublish = !!user.isAdmin || user.role === '馆员'
+    this.setData({
+      canPublish
     })
+    if (!canPublish) {
+      wx.showModal({
+        title: '提示',
+        content: '仅馆员及授权人员可发布动态',
+        showCancel: false,
+        confirmText: '知道了',
+        success: () => wx.navigateBack()
+      })
+    }
   },
 
   /**
@@ -414,28 +406,21 @@ Page({
   },
 
   /**
-   * 从常量缓存加载 form 常量（后端可配置，审核员 mock 返回空）
+   * 从缓存同步读取 form 常量（后端 sys_config 下发，经 app-constants-cache）
+   * 读不到则为空，页面按空列表展示
    */
-  async loadFormConstants() {
-    try {
-      const c = await app.getAllConstants()
-      const tagList = c.FORM_TAG_LIST !== undefined ? c.FORM_TAG_LIST : TAG_LIST
-      const allBlockTypeList = c.FORM_BLOCK_TYPE_LIST !== undefined ? c.FORM_BLOCK_TYPE_LIST : BLOCK_TYPE_LIST
-      const tagBlocks = c.FORM_TAG_BLOCKS !== undefined ? c.FORM_TAG_BLOCKS : TAG_BLOCKS
-      const fillableTypes = c.FORM_FILLABLE_TYPES !== undefined ? c.FORM_FILLABLE_TYPES : FILLABLE_TYPES
-      this.setData({
-        tagList,
-        allBlockTypeList,
-        tagBlocks,
-        fillableTypes,
-        blockTypeList: this.filterBlocksByTag(this.data.tag, allBlockTypeList, tagBlocks)
-      })
-    } catch (e) {
-      console.warn('加载 form 常量失败，使用默认值:', e)
-      this.setData({
-        blockTypeList: this.filterBlocksByTag(this.data.tag, BLOCK_TYPE_LIST, TAG_BLOCKS)
-      })
-    }
+  loadFormConstants() {
+    const tagList = getTagList()
+    const allBlockTypeList = getBlockTypeList()
+    const tagBlocks = getTagBlocks()
+    const fillableTypes = getFillableTypes()
+    this.setData({
+      tagList,
+      allBlockTypeList,
+      tagBlocks,
+      fillableTypes,
+      blockTypeList: this.filterBlocksByTag(this.data.tag, allBlockTypeList, tagBlocks)
+    })
   },
 
   /**
@@ -1152,7 +1137,7 @@ Page({
    * 刷新 hasFillable（是否含有需要填写的控件）
    */
   refreshHasFillable() {
-    const hasFillable = this.data.blocks.some(b => (this.data.fillableTypes || FILLABLE_TYPES).includes(b.type))
+    const hasFillable = this.data.blocks.some(b => (this.data.fillableTypes || []).includes(b.type))
     this.setData({ hasFillable })
   },
 
@@ -1258,7 +1243,7 @@ Page({
     if (!this.data.canPublish) {
       wx.showModal({
         title: '提示',
-        content: '仅馆员可发布信息',
+        content: '仅馆员及授权人员可发布动态',
         showCancel: false,
         confirmText: '知道了'
       })

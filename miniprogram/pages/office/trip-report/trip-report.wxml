@@ -1,5 +1,5 @@
 <page-meta page-style="{{pageStyle}}" />
-<view class="trip-page {{themeClass}}" style="{{fontStyle}}">
+<view wx:if="{{guardReady}}" class="trip-page {{themeClass}}" style="{{fontStyle}}">
   <!-- 渐变色头部（带圆角，类似home页） -->
   <!--  <view class="office-gradient-header office-subpage-header">
     <view class="office-subpage-header-content">

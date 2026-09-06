@@ -84,10 +84,16 @@ Page({
     showAppendDestHistory: false, // 追加目的地弹窗是否显示常用目的地
     // 撤回报备
     canCancelTrip: false,
-    cancelTimer: null
+    cancelTimer: null,
+    guardReady: false
   },
 
   async onLoad(options) {
+    const user = await app.guardRegistered()
+    if (!user) return
+
+    this.setData({ guardReady: true })
+
     // 加载常量配置（等待完成，确保出行方式就绪）
     await this.loadConstants()
 

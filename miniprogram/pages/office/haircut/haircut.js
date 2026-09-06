@@ -127,12 +127,17 @@ Page({
     changeDateTarget: '',
     changeDateConfirmVisible: false,
     changeDateConfirmInfo: '',
-    changingDate: false
+    changingDate: false,
+    guardReady: false
   },
 
   onLoad() {
     this._slotsByDateCache = null
-    this.checkPermission()
+    app.guardRegistered().then((user) => {
+      if (!user) return
+      this.setData({ guardReady: true })
+      this.applyPermission(user)
+    })
   },
 
   onShow() {
@@ -157,31 +162,23 @@ Page({
   },
 
   /**
-   * 检查用户权限
+   * 设置用户权限（user 由守卫传入）
    */
-  async checkPermission() {
-    try {
-      const result = await app.checkUserRegistration()
-      if (result.registered && result.user) {
-        const user = result.user
-        const isAdmin = user.isAdmin === true
-        const isLeader = user.role === '馆员' && user.department === '无'
-        const isBanHead = user.role === '馆员' && user.department === '办' && user.isDepartmentHead === true
-        const isAllowedPositions = Array.isArray(user.position) && user.position.some(p => HAIRCUT_VIEWER_POSITIONS.includes(p))
-        //管理员、领导、办负责人、其他允许的岗位人员，可以看到‘理发统计’tab
-        const canView = isAdmin || isLeader || isBanHead || isAllowedPositions
-        const isReceptionist = Array.isArray(user.position) && user.position.includes('招待员')
-        this.setData({
-          canView,
-          isReceptionist,
-          userName: user.name,
-          userOpenId: user.openid || '',
-          isReviewer: !!user.isReviewer
-        })
-      }
-    } catch (error) {
-      console.error('检查权限失败:', error)
-    }
+  applyPermission(user) {
+    const isAdmin = user.isAdmin === true
+    const isLeader = user.role === '馆员' && user.department === '无'
+    const isBanHead = user.role === '馆员' && user.department === '办' && user.isDepartmentHead === true
+    const isAllowedPositions = Array.isArray(user.position) && user.position.some(p => HAIRCUT_VIEWER_POSITIONS.includes(p))
+    //管理员、领导、办负责人、其他允许的岗位人员，可以看到‘理发统计’tab
+    const canView = isAdmin || isLeader || isBanHead || isAllowedPositions
+    const isReceptionist = Array.isArray(user.position) && user.position.includes('招待员')
+    this.setData({
+      canView,
+      isReceptionist,
+      userName: user.name,
+      userOpenId: user.openid || '',
+      isReviewer: !!user.isReviewer
+    })
   },
 
   /**

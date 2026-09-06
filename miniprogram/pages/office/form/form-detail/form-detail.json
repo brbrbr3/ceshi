@@ -1,5 +1,5 @@
 {
-  "navigationBarTitleText": "信息详情",
+  "navigationBarTitleText": "动态详情",
   "usingComponents": {
     "mp-html": "mp-html"
   }

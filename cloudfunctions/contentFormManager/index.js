@@ -1,7 +1,7 @@
 /**
- * 信息发布系统云函数
+ * 馆内动态系统云函数
  *
- * 将首页「通知公告」升级为统一的「信息发布」系统，通过问卷星式控件自由组合，
+ * 将首页「通知公告」升级为统一的「馆内动态」系统，通过问卷星式控件自由组合，
  * 实现公告（announcement）、问卷（questionnaire）、副食（side_dish）、
  * 活动（activity）、答题（quiz）五种形态的一体化发布与填写。
  *
@@ -45,7 +45,7 @@ const VALID_BLOCK_TYPES = ['text', 'radio', 'checkbox', 'judge', 'textarea', 'si
 // 可发布角色（馆员及以上）
 const PUBLISH_ROLES = ['馆领导', '馆员']
 
-// 未读消息提醒订阅消息模板 ID（新信息发布通知）
+// 未读消息提醒订阅消息模板 ID（新馆内动态通知）
 const UNREAD_MESSAGE_TEMPLATE_ID = 'mJ1CGM8OvpgomnYy0yot4Kk8hD8S-NH06A6ZDywdpGc'
 
 // tag → 中文标签（用于通知文案）
@@ -485,7 +485,7 @@ function formatLocalTime(ts) {
 }
 
 /**
- * 新信息发布通知：站内通知 + 微信订阅消息（盲发，失败仅记日志）
+ * 新馆内动态通知：站内通知 + 微信订阅消息（盲发，失败仅记日志）
  * 收件人：targetRoles 非空 → 匹配角色；为空 → 全体已批准用户
  */
 async function notifyFormPublish(form, publisherName) {
@@ -533,7 +533,7 @@ async function notifyFormPublish(form, publisherName) {
             }
           })
         } catch (e) {
-          console.warn('[信息发布通知] 站内通知写入失败:', e.message)
+          console.warn('[馆内动态通知] 站内通知写入失败:', e.message)
         }
 
         // 微信订阅消息（盲发）
@@ -554,7 +554,7 @@ async function notifyFormPublish(form, publisherName) {
         } catch (error) {
           const errcode = error.errcode || error.errCode || 'unknown'
           const errmsg = error.errmsg || error.errMsg || error.message || JSON.stringify(error)
-          console.warn('[信息发布通知] 订阅消息发送失败:', JSON.stringify({ openid: userDoc.openid, errcode, errmsg }))
+          console.warn('[馆内动态通知] 订阅消息发送失败:', JSON.stringify({ openid: userDoc.openid, errcode, errmsg }))
           totalFailed++
         }
       }
@@ -563,9 +563,9 @@ async function notifyFormPublish(form, publisherName) {
       if (res.data.length < batchSize) break
     }
 
-    console.log(`[信息发布通知] 推送完成: 成功 ${totalSent} 失败 ${totalFailed}`)
+    console.log(`[馆内动态通知] 推送完成: 成功 ${totalSent} 失败 ${totalFailed}`)
   } catch (error) {
-    console.error('[信息发布通知] 推送异常:', error)
+    console.error('[馆内动态通知] 推送异常:', error)
   }
 }
 
@@ -625,7 +625,7 @@ async function createForm(openid, user, params) {
 
     // 发布成功 → 异步推送通知（不阻塞主流程）
     if (formStatus === 'published') {
-      notifyFormPublish(newForm, user.name || '').catch(err => {        console.error('[信息发布通知] 推送失败:', err)      })
+      notifyFormPublish(newForm, user.name || '').catch(err => {        console.error('[馆内动态通知] 推送失败:', err)      })
     }
 
     return success(newForm, formStatus === 'published' ? '发布成功' : '暂存成功')
@@ -723,7 +723,7 @@ async function updateForm(openid, user, params) {
     if (rest.status === 'published' && form.status === 'draft') {
       const publishedForm = { ...form, ...updateData, _id: formId }
       notifyFormPublish(publishedForm, user.name || '').catch(err => {
-        console.error('[信息发布通知] 推送失败:', err)
+        console.error('[馆内动态通知] 推送失败:', err)
       })
     }
 

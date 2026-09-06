@@ -1,5 +1,5 @@
 <page-meta page-style="{{pageStyle}}" />
-<view class="office-page menu-detail-page {{themeClass}}" style="{{fontStyle}}">
+<view wx:if="{{guardReady}}" class="office-page menu-detail-page {{themeClass}}" style="{{fontStyle}}">
   <view class="office-gradient-header menu-detail-header">
     <view>
       <view class="menu-detail-title">{{menu.title}}</view>

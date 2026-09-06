@@ -1,23 +1,38 @@
 const app = getApp()
 const utils = require('../../../../common/utils.js')
 const paginationBehavior = require('../../../../behaviors/pagination.js')
-const { TAG_LIST, getTagConfig } = require('../../../../common/form-constants.js')
+const { getTagList, getTagConfig } = require('../../../../common/form-constants.js')
 
 Page({
   behaviors: [paginationBehavior],
 
   data: {
     activeTag: 'all',
-    tagTabs: [{ key: 'all', label: '全部' }].concat(TAG_LIST.map(t => ({ key: t.key, label: t.icon + t.label }))),
+    tagTabs: [{ key: 'all', label: '全部' }],
     canPublish: false,
-    isReviewer: false,
-    emptyIcon: '📋' // 空状态图标，随当前选中 tag 变化
+    emptyIcon: '📋', // 空状态图标，随当前选中 tag 变化
+    guardReady: false
   },
 
   onLoad() {
-    this.checkPublishPermission()
-    this.loadListData(false)
-    this._loaded = true
+    app.guardRegistered().then((user) => {
+      if (!user) return
+      this.setData({ guardReady: true })
+      this.buildTagTabs()
+      this.checkPublishPermission(user)
+      this.loadListData(false)
+      this._loaded = true
+    })
+  },
+
+  /**
+   * 从缓存读取 tag 列表构建筛选 tab（读不到仅保留「全部」）
+   */
+  buildTagTabs() {
+    const tabs = [{ key: 'all', label: '全部' }].concat(
+      getTagList().map(t => ({ key: t.key, label: t.icon + t.label }))
+    )
+    this.setData({ tagTabs: tabs })
   },
 
   onShow() {
@@ -36,19 +51,14 @@ Page({
   },
 
   /**
-   * 检查发布权限（馆员 / 管理员 / 办公室内聘岗位）
+   * 设置发布权限（馆员 / 管理员 / 办公室内聘岗位），user 由守卫传入
    */
-  checkPublishPermission() {
-    app.checkUserRegistration().then((result) => {
-      if (!result.registered || !result.user) return
-      const user = result.user
-      const isOfficeServant = Array.isArray(user.position) && user.position.includes('办公室内聘')
-      const canPublish = !!user.isAdmin || user.role === '馆员' || isOfficeServant
-      this.setData({ 
-        canPublish,
-        isReviewer: !!user.isReviewer
-      })
-    }).catch(() => {})
+  checkPublishPermission(user) {
+    const isOfficeServant = Array.isArray(user.position) && user.position.includes('办公室内聘')
+    const canPublish = !!user.isAdmin || user.role === '馆员' || isOfficeServant
+    this.setData({ 
+      canPublish
+    })
   },
 
   /**
@@ -76,7 +86,8 @@ Page({
    */
   formatItem(item) {
     const tagCfg = getTagConfig(item.tag)
-    const isActivity = item.registrationCount !== undefined
+    const isActivity = item.tag === 'activity'
+    const isSideDish = item.tag ==='side_dish'
     const isFull = isActivity && !!item.isFull
     const partialFull = isActivity && !!item.partialFull
     return {
@@ -88,19 +99,19 @@ Page({
       timeText: utils.formatRelativeTime(item.publishedAt || item.createdAt),
       deadlineText: item.deadline ? utils.formatDateTime(item.deadline) : '',
       targetRolesText: (item.targetRoles && item.targetRoles.length > 0)
-        ? `该信息仅允许「${item.targetRoles.join('、')}」角色用户填报`
+        ? `该动态仅允许「${item.targetRoles.join('、')}」角色用户填报`
         : ((item.targetDepartments && item.targetDepartments.length > 0)
-          ? `该信息仅允许「${item.targetDepartments.join('、')}」部门用户填报`
+          ? `该动态仅允许「${item.targetDepartments.join('、')}」部门用户填报`
           : ''),
       visibleScopeText: item.isTargetOnlyVisible
         ? (item.targetRoles && item.targetRoles.length > 0)
-          ? `该信息仅对「${item.targetRoles.join('、')}」角色用户可见`
+          ? `该动态仅对「${item.targetRoles.join('、')}」角色用户可见`
           : ((item.targetDepartments && item.targetDepartments.length > 0)
-            ? `该信息仅对「${item.targetDepartments.join('、')}」部门用户可见`
-            : '该信息仅对指定用户可见')
+            ? `该动态仅对「${item.targetDepartments.join('、')}」部门用户可见`
+            : '该动态仅对指定用户可见')
         : '',
       activityLimitText: item.maxRegistrations ? `上限 ${item.maxRegistrations} 人` : '',
-      submissionText: isActivity ? `${item.registrationCount} 人已报名` : `${item.submissionCount} 人已提交`,
+      submissionText: isActivity ? `${item.registrationCount} 人已报名` : (isSideDish ? `${item.submissionCount} 人已订购` : `${item.submissionCount} 人已提交`),
       isFull,
       partialFull,
       statusText: isFull ? '已报满' : (partialFull ? '部分活动已报满' : (item.isClosed ? '已截止' : '进行中')),
@@ -149,7 +160,7 @@ Page({
     if (!this.data.canPublish) {
       wx.showModal({
         title: '提示',
-        content: '仅馆员可发布信息',
+        content: '仅馆员及授权人员可发布动态',
         showCancel: false,
         confirmText: '知道了'
       })

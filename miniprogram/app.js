@@ -322,7 +322,7 @@ App({
     try {
       wx.setNavigationBarColor({
         frontColor: isDark ? '#ffffff' : '#000000',
-        backgroundColor: isDark ? '#1F1F1F' : '#EEF2FF',
+        backgroundColor: isDark ? '#1F1F1F' : '#FFFFFF',
         animation: { duration: 0, timingFunc: 'linear' }
       })
     } catch (e) {}
@@ -875,6 +875,35 @@ App({
       error.code = 'UNAUTHORIZED'
       error.data = data
       throw error
+    })
+  },
+
+  /**
+   * 注册校验守卫：已注册返回 user；未注册（或检查失败）跳转 login 并返回 null
+   * 供各业务页面在 onLoad/onShow 开头调用，拦截未注册用户
+   * @returns {Promise<Object|null>} 注册用户对象，或 null（已跳转 login）
+   */
+  guardRegistered() {
+    wx.showLoading({
+      title: '载入页面中',
+      mask: true
+    })
+    return this.checkUserRegistration().then((result) => {
+      wx.hideLoading()
+      if (result.registered && result.user) {
+        return result.user
+      }
+      wx.reLaunch({
+        url: '/pages/auth/login/login'
+      })
+      return null
+    }).catch(() => {
+      wx.hideLoading()
+      // 检查失败（网络异常等）也保守拦截
+      wx.reLaunch({
+        url: '/pages/auth/login/login'
+      })
+      return null
     })
   },
 
@@ -1574,6 +1603,16 @@ App({
     }
     // 加载常量
     return this.loadConstants()
+  },
+
+  /**
+   * 只从缓存（内存 + 本地存储）同步读取所有常量
+   * 读不到返回 null，不触发云函数拉取
+   * @returns {Object|null} 常量键值对或 null
+   */
+  getAllConstantsOnlyFromCache() {
+    const cached = this.getConstantsCache()
+    return cached || null
   },
 
   // ========== 节假日缓存相关方法 ==========

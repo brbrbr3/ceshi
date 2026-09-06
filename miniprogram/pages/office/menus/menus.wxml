@@ -1,5 +1,5 @@
 <page-meta page-style="{{pageStyle}}" />
-<view class="office-page menus-page {{themeClass}}" style="{{fontStyle}}">
+<view wx:if="{{guardReady}}" class="office-page menus-page {{themeClass}}" style="{{fontStyle}}">
   <view class="office-gradient-header menus-header">
     <view class="office-header-top">
       <view>

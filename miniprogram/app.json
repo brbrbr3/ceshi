@@ -29,7 +29,7 @@
   "window": {
     "navigationBarTextStyle": "black",
     "navigationBarTitleText": "报备助手",
-    "navigationBarBackgroundColor": "#EEF2FF",
+    "navigationBarBackgroundColor": "#FFFFFF",
     "backgroundColor": "#EEF2FF"
   },
   "tabBar": {

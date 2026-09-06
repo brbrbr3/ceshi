@@ -1,8 +1,8 @@
 /**
  * 审核员 Mock 数据模块
  *
- * 审核模式下拦截所有云函数调用，返回 mock 空数据。
- * 审核员可以浏览所有页面但看不到真实数据。
+ * 审核模式下拦截所有云函数调用
+ * 审核员可以浏览所有页面
  *
  * 导出：
  *   - mockReviewerProfile: mock 用户信息
@@ -200,7 +200,7 @@ function getMockResponse(name, data) {
     return { fileUrl: '', fileName: '' }
   }
 
-  // ===== contentFormManager（信息发布系统）=====
+  // ===== contentFormManager（馆内动态系统）=====
   if (name === 'contentFormManager') {
     switch (action) {
       case 'list':

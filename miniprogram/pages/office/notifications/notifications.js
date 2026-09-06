@@ -10,18 +10,23 @@ Page({
 
   data: {
     notifications: [],
-    hasUnreadNotifications: false
+    hasUnreadNotifications: false,
+    guardReady: false
   },
 
   onLoad() {
-    // 显示加载中toast
-    wx.showLoading({
-      title: '加载中',
-      mask: true
-    })
+    app.guardRegistered().then((user) => {
+      if (!user) return
+      this.setData({ guardReady: true })
+      // 显示加载中toast
+      wx.showLoading({
+        title: '加载中',
+        mask: true
+      })
 
-    this.loadNotifications().finally(() => {
-      wx.hideLoading()
+      this.loadNotifications().finally(() => {
+        wx.hideLoading()
+      })
     })
   },
 
@@ -107,7 +112,7 @@ Page({
           url: `/pages/office/menu-detail/menu-detail?id=${notification.menuId}`
         })
       } else if (notification.type === NOTIFICATION_TYPES.CONTENT_FORM && notification.formId) {
-        // 信息发布通知，跳转到详情页
+        // 馆内动态通知，跳转到详情页
         wx.navigateTo({
           url: `/pages/office/form/form-detail/form-detail?id=${notification.formId}`
         })

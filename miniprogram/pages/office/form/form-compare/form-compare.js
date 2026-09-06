@@ -17,17 +17,22 @@ Page({
     tagColor: '',
     tagBg: '',
     score: { totalScore: 0, details: [] },
-    loading: true
+    loading: true,
+    guardReady: false
   },
 
   onLoad(options) {
-    if (options.id) {
-      this.setData({ formId: options.id })
-      this.loadCompare(options.id)
-    } else {
-      utils.showToast({ title: '参数缺失', icon: 'none' })
-      setTimeout(() => wx.navigateBack(), 800)
-    }
+    app.guardRegistered().then((user) => {
+      if (!user) return
+      this.setData({ guardReady: true })
+      if (options.id) {
+        this.setData({ formId: options.id })
+        this.loadCompare(options.id)
+      } else {
+        utils.showToast({ title: '参数缺失', icon: 'none' })
+        setTimeout(() => wx.navigateBack(), 800)
+      }
+    })
   },
 
   onShow() {

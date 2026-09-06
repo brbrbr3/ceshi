@@ -8,14 +8,19 @@ Page({
     title: '',
     total: 0,
     stats: [],
-    loading: true
+    loading: true,
+    guardReady: false
   },
 
   onLoad(options) {
-    if (options.id) {
-      this.setData({ formId: options.id })
-      this.loadStats(options.id)
-    }
+    app.guardRegistered().then((user) => {
+      if (!user) return
+      this.setData({ guardReady: true })
+      if (options.id) {
+        this.setData({ formId: options.id })
+        this.loadStats(options.id)
+      }
+    })
   },
 
   onShow() {

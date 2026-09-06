@@ -10,18 +10,23 @@ Page({
       title: '',
       content: ''
     },
-    editorCtx: null
+    editorCtx: null,
+    guardReady: false
   },
 
   onLoad(options) {
-    if (options.id) {
-      this.setData({ menuId: options.id, isEdit: true })
-      this.loadMenu()
-    } else {
-      this.setData({
-        'form.content': this.getDefaultContent()
-      })
-    }
+    app.guardRegistered().then((user) => {
+      if (!user) return
+      this.setData({ guardReady: true })
+      if (options.id) {
+        this.setData({ menuId: options.id, isEdit: true })
+        this.loadMenu()
+      } else {
+        this.setData({
+          'form.content': this.getDefaultContent()
+        })
+      }
+    })
   },
 
   onShow() {

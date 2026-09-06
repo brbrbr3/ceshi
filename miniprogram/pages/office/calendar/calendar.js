@@ -353,10 +353,16 @@ Page({
     showRepeatPopup: false,
 
     // 巴西节假日提示
-    brazilHolidayInfo: null // { pt: '葡萄牙语名称', zh: '中文名称' } 或 null
+    brazilHolidayInfo: null, // { pt: '葡萄牙语名称', zh: '中文名称' } 或 null
+    guardReady: false
   },
 
   async onLoad() {
+    const user = await app.guardRegistered()
+    if (!user) return
+
+    this.setData({ guardReady: true })
+
     // 初始化页面实例属性（Set 无法存入 this.data）
     this.scheduleDatesSet = new Set() // 已加载的日程日期集合
     this.loadedMonthsSet = new Set() // 已加载的年月集合，格式 'YYYY-MM'
@@ -372,12 +378,11 @@ Page({
       const currentYear = new Date().getFullYear()
       this.setData({
         yearOptions: [currentYear, currentYear + 1],
-        configYear: currentYear
+        configYear: currentYear,
+        currentUser: user,
+        isReviewer: !!user.isReviewer,
+        canConfigHoliday: !!user.isAdmin
       })
-
-      // 检查权限
-      await this.checkConfigHolidayPermission()
-      //await this.checkManageSchedulePermission()
 
       // 加载节假日配置
       await this.loadHolidays()
@@ -461,25 +466,6 @@ Page({
     const month = String(d.getMonth() + 1).padStart(2, '0')
     const day = String(d.getDate()).padStart(2, '0')
     return `${year}-${month}-${day}`
-  },
-
-  /**
-   * 检查用户配置节假日权限
-   */
-  checkConfigHolidayPermission() {
-    return app.checkUserRegistration().then((result) => {
-      if (result.registered && result.user) {
-        const user = result.user
-
-        this.setData({
-          currentUser: user,
-          isReviewer: !!user.isReviewer,
-          canConfigHoliday: !!user.isAdmin
-        })
-      }
-    }).catch(() => {
-      // 静默失败
-    })
   },
 
   /**

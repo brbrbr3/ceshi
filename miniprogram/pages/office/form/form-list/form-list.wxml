@@ -1,14 +1,14 @@
 <page-meta page-style="{{pageStyle}}" />
-<view class="office-page form-list-page {{themeClass}}" style="{{fontStyle}}">
+<view wx:if="{{guardReady}}" class="office-page form-list-page {{themeClass}}" style="{{fontStyle}}">
   <!-- <view class="office-gradient-header form-list-header">
     <view class="form-list-header-row">
-      <view class="form-list-title">信息发布</view>
+      <view class="form-list-title">馆内动态</view>
     </view>
   </view> -->
 
   <view class="office-content form-list-content">
     <!-- tag 筛选 -->
-    <scroll-view wx:if="{{!isReviewer}}" scroll-x class="form-list-tabs-scroll" enhanced show-scrollbar="false">
+    <scroll-view scroll-x class="form-list-tabs-scroll" enhanced show-scrollbar="false">
       <view class="form-list-tabs">
         <view wx:for="{{tagTabs}}" wx:key="key" class="form-list-tab {{activeTag === item.key ? 'is-active' : ''}}" bindtap="handleTagChange" data-tag="{{item.key}}">{{item.label}}</view>
       </view>

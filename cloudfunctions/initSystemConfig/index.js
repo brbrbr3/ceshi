@@ -293,7 +293,7 @@ const SYSTEM_CONFIGS = [
       PROCESS_RETURNED: 'process_returned', // 流程退回（申请人收到）
       WORKFLOW_COMPLETED: 'workflow_completed', // 工作流完成（申请人收到）
       ORDER_TERMINATED: 'order_terminated',  // 工单中止（申请人收到）
-      CONTENT_FORM: 'content_form'           // 信息发布通知（填报人员收到）
+      CONTENT_FORM: 'content_form'           // 馆内动态通知（填报人员收到）
     },
     description: '通知消息类型枚举',
     sort: 90
@@ -309,7 +309,7 @@ const SYSTEM_CONFIGS = [
       process_returned: 'mine',    // 流程退回 → 我的发起
       workflow_completed: 'mine',  // 工作流完成 → 我的发起
       order_terminated: 'mine',    // 工单中止 → 我的发起
-      content_form: 'none'         // 信息发布 → 跳转详情页，不需要 tab
+      content_form: 'none'         // 馆内动态 → 跳转详情页，不需要 tab
     },
     description: '通知消息类型与跳转tab映射（pending=待审批, mine=我的发起）',
     sort: 91
@@ -386,10 +386,10 @@ const SYSTEM_CONFIGS = [
     ],
     description: '休假申请类型选项列表',
     sort: 110
-  },
+  }
 
-  // ==================== 信息发布（form）相关 ====================
-  {
+  // ==================== 馆内动态（form）相关 ====================
+  /* {
     type: 'form',
     key: 'FORM_TAG_LIST',
     value: [
@@ -399,7 +399,7 @@ const SYSTEM_CONFIGS = [
       { key: 'questionnaire', label: '问卷', icon: '📊', color: '#7C3AED', bg: '#F3E8FF' },
       { key: 'quiz', label: '答题', icon: '✍️', color: '#DC2626', bg: '#FEE2E2' }
     ],
-    description: '信息发布-类型列表',
+    description: '馆内动态-类型列表',
     sort: 120
   },
   {
@@ -414,7 +414,7 @@ const SYSTEM_CONFIGS = [
       { type: 'textarea', label: '简答题', icon: '✏️', desc: '自由填写文字', color: '#F59E0B', bg: '#FEF3C7' },
       { type: 'text', label: '说明文字', icon: '📝', desc: '插入说明段落', color: '#64748B', bg: '#F1F5F9' }
     ],
-    description: '信息发布-控件类型列表',
+    description: '馆内动态-控件类型列表',
     sort: 121
   },
   {
@@ -427,16 +427,16 @@ const SYSTEM_CONFIGS = [
       questionnaire: ['radio', 'checkbox', 'judge', 'textarea', 'text'],
       quiz: ['radio', 'checkbox', 'judge', 'textarea', 'text']
     },
-    description: '信息发布-类型与可用控件映射（公告无控件，活动/副食专属，问卷/答题为通用控件）',
+    description: '馆内动态-类型与可用控件映射（公告无控件，活动/副食专属，问卷/答题为通用控件）',
     sort: 122
   },
   {
     type: 'form',
     key: 'FORM_FILLABLE_TYPES',
     value: ['radio', 'checkbox', 'judge', 'textarea', 'side_dish', 'activity'],
-    description: '信息发布-可填写控件类型',
+    description: '馆内动态-可填写控件类型',
     sort: 123
-  }
+  } */
 ]
 
 // 权限配置数据

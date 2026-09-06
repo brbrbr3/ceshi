@@ -1,5 +1,5 @@
 <page-meta page-style="{{pageStyle}}" />
-<view class="office-page form-result-page {{themeClass}}" style="{{fontStyle}}">
+<view wx:if="{{guardReady}}" class="office-page form-result-page {{themeClass}}" style="{{fontStyle}}">
   <view class="office-gradient-header form-result-header">
     <view class="form-result-title">{{title || '统计结果'}}</view>
     <view class="form-result-total">共 {{total}} 人提交</view>
@@ -63,6 +63,6 @@
       </block>
     </view>
 
-    <view wx:if="{{!loading && stats.length === 0}}" class="form-result-empty">该信息没有可统计的控件</view>
+    <view wx:if="{{!loading && stats.length === 0}}" class="form-result-empty">该动态没有可统计的控件</view>
   </view>
 </view>

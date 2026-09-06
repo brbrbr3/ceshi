@@ -1,5 +1,5 @@
 <page-meta page-style="{{pageStyle}}" />
-<view class="office-page form-detail-page {{themeClass}}" style="{{fontStyle}}">
+<view wx:if="{{guardReady}}" class="office-page form-detail-page {{themeClass}}" style="{{fontStyle}}">
   <view class="office-gradient-header form-detail-header">
     <view class="form-detail-title-row">
       <view class="form-detail-badge" style="background: {{tagBg}}; color: {{tagColor}};">{{tagIcon}} {{tagLabel}}</view>
@@ -9,13 +9,13 @@
     <view class="form-detail-title">{{form.title}}</view>
     <view class="form-detail-meta">{{form.createdByName}}</view>
     <view class="form-detail-meta">发布时间：{{timeText}}</view>
-    <view wx:if="{{form.deadline}}" class="form-detail-meta">{{form.tag === 'activity' ? '报名截止' :(form.tag === 'quiz' || form.tag ==='questionnaire' ? '答题截止' :'截止时间')}}：{{deadlineText}}</view>
+    <view wx:if="{{form.deadline}}" class="form-detail-meta">截止时间：{{deadlineText}}</view>
   </view>
 
   <view class="office-content form-detail-content">
     <!-- 无权填报提示 -->
     <view wx:if="{{!canSubmit && !isClosed}}" class="form-detail-submitted-tip is-denied">
-      <text>🔒 该信息仅限指定角色填报，您无权填写</text>
+      <text>{{denyTipText}}</text>
     </view>
 
     <!-- 匿名填写提示 -->
@@ -168,7 +168,7 @@
 
     <!-- 空控件提示 
     <view wx:if="{{blocks.length === 0}}" class="office-card form-detail-card">
-      <view class="fd-empty">该信息暂无额外内容</view>
+      <view class="fd-empty">该动态暂无额外内容</view>
     </view> -->
 
     <!-- 填写操作区（答题类型） -->

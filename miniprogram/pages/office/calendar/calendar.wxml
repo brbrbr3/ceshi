@@ -1,6 +1,6 @@
 <!--全馆日历页面-->
 <page-meta page-style="{{pageStyle}}" />
-<view class="calendar-page {{themeClass}}" style="{{fontStyle}}">
+<view wx:if="{{guardReady}}" class="calendar-page {{themeClass}}" style="{{fontStyle}}">
   <!-- 标准头部设计 -->
   <view class="office-gradient-header calendar-gradient-header">
     <view class="office-header-top calendar-header-top">

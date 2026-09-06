@@ -149,15 +149,8 @@ Page({
       loading: false // 每次显示登录页时归位登录按钮状态
     })
     // 强制刷新注册状态（走网络），不再清空身份/资料缓存
+    // 常量缓存由 refreshStatus 内部根据注册状态决定是否加载
     this.refreshStatus(true)
-    // 等待常量加载完成后才允许点击登录，避免其他页面出现缓存缺失
-    this.setData({ constantsReady: false })
-    app.loadConstants().then(() => {
-      this.setData({ constantsReady: true })
-    }).catch((err) => {
-      console.warn('预加载常量失败:', err)
-      this.setData({ constantsReady: true }) // 失败也放行，避免永久阻塞
-    })
   },
 
   onPullDownRefresh() {
@@ -234,6 +227,7 @@ Page({
       if (result.authStatus === 'deactivated') {
         this.setData({
           statusLoading: false,
+          constantsReady: true,
           statusCard: null,
           showRegisterLink: false,
           isRegistered: false,
@@ -265,23 +259,30 @@ Page({
         loginTitleText: computeLoginTitle(false, _isRegistered, _isPendingApproval, statusCard),
         loginButtonText: computeLoginButtonText(false, _isRegistered, _isPendingApproval, this.data.isDesktop, statusCard)
       })
-    }).catch((error) => {
-      const errorCard = {
-        className: 'is-error',
-        title: '连接失败',
-        desc: error.message || '请稍后重试。',
-        tag: '异常',
-        extra: '',
-        time: ''
+
+      // 仅已注册用户加载常量缓存，加载完成才允许登录；其他状态不加载、直接放行
+      if (_isRegistered) {
+        this.setData({ constantsReady: false })
+        app.loadConstants().then(() => {
+          this.setData({ constantsReady: true })
+        }).catch((err) => {
+          console.warn('预加载常量失败:', err)
+          this.setData({ constantsReady: true }) // 失败也放行，避免永久阻塞
+        })
+      } else {
+        this.setData({ constantsReady: true })
       }
+    }).catch((error) => {
+      // 连接失败：保持加载中状态，提示用户网络可能慢，可下拉刷新重试
       this.setData({
-        statusLoading: false,
-        statusCard: errorCard,
+        statusLoading: true,
+        constantsReady: true,
+        statusCard: null,
         showRegisterLink: false,
         isRegistered: false,
         isPendingApproval: false,
-        loginTitleText: computeLoginTitle(false, false, false, errorCard),
-        loginButtonText: computeLoginButtonText(false, false, false, this.data.isDesktop, errorCard)
+        loginTitleText: '正在获取用户状态...若长时间加载，可能网络慢，可更换网络后下拉刷新重试',
+        loginButtonText: '加载中...'
       })
     })
   },

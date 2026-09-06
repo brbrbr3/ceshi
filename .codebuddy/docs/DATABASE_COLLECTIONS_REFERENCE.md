@@ -55,9 +55,9 @@
 
 ## 集合列表
 
-### 1. content_form_submissions - 信息发布提交记录
+### 1. content_form_submissions - 馆内动态提交记录
 
-**用途**：存储用户对信息发布表单的提交记录，一人一条（upsert 幂等）。
+**用途**：存储用户对馆内动态表单的提交记录，一人一条（upsert 幂等）。
 
 **安全规则**：`ADMINWRITE` - 所有用户可读，仅云函数可写
 
@@ -104,9 +104,9 @@
 
 ---
 
-### 2. content_forms - 信息发布表单主表
+### 2. content_forms - 馆内动态表单主表
 
-**用途**：存储「信息发布」系统的内容表单，通过 `blocks[]` 数组统一表达公告、问卷、副食、活动、答题五种形态。发布者通过问卷星式控件（单选/多选/判断/简答/副食/活动/说明文字）自由组合内容：只写标题正文即为公告，添加控件即为问卷/副食/活动/答题。
+**用途**：存储「馆内动态」系统的内容表单，通过 `blocks[]` 数组统一表达公告、问卷、副食、活动、答题五种形态。发布者通过问卷星式控件（单选/多选/判断/简答/副食/活动/说明文字）自由组合内容：只写标题正文即为公告，添加控件即为问卷/副食/活动/答题。
 
 **安全规则**：`ADMINWRITE` - 所有用户可读，仅云函数可写
 
@@ -991,7 +991,7 @@ const notificationsCollection = db.collection('notifications')  // ✅
 | 2026-04-28 | 更新 side_dish_orders/side_dish_bookings 支持多类别征订（categories/items） | AI |
 | 2026-07-21 | 添加 interest_class_reports 兴趣班备案记录集合（兴趣班备案功能） | AI |
 | 2026-07-26 | 创建 notifications 集合组合索引 `openid_createdAt_idx`（openid升序 + createdAt降序） | AI |
-| 2026-08-13 | 添加 content_forms、content_form_submissions 集合（信息发布系统） | AI |
+| 2026-08-13 | 添加 content_forms、content_form_submissions 集合（馆内动态系统） | AI |
 | 2026-08-14 | 创建 menus 集合 `createdAt_-1` 降序索引，消除菜单列表全表扫描告警 | AI |
 | 2026-08-16 | 重写 `menuManager.getRatings` 为聚合查询；创建 menu_ratings 集合 `idx_menuId`、`idx_menuId_openid_dishName` 索引，移除无效的 `idx_menuId_createdAt` 说明 | AI |
 | 2026-08-31 | 按当前云环境（cloud1-d2gyip4xi1fcf54bd）实际集合列表校准，移除已删除集合，同步更新记录数与 `dbManager` 云函数 | AI |

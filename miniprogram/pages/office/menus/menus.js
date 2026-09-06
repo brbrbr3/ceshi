@@ -21,7 +21,8 @@ Page({
     canExportRatings: false,
     exportMode: false,
     selectedMenuIds: [],
-    exporting: false
+    exporting: false,
+    guardReady: false
   },
 
   onLoad() {
@@ -31,41 +32,33 @@ Page({
     const fontStyle = app.globalData.fontStyle
     this.setData({ themeClass: app.getThemeClass(), pageStyle: app.getPageStyle() })
     app.applySystemUITheme(app.globalData.theme)
-  if (this.data.fontStyle !== fontStyle) {
-    this.setData({ fontStyle })
-  }
+    if (this.data.fontStyle !== fontStyle) {
+      this.setData({ fontStyle })
+    }
     // 每次显示页面时刷新数据（从编辑页返回时自动更新）
-    this.refreshList()
-    this.checkPermission()
+    app.guardRegistered().then((user) => {
+      if (!user) return
+      this.setData({ guardReady: true })
+      this.refreshList()
+      this.applyPermission(user)
+    })
   },
 
-  checkPermission() {
-    app.checkUserRegistration()
-      .then((result) => {
-        if (!result.registered || !result.user) {
-          this.setData({ showAddButton: false })
-          return
-        }
+  applyPermission(user) {
+    //管理员、厨师、办公室内聘可添加菜单
+    const isAdmin = user.isAdmin
+    const isChef = Array.isArray(user.position) && user.position.includes('厨师')
+    const isOfficeServant = Array.isArray(user.position) && user.position.includes('办公室内聘')
 
-        //管理员、厨师、办公室内聘可添加菜单
-        const isAdmin = result.user.isAdmin
-        const isChef = Array.isArray(result.user.position) && result.user.position.includes('厨师')
-        const isOfficeServant = Array.isArray(result.user.position) && result.user.position.includes('办公室内聘')
+    // 导出评分权限：管理员 / 领导（馆员+部门无，排除限制权限）/ 办部门负责人
+    const isLeader = user.role === '馆员' && user.department === '无' && !user.isRestrictedLeader
+    const isBanHead = user.role === '馆员' && user.department === '办' && user.isDepartmentHead
+    const canExportRatings = !!isAdmin || isLeader || isBanHead
 
-        // 导出评分权限：管理员 / 领导（馆员+部门无，排除限制权限）/ 办部门负责人
-        const u = result.user
-        const isLeader = u.role === '馆员' && u.department === '无' && !u.isRestrictedLeader
-        const isBanHead = u.role === '馆员' && u.department === '办' && u.isDepartmentHead
-        const canExportRatings = !!isAdmin || isLeader || isBanHead
-
-        this.setData({
-          showAddButton: isAdmin || isChef || isOfficeServant,
-          canExportRatings
-        })
-      })
-      .catch((error) => {
-        console.error('检查权限失败', error)
-      })
+    this.setData({
+      showAddButton: isAdmin || isChef || isOfficeServant,
+      canExportRatings
+    })
   },
 
   /**

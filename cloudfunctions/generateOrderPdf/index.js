@@ -580,7 +580,7 @@ async function generateSideDishBookingPdf(orderId) {
 }
 
 /**
- * 信息发布系统 - 副食订购汇总清单 PDF 导出
+ * 馆内动态系统 - 副食订购汇总清单 PDF 导出
  * 接收 formId（content_forms._id），从 blocks 中取 side_dish 块及 categories，
  * 从 content_form_submissions 的 answers 中汇总每人预订份数，生成表格 PDF。
  */
@@ -992,7 +992,7 @@ exports.main = async (event) => {
     }
   }
 
-  // 信息发布系统 - 副食订购清单导出
+  // 馆内动态系统 - 副食订购清单导出
   if (type === 'contentFormSideDish') {
     if (!formId) {
       return fail('缺少 formId 参数', 400)

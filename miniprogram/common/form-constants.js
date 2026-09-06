@@ -1,71 +1,71 @@
 /**
- * 信息发布系统 - 共享常量
+ * 馆内动态系统 - 共享常量（只从缓存读取）
  *
- * 定义 tag 与控件类型的展示配置，供 form-list / form-detail / form-edit /
- * form-result / form-submissions 及首页共用。
+ * 所有 tag 与控件类型的配置均由后端 sys_config 集合（FORM_TAG_LIST /
+ * FORM_BLOCK_TYPE_LIST / FORM_TAG_BLOCKS / FORM_FILLABLE_TYPES）下发，
+ * 并经 app 缓存（app-constants-cache）供各页面读取。
+ *
+ * 本模块仅从缓存同步读取，读不到返回空数组 / 空对象 / 兜底展示配置，
+ * 不再维护本地默认值、也不再触发云函数拉取。
  */
 
-// tag 类型配置
-const TAG_CONFIG = {
-  announcement: { key: 'announcement', label: '公告', icon: '📢', color: '#0284C7', bg: '#E0F2FE' },
-  activity: { key: 'activity', label: '活动', icon: '🎉', color: '#EA580C', bg: '#FFEDD5' },
-  side_dish: { key: 'side_dish', label: '副食', icon: '🍱', color: '#16A34A', bg: '#DCFCE7' },
-  questionnaire: { key: 'questionnaire', label: '问卷', icon: '📊', color: '#7C3AED', bg: '#F3E8FF' },
-  quiz: { key: 'quiz', label: '答题', icon: '✍️', color: '#DC2626', bg: '#FEE2E2' }
+function getCachedConstants() {
+  try {
+    const app = getApp()
+    return (app && app.getAllConstantsOnlyFromCache()) || null
+  } catch (e) {
+    return null
+  }
 }
 
-const TAG_LIST = [
-  TAG_CONFIG.announcement,
-  TAG_CONFIG.activity,
-  TAG_CONFIG.side_dish,
-  TAG_CONFIG.questionnaire,
-  TAG_CONFIG.quiz
-]
-
-// 控件类型配置（text 为说明文字块，不参与填写）
-const BLOCK_TYPE_LIST = [
-  { type: 'activity', label: '活动报名', icon: '🎉', desc: '可设置分组 / 人数上限', color: '#EA580C', bg: '#FFEDD5' },
-  { type: 'side_dish', label: '副食订购', icon: '🍱', desc: '支持多类别订购', color: '#16A34A', bg: '#DCFCE7' },
-  { type: 'radio', label: '单选题', icon: '🔘', desc: '单选一个选项', color: '#3B82F6', bg: '#EFF6FF' },
-  { type: 'checkbox', label: '多选题', icon: '☑️', desc: '多选多个选项', color: '#8B5CF6', bg: '#F3E8FF' },
-  { type: 'judge', label: '判断题', icon: '⚖️', desc: '正确 / 错误', color: '#10B981', bg: '#D1FAE5' },
-  { type: 'textarea', label: '简答题', icon: '✏️', desc: '自由填写文字', color: '#F59E0B', bg: '#FEF3C7' },
-  { type: 'text', label: '说明文字', icon: '📝', desc: '插入说明段落', color: '#64748B', bg: '#F1F5F9' }
-]
-
-// 可填写控件类型（text 除外）
-const FILLABLE_TYPES = ['radio', 'checkbox', 'judge', 'textarea', 'side_dish', 'activity']
-
-// tag → 可用控件类型映射（公告无控件，活动/副食专属，问卷/答题为通用控件）
-const TAG_BLOCKS = {
-  announcement: [],
-  activity: ['activity'],
-  side_dish: ['side_dish'],
-  questionnaire: ['radio', 'checkbox', 'judge', 'textarea', 'text'],
-  quiz: ['radio', 'checkbox', 'judge', 'textarea', 'text']
+// tag 类型列表（后端 FORM_TAG_LIST）
+function getTagList() {
+  const c = getCachedConstants()
+  return (c && Array.isArray(c.FORM_TAG_LIST)) ? c.FORM_TAG_LIST : []
 }
 
+// 控件类型列表（后端 FORM_BLOCK_TYPE_LIST）
+function getBlockTypeList() {
+  const c = getCachedConstants()
+  return (c && Array.isArray(c.FORM_BLOCK_TYPE_LIST)) ? c.FORM_BLOCK_TYPE_LIST : []
+}
+
+// 可填写控件类型（后端 FORM_FILLABLE_TYPES）
+function getFillableTypes() {
+  const c = getCachedConstants()
+  return (c && Array.isArray(c.FORM_FILLABLE_TYPES)) ? c.FORM_FILLABLE_TYPES : []
+}
+
+// tag → 可用控件映射（后端 FORM_TAG_BLOCKS）
+function getTagBlocks() {
+  const c = getCachedConstants()
+  return (c && c.FORM_TAG_BLOCKS && typeof c.FORM_TAG_BLOCKS === 'object') ? c.FORM_TAG_BLOCKS : {}
+}
+
+// 单个 tag 配置，读不到返回兜底展示配置
 function getTagConfig(tag) {
-  return TAG_CONFIG[tag] || TAG_CONFIG.announcement
+  const cfg = getTagList().find(t => t.key === tag)
+  return cfg || { key: tag, label: tag, icon: '📄', color: '#64748B', bg: '#F1F5F9' }
 }
 
+// 单个控件类型配置，读不到返回兜底展示配置
 function getBlockTypeConfig(type) {
-  return BLOCK_TYPE_LIST.find(b => b.type === type) || { type, label: type, icon: '📄', color: '#64748B', bg: '#F1F5F9' }
+  const cfg = getBlockTypeList().find(b => b.type === type)
+  return cfg || { type, label: type, icon: '📄', color: '#64748B', bg: '#F1F5F9' }
 }
 
-// 根据 tag 过滤可用控件（list 可选，默认用 BLOCK_TYPE_LIST）
+// 根据 tag 过滤可用控件（list 可选，默认用缓存中的 BLOCK_TYPE_LIST）
 function getBlocksByTag(tag, list) {
-  const blockList = list || BLOCK_TYPE_LIST
-  const allowed = TAG_BLOCKS[tag] || []
+  const blockList = list || getBlockTypeList()
+  const allowed = getTagBlocks()[tag] || []
   return blockList.filter(b => allowed.indexOf(b.type) >= 0)
 }
 
 module.exports = {
-  TAG_CONFIG,
-  TAG_LIST,
-  BLOCK_TYPE_LIST,
-  FILLABLE_TYPES,
-  TAG_BLOCKS,
+  getTagList,
+  getBlockTypeList,
+  getFillableTypes,
+  getTagBlocks,
   getTagConfig,
   getBlockTypeConfig,
   getBlocksByTag

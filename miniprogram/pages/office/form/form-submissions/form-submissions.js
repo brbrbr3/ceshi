@@ -23,14 +23,19 @@ Page({
     maxSubmissions: 1,
     loading: true,
     exporting: false,
-    allExpanded: false
+    allExpanded: false,
+    guardReady: false
   },
 
   onLoad(options) {
-    if (options.id) {
-      this.setData({ formId: options.id })
-      this.loadSubmissions(options.id)
-    }
+    app.guardRegistered().then((user) => {
+      if (!user) return
+      this.setData({ guardReady: true })
+      if (options.id) {
+        this.setData({ formId: options.id })
+        this.loadSubmissions(options.id)
+      }
+    })
   },
 
   onShow() {

@@ -4,9 +4,9 @@
 
 const config = {
   // 缓存版本号（修改此值可强制刷新用户端缓存）
-  CACHE_VERSION: '1.2',
+  CACHE_VERSION: '1.2.4',
   //更新说明
-  VERSION_DESCRIPTION: '1.现可对菜单评论。评论仅对后勤部门可见。\n2.新增夜间模式，可在首页切换。',
+  VERSION_DESCRIPTION: '1.新增深色模式，将跟随手机的深色模式，并可在首页切换。',
 
   // 云开发环境 ID
   envId: 'cloud1-d2gyip4xi1fcf54bd',

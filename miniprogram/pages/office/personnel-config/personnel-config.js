@@ -70,11 +70,15 @@ Page({
     formReportTo: [],
 
     // 部门全选状态
-    deptAllSelected: {}
+    deptAllSelected: {},
+    guardReady: false
   },
 
   async onLoad() {
-    await this.checkPermission()
+    const user = await app.guardRegistered()
+    if (!user) return
+    this.setData({ guardReady: true })
+    this.applyPermission(user)
     await this.loadConstants()
     await this.loadUsers()
   },
@@ -88,15 +92,8 @@ Page({
     }
   },
 
-  async checkPermission() {
-    try {
-      const result = await app.checkUserRegistration()
-      if (result.registered && result.user) {
-        this.setData({ currentUser: result.user, canEdit: !!result.user.isAdmin })
-      }
-    } catch (e) {
-      // ignore
-    }
+  applyPermission(user) {
+    this.setData({ currentUser: user, canEdit: !!user.isAdmin })
   },
 
   async loadConstants() {

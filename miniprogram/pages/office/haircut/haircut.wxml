@@ -1,5 +1,5 @@
 <page-meta page-style="{{pageStyle}}" />
-<view class="haircut-page {{themeClass}}" style="{{fontStyle}}">
+<view wx:if="{{guardReady}}" class="haircut-page {{themeClass}}" style="{{fontStyle}}">
   <!-- 渐变色头部 -->
   <!-- <view class="office-gradient-header haircut-header">
     <view class="haircut-header-content">

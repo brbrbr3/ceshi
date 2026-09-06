@@ -32,15 +32,20 @@ Page({
     tempRatings: {},
     myRatedDishes: {},
     hasTempRatings: false,
-    ratingsLoading: false
+    ratingsLoading: false,
+    guardReady: false
   },
 
   onLoad(options) {
-    if (options.id) {
-      this.setData({ menuId: options.id })
-      this.loadMenu()
-      this.checkPermission()
-    }
+    app.guardRegistered().then((user) => {
+      if (!user) return
+      this.setData({ guardReady: true })
+      if (options.id) {
+        this.setData({ menuId: options.id })
+        this.loadMenu()
+        this.applyPermission(user)
+      }
+    })
   },
 
   onShow() {
@@ -57,36 +62,23 @@ Page({
     }
   },
 
-  checkPermission() {
-    app.checkUserRegistration()
-      .then((result) => {
-        if (!result.registered || !result.user) {
-          return
-        }
+  applyPermission(currentUser) {
+    const isWorker = currentUser.role === '工勤'
+    const isAdmin = currentUser.isAdmin
+    const isReviewer = !!currentUser.isReviewer
+    const showComments = !isReviewer
 
-        const currentUser = result.user
-        const isWorker = currentUser.role === '工勤'
-        const isAdmin = currentUser.isAdmin
-        // 审核人员：不显示评论区
-        const isReviewer = !!currentUser.isReviewer
-        // 评论区显示：审核人员不显示（评论可见范围由云函数 listComments 按权限控制）
-        const showComments = !isReviewer
-
-        this.setData({
-          currentUser,
-          canEdit: isWorker || isAdmin,
-          canDelete: isWorker || isAdmin,
-          isReviewer,
-          showComments
-        })
-        // 权限确定后加载评论
-        if (showComments) {
-          this.loadComments()
-        }
-      })
-      .catch((error) => {
-        console.error('检查权限失败', error)
-      })
+    this.setData({
+      currentUser,
+      canEdit: isWorker || isAdmin,
+      canDelete: isWorker || isAdmin,
+      isReviewer,
+      showComments
+    })
+    // 权限确定后加载评论
+    if (showComments) {
+      this.loadComments()
+    }
   },
 
   loadMenu() {

@@ -190,7 +190,7 @@ Page({
     this.loadPermissionCache() //加载权限缓存
     this.syncNotifications() //同步消息推送
     app.syncSubStatus()// 刷新微信侧订阅状态到本地缓存（供 handleQuickAction tap 时同步读取）
-    this.loadContentForms() //加载信息发布
+    this.loadContentForms() //加载馆内动态
     //this.loadAnnouncements() //加载通知公告
     //this.loadArticles() //加载学习园地
     //this.loadActivities() //加载群团活动
@@ -506,7 +506,7 @@ Page({
         throw new Error(result.message || '加载失败')
       }
     }).catch(error => {
-      console.error('加载信息发布失败:', error)
+      console.error('加载馆内动态失败:', error)
       this.setData({
         loadingContentForms: false
       })

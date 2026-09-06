@@ -30,10 +30,16 @@ Page({
       // mobile: '+55 61 ',
       // landline: '+55 61 ',
       livingArea: ''
-    }
+    },
+    guardReady: false
   },
 
   async onLoad(options) {
+    const user = await app.guardRegistered()
+    if (!user) return
+
+    this.setData({ guardReady: true })
+
     // 显示加载中
     wx.showLoading({
       title: '加载中',
@@ -45,7 +51,7 @@ Page({
       await this.loadConstants()
 
       // 加载用户信息
-      await this.loadUserProfile()
+      this.applyUserProfile(user)
     } finally {
       // 隐藏加载中
       wx.hideLoading()
@@ -109,92 +115,68 @@ Page({
     return defaults
   },
 
-  loadUserProfile() {
-    return app.checkUserRegistration()
-      .then((result) => {
-        if (!result.registered || !result.user) {
-          utils.showToast({
-            title: '请先完成注册',
-            icon: 'none'
-          })
-          setTimeout(() => {
-            wx.navigateBack()
-          }, 1500)
-          return
-        }
+  applyUserProfile(user) {
+    const {
+      roleOptions,
+      departmentOptions,
+      constants
+    } = this.data
+    const roleIndex = user.role ? roleOptions.indexOf(user.role) : -1
+    const role = user.role || ''
 
-        const user = result.user
-        const {
-          roleOptions,
-          departmentOptions,
-          constants
-        } = this.data
-        const roleIndex = user.role ? roleOptions.indexOf(user.role) : -1
-        const role = user.role || ''
+    // 居住区域回填
+    const livingArea = user.livingArea || ''
+    const livingAreaIndex = livingArea ? this.data.livingAreaOptions.indexOf(livingArea) : -1
 
-        // 居住区域回填
-        const livingArea = user.livingArea || ''
-        const livingAreaIndex = livingArea ? this.data.livingAreaOptions.indexOf(livingArea) : -1
+    // 使用常量判断
+    const fieldConfig = this.getRoleFieldConfig(role)
+    const showRelativeField = false
+    const showDepartmentField = fieldConfig.showDepartment === true
+    const showLivingArea = fieldConfig.showLivingArea !== false
 
-        // 使用常量判断
-        const fieldConfig = this.getRoleFieldConfig(role)
-        const showRelativeField = false
-        const showDepartmentField = fieldConfig.showDepartment === true
-        const showLivingArea = fieldConfig.showLivingArea !== false
+    let department = user.department || ''
+    let departmentIndex = -1
+    let roleDepartmentOptions = departmentOptions
+    let showDeptHeadCheckbox = false
+    let isDepartmentHead = user.isDepartmentHead || false
 
-        let department = user.department || ''
-        let departmentIndex = -1
-        let roleDepartmentOptions = departmentOptions
-        let showDeptHeadCheckbox = false
-        let isDepartmentHead = user.isDepartmentHead || false
+    if (role === '馆员') {
+      // 馆员：部门已在 DEPT_OPTIONS 中包含'无'，选具体部门时显示负责人checkbox
+      roleDepartmentOptions = departmentOptions
+      if (!department || department === '无') {
+        department = '无'
+        departmentIndex = departmentOptions.indexOf('无')
+        isDepartmentHead = false
+      } else {
+        departmentIndex = departmentOptions.indexOf(department)
+        if (departmentIndex < 0) departmentIndex = -1
+        showDeptHeadCheckbox = true
+      }
+    }
 
-        if (role === '馆员') {
-          // 馆员：部门已在 DEPT_OPTIONS 中包含'无'，选具体部门时显示负责人checkbox
-          roleDepartmentOptions = departmentOptions
-          if (!department || department === '无') {
-            department = '无'
-            departmentIndex = departmentOptions.indexOf('无')
-            isDepartmentHead = false
-          } else {
-            departmentIndex = departmentOptions.indexOf(department)
-            if (departmentIndex < 0) departmentIndex = -1
-            showDeptHeadCheckbox = true
-          }
-        }
-
-        this.setData({
-          roleIndex,
-          livingAreaIndex,
-          showRelativeField,
-          showDepartmentField,
-          showDeptHeadCheckbox,
-          showLivingArea,
-          departmentIndex,
-          departmentOptions: roleDepartmentOptions,
-          isReviewer: !!user.isReviewer,
-          form: {
-            name: user.name || '',
-            gender: user.gender || '男',
-            role: role,
-            isAdmin: !!user.isAdmin,
-            relativeName: user.relativeName || '',
-            department: department,
-            isDepartmentHead: isDepartmentHead,
-            // mobile: user.mobile || '+55 61 ',
-            // landline: user.landline || '+55 61 ',
-            livingArea: livingArea
-          }
-        })
-      })
-      .catch((error) => {
-        utils.showToast({
-          title: error.message || '加载失败',
-          icon: 'none'
-        })
-        setTimeout(() => {
-          wx.navigateBack()
-        }, 1500)
-      })
+    this.setData({
+      roleIndex,
+      livingAreaIndex,
+      showRelativeField,
+      showDepartmentField,
+      showDeptHeadCheckbox,
+      showLivingArea,
+      departmentIndex,
+      departmentOptions: roleDepartmentOptions,
+      isReviewer: !!user.isReviewer,
+      form: {
+        name: user.name || '',
+        gender: user.gender || '男',
+        role: role,
+        isAdmin: !!user.isAdmin,
+        relativeName: user.relativeName || '',
+        department: department,
+        isDepartmentHead: isDepartmentHead,
+        // mobile: user.mobile || '+55 61 ',
+        // landline: user.landline || '+55 61 ',
+        livingArea: livingArea
+      }
+    })
   },
 
   handleRoleChange(e) {

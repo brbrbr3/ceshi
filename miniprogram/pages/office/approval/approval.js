@@ -288,10 +288,16 @@ Page({
     },
 
     // 常量数据
-    roleOptions: null
+    roleOptions: null,
+    guardReady: false
   },
 
   async onLoad(options) {
+    const user = await app.guardRegistered()
+    if (!user) return
+
+    this.setData({ guardReady: true })
+
     // 从订阅消息或其他入口传入的目标 tab
     if (options && options.tab) {
       app.globalData.targetApprovalTab = options.tab

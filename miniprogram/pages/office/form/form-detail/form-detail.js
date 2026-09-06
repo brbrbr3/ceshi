@@ -124,16 +124,22 @@ Page({
     isQuiz: false,
     quizResult: null,
     quizAnswering: false,
-    registerModal: { show: false, blockId: '', input: '', names: [] }
+    registerModal: { show: false, blockId: '', input: '', names: [] },
+    guardReady: false,
+    denyTipText: ''
   },
 
   onLoad(options) {
-    if (options.preview === '1') {
-      this.loadPreview()
-    } else if (options.id) {
-      this.setData({ formId: options.id })
-      this.loadForm(options.id)
-    }
+    app.guardRegistered().then((user) => {
+      if (!user) return
+      this.setData({ guardReady: true })
+      if (options.preview === '1') {
+        this.loadPreview()
+      } else if (options.id) {
+        this.setData({ formId: options.id })
+        this.loadForm(options.id)
+      }
+    })
   },
 
   onShow() {
@@ -253,7 +259,8 @@ Page({
         isQuiz,
         quizResult: quizResult || null,
         quizAnswering: false,
-        readonly
+        readonly,
+        denyTipText: this.buildDenyTip(form)
       })
     }).catch(err => {
       wx.hideLoading()
@@ -261,6 +268,21 @@ Page({
       utils.showToast({ title: err.message || '加载失败', icon: 'none' })
       setTimeout(() => wx.navigateBack(), 800)
     })
+  },
+
+  /**
+   * 生成无权填报提示文字（写明指定角色/部门）
+   */
+  buildDenyTip(form) {
+    const roles = Array.isArray(form.targetRoles) ? form.targetRoles.filter(Boolean) : []
+    const depts = Array.isArray(form.targetDepartments) ? form.targetDepartments.filter(Boolean) : []
+    if (roles.length > 0) {
+      return `🔒 该动态仅限「${roles.join('、')}」角色用户填报，您无权填写`
+    }
+    if (depts.length > 0) {
+      return `🔒 该动态仅限「${depts.join('、')}」部门用户填报，您无权填写`
+    }
+    return '🔒 该动态仅限指定用户填报，您无权填写'
   },
 
   /**
@@ -540,7 +562,7 @@ Page({
   handleSubmit() {
     if (this.data.submitting) return
     if (this.data.isClosed) {
-      utils.showToast({ title: '该信息已截止', icon: 'none' })
+      utils.showToast({ title: '该动态已截止', icon: 'none' })
       return
     }
     if (!this.validateRequired()) return
@@ -664,12 +686,12 @@ Page({
   },
 
   /**
-   * 删除信息（仅创建者）
+   * 删除动态（仅创建者）
    */
   handleDelete() {
     wx.showModal({
-      title: '删除信息',
-      content: '删除后不可恢复，该信息的所有填报记录也将一并删除。确定删除吗？',
+      title: '删除动态',
+      content: '删除后不可恢复，该动态的所有填报记录也将一并删除。确定删除吗？',
       confirmText: '删除',
       confirmColor: '#DC2626',
       success: (res) => {
