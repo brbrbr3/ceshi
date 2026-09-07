@@ -198,18 +198,23 @@ Page({
     //this.loadTodaySchedules() // 加载今日日程
     this.loadActiveTrip() // 加载外出状态
 
-    // 弹窗队列：更新说明优先入队，其次兴趣班提示
+    // 弹窗队列：更新说明优先入队，其次兴趣班提示（更新说明异步加载，等其入队后再入队兴趣班）
+    const enqueueInterestReminder = () => this.checkInterestClassReminder()
+
     if (!app.globalData.isReviewer && app.shouldShowWhatsNew()) {
-      const whatsNew = app.getWhatsNewContent()
-      this.enqueueModal({
-        title: whatsNew.title,
-        content: whatsNew.content,
-        confirmText: '我知道了',
-        countdown: 3
-      })
       app.markWhatsNewShown()
+      app.getWhatsNewContent().then((whatsNew) => {
+        this.enqueueModal({
+          title: whatsNew.title,
+          content: whatsNew.content,
+          confirmText: '我知道了',
+          countdown: 3
+        })
+        enqueueInterestReminder()
+      })
+    } else {
+      enqueueInterestReminder()
     }
-    this.checkInterestClassReminder() // 每月兴趣班备案更新提示（入队）
     //this.loadSignature()//加载用户签名
   },
 

@@ -5,8 +5,8 @@
 const config = {
   // 缓存版本号（修改此值可强制刷新用户端缓存）
   CACHE_VERSION: '1.2.4',
-  //更新说明
-  VERSION_DESCRIPTION: '1.新增深色模式，将跟随手机的深色模式，并可在首页切换。',
+  // 小程序版本号（用于 profile 页展示和更新说明判断，发版时递增）
+  MINIAPP_VERSION: '1.2.4',
 
   // 云开发环境 ID
   envId: 'cloud1-d2gyip4xi1fcf54bd',

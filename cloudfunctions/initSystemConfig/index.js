@@ -386,10 +386,10 @@ const SYSTEM_CONFIGS = [
     ],
     description: '休假申请类型选项列表',
     sort: 110
-  }
+  },
 
   // ==================== 馆内动态（form）相关 ====================
-  /* {
+  {
     type: 'form',
     key: 'FORM_TAG_LIST',
     value: [
@@ -436,7 +436,14 @@ const SYSTEM_CONFIGS = [
     value: ['radio', 'checkbox', 'judge', 'textarea', 'side_dish', 'activity'],
     description: '馆内动态-可填写控件类型',
     sort: 123
-  } */
+  },
+  {
+    type: 'app',
+    key: 'MINIAPP_UPDATE_DESCRIPTION',
+    value: '1.新增深色模式，将跟随手机的深色模式，并可在首页切换。',
+    description: '小程序更新说明（小程序版本号变化后在首页展示）',
+    sort: 200
+  }
 ]
 
 // 权限配置数据

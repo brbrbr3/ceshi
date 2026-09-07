@@ -239,21 +239,38 @@ App({
 
   // 判断是否需要展示更新说明（只读，不修改状态）
   shouldShowWhatsNew() {
-    return readStorage(LAST_SHOWN_VERSION_KEY) !== config.CACHE_VERSION
+    return readStorage(LAST_SHOWN_VERSION_KEY) !== config.MINIAPP_VERSION
   },
 
   // 记录更新说明已展示
   markWhatsNewShown() {
-    writeStorage(LAST_SHOWN_VERSION_KEY, config.CACHE_VERSION)
-    console.log('已记录更新说明展示版本为' + config.CACHE_VERSION)
+    writeStorage(LAST_SHOWN_VERSION_KEY, config.MINIAPP_VERSION)
+    console.log('已记录更新说明展示版本为' + config.MINIAPP_VERSION)
   },
 
-  // 获取更新说明的标题与内容
+  // 获取更新说明的标题与内容（直接从云函数读取最新内容，绕过缓存，确保版本号变化后能拿到最新说明）
   getWhatsNewContent() {
-    return {
-      title: '版本' + config.CACHE_VERSION + '更新说明',
-      content: config.VERSION_DESCRIPTION
-    }
+    return wx.cloud.callFunction({
+      name: 'getSystemConfig'
+    }).then((res) => {
+      let description = ''
+      const configs = (res && res.result && res.result.code === 0 && res.result.data) || {}
+      for (const type in configs) {
+        if (configs[type] && typeof configs[type] === 'object' && configs[type].MINIAPP_UPDATE_DESCRIPTION !== undefined) {
+          description = configs[type].MINIAPP_UPDATE_DESCRIPTION
+          break
+        }
+      }
+      return {
+        title: '版本' + config.MINIAPP_VERSION + '更新说明',
+        content: description
+      }
+    }).catch(() => {
+      return {
+        title: '版本' + config.MINIAPP_VERSION + '更新说明',
+        content: ''
+      }
+    })
   },
 
   onShow(opts) {

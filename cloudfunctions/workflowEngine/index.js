@@ -972,11 +972,11 @@ async function handleRejection(task, order, approverId, approverName, comment) {
       }
     }
 
-    // 发送驳回通知给申请人（包含驳回人信息）
+    // 发送驳回通知给申请人（包含处理人信息）
     await sendTaskCompletedNotification(order, 'rejected', comment, approverName)
 
     // 发送注册结果订阅消息（模板1）给注册用户
-    await sendRegistrationResultSubscribeMessage(order, 'rejected')
+    await sendRegistrationResultSubscribeMessage(order, 'rejected', approverName)
   } catch (error) {
     // 如果工单状态更新失败，尝试修复
     console.error('handleRejection 错误:', error)
@@ -1270,13 +1270,14 @@ async function sendTaskAssignedNotification(tasks, order) {
 // 发送审批完成通知
 async function sendTaskCompletedNotification(order, approvalResult, comment, approverName) {
   const orderTypeName = await getOrderTypeName(order.orderType, order.templateName)
+  const handler = approverName ? `管理员${approverName}` : '管理员'
   let content = ''
 
   if (approvalResult === 'rejected') {
-    // 驳回时包含驳回人信息
-    content = `您的${orderTypeName}已被${approverName || '审批人'}驳回，请点击查看`
+    // 驳回时包含处理人信息
+    content = `${handler}已驳回您的${orderTypeName}申请，请点击查看`
   } else {
-    content = comment || `您的${orderTypeName}已通过审批`
+    content = comment || `${handler}已通过您的${orderTypeName}申请`
   }
 
   // 发送小程序内通知给申请人
@@ -1307,13 +1308,14 @@ async function sendProcessReturnedNotification(order, returnReason) {
 }
 
 // 发送工作流完成通知
-async function sendWorkflowCompletedNotification(order, finalStatus) {
+async function sendWorkflowCompletedNotification(order, finalStatus, approverName) {
   const orderTypeName = await getOrderTypeName(order.orderType, order.templateName)
+  const handler = approverName ? `管理员${approverName}` : '管理员'
   // 发送小程序内通知给申请人
   await sendAppNotification(order.businessData.applicantId, {
     type: 'workflow_completed',
     title: finalStatus === 'approved' ? '审批通过' : '审批驳回',
-    content: finalStatus === 'approved' ? `您的${orderTypeName}已通过审批，点击查看` : `您的${orderTypeName}已被驳回，点击查看`,
+    content: finalStatus === 'approved' ? `${handler}已通过您的${orderTypeName}申请，点击查看` : `${handler}已驳回您的${orderTypeName}申请，点击查看`,
     orderId: order._id,
     orderNo: order.orderNo,
     orderType: order.orderType,
@@ -1390,7 +1392,7 @@ function truncateText(text, maxLen) {
  * @param {Object} order - 工单对象
  * @param {string} result - 'approved' 或 'rejected'
  */
-async function sendRegistrationResultSubscribeMessage(order, result) {
+async function sendRegistrationResultSubscribeMessage(order, result, approverName) {
   // 处理注册申请工单 + 信息修改工单
   const isRegistration = order.orderType === 'user_registration'
   const isProfileUpdate = order.orderType === 'user_profile_update'
@@ -1406,10 +1408,11 @@ async function sendRegistrationResultSubscribeMessage(order, result) {
   const registerTime = formatSubscribeTime(order.submittedAt || order.createdAt || Date.now(), offsetHours)
   const isApproved = result === 'approved'
   const orderLabel = isRegistration ? '注册' : '信息修改'
+  const handler = approverName ? `管理员${approverName}` : '管理员'
   const messageType = isApproved ? `用户${orderLabel}通过通知` : `用户${orderLabel}驳回通知`
   const tip = isApproved
-    ? `您的${orderLabel}申请已批准`
-    : `您的${orderLabel}申请未通过，请修改后重新提交`
+    ? `${handler}已批准您的${orderLabel}申请`
+    : `${handler}已驳回您的${orderLabel}申请`
 
   try {
     await cloud.openapi.subscribeMessage.send({
@@ -1874,11 +1877,11 @@ async function completeWorkflow(orderId, decision, approverId, approverName, com
   }
 
   // 发送完成通知给申请人
-  await sendWorkflowCompletedNotification(order, decision)
+  await sendWorkflowCompletedNotification(order, decision, approverName)
 
   // 审批通过时发送注册结果订阅消息（模板1）给注册用户
   if (decision === 'approved') {
-    await sendRegistrationResultSubscribeMessage(order, 'approved')
+    await sendRegistrationResultSubscribeMessage(order, 'approved', approverName)
   }
 }
 
