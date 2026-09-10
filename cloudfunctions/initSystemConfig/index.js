@@ -440,7 +440,7 @@ const SYSTEM_CONFIGS = [
   {
     type: 'app',
     key: 'MINIAPP_UPDATE_DESCRIPTION',
-    value: '1.新增深色模式，将跟随手机的深色模式，并可在首页切换。',
+    value: '1.「生活资讯」中更新了就医目录；可下载最新的到馆指南、办事指南。2.菜单现可评论。3.新增深色模式，将跟随手机的深色模式，并可在首页切换。',
     description: '小程序更新说明（小程序版本号变化后在首页展示）',
     sort: 200
   }

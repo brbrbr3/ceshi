@@ -25,7 +25,7 @@
   border-radius: 24rpx;
   color: #FFFFFF;
   font-size: var(--fs-26);
-  font-weight: 600;
+  font-weight: 400;
 }
 
 .form-submissions-export.is-disabled {
@@ -41,7 +41,7 @@
 }
 
 .form-submissions-total {
-  font-size: var(--fs-26);
+  font-size: var(--fs-28);
   color: rgba(255, 255, 255, 0.9);
 }
 
@@ -104,10 +104,10 @@
   padding: 22rpx 0;
   text-align: center;
   background: var(--bg-card);
-  border: 2rpx solid var(--bg-soft);
+  border: 2rpx solid var(--border-soft);
   border-radius: 48rpx;
   color: #2563EB;
-  font-size: var(--fs-30);
+  font-size: var(--fs-32);
   font-weight: 600;
   box-shadow: 0 8rpx 24rpx rgba(37, 99, 235, 0.18);
 }

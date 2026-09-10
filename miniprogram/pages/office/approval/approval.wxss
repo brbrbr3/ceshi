@@ -141,7 +141,7 @@ page {
 
 .approval-note-card {
   margin-top: 24rpx;
-  background: linear-gradient(180deg, #FFFFFF 0%, var(--bg-input) 100%);
+  background: linear-gradient(180deg, var(--bg-card) 0%, var(--bg-input) 100%);
 }
 
 .approval-note-title {

@@ -53,7 +53,7 @@
     </view>
     <view wx:if="{{isQuiz && maxSubmissions > 1}}" class="fs-toggle-all {{filterMode === 'highest' ? 'is-active' : ''}}" bindtap="onFilterToggle">{{filterMode === 'highest' ? '只留最高成绩' : '不筛选'}}</view>
     <view class="fs-toggle-all" bindtap="handleToggleAll">
-      {{allExpanded ? '全部展开' : '全部收起'}}
+      {{allExpanded ? '全部收起' : '全部展开'}}
     </view>
   </view>
 </view>

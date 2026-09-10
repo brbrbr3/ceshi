@@ -7,9 +7,10 @@
       <view wx:elif="{{isClosed}}" class="form-detail-closed">已截止</view>
     </view>
     <view class="form-detail-title">{{form.title}}</view>
-    <view class="form-detail-meta">{{form.createdByName}}</view>
+    <view class="form-detail-meta">发布人：{{form.createdByName}}</view>
     <view class="form-detail-meta">发布时间：{{timeText}}</view>
     <view wx:if="{{form.deadline}}" class="form-detail-meta">截止时间：{{deadlineText}}</view>
+    <view wx:if="{{submissionCountText}}" class="form-detail-meta">{{submissionCountText}}</view>
   </view>
 
   <view class="office-content form-detail-content">
@@ -25,8 +26,8 @@
 
     <!-- 已提交提示 -->
     <view wx:if="{{mySubmission && !isClosed && !quizAnswering}}" class="form-detail-submitted-tip">
-      <text wx:if="{{isQuiz}}">✅ 您已提交，您的分数为 {{quizResult.lastScore}} 分</text>
-      <text wx:elif="{{maxSubmissions > 1}}">✅ 您已提交，可继续填写</text>
+      <text wx:if="{{isQuiz}}">✅ 您已作答，您的分数为 {{quizResult.lastScore}} 分</text>
+      <text wx:elif="{{maxSubmissions > 1}}">✅ 您已作答，可再次作答</text>
       <text wx:elif="{{isAnonymous}}">✅ 您已匿名提交，可修改后重新提交</text>
       <text wx:else>✅ 您已提交，可修改后重新提交</text>
     </view>

@@ -10,7 +10,7 @@
         <view wx:if="{{exportMode}}" class="menus-add-btn" bindtap="handleCancelExport">
           <text>✕ 取消导出</text>
         </view>
-        <view wx:else="{{!exportMode && showAddButton}}" class="menus-add-btn" bindtap="goAddMenu">
+        <view wx:elif="{{!exportMode && showAddButton}}" class="menus-add-btn" bindtap="goAddMenu">
           <text>＋ 新增</text>
         </view>
         <view wx:if="{{canExportRatings}}" class="menus-export-btn {{(exportMode && selectedMenuIds.length === 0) || exporting ? 'is-disabled' : ''}}" bindtap="{{exportMode ? 'handleExportRatings' : 'handleStartExport'}}">

@@ -209,7 +209,7 @@ exports.main = async (event) => {
             menuId: commentData.menuId,
             openid: openid,
             authorOpenid: openid,
-            authorName: user.name,
+            authorName: '匿名',
             content: commentData.content,
             createdAt: Date.now()
           }
@@ -249,18 +249,9 @@ exports.main = async (event) => {
         }
 
       case 'listComments': {
-        // 按权限返回评论：领导/后勤管理/管理员看全部，其他人只看自己的
-        const isLeader = user.role === '馆员' && user.department === '无' && !user.isRestrictedLeader
-        const isLogistics = Array.isArray(user.position) && user.position.includes('后勤管理')
-        const canViewAll = isAdmin || isLeader || isLogistics
-
-        const commentQuery = { menuId: menuId }
-        if (!canViewAll) {
-          commentQuery.authorOpenid = openid
-        }
-
+        // 评论匿名且对所有用户可见
         const commentsResult = await db.collection('menu_comments')
-          .where(commentQuery)
+          .where({ menuId: menuId })
           .orderBy('createdAt', 'asc')
           .limit(200)
           .get()
@@ -269,7 +260,7 @@ exports.main = async (event) => {
           _id: item._id,
           menuId: item.menuId,
           authorOpenid: item.authorOpenid || '',
-          authorName: item.authorName || '用户',
+          authorName: '匿名',
           content: item.content,
           createdAt: item.createdAt,
           canDelete: isAdmin || item.authorOpenid === openid
@@ -278,7 +269,7 @@ exports.main = async (event) => {
         return {
           code: 0,
           message: 'ok',
-          data: { comments, canViewAll }
+          data: { comments, canViewAll: true }
         }
       }
 

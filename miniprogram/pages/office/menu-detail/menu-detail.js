@@ -126,7 +126,7 @@ Page({
         avatar: (item.authorName || '用户').slice(0, 1),
         avatarBg: utils.getAvatarColor(item.authorName || '用户')
       }))
-      const commentScopeText = result.data.canViewAll ? '您负责后勤管理，可查看所有评论' : '您仅可查看自己的评论'
+      const commentScopeText = '匿名评论，所有人可见'
       this.setData({ comments, commentScopeText })
     }).catch(error => {
       console.error('加载评论失败:', error)
@@ -185,7 +185,7 @@ Page({
             this.loadComments()
             wx.showModal({
               title: '评论已提交',
-              content: '按照要求，您的评论仅后勤部门可见。',
+              content: '评论已匿名提交，对所有用户可见。',
               showCancel: false,
               confirmText: '知道了'
             })

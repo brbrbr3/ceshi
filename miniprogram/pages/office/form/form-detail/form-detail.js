@@ -126,7 +126,8 @@ Page({
     quizAnswering: false,
     registerModal: { show: false, blockId: '', input: '', names: [] },
     guardReady: false,
-    denyTipText: ''
+    denyTipText: '',
+    submissionCountText: ''
   },
 
   onLoad(options) {
@@ -260,7 +261,8 @@ Page({
         quizResult: quizResult || null,
         quizAnswering: false,
         readonly,
-        denyTipText: this.buildDenyTip(form)
+        denyTipText: this.buildDenyTip(form),
+        submissionCountText: this.buildSubmissionCountText(form)
       })
     }).catch(err => {
       wx.hideLoading()
@@ -283,6 +285,19 @@ Page({
       return `🔒 该动态仅限「${depts.join('、')}」部门用户填报，您无权填写`
     }
     return '🔒 该动态仅限指定用户填报，您无权填写'
+  },
+
+  /**
+   * 生成提交数文案（按 tag 区分：副食=订购、活动=提交、问卷/答题=作答）
+   */
+  buildSubmissionCountText(form) {
+    const count = (form && form.submissionCount) || 0
+    if (!count) return ''
+    const tag = form.tag
+    if (tag === 'side_dish') return `${count} 人已订购`
+    if (tag === 'activity' || tag === 'questionnaire') return `${count} 人已提交`
+    if (tag === 'quiz') return `${count} 人已作答`
+    return `${count} 人已提交`
   },
 
   /**

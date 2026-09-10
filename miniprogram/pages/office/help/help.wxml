@@ -25,7 +25,7 @@
           <view class="card-desc">以日历视图展示{{(isReviewer ? '法定节假日' : '馆定节假日和巴西节假日')}}安排</view>
           <view class="card-permission">
             <view class="permission-label">权限要求：</view>
-            <view class="permission-value">所有用户可查看</view>
+            <view class="permission-value">所有用户可查看。</view>
           </view>
         </view>
       </view>
@@ -88,7 +88,7 @@
           <view class="card-desc">报备外出和返回，出行时可自动为同行人代报备（同行人需为本系统注册用户），返回时可为同行人报备返回。报备后5分钟内可撤回，可为进行中的外出追加目的地。当日超23时未归计为超时。</view>
           <view class="card-permission">
             <view class="permission-label">权限要求：</view>
-            <view class="permission-value">所有用户可使用</view>
+            <view class="permission-value">所有用户可使用。</view>
           </view>
         </view>
       </view>
@@ -122,7 +122,7 @@
           <view class="card-desc">查看每周工作餐菜单安排。</view>
           <view class="card-permission">
             <view class="permission-label">权限要求：</view>
-            <view class="permission-value">所有用户可查看菜单并打分，仅厨师、部分特定岗位人员可发布、编辑、删除菜单。</view>
+            <view class="permission-value">所有用户可查看菜单并打分、评论，仅厨师、部分特定岗位人员可发布、编辑、删除菜单，仅后勤管理人员可查看评论。</view>
           </view>
         </view>
       </view>
@@ -259,7 +259,7 @@
           <view class="card-desc">{{(isReviewer ? '' : '巴西利亚')}}当地生活参考信息</view>
           <view class="card-permission">
             <view class="permission-label">权限要求：</view>
-            <view class="permission-value">全体用户可用。</view>
+            <view class="permission-value">全体用户可查看。</view>
           </view>
         </view>
       </view>
@@ -273,7 +273,7 @@
           <view class="card-desc">查看和审批小程序用户提交的各类申请。</view>
           <view class="card-permission">
             <view class="permission-label">权限要求：</view>
-            <view class="permission-value">当前仅限管理员使用</view>
+            <view class="permission-value">当前仅限管理员使用。</view>
           </view>
         </view>
       </view>
@@ -284,10 +284,10 @@
           <view class="card-title">馆内动态</view>
         </view>
         <view class="card-content">
-          <view class="card-desc">发布公告、问卷、副食订购、活动报名、答题等各类信息，供用户查看、填报。</view>
+          <view class="card-desc">发布公告、副食订购、活动报名、问卷、答题等各类信息，供用户查看、填报。</view>
           <view class="card-permission">
             <view class="permission-label">权限要求：</view>
-            <view class="permission-value">馆员可发布。</view>
+            <view class="permission-value">馆员和获授权人员可发布。</view>
           </view>
         </view>
       </view>
@@ -307,7 +307,7 @@
           <view class="card-desc">可查看当前人员外出情况，查看个人外出历史记录。</view>
           <view class="card-permission">
             <view class="permission-label">权限要求：</view>
-            <view class="permission-value">领导，部门负责人、报备接收人、居住区片长可查看管辖范围人员出行情况</view>
+            <view class="permission-value">领导，部门负责人、报备接收人、居住区片长可查看管辖范围人员出行情况。</view>
           </view>
         </view>
       </view>
@@ -376,7 +376,7 @@
           <view class="card-desc">接收系统消息提醒，包括审批状态变更通知、菜单更新通知等。支持标记已读和清除功能。</view>
           <view class="card-permission">
             <view class="permission-label">权限要求：</view>
-            <view class="permission-value">无限制，所有用户可查看</view>
+            <view class="permission-value">无限制，所有用户可查看。</view>
           </view>
         </view>
       </view>
@@ -390,7 +390,7 @@
           <view class="card-desc">查看和修改个人信息。个人信息修改后需管理员审批方可生效。</view>
           <view class="card-permission">
             <view class="permission-label">权限要求：</view>
-            <view class="permission-value">无限制，所有用户可用</view>
+            <view class="permission-value">无限制，所有用户可用。</view>
           </view>
         </view>
       </view>

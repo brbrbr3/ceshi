@@ -314,178 +314,128 @@ Page({
       category: '一、根据国内规定，馆员就医实行事前审批制度。报销医院详见以下就诊医院目录：',
     },
     {
-      category: '私立综合性医院',
+      category: '就诊医院目录（2026.07.28更新）',
       items: [{
         name: 'Hospital Sírio-Libanês',
-        desc: ''
+        desc: '私立综合性医院'
       },
       {
-        name: 'DF Star-Rede D\'OR',
-        desc: ''
+        name: 'Hospital DF Star-Rede D\'OR',
+        desc: '私立综合性医院'
       },
       {
         name: 'Hospital Brasília',
-        desc: ''
+        desc: '私立综合性医院'
       },
       {
         name: 'Hospital Daher',
-        desc: ''
+        desc: '私立综合性医院'
       },
       {
         name: 'Hospital Santa Lúcia',
-        desc: ''
+        desc: '私立综合性医院，儿科专长'
       },
       {
-        name: 'Hospital Santa Luzia',
-        desc: ''
-      }
-      ]
-    },
-    {
-      category: '私立综合性医院（骨科专长）',
-      items: [{
         name: 'Hospital Home',
-        desc: ''
-      }]
-    },
-    {
-      category: '公立医院',
-      items: [{
-        name: 'Sarah Kubitschek',
-        desc: '残障人士友好'
+        desc: '私立综合性医院，骨科专长'
       },
       {
-        name: 'Hospital das Forças Armadas',
-        desc: ''
-      }
-      ]
-    },
-    {
-      category: '牙科',
-      items: [{
         name: 'Rita Trindade',
-        desc: ''
+        desc: '牙科'
       },
       {
         name: 'Clínica Implanto Odontologia Especializada',
-        desc: ''
+        desc: '牙科'
       },
       {
         name: 'Moreti Odontologia',
-        desc: ''
+        desc: '牙科'
+      },
+      {
+        name: 'Iarana Pinho Odontologia',
+        desc: '牙科'
+      },
+      {
+        name: 'Aquarela Centro de Ortodontia',
+        desc: '牙科'
+      },
+      {
+        name: 'Clínica Faber',
+        desc: '牙科'
       },
       {
         name: 'Crool by Rios',
-        desc: ''
-      }
-      ]
-    },
-    {
-      category: '眼科',
-      items: [{
+        desc: '牙科'
+      },
+      {
+        name: 'Prodigest',
+        desc: '消化科'
+      },
+      {
+        name: 'CEOL ENT-Otorhinolaryngology Clinic',
+        desc: '耳鼻喉科'
+      },
+      {
+        name: 'Clinica de Otorrinolaringologia NAKANISHI',
+        desc: '耳鼻喉科'
+      },
+      {
+        name: 'Centro de Acupuntura Shen',
+        desc: '针灸'
+      },
+      {
+        name: 'Clínica de Acupuntura Chinesa Brasília',
+        desc: '针灸'
+      },
+      {
+        name: 'Maternidade Brasília',
+        desc: '妇产科'
+      },
+      {
+        name: 'Hospital Materno Infantil de Brasília',
+        desc: '妇幼专科'
+      },
+      {
+        name: 'Pulsarti',
+        desc: '心血管专科'
+      },
+      {
         name: 'CBV',
-        desc: ''
-      }]
-    },
-    {
-      category: '临床医学检查',
-      items: [{
+        desc: '眼科'
+      },
+      {
         name: 'Laboratório Sabin',
-        desc: '巴西临床医学典范'
+        desc: '医学检验与影像机构'
       },
       {
         name: 'Exame Imagem e Laboratório',
         desc: '临床医学检查与疫苗注射'
       },
       {
-        name: 'IMEB Crispim',
-        desc: ''
-      }
-      ]
-    },
-    {
-      category: '骨科',
-      items: [{
         name: 'Cote Brasília',
-        desc: ''
-      }]
-    },
-    {
-      category: '皮肤科',
-      items: [{
+        desc: '骨科'
+      },
+      {
         name: 'Aluma Dermatologia e Laser',
-        desc: ''
+        desc: '皮肤科'
       },
       {
         name: 'Verveine',
-        desc: ''
+        desc: '皮肤科'
       },
       {
         name: 'Inovaderm',
-        desc: ''
-      }
-      ]
-    },
-    {
-      category: '过敏',
-      items: [{
-        name: 'Consultório Natasha Ferraroni',
-        desc: ''
-      }]
-    },
-    {
-      category: '风湿科',
-      items: [{
-        name: 'Rheos. Reumatologia e Clínica Médica',
-        desc: ''
-      }]
-    },
-    {
-      category: '消化科',
-      items: [{
-        name: 'Prodigest',
-        desc: ''
-      }]
-    },
-    {
-      category: '耳鼻喉科',
-      items: [{
-        name: 'CEOL ENT-Otorhinolaryngology Clinic',
-        desc: ''
-      }]
-    },
-    {
-      category: '针灸',
-      items: [{
-        name: 'Centro de Acupuntura Shen',
-        desc: ''
+        desc: '皮肤科'
       },
       {
-        name: 'Clínica de Acupuntura Chinesa Brasília',
-        desc: ''
+        name: 'Consultório Natasha Ferraroni',
+        desc: '过敏专科'
+      },
+      {
+        name: 'Rheos. Reumatologia e Clínica Médica',
+        desc: '风湿和内科'
       }
       ]
-    },
-    {
-      category: '妇产科',
-      items: [{
-        name: 'Maternidade Brasília',
-        desc: ''
-      }]
-    },
-    {
-      category: '妇幼专科',
-      items: [{
-        name: 'Hospital Materno Infantil de Brasília',
-        desc: ''
-      }]
-    },
-    {
-      category: '多种专科',
-      items: [{
-        name: 'CRIAPP',
-        desc: ''
-      }]
     },
     {
       category: '二、巴西私立医院就医流程指南',
@@ -817,8 +767,13 @@ Page({
       category: '暂无内容'
     }],
 
-    // 7个按钮配置
+    // 按钮配置
     buttons: [{
+      key: 'download',
+      label: '指南下载',
+      icon: '📥'
+    },
+    {
       key: 'preparation',
       label: '行前准备',
       icon: '📋'
@@ -867,6 +822,19 @@ Page({
       key: 'arrived',
       label: '我已到馆',
       icon: '✅'
+    }
+    ],
+
+    // 指南下载文件（云存储 fileID）
+    guideFiles: [{
+      name: '到馆指南.pdf',
+      fileID: 'cloud://cloud1-d2gyip4xi1fcf54bd.636c-cloud1-d2gyip4xi1fcf54bd-1390912780/guides/到馆指南.pdf',
+      fileType: 'pdf'
+    },
+    {
+      name: '202608新馆员到馆办事指南.doc',
+      fileID: 'cloud://cloud1-d2gyip4xi1fcf54bd.636c-cloud1-d2gyip4xi1fcf54bd-1390912780/guides/202608新馆员到馆办事指南.doc',
+      fileType: 'doc'
     }
     ]
   },
@@ -919,10 +887,52 @@ Page({
     }
   },
 
+  // 指南下载
+  handleDownloadGuide() {
+    const files = this.data.guideFiles
+    wx.showActionSheet({
+      itemList: files.map(f => f.name),
+      success: (res) => {
+        const file = files[res.tapIndex]
+        if (!file) return
+        this.downloadAndOpenFile(file)
+      }
+    })
+  },
+
+  // 下载并打开文件
+  downloadAndOpenFile(file) {
+    wx.showLoading({ title: '下载中...', mask: true })
+    wx.cloud.downloadFile({
+      fileID: file.fileID,
+      success: (res) => {
+        wx.hideLoading()
+        wx.openDocument({
+          filePath: res.tempFilePath,
+          fileType: file.fileType,
+          showMenu: true,
+          fail: () => {
+            wx.showToast({ title: '打开失败，请稍后重试', icon: 'none' })
+          }
+        })
+      },
+      fail: (err) => {
+        wx.hideLoading()
+        console.error('下载指南失败:', err)
+        wx.showToast({ title: '下载失败，请稍后重试', icon: 'none' })
+      }
+    })
+  },
+
   // 按钮点击
   handleButtonTap(e) {
     app.subscribeOnTap(app.getSubscribeTypesForUser(app.globalData.userProfile))
     const key = e.currentTarget.dataset.key
+
+    if (key === 'download') {
+      this.handleDownloadGuide()
+      return
+    }
 
     if (key === 'arrived') {
       this.handleArrived()
