@@ -75,7 +75,6 @@
 }
 
 .card-content {
-  padding-left: 68rpx;
 }
 
 .card-desc {

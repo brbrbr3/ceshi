@@ -85,7 +85,12 @@
           <view class="card-title">外出报备</view>
         </view>
         <view class="card-content">
-          <view class="card-desc">报备外出和返回，出行时可自动为同行人代报备（同行人需为本系统注册用户），返回时可为同行人报备返回。报备后5分钟内可撤回，可为进行中的外出追加目的地。当日超23时未归计为超时。</view>
+          <view class="card-desc">报备外出和返回：</view>
+          <view class="card-features">
+          <view class="feature-item">• 出行时可自动为同行人代报备（同行人需为本系统注册用户），返回时可为同行人报备返回。</view>
+          <view class="feature-item">• 报备后5分钟内可撤回，可为进行中的外出追加目的地。</view>
+          <view class="feature-item">• 当日超23时未归计为超时，将对超时用户推送消息提醒。</view>
+          </view>
           <view class="card-permission">
             <view class="permission-label">权限要求：</view>
             <view class="permission-value">所有用户可使用。</view>
@@ -122,7 +127,7 @@
           <view class="card-desc">查看每周工作餐菜单安排。</view>
           <view class="card-permission">
             <view class="permission-label">权限要求：</view>
-            <view class="permission-value">所有用户可查看菜单并打分、评论，仅厨师、部分特定岗位人员可发布、编辑、删除菜单，仅后勤管理人员可查看评论。</view>
+            <view class="permission-value">所有用户可查看菜单并打分、评论，仅厨师、部分特定岗位人员可发布、编辑、删除菜单。</view>
           </view>
         </view>
       </view>

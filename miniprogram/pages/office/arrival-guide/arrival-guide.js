@@ -763,10 +763,6 @@ Page({
     }
     ],
 
-    mockContent: [{
-      category: '暂无内容'
-    }],
-
     // 按钮配置
     buttons: [{
       key: 'download',
@@ -836,7 +832,17 @@ Page({
       fileID: 'cloud://cloud1-d2gyip4xi1fcf54bd.636c-cloud1-d2gyip4xi1fcf54bd-1390912780/guides/202608新馆员到馆办事指南.doc',
       fileType: 'doc'
     }
-    ]
+    ],
+    
+    mockContent: [{
+      category: '暂无内容'
+    }],
+
+    mockFiles: [{
+      name: '暂无内容',
+      fileID: '',
+      fileType: ''
+    }]
   },
 
   onLoad() {
@@ -889,7 +895,10 @@ Page({
 
   // 指南下载
   handleDownloadGuide() {
-    const files = this.data.guideFiles
+    let files = this.data.guideFiles
+    if (this.data.isReviewer) {
+      files = this.data.mockFiles
+    }
     wx.showActionSheet({
       itemList: files.map(f => f.name),
       success: (res) => {

@@ -26,11 +26,14 @@ function truncateNoticeText(text, len) {
  * 盲发模式：不查询用户是否订阅，直接 send，失败仅记日志
  * @param {string} authorName - 菜单发布人姓名
  * @param {string} menuTitle - 菜单标题
+ * @param {string} menuId - 菜单文档 ID（点击订阅消息直达详情页）
  */
-async function sendMenuNoticeToAllUsers(authorName, menuTitle) {
+async function sendMenuNoticeToAllUsers(authorName, menuTitle, menuId) {
   const msgType = truncateNoticeText('新菜单通知')
   const msgContent = truncateNoticeText(menuTitle || '')
   const remark = truncateNoticeText(`${authorName || '管理员'}发布了新的工作餐菜单，点击查看`)
+  // 点击订阅消息直达菜单详情页；无 menuId 时退回菜单列表页
+  const targetPage = menuId ? `pages/office/menu-detail/menu-detail?id=${menuId}` : 'pages/office/menus/menus'
 
   const batchSize = 100
   let offset = 0
@@ -56,7 +59,7 @@ async function sendMenuNoticeToAllUsers(authorName, menuTitle) {
         await cloud.openapi.subscribeMessage.send({
           touser: userDoc.openid,
           templateId: UNREAD_MESSAGE_TEMPLATE_ID,
-          page: 'pages/office/menus/menus',
+          page: targetPage,
           data: {
             thing7: { value: '系统' },
             time2: { value: timeStr },
@@ -128,7 +131,7 @@ exports.main = async (event) => {
         })
 
         // 菜单发布成功后，向全体用户推送"未读消息提醒"订阅消息（盲发，失败仅记日志）
-        sendMenuNoticeToAllUsers(menuData.authorName || user.name || '管理员', menuData.title).catch(err => {
+        sendMenuNoticeToAllUsers(menuData.authorName || user.name || '管理员', menuData.title, addResult._id).catch(err => {
           console.error('[菜单通知] 推送失败:', err)
         })
 

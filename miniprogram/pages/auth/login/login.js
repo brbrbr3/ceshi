@@ -75,6 +75,7 @@ Page({
   data: {
     loading: false,
     statusLoading: true,
+    statusTimeout: false,   // 状态加载超时（15秒），超时后按钮置灰提示网络异常
     constantsReady: false,   // 常量是否加载完成，完成前禁止点击登录
     statusCard: null,
     showRegisterLink: true,
@@ -218,11 +219,24 @@ Page({
   },
 
   refreshStatus(forceRefresh) {
-    this.setData({ statusLoading: true })
+    this.setData({ statusLoading: true, statusTimeout: false })
+    // 清除上一个超时定时器，避免重复触发
+    if (this._statusTimer) {
+      clearTimeout(this._statusTimer)
+      this._statusTimer = null
+    }
+    // 15 秒超时保护：超过则停止加载并提示网络异常
+    this._statusTimer = setTimeout(() => {
+      this.handleStatusTimeout()
+    }, 15000)
+
     return Promise.all([
       app.checkUserRegistration({ forceRefresh }),
       this.loadBootstrapStatus()
     ]).then(([result]) => {
+      // 已超时，忽略迟到的结果
+      if (this.data.statusTimeout) return
+
       // 已注销用户
       if (result.authStatus === 'deactivated') {
         this.setData({
@@ -273,6 +287,9 @@ Page({
         this.setData({ constantsReady: true })
       }
     }).catch((error) => {
+      // 已超时，忽略迟到的失败
+      if (this.data.statusTimeout) return
+
       // 连接失败：保持加载中状态，提示用户网络可能慢，可下拉刷新重试
       this.setData({
         statusLoading: true,
@@ -284,6 +301,28 @@ Page({
         loginTitleText: '正在获取用户状态...若长时间加载，可能网络慢，可更换网络后下拉刷新重试',
         loginButtonText: '加载中...'
       })
+    }).finally(() => {
+      // 请求结束（无论成功失败），清除超时定时器
+      if (this._statusTimer) {
+        clearTimeout(this._statusTimer)
+        this._statusTimer = null
+      }
+    })
+  },
+
+  // 15 秒超时保护：停止加载、按钮置灰、提示网络异常
+  handleStatusTimeout() {
+    this._statusTimer = null
+    this.setData({
+      statusLoading: false,
+      statusTimeout: true,
+      constantsReady: true,
+      statusCard: null,
+      showRegisterLink: false,
+      isRegistered: false,
+      isPendingApproval: false,
+      loginTitleText: '加载失败，请检查网络后，下拉页面再次刷新',
+      loginButtonText: '加载失败'
     })
   },
 
