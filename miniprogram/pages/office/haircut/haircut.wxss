@@ -82,6 +82,8 @@ page {
 .date-selector {
   background: var(--bg-card);
   padding: 5rpx 0 5rpx;
+  margin-left: -24rpx;
+  margin-right: -24rpx;
   border-top: 1rpx solid var(--border-soft);
   border-bottom: 1rpx solid var(--border-soft);
 }
@@ -89,6 +91,7 @@ page {
 .date-scroll {
   width: 100%;
   white-space: nowrap;
+  margin-left: 10rpx;
 }
 
 .date-list {
@@ -98,13 +101,14 @@ page {
 }
 
 .date-item {
+  width: 150rpx;
   padding: 20rpx 24rpx;
   border-radius: 24rpx;
   background: var(--bg-input);
   border: 3rpx solid transparent;
   display: flex;
   align-items: center;
-  justify-content: space-between;
+  justify-content: center;
   transition: all 0.2s ease;
   flex-shrink: 0;
   gap: 8rpx;
@@ -728,7 +732,7 @@ page {
 
 .haircut-info-text {
   font-size: var(--fs-28);
-  color: var(--text-tertiary);
+  color: var(--text-primary);
   line-height: 1.6;
 }
 

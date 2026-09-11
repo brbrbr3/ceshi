@@ -103,10 +103,10 @@
   pointer-events: none;
 }
 
-/* 导出模式：选中态 */
+/* 导出模式：选中态（深色模式用深绿底，避免浅色晃眼） */
 .menu-item.is-selected {
   border-left-color: #16A34A;
-  background: #F0FDF4;
+  background: var(--selected-bg);
 }
 
 /* 方形复选框 */

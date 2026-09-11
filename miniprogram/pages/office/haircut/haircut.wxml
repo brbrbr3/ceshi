@@ -46,7 +46,7 @@
                   <text>{{item.reservationCount}}</text>
                 </view>
               </view>
-              <view wx:if="{{selectedDateIndex === index && isReceptionist}}">
+              <view wx:if="{{isReceptionist}}">
                 <view class="haircut-slot-action is-restore" catchtap="handleOpenChangeDate">↻</view>
               </view>
             </view>
@@ -287,11 +287,11 @@
   <view class="haircut-popup-mask {{showChangeDatePicker ? 'is-visible' : ''}}" catchtouchmove="stopPropagation" bindtap="closeChangeDatePicker">
     <view class="haircut-popup-container" catchtap="stopPropagation">
       <view class="haircut-popup-header">
-        <view class="haircut-popup-title">选择目标日期</view>
+        <view class="haircut-popup-title">改换理发日</view>
         <view class="haircut-popup-close" bindtap="closeChangeDatePicker">×</view>
       </view>
       <view class="haircut-popup-form" style="padding-bottom: 400rpx;">
-        <view class="haircut-field-label">将 {{changeDateSource}} 的预约改到以下日期</view>
+        <view class="haircut-field-label">将理发日 {{changeDateSource}} 及该日的预约改到以下日期：</view>
         <datetime-picker
           class="haircut-change-picker"
           value=""

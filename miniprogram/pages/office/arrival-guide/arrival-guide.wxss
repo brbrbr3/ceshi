@@ -411,3 +411,44 @@
   word-break: break-all;
 }
 
+/* ========== 指南下载（自定义弹窗） ========== */
+.download-file-list {
+  display: flex;
+  flex-direction: column;
+  gap: 20rpx;
+}
+
+.download-file-item {
+  display: flex;
+  align-items: center;
+  gap: 20rpx;
+  padding: 28rpx 24rpx;
+  background: var(--bg-input);
+  border: 2rpx solid var(--border-soft);
+  border-radius: 16rpx;
+  transition: all 0.2s ease;
+}
+
+.download-file-item:active {
+  background: var(--bg-soft);
+  transform: scale(0.98);
+}
+
+.download-file-icon {
+  font-size: var(--fs-32);
+  flex-shrink: 0;
+}
+
+.download-file-name {
+  flex: 1;
+  font-size: var(--fs-30);
+  color: var(--text-primary);
+  word-break: break-all;
+}
+
+.download-file-arrow {
+  font-size: var(--fs-36);
+  color: var(--text-muted);
+  flex-shrink: 0;
+}
+

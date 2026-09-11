@@ -17,6 +17,7 @@ page {
   --header-grad-end: #3B82F6;
   --toast-bg: rgba(30, 41, 59, 0.82);
   --toast-text: #FFFFFF;
+  --selected-bg: #F0FDF4;
   background-color: #EEF2FF;
   height: 100%;
   font-size: 16px;
@@ -45,6 +46,7 @@ page {
     --header-grad-end: #1D4ED8;
     --toast-bg: rgba(255, 255, 255, 0.94);
     --toast-text: #0F172A;
+    --selected-bg: #14532D;
     background-color: #0B1220;
   }
 }
@@ -67,6 +69,7 @@ page {
   --header-grad-end: #1D4ED8;
   --toast-bg: rgba(255, 255, 255, 0.94);
   --toast-text: #0F172A;
+  --selected-bg: #14532D;
 }
 
 /* 手动浅色（附加在 office 页面根 view 上，覆盖系统深色） */
@@ -87,6 +90,7 @@ page {
   --header-grad-end: #3B82F6;
   --toast-bg: rgba(30, 41, 59, 0.82);
   --toast-text: #FFFFFF;
+  --selected-bg: #F0FDF4;
 }
 
 page>view {

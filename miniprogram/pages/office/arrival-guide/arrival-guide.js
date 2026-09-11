@@ -893,20 +893,33 @@ Page({
     }
   },
 
-  // 指南下载
+  // 指南下载（自定义弹窗，支持深色模式）
   handleDownloadGuide() {
-    let files = this.data.guideFiles
-    if (this.data.isReviewer) {
-      files = this.data.mockFiles
-    }
-    wx.showActionSheet({
-      itemList: files.map(f => f.name),
-      success: (res) => {
-        const file = files[res.tapIndex]
-        if (!file) return
-        this.downloadAndOpenFile(file)
-      }
+    const files = this.data.isReviewer ? this.data.mockFiles : this.data.guideFiles
+    this.setData({
+      showPopup: true,
+      popupAnimating: false,
+      popupTitle: '指南下载',
+      popupType: 'download',
+      popupContent: files
     })
+    wx.nextTick(() => {
+      this.setData({
+        popupAnimating: true
+      })
+    })
+  },
+
+  // 点击文件项，下载并打开
+  handleDownloadFileTap(e) {
+    const index = e.currentTarget.dataset.index
+    const file = (this.data.popupContent || [])[index]
+    if (!file || !file.fileID) {
+      utils.showToast({ title: '暂无内容', icon: 'none' })
+      return
+    }
+    this.handleClosePopup()
+    this.downloadAndOpenFile(file)
   },
 
   // 下载并打开文件

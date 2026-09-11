@@ -112,6 +112,17 @@
             </view>
           </view>
         </block>
+
+        <!-- 下载文件选择类型 -->
+        <block wx:if="{{popupType === 'download'}}">
+          <view class="download-file-list">
+            <view wx:for="{{popupContent}}" wx:key="name" class="download-file-item" data-index="{{index}}" bindtap="handleDownloadFileTap">
+              <view class="download-file-icon">📄</view>
+              <view class="download-file-name">{{item.name}}</view>
+              <view class="download-file-arrow">›</view>
+            </view>
+          </view>
+        </block>
         </view>
       </scroll-view>
     </view>
