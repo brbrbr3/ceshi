@@ -1,6 +1,7 @@
 const app = getApp()
 const utils = require('../../../common/utils.js')
 const paginationBehavior = require('../../../behaviors/pagination.js')
+const modalAnimation = require('../../../behaviors/modalAnimation.js')
 
 // 状态样式映射
 const STATUS_STYLE = {
@@ -40,7 +41,7 @@ function parseCompanions(str) {
 }
 
 Page({
-  behaviors: [paginationBehavior],
+  behaviors: [paginationBehavior, modalAnimation],
 
   data: {
     loading: false,
@@ -518,10 +519,11 @@ Page({
    * 隐藏表单弹窗
    */
   hideFormPopup() {
-    this.setData({
-      showFormPopup: false,
-      showDestinationHistory: false,
-      showCompanionsHistory: false
+    this._closeModal('showFormPopup', () => {
+      this.setData({
+        showDestinationHistory: false,
+        showCompanionsHistory: false
+      })
     })
   },
 
@@ -646,9 +648,7 @@ Page({
             icon: 'success'
           })
         }
-        this.setData({
-          showFormPopup: false
-        })
+        this.hideFormPopup()
         // 刷新数据
         this.loadActiveTrip()
         this.refreshList()
@@ -806,7 +806,9 @@ Page({
 
   /** 关闭追加目的地弹窗 */
   hideAppendDestModal() {
-    this.setData({ showAppendDestModal: false, showAppendDestHistory: false })
+    this._closeModal('showAppendDestModal', () => {
+      this.setData({ showAppendDestHistory: false })
+    })
   },
 
   /** 输入新目的地 */
@@ -971,10 +973,11 @@ Page({
   },
 
   hideRetroFormPopup() {
-    this.setData({
-      showRetroFormPopup: false,
-      showRetroDestinationHistory: false,
-      showRetroCompanionsHistory: false
+    this._closeModal('showRetroFormPopup', () => {
+      this.setData({
+        showRetroDestinationHistory: false,
+        showRetroCompanionsHistory: false
+      })
     })
   },
 
@@ -1101,7 +1104,7 @@ Page({
         const status = res.result.data.status
         const message = status === 'overtime' ? '补填报备成功（超时）' : '补填报备成功'
         utils.showToast({ title: message, icon: 'success' })
-        this.setData({ showRetroFormPopup: false })
+        this.hideRetroFormPopup()
         this.refreshList()
       } else {
         utils.showToast({ title: res.result.message || '补填失败', icon: 'none' })

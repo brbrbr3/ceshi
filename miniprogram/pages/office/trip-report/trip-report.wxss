@@ -363,6 +363,7 @@
 .trip-popup-mask.is-visible {
   opacity: 1;
   visibility: visible;
+  animation: tripFadeIn 0.25s ease;
 }
 
 /* 弹窗容器 */
@@ -383,6 +384,36 @@
 
 .trip-popup-mask.is-visible .trip-popup-container {
   transform: translateY(0);
+  animation: tripSlideUp 0.3s cubic-bezier(0.25, 0.1, 0.25, 1);
+}
+
+/* 退出动画（与 modalAnimation behavior 的 250ms 对齐；放最后以确保覆盖入场动画） */
+.trip-popup-mask.is-closing {
+  animation: tripFadeOut 0.25s ease forwards;
+}
+
+.trip-popup-mask.is-closing .trip-popup-container {
+  animation: tripSlideDown 0.25s cubic-bezier(0.25, 0.1, 0.25, 1) forwards;
+}
+
+@keyframes tripFadeIn {
+  from { opacity: 0; }
+  to { opacity: 1; }
+}
+
+@keyframes tripSlideUp {
+  from { transform: translateY(100%); }
+  to { transform: translateY(0); }
+}
+
+@keyframes tripFadeOut {
+  from { opacity: 1; }
+  to { opacity: 0; }
+}
+
+@keyframes tripSlideDown {
+  from { transform: translateY(0); }
+  to { transform: translateY(100%); }
 }
 
 /* 弹窗头部 */
@@ -556,6 +587,7 @@
   font-size: var(--fs-30);
   padding: 24rpx 40rpx 16rpx;
   line-height: 1.6;
+  color: var(--text-primary);
 }
 
 .proxy-return-list {
@@ -575,7 +607,7 @@
 }
 
 .proxy-return-item.is-selected {
-  background: #DCFCE7;
+  background: var(--selected-bg);
   border-color: #16A34A;
 }
 
@@ -719,7 +751,7 @@
 }
 
 .append-dest-proxy-item.is-selected {
-  background: #FFF7ED;
+  background: var(--danger-soft-bg);
   border-color: #F97316;
 }
 

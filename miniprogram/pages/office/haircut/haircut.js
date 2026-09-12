@@ -10,6 +10,7 @@
  */
 
 const app = getApp()
+const modalAnimation = require('../../../behaviors/modalAnimation.js')
 
 // 可查看理发预约的岗位
 const HAIRCUT_VIEWER_POSITIONS = ['招待员', '会计主管', '会计', '办公室内聘']
@@ -59,6 +60,8 @@ const TIME_SLOTS = [{
 ]
 
 Page({
+  behaviors: [modalAnimation],
+
   data: {
     // 用户权限
     canView: false,
@@ -937,9 +940,7 @@ Page({
    * 隐藏预约表单
    */
   hideBookingPopup() {
-    this.setData({
-      showBookingPopup: false
-    })
+    this._closeModal('showBookingPopup')
   },
 
   /**

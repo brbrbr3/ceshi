@@ -538,6 +538,7 @@ page {
 .haircut-popup-mask.is-visible {
   opacity: 1;
   visibility: visible;
+  animation: haircutFadeIn 0.25s ease;
 }
 
 /* ========== 弹窗容器 ========== */
@@ -557,6 +558,36 @@ page {
 
 .haircut-popup-mask.is-visible .haircut-popup-container {
   transform: translateY(0);
+  animation: haircutSlideUp 0.3s cubic-bezier(0.25, 0.1, 0.25, 1);
+}
+
+/* 退出动画（与 modalAnimation behavior 的 250ms 对齐；放最后以确保覆盖入场动画） */
+.haircut-popup-mask.is-closing {
+  animation: haircutFadeOut 0.25s ease forwards;
+}
+
+.haircut-popup-mask.is-closing .haircut-popup-container {
+  animation: haircutSlideDown 0.25s cubic-bezier(0.25, 0.1, 0.25, 1) forwards;
+}
+
+@keyframes haircutFadeIn {
+  from { opacity: 0; }
+  to { opacity: 1; }
+}
+
+@keyframes haircutSlideUp {
+  from { transform: translateY(100%); }
+  to { transform: translateY(0); }
+}
+
+@keyframes haircutFadeOut {
+  from { opacity: 1; }
+  to { opacity: 0; }
+}
+
+@keyframes haircutSlideDown {
+  from { transform: translateY(0); }
+  to { transform: translateY(100%); }
 }
 
 /* ========== 弹窗头部 ========== */

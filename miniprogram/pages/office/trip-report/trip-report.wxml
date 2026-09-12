@@ -109,7 +109,8 @@
   </view>
 
   <!-- 外出报备弹窗 -->
-  <view class="trip-popup-mask {{showFormPopup ? 'is-visible' : ''}}" bindtap="hideFormPopup" catchtouchmove="stopPropagation">
+  <!-- wx:if 保证关闭后销毁 DOM：input 是原生组件，iOS 上仅靠 CSS 隐藏会残留 placeholder -->
+  <view wx:if="{{showFormPopup}}" class="trip-popup-mask is-visible {{modalAnimating ? 'is-closing' : ''}}" bindtap="hideFormPopup" catchtouchmove="stopPropagation">
     <view class="trip-popup-container" catchtap="stopPropagation">
       <view class="trip-popup-header">
         <view class="trip-popup-title">外出报备</view>
@@ -170,7 +171,7 @@
   </view>
 
   <!-- 补填外出报备弹窗 -->
-  <view class="trip-popup-mask {{showRetroFormPopup ? 'is-visible' : ''}}" bindtap="hideRetroFormPopup" catchtouchmove="stopPropagation">
+  <view wx:if="{{showRetroFormPopup}}" class="trip-popup-mask is-visible {{modalAnimating ? 'is-closing' : ''}}" bindtap="hideRetroFormPopup" catchtouchmove="stopPropagation">
     <view class="trip-popup-container" catchtap="stopPropagation">
       <view class="trip-popup-header">
         <view class="trip-popup-title">补填外出报备</view>
@@ -270,7 +271,7 @@
   </view>
 
   <!-- 追加目的地弹窗 -->
-  <view class="trip-popup-mask {{showAppendDestModal ? 'is-visible' : ''}}" bindtap="hideAppendDestModal" catchtouchmove="stopPropagation">
+  <view wx:if="{{showAppendDestModal}}" class="trip-popup-mask is-visible {{modalAnimating ? 'is-closing' : ''}}" bindtap="hideAppendDestModal" catchtouchmove="stopPropagation">
     <view class="trip-popup-container" catchtap="stopPropagation" style="height: 75vh;">
       <view class="trip-popup-header">
         <view class="trip-popup-title">追加目的地</view>

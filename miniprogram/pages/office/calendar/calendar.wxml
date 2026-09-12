@@ -160,7 +160,8 @@
   </view>
 
   <!-- 日程编辑弹窗 -->
-  <view class="schedule-popup-mask {{showSchedulePopup ? 'is-visible' : ''}}" catchtouchmove="stopPropagation" bindtap="hideSchedulePopup">
+  <!-- wx:if 保证关闭后销毁 DOM：input/textarea 是原生组件，iOS 上仅靠 CSS 隐藏会残留 placeholder -->
+  <view wx:if="{{showSchedulePopup}}" class="schedule-popup-mask is-visible {{modalAnimating ? 'is-closing' : ''}}" catchtouchmove="stopPropagation" bindtap="hideSchedulePopup">
     <view class="schedule-popup-container" catchtap="stopPropagation">
       <!-- 弹窗头部 -->
       <view class="schedule-popup-header">

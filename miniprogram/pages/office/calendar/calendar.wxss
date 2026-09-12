@@ -529,6 +529,7 @@
 .schedule-popup-mask.is-visible {
   opacity: 1;
   visibility: visible;
+  animation: scheduleFadeIn 0.25s ease;
 }
 
 /* 弹窗容器 */
@@ -548,6 +549,36 @@
 
 .schedule-popup-mask.is-visible .schedule-popup-container {
   transform: translateY(0);
+  animation: scheduleSlideUp 0.3s cubic-bezier(0.25, 0.1, 0.25, 1);
+}
+
+/* 退出动画（与 modalAnimation behavior 的 250ms 对齐；放最后以确保覆盖入场动画） */
+.schedule-popup-mask.is-closing {
+  animation: scheduleFadeOut 0.25s ease forwards;
+}
+
+.schedule-popup-mask.is-closing .schedule-popup-container {
+  animation: scheduleSlideDown 0.25s cubic-bezier(0.25, 0.1, 0.25, 1) forwards;
+}
+
+@keyframes scheduleFadeIn {
+  from { opacity: 0; }
+  to { opacity: 1; }
+}
+
+@keyframes scheduleSlideUp {
+  from { transform: translateY(100%); }
+  to { transform: translateY(0); }
+}
+
+@keyframes scheduleFadeOut {
+  from { opacity: 1; }
+  to { opacity: 0; }
+}
+
+@keyframes scheduleSlideDown {
+  from { transform: translateY(0); }
+  to { transform: translateY(100%); }
 }
 
 /* 弹窗头部 */

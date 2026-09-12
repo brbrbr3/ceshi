@@ -6,6 +6,7 @@
 
 const app = getApp()
 const utils = require('../../../common/utils.js')
+const modalAnimation = require('../../../behaviors/modalAnimation.js')
 
 // 引入日历组件和农历插件
 const {
@@ -274,6 +275,8 @@ const START_HOUR = 0 // 起始小时 0:00
 const END_HOUR = 24 // 结束小时 24:00
 
 Page({
+  behaviors: [modalAnimation],
+
   data: {
     isReviewer: false,
 
@@ -1417,9 +1420,7 @@ Page({
    * 隐藏日程弹窗
    */
   hideSchedulePopup() {
-    this.setData({
-      showSchedulePopup: false
-    })
+    this._closeModal('showSchedulePopup')
   },
 
   /**
@@ -1770,9 +1771,7 @@ Page({
           title: editingSchedule ? '更新成功' : '创建成功',
           icon: 'success'
         })
-        this.setData({
-          showSchedulePopup: false
-        })
+        this.hideSchedulePopup()
 
         // 重新加载当日日程
         if (this.data.selectedDate) {
@@ -1851,9 +1850,7 @@ Page({
           title: '删除成功',
           icon: 'success'
         })
-        this.setData({
-          showSchedulePopup: false
-        })
+        this.hideSchedulePopup()
 
         // 重新加载当日日程
         if (this.data.selectedDate) {

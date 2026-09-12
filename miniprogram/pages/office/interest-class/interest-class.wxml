@@ -122,7 +122,8 @@
   </view>
 
   <!-- ========== 表单弹窗 ========== -->
-  <view class="ic-popup-mask {{showFormPopup ? 'is-visible' : ''}} {{modalAnimating ? 'is-closing' : ''}}" bind:tap="hideFormPopup" catch:touchmove="stopPropagation">
+  <!-- wx:if 保证关闭后销毁 DOM：input 是原生组件，iOS 上仅靠 CSS 隐藏会残留 placeholder -->
+  <view wx:if="{{showFormPopup}}" class="ic-popup-mask is-visible {{modalAnimating ? 'is-closing' : ''}}" bind:tap="hideFormPopup" catch:touchmove="stopPropagation">
     <view class="ic-popup-container" catchtap="stopPropagation">
       <view class="ic-popup-header">
         <view class="ic-popup-title">{{formMode === 'edit' ? '编辑兴趣班备案' : '新增兴趣班备案'}}</view>

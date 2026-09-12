@@ -230,7 +230,8 @@
   </view>
 
   <!-- 底部弹出：预约表单 -->
-  <view class="haircut-popup-mask {{showBookingPopup ? 'is-visible' : ''}}" catchtouchmove="stopPropagation" bindtap="hideBookingPopup">
+  <!-- wx:if 保证关闭后销毁 DOM：input 是原生组件，iOS 上仅靠 CSS 隐藏会残留 placeholder -->
+  <view wx:if="{{showBookingPopup}}" class="haircut-popup-mask is-visible {{modalAnimating ? 'is-closing' : ''}}" catchtouchmove="stopPropagation" bindtap="hideBookingPopup">
     <view class="haircut-popup-container" catchtap="stopPropagation">
       <view class="haircut-popup-header">
         <view class="haircut-popup-title">预约理发</view>
