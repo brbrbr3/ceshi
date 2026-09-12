@@ -101,7 +101,7 @@ page {
 }
 
 .date-item {
-  width: 150rpx;
+  min-width: 120rpx;
   padding: 20rpx 24rpx;
   border-radius: 24rpx;
   background: var(--bg-input);
@@ -176,7 +176,7 @@ page {
 /* ========== 日期提示 ========== */
 .haircut-date-hint {
   padding: 20rpx 24rpx;
-  background: #FEF3C7;
+  background: var(--hint-warn-bg);
   border-radius: 12rpx;
   margin-top: 20rpx;
   margin-bottom: 20rpx;
@@ -184,7 +184,7 @@ page {
 
 .haircut-date-hint-text {
   font-size: var(--fs-26);
-  color: #92400E;
+  color: var(--hint-warn-text);
 }
 
 /* ========== 时段列表 ========== */
@@ -229,6 +229,11 @@ page {
   border-color: transparent;
 }
 
+/* 我已预约的时段：与普通时段一致，仅不显示边框 */
+.haircut-slot-item.is-my-booked {
+  border-color: transparent;
+}
+
 .haircut-slot-time {
   font-size: var(--fs-32);
   font-weight: 600;
@@ -257,8 +262,8 @@ page {
 
 /* 我已预约 - 黄色 */
 .haircut-slot-status.is-myBooked {
-  background: #FEF3C7;
-  color: #D97706;
+  background: var(--hint-warn-bg);
+  color: var(--hint-warn-text);
 }
 
 /* 不可预约 - 灰色 */

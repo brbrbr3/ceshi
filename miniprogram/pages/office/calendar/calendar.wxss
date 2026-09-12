@@ -67,14 +67,14 @@
 }
 
 .brazil-holiday-pt {
-  font-size: var(--fs-28);
+  font-size: var(--fs-32);
   font-weight: 600;
-  color: #1E40AF;
+  color: var(--checklist-on-text);
 }
 
 .brazil-holiday-zh {
-  font-size: var(--fs-24);
-  color: #3B82F6;
+  font-size: var(--fs-28);
+  color: var(--checklist-on-text);
 }
 
 /* 配置弹窗遮罩 */

@@ -144,6 +144,9 @@ Page({
         fontStyle
       })
     }
+    // 刷新主题（跟随系统 / 手动切换）
+    this.setData({ themeClass: app.getThemeClass(), pageStyle: app.getPageStyle() })
+    app.applySystemUITheme(app.globalData.theme)
     this.setData({
       isDevEnv: app.globalData.isDevEnv,
       isDesktop: ['windows', 'mac'].includes(app.globalData.platform),

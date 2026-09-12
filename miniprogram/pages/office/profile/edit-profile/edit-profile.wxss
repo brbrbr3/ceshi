@@ -1,14 +1,14 @@
 page {
-  background: #EEF2FF;
+  background: var(--bg-page);
 }
 
 .auth-input-shell.is-disabled {
-  background: #F1F5F9;
+  background: var(--bg-soft-2);
   opacity: 0.8;
 }
 
 .auth-input-shell.is-disabled input {
-  color: #64748B;
+  color: var(--text-tertiary);
 }
 
 .auth-segment.is-disabled .auth-segment-item {
@@ -19,7 +19,7 @@ page {
 .auth-field-hint {
   margin-top: 8rpx;
   font-size: var(--fs-26);
-  color: #64748B;
+  color: var(--text-tertiary);
   padding-left: 4rpx;
 }
 
@@ -28,8 +28,8 @@ page {
   margin-top: 20rpx;
   padding: 22rpx 24rpx;
   border-radius: 24rpx;
-  background: #FEF2F2;
-  color: #B91C1C;
+  background: var(--danger-soft-bg);
+  color: var(--danger-text);
 }
 
 .edit-profile-review-title {

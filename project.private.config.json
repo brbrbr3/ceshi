@@ -18,7 +18,7 @@
     "useIsolateContext": false,
     "ignoreDevUnusedFiles": true
   },
-  "libVersion": "3.17.0",
+  "libVersion": "3.17.2",
   "condition": {
     "miniprogram": {
       "list": []

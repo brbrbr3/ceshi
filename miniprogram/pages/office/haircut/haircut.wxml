@@ -46,7 +46,7 @@
                   <text>{{item.reservationCount}}</text>
                 </view>
               </view>
-              <view wx:if="{{isReceptionist}}">
+              <view wx:if="{{selectedDateIndex === index && isReceptionist}}">
                 <view class="haircut-slot-action is-restore" catchtap="handleOpenChangeDate">↻</view>
               </view>
             </view>
@@ -63,7 +63,7 @@
       <view class="haircut-slots-section" wx:if="{{selectedDate && (selectedDateInfo && !selectedDateInfo.isDisabled) || (selectedDateInfo && selectedDateInfo.isDayLocked)}}">
         <view class="haircut-slots-title">选择时段</view>
         <view class="haircut-slots-list">
-          <view class="haircut-slot-item {{selectedSlot === item.start ? 'is-selected' : ''}} {{item.status === 'booked' || item.status === 'myBooked' || item.status === 'unavailable' ? 'is-booked' : ''}}" wx:for="{{slots}}" wx:key="start" bindtap="handleSlotSelect" data-slot="{{item}}">
+          <view class="haircut-slot-item {{selectedSlot === item.start ? 'is-selected' : ''}} {{item.status === 'booked' || item.status === 'unavailable' ? 'is-booked' : ''}} {{item.status === 'myBooked' ? 'is-my-booked' : ''}}" wx:for="{{slots}}" wx:key="start" bindtap="handleSlotSelect" data-slot="{{item}}">
             <view class="haircut-slot-left">
               <!-- 按钮部分 -->
               <view class="haircut-slot-btn">

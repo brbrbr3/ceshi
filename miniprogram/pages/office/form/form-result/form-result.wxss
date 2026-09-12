@@ -172,6 +172,6 @@
 
 .fr-group-members {
   font-size: var(--fs-32);
-  color: var(--text-tertiary);
+  color: var(--text-primary);
   line-height: 1.6;
 }

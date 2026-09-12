@@ -510,14 +510,14 @@ page {
 .approval-modal-copy {
   margin-top: 24rpx;
   padding: 24rpx;
-  background: #FEF3C7;
+  background: var(--hint-warn-bg);
   border-radius: 12rpx;
-  border: 1rpx solid #FCD34D;
+  border: 1rpx solid var(--hint-warn-border);
 }
 
 .approval-modal-copy-text {
   font-size: var(--fs-24);
-  color: #92400E;
+  color: var(--hint-warn-text);
   margin-bottom: 16rpx;
   line-height: 1.6;
 }

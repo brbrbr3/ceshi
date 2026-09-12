@@ -149,8 +149,8 @@ page {
   justify-content: space-between;
   margin-top: 20rpx;
   padding: 24rpx 28rpx;
-  background: #FEF3C7;
-  border: 1rpx solid #92400E;
+  background: var(--hint-warn-bg);
+  border: 1rpx solid var(--hint-warn-border);
   border-radius: 20rpx;
   transition: all 0.25s ease;
   animation: trip-status-in 0.5s cubic-bezier(0.22, 1, 0.36, 1);
@@ -196,7 +196,7 @@ page {
 .home-trip-status-label {
   font-size: var(--fs-28);
   font-weight: 600;
-  color: #92400E;
+  color: var(--hint-warn-text);
   overflow: hidden;
   text-overflow: ellipsis;
   white-space: nowrap;
@@ -204,7 +204,7 @@ page {
 
 .home-trip-status-sub {
   font-size: var(--fs-24);
-  color: #B45309;
+  color: var(--hint-warn-text);
   margin-top: 4rpx;
 }
 

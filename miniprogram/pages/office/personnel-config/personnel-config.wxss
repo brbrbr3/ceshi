@@ -567,10 +567,10 @@
 .report-readonly-tip {
   margin: 16rpx 24rpx;
   padding: 16rpx 24rpx;
-  background: #FEF3C7;
+  background: var(--hint-warn-bg);
   border-radius: 12rpx;
   font-size: var(--fs-24);
-  color: #D97706;
+  color: var(--hint-warn-text);
   text-align: center;
 }
 

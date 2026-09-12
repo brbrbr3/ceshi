@@ -63,6 +63,9 @@ Page({
     if (this.data.fontStyle !== fontStyle) {
       this.setData({ fontStyle })
     }
+    // 刷新主题（跟随系统 / 手动切换）
+    this.setData({ themeClass: app.getThemeClass(), pageStyle: app.getPageStyle() })
+    app.applySystemUITheme(app.globalData.theme)
   },
 
   // 加载常量

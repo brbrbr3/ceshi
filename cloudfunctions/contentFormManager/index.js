@@ -1534,7 +1534,8 @@ async function getStats(openid, user, params) {
       return fail('仅发布者可查看统计', 403)
     }
 
-    const listRes = await submissionsCollection.where({ formId }).limit(1000).get()
+    // 按提交时间升序，保证报名名单等按提交先后顺序展示（与 getForm 保持一致）
+    const listRes = await submissionsCollection.where({ formId }).orderBy('submittedAt', 'asc').limit(1000).get()
     const submissions = listRes.data || []
 
     const blocks = (form.blocks || []).map(block => {

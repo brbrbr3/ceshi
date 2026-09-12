@@ -1,5 +1,5 @@
 page {
-  background-color: #F8FAFC;
+  background-color: var(--bg-page);
 }
 
 .login-page {
@@ -30,7 +30,7 @@ page {
   margin: 5rpx 0 32rpx;
   padding: 24rpx;
   border-radius: 24rpx;
-  background: linear-gradient(135deg, #ECFDF5 0%, #F0FDF4 100%);
+  background: var(--success-soft-bg);
 }
 
 .login-wechat-icon {
@@ -52,46 +52,46 @@ page {
 .login-wechat-title {
   font-size: var(--fs-32);
   font-weight: 600;
-  color: #166534;
+  color: var(--success-text);
 }
 
 .login-wechat-title.is-rejected {
-  color: #B91C1C;
+  color: var(--danger-text);
 }
 
 .login-wechat-title-desc {
   font-size: var(--fs-25);
   font-weight: 500;
-  color: #166534;
+  color: var(--success-text);
   margin: 30rpx 0;
 }
 
 .login-wechat-desc {
   margin-top: 8rpx;
   font-size: var(--fs-30);
-  color: #15803D;
+  color: var(--success-text);
 }
 
 /* 首个管理员初始化 */
 .auth-bootstrap-card {
   margin-top: 30rpx;
   padding: 30rpx;
-  background: #fff7ed;
-  border: 1rpx solid #fed7aa;
+  background: var(--hint-warn-bg);
+  border: 1rpx solid var(--hint-warn-border);
   border-radius: 24rpx;
 }
 
 .auth-bootstrap-title {
   font-size: var(--fs-30);
   font-weight: 600;
-  color: #9a3412;
+  color: var(--hint-warn-text);
 }
 
 .auth-bootstrap-desc {
   margin-top: 12rpx;
   font-size: var(--fs-24);
   line-height: 1.7;
-  color: #9a3412;
+  color: var(--hint-warn-text);
 }
 
 .auth-bootstrap-btn {
@@ -111,7 +111,7 @@ page {
   margin: 20rpx auto;
   padding: 20rpx 40rpx 80rpx;
   font-size: var(--fs-26);
-  color: #999;
+  color: var(--text-muted);
   text-align: center;
   text-decoration: underline;
 }
@@ -182,7 +182,7 @@ page {
 .auth-modal {
   width: 80%;
   max-width: 600rpx;
-  background: #fff;
+  background: var(--bg-card);
   border-radius: 16rpx;
   padding: 40rpx;
   animation: scaleIn 0.2s ease;
@@ -198,13 +198,13 @@ page {
   font-weight: 600;
   text-align: center;
   margin-bottom: 10rpx;
-  color: #333;
+  color: var(--text-primary);
 }
 
 .auth-modal-desc {
   font-size: var(--fs-24);
   text-align: center;
-  color: #ff4d4f;
+  color: var(--danger-text);
   margin-bottom: 20rpx;
 }
 
@@ -213,10 +213,12 @@ page {
   height: 80rpx;
   padding: 0 20rpx;
   margin-top: 16rpx;
-  border: 1rpx solid #ddd;
+  border: 1rpx solid var(--border-soft);
   border-radius: 8rpx;
   font-size: var(--fs-28);
   box-sizing: border-box;
+  background: var(--bg-input);
+  color: var(--text-primary);
 }
 
 .auth-modal-actions {
@@ -235,8 +237,8 @@ page {
 }
 
 .auth-modal-btn-cancel {
-  background: #f5f5f5;
-  color: #666;
+  background: var(--bg-soft-2);
+  color: var(--text-secondary);
 }
 
 .auth-modal-btn-confirm {
@@ -247,21 +249,21 @@ page {
 /* 调试面板 */
 .auth-debug-panel {
   padding: 30rpx;
-  background: #fff;
+  background: var(--bg-card);
   border-radius: 26rpx;
-  box-shadow: 0 2rpx 12rpx rgba(0, 0, 0, 0.08);
+  box-shadow: 0 2rpx 12rpx var(--shadow-card);
 }
 
 .auth-debug-panel-title {
   font-size: var(--fs-32);
   font-weight: 600;
-  color: #333;
+  color: var(--text-primary);
   margin-bottom: 10rpx;
 }
 
 .auth-debug-panel-desc {
   font-size: var(--fs-24);
-  color: #999;
+  color: var(--text-muted);
   margin-bottom: 30rpx;
 }
 
@@ -275,14 +277,14 @@ page {
   height: 80rpx;
   line-height: 80rpx;
   text-align: center;
-  background: #f0f5ff;
-  color: #1890ff;
+  background: var(--bg-soft);
+  color: var(--primary-text);
   border-radius: 8rpx;
   font-size: var(--fs-28);
 }
 
 .auth-debug-btn:active {
-  background: #d6e4ff;
+  background: var(--bg-soft-2);
 }
 
 .auth-debug-close {
@@ -290,7 +292,7 @@ page {
   margin-bottom: 70rpx;
   text-align: center;
   font-size: var(--fs-26);
-  color: #999;
+  color: var(--text-muted);
   text-decoration: underline;
 }
 
@@ -299,19 +301,19 @@ page {
   margin-top: 30rpx;
   margin-bottom: 100rpx;
   padding-top: 30rpx;
-  border-top: 1rpx solid #eee;
+  border-top: 1rpx solid var(--border-soft);
 }
 
 .auth-debug-results-title {
   font-size: var(--fs-28);
   font-weight: 600;
-  color: #333;
+  color: var(--text-primary);
   margin-bottom: 20rpx;
 }
 
 .auth-debug-result-item {
   padding: 20rpx;
-  background: #f9f9f9;
+  background: var(--bg-soft-2);
   border-radius: 8rpx;
   margin-bottom: 20rpx;
 }
@@ -325,7 +327,7 @@ page {
 .auth-debug-result-name {
   font-size: var(--fs-28);
   font-weight: 500;
-  color: #333;
+  color: var(--text-primary);
 }
 
 .auth-debug-result-status {
@@ -335,25 +337,25 @@ page {
 }
 
 .auth-debug-result-status.is-success {
-  background: #e6fffb;
-  color: #52c41a;
+  background: var(--success-soft-bg);
+  color: var(--success-text);
 }
 
 .auth-debug-result-status.is-fail {
-  background: #fff1f0;
-  color: #ff4d4f;
+  background: var(--danger-soft-bg);
+  color: var(--danger-text);
 }
 
 .auth-debug-result-message {
   margin-top: 10rpx;
   font-size: var(--fs-24);
-  color: #666;
+  color: var(--text-secondary);
 }
 
 .auth-debug-result-data {
   margin-top: 10rpx;
   font-size: var(--fs-24);
-  color: #999;
+  color: var(--text-muted);
   word-break: break-all;
   white-space: pre-wrap;
   max-height: 300rpx;
@@ -362,21 +364,21 @@ page {
 
 /* 危险操作按钮 */
 .auth-debug-btn-danger {
-  background: #fff1f0;
-  color: #ff4d4f;
+  background: var(--danger-soft-bg);
+  color: var(--danger-text);
 }
 
 .auth-debug-btn-danger:active {
-  background: #ffccc7;
+  opacity: 0.7;
 }
 
 /* 清除数据库面板 */
 .auth-clear-db-panel {
   margin-top: 30rpx;
   padding: 30rpx;
-  background: #fafafa;
+  background: var(--bg-soft-2);
   border-radius: 12rpx;
-  border: 1rpx solid #eee;
+  border: 1rpx solid var(--border-soft);
 }
 
 .auth-clear-db-header {
@@ -389,12 +391,12 @@ page {
 .auth-clear-db-title {
   font-size: var(--fs-28);
   font-weight: 600;
-  color: #333;
+  color: var(--text-primary);
 }
 
 .auth-clear-db-select-all {
   font-size: var(--fs-24);
-  color: #1890ff;
+  color: var(--primary-text);
   text-decoration: underline;
 }
 
@@ -410,15 +412,15 @@ page {
   display: flex;
   align-items: center;
   padding: 16rpx 20rpx;
-  background: #fff;
+  background: var(--bg-card);
   border-radius: 8rpx;
-  border: 1rpx solid #e8e8e8;
+  border: 1rpx solid var(--border-soft);
 }
 
 .auth-clear-db-item-name {
   margin-left: 16rpx;
   font-size: var(--fs-26);
-  color: #333;
+  color: var(--text-primary);
 }
 
 .auth-clear-db-actions {
@@ -437,8 +439,8 @@ page {
 }
 
 .auth-clear-db-btn-cancel {
-  background: #f5f5f5;
-  color: #666;
+  background: var(--bg-soft-2);
+  color: var(--text-secondary);
 }
 
 .auth-clear-db-btn-confirm {
@@ -466,7 +468,7 @@ page {
 .login-status-title {
   font-size: var(--fs-30);
   font-weight: 700;
-  color: #0F172A;
+  color: var(--text-strong);
 }
 
 .login-status-tag {
@@ -478,32 +480,32 @@ page {
 
 .login-status-card.is-pending {
   border: 1rpx solid rgba(245, 158, 11, 0.22);
-  background: linear-gradient(180deg, #FFFFFF 0%, #FFFBEB 100%);
+  background: linear-gradient(180deg, var(--bg-card) 0%, var(--hint-warn-bg) 100%);
 }
 
 .login-status-card.is-pending .login-status-tag {
-  background: #FEF3C7;
-  color: #B45309;
+  background: var(--hint-warn-bg);
+  color: var(--hint-warn-text);
 }
 
 .login-status-card.is-rejected {
   border: 1rpx solid rgba(239, 68, 68, 0.2);
-  background: linear-gradient(180deg, #FFFFFF 0%, #FEF2F2 100%);
+  background: linear-gradient(180deg, var(--bg-card) 0%, var(--danger-soft-bg) 100%);
 }
 
 .login-status-card.is-rejected .login-status-tag {
-  background: #FEE2E2;
-  color: #B91C1C;
+  background: var(--danger-soft-bg);
+  color: var(--danger-text);
 }
 
 .login-status-card.is-approved {
   border: 1rpx solid rgba(34, 197, 94, 0.2);
-  background: linear-gradient(180deg, #FFFFFF 0%, #F0FDF4 100%);
+  background: linear-gradient(180deg, var(--bg-card) 0%, var(--success-soft-bg) 100%);
 }
 
 .login-status-card.is-approved .login-status-tag {
-  background: #DCFCE7;
-  color: #15803D;
+  background: var(--success-soft-bg);
+  color: var(--success-text);
 }
 
 .login-status-card.is-error {
@@ -511,8 +513,8 @@ page {
 }
 
 .login-status-card.is-error .login-status-tag {
-  background: #E2E8F0;
-  color: #475569;
+  background: var(--bg-soft-2);
+  color: var(--text-secondary);
 }
 
 .login-status-desc,
@@ -521,11 +523,11 @@ page {
   margin-top: 14rpx;
   font-size: var(--fs-24);
   line-height: 1.7;
-  color: #64748B;
+  color: var(--text-tertiary);
 }
 
 .login-status-extra {
-  color: #1E293B;
+  color: var(--text-primary);
 }
 
 .login-bottom-link {
@@ -533,7 +535,7 @@ page {
   text-align: center;
   font-size: var(--fs-24);
   font-weight: 600;
-  color: #2563EB;
+  color: var(--primary-text);
 }
 
 /* 审核员登录链接 */
@@ -541,6 +543,6 @@ page {
   margin-top: 24rpx;
   text-align: center;
   font-size: var(--fs-24);
-  color: #94a3b8;
+  color: var(--text-muted);
   text-decoration: underline;
 }

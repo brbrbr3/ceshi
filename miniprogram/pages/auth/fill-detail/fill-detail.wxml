@@ -1,6 +1,7 @@
+<page-meta page-style="{{pageStyle}}" />
 <watermark />
 
-<view class="auth-page fill-detail-page" style="{{fontStyle}}">
+<view class="auth-page fill-detail-page {{themeClass}}" style="{{fontStyle}}">
   <view class="auth-hero">
     <view class="auth-title">补充详细信息</view>
     <view class="auth-subtitle">您已通过审批！需完善以下信息方可使用本系统。</view>
@@ -12,7 +13,7 @@
     <view class="auth-form">
       <!-- 角色 -->
       <view class="auth-field">
-        <view class="auth-field-label">角色 <text style="color: #e74c3c;">*</text></view>
+        <view class="auth-field-label">角色 <text style="color: var(--danger-text);">*</text></view>
         <view class="auth-card-desc">请根据您的实际情况选择角色</view>
         <picker mode="selector" range="{{roleOptions}}" value="{{roleIndex >= 0 ? roleIndex : 0}}" bindchange="handleRoleChange">
           <view class="auth-picker-shell {{roleIndex < 0 ? 'is-placeholder' : ''}}">
@@ -24,7 +25,7 @@
 
       <!-- 部门 -->
       <view wx:if="{{showDepartmentField}}" class="auth-field">
-        <view class="auth-field-label">部门 <text style="color: #e74c3c;">*</text></view>
+        <view class="auth-field-label">部门 <text style="color: var(--danger-text);">*</text></view>
         <view wx:if="{{form.role === '馆员'}}" class="auth-card-desc">如果不属于具体部门，请选"无"</view>
         <picker mode="selector" range="{{departmentOptions}}" value="{{departmentIndex >= 0 ? departmentIndex : 0}}" bindchange="handleDepartmentChange">
           <view class="auth-picker-shell {{departmentIndex < 0 ? 'is-placeholder' : ''}}">
@@ -47,7 +48,7 @@
 
       <!-- 亲属姓名 -->
       <view wx:if="{{showRelativeField}}" class="auth-field">
-        <view class="auth-field-label">您是哪位馆员的亲属？ <text style="color: #e74c3c;">*</text></view>
+        <view class="auth-field-label">您是哪位馆员的亲属？ <text style="color: var(--danger-text);">*</text></view>
         <view class="auth-input-shell">
           <input value="{{form.relativeName}}" placeholder="请输入馆员姓名" placeholder-class="auth-input-placeholder" bindinput="handleRelativeNameInput" />
         </view>
@@ -55,7 +56,7 @@
 
       <!-- 居住区域（待赴任馆员隐藏） -->
       <view wx:if="{{showLivingArea}}" class="auth-field">
-        <view class="auth-field-label">居住区域 <text style="color: #e74c3c;">*</text></view>
+        <view class="auth-field-label">居住区域 <text style="color: var(--danger-text);">*</text></view>
         <picker mode="selector" range="{{livingAreaOptions}}" value="{{livingAreaIndex >= 0 ? livingAreaIndex : 0}}" bindchange="handleLivingAreaChange">
           <view class="auth-picker-shell {{livingAreaIndex < 0 ? 'is-placeholder' : ''}}">
             <view class="auth-picker-value">{{livingAreaIndex >= 0 ? form.livingArea : '请选择居住区域'}}</view>

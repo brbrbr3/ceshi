@@ -1,7 +1,7 @@
 <page-meta page-style="{{pageStyle}}" />
 <view class="arrival-guide-page {{themeClass}}" style="{{fontStyle}}">
   <!-- 全屏背景 -->
-  <image class="bg-image" src="/image/nm-low.jpg" mode="heightFix" />
+  <image wx:if="{{themeClass === 'theme-light'}}" class="bg-image" src="/image/nm-low.jpg" mode="heightFix" />
 
   <!-- 自定义导航栏 -->
   <view class="custom-nav" style="padding-top: {{statusBarHeight}}px">

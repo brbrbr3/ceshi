@@ -34,29 +34,29 @@
 
 .trip-status-card.is-active {
   /* 外出中 - 黄色 */
-  background: #FEF3C7;
-  border: 1rpx solid #92400E;
+  background: var(--hint-warn-bg);
+  border: 1rpx solid var(--hint-warn-border);
 }
 
 .trip-status-card.is-active .trip-status-label {
-  color: #92400E;
+  color: var(--hint-warn-text);
 }
 
 .trip-status-card.is-active .trip-status-companion {
-  color: #B45309;
+  color: var(--hint-warn-text);
 }
 
 .trip-status-card.is-active .trip-status-item-label {
-  color: #92400E;
+  color: var(--hint-warn-text);
   opacity: 0.8;
 }
 
 .trip-status-card.is-active .trip-status-item-value {
-  color: #92400E;
+  color: var(--hint-warn-text);
 }
 
 .trip-status-card.is-active .trip-status-detail {
-  border-top-color: #92400E;
+  border-top-color: var(--hint-warn-border);
 }
 
 .trip-status-card.is-idle {
@@ -125,10 +125,7 @@
 /* 同行人标签 */
 .companion-tag {
   display: inline-block;
-  background: rgba(255, 255, 255, 0.45);
-  border-radius: 12rpx;
-  padding: 2rpx 0;
-  font-size: var(--fs-24);
+  font-size: var(--fs-28);
   font-weight: 500;
 }
 
@@ -227,7 +224,7 @@
 }
 
 .trip-section-title {
-  font-size: var(--fs-30);
+  font-size: var(--fs-35);
   font-weight: 600;
   color: var(--text-primary);
   margin-bottom: 20rpx;
@@ -240,7 +237,7 @@
 }
 
 .trip-month-title {
-  font-size: var(--fs-26);
+  font-size: var(--fs-32);
   color: var(--text-tertiary);
   margin-bottom: 16rpx;
   padding-left: 8rpx;
@@ -275,7 +272,7 @@
 }
 
 .trip-item-time {
-  font-size: var(--fs-26);
+  font-size: var(--fs-28);
   color: var(--text-tertiary);
   flex: 1;
 }
@@ -294,7 +291,7 @@
 }
 
 .trip-item-dest {
-  font-size: var(--fs-28);
+  font-size: var(--fs-30);
   color: var(--text-primary);
   font-weight: 500;
 }
@@ -306,7 +303,15 @@
 
 .trip-item-mode,
 .trip-item-companions {
-  font-size: var(--fs-24);
+  font-size: var(--fs-28);
+  color: var(--text-tertiary);
+}
+
+/* 出行记录条目内的同行人：去掉标签背景，与出行方式同色 */
+.trip-item-meta .companion-tag {
+  background: none;
+  border-radius: 0;
+  padding: 0;
   color: var(--text-tertiary);
 }
 
