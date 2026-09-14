@@ -140,6 +140,7 @@ Page({
   },
 
   submitComment() {
+    app.subscribeOnTap(app.getSubscribeTypesForUser(app.globalData.userProfile))
     const content = this.data.commentText.trim()
     if (!content) {
       utils.showToast({
@@ -207,6 +208,7 @@ Page({
   },
 
   deleteComment(e) {
+    app.subscribeOnTap(app.getSubscribeTypesForUser(app.globalData.userProfile))
     const id = e.currentTarget.dataset.id
     wx.showModal({
       title: '确认删除',
@@ -314,7 +316,7 @@ Page({
       '菜单', '今日菜单', '本周菜单', '午餐', '晚餐', '早餐',
       '主食', '副菜', '汤类', '甜品', '饮品', '凉菜', '热菜',
       '荤菜', '素菜', '推荐', '特别推荐', '厨师推荐',
-      '备注', '说明', '注意', '温馨提示', '中秋', '国庆', '春节', '元旦', '清明', '端午', '五一', '假期', '节日', '放假'
+      '备注', '说明', '注意', '温馨提示', '中秋', '国庆', '春节', '元旦', '清明', '端午', '五一', '假期', '节日', '放假', '节假日'
     ])
 
     // 日期匹配正则（排除"星期一"、"周一"、"汤星期二"等含日期标记的词）
@@ -432,6 +434,7 @@ Page({
 
   /** 打开打分弹窗 */
   openRatingPopup() {
+    app.subscribeOnTap(app.getSubscribeTypesForUser(app.globalData.userProfile))
     const openid = app.globalData.openid
     if (!openid) {
       utils.showToast({ title: '请先登录', icon: 'none' })
@@ -461,6 +464,7 @@ Page({
 
   /** 关闭打分弹窗 */
   closeRatingPopup() {
+    app.subscribeOnTap(app.getSubscribeTypesForUser(app.globalData.userProfile))
     this._closeModal('showRatingPopup', () => {
       this.setData({ tempRatings: {}, hasTempRatings: false })
     })
@@ -468,6 +472,7 @@ Page({
 
   /** 选择星级 */
   handleStarTap(e) {
+    app.subscribeOnTap(app.getSubscribeTypesForUser(app.globalData.userProfile))
     const dishName = e.currentTarget.dataset.dish
     const star = parseInt(e.currentTarget.dataset.star)
 
@@ -487,6 +492,7 @@ Page({
 
   /** 提交打分 */
   submitRatings() {
+    app.subscribeOnTap(app.getSubscribeTypesForUser(app.globalData.userProfile))
     const tempRatings = this.data.tempRatings
     const keys = Object.keys(tempRatings).filter(k => tempRatings[k] >= 1)
 

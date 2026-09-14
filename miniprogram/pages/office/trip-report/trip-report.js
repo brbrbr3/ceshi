@@ -735,6 +735,7 @@ Page({
 
   /** 代报备返回弹窗：确认返回 */
   handleConfirmProxyReturn() {
+    app.subscribeOnTap(app.getSubscribeTypesForUser(app.globalData.userProfile))
     const tripId = this.data.activeTrip._id
     const proxyIds = this.data.proxyReturnSelected
     this.setData({ showProxyReturnModal: false })
@@ -744,6 +745,7 @@ Page({
 
   /** 代报备返回弹窗：跳过代报备，仅自己返回 */
   handleProxyReturnSkip() {
+    app.subscribeOnTap(app.getSubscribeTypesForUser(app.globalData.userProfile))
     this.setData({ showProxyReturnModal: false })
     wx.showLoading({ title: '请稍候...', mask: true })
     wx.cloud.callFunction({
@@ -779,6 +781,7 @@ Page({
     const activeTrip = this.data.activeTrip
     if (!activeTrip) return
 
+    app.subscribeOnTap(app.getSubscribeTypesForUser(app.globalData.userProfile))
     wx.showLoading({ title: '加载中...', mask: true })
     wx.cloud.callFunction({
       name: 'tripReport',
@@ -834,11 +837,13 @@ Page({
 
   /** 仅自己追加 */
   handleAppendDestSkip() {
+    app.subscribeOnTap(app.getSubscribeTypesForUser(app.globalData.userProfile))
     this._submitAppendDest([])
   },
 
   /** 一并追加 */
   handleAppendDestConfirm() {
+    app.subscribeOnTap(app.getSubscribeTypesForUser(app.globalData.userProfile))
     this._submitAppendDest(this.data.appendDestSelected)
   },
 
@@ -851,7 +856,7 @@ Page({
     }
 
     if (this.data.submitting) return
-
+    
     this.setData({ submitting: true, showAppendDestModal: false })
     wx.showLoading({ title: '请稍候...', mask: true })
 
@@ -952,6 +957,7 @@ Page({
    */
   showRetroForm() {
     if (this.data.activeTrip) return
+    app.subscribeOnTap(app.getSubscribeTypesForUser(app.globalData.userProfile))
 
     const lastTrip = this.data.tripList.find(trip => trip.status === 'returned')
     const retroForm = {
@@ -1121,6 +1127,7 @@ Page({
    * 撤回报备
    */
   handleCancelTrip() {
+    app.subscribeOnTap(app.getSubscribeTypesForUser(app.globalData.userProfile))
     wx.showModal({
       title: '撤回报备',
       content: '外出报备5分钟内可撤回，将删除报备记录（包括同行人的报备记录）。是否撤回？',

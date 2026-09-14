@@ -30,14 +30,6 @@ Page({
       value: '0'
     }],
     quickActions: [
-      /* {
-         icon: '🍱',
-         label: '工作餐与副食',
-         color: '#16A34A',
-         bg: '#DCFCE7',
-         implemented: true,
-         featureKey: 'meal_management'
-       }, */
       {
         icon: '🛴',
         label: '外出报备',
@@ -71,14 +63,6 @@ Page({
         featureKey: null
       },
       /*  {
-         icon: '📊',
-         label: '出行数据板',
-         color: '#7C3AED',
-         bg: '#F3E8FF',
-         implemented: true,
-         featureKey: 'trip_dashboard'
-       }, 
-       {
         icon: '🏥',
         label: '就医申请',
         color: '#EF4444',
@@ -191,9 +175,7 @@ Page({
     this.syncNotifications() //同步消息推送
     app.syncSubStatus()// 刷新微信侧订阅状态到本地缓存（供 handleQuickAction tap 时同步读取）
     this.loadContentForms() //加载馆内动态
-    //this.loadAnnouncements() //加载通知公告
     //this.loadArticles() //加载学习园地
-    //this.loadActivities() //加载群团活动
     this.loadHolidayConfig() //加载节假日配置
     //this.loadTodaySchedules() // 加载今日日程
     this.loadActiveTrip() // 加载外出状态
@@ -532,6 +514,7 @@ Page({
     }
   },
 
+  //点击馆内动态
   goContentForms() {
     // 利用用户 tap 手势静默订阅消息
     const user = this.data.currentUser || app.globalData.userProfile
@@ -540,7 +523,8 @@ Page({
       url: '/pages/office/form/form-list/form-list'
     })
   },
-
+  
+  //点击馆内动态条目
   handleContentFormTap(e) {
     // 利用用户 tap 手势静默订阅消息
     const user = this.data.currentUser || app.globalData.userProfile
@@ -551,40 +535,6 @@ Page({
         url: `/pages/office/form/form-detail/form-detail?id=${id}`
       })
     }
-  },
-
-  loadAnnouncements() {
-    this.setData({
-      loading: true
-    })
-
-    wx.cloud.callFunction({
-      name: 'announcementManager',
-      data: {
-        action: 'list',
-        params: {
-          page: 1,
-          pageSize: 3
-        }
-      }
-    }).then(res => {
-      const result = res.result
-      if (result && result.code === 0) {
-        const list = result.data.list || []
-        const formattedList = list.map(item => this.formatAnnouncement(item))
-        this.setData({
-          announcements: formattedList,
-          loading: false
-        })
-      } else {
-        throw new Error(result.message || '加载失败')
-      }
-    }).catch(error => {
-      console.error('加载通知公告失败:', error)
-      this.setData({
-        loading: false
-      })
-    })
   },
 
   formatAnnouncement(item) {
@@ -619,21 +569,6 @@ Page({
       }
     }
     return typeMap[type] || typeMap.normal
-  },
-
-  goAnnouncements() {
-    wx.navigateTo({
-      url: '/pages/office/announcement-list/announcement-list'
-    })
-  },
-
-  handleAnnouncementTap(e) {
-    const id = e.currentTarget.dataset.id
-    if (id) {
-      wx.navigateTo({
-        url: `/pages/office/announcement-detail/announcement-detail?id=${id}`
-      })
-    }
   },
 
   loadArticles() {
@@ -975,97 +910,6 @@ Page({
     })
   },
 
-  // ========== 群团活动 ==========
-
-  /**
-   * 加载首页活动列表（最多3条）
-   */
-  loadActivities() {
-    this.setData({
-      loadingActivities: true
-    })
-
-    wx.cloud.callFunction({
-      name: 'activityManager',
-      data: {
-        action: 'list',
-        params: {
-          page: 1,
-          pageSize: 3,
-          status: 'active'
-        }
-      }
-    }).then(res => {
-      const result = res.result
-      if (result && result.code === 0) {
-        const allList = result.data.list || []
-        // 根据当前用户角色过滤不可见活动（只对目标用户展示的活动）
-        const filteredList = this._filterActivitiesByPermission(allList)
-
-        const now = Date.now()
-        const list = filteredList.map(item => {
-          // 状态完全由截止日期决定：过了截止时间就是已结束
-          const isEnded = !!(item.registrationDeadline && item.registrationDeadline < now)
-          return {
-            _id: item._id,
-            title: item.title,
-            creatorName: item.creatorName,
-            timeText: formatTime(item.createdAt),
-            registrationCount: item.registrationCount || 0,
-            status: isEnded ? 'ended' : item.status
-          }
-        })
-        this.setData({
-          activities: list,
-          loadingActivities: false
-        })
-      } else {
-        throw new Error(result.message || '加载失败')
-      }
-    }).catch(error => {
-      console.error('加载活动失败:', error)
-      this.setData({
-        loadingActivities: false
-      })
-    })
-  },
-
-  /**
-   * 跳转活动列表页
-   */
-  goActivities() {
-    wx.navigateTo({
-      url: '/pages/office/activity-list/activity-list'
-    })
-  },
-
-  /**
-   * 根据当前用户角色过滤活动（只对目标用户展示的活动对非目标用户隐藏）
-   */
-  _filterActivitiesByPermission(activityList) {
-    const user = app.globalData && app.globalData.userProfile
-
-    return activityList.filter(item => {
-      if (!item.isTargetOnlyVisible) return true
-      if (!item.isTargetRoleEnabled) return true
-      if (!item.targetRoles || item.targetRoles.length === 0) return true
-      if (!user || !user.role) return false
-      return item.targetRoles.includes(user.role)
-    })
-  },
-
-  /**
-   * 点击活动卡片条目
-   */
-  handleActivityTap(e) {
-    const id = e.currentTarget.dataset.id
-    if (id) {
-      wx.navigateTo({
-        url: `/pages/office/activity-detail/activity-detail?id=${id}`
-      })
-    }
-  },
-
   /**
    * 加载背景图片（优先使用本地持久缓存）
    */
@@ -1119,7 +963,7 @@ Page({
   },
 
   /**
-   * 从首页返回报备：跳转到出行报备页并自动触发返回流程
+   * 从首页点击「返回报备」：跳转到出行报备页并自动触发返回流程
    */
   handleReturnFromHome() {
     wx.navigateTo({
