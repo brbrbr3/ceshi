@@ -192,6 +192,30 @@
   color: var(--text-tertiary);
 }
 
+/* 分组标题左侧（箭头 + 名称）：flex 包裹避免被 space-between 分散开 */
+.board-group-title-left {
+  display: flex;
+  align-items: center;
+  min-width: 0;
+}
+
+/* 折叠箭头：▶ 旋转 90° 即为展开态（带过渡动画） */
+.board-group-arrow {
+  display: inline-block;
+  margin-right: 8rpx;
+  font-size: var(--fs-22);
+  color: var(--text-muted);
+  transition: transform 0.25s ease;
+}
+
+.board-group-arrow.is-collapsed {
+  transform: rotate(0deg);
+}
+
+.board-group-arrow:not(.is-collapsed) {
+  transform: rotate(90deg);
+}
+
 .board-item--deactivated {
   opacity: 0.6;
 }

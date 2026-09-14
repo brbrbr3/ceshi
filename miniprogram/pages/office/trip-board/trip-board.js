@@ -138,12 +138,14 @@ Page({
         })
 
         // 追加已注销用户分组（最末，默认折叠）
+        // 注：已注销用户仅由后端下发给管理员，前端不再做角色判断
         if (allDeactivatedItems.length > 0) {
           allDeactivatedItems.sort((a, b) => (a.userName || '').localeCompare(b.userName || '', 'zh'))
           groups.push({
-            groupName: '▶ 已注销用户',
+            groupName: '已注销用户',
             items: allDeactivatedItems,
-            collapsed: true
+            collapsed: true,
+            canCollapse: true
           })
         }
 
@@ -503,11 +505,8 @@ Page({
    */
   handleToggleDeactivatedGroup() {
     const groups = this.data.groups.map(g => {
-      if (g.collapsed) {
-        g.collapsed = !g.collapsed
-        g.groupName = g.collapsed ? '▶ 已注销用户' : '▼ 已注销用户'
-      }
-      return g
+      if (!g.canCollapse) return g
+      return { ...g, collapsed: !g.collapsed }
     })
     this.setData({ groups })
   },

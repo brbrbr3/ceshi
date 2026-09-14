@@ -1346,7 +1346,11 @@ async function getBoardData(openid, params) {
   // 权限校验已移除，所有用户均可访问（普通用户仅看自己）
   
   // 计算可查看的用户范围（多身份取并集）
-  let userQuery = { status: _.in(['approved', 'deactivated']) }
+  // 已注销用户仅管理员可见：其他角色一律由后端过滤，避免数据泄露与统计口径不一致
+  const canViewDeactivated = !!isAdmin
+  const userStatusFilter = canViewDeactivated ? ['approved', 'deactivated'] : ['approved']
+
+  let userQuery = { status: _.in(userStatusFilter) }
   let scopeType = 'all'
 
   // 全体范围：管理员 或 馆员且部门为空（领导，非部门负责人）或 馆员部门为办且为部门负责人 或 扩大权限
@@ -1368,7 +1372,7 @@ async function getBoardData(openid, params) {
     // 普通用户 → 反查谁的 reportTo 包含自己
     if (orConditions.length === 0) {
       const reportToRes = await usersCollection
-        .where({ status: _.in(['approved', 'deactivated']), reportTo: openid })
+        .where({ status: _.in(userStatusFilter), reportTo: openid })
         .field({ openid: true })
         .limit(100)
         .get()
@@ -1385,7 +1389,7 @@ async function getBoardData(openid, params) {
       Object.assign(userQuery, orConditions[0])
       scopeType = orConditions[0].livingArea ? 'area' : 'department'
     } else {
-      userQuery = _.or(orConditions.map(c => ({ status: _.in(['approved', 'deactivated']), ...c })))
+      userQuery = _.or(orConditions.map(c => ({ status: _.in(userStatusFilter), ...c })))
       scopeType = 'mixed'
     }
   }

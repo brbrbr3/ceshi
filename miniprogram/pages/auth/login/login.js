@@ -240,6 +240,12 @@ Page({
       // 已超时，忽略迟到的结果
       if (this.data.statusTimeout) return
 
+      // 非已注册状态（已注销 / 未注册 / 待审核）：清除全部内存与本地缓存，
+      // 避免残留的身份、常量、权限、节假日缓存影响后续流程
+      if (!result.registered) {
+        app.clearOverallState()
+      }
+
       // 已注销用户
       if (result.authStatus === 'deactivated') {
         this.setData({

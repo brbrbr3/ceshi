@@ -30,10 +30,11 @@
 
       <view wx:else>
         <view wx:for="{{personnelGroups}}" wx:key="groupName" class="personnel-group-section">
-          <view class="personnel-group-label {{item.collapsed ? 'is-collapsible' : ''}}" bindtap="{{item.collapsed ? 'handleToggleDeactivatedGroup' : ''}}">
-            {{item.groupName}}<text wx:if="{{item.collapsed}}" class="personnel-group-count-text">（{{item.users.length}}人）</text>
+          <view class="personnel-group-label {{item.canCollapse ? 'is-collapsible' : ''}}" bindtap="{{item.canCollapse ? 'handleToggleDeactivatedGroup' : ''}}">
+            <text wx:if="{{item.canCollapse}}" class="personnel-group-arrow {{item.collapsed ? 'is-collapsed' : ''}}">▶</text>
+            <text>{{item.groupName}}</text><text wx:if="{{item.collapsed}}" class="personnel-group-count-text">（{{item.users.length}}人）</text>
           </view>
-          <view wx:if="{{!item.collapsed || !item._collapsedHidden}}" class="personnel-list">
+          <view wx:if="{{!item.collapsed}}" class="personnel-list">
             <view class="personnel-card {{card._deactivated ? 'personnel-card--deactivated' : ''}}" wx:for="{{item.users}}" wx:for-item="card" wx:key="openid" bindtap="handleUserTap" data-openid="{{card.openid}}">
               <view class="personnel-card-avatar">{{card.avatarText}}</view>
               <view class="personnel-card-body">
@@ -110,8 +111,8 @@
           </view>
         </view>
 
-        <!-- ===== 第二组：报备与权限 ===== -->
-        <view class="personnel-section">
+        <!-- ===== 第二组：报备与权限（已注销用户不显示） ===== -->
+        <view class="personnel-section" wx:if="{{!editUser._deactivated}}">
           <view class="personnel-section-title">报备与权限</view>
 
           <!-- 馆员+部门无提示 -->
@@ -196,8 +197,13 @@
           </view>
         </view>
 
-        <!-- 注销用户 -->
-        <view class="personnel-btn-deactivate" hover-class="personnel-btn-active" hover-stay-time="120" bindtap="handleDeactivateUser">注销该用户</view>
+        <!-- 注销用户（已注销用户不可再次注销） -->
+        <view
+          class="personnel-btn-deactivate {{editUser._deactivated ? 'is-disabled' : ''}}"
+          hover-class="{{editUser._deactivated ? '' : 'personnel-btn-active'}}"
+          hover-stay-time="120"
+          bindtap="{{editUser._deactivated ? '' : 'handleDeactivateUser'}}"
+        >{{editUser._deactivated ? '该用户已被注销' : '注销该用户'}}</view>
       </view>
       
       <view class="personnel-modal-footer">

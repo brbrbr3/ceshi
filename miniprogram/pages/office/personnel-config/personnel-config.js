@@ -223,8 +223,9 @@ Page({
     // 追加已注销用户分组（最末，默认折叠）
     if (deactivatedUsers.length > 0) {
       result.push({
-        groupName: '▶ 已注销用户',
+        groupName: '已注销用户',
         collapsed: true,
+        canCollapse: true,
         users: deactivatedUsers
       })
     }
@@ -289,7 +290,8 @@ Page({
     if (!user) return
 
     const departmentOptions = this.data.departmentOptions
-    const allUsers = this.data.allUsers
+    // 订阅/报备候选列表排除已注销用户
+    const allUsers = this.data.allUsers.filter(u => !u._deactivated)
 
     // 当前编辑用户的身份信息（用于自动匹配）
     const currentIsAreaManager = !!user.isAreaManager
@@ -694,6 +696,8 @@ Page({
       return
     }
     if (!this.data.editUser) return
+    // 已注销用户不可重复注销
+    if (this.data.editUser._deactivated) return
 
     const userName = this.data.editUser.name || '该用户'
 
@@ -749,18 +753,11 @@ Page({
   stopPropagation() {},
 
   // ==================== 已注销用户分组折叠 ====================
-  handleToggleDeactivatedGroup(e) {
-    const groups = this.data.personnelGroups
-    // 找到已注销分组
-    const target = groups.find(g => g.collapsed === true)
-    if (!target) return
-    target._collapsedHidden = !target._collapsedHidden
-    // 更新标题文字
-    if (target._collapsedHidden) {
-      target.groupName = '▶ 已注销用户'
-    } else {
-      target.groupName = '▼ 已注销用户'
-    }
+  handleToggleDeactivatedGroup() {
+    const groups = this.data.personnelGroups.map(g => {
+      if (!g.canCollapse) return g
+      return { ...g, collapsed: !g.collapsed }
+    })
     this.setData({ personnelGroups: groups })
   },
 

@@ -591,9 +591,10 @@ App({
   clearOverallState() {
     //清除用户信息缓存（内存+本地存储）
     this.clearAuthState()
-    //清除常量缓存、权限缓存（内存+本地存储）
+    //清除常量缓存、权限缓存、节假日缓存（内存+本地存储）
     this.clearConstantsCache()
     this.clearPermissionCache()
+    this.clearHolidaysCache()
   },
 
   getUserOpenId(callback) {
@@ -925,9 +926,15 @@ App({
   },
 
   logout() {
-    // 审核模式：停用审核模式并恢复原始 wx.cloud.callFunction
-    if (this.globalData.isReviewer) {
+    // 记录是否为审核模式（deactivateReviewerMode 会先把 isReviewer 置为 false）
+    const wasReviewer = this.globalData.isReviewer
+    if (wasReviewer) {
       this.deactivateReviewerMode()
+      // 审核模式下 loadConstants / loadPermissions / loadAllHolidays 会把 mock 的
+      // 空常量、空权限、空节假日写入内存与本地存储，退出时必须一并清除，
+      // 否则后续正常进入页面会读到脏缓存（常量缺失、权限错误等）
+      this.clearOverallState()
+      return
     }
     this.clearAuthState()
   },

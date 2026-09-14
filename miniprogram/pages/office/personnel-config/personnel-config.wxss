@@ -467,7 +467,7 @@
   box-shadow: 0 16rpx 42rpx rgba(37, 99, 235, 0.08);
   margin-top: 24rpx;
   text-align: center;
-  font-size: var(--fs-30);
+  font-size: var(--fs-32);
   font-weight: 600;
   color: #EF4444;
   transition: transform 0.3s ease, opacity 0.3s ease;
@@ -480,6 +480,13 @@
 }
 
 .personnel-btn-deactivate::after { border: none; }
+
+/* 已注销用户的注销按钮：置灰且不可点击 */
+.personnel-btn-deactivate.is-disabled {
+  background: var(--bg-soft-2);
+  box-shadow: none;
+  pointer-events: none;
+}
 
 .personnel-footer-btns {
   display: flex;
@@ -499,6 +506,23 @@
 /* 可折叠分组标题 */
 .personnel-group-label.is-collapsible {
   cursor: pointer;
+}
+
+/* 折叠箭头：▶ 旋转 90° 即为展开态（带过渡动画） */
+.personnel-group-arrow {
+  display: inline-block;
+  margin-right: 8rpx;
+  font-size: var(--fs-24);
+  color: var(--text-muted);
+  transition: transform 0.25s ease;
+}
+
+.personnel-group-arrow.is-collapsed {
+  transform: rotate(0deg);
+}
+
+.personnel-group-arrow:not(.is-collapsed) {
+  transform: rotate(90deg);
 }
 
 .personnel-group-count-text {

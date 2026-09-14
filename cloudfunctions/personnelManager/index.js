@@ -4,6 +4,8 @@ cloud.init({ env: cloud.DYNAMIC_CURRENT_ENV })
 const db = cloud.database()
 const _ = db.command
 const usersCollection = db.collection('office_users')
+const tripReportsCollection = db.collection('trip_reports')
+const interestClassReportsCollection = db.collection('interest_class_reports')
 
 function success(data, msg) { return { code: 0, message: msg || 'ok', data: data || {} } }
 function fail(msg, code) { return { code: code || 500, message: msg || 'error', data: null } }
@@ -200,6 +202,45 @@ async function deactivateUser(operatorOpenid, params) {
       deactivatedBy: operatorOpenid
     }
   })
+
+  // 连带处理 1：结束该用户进行中的外出（返回时间 = 注销时间）
+  try {
+    const activeTrips = await tripReportsCollection
+      .where({ _openid: targetOpenid, status: 'out' })
+      .get()
+    for (const trip of (activeTrips.data || [])) {
+      await tripReportsCollection.doc(trip._id).update({
+        data: {
+          returnAt: now,
+          status: 'returned',
+          updatedAt: now
+        }
+      })
+    }
+  } catch (e) {
+    console.error('结束注销用户的外出记录失败:', e)
+  }
+
+  // 连带处理 2：结束该用户作为参与人进行中的兴趣班备案（结束时间 = 注销时间）
+  try {
+    const targetName = target.name || ''
+    if (targetName) {
+      const activeReports = await interestClassReportsCollection
+        .where({ name: targetName, status: 'active' })
+        .get()
+      for (const report of (activeReports.data || [])) {
+        await interestClassReportsCollection.doc(report._id).update({
+          data: {
+            status: 'ended',
+            endedAt: now,
+            updatedAt: now
+          }
+        })
+      }
+    }
+  } catch (e) {
+    console.error('结束注销用户的兴趣班备案失败:', e)
+  }
 
   return success(null, '注销成功')
 }

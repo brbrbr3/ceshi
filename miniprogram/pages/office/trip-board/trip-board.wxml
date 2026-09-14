@@ -59,8 +59,11 @@
 
     <!-- 分组 -->
     <view wx:for="{{groups}}" wx:key="groupName" class="board-group">
-      <view class="board-group-title {{item.collapsed ? 'is-collapsible' : ''}}" bindtap="{{item.collapsed ? 'handleToggleDeactivatedGroup' : ''}}">
-        <text>{{item.groupName}}</text>
+      <view class="board-group-title {{item.canCollapse ? 'is-collapsible' : ''}}" bindtap="{{item.canCollapse ? 'handleToggleDeactivatedGroup' : ''}}">
+        <view class="board-group-title-left">
+          <text wx:if="{{item.canCollapse}}" class="board-group-arrow {{item.collapsed ? 'is-collapsed' : ''}}">▶</text>
+          <text>{{item.groupName}}</text>
+        </view>
         <text class="board-group-count">{{item.items.length}}人</text>
       </view>
       <view wx:if="{{!item.collapsed || item.collapsed === undefined}}" class="board-group-items">
