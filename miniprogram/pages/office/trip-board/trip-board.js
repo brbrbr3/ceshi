@@ -76,6 +76,8 @@ Page({
 
     // 刷新微信侧订阅状态到本地缓存（供功能面板 tap 时同步读取）
     app.syncSubStatus()
+    // 同步 tabBar 首页「外出」徽标
+    app.syncHomeTabBadge()
   },
 
   /**

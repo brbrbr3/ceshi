@@ -59,9 +59,9 @@
         <view class="haircut-date-hint-text">{{selectedDateInfo.disableReason}}</view>
       </view>
 
-      <!-- 时段列表 -->
-      <view class="haircut-slots-section" wx:if="{{selectedDate && (selectedDateInfo && !selectedDateInfo.isDisabled) || (selectedDateInfo && selectedDateInfo.isDayLocked)}}">
-        <view class="haircut-slots-title">选择时段</view>
+      <!-- 时段列表（审核模式固定显示空状态） -->
+      <view class="haircut-slots-section" wx:if="{{isReviewer || selectedDate && (selectedDateInfo && !selectedDateInfo.isDisabled) || (selectedDateInfo && selectedDateInfo.isDayLocked)}}">
+        <view class="haircut-slots-title" wx:if="{{!isReviewer}}">选择时段</view>
         <view class="haircut-slots-list">
           <view class="haircut-slot-item {{selectedSlot === item.start ? 'is-selected' : ''}} {{item.status === 'booked' || item.status === 'unavailable' ? 'is-booked' : ''}} {{item.status === 'myBooked' ? 'is-my-booked' : ''}}" wx:for="{{slots}}" wx:key="start" bindtap="handleSlotSelect" data-slot="{{item}}">
             <view class="haircut-slot-left">

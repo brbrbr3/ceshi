@@ -353,6 +353,24 @@ App({
     } catch (e) {}
   },
 
+  /**
+   * 同步 tabBar 首页徽标：处于外出状态时在首页图标上显示「外出」
+   * 注意：setTabBarBadge 只能在 tabBar 页面调用，非 tab 页调用会失败
+   * @param {boolean} [isOut] - 是否处于外出状态；不传则读取全局用户状态 userStatus === 'out'
+   */
+  syncHomeTabBadge(isOut) {
+    const show = typeof isOut === 'boolean'
+      ? isOut
+      : !!(this.globalData.userProfile && this.globalData.userProfile.userStatus === 'out')
+    try {
+      if (show) {
+        wx.setTabBarBadge({ index: 0, text: '外出', fail: () => {} })
+      } else {
+        wx.removeTabBarBadge({ index: 0, fail: () => {} })
+      }
+    } catch (e) {}
+  },
+
   // 返回 page 元素背景色的内联样式（供页面 page-meta 使用，解决滚动露出浅色背景）
   // auto 模式返回空（靠 @media 跟随系统），手动模式返回对应背景色覆盖系统
   getPageStyle() {
@@ -926,6 +944,11 @@ App({
   },
 
   logout() {
+    // 退出登录：清除 tabBar 首页「外出」徽标（此时仍在 tab 页，可正常调用）
+    try {
+      wx.removeTabBarBadge({ index: 0, fail: () => {} })
+    } catch (e) {}
+
     // 记录是否为审核模式（deactivateReviewerMode 会先把 isReviewer 置为 false）
     const wasReviewer = this.globalData.isReviewer
     if (wasReviewer) {

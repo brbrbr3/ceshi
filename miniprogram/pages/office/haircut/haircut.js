@@ -286,7 +286,8 @@ Page({
         ...candidateDates.filter(d => !holidaySet.has(d))
       ])]
 
-      if (queryDates.length > 0) {
+      // 审核模式：不请求时段/预约数据，仅展示本地计算的日期列表
+      if (queryDates.length > 0 && !this.data.isReviewer) {
         const res = await wx.cloud.callFunction({
           name: 'haircutManager',
           data: {
@@ -577,6 +578,16 @@ Page({
    * @param {Object} dateInfo - 日期信息，包含 date 字段
    */
   async buildSlots(dateInfo) {
+    // 审核模式：不加载时段数据，直接显示「无可用时段」
+    if (this.data.isReviewer) {
+      this.setData({
+        slots: [],
+        slotsMessage: '无可用时段',
+        loadingSlots: false
+      })
+      return
+    }
+
     this.setData({
       loadingSlots: true
     })

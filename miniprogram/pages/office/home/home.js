@@ -947,6 +947,8 @@ Page({
         this.setData({
           activeTrip: activeTrip || null
         })
+        // 外出状态下在 tabBar 首页图标显示「外出」徽标
+        app.syncHomeTabBadge(!!activeTrip)
       }
     }).catch(err => {
       console.error('加载外出状态失败:', err)

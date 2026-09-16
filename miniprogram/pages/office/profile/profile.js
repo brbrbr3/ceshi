@@ -113,6 +113,8 @@ Page({
     })
     this.syncUserProfile()
     this.syncNotifications()
+    // 同步 tabBar 首页「外出」徽标
+    app.syncHomeTabBadge()
   },
 
   decreaseFontsizeStepper(e) {
