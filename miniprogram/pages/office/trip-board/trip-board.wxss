@@ -3,33 +3,33 @@
 .board-page {
   min-height: 100vh;
   background: var(--bg-page);
-  padding-bottom: 100rpx;
+  padding-bottom: var(--sp-100);
 }
 
 /* ========== 第一组：统计图表占位 ========== */
 
 .board-chart-section {
-  margin: 24rpx;
+  margin: var(--sp-24);
   background: var(--bg-card);
-  border-radius: 20rpx;
-  padding: 32rpx 24rpx;
-  box-shadow: 0 2rpx 12rpx rgba(0, 0, 0, 0.04);
+  border-radius: var(--sp-20);
+  padding: var(--sp-32) var(--sp-24);
+  box-shadow: 0 var(--sp-2) var(--sp-12) rgba(0, 0, 0, 0.04);
 }
 
 .board-chart-title {
   font-size: var(--fs-34);
   font-weight: 600;
   color: var(--text-primary);
-  margin-bottom: 20rpx;
+  margin-bottom: var(--sp-20);
 }
 
 .board-chart-placeholder {
   display: flex;
   align-items: center;
   justify-content: center;
-  height: 200rpx;
+  height: var(--sp-200);
   background: var(--bg-input);
-  border-radius: 16rpx;
+  border-radius: var(--sp-16);
 }
 
 .board-chart-placeholder-text {
@@ -44,7 +44,7 @@
   top: 0;
   z-index: 20;
   background: var(--bg-page);
-  padding: 30rpx 24rpx 0;
+  padding: var(--sp-30) var(--sp-24) 0;
 }
 
 /* 折叠面板 */
@@ -52,17 +52,17 @@
   display: flex;
   align-items: center;
   justify-content: flex-start;
-  gap: 12rpx;
+  gap: var(--sp-12);
   background: var(--bg-card);
-  padding: 24rpx 28rpx;
-  border-radius: 16rpx;
-  box-shadow: 0 2rpx 12rpx rgba(0, 0, 0, 0.04);
+  padding: var(--sp-24) var(--sp-28);
+  border-radius: var(--sp-16);
+  box-shadow: 0 var(--sp-2) var(--sp-12) rgba(0, 0, 0, 0.04);
 }
 
 .board-dropdown-label {
   display: flex;
   align-items: center;
-  gap: 12rpx;
+  gap: var(--sp-12);
   flex: 1;
   font-size: var(--fs-34);
   font-weight: 600;
@@ -92,16 +92,16 @@
 
 /* 下拉菜单 */
 .board-dropdown-menu {
-  margin-top: 8rpx;
+  margin-top: var(--sp-8);
   background: var(--bg-card);
-  border-radius: 16rpx;
-  box-shadow: 0 4rpx 20rpx rgba(0, 0, 0, 0.08);
+  border-radius: var(--sp-16);
+  box-shadow: 0 var(--sp-4) var(--sp-20) rgba(0, 0, 0, 0.08);
   overflow: hidden;
   animation: dropdownIn 0.2s ease;
 }
 
 @keyframes dropdownIn {
-  from { opacity: 0; transform: translateY(-8rpx); }
+  from { opacity: 0; transform: translateY(calc(var(--sp-8) * -1)); }
   to { opacity: 1; transform: translateY(0); }
 }
 
@@ -109,10 +109,10 @@
   display: flex;
   align-items: center;
   justify-content: space-between;
-  padding: 24rpx 28rpx;
+  padding: var(--sp-24) var(--sp-28);
   font-size: var(--fs-28);
   color: var(--text-primary);
-  border-bottom: 1rpx solid var(--bg-soft-2);
+  border-bottom: var(--sp-1) solid var(--bg-soft-2);
 }
 
 .board-dropdown-menu-item:last-child {
@@ -138,8 +138,8 @@
 .board-group-toggle {
   display: flex;
   align-items: center;
-  gap: 8rpx;
-  padding: 20rpx 8rpx;
+  gap: var(--sp-8);
+  padding: var(--sp-20) var(--sp-8);
   font-size: var(--fs-32);
   color: var(--text-tertiary);
 }
@@ -154,28 +154,28 @@
 }
 
 .board-dropdown-menu--group {
-  margin-bottom: 8rpx;
+  margin-bottom: var(--sp-8);
 }
 
 /* ========== 分组列表 ========== */
 
 .board-groups {
-  padding: 0 24rpx;
+  padding: 0 var(--sp-24);
 }
 
 .board-group {
-  margin-bottom: 24rpx;
+  margin-bottom: var(--sp-24);
 }
 
 .board-group:last-child {
-  margin-bottom: 24rpx;
+  margin-bottom: var(--sp-24);
 }
 
 .board-group-title {
   display: flex;
   align-items: center;
   justify-content: space-between;
-  padding: 16rpx 8rpx 12rpx;
+  padding: var(--sp-16) var(--sp-8) var(--sp-12);
   font-size: var(--fs-36);
   font-weight: 600;
   color: var(--text-primary);
@@ -202,7 +202,7 @@
 /* 折叠箭头：▶ 旋转 90° 即为展开态（带过渡动画） */
 .board-group-arrow {
   display: inline-block;
-  margin-right: 8rpx;
+  margin-right: var(--sp-8);
   font-size: var(--fs-22);
   color: var(--text-muted);
   transition: transform 0.25s ease;
@@ -228,13 +228,13 @@
 .board-item {
   display: flex;
   align-items: center;
-  padding: 24rpx;
+  padding: var(--sp-24);
   background: var(--bg-card);
-  border-radius: 16rpx;
-  margin-bottom: 12rpx;
-  box-shadow: 0 2rpx 12rpx rgba(0,0,0,0.04);
-  border-left: 6rpx solid;
-  margin-bottom: 25rpx;
+  border-radius: var(--sp-16);
+  margin-bottom: var(--sp-12);
+  box-shadow: 0 var(--sp-2) var(--sp-12) rgba(0,0,0,0.04);
+  border-left: var(--sp-6) solid;
+  margin-bottom: var(--sp-25);
   transition: all 0.2s ease;
 }
 
@@ -245,12 +245,12 @@
 .board-item:active {
   transform: scale(0.95);
   opacity: 0.8;
-  border-left: 2rpx solid;
+  border-left: var(--sp-2) solid;
 }
 
 .board-item-avatar {
-  width: 18rpx;
-  height: 18rpx;
+  width: var(--sp-18);
+  height: var(--sp-18);
   border-radius: 50%;
   display: flex;
   align-items: center;
@@ -258,7 +258,7 @@
   font-size: var(--fs-40);
   font-weight: 500;
   flex-shrink: 0;
-  margin-left: 10rpx;
+  margin-left: var(--sp-10);
 }
 
 .board-item-main {
@@ -270,7 +270,7 @@
   display: flex;
   align-items: center;
   justify-content: space-between;
-  margin-bottom: 5rpx;
+  margin-bottom: var(--sp-5);
 }
 
 .board-item-name {
@@ -281,8 +281,8 @@
 
 .board-item-status {
   font-size: var(--fs-26);
-  padding: 6rpx 16rpx;
-  border-radius: 8rpx;
+  padding: var(--sp-6) var(--sp-16);
+  border-radius: var(--sp-8);
   font-weight: 500;
   flex-shrink: 0;
 }
@@ -305,7 +305,7 @@
   font-size: var(--fs-28);
   color: var(--text-muted);
   flex-shrink: 0;
-  padding-right: 15rpx;
+  padding-right: var(--sp-15);
 }
 
 .board-item-info--none {
@@ -320,7 +320,7 @@
 .board-item-arrow {
   font-size: var(--fs-36);
   color: #CBD5E1;
-  margin-left: 12rpx;
+  margin-left: var(--sp-12);
   flex-shrink: 0;
 }
 
@@ -328,7 +328,7 @@
 .board-loading {
   display: flex;
   justify-content: center;
-  padding: 60rpx 0;
+  padding: var(--sp-60) 0;
   font-size: var(--fs-28);
   color: var(--text-muted);
 }
@@ -337,12 +337,12 @@
   display: flex;
   flex-direction: column;
   align-items: center;
-  padding: 80rpx 0;
+  padding: var(--sp-80) 0;
 }
 
 .board-empty-icon {
   font-size: var(--fs-80);
-  margin-bottom: 20rpx;
+  margin-bottom: var(--sp-20);
 }
 
 .board-empty-text {
@@ -375,7 +375,7 @@
   height: 80vh;
   max-height: 80vh;
   background: var(--bg-card);
-  border-radius: 32rpx 32rpx 0 0;
+  border-radius: var(--sp-32) var(--sp-32) 0 0;
   display: flex;
   flex-direction: column;
   animation: slideUp 0.3s cubic-bezier(0.25, 0.1, 0.25, 1);
@@ -393,18 +393,18 @@
 
 .person-popup-header {
   position: relative;
-  padding: 32rpx 28rpx 24rpx;
-  border-bottom: 1rpx solid var(--bg-soft-2);
+  padding: var(--sp-32) var(--sp-28) var(--sp-24);
+  border-bottom: var(--sp-1) solid var(--bg-soft-2);
   flex-shrink: 0;
 }
 
 /* 下拉把手（iOS 风格，呼吸灯效果） */
 .person-popup-handle {
-  width: 102rpx;
-  height: 10rpx;
-  margin: 0 auto 5rpx;
+  width: var(--sp-102);
+  height: var(--sp-10);
+  margin: 0 auto var(--sp-5);
   background: #CBD5E1;
-  border-radius: 5rpx;
+  border-radius: var(--sp-5);
   animation: handleBreathe 2s ease-in-out infinite;
 }
 
@@ -417,23 +417,23 @@
   font-size: var(--fs-32);
   font-weight: 600;
   color: var(--text-primary);
-  padding-right: 60rpx;
+  padding-right: var(--sp-60);
 }
 
 .person-popup-subtitle {
   font-size: var(--fs-26);
   color: var(--text-muted);
-  margin-top: 8rpx;
+  margin-top: var(--sp-8);
 }
 
 .person-popup-close {
   position: absolute;
-  top: 32rpx;
-  right: 28rpx;
+  top: var(--sp-32);
+  right: var(--sp-28);
   font-size: var(--fs-32);
   color: var(--text-muted);
-  width: 60rpx;
-  height: 60rpx;
+  width: var(--sp-60);
+  height: var(--sp-60);
   display: flex;
   align-items: center;
   justify-content: center;
@@ -441,7 +441,7 @@
 
 .person-popup-body {
   flex: 1;
-  padding: 24rpx 28rpx;
+  padding: var(--sp-24) var(--sp-28);
   overflow-y: auto;
   box-sizing: border-box;
 }
@@ -458,14 +458,14 @@
   display: flex;
   justify-content: center;
   align-items: center;
-  padding: 80rpx 0;
+  padding: var(--sp-80) 0;
   font-size: var(--fs-28);
   color: var(--text-muted);
 }
 
 /* 年月分组 */
 .person-popup-group {
-  margin-bottom: 32rpx;
+  margin-bottom: var(--sp-32);
 }
 
 .person-popup-group:last-child {
@@ -476,18 +476,18 @@
   font-size: var(--fs-28);
   font-weight: 600;
   color: #2563EB;
-  margin-bottom: 16rpx;
-  padding-left: 8rpx;
-  border-left: 6rpx solid #2563EB;
-  padding-left: 16rpx;
+  margin-bottom: var(--sp-16);
+  padding-left: var(--sp-8);
+  border-left: var(--sp-6) solid #2563EB;
+  padding-left: var(--sp-16);
 }
 
 /* 记录卡片 */
 .person-popup-record {
   background: var(--bg-input);
-  border-radius: 16rpx;
-  padding: 24rpx;
-  margin-bottom: 16rpx;
+  border-radius: var(--sp-16);
+  padding: var(--sp-24);
+  margin-bottom: var(--sp-16);
   box-sizing: border-box;
   overflow: hidden;
 }
@@ -500,7 +500,7 @@
   display: flex;
   align-items: flex-start;
   justify-content: space-between;
-  margin-bottom: 16rpx;
+  margin-bottom: var(--sp-16);
 }
 
 .person-popup-record-dest {
@@ -509,15 +509,15 @@
   color: var(--text-primary);
   flex: 1;
   min-width: 0;
-  margin-right: 16rpx;
+  margin-right: var(--sp-16);
   word-break: break-all;
   line-height: 1.4;
 }
 
 .person-popup-record-status {
   font-size: var(--fs-24);
-  padding: 6rpx 16rpx;
-  border-radius: 8rpx;
+  padding: var(--sp-6) var(--sp-16);
+  border-radius: var(--sp-8);
   font-weight: 500;
   flex-shrink: 0;
 }
@@ -526,14 +526,14 @@
   display: flex;
   justify-content: space-between;
   align-items: flex-start;
-  padding: 6rpx 0;
+  padding: var(--sp-6) 0;
 }
 
 .person-popup-record-label {
   font-size: var(--fs-26);
   color: var(--text-tertiary);
   flex-shrink: 0;
-  margin-right: 16rpx;
+  margin-right: var(--sp-16);
 }
 
 .person-popup-record-value {
@@ -550,17 +550,17 @@
   display: flex;
   align-items: center;
   justify-content: center;
-  padding: 32rpx 0;
+  padding: var(--sp-32) 0;
 }
 
 .loading-spinner {
-  width: 32rpx;
-  height: 32rpx;
-  border: 3rpx solid #E0E0E0;
+  width: var(--sp-32);
+  height: var(--sp-32);
+  border: var(--sp-3) solid #E0E0E0;
   border-top-color: #2563EB;
   border-radius: 50%;
   animation: spin 0.8s linear infinite;
-  margin-right: 16rpx;
+  margin-right: var(--sp-16);
 }
 
 @keyframes spin {
@@ -576,7 +576,7 @@
   display: flex;
   align-items: center;
   justify-content: center;
-  padding: 32rpx 0;
+  padding: var(--sp-32) 0;
 }
 
 .no-more-text {
@@ -588,7 +588,7 @@
 
 .board-bottom-msg {
   text-align: center;
-  padding: 0 48rpx 54rpx;
+  padding: 0 var(--sp-48) var(--sp-54);
   font-size: var(--fs-30);
   color: var(--text-muted);
 }

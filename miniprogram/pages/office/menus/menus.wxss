@@ -7,17 +7,17 @@
   display: flex;
   align-items: center;
   justify-content: center;
-  padding: 32rpx 0;
+  padding: var(--sp-32) 0;
 }
 
 .loading-spinner {
-  width: 32rpx;
-  height: 32rpx;
-  border: 3rpx solid #e0e0e0;
+  width: var(--sp-32);
+  height: var(--sp-32);
+  border: var(--sp-3) solid #e0e0e0;
   border-top-color: #1890ff;
   border-radius: 50%;
   animation: spin 0.8s linear infinite;
-  margin-right: 16rpx;
+  margin-right: var(--sp-16);
 }
 
 @keyframes spin {
@@ -35,7 +35,7 @@
   display: flex;
   align-items: center;
   justify-content: center;
-  padding: 32rpx 0;
+  padding: var(--sp-32) 0;
 }
 
 .no-more-text {
@@ -44,7 +44,7 @@
 }
 
 .menus-header {
-  padding: 20rpx 40rpx 40rpx;
+  padding: var(--sp-20) var(--sp-40) var(--sp-40);
 }
 
 .menus-title {
@@ -60,8 +60,8 @@
 
 .menus-add-btn {
   align-self: flex-end;
-  padding: 12rpx 24rpx;
-  border-radius: 40rpx;
+  padding: var(--sp-12) var(--sp-24);
+  border-radius: var(--sp-40);
   background: rgba(255, 255, 255, 0.2);
   color: #FFFFFF;
   font-size: var(--fs-26);
@@ -78,14 +78,14 @@
 .menus-header-actions {
   display: flex;
   align-items: center;
-  gap: 16rpx;
+  gap: var(--sp-16);
 }
 
 /* 导出评分按钮 */
 .menus-export-btn {
   align-self: flex-end;
-  padding: 12rpx 24rpx;
-  border-radius: 40rpx;
+  padding: var(--sp-12) var(--sp-24);
+  border-radius: var(--sp-40);
   background: rgba(255, 255, 255, 0.2);
   color: #FFFFFF;
   font-size: var(--fs-26);
@@ -111,10 +111,10 @@
 
 /* 方形复选框 */
 .menu-checkbox {
-  width: 40rpx;
-  height: 40rpx;
-  border-radius: 8rpx;
-  border: 3rpx solid #CBD5E1;
+  width: var(--sp-40);
+  height: var(--sp-40);
+  border-radius: var(--sp-8);
+  border: var(--sp-3) solid #CBD5E1;
   background: var(--bg-card);
   display: flex;
   align-items: center;
@@ -143,13 +143,13 @@
   background: var(--toast-bg);
   backdrop-filter: blur(16px);
   -webkit-backdrop-filter: blur(16px);
-  border-radius: 20rpx;
-  padding: 24rpx 40rpx;
-  max-width: 600rpx;
+  border-radius: var(--sp-20);
+  padding: var(--sp-24) var(--sp-40);
+  max-width: var(--sp-600);
   opacity: 0;
   pointer-events: none;
   z-index: 9999;
-  box-shadow: 0 8rpx 40rpx rgba(0, 0, 0, 0.2);
+  box-shadow: 0 var(--sp-8) var(--sp-40) rgba(0, 0, 0, 0.2);
 }
 
 .custom-toast.is-visible {
@@ -167,45 +167,45 @@
 }
 
 .menus-content {
-  margin-top: -30rpx;
+  margin-top: calc(var(--sp-30) * -1);
 }
 
 .menus-list {
   display: flex;
   flex-direction: column;
-  gap: 26rpx;
-  padding: 24rpx 10rpx 24rpx;
+  gap: var(--sp-26);
+  padding: var(--sp-24) var(--sp-10) var(--sp-24);
 }
 
 .menu-item {
   display: flex;
   align-items: center;
   justify-content: space-between;
-  padding: 24rpx;
+  padding: var(--sp-24);
   background: var(--bg-card);
-  border-radius: 20rpx;  
-  box-shadow: 3rpx 2rpx 8rpx rgba(47, 43, 43, 0.42);
+  border-radius: var(--sp-20);  
+  box-shadow: var(--sp-3) var(--sp-2) var(--sp-8) rgba(47, 43, 43, 0.42);
   transition: all 0.2s ease;
-  border-left: 6rpx solid #3B82F6;
+  border-left: var(--sp-6) solid #3B82F6;
 }
 
 .menu-item:active {
   transform: scale(0.98);
-  box-shadow: 0 1rpx 6rpx rgba(0, 0, 0, 0.06);
-  border-left: 2rpx solid #3B82F6;
+  box-shadow: 0 var(--sp-1) var(--sp-6) rgba(0, 0, 0, 0.06);
+  border-left: var(--sp-2) solid #3B82F6;
 }
 
 .menu-item-left {
   display: flex;
   align-items: center;
-  gap: 20rpx;
+  gap: var(--sp-20);
   flex: 1;
 }
 
 .menu-item-icon {
-  width: 72rpx;
-  height: 72rpx;
-  border-radius: 20rpx;
+  width: var(--sp-72);
+  height: var(--sp-72);
+  border-radius: var(--sp-20);
   background: #DCFCE7;
   color: #16A34A;
   display: flex;
@@ -223,7 +223,7 @@
   font-size: var(--fs-30);
   font-weight: 600;
   color: var(--text-primary);
-  margin-bottom: 8rpx;
+  margin-bottom: var(--sp-8);
   overflow: hidden;
   text-overflow: ellipsis;
   display: -webkit-box;
@@ -236,7 +236,7 @@
 .menu-item-meta {
   display: flex;
   align-items: center;
-  gap: 12rpx;
+  gap: var(--sp-12);
   font-size: var(--fs-26);
   color: var(--text-muted);
 }
@@ -257,8 +257,8 @@
   flex-direction: column;
   align-items: center;
   justify-content: center;
-  padding: 100rpx 0;
-  gap: 16rpx;
+  padding: var(--sp-100) 0;
+  gap: var(--sp-16);
 }
 
 .empty-icon {

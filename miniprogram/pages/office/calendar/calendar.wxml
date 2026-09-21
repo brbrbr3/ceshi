@@ -61,14 +61,14 @@
 
         <!-- 日程条（绝对定位） -->
         <view class="schedule-bars">
-          <view class="schedule-bar" wx:for="{{schedules.timed}}" wx:key="_id" style="top: {{item.top}}rpx; height: {{item.height}}rpx; left: {{item.left}}rpx; width: {{item.width}}rpx; background: {{item.color}};" bindtap="handleScheduleTap" data-schedule="{{item}}">
+          <view class="schedule-bar" wx:for="{{schedules.timed}}" wx:key="_id" style="top: {{item.top}}{{rpxUnit}}; height: {{item.height}}{{rpxUnit}}; left: {{item.left}}{{rpxUnit}}; width: {{item.width}}{{rpxUnit}}; background: {{item.color}};" bindtap="handleScheduleTap" data-schedule="{{item}}">
             <text class="schedule-bar-title">{{item.title}}</text>
-            <text class="schedule-bar-time" wx:if="{{item.height > 60}}">{{item.startTime}} - {{item.endTime}}</text>
+            <text class="schedule-bar-time" wx:if="{{item.showTime}}">{{item.startTime}} - {{item.endTime}}</text>
           </view>
         </view>
 
         <!-- 当前时间红线 -->
-        <view class="current-time-line" wx:if="{{showCurrentTime}}" style="top: {{currentTimeTop}}rpx;">
+        <view class="current-time-line" wx:if="{{showCurrentTime}}" style="top: {{currentTimeTop}}{{rpxUnit}};">
           <text class="current-time-label">{{currentTimeText}}</text>
           <view class="current-time-dot"></view>
           <view class="current-time-bar"></view>

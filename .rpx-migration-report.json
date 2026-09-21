@@ -1,0 +1,630 @@
+{
+  "scope": "all",
+  "apply": true,
+  "generatedAt": "2026-09-21T16:39:14.336Z",
+  "tokenCount": 77,
+  "tokens": [
+    {
+      "name": "--sp-0_5",
+      "mobile": "0.5rpx",
+      "desktop": "0.25px"
+    },
+    {
+      "name": "--sp-1",
+      "mobile": "1rpx",
+      "desktop": "1px"
+    },
+    {
+      "name": "--sp-2",
+      "mobile": "2rpx",
+      "desktop": "1px"
+    },
+    {
+      "name": "--sp-3",
+      "mobile": "3rpx",
+      "desktop": "1.5px"
+    },
+    {
+      "name": "--sp-4",
+      "mobile": "4rpx",
+      "desktop": "2px"
+    },
+    {
+      "name": "--sp-5",
+      "mobile": "5rpx",
+      "desktop": "2.5px"
+    },
+    {
+      "name": "--sp-6",
+      "mobile": "6rpx",
+      "desktop": "3px"
+    },
+    {
+      "name": "--sp-8",
+      "mobile": "8rpx",
+      "desktop": "4px"
+    },
+    {
+      "name": "--sp-10",
+      "mobile": "10rpx",
+      "desktop": "5px"
+    },
+    {
+      "name": "--sp-12",
+      "mobile": "12rpx",
+      "desktop": "6px"
+    },
+    {
+      "name": "--sp-14",
+      "mobile": "14rpx",
+      "desktop": "7px"
+    },
+    {
+      "name": "--sp-15",
+      "mobile": "15rpx",
+      "desktop": "7.5px"
+    },
+    {
+      "name": "--sp-16",
+      "mobile": "16rpx",
+      "desktop": "8px"
+    },
+    {
+      "name": "--sp-17",
+      "mobile": "17rpx",
+      "desktop": "8.5px"
+    },
+    {
+      "name": "--sp-18",
+      "mobile": "18rpx",
+      "desktop": "9px"
+    },
+    {
+      "name": "--sp-20",
+      "mobile": "20rpx",
+      "desktop": "10px"
+    },
+    {
+      "name": "--sp-22",
+      "mobile": "22rpx",
+      "desktop": "11px"
+    },
+    {
+      "name": "--sp-24",
+      "mobile": "24rpx",
+      "desktop": "12px"
+    },
+    {
+      "name": "--sp-25",
+      "mobile": "25rpx",
+      "desktop": "12.5px"
+    },
+    {
+      "name": "--sp-26",
+      "mobile": "26rpx",
+      "desktop": "13px"
+    },
+    {
+      "name": "--sp-28",
+      "mobile": "28rpx",
+      "desktop": "14px"
+    },
+    {
+      "name": "--sp-30",
+      "mobile": "30rpx",
+      "desktop": "15px"
+    },
+    {
+      "name": "--sp-32",
+      "mobile": "32rpx",
+      "desktop": "16px"
+    },
+    {
+      "name": "--sp-34",
+      "mobile": "34rpx",
+      "desktop": "17px"
+    },
+    {
+      "name": "--sp-35",
+      "mobile": "35rpx",
+      "desktop": "17.5px"
+    },
+    {
+      "name": "--sp-36",
+      "mobile": "36rpx",
+      "desktop": "18px"
+    },
+    {
+      "name": "--sp-38",
+      "mobile": "38rpx",
+      "desktop": "19px"
+    },
+    {
+      "name": "--sp-40",
+      "mobile": "40rpx",
+      "desktop": "20px"
+    },
+    {
+      "name": "--sp-41",
+      "mobile": "41rpx",
+      "desktop": "20.5px"
+    },
+    {
+      "name": "--sp-42",
+      "mobile": "42rpx",
+      "desktop": "21px"
+    },
+    {
+      "name": "--sp-44",
+      "mobile": "44rpx",
+      "desktop": "22px"
+    },
+    {
+      "name": "--sp-45",
+      "mobile": "45rpx",
+      "desktop": "22.5px"
+    },
+    {
+      "name": "--sp-48",
+      "mobile": "48rpx",
+      "desktop": "24px"
+    },
+    {
+      "name": "--sp-50",
+      "mobile": "50rpx",
+      "desktop": "25px"
+    },
+    {
+      "name": "--sp-52",
+      "mobile": "52rpx",
+      "desktop": "26px"
+    },
+    {
+      "name": "--sp-54",
+      "mobile": "54rpx",
+      "desktop": "27px"
+    },
+    {
+      "name": "--sp-56",
+      "mobile": "56rpx",
+      "desktop": "28px"
+    },
+    {
+      "name": "--sp-60",
+      "mobile": "60rpx",
+      "desktop": "30px"
+    },
+    {
+      "name": "--sp-64",
+      "mobile": "64rpx",
+      "desktop": "32px"
+    },
+    {
+      "name": "--sp-66",
+      "mobile": "66rpx",
+      "desktop": "33px"
+    },
+    {
+      "name": "--sp-68",
+      "mobile": "68rpx",
+      "desktop": "34px"
+    },
+    {
+      "name": "--sp-70",
+      "mobile": "70rpx",
+      "desktop": "35px"
+    },
+    {
+      "name": "--sp-72",
+      "mobile": "72rpx",
+      "desktop": "36px"
+    },
+    {
+      "name": "--sp-76",
+      "mobile": "76rpx",
+      "desktop": "38px"
+    },
+    {
+      "name": "--sp-78",
+      "mobile": "78rpx",
+      "desktop": "39px"
+    },
+    {
+      "name": "--sp-80",
+      "mobile": "80rpx",
+      "desktop": "40px"
+    },
+    {
+      "name": "--sp-88",
+      "mobile": "88rpx",
+      "desktop": "44px"
+    },
+    {
+      "name": "--sp-90",
+      "mobile": "90rpx",
+      "desktop": "45px"
+    },
+    {
+      "name": "--sp-92",
+      "mobile": "92rpx",
+      "desktop": "46px"
+    },
+    {
+      "name": "--sp-96",
+      "mobile": "96rpx",
+      "desktop": "48px"
+    },
+    {
+      "name": "--sp-100",
+      "mobile": "100rpx",
+      "desktop": "50px"
+    },
+    {
+      "name": "--sp-102",
+      "mobile": "102rpx",
+      "desktop": "51px"
+    },
+    {
+      "name": "--sp-106",
+      "mobile": "106rpx",
+      "desktop": "53px"
+    },
+    {
+      "name": "--sp-120",
+      "mobile": "120rpx",
+      "desktop": "60px"
+    },
+    {
+      "name": "--sp-126",
+      "mobile": "126rpx",
+      "desktop": "63px"
+    },
+    {
+      "name": "--sp-140",
+      "mobile": "140rpx",
+      "desktop": "70px"
+    },
+    {
+      "name": "--sp-145",
+      "mobile": "145rpx",
+      "desktop": "72.5px"
+    },
+    {
+      "name": "--sp-150",
+      "mobile": "150rpx",
+      "desktop": "75px"
+    },
+    {
+      "name": "--sp-160",
+      "mobile": "160rpx",
+      "desktop": "80px"
+    },
+    {
+      "name": "--sp-180",
+      "mobile": "180rpx",
+      "desktop": "90px"
+    },
+    {
+      "name": "--sp-188",
+      "mobile": "188rpx",
+      "desktop": "94px"
+    },
+    {
+      "name": "--sp-190",
+      "mobile": "190rpx",
+      "desktop": "95px"
+    },
+    {
+      "name": "--sp-200",
+      "mobile": "200rpx",
+      "desktop": "100px"
+    },
+    {
+      "name": "--sp-230",
+      "mobile": "230rpx",
+      "desktop": "115px"
+    },
+    {
+      "name": "--sp-240",
+      "mobile": "240rpx",
+      "desktop": "120px"
+    },
+    {
+      "name": "--sp-250",
+      "mobile": "250rpx",
+      "desktop": "125px"
+    },
+    {
+      "name": "--sp-255",
+      "mobile": "255rpx",
+      "desktop": "127.5px"
+    },
+    {
+      "name": "--sp-300",
+      "mobile": "300rpx",
+      "desktop": "150px"
+    },
+    {
+      "name": "--sp-320",
+      "mobile": "320rpx",
+      "desktop": "160px"
+    },
+    {
+      "name": "--sp-400",
+      "mobile": "400rpx",
+      "desktop": "200px"
+    },
+    {
+      "name": "--sp-450",
+      "mobile": "450rpx",
+      "desktop": "225px"
+    },
+    {
+      "name": "--sp-600",
+      "mobile": "600rpx",
+      "desktop": "300px"
+    },
+    {
+      "name": "--sp-620",
+      "mobile": "620rpx",
+      "desktop": "310px"
+    },
+    {
+      "name": "--sp-650",
+      "mobile": "650rpx",
+      "desktop": "325px"
+    },
+    {
+      "name": "--sp-700",
+      "mobile": "700rpx",
+      "desktop": "350px"
+    },
+    {
+      "name": "--sp-760",
+      "mobile": "760rpx",
+      "desktop": "380px"
+    },
+    {
+      "name": "--sp-999",
+      "mobile": "999rpx",
+      "desktop": "499.5px"
+    }
+  ],
+  "files": [
+    {
+      "file": "miniprogram/app.wxss",
+      "replaced": 0,
+      "tokenBlockRefreshed": true,
+      "changed": true,
+      "residualRpx": 77
+    },
+    {
+      "file": "miniprogram/components/approval-card/approval-card.wxss",
+      "replaced": 0,
+      "tokenBlockRefreshed": false,
+      "changed": false,
+      "residualRpx": 0
+    },
+    {
+      "file": "miniprogram/components/approval-detail/approval-detail.wxss",
+      "replaced": 0,
+      "tokenBlockRefreshed": false,
+      "changed": false,
+      "residualRpx": 0
+    },
+    {
+      "file": "miniprogram/components/datetime-picker/datetime-picker.wxss",
+      "replaced": 0,
+      "tokenBlockRefreshed": false,
+      "changed": false,
+      "residualRpx": 0
+    },
+    {
+      "file": "miniprogram/components/multiuse-modal/multiuse-modal.wxss",
+      "replaced": 0,
+      "tokenBlockRefreshed": false,
+      "changed": false,
+      "residualRpx": 0
+    },
+    {
+      "file": "miniprogram/components/pagination-loading/pagination-loading.wxss",
+      "replaced": 0,
+      "tokenBlockRefreshed": false,
+      "changed": false,
+      "residualRpx": 0
+    },
+    {
+      "file": "miniprogram/components/watermark/watermark.wxss",
+      "replaced": 0,
+      "tokenBlockRefreshed": false,
+      "changed": false,
+      "residualRpx": 0
+    },
+    {
+      "file": "miniprogram/pages/auth/fill-detail/fill-detail.wxss",
+      "replaced": 0,
+      "tokenBlockRefreshed": false,
+      "changed": false,
+      "residualRpx": 0
+    },
+    {
+      "file": "miniprogram/pages/auth/login/login.wxss",
+      "replaced": 0,
+      "tokenBlockRefreshed": false,
+      "changed": false,
+      "residualRpx": 0
+    },
+    {
+      "file": "miniprogram/pages/auth/register/register.wxss",
+      "replaced": 0,
+      "tokenBlockRefreshed": false,
+      "changed": false,
+      "residualRpx": 0
+    },
+    {
+      "file": "miniprogram/pages/office/approval/approval.wxss",
+      "replaced": 0,
+      "tokenBlockRefreshed": false,
+      "changed": false,
+      "residualRpx": 0
+    },
+    {
+      "file": "miniprogram/pages/office/arrival-guide/arrival-guide.wxss",
+      "replaced": 0,
+      "tokenBlockRefreshed": false,
+      "changed": false,
+      "residualRpx": 0
+    },
+    {
+      "file": "miniprogram/pages/office/calendar/calendar.wxss",
+      "replaced": 0,
+      "tokenBlockRefreshed": false,
+      "changed": false,
+      "residualRpx": 0
+    },
+    {
+      "file": "miniprogram/pages/office/form/form-compare/form-compare.wxss",
+      "replaced": 0,
+      "tokenBlockRefreshed": false,
+      "changed": false,
+      "residualRpx": 0
+    },
+    {
+      "file": "miniprogram/pages/office/form/form-detail/form-detail.wxss",
+      "replaced": 0,
+      "tokenBlockRefreshed": false,
+      "changed": false,
+      "residualRpx": 0
+    },
+    {
+      "file": "miniprogram/pages/office/form/form-edit/form-edit.wxss",
+      "replaced": 0,
+      "tokenBlockRefreshed": false,
+      "changed": false,
+      "residualRpx": 0
+    },
+    {
+      "file": "miniprogram/pages/office/form/form-list/form-list.wxss",
+      "replaced": 0,
+      "tokenBlockRefreshed": false,
+      "changed": false,
+      "residualRpx": 0
+    },
+    {
+      "file": "miniprogram/pages/office/form/form-result/form-result.wxss",
+      "replaced": 0,
+      "tokenBlockRefreshed": false,
+      "changed": false,
+      "residualRpx": 0
+    },
+    {
+      "file": "miniprogram/pages/office/form/form-submissions/form-submissions.wxss",
+      "replaced": 0,
+      "tokenBlockRefreshed": false,
+      "changed": false,
+      "residualRpx": 0
+    },
+    {
+      "file": "miniprogram/pages/office/haircut/haircut.wxss",
+      "replaced": 0,
+      "tokenBlockRefreshed": false,
+      "changed": false,
+      "residualRpx": 0
+    },
+    {
+      "file": "miniprogram/pages/office/help/help.wxss",
+      "replaced": 0,
+      "tokenBlockRefreshed": false,
+      "changed": false,
+      "residualRpx": 0
+    },
+    {
+      "file": "miniprogram/pages/office/home/home.wxss",
+      "replaced": 0,
+      "tokenBlockRefreshed": false,
+      "changed": false,
+      "residualRpx": 0
+    },
+    {
+      "file": "miniprogram/pages/office/interest-class/interest-class.wxss",
+      "replaced": 0,
+      "tokenBlockRefreshed": false,
+      "changed": false,
+      "residualRpx": 0
+    },
+    {
+      "file": "miniprogram/pages/office/menu-detail/menu-detail.wxss",
+      "replaced": 0,
+      "tokenBlockRefreshed": false,
+      "changed": false,
+      "residualRpx": 0
+    },
+    {
+      "file": "miniprogram/pages/office/menu-edit/menu-edit.wxss",
+      "replaced": 0,
+      "tokenBlockRefreshed": false,
+      "changed": false,
+      "residualRpx": 0
+    },
+    {
+      "file": "miniprogram/pages/office/menus/menus.wxss",
+      "replaced": 0,
+      "tokenBlockRefreshed": false,
+      "changed": false,
+      "residualRpx": 0
+    },
+    {
+      "file": "miniprogram/pages/office/notifications/notifications.wxss",
+      "replaced": 0,
+      "tokenBlockRefreshed": false,
+      "changed": false,
+      "residualRpx": 0
+    },
+    {
+      "file": "miniprogram/pages/office/personnel-config/personnel-config.wxss",
+      "replaced": 0,
+      "tokenBlockRefreshed": false,
+      "changed": false,
+      "residualRpx": 0
+    },
+    {
+      "file": "miniprogram/pages/office/profile/edit-profile/edit-profile.wxss",
+      "replaced": 0,
+      "tokenBlockRefreshed": false,
+      "changed": false,
+      "residualRpx": 0
+    },
+    {
+      "file": "miniprogram/pages/office/profile/profile.wxss",
+      "replaced": 0,
+      "tokenBlockRefreshed": false,
+      "changed": false,
+      "residualRpx": 0
+    },
+    {
+      "file": "miniprogram/pages/office/trip-board/trip-board.wxss",
+      "replaced": 0,
+      "tokenBlockRefreshed": false,
+      "changed": false,
+      "residualRpx": 0
+    },
+    {
+      "file": "miniprogram/pages/office/trip-report/trip-report.wxss",
+      "replaced": 0,
+      "tokenBlockRefreshed": false,
+      "changed": false,
+      "residualRpx": 0
+    },
+    {
+      "file": "miniprogram/app.js",
+      "replaced": 0,
+      "tokenBlockRefreshed": true,
+      "changed": true,
+      "residualRpx": 0
+    }
+  ],
+  "skipped": [],
+  "warnings": [],
+  "backupDir": ".rpx-migration-backup/2026-09-21T16-39-14-335Z",
+  "projectResidual": []
+}

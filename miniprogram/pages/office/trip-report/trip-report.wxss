@@ -7,7 +7,7 @@
 
 /* 头部 - 使用圆角渐变 */
 .trip-header {
-  padding: 40rpx 32rpx 30rpx;
+  padding: var(--sp-40) var(--sp-32) var(--sp-30);
 }
 
 .trip-header-content {
@@ -26,16 +26,16 @@
 
 /* 状态卡片 - 参照 approval-modal-copy 风格 */
 .trip-status-card {
-  margin: 28rpx;
-  padding: 24rpx;
-  border-radius: 24rpx;
+  margin: var(--sp-28);
+  padding: var(--sp-24);
+  border-radius: var(--sp-24);
   transition: all 0.3s ease;
 }
 
 .trip-status-card.is-active {
   /* 外出中 - 黄色 */
   background: var(--hint-warn-bg);
-  border: 1rpx solid var(--hint-warn-border);
+  border: var(--sp-1) solid var(--hint-warn-border);
 }
 
 .trip-status-card.is-active .trip-status-label {
@@ -62,7 +62,7 @@
 .trip-status-card.is-idle {
   /* 未外出 - 绿色 */
   background: #DCFCE7;
-  border: 1rpx solid #166534;
+  border: var(--sp-1) solid #166534;
 }
 
 .trip-status-card.is-idle .trip-status-label {
@@ -92,15 +92,15 @@
 }
 
 .trip-status-icon {
-  width: 100rpx;
-  height: 100rpx;
-  border-radius: 20rpx;
+  width: var(--sp-100);
+  height: var(--sp-100);
+  border-radius: var(--sp-20);
   display: flex;
   align-items: center;
   justify-content: center;
   background: rgba(255, 255, 255,0);
   font-size: var(--fs-72);
-  margin-right: 16rpx;
+  margin-right: var(--sp-16);
 }
 
 .trip-status-info {
@@ -110,7 +110,7 @@
 .trip-status-label {
   font-size: var(--fs-32);
   font-weight: 600;
-  margin-bottom: 4rpx;
+  margin-bottom: var(--sp-4);
 }
 
 .trip-status-companion {
@@ -119,7 +119,7 @@
   display: flex;
   flex-wrap: wrap;
   align-items: center;
-  gap: 6rpx;
+  gap: var(--sp-6);
 }
 
 /* 同行人标签 */
@@ -132,16 +132,16 @@
 .trip-status-detail {
   display: grid;
   grid-template-columns: repeat(3, 1fr);
-  gap: 24rpx 12rpx;
-  padding-top: 20rpx;
-  margin-top: 20rpx;
-  border-top: 1rpx solid;
+  gap: var(--sp-24) var(--sp-12);
+  padding-top: var(--sp-20);
+  margin-top: var(--sp-20);
+  border-top: var(--sp-1) solid;
 }
 
 .trip-status-item {
   display: flex;
   flex-direction: column;
-  gap: 4rpx;
+  gap: var(--sp-4);
 }
 
 .trip-status-item-label {
@@ -155,22 +155,22 @@
 
 /* 内容区 */
 .trip-content {
-  padding: 0 24rpx 12rpx;
-  padding-bottom: 100rpx;
-  margin-top: -8rpx;
+  padding: 0 var(--sp-24) var(--sp-12);
+  padding-bottom: var(--sp-100);
+  margin-top: calc(var(--sp-8) * -1);
 }
 
 /* 操作按钮 */
 .trip-action-section {
   display: flex;
-  gap: 16rpx;
-  margin-bottom: 32rpx;
+  gap: var(--sp-16);
+  margin-bottom: var(--sp-32);
 }
 
 .trip-action-btn {
   flex: 1;
-  height: 100rpx;
-  border-radius: 20rpx;
+  height: var(--sp-100);
+  border-radius: var(--sp-20);
   font-size: var(--fs-28);
   font-weight: 600;
   padding-left: 0;
@@ -185,19 +185,19 @@
 .trip-action-btn-depart {
   background: linear-gradient(135deg, #2563EB 0%, #4F46E5 100%);
   color: #FFFFFF;
-  box-shadow: 0 8rpx 24rpx rgba(37, 99, 235, 0.3);
+  box-shadow: 0 var(--sp-8) var(--sp-24) rgba(37, 99, 235, 0.3);
 }
 
 .trip-action-btn-return {
   background: linear-gradient(135deg, #16A34A 0%, #059669 100%);
   color: #FFFFFF;
-  box-shadow: 0 8rpx 24rpx rgba(22, 163, 74, 0.3);
+  box-shadow: 0 var(--sp-8) var(--sp-24) rgba(22, 163, 74, 0.3);
 }
 
 .trip-action-btn-retro {
   background: linear-gradient(135deg, #F59E0B 0%, #D97706 100%);
   color: #FFFFFF;
-  box-shadow: 0 8rpx 24rpx rgba(245, 158, 11, 0.3);
+  box-shadow: 0 var(--sp-8) var(--sp-24) rgba(245, 158, 11, 0.3);
 }
 
 .trip-action-btn-retro.is-disabled,
@@ -210,7 +210,7 @@
 .trip-action-btn-cancel {
   background: linear-gradient(135deg, #DC2626 0%, #B91C1C 100%);
   color: #FFFFFF;
-  box-shadow: 0 8rpx 24rpx rgba(220, 38, 38, 0.3);
+  box-shadow: 0 var(--sp-8) var(--sp-24) rgba(220, 38, 38, 0.3);
 }
 
 .trip-action-btn:active {
@@ -220,55 +220,55 @@
 
 /* 章节标题 */
 .trip-section {
-  margin-top: 16rpx;
+  margin-top: var(--sp-16);
 }
 
 .trip-section-title {
   font-size: var(--fs-35);
   font-weight: 600;
   color: var(--text-primary);
-  margin-bottom: 20rpx;
-  padding-left: 8rpx;
+  margin-bottom: var(--sp-20);
+  padding-left: var(--sp-8);
 }
 
 /* 月份分组 */
 .trip-month-group {
-  margin-bottom: 24rpx;
+  margin-bottom: var(--sp-24);
 }
 
 .trip-month-title {
   font-size: var(--fs-32);
   color: var(--text-tertiary);
-  margin-bottom: 16rpx;
-  padding-left: 8rpx;
+  margin-bottom: var(--sp-16);
+  padding-left: var(--sp-8);
 }
 
 /* 列表 */
 .trip-list {
   display: flex;
   flex-direction: column;
-  gap: 16rpx;
+  gap: var(--sp-16);
 }
 
 /* 记录卡片 */
 .trip-item {
   background: var(--bg-card);
-  border-radius: 20rpx;
-  padding: 24rpx;
-  box-shadow: 0 2rpx 12rpx rgba(0, 0, 0, 0.04);
+  border-radius: var(--sp-20);
+  padding: var(--sp-24);
+  box-shadow: 0 var(--sp-2) var(--sp-12) rgba(0, 0, 0, 0.04);
 }
 
 .trip-item-header {
   display: flex;
   align-items: center;
-  margin-bottom: 16rpx;
+  margin-bottom: var(--sp-16);
 }
 
 .trip-item-date {
   font-size: var(--fs-32);
   font-weight: 600;
   color: var(--text-primary);
-  margin-right: 16rpx;
+  margin-right: var(--sp-16);
 }
 
 .trip-item-time {
@@ -279,15 +279,15 @@
 
 .trip-item-status {
   font-size: var(--fs-24);
-  padding: 6rpx 16rpx;
-  border-radius: 8rpx;
+  padding: var(--sp-6) var(--sp-16);
+  border-radius: var(--sp-8);
   font-weight: 500;
 }
 
 .trip-item-body {
   display: flex;
   flex-direction: column;
-  gap: 8rpx;
+  gap: var(--sp-8);
 }
 
 .trip-item-dest {
@@ -298,7 +298,7 @@
 
 .trip-item-meta {
   display: flex;
-  gap: 20rpx;
+  gap: var(--sp-20);
 }
 
 .trip-item-mode,
@@ -321,12 +321,12 @@
   flex-direction: column;
   align-items: center;
   justify-content: center;
-  padding: 80rpx 0;
+  padding: var(--sp-80) 0;
 }
 
 .trip-empty-icon {
   font-size: var(--fs-80);
-  margin-bottom: 20rpx;
+  margin-bottom: var(--sp-20);
 }
 
 .trip-empty-text {
@@ -338,7 +338,7 @@
 .trip-loading {
   display: flex;
   justify-content: center;
-  padding: 32rpx 0;
+  padding: var(--sp-32) 0;
 }
 
 .trip-loading-text {
@@ -373,7 +373,7 @@
   left: 0;
   right: 0;
   background: var(--bg-card);
-  border-radius: 32rpx 32rpx 0 0;
+  border-radius: var(--sp-32) var(--sp-32) 0 0;
   transform: translateY(100%);
   transition: transform 0.3s ease; 
   max-height: 85vh;
@@ -421,8 +421,8 @@
   display: flex;
   align-items: center;
   justify-content: space-between;
-  padding: 32rpx;
-  border-bottom: 1rpx solid var(--bg-soft-2);
+  padding: var(--sp-32);
+  border-bottom: var(--sp-1) solid var(--bg-soft-2);
   flex-shrink: 0;
 }
 
@@ -434,7 +434,7 @@
 }
 
 .trip-popup-title {
-  font-size: var(--fs-34);
+  font-size: var(--fs-35);
   font-weight: 600;
   color: var(--text-primary);
 }
@@ -448,24 +448,24 @@
   font-size: var(--fs-48);
   color: var(--text-muted);
   line-height: 1;
-  padding: 0 8rpx;
+  padding: 0 var(--sp-8);
 }
 
 /* 表单 */
 .trip-popup-form {
-  padding: 32rpx;
-  padding-bottom: 90rpx;
+  padding: var(--sp-32);
+  padding-bottom: var(--sp-90);
 }
 
 .trip-field {
-  margin-bottom: 28rpx;
+  margin-bottom: var(--sp-28);
 }
 
 .trip-field-label {
-  font-size: var(--fs-30);
+  font-size: var(--fs-32);
   color: var(--text-primary);
   font-weight: 600;
-  margin-bottom: 24rpx;
+  margin-bottom: var(--sp-24);
 }
 
 .trip-required {
@@ -475,21 +475,22 @@
 .trip-field-hint {
   font-size: var(--fs-26);
   color: var(--text-muted);
-  margin-top: 8rpx;
+  margin-top: var(--sp-8);
 }
 
 .trip-input-wrapper {
   background: var(--bg-input);
-  border-radius: 16rpx;
-  padding: 0 24rpx;
-  height: 88rpx;
+  border-radius: var(--sp-16);
+  padding: 0 var(--sp-24);
+  height: var(--sp-88);
   display: flex;
   align-items: center;
+  border: var(--sp-1) solid var(--border-soft);
 }
 
 .trip-input {
   flex: 1;
-  font-size: var(--fs-28);
+  font-size: var(--fs-30);
   color: var(--text-primary);
 }
 
@@ -499,31 +500,31 @@
 
 /* 历史记录列表 */
 .trip-history-list {
-  margin-top: 12rpx;
+  margin-top: var(--sp-12);
   background: var(--bg-input);
-  border-radius: 12rpx;
-  padding: 16rpx;
+  border-radius: var(--sp-12);
+  padding: var(--sp-16);
 }
 
 .trip-history-title {
-  font-size: var(--fs-26);
+  font-size: var(--fs-30);
   font-weight: 500;
-  color: var(--text-muted);
-  margin-bottom: 12rpx;
+  color: var(--text-secondary);
+  margin-bottom: var(--sp-12);
 }
 
 .trip-history-items {
   display: flex;
   flex-wrap: wrap;
-  gap: 12rpx;
+  gap: var(--sp-12);
 }
 
 .trip-history-item {
   background: var(--bg-card);
-  border: 1rpx solid var(--border-soft);
-  border-radius: 8rpx;
-  padding: 10rpx 20rpx;
-  font-size: var(--fs-24);
+  border: var(--sp-1) solid var(--border-soft);
+  border-radius: var(--sp-8);
+  padding: var(--sp-10) var(--sp-20);
+  font-size: var(--fs-28);
   color: var(--text-secondary);
   transition: all 0.2s ease;
 }
@@ -538,7 +539,7 @@
 /* 日期时间选择器 */
 .trip-datetime-picker {
   display: flex;
-  gap: 16rpx;
+  gap: var(--sp-16);
 }
 
 .trip-datetime-picker picker {
@@ -547,9 +548,9 @@
 
 .trip-picker-value {
   background: var(--bg-input);
-  border-radius: 16rpx;
-  padding: 0 24rpx;
-  height: 88rpx;
+  border-radius: var(--sp-16);
+  padding: 0 var(--sp-24);
+  height: var(--sp-88);
   display: flex;
   align-items: center;
   font-size: var(--fs-28);
@@ -559,12 +560,13 @@
 /* 下拉选择器 */
 .trip-picker-wrapper {
   background: var(--bg-input);
-  border-radius: 16rpx;
-  padding: 0 24rpx;
-  height: 88rpx;
+  border-radius: var(--sp-16);
+  padding: 0 var(--sp-24);
+  height: var(--sp-88);
   display: flex;
   align-items: center;
   justify-content: space-between;
+  border: var(--sp-1) solid var(--border-soft);
 }
 
 .trip-picker-wrapper.is-placeholder .trip-picker-value {
@@ -585,24 +587,24 @@
 /* ========== 代报备返回弹窗 ========== */
 .proxy-return-tip {
   font-size: var(--fs-30);
-  padding: 24rpx 40rpx 16rpx;
+  padding: var(--sp-24) var(--sp-40) var(--sp-16);
   line-height: 1.6;
   color: var(--text-primary);
 }
 
 .proxy-return-list {
-  padding: 0 32rpx 24rpx;
+  padding: 0 var(--sp-32) var(--sp-24);
 }
 
 .proxy-return-item {
   display: flex;
   align-items: center;
-  gap: 20rpx;
-  padding: 20rpx 24rpx;
-  margin-bottom: 12rpx;
+  gap: var(--sp-20);
+  padding: var(--sp-20) var(--sp-24);
+  margin-bottom: var(--sp-12);
   background: var(--bg-input);
-  border-radius: 16rpx;
-  border: 2rpx solid var(--border-soft);
+  border-radius: var(--sp-16);
+  border: var(--sp-2) solid var(--border-soft);
   transition: all 0.2s ease;
 }
 
@@ -612,10 +614,10 @@
 }
 
 .proxy-return-checkbox {
-  width: 40rpx;
-  height: 40rpx;
-  border-radius: 10rpx;
-  border: 2rpx solid var(--border-soft);
+  width: var(--sp-40);
+  height: var(--sp-40);
+  border-radius: var(--sp-10);
+  border: var(--sp-2) solid var(--border-soft);
   display: flex;
   align-items: center;
   justify-content: center;
@@ -639,7 +641,7 @@
   font-size: var(--fs-30);
   font-weight: 500;
   color: var(--text-primary);
-  margin-bottom: 4rpx;
+  margin-bottom: var(--sp-4);
 }
 
 .proxy-return-dest {
@@ -649,17 +651,17 @@
 
 .proxy-return-footer {
   display: flex;
-  gap: 16rpx;
-  padding: 20rpx 32rpx;
-  padding-bottom: calc(20rpx + env(safe-area-inset-bottom));
-  border-top: 1rpx solid var(--bg-soft-2);
+  gap: var(--sp-16);
+  padding: var(--sp-20) var(--sp-32);
+  padding-bottom: calc(var(--sp-20) + env(safe-area-inset-bottom));
+  border-top: var(--sp-1) solid var(--bg-soft-2);
   flex-shrink: 0;
 }
 
 .proxy-return-btn {
   flex: 1;
-  height: 88rpx;
-  border-radius: 16rpx;
+  height: var(--sp-88);
+  border-radius: var(--sp-16);
   font-size: var(--fs-30);
   font-weight: 600;
   display: flex;
@@ -680,7 +682,7 @@
   flex: 0.6;
   background: linear-gradient(135deg, #16A34A 0%, #059669 100%);
   color: #FFFFFF;
-  box-shadow: 0 6rpx 20rpx rgba(22, 163, 74, 0.3);
+  box-shadow: 0 var(--sp-6) var(--sp-20) rgba(22, 163, 74, 0.3);
 }
 
 .proxy-return-btn:active {
@@ -692,32 +694,32 @@
 .trip-action-btn-append {
   background: linear-gradient(135deg, #F97316 0%, #EA580C 100%);
   color: #FFFFFF;
-  box-shadow: 0 8rpx 24rpx rgba(249, 115, 22, 0.3);
+  box-shadow: 0 var(--sp-8) var(--sp-24) rgba(249, 115, 22, 0.3);
 }
 
 /* ========== 追加目的地弹窗 ========== */
 .append-dest-content {
-  padding: 24rpx 32rpx;
+  padding: var(--sp-24) var(--sp-32);
 }
 
 .append-dest-tip {
   font-size: var(--fs-34);
   line-height: 1.6;
   font-weight: 600;
-  padding-bottom: 24rpx;
+  padding-bottom: var(--sp-24);
   color: #F97316;
 }
 
 .append-dest-current {
-  border-radius: 16rpx;
-  padding: 20rpx 24rpx;
-  margin-bottom: 24rpx;
+  border-radius: var(--sp-16);
+  padding: var(--sp-20) var(--sp-24);
+  margin-bottom: var(--sp-24);
 }
 
 .append-dest-current-label {
   font-size: var(--fs-24);
   color: var(--text-muted);
-  margin-bottom: 6rpx;
+  margin-bottom: var(--sp-6);
 }
 
 .append-dest-current-value {
@@ -728,25 +730,25 @@
 }
 
 .append-dest-proxy {
-  margin-top: 16rpx;
+  margin-top: var(--sp-16);
 }
 
 .append-dest-proxy-label {
   font-size: var(--fs-30);
   color: var(--text-muted);
-  margin-bottom: 12rpx;
-  padding-left: 4rpx;
+  margin-bottom: var(--sp-12);
+  padding-left: var(--sp-4);
 }
 
 .append-dest-proxy-item {
   display: flex;
   align-items: center;
-  gap: 20rpx;
-  padding: 20rpx 24rpx;
-  margin-bottom: 12rpx;
+  gap: var(--sp-20);
+  padding: var(--sp-20) var(--sp-24);
+  margin-bottom: var(--sp-12);
   background: var(--bg-input);
-  border-radius: 16rpx;
-  border: 2rpx solid var(--border-soft);
+  border-radius: var(--sp-16);
+  border: var(--sp-2) solid var(--border-soft);
   transition: all 0.2s ease;
 }
 
@@ -756,10 +758,10 @@
 }
 
 .append-dest-proxy-checkbox {
-  width: 40rpx;
-  height: 40rpx;
-  border-radius: 10rpx;
-  border: 2rpx solid var(--border-soft);
+  width: var(--sp-40);
+  height: var(--sp-40);
+  border-radius: var(--sp-10);
+  border: var(--sp-2) solid var(--border-soft);
   display: flex;
   align-items: center;
   justify-content: center;
@@ -783,7 +785,7 @@
   font-size: var(--fs-30);
   font-weight: 500;
   color: var(--text-primary);
-  margin-bottom: 4rpx;
+  margin-bottom: var(--sp-4);
 }
 
 .append-dest-proxy-dest {
@@ -793,17 +795,17 @@
 
 .append-dest-footer {
   display: flex;
-  gap: 16rpx;
-  padding: 20rpx 32rpx;
-  padding-bottom: calc(20rpx + env(safe-area-inset-bottom));
-  border-top: 1rpx solid var(--bg-soft-2);
+  gap: var(--sp-16);
+  padding: var(--sp-20) var(--sp-32);
+  padding-bottom: calc(var(--sp-20) + env(safe-area-inset-bottom));
+  border-top: var(--sp-1) solid var(--bg-soft-2);
   flex-shrink: 0;
 }
 
 .append-dest-btn {
   flex: 1;
-  height: 88rpx;
-  border-radius: 16rpx;
+  height: var(--sp-88);
+  border-radius: var(--sp-16);
   font-size: var(--fs-30);
   font-weight: 600;
   display: flex;
@@ -824,14 +826,14 @@
   flex: 0.6;
   background: linear-gradient(135deg, #F97316 0%, #EA580C 100%);
   color: #FFFFFF;
-  box-shadow: 0 6rpx 20rpx rgba(249, 115, 22, 0.3);
+  box-shadow: 0 var(--sp-6) var(--sp-20) rgba(249, 115, 22, 0.3);
 }
 
 .append-dest-btn-single {
   flex: 1;
   background: linear-gradient(135deg, #F97316 0%, #EA580C 100%);
   color: #FFFFFF;
-  box-shadow: 0 6rpx 20rpx rgba(249, 115, 22, 0.3);
+  box-shadow: 0 var(--sp-6) var(--sp-20) rgba(249, 115, 22, 0.3);
 }
 
 .append-dest-btn:active {

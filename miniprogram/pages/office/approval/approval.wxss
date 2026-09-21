@@ -7,18 +7,18 @@ page {
   display: flex;
   align-items: center;
   justify-content: center;
-  padding: 32rpx 0;
+  padding: var(--sp-32) 0;
   background: var(--bg-page);
 }
 
 .loading-spinner {
-  width: 32rpx;
-  height: 32rpx;
-  border: 3rpx solid #e0e0e0;
+  width: var(--sp-32);
+  height: var(--sp-32);
+  border: var(--sp-3) solid #e0e0e0;
   border-top-color: #1890ff;
   border-radius: 50%;
   animation: spin 0.8s linear infinite;
-  margin-right: 16rpx;
+  margin-right: var(--sp-16);
 }
 
 @keyframes spin {
@@ -36,7 +36,7 @@ page {
   display: flex;
   align-items: center;
   justify-content: center;
-  padding: 32rpx 0;
+  padding: var(--sp-32) 0;
   background: var(--bg-page);
 }
 
@@ -47,7 +47,7 @@ page {
 
 
 .approval-header {
-  padding: 40rpx 32rpx 40rpx;
+  padding: var(--sp-40) var(--sp-32) var(--sp-40);
 }
 
 .approval-title {
@@ -61,10 +61,10 @@ page {
 }
 
 .approval-launch-btn {
-  min-width: 126rpx;
-  margin: 0 0 0 10rpx;
-  padding: 14rpx 34rpx;
-  border-radius: 999rpx;
+  min-width: var(--sp-126);
+  margin: 0 0 0 var(--sp-10);
+  padding: var(--sp-14) var(--sp-34);
+  border-radius: var(--sp-999);
   background: rgba(255, 255, 255, 0.16);
   font-size: var(--fs-24);
   font-weight: 400;
@@ -72,22 +72,22 @@ page {
 }
 
 .approval-tabs-shell {
-  margin-top: 30rpx;
-  margin-bottom: -10rpx;
-  padding: 6rpx;
-  border-radius: 28rpx;
+  margin-top: var(--sp-30);
+  margin-bottom: calc(var(--sp-10) * -1);
+  padding: var(--sp-6);
+  border-radius: var(--sp-28);
   background: rgba(255, 255, 255, 0.15);
   display: flex;
 }
 
 .approval-tab {
   flex: 1;
-  height: 72rpx;
-  border-radius: 22rpx;
+  height: var(--sp-72);
+  border-radius: var(--sp-22);
   display: flex;
   align-items: center;
   justify-content: center;
-  gap: 8rpx;
+  gap: var(--sp-8);
   color: rgba(255, 255, 255, 0.78);
   font-size: var(--fs-24);
 }
@@ -106,13 +106,13 @@ page {
 .approval-summary-card,
 .approval-list-card,
 .approval-note-card {
-  padding: 24rpx;
+  padding: var(--sp-24);
 }
 
 .approval-type-grid {
   display: grid;
   grid-template-columns: repeat(4, 1fr);
-  gap: 24rpx 12rpx;
+  gap: var(--sp-24) var(--sp-12);
 }
 
 .approval-type-item {
@@ -122,9 +122,9 @@ page {
 }
 
 .approval-type-icon {
-  width: 92rpx;
-  height: 92rpx;
-  border-radius: 28rpx;
+  width: var(--sp-92);
+  height: var(--sp-92);
+  border-radius: var(--sp-28);
   display: flex;
   align-items: center;
   justify-content: center;
@@ -132,7 +132,7 @@ page {
 }
 
 .approval-type-label {
-  margin-top: 14rpx;
+  margin-top: var(--sp-14);
   text-align: center;
   line-height: 1.4;
   font-size: var(--fs-24);
@@ -140,7 +140,7 @@ page {
 }
 
 .approval-note-card {
-  margin-top: 24rpx;
+  margin-top: var(--sp-24);
   background: linear-gradient(180deg, var(--bg-card) 0%, var(--bg-input) 100%);
 }
 
@@ -151,14 +151,14 @@ page {
 }
 
 .approval-note-desc {
-  margin-top: 10rpx;
+  margin-top: var(--sp-10);
   font-size: var(--fs-24);
   line-height: 1.7;
   color: var(--text-tertiary);
 }
 
 .approval-summary-card {
-  margin-top: 24rpx;
+  margin-top: var(--sp-24);
   background: linear-gradient(180deg, var(--bg-soft) 0%, var(--bg-card) 100%);
 }
 
@@ -169,7 +169,7 @@ page {
 }
 
 .approval-summary-grid {
-  margin-top: 20rpx;
+  margin-top: var(--sp-20);
   display: flex;
   align-items: center;
   justify-content: space-between;
@@ -178,7 +178,7 @@ page {
 .approval-summary-grid.is-three {
   display: grid;
   grid-template-columns: repeat(3, 1fr);
-  gap: 16rpx;
+  gap: var(--sp-16);
 }
 
 .approval-summary-label,
@@ -192,7 +192,7 @@ page {
 }
 
 .approval-summary-value {
-  margin-top: 8rpx;
+  margin-top: var(--sp-8);
   font-size: var(--fs-38);
   font-weight: 700;
   color: var(--text-primary);
@@ -204,19 +204,19 @@ page {
 }
 
 .approval-list-header {
-  margin-top: 28rpx;
-  margin-bottom: 16rpx;
+  margin-top: var(--sp-28);
+  margin-bottom: var(--sp-16);
 }
 
 /* 卡片列表容器间距 */
 .approval-list-container {
   display: flex;
   flex-direction: column;
-  gap: 20rpx;
+  gap: var(--sp-20);
 }
 
 .approval-list-card + .approval-list-card {
-  margin-top: 20rpx;
+  margin-top: var(--sp-20);
 }
 
 .approval-list-top,
@@ -232,7 +232,7 @@ page {
 }
 
 .approval-person {
-  gap: 18rpx;
+  gap: var(--sp-18);
 }
 
 .approval-person-main {
@@ -241,7 +241,7 @@ page {
 
 .approval-person-row {
   justify-content: flex-start;
-  gap: 10rpx;
+  gap: var(--sp-10);
 }
 
 .approval-person-name,
@@ -253,25 +253,25 @@ page {
 }
 
 .approval-type-title {
-  margin-top: 22rpx;
+  margin-top: var(--sp-22);
 }
 
 .approval-detail {
-  margin-top: 12rpx;
+  margin-top: var(--sp-12);
   color: #4B6080;
 }
 
 .approval-meta {
-  margin-top: 8rpx;
+  margin-top: var(--sp-8);
 }
 
 .approval-time {
-  margin-top: 10rpx;
+  margin-top: var(--sp-10);
 }
 
 .approval-urgent {
-  padding: 6rpx 14rpx;
-  border-radius: 999rpx;
+  padding: var(--sp-6) var(--sp-14);
+  border-radius: var(--sp-999);
   background: #FFEBEE;
   color: #F44336;
   font-size: var(--fs-18);
@@ -279,17 +279,17 @@ page {
 
 .approval-actions,
 .approval-modal-actions {
-  gap: 18rpx;
-  margin-top: 24rpx;
-  padding-top: 24rpx;
-  border-top: 1rpx solid rgba(37, 99, 235, 0.1);
+  gap: var(--sp-18);
+  margin-top: var(--sp-24);
+  padding-top: var(--sp-24);
+  border-top: var(--sp-1) solid rgba(37, 99, 235, 0.1);
 }
 
 .approval-reject-btn,
 .approval-approve-btn {
   flex: 1;
-  height: 78rpx;
-  border-radius: 24rpx;
+  height: var(--sp-78);
+  border-radius: var(--sp-24);
   display: flex;
   align-items: center;
   justify-content: center;
@@ -315,10 +315,10 @@ page {
 .approval-approve-btn.is-disabled::after {
   content: '';
   position: absolute;
-  right: 20rpx;
-  width: 24rpx;
-  height: 24rpx;
-  border: 3rpx solid currentColor;
+  right: var(--sp-20);
+  width: var(--sp-24);
+  height: var(--sp-24);
+  border: var(--sp-3) solid currentColor;
   border-top-color: transparent;
   border-right-color: transparent;
   border-radius: 50%;
@@ -336,10 +336,10 @@ page {
 }
 
 .approval-empty-icon {
-  width: 88rpx;
-  height: 88rpx;
-  border-radius: 44rpx;
-  margin: 0 auto 20rpx;
+  width: var(--sp-88);
+  height: var(--sp-88);
+  border-radius: var(--sp-44);
+  margin: 0 auto var(--sp-20);
   background: var(--bg-soft);
   color: #2563EB;
   display: flex;
@@ -356,16 +356,16 @@ page {
   display: flex;
   align-items: flex-end;
   justify-content: center;
-  padding: 24rpx;
+  padding: var(--sp-24);
   box-sizing: border-box;
   z-index: 20;
 }
 
 .approval-modal-card {
   width: 100%;
-  border-radius: 32rpx;
+  border-radius: var(--sp-32);
   background: var(--bg-card);
-  padding: 28rpx;
+  padding: var(--sp-28);
   box-sizing: border-box;
 }
 
@@ -376,9 +376,9 @@ page {
 }
 
 .approval-modal-close {
-  width: 56rpx;
-  height: 56rpx;
-  border-radius: 28rpx;
+  width: var(--sp-56);
+  height: var(--sp-56);
+  border-radius: var(--sp-28);
   background: var(--bg-input);
   color: var(--text-tertiary);
   display: flex;
@@ -388,11 +388,11 @@ page {
 }
 
 .approval-modal-body {
-  margin-top: 24rpx;
+  margin-top: var(--sp-24);
 }
 
 .approval-modal-row + .approval-modal-row {
-  margin-top: 18rpx;
+  margin-top: var(--sp-18);
 }
 
 .approval-modal-value {
@@ -402,9 +402,9 @@ page {
 }
 
 .approval-modal-remark {
-  margin-top: 24rpx;
-  padding: 20rpx;
-  border-radius: 24rpx;
+  margin-top: var(--sp-24);
+  padding: var(--sp-20);
+  border-radius: var(--sp-24);
   background: var(--bg-input);
   color: var(--text-secondary);
   font-size: var(--fs-24);
@@ -413,31 +413,31 @@ page {
 
 /* 就医申请进度条样式 */
 .approval-progress {
-  margin-top: 16rpx;
-  padding: 24rpx;
+  margin-top: var(--sp-16);
+  padding: var(--sp-24);
   background: var(--bg-soft-2);
-  border-radius: 12rpx;
+  border-radius: var(--sp-12);
 }
 
 /* 详情弹窗中的进度条样式 */
 .approval-modal-progress {
-  margin-top: 24rpx;
-  padding: 24rpx;
+  margin-top: var(--sp-24);
+  padding: var(--sp-24);
   background: var(--bg-soft-2);
-  border-radius: 12rpx;
+  border-radius: var(--sp-12);
 }
 
 .approval-modal-progress-header {
   display: flex;
   justify-content: space-between;
   align-items: center;
-  margin-bottom: 16rpx;
+  margin-bottom: var(--sp-16);
 }
 
 .approval-modal-progress-info {
   display: flex;
   align-items: center;
-  gap: 12rpx;
+  gap: var(--sp-12);
   flex: 1;
 }
 
@@ -454,16 +454,16 @@ page {
 
 .approval-modal-progress-bar {
   width: 100%;
-  height: 8rpx;
+  height: var(--sp-8);
   background: #E5E7EB;
-  border-radius: 4rpx;
+  border-radius: var(--sp-4);
   overflow: hidden;
 }
 
 .approval-modal-progress-fill {
   height: 100%;
   background: linear-gradient(90deg, #2563EB 0%, #1D4ED8 100%);
-  border-radius: 4rpx;
+  border-radius: var(--sp-4);
   transition: width 0.3s ease;
 }
 
@@ -471,13 +471,13 @@ page {
   display: flex;
   justify-content: space-between;
   align-items: center;
-  margin-bottom: 16rpx;
+  margin-bottom: var(--sp-16);
 }
 
 .approval-progress-info {
   display: flex;
   align-items: center;
-  gap: 12rpx;
+  gap: var(--sp-12);
   flex: 1;
 }
 
@@ -494,31 +494,31 @@ page {
 
 .approval-progress-bar {
   width: 100%;
-  height: 8rpx;
+  height: var(--sp-8);
   background: #E5E7EB;
-  border-radius: 4rpx;
+  border-radius: var(--sp-4);
   overflow: hidden;
 }
 
 .approval-progress-fill {
   height: 100%;
   background: linear-gradient(90deg, #2563EB 0%, #1D4ED8 100%);
-  border-radius: 4rpx;
+  border-radius: var(--sp-4);
   transition: width 0.3s ease;
 }
 
 .approval-modal-copy {
-  margin-top: 24rpx;
-  padding: 24rpx;
+  margin-top: var(--sp-24);
+  padding: var(--sp-24);
   background: var(--hint-warn-bg);
-  border-radius: 12rpx;
-  border: 1rpx solid var(--hint-warn-border);
+  border-radius: var(--sp-12);
+  border: var(--sp-1) solid var(--hint-warn-border);
 }
 
 .approval-modal-copy-text {
   font-size: var(--fs-24);
   color: var(--hint-warn-text);
-  margin-bottom: 16rpx;
+  margin-bottom: var(--sp-16);
   line-height: 1.6;
 }
 
@@ -527,8 +527,8 @@ page {
   background: linear-gradient(135deg, #2563EB 0%, #1D4ED8 100%);
   color: #FFFFFF;
   border: none;
-  border-radius: 16rpx;
-  height: 88rpx;
+  border-radius: var(--sp-16);
+  height: var(--sp-88);
   font-size: var(--fs-28);
   font-weight: 600;
   box-sizing: border-box;
@@ -540,30 +540,30 @@ page {
 
 /* 工作流日志样式 */
 .approval-modal-logs {
-  margin-top: 24rpx;
-  padding: 24rpx;
+  margin-top: var(--sp-24);
+  padding: var(--sp-24);
   background: var(--bg-input);
-  border-radius: 12rpx;
+  border-radius: var(--sp-12);
 }
 
 .approval-modal-logs-title {
   font-size: var(--fs-28);
   font-weight: 600;
   color: var(--text-primary);
-  margin-bottom: 16rpx;
+  margin-bottom: var(--sp-16);
 }
 
 .approval-modal-logs-list {
   display: flex;
   flex-direction: column;
-  gap: 16rpx;
+  gap: var(--sp-16);
 }
 
 .approval-modal-logs-item {
-  padding: 16rpx;
+  padding: var(--sp-16);
   background: var(--bg-card);
-  border-radius: 8rpx;
-  border-left: 3rpx solid #2563EB;
+  border-radius: var(--sp-8);
+  border-left: var(--sp-3) solid #2563EB;
 }
 
 .approval-modal-logs-item.is-error {
@@ -574,14 +574,14 @@ page {
   font-size: var(--fs-26);
   font-weight: 600;
   color: #1F2937;
-  margin-bottom: 8rpx;
+  margin-bottom: var(--sp-8);
 }
 
 .approval-modal-logs-info {
   display: flex;
   justify-content: space-between;
   align-items: center;
-  margin-bottom: 8rpx;
+  margin-bottom: var(--sp-8);
 }
 
 .approval-modal-logs-operator {
@@ -599,9 +599,9 @@ page {
   font-size: var(--fs-24);
   color: #6B7280;
   line-height: 1.6;
-  padding-top: 8rpx;
-  border-top: 1rpx solid var(--bg-soft-2);
-  margin-top: 8rpx;
+  padding-top: var(--sp-8);
+  border-top: var(--sp-1) solid var(--bg-soft-2);
+  margin-top: var(--sp-8);
 }
 
 /* 空状态提示 */
@@ -609,23 +609,23 @@ page {
   font-size: var(--fs-24);
   color: #9CA3AF;
   text-align: center;
-  padding: 32rpx 0;
+  padding: var(--sp-32) 0;
   line-height: 1.6;
 }
 
 /* 中止申请按钮样式 */
 .approval-modal-terminate {
-  margin-top: 24rpx;
-  padding: 24rpx;
+  margin-top: var(--sp-24);
+  padding: var(--sp-24);
   background: #FEE2E2;
-  border-radius: 12rpx;
-  border: 1rpx solid #FCA5A5;
+  border-radius: var(--sp-12);
+  border: var(--sp-1) solid #FCA5A5;
 }
 
 .approval-modal-terminate-text {
   font-size: var(--fs-24);
   color: #991B1B;
-  margin-bottom: 16rpx;
+  margin-bottom: var(--sp-16);
   line-height: 1.6;
 }
 
@@ -634,8 +634,8 @@ page {
   background: #DC2626;
   color: #FFFFFF;
   border: none;
-  border-radius: 16rpx;
-  height: 88rpx;
+  border-radius: var(--sp-16);
+  height: var(--sp-88);
   font-size: var(--fs-28);
   font-weight: 600;
   box-sizing: border-box;
@@ -655,10 +655,10 @@ page {
 .approval-terminate-btn.is-disabled::after {
   content: '';
   position: absolute;
-  right: 20rpx;
-  width: 28rpx;
-  height: 28rpx;
-  border: 3rpx solid #FFFFFF;
+  right: var(--sp-20);
+  width: var(--sp-28);
+  height: var(--sp-28);
+  border: var(--sp-3) solid #FFFFFF;
   border-top-color: transparent;
   border-right-color: transparent;
   border-radius: 50%;

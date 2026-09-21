@@ -3,26 +3,26 @@
 }
 
 .form-detail-header {
-  padding: 30rpx 40rpx 70rpx;
+  padding: var(--sp-30) var(--sp-40) var(--sp-70);
 }
 
 .form-detail-title-row {
   display: flex;
   align-items: center;
-  gap: 16rpx;
-  margin-bottom: 20rpx;
+  gap: var(--sp-16);
+  margin-bottom: var(--sp-20);
 }
 
 .form-detail-badge {
-  padding: 6rpx 18rpx;
-  border-radius: 20rpx;
+  padding: var(--sp-6) var(--sp-18);
+  border-radius: var(--sp-20);
   font-size: var(--fs-22);
   font-weight: 600;
 }
 
 .form-detail-closed {
-  padding: 6rpx 18rpx;
-  border-radius: 20rpx;
+  padding: var(--sp-6) var(--sp-18);
+  border-radius: var(--sp-20);
   font-size: var(--fs-22);
   background: rgba(255, 255, 255, 0.25);
   color: #FFFFFF;
@@ -33,7 +33,7 @@
   font-weight: 700;
   color: #FFFFFF;
   line-height: 1.4;
-  margin-bottom: 12rpx;
+  margin-bottom: var(--sp-12);
 }
 
 .form-detail-meta {
@@ -42,15 +42,15 @@
 }
 
 .form-detail-content {
-  margin-top: -40rpx;
+  margin-top: calc(var(--sp-40) * -1);
 }
 
 .form-detail-submitted-tip {
-  margin-bottom: 20rpx;
-  padding: 20rpx 28rpx;
+  margin-bottom: var(--sp-20);
+  padding: var(--sp-20) var(--sp-28);
   background: #DCFCE7;
-  border: 2rpx solid #86EFAC;
-  border-radius: 16rpx;
+  border: var(--sp-2) solid #86EFAC;
+  border-radius: var(--sp-16);
   color: #16A34A;
   font-size: var(--fs-28);
 }
@@ -62,15 +62,15 @@
 }
 
 .form-detail-card {
-  padding: 28rpx;
-  margin-bottom: 24rpx;
+  padding: var(--sp-28);
+  margin-bottom: var(--sp-24);
 }
 
 .fd-card-label {
   font-size: var(--fs-32);
   font-weight: 600;
   color: var(--text-primary);
-  margin-bottom: 16rpx;
+  margin-bottom: var(--sp-16);
 }
 
 .fd-rich {
@@ -82,13 +82,13 @@
 .fd-block-head {
   display: flex;
   align-items: flex-start;
-  gap: 12rpx;
-  margin-bottom: 20rpx;
+  gap: var(--sp-12);
+  margin-bottom: var(--sp-20);
 }
 
 .fd-block-index {
-  width: 40rpx;
-  height: 40rpx;
+  width: var(--sp-40);
+  height: var(--sp-40);
   border-radius: 50%;
   background: var(--bg-soft);
   color: #2563EB;
@@ -110,42 +110,42 @@
 
 .fd-required {
   color: #DC2626;
-  margin-left: 4rpx;
+  margin-left: var(--sp-4);
 }
 
 .fd-score-text {
   flex-shrink: 0;
-  padding: 4rpx 14rpx;
-  border-radius: 20rpx;
+  padding: var(--sp-4) var(--sp-14);
+  border-radius: var(--sp-20);
   background: var(--hint-warn-bg);
   color: var(--hint-warn-text);
   font-size: var(--fs-24);
   font-weight: 600;
-  margin-top: 6rpx;
+  margin-top: var(--sp-6);
 }
 
 .fd-text-block {
   font-size: var(--fs-28);
   color: var(--text-secondary);
   line-height: 1.7;
-  padding: 16rpx;
+  padding: var(--sp-16);
   background: var(--bg-input);
-  border-radius: 12rpx;
+  border-radius: var(--sp-12);
 }
 
 /* ===== 分节标题（text 说明块，不套卡片、不编号） ===== */
 .fd-section-block {
   display: flex;
   align-items: center;
-  gap: 16rpx;
-  padding: 24rpx 8rpx;
-  margin: 4rpx 0;
+  gap: var(--sp-16);
+  padding: var(--sp-24) var(--sp-8);
+  margin: var(--sp-4) 0;
 }
 
 .fd-section-bar {
-  width: 10rpx;
-  height: 50rpx;
-  border-radius: 4rpx;
+  width: var(--sp-10);
+  height: var(--sp-50);
+  border-radius: var(--sp-4);
   background: linear-gradient(180deg, #2563EB, #4F46E5);
   flex-shrink: 0;
 }
@@ -161,20 +161,20 @@
 .fd-options {
   display: flex;
   flex-direction: column;
-  gap: 8rpx;
+  gap: var(--sp-8);
 }
 
 .fd-option {
   display: flex;
   align-items: center;
-  gap: 12rpx;
-  padding: 16rpx 8rpx;
+  gap: var(--sp-12);
+  padding: var(--sp-16) var(--sp-8);
   font-size: var(--fs-30);
   color: var(--text-secondary);
 }
 
 .fd-option-tap {
-  border-radius: 12rpx;
+  border-radius: var(--sp-12);
   transition: background 0.15s ease;
 }
 
@@ -183,10 +183,10 @@
 }
 
 .fd-radio-dot {
-  width: 32rpx;
-  height: 32rpx;
+  width: var(--sp-32);
+  height: var(--sp-32);
   border-radius: 50%;
-  border: 3rpx solid #CBD5E1;
+  border: var(--sp-3) solid #CBD5E1;
   box-sizing: border-box;
   flex-shrink: 0;
   transition: all 0.15s ease;
@@ -198,10 +198,10 @@
 }
 
 .fd-checkbox-box {
-  width: 32rpx;
-  height: 32rpx;
-  border-radius: 8rpx;
-  border: 3rpx solid #CBD5E1;
+  width: var(--sp-32);
+  height: var(--sp-32);
+  border-radius: var(--sp-8);
+  border: var(--sp-3) solid #CBD5E1;
   box-sizing: border-box;
   flex-shrink: 0;
   display: flex;
@@ -220,11 +220,11 @@
 
 .fd-textarea {
   width: 100%;
-  min-height: 160rpx;
+  min-height: var(--sp-160);
   background: var(--bg-input);
-  border: 2rpx solid var(--border-soft);
-  border-radius: 16rpx;
-  padding: 20rpx;
+  border: var(--sp-2) solid var(--border-soft);
+  border-radius: var(--sp-16);
+  padding: var(--sp-20);
   font-size: var(--fs-28);
   box-sizing: border-box;
 }
@@ -234,9 +234,9 @@
 }
 
 .fd-readonly {
-  padding: 16rpx 20rpx;
+  padding: var(--sp-16) var(--sp-20);
   background: var(--bg-input);
-  border-radius: 12rpx;
+  border-radius: var(--sp-12);
   font-size: var(--fs-32);
   color: var(--text-tertiary);
 }
@@ -244,16 +244,16 @@
 .fd-side-dish {
   display: flex;
   flex-direction: column;
-  gap: 16rpx;
+  gap: var(--sp-16);
 }
 
 .fd-cat-row {
   display: flex;
   align-items: center;
   justify-content: space-between;
-  padding: 16rpx;
+  padding: var(--sp-16);
   background: var(--bg-input);
-  border-radius: 12rpx;
+  border-radius: var(--sp-12);
 }
 
 .fd-cat-name {
@@ -265,19 +265,19 @@
 .fd-cat-max {
   font-size: var(--fs-28);
   color: var(--text-muted);
-  margin-top: 4rpx;
+  margin-top: var(--sp-4);
 }
 
 .fd-stepper {
   display: flex;
   align-items: center;
-  gap: 8rpx;
+  gap: var(--sp-8);
 }
 
 .fd-step-btn {
-  width: 56rpx;
-  height: 56rpx;
-  border-radius: 12rpx;
+  width: var(--sp-56);
+  height: var(--sp-56);
+  border-radius: var(--sp-12);
   background: var(--bg-soft);
   color: #2563EB;
   font-size: var(--fs-32);
@@ -288,7 +288,7 @@
 }
 
 .fd-step-val {
-  min-width: 60rpx;
+  min-width: var(--sp-60);
   text-align: center;
   font-size: var(--fs-30);
   font-weight: 600;
@@ -298,18 +298,18 @@
 .fd-activity-meta {
   font-size: var(--fs-28);
   color: var(--hint-warn-text);
-  margin-bottom: 16rpx;
-  padding: 12rpx 16rpx;
+  margin-bottom: var(--sp-16);
+  padding: var(--sp-12) var(--sp-16);
   background: var(--hint-warn-bg);
-  border-radius: 12rpx;
+  border-radius: var(--sp-12);
 }
 
 .fd-register-btn {
-  padding: 22rpx;
+  padding: var(--sp-22);
   text-align: center;
-  border-radius: 16rpx;
+  border-radius: var(--sp-16);
   background: var(--bg-soft);
-  border: 2rpx solid #2563EB;
+  border: var(--sp-2) solid #2563EB;
   color: #2563EB;
   font-size: var(--fs-30);
   font-weight: 600;
@@ -335,28 +335,28 @@
 
 .fd-empty {
   text-align: center;
-  padding: 40rpx 0;
+  padding: var(--sp-40) 0;
   color: var(--text-muted);
   font-size: var(--fs-28);
 }
 
 .fd-footer {
   display: flex;
-  gap: 20rpx;
-  margin-top: 8rpx;
+  gap: var(--sp-20);
+  margin-top: var(--sp-8);
 }
 
 .fd-footer-btn {
   flex: 1;
-  height: 100rpx;
-  border-radius: 24rpx;
+  height: var(--sp-100);
+  border-radius: var(--sp-24);
   display: flex;
   align-items: center;
   justify-content: center;
   font-size: var(--fs-30);
   font-weight: 600;
   transition: all 0.3s ease;
-  margin-bottom: 16rpx;
+  margin-bottom: var(--sp-16);
 }
 
 .fd-footer-btn:active {
@@ -367,13 +367,13 @@
 .fd-footer-btn.is-primary {
   background: linear-gradient(135deg, #2563EB, #4F46E5);
   color: #FFFFFF;
-  box-shadow: 0 8rpx 20rpx rgba(37, 99, 235, 0.3);
+  box-shadow: 0 var(--sp-8) var(--sp-20) rgba(37, 99, 235, 0.3);
 }
 
 .fd-footer-btn.is-cancel {
   background: linear-gradient(135deg, #DC2626 0%, #B91C1C 100%);
   color: #FFFFFF;
-  border: 2rpx solid var(--border-soft);
+  border: var(--sp-2) solid var(--border-soft);
 }
 
 .fd-footer-btn.is-ghost {
@@ -393,28 +393,28 @@
 
 /* ===== 活动报名名单 ===== */
 .fd-reg-list {
-  margin-bottom: 16rpx;
+  margin-bottom: var(--sp-16);
 }
 
 .fd-reg-list-title {
   font-size: var(--fs-30);
   color: var(--text-tertiary);
   font-weight: 600;
-  margin-bottom: 12rpx;
-  margin-top: 36rpx;
+  margin-bottom: var(--sp-12);
+  margin-top: var(--sp-36);
 }
 
 .fd-reg-chips {
   display: flex;
   flex-wrap: wrap;
-  gap: 12rpx;
-  margin-bottom: 60rpx;
+  gap: var(--sp-12);
+  margin-bottom: var(--sp-60);
 }
 
 .fd-reg-chip {
-  padding: 8rpx 20rpx;
+  padding: var(--sp-8) var(--sp-20);
   background: var(--bg-soft-2);
-  border-radius: 24rpx;
+  border-radius: var(--sp-24);
   font-size: var(--fs-32);
   color: var(--text-primary);
 }
@@ -439,10 +439,10 @@
 }
 
 .fd-modal {
-  width: 620rpx;
+  width: var(--sp-620);
   background: var(--bg-card);
-  border-radius: 24rpx;
-  padding: 40rpx 32rpx 32rpx;
+  border-radius: var(--sp-24);
+  padding: var(--sp-40) var(--sp-32) var(--sp-32);
   box-sizing: border-box;
   animation: fdSlideUp 0.3s cubic-bezier(0.25, 0.1, 0.25, 1);
 }
@@ -456,30 +456,30 @@
   font-weight: 700;
   color: var(--text-primary);
   text-align: center;
-  margin-bottom: 8rpx;
+  margin-bottom: var(--sp-8);
 }
 
 .fd-modal-hint {
   font-size: var(--fs-24);
   color: var(--text-muted);
   text-align: center;
-  margin-bottom: 24rpx;
+  margin-bottom: var(--sp-24);
 }
 
 .fd-reg-modal-list {
-  max-height: 320rpx;
+  max-height: var(--sp-320);
   overflow-y: auto;
-  margin-bottom: 20rpx;
+  margin-bottom: var(--sp-20);
 }
 
 .fd-reg-modal-item {
   display: flex;
   align-items: center;
   justify-content: space-between;
-  padding: 14rpx 16rpx;
+  padding: var(--sp-14) var(--sp-16);
   background: var(--bg-input);
-  border-radius: 12rpx;
-  margin-bottom: 10rpx;
+  border-radius: var(--sp-12);
+  margin-bottom: var(--sp-10);
 }
 
 .fd-reg-modal-name {
@@ -495,43 +495,43 @@
 .fd-reg-modal-input-row {
   display: flex;
   align-items: center;
-  gap: 12rpx;
-  margin-bottom: 24rpx;
+  gap: var(--sp-12);
+  margin-bottom: var(--sp-24);
 }
 
 .fd-reg-modal-input {
   flex: 1;
-  height: 72rpx;
+  height: var(--sp-72);
   background: var(--bg-input);
-  border: 2rpx solid var(--border-soft);
-  border-radius: 12rpx;
-  padding: 0 20rpx;
+  border: var(--sp-2) solid var(--border-soft);
+  border-radius: var(--sp-12);
+  padding: 0 var(--sp-20);
   font-size: var(--fs-28);
   box-sizing: border-box;
 }
 
 .fd-reg-modal-add {
   flex-shrink: 0;
-  padding: 0 28rpx;
-  height: 72rpx;
-  line-height: 72rpx;
+  padding: 0 var(--sp-28);
+  height: var(--sp-72);
+  line-height: var(--sp-72);
   text-align: center;
   background: var(--bg-soft);
   color: #2563EB;
-  border-radius: 12rpx;
+  border-radius: var(--sp-12);
   font-size: var(--fs-28);
   font-weight: 600;
 }
 
 .fd-modal-footer {
   display: flex;
-  gap: 20rpx;
+  gap: var(--sp-20);
 }
 
 .fd-modal-btn {
   flex: 1;
-  height: 80rpx;
-  border-radius: 20rpx;
+  height: var(--sp-80);
+  border-radius: var(--sp-20);
   display: flex;
   align-items: center;
   justify-content: center;

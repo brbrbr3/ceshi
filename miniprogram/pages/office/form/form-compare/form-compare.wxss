@@ -1,22 +1,22 @@
 .form-compare-page {
   min-height: 100%;
-  padding-bottom: 40rpx;
+  padding-bottom: var(--sp-40);
 }
 
 .form-compare-header {
-  padding: 30rpx 40rpx 70rpx;
+  padding: var(--sp-30) var(--sp-40) var(--sp-70);
 }
 
 .form-compare-title-row {
   display: flex;
   align-items: center;
-  gap: 16rpx;
-  margin-bottom: 20rpx;
+  gap: var(--sp-16);
+  margin-bottom: var(--sp-20);
 }
 
 .form-compare-badge {
-  padding: 6rpx 18rpx;
-  border-radius: 20rpx;
+  padding: var(--sp-6) var(--sp-18);
+  border-radius: var(--sp-20);
   font-size: var(--fs-22);
   font-weight: 600;
 }
@@ -26,13 +26,13 @@
   font-weight: 700;
   color: #FFFFFF;
   line-height: 1.4;
-  margin-bottom: 12rpx;
+  margin-bottom: var(--sp-12);
 }
 
 .form-compare-score {
   display: inline-block;
-  padding: 10rpx 28rpx;
-  border-radius: 30rpx;
+  padding: var(--sp-10) var(--sp-28);
+  border-radius: var(--sp-30);
   background: rgba(255, 255, 255, 0.22);
   color: #FFFFFF;
   font-size: var(--fs-30);
@@ -40,12 +40,12 @@
 }
 
 .form-compare-content {
-  margin-top: -40rpx;
+  margin-top: calc(var(--sp-40) * -1);
 }
 
 .form-compare-loading {
   text-align: center;
-  padding: 60rpx 0;
+  padding: var(--sp-60) 0;
   font-size: var(--fs-28);
   color: var(--text-muted);
 }
@@ -54,15 +54,15 @@
 .fc-section-block {
   display: flex;
   align-items: center;
-  gap: 16rpx;
-  padding: 24rpx 8rpx;
-  margin: 4rpx 0;
+  gap: var(--sp-16);
+  padding: var(--sp-24) var(--sp-8);
+  margin: var(--sp-4) 0;
 }
 
 .fc-section-bar {
-  width: 10rpx;
-  height: 50rpx;
-  border-radius: 4rpx;
+  width: var(--sp-10);
+  height: var(--sp-50);
+  border-radius: var(--sp-4);
   background: linear-gradient(180deg, #2563EB, #4F46E5);
   flex-shrink: 0;
 }
@@ -77,24 +77,24 @@
 
 /* ===== 题目卡片 ===== */
 .fc-card {
-  padding: 28rpx;
-  margin-bottom: 24rpx;
+  padding: var(--sp-28);
+  margin-bottom: var(--sp-24);
 }
 
 .fc-card:last-child {
-  margin-bottom: 100rpx;
+  margin-bottom: var(--sp-100);
 }
 
 .fc-block-head {
   display: flex;
   align-items: flex-start;
-  gap: 12rpx;
-  margin-bottom: 20rpx;
+  gap: var(--sp-12);
+  margin-bottom: var(--sp-20);
 }
 
 .fc-block-index {
-  width: 40rpx;
-  height: 40rpx;
+  width: var(--sp-40);
+  height: var(--sp-40);
   border-radius: 50%;
   background: var(--bg-soft);
   color: #2563EB;
@@ -116,11 +116,11 @@
 
 .fc-mark {
   flex-shrink: 0;
-  padding: 4rpx 16rpx;
-  border-radius: 20rpx;
+  padding: var(--sp-4) var(--sp-16);
+  border-radius: var(--sp-20);
   font-size: var(--fs-24);
   font-weight: 600;
-  margin-top: 6rpx;
+  margin-top: var(--sp-6);
 }
 
 .fc-mark.is-correct {
@@ -136,19 +136,19 @@
 .fc-options {
   display: flex;
   flex-direction: column;
-  gap: 10rpx;
+  gap: var(--sp-10);
 }
 
 .fc-option {
   display: flex;
   align-items: center;
-  gap: 16rpx;
-  padding: 16rpx;
-  border-radius: 12rpx;
+  gap: var(--sp-16);
+  padding: var(--sp-16);
+  border-radius: var(--sp-12);
   background: var(--bg-input);
   font-size: var(--fs-30);
   color: var(--text-secondary);
-  border: 2rpx solid transparent;
+  border: var(--sp-2) solid transparent;
 }
 
 .fc-option.is-correct {
@@ -165,10 +165,10 @@
 
 /* 选项控件：单选/判断为圆点，多选为方框（选中态 = 我的答案点击态） */
 .fc-radio-dot {
-  width: 32rpx;
-  height: 32rpx;
+  width: var(--sp-32);
+  height: var(--sp-32);
   border-radius: 50%;
-  border: 3rpx solid #CBD5E1;
+  border: var(--sp-3) solid #CBD5E1;
   box-sizing: border-box;
   flex-shrink: 0;
   transition: all 0.15s ease;
@@ -180,10 +180,10 @@
 }
 
 .fc-checkbox-box {
-  width: 32rpx;
-  height: 32rpx;
-  border-radius: 8rpx;
-  border: 3rpx solid #CBD5E1;
+  width: var(--sp-32);
+  height: var(--sp-32);
+  border-radius: var(--sp-8);
+  border: var(--sp-3) solid #CBD5E1;
   box-sizing: border-box;
   flex-shrink: 0;
   display: flex;
@@ -206,23 +206,23 @@
 }
 
 .fc-block-score {
-  margin-top: 16rpx;
-  padding-top: 16rpx;
-  border-top: 2rpx dashed #E2E8F0;
+  margin-top: var(--sp-16);
+  padding-top: var(--sp-16);
+  border-top: var(--sp-2) dashed #E2E8F0;
   font-size: var(--fs-26);
   color: var(--text-tertiary);
 }
 
 .fc-my-answer {
-  padding: 16rpx 20rpx;
+  padding: var(--sp-16) var(--sp-20);
   background: var(--bg-input);
-  border-radius: 12rpx;
+  border-radius: var(--sp-12);
 }
 
 .fc-my-label {
   font-size: var(--fs-22);
   color: var(--text-muted);
-  margin-bottom: 8rpx;
+  margin-bottom: var(--sp-8);
 }
 
 .fc-my-value {

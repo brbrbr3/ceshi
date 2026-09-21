@@ -337,7 +337,7 @@
           </view>
           <view class="fe-add-btn" bindtap="onAddGroup">＋ 添加分组</view>
 
-          <view class="fe-modal-label" style="margin-top: 24rpx;">人数上限（可选）</view>
+          <view class="fe-modal-label" style="margin-top: var(--sp-24);">人数上限（可选）</view>
           <view class="auth-input-shell">
             <input type="number" value="{{editingBlock.maxRegistrations}}" bindinput="onMaxRegistrationsInput" placeholder="不填则不限制" placeholder-class="auth-input-placeholder" />
           </view>

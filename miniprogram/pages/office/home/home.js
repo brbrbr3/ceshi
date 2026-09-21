@@ -510,6 +510,9 @@ Page({
       tagColor: tagCfg.color,
       tagBg: tagCfg.bg,
       time: formatTime(item.publishedAt || item.createdAt),
+      // 已截止：沿用云函数按服务端时间判定的 isClosed（status === 'closed' 或已过截止时间），
+      // 口径与 form-list / form-detail 一致，避免客户端时钟偏差
+      isClosed: !!item.isClosed,
       isUnread: !item.isRead
     }
   },

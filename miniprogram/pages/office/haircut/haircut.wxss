@@ -12,7 +12,7 @@ page {
 /* ========== 头部 - 渐变色背景（橙色系） ========== */
 .haircut-header {
   background: linear-gradient(135deg, #EA580C 0%, #C2410C 100%);
-  padding: 40rpx 28rpx 10rpx;
+  padding: var(--sp-40) var(--sp-28) var(--sp-10);
   display: flex;
   align-items: flex-end;
   justify-content: space-between;
@@ -29,7 +29,7 @@ page {
 
 .haircut-subtitle {
   font-size: var(--fs-26);
-  padding-top: 5rpx;
+  padding-top: var(--sp-5);
   opacity: 0.9;
 }
 
@@ -37,8 +37,8 @@ page {
 .haircut-tabs {
   background: var(--bg-card);
   display: flex;
-  padding: 0 16rpx;
-  border-bottom: 1rpx solid var(--bg-soft-2);
+  padding: 0 var(--sp-16);
+  border-bottom: var(--sp-1) solid var(--bg-soft-2);
   position: sticky;
   top: 0;
   z-index: 50;
@@ -47,7 +47,7 @@ page {
 .haircut-tab {
   flex: 1;
   text-align: center;
-  padding: 28rpx 0;
+  padding: var(--sp-28) 0;
   font-size: var(--fs-32);
   color: var(--text-tertiary);
   font-weight: 500;
@@ -66,52 +66,52 @@ page {
   bottom: 0;
   left: 50%;
   transform: translateX(-50%);
-  width: 48rpx;
-  height: 6rpx;
+  width: var(--sp-48);
+  height: var(--sp-6);
   background: linear-gradient(135deg, #EA580C 0%, #C2410C 100%);
-  border-radius: 3rpx;
+  border-radius: var(--sp-3);
 }
 
 /* ========== 内容区 ========== */
 .haircut-content {
-  padding: 24rpx;
-  padding-bottom: 100rpx;
+  padding: var(--sp-24);
+  padding-bottom: var(--sp-100);
 }
 
 /* ========== 日期选择器（完全仿会议室样式） ========== */
 .date-selector {
   background: var(--bg-card);
-  padding: 5rpx 0 5rpx;
-  margin-left: -24rpx;
-  margin-right: -24rpx;
-  border-top: 1rpx solid var(--border-soft);
-  border-bottom: 1rpx solid var(--border-soft);
+  padding: var(--sp-5) 0 var(--sp-5);
+  margin-left: calc(var(--sp-24) * -1);
+  margin-right: calc(var(--sp-24) * -1);
+  border-top: var(--sp-1) solid var(--border-soft);
+  border-bottom: var(--sp-1) solid var(--border-soft);
 }
 
 .date-scroll {
   width: 100%;
   white-space: nowrap;
-  margin-left: 10rpx;
+  margin-left: var(--sp-10);
 }
 
 .date-list {
   display: inline-flex;
-  padding: 8rpx 24rpx;
-  gap: 16rpx;
+  padding: var(--sp-8) var(--sp-24);
+  gap: var(--sp-16);
 }
 
 .date-item {
-  min-width: 120rpx;
-  padding: 20rpx 24rpx;
-  border-radius: 24rpx;
+  min-width: var(--sp-120);
+  padding: var(--sp-20) var(--sp-24);
+  border-radius: var(--sp-24);
   background: var(--bg-input);
-  border: 3rpx solid transparent;
+  border: var(--sp-3) solid transparent;
   display: flex;
   align-items: center;
   justify-content: center;
   transition: all 0.2s ease;
   flex-shrink: 0;
-  gap: 8rpx;
+  gap: var(--sp-8);
 }
 
 .date-item:active {
@@ -119,7 +119,7 @@ page {
 }
 
 .date-item.is-active {
-  border: 3rpx solid #EA580C;
+  border: var(--sp-3) solid #EA580C;
   background: #ea5a0c1f;
 }
 
@@ -132,7 +132,7 @@ page {
   display: flex;
   align-items: center;
   flex-direction: column;
-  gap: 8rpx;
+  gap: var(--sp-8);
 }
 
 .date-weekday {
@@ -153,14 +153,14 @@ page {
 
 /* 预约数圆圈徽章（橙色） */
 .date-count-badge {
-  width: 40rpx;
-  height: 40rpx;
+  width: var(--sp-40);
+  height: var(--sp-40);
   border-radius: 50%;
   background: #EA580C;
   display: flex;
   align-items: center;
   justify-content: center;
-  margin-top: 4rpx;
+  margin-top: var(--sp-4);
 }
 
 .date-count-badge text {
@@ -175,11 +175,11 @@ page {
 }
 /* ========== 日期提示 ========== */
 .haircut-date-hint {
-  padding: 20rpx 24rpx;
+  padding: var(--sp-20) var(--sp-24);
   background: var(--hint-warn-bg);
-  border-radius: 12rpx;
-  margin-top: 20rpx;
-  margin-bottom: 20rpx;
+  border-radius: var(--sp-12);
+  margin-top: var(--sp-20);
+  margin-bottom: var(--sp-20);
 }
 
 .haircut-date-hint-text {
@@ -189,21 +189,21 @@ page {
 
 /* ========== 时段列表 ========== */
 .haircut-slots-section {
-  margin-top: 20rpx;
+  margin-top: var(--sp-20);
 }
 
 .haircut-slots-title {
   font-size: var(--fs-35);
   font-weight: 600;
   color: var(--text-primary);
-  margin-bottom: 16rpx;
-  padding-left: 8rpx;
+  margin-bottom: var(--sp-16);
+  padding-left: var(--sp-8);
 }
 
 .haircut-slots-list {
   display: flex;
   flex-direction: column;
-  gap: 12rpx;
+  gap: var(--sp-12);
 }
 
 .haircut-slot-item {
@@ -211,10 +211,10 @@ page {
   
   align-items: center;
   justify-content: space-between;
-  padding: 24rpx;
+  padding: var(--sp-24);
   background: var(--bg-card);
-  border-radius: 16rpx;
-  border: 4rpx solid var(--border-soft);
+  border-radius: var(--sp-16);
+  border: var(--sp-4) solid var(--border-soft);
   transition: all 0.3s ease;
 }
 
@@ -246,8 +246,8 @@ page {
 
 .haircut-slot-status {
   font-size: var(--fs-24);
-  padding: 6rpx 16rpx;
-  border-radius: 8rpx;
+  padding: var(--sp-6) var(--sp-16);
+  border-radius: var(--sp-8);
 }
 
 .haircut-slot-status.is-available {
@@ -275,7 +275,7 @@ page {
 /* 时段左侧 */
 .haircut-slot-left {
   display: flex;
-  gap: 4rpx;
+  gap: var(--sp-4);
 }
 
 /* 时段理发人姓名 */
@@ -283,14 +283,14 @@ page {
   font-size: var(--fs-24);
   color: #6B7280;
   font-weight: normal;
-  margin-left: 8rpx;
+  margin-left: var(--sp-8);
 }
 
 /* 时段右侧 */
 .haircut-slot-right {
   display: flex;
   align-items: center;
-  gap: 16rpx;
+  gap: var(--sp-16);
 }
 
 /* 操作按钮 */
@@ -298,13 +298,13 @@ page {
   display: flex;
   align-items: center;
   justify-content: center;
-  padding-right: 10rpx;
-  margin-left: -10rpx;
+  padding-right: var(--sp-10);
+  margin-left: calc(var(--sp-10) * -1);
 }
 
 .haircut-slot-action {
-  width: 54rpx;
-  height: 54rpx;
+  width: var(--sp-54);
+  height: var(--sp-54);
   border-radius: 50%;
   display: flex;
   align-items: center;
@@ -332,9 +332,9 @@ page {
 
 /* 换日提示 */
 .haircut-change-hint {
-  font-size: 28rpx;
+  font-size: var(--sp-28);
   color: var(--text-tertiary);
-  margin-bottom: 24rpx;
+  margin-bottom: var(--sp-24);
   line-height: 1.5;
 }
 
@@ -346,15 +346,15 @@ page {
 /* ========== 预约按钮 ========== */
 .haircut-booking-btn {
   position: fixed;
-  left: 28rpx;
-  right: 28rpx;
-  bottom: calc(28rpx + env(safe-area-inset-bottom));
-  height: 96rpx;
+  left: var(--sp-28);
+  right: var(--sp-28);
+  bottom: calc(var(--sp-28) + env(safe-area-inset-bottom));
+  height: var(--sp-96);
   background: linear-gradient(135deg, #EA580C 0%, #C2410C 100%);
   color: #FFFFFF;
   font-size: var(--fs-32);
   font-weight: 600;
-  border-radius: 16rpx;
+  border-radius: var(--sp-16);
   border: none;
   display: flex;
   align-items: center;
@@ -369,14 +369,14 @@ page {
 /* ========== 排序切换 ========== */
 .haircut-sort-bar {
   display: flex;
-  gap: 16rpx;
-  margin-bottom: 20rpx;
+  gap: var(--sp-16);
+  margin-bottom: var(--sp-20);
 }
 
 .haircut-sort-btn {
-  padding: 12rpx 24rpx;
+  padding: var(--sp-12) var(--sp-24);
   background: var(--bg-card);
-  border-radius: 24rpx;
+  border-radius: var(--sp-24);
   font-size: var(--fs-30);
   color: var(--text-tertiary);
   transition: all 0.3s ease;
@@ -391,23 +391,23 @@ page {
 .haircut-list {
   display: flex;
   flex-direction: column;
-  gap: 16rpx;
+  gap: var(--sp-16);
 }
 
 /* ========== 记录卡片 ========== */
 .haircut-item {
   background: var(--bg-card);
-  border-radius: 20rpx;
-  padding: 24rpx;
-  box-shadow: 0 2rpx 12rpx rgba(0, 0, 0, 0.04);
-  border: 4rpx solid var(--border-soft);
+  border-radius: var(--sp-20);
+  padding: var(--sp-24);
+  box-shadow: 0 var(--sp-2) var(--sp-12) rgba(0, 0, 0, 0.04);
+  border: var(--sp-4) solid var(--border-soft);
 }
 
 .haircut-item-header {
   display: flex;
   align-items: center;
   justify-content: space-between;
-  margin-bottom: 16rpx;
+  margin-bottom: var(--sp-16);
 }
 
 .haircut-item-datetime {
@@ -424,13 +424,13 @@ page {
 .haircut-item-time {
   font-size: var(--fs-24);
   color: var(--text-tertiary);
-  margin-top: 4rpx;
+  margin-top: var(--sp-4);
 }
 
 .haircut-item-status {
   font-size: var(--fs-24);
-  padding: 6rpx 16rpx;
-  border-radius: 8rpx;
+  padding: var(--sp-6) var(--sp-16);
+  border-radius: var(--sp-8);
   font-weight: 500;
 }
 
@@ -452,7 +452,7 @@ page {
 .haircut-item-body {
   display: flex;
   flex-direction: column;
-  gap: 8rpx;
+  gap: var(--sp-8);
 }
 
 .haircut-item-name {
@@ -469,15 +469,15 @@ page {
 .haircut-item-reason {
   font-size: var(--fs-24);
   color: #DC2626;
-  margin-top: 8rpx;
+  margin-top: var(--sp-8);
 }
 
 .haircut-item-actions {
   display: flex;
-  gap: 24rpx;
-  padding-top: 16rpx;
-  margin-top: 16rpx;
-  border-top: 1rpx solid var(--bg-soft-2);
+  gap: var(--sp-24);
+  padding-top: var(--sp-16);
+  margin-top: var(--sp-16);
+  border-top: var(--sp-1) solid var(--bg-soft-2);
 }
 
 .haircut-item-action {
@@ -496,12 +496,12 @@ page {
   flex-direction: column;
   align-items: center;
   justify-content: center;
-  padding: 80rpx 0;
+  padding: var(--sp-80) 0;
 }
 
 .haircut-empty-icon {
   font-size: var(--fs-80);
-  margin-bottom: 20rpx;
+  margin-bottom: var(--sp-20);
 }
 
 .haircut-empty-text {
@@ -513,7 +513,7 @@ page {
 .haircut-loading {
   display: flex;
   justify-content: center;
-  padding: 32rpx 0;
+  padding: var(--sp-32) 0;
 }
 
 .haircut-loading-text {
@@ -548,12 +548,12 @@ page {
   left: 0;
   right: 0;
   background: var(--bg-card);
-  border-radius: 32rpx 32rpx 0 0;
+  border-radius: var(--sp-32) var(--sp-32) 0 0;
   transform: translateY(100%);
   transition: transform 0.3s ease;
   max-height: 90vh;
   overflow-y: auto;
-  margin: 0 28rpx 0;
+  margin: 0 var(--sp-28) 0;
 }
 
 .haircut-popup-mask.is-visible .haircut-popup-container {
@@ -595,8 +595,8 @@ page {
   display: flex;
   align-items: center;
   justify-content: space-between;
-  padding: 32rpx;
-  border-bottom: 1rpx solid var(--bg-soft-2);
+  padding: var(--sp-32);
+  border-bottom: var(--sp-1) solid var(--bg-soft-2);
   position: sticky;
   top: 0;
   background: var(--bg-card);
@@ -613,23 +613,23 @@ page {
   font-size: var(--fs-48);
   color: var(--text-muted);
   line-height: 1;
-  padding: 0 8rpx;
+  padding: 0 var(--sp-8);
 }
 
 /* ========== 表单 ========== */
 .haircut-popup-form {
-  padding: 32rpx 32rpx 40rpx;
+  padding: var(--sp-32) var(--sp-32) var(--sp-40);
 }
 
 .haircut-field {
-  margin-bottom: 28rpx;
+  margin-bottom: var(--sp-28);
 }
 
 .haircut-field-label {
   font-size: var(--fs-32);
   color: var(--text-primary);
   font-weight: 600;
-  margin-bottom: 18rpx;
+  margin-bottom: var(--sp-18);
 }
 
 .haircut-required {
@@ -639,14 +639,14 @@ page {
 .haircut-field-hint {
   font-size: var(--fs-28);
   color: var(--text-muted);
-  margin-top: 8rpx;
+  margin-top: var(--sp-8);
 }
 
 .haircut-input-wrapper {
   background: var(--bg-input);
-  border-radius: 16rpx;
-  padding: 0 24rpx;
-  height: 88rpx;
+  border-radius: var(--sp-16);
+  padding: 0 var(--sp-24);
+  height: var(--sp-88);
   display: flex;
   align-items: center;
 }
@@ -665,16 +665,16 @@ page {
 .haircut-radio-group {
   display: flex;
   flex-direction: column;
-  gap: 12rpx;
+  gap: var(--sp-12);
 }
 
 .haircut-radio-item {
   display: flex;
   align-items: center;
-  padding: 24rpx;
+  padding: var(--sp-24);
   background: var(--bg-input);
-  border-radius: 16rpx;
-  border: 2rpx solid transparent;
+  border-radius: var(--sp-16);
+  border: var(--sp-2) solid transparent;
   transition: all 0.3s ease;
 }
 
@@ -684,11 +684,11 @@ page {
 }
 
 .haircut-radio-dot {
-  width: 36rpx;
-  height: 36rpx;
+  width: var(--sp-36);
+  height: var(--sp-36);
   border-radius: 50%;
-  border: 2rpx solid #D1D5DB;
-  margin-right: 16rpx;
+  border: var(--sp-2) solid #D1D5DB;
+  margin-right: var(--sp-16);
   display: flex;
   align-items: center;
   justify-content: center;
@@ -701,8 +701,8 @@ page {
 }
 
 .haircut-radio-dot-inner {
-  width: 16rpx;
-  height: 16rpx;
+  width: var(--sp-16);
+  height: var(--sp-16);
   border-radius: 50%;
   background: var(--bg-card);
 }
@@ -715,7 +715,7 @@ page {
 /* ========== 提交按钮 ========== */
 .haircut-submit-btn {
   background: linear-gradient(135deg, #EA580C 0%, #C2410C 100%);
-  margin-bottom: 90rpx;
+  margin-bottom: var(--sp-90);
 }
 
 .haircut-submit-btn[disabled] {
@@ -724,18 +724,18 @@ page {
 
 /* ========== 弹窗操作按钮 ========== */
 .haircut-popup-actions {
-  padding: 16rpx 32rpx;
-  padding-bottom: calc(16rpx + env(safe-area-inset-bottom));
+  padding: var(--sp-16) var(--sp-32);
+  padding-bottom: calc(var(--sp-16) + env(safe-area-inset-bottom));
   display: flex;
-  gap: 16rpx;
+  gap: var(--sp-16);
 }
 
 .haircut-action-btn {
   flex: 1;
-  height: 88rpx;
+  height: var(--sp-88);
   font-size: var(--fs-30);
   font-weight: 600;
-  border-radius: 16rpx;
+  border-radius: var(--sp-16);
   border: none;
 }
 
@@ -761,9 +761,9 @@ page {
 
 /* ========== 提示信息 ========== */
 .haircut-info-card {
-  border-radius: 12rpx;
-  padding: 12rpx 12rpx;
-  margin-bottom: 20rpx;
+  border-radius: var(--sp-12);
+  padding: var(--sp-12) var(--sp-12);
+  margin-bottom: var(--sp-20);
 }
 
 .haircut-info-text {
@@ -774,35 +774,35 @@ page {
 
 /* ========== 统计月分组 ========== */
 .haircut-stats-month-group {
-  margin-bottom: 32rpx;
+  margin-bottom: var(--sp-32);
 }
 
 .haircut-stats-month-title {
   font-size: var(--fs-32);
   font-weight: 600;
   color: var(--text-primary);
-  padding: 16rpx 24rpx;
-  border-left: 6rpx solid #EA580C;
+  padding: var(--sp-16) var(--sp-24);
+  border-left: var(--sp-6) solid #EA580C;
   background: var(--bg-card);
-  border-radius: 0 12rpx 12rpx 0;
-  margin-bottom: 16rpx;
+  border-radius: 0 var(--sp-12) var(--sp-12) 0;
+  margin-bottom: var(--sp-16);
 }
 
 /* ========== 按人员排序 - 人名列表 ========== */
 .haircut-stats-name-list {
   background: var(--bg-card);
-  border-radius: 16rpx;
-  padding: 16rpx 24rpx;
-  box-shadow: 0 2rpx 12rpx rgba(0, 0, 0, 0.04);
-  border: 4rpx solid var(--border-soft);
+  border-radius: var(--sp-16);
+  padding: var(--sp-16) var(--sp-24);
+  box-shadow: 0 var(--sp-2) var(--sp-12) rgba(0, 0, 0, 0.04);
+  border: var(--sp-4) solid var(--border-soft);
 }
 
 .haircut-stats-name-item {
   display: flex;
   align-items: center;
   justify-content: space-between;
-  padding: 16rpx 0;
-  border-bottom: 1rpx solid var(--bg-soft-2);
+  padding: var(--sp-16) 0;
+  border-bottom: var(--sp-1) solid var(--bg-soft-2);
 }
 
 .haircut-stats-name-item:last-child {
@@ -819,8 +819,8 @@ page {
   font-size: var(--fs-26);
   color: var(--text-tertiary);
   background: var(--bg-soft-2);
-  padding: 4rpx 16rpx;
-  border-radius: 20rpx;
+  padding: var(--sp-4) var(--sp-16);
+  border-radius: var(--sp-20);
 }
 
 /* ========== 统计Tab分页加载 ========== */
@@ -828,18 +828,18 @@ page {
   display: flex;
   align-items: center;
   justify-content: center;
-  padding: 32rpx 0;
+  padding: var(--sp-32) 0;
   background-color: var(--bg-soft-2);
 }
 
 .loading-spinner {
-  width: 32rpx;
-  height: 32rpx;
-  border: 3rpx solid #e0e0e0;
+  width: var(--sp-32);
+  height: var(--sp-32);
+  border: var(--sp-3) solid #e0e0e0;
   border-top-color: #EA580C;
   border-radius: 50%;
   animation: spin 0.8s linear infinite;
-  margin-right: 16rpx;
+  margin-right: var(--sp-16);
 }
 
 @keyframes spin {
@@ -858,16 +858,16 @@ page {
   display: flex;
   align-items: center;
   justify-content: center;
-  padding: 32rpx 0;
+  padding: var(--sp-32) 0;
 }
 
 .load-more-text {
   font-size: var(--fs-26);
   color: #EA580C;
   background: #FFF7ED;
-  padding: 16rpx 48rpx;
-  border-radius: 40rpx;
-  border: 2rpx solid #FED7AA;
+  padding: var(--sp-16) var(--sp-48);
+  border-radius: var(--sp-40);
+  border: var(--sp-2) solid #FED7AA;
 }
 
 /* 没有更多数据 */
@@ -875,7 +875,7 @@ page {
   display: flex;
   align-items: center;
   justify-content: center;
-  padding: 32rpx 0;
+  padding: var(--sp-32) 0;
 }
 
 .no-more-text {

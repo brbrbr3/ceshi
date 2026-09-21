@@ -5,12 +5,12 @@
 
 .office-header {
   background: var(--bg-card);
-  padding: 24rpx 32rpx 20rpx;
+  padding: var(--sp-24) var(--sp-32) var(--sp-20);
   display: flex;
   justify-content: space-between;
   align-items: center;
-  border-bottom: 1rpx solid var(--border-soft);
-  padding-top: calc(24rpx + env(safe-area-inset-top));
+  border-bottom: var(--sp-1) solid var(--border-soft);
+  padding-top: calc(var(--sp-24) + env(safe-area-inset-top));
 }
 
 .office-header-title {
@@ -21,23 +21,23 @@
 
 .office-header-actions {
   display: flex;
-  gap: 24rpx;
+  gap: var(--sp-24);
 }
 
 .notifications-content {
-  padding: 24rpx 32rpx;
+  padding: var(--sp-24) var(--sp-32);
 }
 
 .empty-state {
   display: flex;
   flex-direction: column;
   align-items: center;
-  padding: 120rpx 0;
+  padding: var(--sp-120) 0;
 }
 
 .empty-icon {
-  font-size: 120rpx;
-  margin-bottom: 24rpx;
+  font-size: var(--sp-120);
+  margin-bottom: var(--sp-24);
 }
 
 .empty-text {
@@ -53,8 +53,8 @@
   display: flex;
   justify-content: space-between;
   align-items: flex-start;
-  padding: 24rpx 0;
-  border-bottom: 1rpx solid var(--bg-soft-2);
+  padding: var(--sp-24) 0;
+  border-bottom: var(--sp-1) solid var(--bg-soft-2);
   background: transparent !important;
 }
 
@@ -67,16 +67,16 @@
 }
 
 .notification-left {
-  padding-left: 10rpx;
+  padding-left: var(--sp-10);
   display: flex;
   flex: 1;
-  gap: 20rpx;
+  gap: var(--sp-20);
 }
 
 .notification-icon {
-  width: 80rpx;
-  height: 80rpx;
-  border-radius: 16rpx;
+  width: var(--sp-80);
+  height: var(--sp-80);
+  border-radius: var(--sp-16);
   background: var(--bg-soft);
   display: flex;
   align-items: center;
@@ -94,7 +94,7 @@
   font-size: var(--fs-28);
   font-weight: 500;
   color: var(--text-primary);
-  margin-bottom: 8rpx;
+  margin-bottom: var(--sp-8);
 }
 
 .notification-title.is-unread {
@@ -106,7 +106,7 @@
   font-size: var(--fs-24);
   color: var(--text-tertiary);
   line-height: 1.6;
-  margin-bottom: 8rpx;
+  margin-bottom: var(--sp-8);
   overflow: hidden;
   text-overflow: ellipsis;
   display: -webkit-box;
@@ -120,15 +120,15 @@
 }
 
 .notification-right {
-  padding-right: 10rpx;
+  padding-right: var(--sp-10);
   display: flex;
   align-items: center;
-  padding-left: 16rpx;
+  padding-left: var(--sp-16);
 }
 
 .notification-dot {
-  width: 16rpx;
-  height: 16rpx;
+  width: var(--sp-16);
+  height: var(--sp-16);
   border-radius: 50%;
   background: #EF4444;
   flex-shrink: 0;

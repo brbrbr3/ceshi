@@ -270,9 +270,27 @@ function getBrazilHolidayMarks(year) {
 }
 
 // 时间轴配置
-const HOUR_HEIGHT = 100 // 每小时高度 rpx
+const HOUR_HEIGHT = 100 // 每小时高度（rpx 设计值，实际单位由 getGeomUnit 决定）
 const START_HOUR = 0 // 起始小时 0:00
 const END_HOUR = 24 // 结束小时 24:00
+
+/**
+ * 几何单位换算
+ * rpx 的基准是窗口总宽度，PC 大屏模式下拉宽窗口会让 JS 计算出的定位值等比放大。
+ * 桌面端（windows/mac）统一改用 px 并乘 0.5，锁定 375px 设计稿，与 --sp-* / --fs-* 令牌同基准；
+ * 移动端返回 rpx / 1，行为与改造前完全一致。
+ * 用法：计算值乘 k，在 WXML 中以 rpxUnit 拼接单位（见 data.rpxUnit）。
+ */
+function getGeomUnit() {
+  try {
+    const platform = app.globalData.platform
+    return ['windows', 'mac'].includes(platform)
+      ? { unit: 'px', k: 0.5 }
+      : { unit: 'rpx', k: 1 }
+  } catch (e) {
+    return { unit: 'rpx', k: 1 }
+  }
+}
 
 Page({
   behaviors: [modalAnimation],
@@ -357,10 +375,16 @@ Page({
 
     // 巴西节假日提示
     brazilHolidayInfo: null, // { pt: '葡萄牙语名称', zh: '中文名称' } 或 null
-    guardReady: false
+    guardReady: false,
+    // JS 计算的几何值（日程条 top/height/left/width、当前时间线 top）所用单位：
+    // 桌面端为 px（配合 getGeomUnit().k = 0.5），移动端为 rpx
+    rpxUnit: 'rpx'
   },
 
   async onLoad() {
+    // 几何单位依赖平台，进入页面时确定一次（PC 端用 px + 0.5 系数）
+    this.setData({ rpxUnit: getGeomUnit().unit })
+
     const user = await app.guardRegistered()
     if (!user) return
 
@@ -1106,8 +1130,9 @@ Page({
    * 计算每个日程的宽度和左边距
    */
   calculateWidthAndLeft(group) {
-    const containerWidth = 606 // 日程条容器宽度（750 - 48(section margin) - 80(左标签) - 16(右边距)）
-    const gap = 4 // 日程条之间的间距 rpx
+    const { k } = getGeomUnit()
+    const containerWidth = 606 * k // 日程条容器宽度（750 - 48(section margin) - 80(左标签) - 16(右边距)）
+    const gap = 4 * k // 日程条之间的间距
 
     group.forEach(schedule => {
       const totalColumns = schedule.totalColumns
@@ -1128,7 +1153,8 @@ Page({
     if (schedule.isAllDay) {
       return {
         top: 0,
-        height: 0
+        height: 0,
+        showTime: false
       }
     }
 
@@ -1139,12 +1165,16 @@ Page({
     const startOffset = range.start / 60
     const endOffset = range.end / 60
 
-    const top = startOffset * HOUR_HEIGHT
-    const height = Math.max((endOffset - startOffset) * HOUR_HEIGHT, 50) // 最小高度 50rpx
+    const { k } = getGeomUnit()
+    const top = startOffset * HOUR_HEIGHT * k
+    const height = Math.max((endOffset - startOffset) * HOUR_HEIGHT * k, 50 * k) // 最小高度 50rpx
+    // 高度足够时才显示时间段文字（原阈值 60rpx，随单位同步换算，避免切换单位后判断失真）
+    const showTime = height > 60 * k
 
     return {
       top,
-      height
+      height,
+      showTime
     }
   },
 
@@ -1164,9 +1194,9 @@ Page({
       return
     }
 
-    // 计算位置
+    // 计算位置（按几何单位换算）
     const timeOffset = hour + minute / 60
-    const currentTimeTop = timeOffset * HOUR_HEIGHT
+    const currentTimeTop = timeOffset * HOUR_HEIGHT * getGeomUnit().k
 
     // 格式化时间文本
     const currentTimeText = `${String(hour).padStart(2, '0')}:${String(minute).padStart(2, '0')}`

@@ -3,9 +3,9 @@
 }
 
 .menu-detail-header {
-  padding-top: 30rpx;
+  padding-top: var(--sp-30);
   text-align: left;
-  padding-bottom: 90rpx;
+  padding-bottom: var(--sp-90);
 }
 
 .menu-detail-title {
@@ -15,25 +15,25 @@
 }
 
 .menu-detail-meta {
-  margin-top: 5rpx;
+  margin-top: var(--sp-5);
   font-size: var(--fs-28);
   color: rgba(255, 255, 255, 0.9);
 }
 
 .menu-detail-content {
-  margin-top: -60rpx;
+  margin-top: calc(var(--sp-60) * -1);
 }
 
 .menu-content-card {
-  padding: 28rpx;
-  margin-bottom: 28rpx;
+  padding: var(--sp-28);
+  margin-bottom: var(--sp-28);
 }
 
 .menu-content-title {
   font-size: var(--fs-36);
   font-weight: 600;
   color: var(--text-primary);
-  margin-bottom: 20rpx;
+  margin-bottom: var(--sp-20);
 }
 
 .menu-content-html {
@@ -44,8 +44,8 @@
 
 .menu-detail-actions {
   display: flex;
-  gap: 16rpx;
-  margin-top: 28rpx;
+  gap: var(--sp-16);
+  margin-top: var(--sp-28);
 }
 
 .menu-action-btn {
@@ -59,29 +59,29 @@
 }
 
 .menu-detail-link {
-  padding-right: 10rpx;
+  padding-right: var(--sp-10);
   font-size: var(--fs-28);
 }
 
 .menu-comments-card {
-  padding: 24rpx;
+  padding: var(--sp-24);
 }
 
 .menu-comment-input {
-  margin-bottom: 32rpx;
+  margin-bottom: var(--sp-32);
 }
 
 .menu-comment-input textarea {
   width: 100%;
-  max-height: 180rpx;
-  padding: 20rpx;
-  border-radius: 16rpx;
+  max-height: var(--sp-180);
+  padding: var(--sp-20);
+  border-radius: var(--sp-16);
   background: var(--bg-input);
-  border: 2rpx solid transparent;
+  border: var(--sp-2) solid transparent;
   font-size: var(--fs-30);
   color: var(--text-secondary);
   box-sizing: border-box;
-  margin-bottom: 16rpx;
+  margin-bottom: var(--sp-16);
 }
 
 .menu-comment-placeholder {
@@ -100,19 +100,19 @@
 }
 
 .menu-comment-btn {
-  padding: 12rpx 32rpx;
+  padding: var(--sp-12) var(--sp-32);
   font-size: var(--fs-28);
 }
 
 .menu-comment-list {
-  margin-top: 24rpx;
+  margin-top: var(--sp-24);
 }
 
 .menu-comment-item {
   display: flex;
-  gap: 16rpx;
-  padding: 20rpx 0;
-  border-bottom: 1rpx solid rgba(37, 99, 235, 0.08);
+  gap: var(--sp-16);
+  padding: var(--sp-20) 0;
+  border-bottom: var(--sp-1) solid rgba(37, 99, 235, 0.08);
 }
 
 .menu-comment-item:last-child {
@@ -120,9 +120,9 @@
 }
 
 .menu-comment-avatar {
-  width: 64rpx;
-  height: 64rpx;
-  border-radius: 32rpx;
+  width: var(--sp-64);
+  height: var(--sp-64);
+  border-radius: var(--sp-32);
   display: flex;
   align-items: center;
   justify-content: center;
@@ -140,8 +140,8 @@
 .menu-comment-header {
   display: flex;
   align-items: center;
-  gap: 16rpx;
-  margin-bottom: 8rpx;
+  gap: var(--sp-16);
+  margin-bottom: var(--sp-8);
 }
 
 .menu-comment-author {
@@ -165,13 +165,13 @@
 .menu-comment-delete {
   flex-shrink: 0;
   margin-left: auto;
-  padding: 8rpx 16rpx;
+  padding: var(--sp-8) var(--sp-16);
   font-size: var(--fs-28);
   color: #DC2626;
 }
 
 .empty-state.is-mini {
-  padding: 40rpx 24rpx;
+  padding: var(--sp-40) var(--sp-24);
 }
 
 .empty-state.is-mini .empty-text {
@@ -181,18 +181,18 @@
 
 /* ==================== 菜品打分模块样式 ==================== */
 .menu-ratings-card {
-  padding: 24rpx;
+  padding: var(--sp-24);
 }
 
 .menu-rating-list {
-  margin-bottom: 16rpx;
+  margin-bottom: var(--sp-16);
 }
 
 .menu-rating-item {
   display: flex;
   align-items: center;
-  padding: 16rpx 0;
-  border-bottom: 1rpx solid rgba(37, 99, 235, 0.06);
+  padding: var(--sp-16) 0;
+  border-bottom: var(--sp-1) solid rgba(37, 99, 235, 0.06);
 }
 
 .menu-rating-item:last-child {
@@ -200,7 +200,7 @@
 }
 
 .rating-dish-name {
-  width: 240rpx;
+  width: var(--sp-240);
   flex-shrink: 0;
   font-size: var(--fs-28);
   font-weight: 500;
@@ -211,12 +211,12 @@
   flex: 1;
   display: flex;
   align-items: center;
-  gap: 8rpx;
+  gap: var(--sp-8);
 }
 
 .rating-stars {
   display: flex;
-  gap: 2rpx;
+  gap: var(--sp-2);
 }
 
 .rating-star {
@@ -232,7 +232,7 @@
   font-size: var(--fs-28);
   font-weight: 600;
   color: #F59E0B;
-  margin-left: 4rpx;
+  margin-left: var(--sp-4);
 }
 
 .rating-count {
@@ -241,10 +241,10 @@
 }
 
 .rating-tag {
-  padding: 2rpx 12rpx;
-  border-radius: 6rpx;
+  padding: var(--sp-2) var(--sp-12);
+  border-radius: var(--sp-6);
   font-size: var(--fs-22);
-  margin-left: 8rpx;
+  margin-left: var(--sp-8);
 }
 
 .rating-tag.is-rated {
@@ -255,20 +255,20 @@
 .menu-rating-btn-wrap {
   display: flex;
   justify-content: center;
-  padding: 20rpx 0 8rpx;
+  padding: var(--sp-20) 0 var(--sp-8);
 }
 
 .menu-rating-open-btn {
   display: inline-block;
-  padding: 16rpx 48rpx;
+  padding: var(--sp-16) var(--sp-48);
   font-size: var(--fs-30);
-  border-radius: 44rpx;
+  border-radius: var(--sp-44);
   z-index: 101;
 }
 
 .loading-text {
   text-align: center;
-  padding: 32rpx;
+  padding: var(--sp-32);
   font-size: var(--fs-24);
   color: var(--text-muted);
 }
@@ -299,7 +299,7 @@
   width: 100%;
   max-height: 80vh;
   background: var(--bg-card);
-  border-radius: 32rpx 32rpx 0 0;
+  border-radius: var(--sp-32) var(--sp-32) 0 0;
   display: flex;
   flex-direction: column;
   animation: slideUp 0.3s cubic-bezier(0.25, 0.1, 0.25, 1);
@@ -314,8 +314,8 @@
   display: flex;
   align-items: center;
   justify-content: space-between;
-  padding: 32rpx 32rpx 20rpx;
-  border-bottom: 1rpx solid rgba(0, 0, 0, 0.06);
+  padding: var(--sp-32) var(--sp-32) var(--sp-20);
+  border-bottom: var(--sp-1) solid rgba(0, 0, 0, 0.06);
 }
 
 .rating-popup-title {
@@ -328,23 +328,23 @@
   font-size: var(--fs-48);
   color: var(--text-muted);
   line-height: 1;
-  padding: 0 12rpx;
+  padding: 0 var(--sp-12);
 }
 
 .rating-popup-body {
   max-height: 60vh;
-  padding: 16rpx 32rpx;
+  padding: var(--sp-16) var(--sp-32);
 }
 
 .rating-dish-item {
   display: flex;
   align-items: center;
-  padding: 20rpx 0;
-  border-bottom: 1rpx solid rgba(0, 0, 0, 0.04);
+  padding: var(--sp-20) 0;
+  border-bottom: var(--sp-1) solid rgba(0, 0, 0, 0.04);
 }
 
 .rating-dish-label {
-  width: 250rpx;
+  width: var(--sp-250);
   flex-shrink: 0;
   font-size: var(--fs-28);
   color: var(--text-secondary);
@@ -352,13 +352,13 @@
 
 .rating-dish-stars {
   display: flex;
-  gap: 8rpx;
+  gap: var(--sp-8);
 }
 
 .popup-star {
   font-size: var(--fs-44);
   color: #E2E8F0;
-  padding: 4rpx;
+  padding: var(--sp-4);
   transition: transform 0.15s;
 }
 
@@ -370,23 +370,23 @@
   font-size: var(--fs-26);
   color: #F59E0B;
   font-weight: 500;
-  min-width: 60rpx;
+  min-width: var(--sp-60);
   text-align: center;
-  margin-left: 12rpx;
+  margin-left: var(--sp-12);
 }
 
 .rating-already-tag {
   font-size: var(--fs-24);
   color: #2563EB;
-  margin-left: 12rpx;
+  margin-left: var(--sp-12);
 }
 
 .rating-popup-footer {
   display: flex;
-  gap: 24rpx;
-  padding: 24rpx 32rpx;
-  padding-bottom: calc(24rpx + env(safe-area-inset-bottom));
-  border-top: 1rpx solid rgba(0, 0, 0, 0.06);
+  gap: var(--sp-24);
+  padding: var(--sp-24) var(--sp-32);
+  padding-bottom: calc(var(--sp-24) + env(safe-area-inset-bottom));
+  border-top: var(--sp-1) solid rgba(0, 0, 0, 0.06);
 }
 .rating-popup-btn {
   transition: all 0.3s ease;
@@ -400,10 +400,10 @@
 .rating-popup-cancel,
 .rating-popup-submit {
   flex: 1;
-  height: 88rpx;
-  line-height: 88rpx;
+  height: var(--sp-88);
+  line-height: var(--sp-88);
   text-align: center;
-  border-radius: 44rpx;
+  border-radius: var(--sp-44);
   font-size: var(--fs-30);
   font-weight: 500;
 }
@@ -413,7 +413,7 @@
   text-align: center;
   font-size: var(--fs-28);
   color: var(--text-muted);
-  padding: 12rpx 0 4rpx;
+  padding: var(--sp-12) 0 var(--sp-4);
 }
 
 .rating-popup-cancel {

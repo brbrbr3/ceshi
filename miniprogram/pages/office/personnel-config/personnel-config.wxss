@@ -11,22 +11,22 @@
 
 .personnel-loading {
   text-align: center;
-  padding: 80rpx 0;
+  padding: var(--sp-80) 0;
   color: var(--text-muted);
   font-size: var(--fs-28);
 }
 
 /* ==================== 搜索 ==================== */
 .personnel-search {
-  padding: 10rpx 24rpx 16rpx;
+  padding: var(--sp-10) var(--sp-24) var(--sp-16);
 }
 
 .personnel-search-input {
   width: 100%;
-  height: 72rpx;
-  padding: 0 32rpx;
+  height: var(--sp-72);
+  padding: 0 var(--sp-32);
   background: var(--bg-card);
-  border-radius: 36rpx;
+  border-radius: var(--sp-36);
   font-size: var(--fs-28);
   color: var(--text-primary);
   box-sizing: border-box;
@@ -38,22 +38,22 @@
 
 /* ==================== 用户列表分组 ==================== */
 .personnel-group-section {
-  margin-bottom: 8rpx;
+  margin-bottom: var(--sp-8);
 }
 
 .personnel-group-section:last-child {
-  padding-bottom: 100rpx;
+  padding-bottom: var(--sp-100);
 }
 
 .personnel-group-label {
-  padding: 16rpx 24rpx 8rpx;
+  padding: var(--sp-16) var(--sp-24) var(--sp-8);
   font-size: var(--fs-35);
   font-weight: 700;
   color: var(--text-secondary);
 }
 
 .personnel-list {
-  padding: 0 24rpx;
+  padding: 0 var(--sp-24);
   display: flex;
   flex-wrap: wrap;
   justify-content: space-between;
@@ -62,15 +62,15 @@
 .personnel-card {
   width: 48.5%;
   background: var(--bg-card);
-  border-radius: 16rpx;
-  padding: 40rpx 24rpx;
+  border-radius: var(--sp-16);
+  padding: var(--sp-40) var(--sp-24);
   display: flex;
   align-items: center;
-  gap: 16rpx;
-  box-shadow: 0 2rpx 12rpx rgba(0,0,0,0.04);
+  gap: var(--sp-16);
+  box-shadow: 0 var(--sp-2) var(--sp-12) rgba(0,0,0,0.04);
   box-sizing: border-box;
   position: relative;
-  margin-bottom: 16rpx;
+  margin-bottom: var(--sp-16);
   flex-shrink: 0;
   transition: all 0.3s ease;
 }
@@ -81,8 +81,8 @@
 }
 
 .personnel-card-avatar {
-  width: 72rpx;
-  height: 72rpx;
+  width: var(--sp-72);
+  height: var(--sp-72);
   border-radius: 50%;
   background: linear-gradient(135deg, #E0E7FF 0%, #C7D2FE 100%);
   color: #2563EB;
@@ -111,7 +111,7 @@
 .personnel-card-meta {
   font-size: var(--fs-26);
   color: var(--text-muted);
-  margin-top: 4rpx;
+  margin-top: var(--sp-4);
 }
 
 /* 标签 */
@@ -119,8 +119,8 @@
   position: absolute;
   top: 0;
   right: 0;
-  padding: 4rpx 16rpx;
-  border-radius: 0 16rpx 0 12rpx;
+  padding: var(--sp-4) var(--sp-16);
+  border-radius: 0 var(--sp-16) 0 var(--sp-12);
   font-size: var(--fs-20);
   font-weight: 500;
   color: #FFFFFF;
@@ -168,7 +168,7 @@
   width: 100%;
   height: 85vh;
   background: var(--bg-input);
-  border-radius: 32rpx 32rpx 0 0;
+  border-radius: var(--sp-32) var(--sp-32) 0 0;
   display: flex;
   flex-direction: column;
   animation: personnelSlideUp 0.3s ease;
@@ -193,7 +193,7 @@
   display: flex;
   align-items: center;
   justify-content: space-between;
-  padding: 32rpx 32rpx 16rpx;
+  padding: var(--sp-32) var(--sp-32) var(--sp-16);
   flex-shrink: 0;
 }
 
@@ -204,8 +204,8 @@
 }
 
 .personnel-modal-close {
-  width: 56rpx;
-  height: 56rpx;
+  width: var(--sp-56);
+  height: var(--sp-56);
   border-radius: 50%;
   background: var(--border-soft);
   color: var(--text-tertiary);
@@ -220,7 +220,7 @@
   min-height: 0;
   overflow-y: auto;
   overflow-x: hidden;
-  padding: 0 32rpx 16rpx;
+  padding: 0 var(--sp-32) var(--sp-16);
   box-sizing: border-box;
   width: 100%;
 }
@@ -228,18 +228,18 @@
 /* ==================== 区块 ==================== */
 .personnel-section {
   background: var(--bg-card);
-  border-radius: 20rpx;
-  padding: 24rpx;
-  margin-bottom: 16rpx;
+  border-radius: var(--sp-20);
+  padding: var(--sp-24);
+  margin-bottom: var(--sp-16);
 }
 
 .personnel-section-title {
   font-size: var(--fs-32);
   font-weight: 700;
   color: var(--text-primary);
-  margin-bottom: 20rpx;
-  padding-bottom: 16rpx;
-  border-bottom: 1rpx solid var(--bg-soft-2);
+  margin-bottom: var(--sp-20);
+  padding-bottom: var(--sp-16);
+  border-bottom: var(--sp-1) solid var(--bg-soft-2);
 }
 
 /* ==================== 表单字段 ==================== */
@@ -247,8 +247,8 @@
   display: flex;
   align-items: center;
   justify-content: space-between;
-  padding: 16rpx 0;
-  border-bottom: 1rpx solid var(--bg-input);
+  padding: var(--sp-16) 0;
+  border-bottom: var(--sp-1) solid var(--bg-input);
 }
 
 .personnel-field:last-child {
@@ -264,9 +264,9 @@
 .personnel-picker {
   font-size: var(--fs-28);
   color: var(--text-primary);
-  padding: 8rpx 16rpx;
+  padding: var(--sp-8) var(--sp-16);
   background: var(--bg-soft-2);
-  border-radius: 10rpx;
+  border-radius: var(--sp-10);
 }
 
 .personnel-field-checkbox .personnel-field-label {
@@ -279,25 +279,25 @@
   background: #FEF2F2;
   color: #B91C1C;
   font-size: var(--fs-28);
-  padding: 16rpx 20rpx;
-  border-radius: 12rpx;
+  padding: var(--sp-16) var(--sp-20);
+  border-radius: var(--sp-12);
   line-height: 1.5;
-  margin-bottom: 16rpx;
+  margin-bottom: var(--sp-16);
 }
 
 /* ==================== 子区块 ==================== */
 .personnel-subsection {
-  margin-top: 8rpx;
+  margin-top: var(--sp-8);
 }
 
 .personnel-subsection + .personnel-subsection {
-  margin-top: 24rpx;
-  padding-top: 24rpx;
-  border-top: 2rpx solid var(--bg-soft-2);
+  margin-top: var(--sp-24);
+  padding-top: var(--sp-24);
+  border-top: var(--sp-2) solid var(--bg-soft-2);
 }
 
 .personnel-subsection-header {
-  margin-bottom: 12rpx;
+  margin-bottom: var(--sp-12);
 }
 
 .personnel-subsection-title {
@@ -314,25 +314,25 @@
 /* ==================== 分组勾选 ==================== */
 .personnel-sub-group {
   background: var(--bg-input);
-  border-radius: 12rpx;
-  margin-bottom: 8rpx;
+  border-radius: var(--sp-12);
+  margin-bottom: var(--sp-8);
   overflow: hidden;
 }
 
 .personnel-sub-group-header {
   display: flex;
   align-items: center;
-  gap: 12rpx;
-  padding: 14rpx 16rpx;
+  gap: var(--sp-12);
+  padding: var(--sp-14) var(--sp-16);
   background: var(--bg-soft-2);
   cursor: pointer;
 }
 
 .personnel-group-check {
-  width: 36rpx;
-  height: 36rpx;
-  border: 2rpx solid #CBD5E1;
-  border-radius: 6rpx;
+  width: var(--sp-36);
+  height: var(--sp-36);
+  border: var(--sp-2) solid #CBD5E1;
+  border-radius: var(--sp-6);
   display: flex;
   align-items: center;
   justify-content: center;
@@ -359,15 +359,15 @@
 }
 
 .personnel-sub-group-list {
-  padding: 4rpx 0;
+  padding: var(--sp-4) 0;
 }
 
 .personnel-sub-group-item {
   display: flex;
   align-items: center;
-  gap: 12rpx;
-  padding: 12rpx 16rpx;
-  border-bottom: 1rpx solid var(--bg-soft-2);
+  gap: var(--sp-12);
+  padding: var(--sp-12) var(--sp-16);
+  border-bottom: var(--sp-1) solid var(--bg-soft-2);
 }
 
 .personnel-sub-group-item.is-disabled {
@@ -379,10 +379,10 @@
 }
 
 .personnel-check {
-  width: 36rpx;
-  height: 36rpx;
-  border: 2rpx solid #CBD5E1;
-  border-radius: 6rpx;
+  width: var(--sp-36);
+  height: var(--sp-36);
+  border: var(--sp-2) solid #CBD5E1;
+  border-radius: var(--sp-6);
   display: flex;
   align-items: center;
   justify-content: center;
@@ -409,7 +409,7 @@
 
 .personnel-empty-hint {
   text-align: center;
-  padding: 24rpx;
+  padding: var(--sp-24);
   color: var(--text-muted);
   font-size: var(--fs-24);
 }
@@ -417,18 +417,18 @@
 /* ==================== 弹窗底部 ==================== */
 .personnel-modal-footer {
   display: flex;
-  gap: 16rpx;
-  padding: 20rpx 32rpx 40rpx;
+  gap: var(--sp-16);
+  padding: var(--sp-20) var(--sp-32) var(--sp-40);
   flex-shrink: 0;
   background: var(--bg-card);
-  border-top: 1rpx solid var(--bg-soft-2);
+  border-top: var(--sp-1) solid var(--bg-soft-2);
 }
 
 .personnel-btn-cancel,
 .personnel-btn-save {
   flex: 1;
-  height: 88rpx;
-  border-radius: 16rpx;
+  height: var(--sp-88);
+  border-radius: var(--sp-16);
   font-size: var(--fs-30);
   font-weight: 600;
   display: flex;
@@ -436,7 +436,7 @@
   justify-content: center;
   border: none;
   padding: 0;
-  line-height: 88rpx;
+  line-height: var(--sp-88);
 }
 
 .personnel-btn-cancel {
@@ -456,22 +456,22 @@
   width: 100%;
   display: flex;
   justify-content: center;
-  padding-bottom: 16rpx;
-  border-bottom: 1rpx solid var(--bg-soft-2);
-  margin-bottom: 16rpx;
+  padding-bottom: var(--sp-16);
+  border-bottom: var(--sp-1) solid var(--bg-soft-2);
+  margin-bottom: var(--sp-16);
 }
 
 .personnel-btn-deactivate {
   background: var(--bg-card);
-  border-radius: 32rpx;
-  box-shadow: 0 16rpx 42rpx rgba(37, 99, 235, 0.08);
-  margin-top: 24rpx;
+  border-radius: var(--sp-32);
+  box-shadow: 0 var(--sp-16) var(--sp-42) rgba(37, 99, 235, 0.08);
+  margin-top: var(--sp-24);
   text-align: center;
   font-size: var(--fs-32);
   font-weight: 600;
   color: #EF4444;
   transition: transform 0.3s ease, opacity 0.3s ease;
-  padding: 24rpx;
+  padding: var(--sp-24);
 }
 
 .personnel-btn-active {
@@ -490,7 +490,7 @@
 
 .personnel-footer-btns {
   display: flex;
-  gap: 16rpx;
+  gap: var(--sp-16);
   width: 100%;
 }
 
@@ -511,7 +511,7 @@
 /* 折叠箭头：▶ 旋转 90° 即为展开态（带过渡动画） */
 .personnel-group-arrow {
   display: inline-block;
-  margin-right: 8rpx;
+  margin-right: var(--sp-8);
   font-size: var(--fs-24);
   color: var(--text-muted);
   transition: transform 0.25s ease;
@@ -526,30 +526,30 @@
 }
 
 .personnel-group-count-text {
-  font-size: 24rpx;
+  font-size: var(--sp-24);
   font-weight: 400;
   color: var(--text-muted);
-  margin-left: 8rpx;
+  margin-left: var(--sp-8);
 }
 
 /* ==================== 岗位选择 ==================== */
 .personnel-position-list {
   display: flex;
   flex-wrap: wrap;
-  gap: 10rpx;
+  gap: var(--sp-10);
   flex: 1;
   justify-content: flex-end;
-  padding: 8rpx 0;
+  padding: var(--sp-8) 0;
 }
 
 .personnel-position-item {
-  height: 64rpx;
-  padding: 0 24rpx;
+  height: var(--sp-64);
+  padding: 0 var(--sp-24);
   display: flex;
   align-items: center;
   justify-content: center;
   background: var(--bg-input);
-  border-radius: 16rpx;
+  border-radius: var(--sp-16);
   font-size: var(--fs-28);
   color: var(--text-tertiary);
   border: none;
@@ -559,26 +559,26 @@
 .personnel-position-item.is-active {
   background: linear-gradient(135deg, #2563EB 0%, #1D4ED8 100%);
   color: #FFFFFF;
-  box-shadow: 0 4rpx 12rpx rgba(37, 99, 235, 0.25);
+  box-shadow: 0 var(--sp-4) var(--sp-12) rgba(37, 99, 235, 0.25);
 }
 
 /* ==================== 视图切换 ==================== */
 .personnel-view-toggle {
   display: flex;
   gap: 0;
-  margin-bottom: 16rpx;
+  margin-bottom: var(--sp-16);
   background: var(--bg-soft-2);
-  border-radius: 12rpx;
+  border-radius: var(--sp-12);
   overflow: hidden;
 }
 
 .personnel-view-btn {
   flex: 1;
   text-align: center;
-  padding: 12rpx 0;
+  padding: var(--sp-12) 0;
   font-size: var(--fs-32);
   color: var(--text-tertiary);
-  border-radius: 12rpx;
+  border-radius: var(--sp-12);
 }
 
 .personnel-view-btn.is-active {
@@ -589,10 +589,10 @@
 
 /* placeholder 读条 bar */
 .report-readonly-tip {
-  margin: 16rpx 24rpx;
-  padding: 16rpx 24rpx;
+  margin: var(--sp-16) var(--sp-24);
+  padding: var(--sp-16) var(--sp-24);
   background: var(--hint-warn-bg);
-  border-radius: 12rpx;
+  border-radius: var(--sp-12);
   font-size: var(--fs-24);
   color: var(--hint-warn-text);
   text-align: center;
@@ -607,13 +607,13 @@
   background: var(--toast-bg);
   backdrop-filter: blur(16px);
   -webkit-backdrop-filter: blur(16px);
-  border-radius: 20rpx;
-  padding: 28rpx 44rpx;
-  max-width: 620rpx;
+  border-radius: var(--sp-20);
+  padding: var(--sp-28) var(--sp-44);
+  max-width: var(--sp-620);
   opacity: 0;
   pointer-events: none;
   z-index: 9999;
-  box-shadow: 0 12rpx 48rpx rgba(0, 0, 0, 0.25);
+  box-shadow: 0 var(--sp-12) var(--sp-48) rgba(0, 0, 0, 0.25);
 }
 
 .custom-toast.is-visible {
@@ -624,7 +624,7 @@
 
 .custom-toast-text {
   color: var(--toast-text);
-  font-size: 28rpx;
+  font-size: var(--sp-28);
   font-weight: 500;
   line-height: 1.7;
   text-align: center;

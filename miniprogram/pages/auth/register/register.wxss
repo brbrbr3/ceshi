@@ -4,16 +4,16 @@ page {
 
 /* 微信昵称输入提示 */
 .auth-nickname-tip {
-  margin-top: 12rpx;
+  margin-top: var(--sp-12);
   font-size: var(--fs-24);
   color: var(--text-muted);
 }
 
 /* 退回说明 */
 .register-review-banner {
-  margin-top: 20rpx;
-  padding: 22rpx 24rpx;
-  border-radius: 24rpx;
+  margin-top: var(--sp-20);
+  padding: var(--sp-22) var(--sp-24);
+  border-radius: var(--sp-24);
   background: var(--danger-soft-bg);
   color: var(--danger-text);
 }
@@ -24,7 +24,7 @@ page {
 }
 
 .register-review-text {
-  margin-top: 10rpx;
+  margin-top: var(--sp-10);
   font-size: var(--fs-24);
   line-height: 1.7;
 }

@@ -281,7 +281,7 @@
         <view class="append-dest-content">
           <view class="trip-field-label">您本次出行的目的地</view>
           <view class="append-dest-tip">{{activeTrip.destination}}</view>
-          <view class="trip-field" style="margin-bottom: 16rpx;">
+          <view class="trip-field" style="margin-bottom: var(--sp-16);">
             <view class="trip-field-label">新的目的地 <text class="trip-required">*</text></view>
             <view class="trip-input-wrapper">
               <input class="trip-input" value="{{appendDestForm.newDestination}}" placeholder="请输入要追加的目的地" placeholder-class="trip-input-placeholder" bindinput="handleAppendDestInput" />

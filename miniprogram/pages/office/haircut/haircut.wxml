@@ -291,7 +291,7 @@
         <view class="haircut-popup-title">改换理发日</view>
         <view class="haircut-popup-close" bindtap="closeChangeDatePicker">×</view>
       </view>
-      <view class="haircut-popup-form" style="padding-bottom: 400rpx;">
+      <view class="haircut-popup-form" style="padding-bottom: var(--sp-400);">
         <view class="haircut-field-label">将理发日 {{changeDateSource}} 及该日的预约改到以下日期：</view>
         <datetime-picker
           class="haircut-change-picker"

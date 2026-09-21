@@ -118,6 +118,10 @@ const FONT_TOKENS = {
   100: 100
 }
 
+// SP-TOKENS:START 由 scripts/rpx-to-token.js 自动生成，请勿手工修改
+const SPACE_TOKENS = [0.5, 1, 2, 3, 4, 5, 6, 8, 10, 12, 14, 15, 16, 17, 18, 20, 22, 24, 25, 26, 28, 30, 32, 34, 35, 36, 38, 40, 41, 42, 44, 45, 48, 50, 52, 54, 56, 60, 64, 66, 68, 70, 72, 76, 78, 80, 88, 90, 92, 96, 100, 102, 106, 120, 126, 140, 145, 150, 160, 180, 188, 190, 200, 230, 240, 250, 255, 300, 320, 400, 450, 600, 620, 650, 700, 760, 999]
+// SP-TOKENS:END
+
 function getDefaultAuthState() {
   return {
     hasLogin: false,
@@ -211,7 +215,26 @@ App({
         return `--fs-${key}: ${scaled}rpx`
       })
       .join('; ')
-    return vars
+    // 桌面端追加尺寸令牌，使间距/宽高与字号处于同一基准；移动端返回空串，样式与改造前完全一致
+    const spaceVars = this.generateSpaceStyle()
+    return spaceVars ? `${vars}; ${spaceVars}` : vars
+  },
+
+  // 桌面端（windows/mac）尺寸令牌：rpx 会按窗口总宽度放大（375px 手机 vs 1000px+ 桌面），
+  // 导致间距/宽高被等比放大数倍。桌面端改为输出固定 px，锁定 375px 设计稿（1rpx = 0.5px），
+  // 口径与 --fs-* 字号令牌一致。返回值随 fontStyle 注入根 view 的内联 style，
+  // 页面与弹窗组件均已绑定 style="{{fontStyle}}"，无需额外通道。
+  // 取值只依赖平台、不依赖窗口宽度，因此 PC 端拉伸/最大化窗口无需重算。
+  generateSpaceStyle() {
+    const isDesktop = ['windows', 'mac'].includes(this.globalData.platform)
+    if (!isDesktop) return ''
+    const rpxToPx = 0.5 // 375px 设计稿：1rpx = 375 / 750 = 0.5px
+    return SPACE_TOKENS.map((baseRpx) => {
+      // 1rpx 通常是细边框，桌面端取 1px，避免 DPR=1 的屏幕上边框渲染不出来
+      const px = baseRpx === 1 ? 1 : Math.round(baseRpx * rpxToPx * 100) / 100
+      const name = String(baseRpx).replace('.', '_')
+      return `--sp-${name}: ${px}px`
+    }).join('; ')
   },
 
   /**

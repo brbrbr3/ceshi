@@ -9,7 +9,7 @@
 }
 
 .menu-edit-header {
-  padding: 30rpx 40rpx 80rpx;
+  padding: var(--sp-30) var(--sp-40) var(--sp-80);
 }
 
 .menu-edit-title {
@@ -20,11 +20,11 @@
 }
 
 .menu-edit-content {
-  margin-top: -60rpx;
+  margin-top: calc(var(--sp-60) * -1);
 }
 
 .menu-edit-form {
-  padding: 28rpx;
+  padding: var(--sp-28);
 }
 
 .menu-edit-input-shell input {
@@ -32,15 +32,15 @@
 }
 
 .menu-editor-wrapper {
-  border-radius: 24rpx;
+  border-radius: var(--sp-24);
   overflow: hidden;
   background: var(--bg-input);
-  border: 2rpx solid transparent;
+  border: var(--sp-2) solid transparent;
 }
 
 .menu-editor-wrapper editor {
-  min-height: 760rpx;
-  padding: 20rpx;
+  min-height: var(--sp-760);
+  padding: var(--sp-20);
   box-sizing: border-box;
   font-size: var(--fs-32);
 }
@@ -50,6 +50,6 @@
 }
 
 .menu-edit-submit {
-  margin-top: 32rpx;
+  margin-top: var(--sp-32);
 }
 

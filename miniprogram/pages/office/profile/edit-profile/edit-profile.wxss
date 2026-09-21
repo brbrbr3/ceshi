@@ -17,17 +17,17 @@ page {
 }
 
 .auth-field-hint {
-  margin-top: 8rpx;
+  margin-top: var(--sp-8);
   font-size: var(--fs-26);
   color: var(--text-tertiary);
-  padding-left: 4rpx;
+  padding-left: var(--sp-4);
 }
 
 /* 退回说明 */
 .edit-profile-review-banner {
-  margin-top: 20rpx;
-  padding: 22rpx 24rpx;
-  border-radius: 24rpx;
+  margin-top: var(--sp-20);
+  padding: var(--sp-22) var(--sp-24);
+  border-radius: var(--sp-24);
   background: var(--danger-soft-bg);
   color: var(--danger-text);
 }
@@ -38,7 +38,7 @@ page {
 }
 
 .edit-profile-review-text {
-  margin-top: 10rpx;
+  margin-top: var(--sp-10);
   font-size: var(--fs-24);
   line-height: 1.7;
 }

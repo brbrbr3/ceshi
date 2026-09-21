@@ -2,11 +2,11 @@
 /* 大部分样式继承自页面，此处仅定义组件特有样式 */
 
 .approval-list-card {
-  padding: 24rpx;
+  padding: var(--sp-24);
 }
 
 .approval-list-card + .approval-list-card {
-  margin-top: 20rpx;
+  margin-top: var(--sp-20);
 }
 
 .approval-list-top,
@@ -19,7 +19,7 @@
 }
 
 .approval-person {
-  gap: 18rpx;
+  gap: var(--sp-18);
 }
 
 .approval-person-main {
@@ -28,7 +28,7 @@
 
 .approval-person-row {
   justify-content: flex-start;
-  gap: 10rpx;
+  gap: var(--sp-10);
 }
 
 .approval-person-name {
@@ -43,33 +43,33 @@
 }
 
 .approval-type-title {
-  margin-top: 22rpx;
+  margin-top: var(--sp-22);
   font-size: var(--fs-30);
   font-weight: 600;
   color: var(--text-primary);
 }
 
 .approval-detail {
-  margin-top: 12rpx;
+  margin-top: var(--sp-12);
   font-size: var(--fs-24);
   color: var(--text-secondary);
 }
 
 .approval-meta {
-  margin-top: 8rpx;
+  margin-top: var(--sp-8);
   font-size: var(--fs-24);
   color: var(--text-muted);
 }
 
 .approval-time {
-  margin-top: 10rpx;
+  margin-top: var(--sp-10);
   font-size: var(--fs-24);
   color: var(--text-muted);
 }
 
 .approval-urgent {
-  padding: 6rpx 14rpx;
-  border-radius: 999rpx;
+  padding: var(--sp-6) var(--sp-14);
+  border-radius: var(--sp-999);
   background: #FFEBEE;
   color: #F44336;
   font-size: var(--fs-18);
@@ -77,17 +77,17 @@
 
 /* 操作按钮 */
 .approval-actions {
-  gap: 18rpx;
-  margin-top: 24rpx;
-  padding-top: 24rpx;
-  border-top: 1rpx solid rgba(37, 99, 235, 0.1);
+  gap: var(--sp-18);
+  margin-top: var(--sp-24);
+  padding-top: var(--sp-24);
+  border-top: var(--sp-1) solid rgba(37, 99, 235, 0.1);
 }
 
 .approval-reject-btn,
 .approval-approve-btn {
   flex: 1;
-  height: 78rpx;
-  border-radius: 24rpx;
+  height: var(--sp-78);
+  border-radius: var(--sp-24);
   display: flex;
   align-items: center;
   justify-content: center;
@@ -113,10 +113,10 @@
 .approval-approve-btn.is-disabled::after {
   content: '';
   position: absolute;
-  right: 20rpx;
-  width: 24rpx;
-  height: 24rpx;
-  border: 3rpx solid currentColor;
+  right: var(--sp-20);
+  width: var(--sp-24);
+  height: var(--sp-24);
+  border: var(--sp-3) solid currentColor;
   border-top-color: transparent;
   border-right-color: transparent;
   border-radius: 50%;
@@ -132,23 +132,23 @@
 
 /* 进度条样式 */
 .approval-progress {
-  margin-top: 16rpx;
-  padding: 24rpx;
+  margin-top: var(--sp-16);
+  padding: var(--sp-24);
   background: var(--bg-soft-2);
-  border-radius: 12rpx;
+  border-radius: var(--sp-12);
 }
 
 .approval-progress-header {
   display: flex;
   justify-content: space-between;
   align-items: center;
-  margin-bottom: 16rpx;
+  margin-bottom: var(--sp-16);
 }
 
 .approval-progress-info {
   display: flex;
   align-items: center;
-  gap: 12rpx;
+  gap: var(--sp-12);
   flex: 1;
 }
 
@@ -165,24 +165,24 @@
 
 .approval-progress-bar {
   width: 100%;
-  height: 8rpx;
+  height: var(--sp-8);
   background: var(--border-soft);
-  border-radius: 4rpx;
+  border-radius: var(--sp-4);
   overflow: hidden;
 }
 
 .approval-progress-fill {
   height: 100%;
   background: linear-gradient(90deg, #2563EB 0%, #1D4ED8 100%);
-  border-radius: 4rpx;
+  border-radius: var(--sp-4);
   transition: width 0.3s ease;
 }
 
 /* 头像 */
 .approval-card-avatar {
-  width: 76rpx;
-  height: 76rpx;
-  border-radius: 38rpx;
+  width: var(--sp-76);
+  height: var(--sp-76);
+  border-radius: var(--sp-38);
   display: flex;
   align-items: center;
   justify-content: center;

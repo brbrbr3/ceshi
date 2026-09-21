@@ -86,6 +86,7 @@
             <view class="home-news-title">{{item.title}}</view>
             <view class="home-news-time">{{item.time}}</view>
           </view>
+          <view wx:if="{{item.isClosed}}" class="office-pill home-news-closed">已截止</view>
           <view wx:if="{{item.isUnread}}" class="home-news-dot"></view>
         </view>
         <view wx:if="{{loadingContentForms}}" class="home-news-loading">

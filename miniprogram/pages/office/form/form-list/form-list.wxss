@@ -3,7 +3,7 @@
 }
 
 .form-list-header {
-  padding: 30rpx 40rpx 70rpx;
+  padding: var(--sp-30) var(--sp-40) var(--sp-70);
 }
 
 .form-list-header-row {
@@ -20,13 +20,13 @@
 
 .form-list-publish {
   position: fixed;
-  right: 80rpx;
-  bottom: calc(80rpx + env(safe-area-inset-bottom));
-  width: 100rpx;
-  height: 100rpx;
-  border-radius: 50rpx;
+  right: var(--sp-80);
+  bottom: calc(var(--sp-80) + env(safe-area-inset-bottom));
+  width: var(--sp-100);
+  height: var(--sp-100);
+  border-radius: var(--sp-50);
   background: linear-gradient(135deg, #1D4ED8 0%, #3B82F6 100%);
-  box-shadow: 0 8rpx 24rpx rgba(24, 22, 163, 0.4);
+  box-shadow: 0 var(--sp-8) var(--sp-24) rgba(24, 22, 163, 0.4);
   z-index: 100;
   transition: all 0.2s ease;
 }
@@ -40,43 +40,43 @@
   left: 50%;
   transform: translate(-50%, -50%);
   background: var(--bg-card);
-  border-radius: 3rpx;
+  border-radius: var(--sp-3);
 }
 
 .form-list-publish::before {
-  width: 44rpx;
-  height: 6rpx;
+  width: var(--sp-44);
+  height: var(--sp-6);
 }
 
 .form-list-publish::after {
-  width: 6rpx;
-  height: 44rpx;
+  width: var(--sp-6);
+  height: var(--sp-44);
 }
 
 .form-list-publish-hover {
-  box-shadow: 0 2rpx 3rpx rgba(24, 22, 163, 0.4);
+  box-shadow: 0 var(--sp-2) var(--sp-3) rgba(24, 22, 163, 0.4);
   transform: scale(0.98);
 }
 
 .form-list-content {
-  margin-top: 20rpx;
+  margin-top: var(--sp-20);
 }
 
 .form-list-tabs-scroll {
   width: 100%;
   white-space: nowrap;
-  margin-bottom: 24rpx;
+  margin-bottom: var(--sp-24);
 }
 
 .form-list-tabs {
   display: flex;
-  gap: 16rpx;
-  padding: 4rpx 8rpx 12rpx;
+  gap: var(--sp-16);
+  padding: var(--sp-4) var(--sp-8) var(--sp-12);
 }
 
 .form-list-tab {
-  padding: 10rpx 28rpx;
-  border-radius: 30rpx;
+  padding: var(--sp-10) var(--sp-28);
+  border-radius: var(--sp-30);
   font-size: var(--fs-28);
   color: var(--text-tertiary);
   background: var(--bg-card);
@@ -90,42 +90,42 @@
 }
 
 .form-list-body {
-  padding-bottom: 40rpx;
+  padding-bottom: var(--sp-40);
 }
 
 .form-list-item {
-  padding: 28rpx;
-  margin-bottom: 24rpx;
+  padding: var(--sp-28);
+  margin-bottom: var(--sp-24);
   transition: all 0.2s ease;
   position: relative;
-  border-left: 6rpx solid #3B82F6;
+  border-left: var(--sp-6) solid #3B82F6;
 }
 
 .form-list-dot-badge {
   position: absolute;
-  top: 16rpx;
-  right: 16rpx;
-  width: 16rpx;
-  height: 16rpx;
+  top: var(--sp-16);
+  right: var(--sp-16);
+  width: var(--sp-16);
+  height: var(--sp-16);
   border-radius: 50%;
   background: #F44336;
 }
 
 .form-list-item-hover {
   transform: scale(0.98);
-  border-left: 2rpx solid #3B82F6;
+  border-left: var(--sp-2) solid #3B82F6;
 }
 
 .form-list-item-top {
   display: flex;
   align-items: center;
   justify-content: space-between;
-  margin-bottom: 16rpx;
+  margin-bottom: var(--sp-16);
 }
 
 .form-list-badge {
-  padding: 6rpx 18rpx;
-  border-radius: 20rpx;
+  padding: var(--sp-6) var(--sp-18);
+  border-radius: var(--sp-20);
   font-size: var(--fs-26);
   font-weight: 600;
 }
@@ -154,7 +154,7 @@
   font-weight: 600;
   color: var(--text-primary);
   line-height: 1.4;
-  margin-bottom: 12rpx;
+  margin-bottom: var(--sp-12);
 }
 
 .form-list-item-meta {
@@ -162,8 +162,8 @@
   color: var(--text-muted);
   display: flex;
   align-items: center;
-  gap: 8rpx;
-  margin-bottom: 4rpx;
+  gap: var(--sp-8);
+  margin-bottom: var(--sp-4);
 }
 
 .form-list-item-restrict {
@@ -186,12 +186,12 @@
   display: flex;
   flex-direction: column;
   align-items: center;
-  padding: 120rpx 0;
+  padding: var(--sp-120) 0;
 }
 
 .form-list-empty-icon {
-  font-size: 96rpx;
-  margin-bottom: 20rpx;
+  font-size: var(--sp-96);
+  margin-bottom: var(--sp-20);
 }
 
 .form-list-empty-text {
@@ -201,7 +201,7 @@
 
 .form-list-loading {
   text-align: center;
-  padding: 24rpx 0;
+  padding: var(--sp-24) 0;
   font-size: var(--fs-24);
   color: var(--text-muted);
 }

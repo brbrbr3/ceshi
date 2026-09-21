@@ -190,17 +190,17 @@ input {
 }
 
 .office-gradient-header {
-  padding: calc(100rpx + env(safe-area-inset-top)) 32rpx 0;
+  padding: calc(var(--sp-100) + env(safe-area-inset-top)) var(--sp-32) 0;
   background: linear-gradient(135deg, var(--header-grad-start) 0%, var(--header-grad-end) 100%);
   color: #FFFFFF;
-  border-bottom-left-radius: 60rpx;
-  border-bottom-right-radius: 60rpx;
+  border-bottom-left-radius: var(--sp-60);
+  border-bottom-right-radius: var(--sp-60);
   box-sizing: border-box;
 }
 
 /* 头部 - 使用圆角渐变 */
 .office-subpage-header {
-  padding: 40rpx 32rpx 30rpx;
+  padding: var(--sp-40) var(--sp-32) var(--sp-30);
 }
 
 .office-subpage-header-content {
@@ -226,25 +226,25 @@ input {
 .office-content {
   position: relative;
   z-index: 2;
-  padding: 0 24rpx 40rpx;
+  padding: 0 var(--sp-24) var(--sp-40);
   box-sizing: border-box;
 }
 
 .office-card {
   background: var(--bg-card);
-  border-radius: 32rpx;
-  box-shadow: 0 16rpx 42rpx var(--shadow-card);
+  border-radius: var(--sp-32);
+  box-shadow: 0 var(--sp-16) var(--sp-42) var(--shadow-card);
 }
 
 .office-section {
-  margin-top: 28rpx;
+  margin-top: var(--sp-28);
 }
 
 .office-section-header {
   display: flex;
   align-items: center;
   justify-content: space-between;
-  margin-bottom: 20rpx;
+  margin-bottom: var(--sp-20);
 }
 
 .office-section-title {
@@ -262,8 +262,8 @@ input {
   display: inline-flex;
   align-items: center;
   justify-content: center;
-  padding: 8rpx 16rpx;
-  border-radius: 999rpx;
+  padding: var(--sp-8) var(--sp-16);
+  border-radius: var(--sp-999);
   font-size: var(--fs-22);
   line-height: 1;
 }
@@ -272,13 +272,13 @@ input {
   display: inline-flex;
   align-items: center;
   justify-content: center;
-  padding: 18rpx 32rpx;
-  border-radius: 999rpx;
+  padding: var(--sp-18) var(--sp-32);
+  border-radius: var(--sp-999);
   background: #2563EB;
   color: #FFFFFF;
   font-size: var(--fs-24);
   font-weight: 600;
-  box-shadow: 0 14rpx 28rpx rgba(37, 99, 235, 0.16);
+  box-shadow: 0 var(--sp-14) var(--sp-28) rgba(37, 99, 235, 0.16);
   transition: all 0.3s ease;
 }
 
@@ -291,8 +291,8 @@ input {
   display: inline-flex;
   align-items: center;
   justify-content: center;
-  padding: 18rpx 32rpx;
-  border-radius: 999rpx;
+  padding: var(--sp-18) var(--sp-32);
+  border-radius: var(--sp-999);
   background: var(--bg-soft);
   color: #2563EB;
   font-size: var(--fs-24);
@@ -306,7 +306,7 @@ input {
 }
 
 .office-empty {
-  padding: 80rpx 24rpx;
+  padding: var(--sp-80) var(--sp-24);
   text-align: center;
   color: var(--text-muted);
 }
@@ -317,20 +317,20 @@ input {
   align-self: flex-start;
   width: 100%;
   min-height: 100vh;
-  padding: calc(56rpx + env(safe-area-inset-top)) 28rpx 40rpx;
+  padding: calc(var(--sp-56) + env(safe-area-inset-top)) var(--sp-28) var(--sp-40);
   box-sizing: border-box;
   background: linear-gradient(180deg, var(--auth-grad-1) 0%, var(--auth-grad-2) 34%, var(--auth-grad-3) 100%);
 }
 
 .auth-hero {
-  padding: 28rpx 12rpx 24rpx;
+  padding: var(--sp-28) var(--sp-12) var(--sp-24);
   z-index: 10;
 }
 
 .auth-brand {
-  width: 188rpx;
-  height: 88rpx;
-  border-radius: 28rpx;
+  width: var(--sp-188);
+  height: var(--sp-88);
+  border-radius: var(--sp-28);
   background: linear-gradient(135deg, var(--header-grad-start) 0%, var(--header-grad-end) 100%);
   color: #FFFFFF;
   display: flex;
@@ -338,12 +338,12 @@ input {
   justify-content: center;
   font-size: var(--fs-36);
   font-weight: 700;
-  box-shadow: 0 16rpx 34rpx rgba(37, 99, 235, 0.2);
+  box-shadow: 0 var(--sp-16) var(--sp-34) rgba(37, 99, 235, 0.2);
   z-index: 1;
 }
 
 .auth-title {
-  margin-top: 28rpx;
+  margin-top: var(--sp-28);
   font-size: var(--fs-48);
   line-height: 1.25;
   font-weight: 700;
@@ -352,7 +352,7 @@ input {
 }
 
 .auth-subtitle {
-  margin-top: 14rpx;
+  margin-top: var(--sp-14);
   font-size: var(--fs-32);
   font-weight: 500;
   line-height: 1.6;
@@ -363,13 +363,13 @@ input {
 .auth-tip-row {
   display: flex;
   flex-wrap: wrap;
-  gap: 14rpx;
-  margin-top: 28rpx;
+  gap: var(--sp-14);
+  margin-top: var(--sp-28);
 }
 
 .auth-tip-pill {
-  padding: 10rpx 18rpx;
-  border-radius: 999rpx;
+  padding: var(--sp-10) var(--sp-18);
+  border-radius: var(--sp-999);
   background: var(--bg-soft);
   color: var(--primary-text);
   font-size: var(--fs-24);
@@ -377,11 +377,11 @@ input {
 }
 
 .auth-card {
-  margin-top: 20rpx;
-  padding: 32rpx 28rpx;
-  border-radius: 32rpx;
+  margin-top: var(--sp-20);
+  padding: var(--sp-32) var(--sp-28);
+  border-radius: var(--sp-32);
   background: var(--bg-card);
-  box-shadow: 0 16rpx 40rpx var(--shadow-card);
+  box-shadow: 0 var(--sp-16) var(--sp-40) var(--shadow-card);
 }
 
 .auth-card-title {
@@ -391,7 +391,7 @@ input {
 }
 
 .auth-card-desc {
-  margin-top: 12rpx;
+  margin-top: var(--sp-12);
   font-size: var(--fs-28);
   line-height: 1.7;
   color: var(--text-tertiary);
@@ -401,16 +401,16 @@ input {
 
 .auth-submit-btn {
   width: 100%;
-  border-radius: 24rpx;
+  border-radius: var(--sp-24);
   background: linear-gradient(135deg, var(--header-grad-start) 0%, var(--header-grad-end) 100%);
   color: #FFFFFF;
   font-size: var(--fs-32);
   font-weight: 600;
-  box-shadow: 0 16rpx 30rpx rgba(37, 99, 235, 0.18);
+  box-shadow: 0 var(--sp-16) var(--sp-30) rgba(37, 99, 235, 0.18);
   height: 100%;
-  margin: 28rpx;
+  margin: var(--sp-28);
   justify-content: center;
-  padding: 24rpx 12rpx;
+  padding: var(--sp-24) var(--sp-12);
   transition: all 0.3s ease;
 }
 
@@ -438,25 +438,25 @@ input {
 }
 
 .auth-note {
-  margin-top: 18rpx;
+  margin-top: var(--sp-18);
   font-size: var(--fs-24);
   line-height: 1.7;
   color: #64748B;
-  margin-bottom: 60rpx;
+  margin-bottom: var(--sp-60);
 }
 
 
 
 .auth-form {
-  margin-top: 28rpx;
+  margin-top: var(--sp-28);
 }
 
 .auth-field+.auth-field {
-  margin-top: 24rpx;
+  margin-top: var(--sp-24);
 }
 
 .auth-field-label {
-  margin-bottom: 14rpx;
+  margin-bottom: var(--sp-14);
   font-size: var(--fs-30);
   font-weight: 600;
   color: var(--text-primary);
@@ -477,12 +477,13 @@ input {
 .auth-picker-shell {
   display: flex;
   align-items: center;
-  min-height: 92rpx;
-  padding: 0 24rpx;
-  border-radius: 24rpx;
+  min-height: var(--sp-92);
+  padding: 0 var(--sp-24);
+  border-radius: var(--sp-24);
   background: var(--bg-input);
-  border: 2rpx solid transparent;
+  border: var(--sp-2) solid transparent;
   box-sizing: border-box;
+  border: var(--sp-1) solid var(--border-soft);
 }
 
 .auth-picker-shell.is-placeholder,
@@ -508,20 +509,20 @@ input {
 }
 
 .auth-picker-arrow {
-  margin-left: 16rpx;
+  margin-left: var(--sp-16);
   font-size: var(--fs-28);
   color: var(--text-muted);
 }
 
 .auth-segment {
   display: flex;
-  gap: 16rpx;
+  gap: var(--sp-16);
 }
 
 .auth-segment-item {
   flex: 1;
-  height: 88rpx;
-  border-radius: 24rpx;
+  height: var(--sp-88);
+  border-radius: var(--sp-24);
   background: var(--bg-input);
   color: var(--text-secondary);
   font-size: var(--fs-26);
@@ -529,7 +530,7 @@ input {
   align-items: center;
   justify-content: center;
   box-sizing: border-box;
-  border: 2rpx solid transparent;
+  border: var(--sp-2) solid transparent;
 }
 
 .auth-segment-item.is-active {
@@ -543,13 +544,13 @@ input {
 
 /* 微信头像选择 */
 .auth-avatar-btn {
-  width: 160rpx;
-  height: 160rpx;
+  width: var(--sp-160);
+  height: var(--sp-160);
   padding: 0;
   margin: 0;
-  border-radius: 24rpx;
+  border-radius: var(--sp-24);
   background: var(--bg-soft-2);
-  border: 2rpx dashed var(--border-soft);
+  border: var(--sp-2) dashed var(--border-soft);
   display: flex;
   align-items: center;
   justify-content: center;
@@ -564,7 +565,7 @@ input {
 .auth-avatar-preview {
   width: 100%;
   height: 100%;
-  border-radius: 24rpx;
+  border-radius: var(--sp-24);
 }
 
 .auth-avatar-placeholder {
@@ -578,11 +579,11 @@ input {
 
 .auth-avatar-icon {
   font-size: var(--fs-36);
-  margin-bottom: 6rpx;
+  margin-bottom: var(--sp-6);
 }
 
 .auth-avatar-hint {
-  margin-top: 10rpx;
+  margin-top: var(--sp-10);
   font-size: var(--fs-26);
   color: var(--primary-text);
 }
@@ -591,3 +592,84 @@ input {
   color: var(--text-tertiary);
 }
 
+/* SP-TOKENS:START 由 scripts/rpx-to-token.js 自动生成，请勿手工修改 */
+page {
+  --sp-0_5: 0.5rpx;
+  --sp-1: 1rpx;
+  --sp-2: 2rpx;
+  --sp-3: 3rpx;
+  --sp-4: 4rpx;
+  --sp-5: 5rpx;
+  --sp-6: 6rpx;
+  --sp-8: 8rpx;
+  --sp-10: 10rpx;
+  --sp-12: 12rpx;
+  --sp-14: 14rpx;
+  --sp-15: 15rpx;
+  --sp-16: 16rpx;
+  --sp-17: 17rpx;
+  --sp-18: 18rpx;
+  --sp-20: 20rpx;
+  --sp-22: 22rpx;
+  --sp-24: 24rpx;
+  --sp-25: 25rpx;
+  --sp-26: 26rpx;
+  --sp-28: 28rpx;
+  --sp-30: 30rpx;
+  --sp-32: 32rpx;
+  --sp-34: 34rpx;
+  --sp-35: 35rpx;
+  --sp-36: 36rpx;
+  --sp-38: 38rpx;
+  --sp-40: 40rpx;
+  --sp-41: 41rpx;
+  --sp-42: 42rpx;
+  --sp-44: 44rpx;
+  --sp-45: 45rpx;
+  --sp-48: 48rpx;
+  --sp-50: 50rpx;
+  --sp-52: 52rpx;
+  --sp-54: 54rpx;
+  --sp-56: 56rpx;
+  --sp-60: 60rpx;
+  --sp-64: 64rpx;
+  --sp-66: 66rpx;
+  --sp-68: 68rpx;
+  --sp-70: 70rpx;
+  --sp-72: 72rpx;
+  --sp-76: 76rpx;
+  --sp-78: 78rpx;
+  --sp-80: 80rpx;
+  --sp-88: 88rpx;
+  --sp-90: 90rpx;
+  --sp-92: 92rpx;
+  --sp-96: 96rpx;
+  --sp-100: 100rpx;
+  --sp-102: 102rpx;
+  --sp-106: 106rpx;
+  --sp-120: 120rpx;
+  --sp-126: 126rpx;
+  --sp-140: 140rpx;
+  --sp-145: 145rpx;
+  --sp-150: 150rpx;
+  --sp-160: 160rpx;
+  --sp-180: 180rpx;
+  --sp-188: 188rpx;
+  --sp-190: 190rpx;
+  --sp-200: 200rpx;
+  --sp-230: 230rpx;
+  --sp-240: 240rpx;
+  --sp-250: 250rpx;
+  --sp-255: 255rpx;
+  --sp-300: 300rpx;
+  --sp-320: 320rpx;
+  --sp-400: 400rpx;
+  --sp-450: 450rpx;
+  --sp-600: 600rpx;
+  --sp-620: 620rpx;
+  --sp-650: 650rpx;
+  --sp-700: 700rpx;
+  --sp-760: 760rpx;
+  --sp-999: 999rpx;
+}
+/* SP-TOKENS:END */
