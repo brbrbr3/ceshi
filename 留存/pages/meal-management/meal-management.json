@@ -1,7 +1,0 @@
-{
-  "navigationBarTitleText": "工作餐与副食",
-  "usingComponents": {
-    "datetime-picker": "../../../components/datetime-picker/datetime-picker"
-  },
-  "enablePullDownRefresh": false
-}

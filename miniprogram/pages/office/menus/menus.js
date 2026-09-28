@@ -51,15 +51,18 @@ Page({
   },
 
   applyPermission(user) {
+    const positions = Array.isArray(user.position) ? user.position : []
     //管理员、厨师、办公室内聘可添加菜单
     const isAdmin = user.isAdmin
-    const isChef = Array.isArray(user.position) && user.position.includes('厨师')
-    const isOfficeServant = Array.isArray(user.position) && user.position.includes('办公室内聘')
+    const isChef = positions.includes('厨师')
+    const isOfficeServant = positions.includes('办公室内聘')
+    const isLogistics = positions.includes('后勤管理')
 
-    // 导出评分权限：管理员 / 领导（馆员+部门无，排除限制权限）/ 办部门负责人
+    // 导出评分权限：管理员 / 领导（馆员+部门无，排除限制权限）/ 办部门负责人 / 办公室内聘 / 后勤管理
+    // 与云函数 generateMenuRatingsPdf 的校验口径保持一致，改一处需同步另一处
     const isLeader = user.role === '馆员' && user.department === '无' && !user.isRestrictedLeader
     const isBanHead = user.role === '馆员' && user.department === '办' && user.isDepartmentHead
-    const canExportRatings = !!isAdmin || isLeader || isBanHead
+    const canExportRatings = !!isAdmin || isLeader || isBanHead || isOfficeServant || isLogistics
 
     this.setData({
       showAddButton: isAdmin || isChef || isOfficeServant,

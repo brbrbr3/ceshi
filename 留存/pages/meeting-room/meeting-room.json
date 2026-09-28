@@ -1,8 +1,0 @@
-{
-  "navigationBarTitleText": "会议室预约",
-  "navigationBarTextStyle": "black",
-  "backgroundColor": "#F8FAFC",
-  "usingComponents": {
-    "datetime-picker": "/components/datetime-picker/datetime-picker"
-  }
-}

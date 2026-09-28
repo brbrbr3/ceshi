@@ -1,6 +1,0 @@
-{
-  "navigationStyle": "custom",
-  "usingComponents": {
-    "greenbook-card": "/components/greenbook-card/greenbook-card"
-  }
-}

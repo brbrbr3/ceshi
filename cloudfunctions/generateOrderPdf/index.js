@@ -843,13 +843,23 @@ function extractDishesFromContent(content) {
   return dishes
 }
 
+// 菜单评分统计口径（集中在此，便于调整）
+const RATING_MIN_COUNT = 3   // 进入排名所需的最小评价人数（避免「1 人打 5 分」霸榜）
+const RATING_TOP_SCORE = 4.7 // 最受欢迎：均分 ≥ 此值
+const RATING_LOW_SCORE = 3.5 // 最不受欢迎：均分 ≤ 此值
+const RATING_POLAR_RANGE = 3 // 评价最两极分化：最高分 − 最低分 ≥ 此值
+const RATING_AGG_LIMIT = 5000 // 聚合分组结果上限（菜单数 × 菜品数，远小于此值）
+
 /**
  * 菜单评分汇总 PDF 导出
- * 权限：管理员 / 领导（馆员+部门无，排除限制权限）/ 办部门负责人
- * 内容：按选中菜单分组，组内菜品按平均分降序，无评分菜品标注【无人评分】
+ * 权限：管理员 / 领导（馆员+部门无，排除限制权限）/ 办部门负责人 /
+ *       岗位含「办公室内聘」或「后勤管理」
+ * 内容：① 统计汇总（跨菜单按菜品合并：最受欢迎 / 最不受欢迎 / 评价最两极分化）
+ *       ② 按选中菜单分组，组内菜品按平均分降序，无评分菜品标注【无人评分】
  */
 async function generateMenuRatingsPdf(openid, menuIds) {
   const _ = db.command
+  const $ = db.command.aggregate
 
   // 1. 权限校验
   const userRes = await db.collection('office_users').where({ openid, status: 'approved' }).limit(1).get()
@@ -857,9 +867,12 @@ async function generateMenuRatingsPdf(openid, menuIds) {
     throw new Error('无导出权限')
   }
   const u = userRes.data[0]
+  const positions = Array.isArray(u.position) ? u.position : []
   const isLeader = u.role === '馆员' && u.department === '无' && !u.isRestrictedLeader
   const isBanHead = u.role === '馆员' && u.department === '办' && u.isDepartmentHead
-  if (!u.isAdmin && !isLeader && !isBanHead) {
+  const isOfficeServant = positions.includes('办公室内聘')
+  const isLogistics = positions.includes('后勤管理')
+  if (!u.isAdmin && !isLeader && !isBanHead && !isOfficeServant && !isLogistics) {
     throw new Error('无导出权限')
   }
 
@@ -871,20 +884,43 @@ async function generateMenuRatingsPdf(openid, menuIds) {
     throw new Error('菜单不存在')
   }
 
-  // 3. 查所有评分（一次查询，内存按 menuId + dishName 聚合）
-  const ratingsRes = await db.collection('menu_ratings').where({ menuId: _.in(menuIds) }).limit(1000).get()
-  const ratings = ratingsRes.data || []
-  const ratingMap = {}  // menuId -> { dishName -> { sum, count } }
-  ratings.forEach(r => {
-    if (!ratingMap[r.menuId]) ratingMap[r.menuId] = {}
-    if (!ratingMap[r.menuId][r.dishName]) ratingMap[r.menuId][r.dishName] = { sum: 0, count: 0 }
-    ratingMap[r.menuId][r.dishName].sum += Number(r.score) || 0
-    ratingMap[r.menuId][r.dishName].count += 1
+  // 3. 聚合查评分：在数据库侧按「菜单 + 菜品」分组
+  // 原实现用 .limit(1000).get() 拉明细，所选菜单评分总数超过 1000 时会被静默截断，
+  // 导致均分与统计同时失真。聚合的输入上限为 1 万条，且返回的只是分组行，仍然是 1 次数据库读。
+  const aggRes = await db.collection('menu_ratings')
+    .aggregate()
+    .match({ menuId: _.in(menuIds) })
+    .group({
+      _id: { menuId: '$menuId', dishName: '$dishName' },
+      sum: $.sum('$score'),
+      count: $.sum(1),
+      // 1~5 分各档人数（与 menuManager.getRatings 同款写法），用于精确算出方差与分数区间
+      c1: $.sum($.cond({ if: $.eq(['$score', 1]), then: 1, else: 0 })),
+      c2: $.sum($.cond({ if: $.eq(['$score', 2]), then: 1, else: 0 })),
+      c3: $.sum($.cond({ if: $.eq(['$score', 3]), then: 1, else: 0 })),
+      c4: $.sum($.cond({ if: $.eq(['$score', 4]), then: 1, else: 0 })),
+      c5: $.sum($.cond({ if: $.eq(['$score', 5]), then: 1, else: 0 }))
+    })
+    .limit(RATING_AGG_LIMIT)
+    .end()
+  const ratingRows = (aggRes && aggRes.list) || []
+
+  // ratingMap 供分组明细使用：menuId -> { dishName -> { sum, count } }
+  const ratingMap = {}
+  let totalRatingCount = 0
+  ratingRows.forEach(r => {
+    const key = r._id || {}
+    if (!key.menuId || !key.dishName) return
+    totalRatingCount += r.count || 0
+    if (!ratingMap[key.menuId]) ratingMap[key.menuId] = {}
+    ratingMap[key.menuId][key.dishName] = { sum: r.sum || 0, count: r.count || 0 }
   })
 
   // 4. 按菜单分组：有评分菜品（按均分降序）在前，无评分菜品在后
+  const validDishNames = new Set() // 出现在所选菜单里的全部菜名（用于过滤历史遗留菜名）
   const groups = menus.map(m => {
     const allDishes = extractDishesFromContent(m.content)
+    allDishes.forEach(d => validDishNames.add(d))
     const rmap = ratingMap[m._id] || {}
     const withScore = []
     const noScore = []
@@ -899,7 +935,72 @@ async function generateMenuRatingsPdf(openid, menuIds) {
     return { title: m.title || '未命名菜单', dishes: [...withScore, ...noScore] }
   })
 
-  // 5. 生成 PDF
+  // 5. 统计汇总：跨菜单按菜品名合并，只统计出现在所选菜单里的菜品
+  const dishStats = {}
+  ratingRows.forEach(r => {
+    const key = r._id || {}
+    if (!key.dishName || !validDishNames.has(key.dishName)) return
+    if (!dishStats[key.dishName]) {
+      dishStats[key.dishName] = { dishName: key.dishName, sum: 0, count: 0, c1: 0, c2: 0, c3: 0, c4: 0, c5: 0 }
+    }
+    const s = dishStats[key.dishName]
+    s.sum += r.sum || 0
+    s.count += r.count || 0
+    s.c1 += r.c1 || 0
+    s.c2 += r.c2 || 0
+    s.c3 += r.c3 || 0
+    s.c4 += r.c4 || 0
+    s.c5 += r.c5 || 0
+  })
+
+  const stats = Object.values(dishStats).map(s => {
+    const avg = s.count > 0 ? s.sum / s.count : 0
+    // 由 1~5 分分布精确算出方差：E(x²) − E(x)²
+    const sqSum = 1 * s.c1 + 4 * s.c2 + 9 * s.c3 + 16 * s.c4 + 25 * s.c5
+    const variance = s.count > 0 ? Math.max(sqSum / s.count - avg * avg, 0) : 0
+    // 分数区间由分布直接得出（首档非零为最低分，末档非零为最高分）
+    let minScore = 0
+    let maxScore = 0
+    ;[s.c1, s.c2, s.c3, s.c4, s.c5].forEach((c, i) => {
+      if (c > 0) {
+        if (minScore === 0) minScore = i + 1
+        maxScore = i + 1
+      }
+    })
+    return {
+      dishName: s.dishName,
+      count: s.count,
+      avg,
+      variance,
+      std: Math.sqrt(variance),
+      minScore,
+      maxScore,
+      c1: s.c1, // 1 分人数（用于展示极端评分构成）
+      c5: s.c5  // 5 分人数
+    }
+  })
+
+  // 样本量不足的菜品不参与排名
+  const eligible = stats.filter(s => s.count >= RATING_MIN_COUNT)
+  const topDishes = eligible
+    .filter(s => s.avg >= RATING_TOP_SCORE)
+    .sort((a, b) => b.avg - a.avg || b.count - a.count)
+  const lowDishes = eligible
+    .filter(s => s.avg <= RATING_LOW_SCORE)
+    .sort((a, b) => a.avg - b.avg || b.count - a.count)
+  const polarDishes = eligible
+    .filter(s => (s.maxScore - s.minScore) >= RATING_POLAR_RANGE)
+    .sort((a, b) => b.variance - a.variance)
+  const summary = {
+    menuCount: menus.length,
+    ratingCount: totalRatingCount,
+    dishCount: stats.length,
+    topDishes,
+    lowDishes,
+    polarDishes
+  }
+
+  // 6. 生成 PDF
   const fontPath = await ensureFont()
   const pdfDoc = new PDFDocument({ size: 'A4', margins: { top: 50, bottom: 50, left: 50, right: 50 } })
   pdfDoc.registerFont('ChineseFont', fontPath)
@@ -922,6 +1023,44 @@ async function generateMenuRatingsPdf(openid, menuIds) {
     })
     pdfDoc.on('error', (err) => reject(new Error('PDF生成失败: ' + err.message)))
 
+    const ROW_HEIGHT = 16 // 每行占位高度（与下方 rowY 的推进值一致）
+
+    /**
+     * 渲染每一行之前调用：设定字号，并确保整行能放进本页，必要时先换页。
+     *
+     * 为什么不能写成 `if (pdfDoc.y > 780) pdfDoc.addPage()`：
+     * pdfkit 的 LineWrapper 在每次 text() 内部还有一道「防孤行」检查（pdfkit 0.13 wrap()）：
+     *   document.y + currentLineHeight(true) > page.maxY()  → 自动插页，并把 y 重置到上边距
+     * 而一行「菜名 + 分数」是两个绝对坐标的 text() 拼出来的，中间不会推进 pdfDoc.y。
+     * 一旦第一列在贴底处触发了 pdfkit 的内部插页：菜名落到新页顶部，
+     * 第二列仍用旧的绝对 y，又会被再次插页推到再下一页 —— 即「一页只有 1 个菜名、
+     * 下一页只有 1 个分数、再下一页恢复正常」的成因。
+     * A4 的 page.maxY() = 841.89 - 50(下边距) = 791.89，旧阈值 780 只留了不到一行的高度，
+     * 行高（当前字体下约 12~15）稍大就会踩线。改为用 pdfkit 自己的行高判断并留 4pt 余量。
+     */
+    const prepareRow = (fontSize = 11) => {
+      pdfDoc.fontSize(fontSize).font('ChineseFont')
+      const lineHeight = Math.max(pdfDoc.currentLineHeight(true), ROW_HEIGHT)
+      if (pdfDoc.y + lineHeight + 4 > pdfDoc.page.maxY()) {
+        pdfDoc.addPage()
+      }
+    }
+
+    /**
+     * 分数列字号自适应：文字宽度超过列宽时逐档减小字号（11 → 8.5，每档 0.5）。
+     * 绝不允许折行 —— 一行「菜名 + 分数」是绝对坐标定位的，
+     * 折行会让两列错开（若再叠加 pdfkit 的内部插页，就会出现整行被拆到两页）。
+     */
+    const fitScoreFontSize = (text, maxWidth) => {
+      let size = 11
+      pdfDoc.fontSize(size)
+      while (size > 8.5 && pdfDoc.widthOfString(text) > maxWidth) {
+        size -= 0.5
+        pdfDoc.fontSize(size)
+      }
+      return size
+    }
+
     // 标题
     pdfDoc.fontSize(22).font('ChineseFont').fillColor('#1E293B').text('菜单评分汇总', { align: 'center' })
     pdfDoc.moveDown(0.6)
@@ -929,7 +1068,77 @@ async function generateMenuRatingsPdf(openid, menuIds) {
     pdfDoc.moveDown(0.6)
     const timeStr = new Date().toLocaleString('zh-CN', { timeZone: 'America/Sao_Paulo' })
     pdfDoc.fontSize(10).font('ChineseFont').fillColor('#94A3B8').text(`生成时间：${timeStr}`, { align: 'right' })
+    pdfDoc.moveDown(0.4)
+    pdfDoc.fontSize(10).font('ChineseFont').fillColor('#94A3B8').text(
+      `统计范围：${summary.menuCount} 个菜单 · ${summary.ratingCount} 条评分 · ${summary.dishCount} 道菜品`
+      + `（跨菜单按菜品合并，每道菜至少 ${RATING_MIN_COUNT} 人评价才参与排名）`,
+      { align: 'right' }
+    )
     pdfDoc.moveDown(1)
+
+    // ===== 统计汇总（跨菜单按菜品合并，置于具体评分之前）=====
+    if (summary.ratingCount === 0) {
+      pdfDoc.fontSize(11).font('ChineseFont').fillColor('#94A3B8').text('所选菜单暂无评分数据', 60)
+      pdfDoc.moveDown(0.8)
+    } else {
+      // 与下方菜品行同一套双列定位（名称 x=60、分数默认 x=340），保证全篇排版一致。
+      // scoreX 可按内容宽度调整：两极分化那段的括号文字明显更长，需要更宽的分数列。
+      const drawStatSection = (heading, rows, scoreColor, formatScore, scoreX = 340) => {
+        const nameWidth = scoreX - 70   // 菜名列宽（与分数列留 10pt 间隙）
+        const scoreWidth = 545 - scoreX // 分数列宽（到右边距为止）
+        if (pdfDoc.y > 700) pdfDoc.addPage() // 避免小标题与内容被拆到两页
+        pdfDoc.fontSize(13).font('ChineseFont').fillColor('#1E293B').text(`■ ${heading}`, 50)
+        pdfDoc.moveDown(0.3)
+        if (rows.length === 0) {
+          pdfDoc.fontSize(10).font('ChineseFont').fillColor('#94A3B8').text('无符合条件的菜品', 60)
+          pdfDoc.moveDown(0.5)
+          return
+        }
+        rows.forEach((s, i) => {
+          prepareRow()
+          const rowY = pdfDoc.y
+          pdfDoc.fillColor('#334155')
+          pdfDoc.text(`${i + 1}. ${s.dishName}`, 60, rowY, { width: nameWidth, ellipsis: true, lineBreak: false })
+          const scoreText = formatScore(s)
+          pdfDoc.fontSize(fitScoreFontSize(scoreText, scoreWidth))
+          pdfDoc.fillColor(scoreColor)
+          pdfDoc.text(scoreText, scoreX, rowY, { width: scoreWidth, lineBreak: false })
+          pdfDoc.y = rowY + ROW_HEIGHT
+        })
+        pdfDoc.moveDown(0.5)
+      }
+
+      drawStatSection(
+        `最受欢迎（均分 ≥ ${RATING_TOP_SCORE}）`,
+        summary.topDishes,
+        '#2563EB',
+        s => `${s.avg.toFixed(2)}（${s.count}人评）`
+      )
+      drawStatSection(
+        `最不受欢迎（均分 ≤ ${RATING_LOW_SCORE}）`,
+        summary.lowDishes,
+        '#64748B',
+        s => `${s.avg.toFixed(2)}（${s.count}人评）`
+      )
+      drawStatSection(
+        `评价最两极分化（均分±标准差；按方差降序，最高分-最低分 ≥ ${RATING_POLAR_RANGE}）`,
+        summary.polarDishes,
+        '#EA580C',
+        s => {
+          // 括号内说明极端评分的构成；为 0 的档位不展示，避免「0人评1分」这类噪声
+          const parts = []
+          if (s.c5 > 0) parts.push(`${s.c5}人评5分`)
+          if (s.c1 > 0) parts.push(`${s.c1}人评1分`)
+          return `${s.avg.toFixed(2)}±${s.std.toFixed(2)}（${s.count}人评，其中${parts.join('、')}）`
+        },
+        270 // 该段括号文字实测约 248pt，分数列起点需左移（列宽 275pt）
+      )
+    }
+
+    // 统计与明细之间的分隔线
+    if (pdfDoc.y > 760) pdfDoc.addPage()
+    pdfDoc.moveTo(50, pdfDoc.y).lineTo(545, pdfDoc.y).stroke('#E2E8F0')
+    pdfDoc.moveDown(0.8)
 
     // 每个菜单一组
     groups.forEach(g => {
@@ -941,14 +1150,13 @@ async function generateMenuRatingsPdf(openid, menuIds) {
       } else {
         // 菜品名左对齐（x=60，宽 300，超长截断），分数固定从 x=370 开始（页面中间位置，纵向对齐）
         g.dishes.forEach(d => {
-          if (pdfDoc.y > 780) pdfDoc.addPage()  // 手动换页，避免行内定位错位
+          prepareRow()
           const rowY = pdfDoc.y
-          pdfDoc.fontSize(11)
           const scoreText = d.count ? `${d.avg}（${d.count}人评）` : '无人评分'
           pdfDoc.fillColor(d.count ? '#334155' : '#94A3B8')
           pdfDoc.text(d.dishName, 60, rowY, { width: 300, ellipsis: true, lineBreak: false })
           pdfDoc.text(scoreText, 370, rowY, { width: 175, lineBreak: false })
-          pdfDoc.y = rowY + 16
+          pdfDoc.y = rowY + ROW_HEIGHT
         })
       }
       pdfDoc.moveDown(0.6)
