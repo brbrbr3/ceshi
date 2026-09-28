@@ -447,6 +447,7 @@ App({
     fontStyle: '', // ← 新增
     isDevEnv: false, // 是否为开发环境（开发者工具），onLaunch 时计算一次
     isReviewer: false, // 是否为审核模式
+    menuCache: null, // 菜单列表 → 详情页的一次性数据传递（省掉详情页的重复数据库直读）
   }, getDefaultAuthState()),
 
   // ========== 审核员模式 ==========
@@ -846,9 +847,12 @@ App({
   _refreshProfileSilently() {
     const now = Date.now()
 
-    // 节流：30 秒内不重复请求（登录后多次命中缓存的场景）
-    if (this._silentRefreshAt && now - this._silentRefreshAt < 30000) {
-      console.log('后台静默刷新跳过：30 秒内不重复请求')
+    // 节流：10 分钟内不重复请求
+    // 每次静默刷新 = 1 次云函数调用 + 1 次数据库读，两者都计入「调用次数」配额；
+    // 用户资料变更由「编辑资料 → 提交」链路主动清缓存，此处的兜底比对无需高频执行
+    const SILENT_REFRESH_INTERVAL = 10 * 60 * 1000
+    if (this._silentRefreshAt && now - this._silentRefreshAt < SILENT_REFRESH_INTERVAL) {
+      console.log('后台静默刷新跳过：10 分钟内不重复请求')
       return
     }
     // 去重：已有请求在飞行中，跳过
@@ -1136,27 +1140,6 @@ App({
       || user.isAreaManager
     if (isReceiver) types.push('trip_report')
     return types
-  },
-
-  addApprovalNotification(type, content) {
-    const openid = this.globalData.openid
-    if (!openid) {
-      return
-    }
-
-    const db = wx.cloud.database()
-    db.collection('notifications').add({
-      data: {
-        openid: openid,
-        type: 'approval',
-        title: `新的${type}`,
-        content: content,
-        read: false,
-        createdAt: Date.now()
-      }
-    }).catch(error => {
-      // 静默失败
-    })
   },
 
   getNotifications(options, callback) {

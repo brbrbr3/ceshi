@@ -695,23 +695,25 @@ async function getMyTrips(openid, params) {
     query = query.where({ status })
   }
 
-  // 获取总数
-  const countRes = await query.count()
-  const total = countRes.total
-
-  // 获取列表
+  // 多取 1 条用于判断是否还有下一页，省掉一次 count 查询
+  // （数据库读操作与云函数调用同属「调用次数」配额，能省一次是一次）
   const listRes = await query
     .orderBy('departAt', 'desc')
     .skip(skip)
-    .limit(pageSize)
+    .limit(pageSize + 1)
     .get()
 
+  const rows = listRes.data || []
+  const hasMore = rows.length > pageSize
+  const list = hasMore ? rows.slice(0, pageSize) : rows
+
   return success({
-    list: listRes.data,
-    total,
+    list,
+    // 无 count 查询：总数仅在已到末页时可得，未到末页返回 null（前端只使用 list / hasMore）
+    total: hasMore ? null : skip + list.length,
     page,
     pageSize,
-    hasMore: skip + listRes.data.length < total
+    hasMore
   })
 }
 
@@ -908,43 +910,38 @@ async function checkOvertime() {
 
 /**
  * 获取历史记录（目的地和同行人）
- * 从数据库按时间倒序分页拉取，去重后取满 10 个目的地和 5 组同行人
+ * 一次读取近期记录，在本地去重后取满 10 个目的地和 5 组同行人
+ * 说明：原实现用 while + skip 循环翻页，记录多时会触发多次数据库读；
+ * 读操作同样计入「调用次数」配额，且 skip 深分页本身效率低，故改为单次读取 + 本地去重。
  */
 async function getHistory(openid) {
-  const pageSize = 10
-  let skip = 0
+  const MAX_DEST = 10
+  const MAX_COMP = 5
+  const SCAN_LIMIT = 200 // 单次最多扫描的近期记录条数（恒定 1 次数据库读）
+
+  const result = await tripReportsCollection
+    .where({ _openid: openid })
+    .orderBy('departAt', 'desc')
+    .limit(SCAN_LIMIT)
+    .field({ destination: true, companions: true })
+    .get()
+
+  const trips = result.data || []
   const destSet = new Set()
   const compSet = new Set()
   const destinations = []
   const companions = []
-  const MAX_DEST = 10
-  const MAX_COMP = 5
 
-  while (destinations.length < MAX_DEST || companions.length < MAX_COMP) {
-    const result = await tripReportsCollection
-      .where({ _openid: openid })
-      .orderBy('departAt', 'desc')
-      .skip(skip)
-      .limit(pageSize)
-      .field({ destination: true, companions: true })
-      .get()
-
-    const trips = result.data || []
-    if (trips.length === 0) break
-
-    trips.forEach(t => {
-      if (t.destination && !destSet.has(t.destination)) {
-        destSet.add(t.destination)
-        if (destinations.length < MAX_DEST) destinations.push(t.destination)
-      }
-      if (t.companions && !compSet.has(t.companions)) {
-        compSet.add(t.companions)
-        if (companions.length < MAX_COMP) companions.push(t.companions)
-      }
-    })
-
-    if (trips.length < pageSize) break  // 无更多记录
-    skip += pageSize
+  for (const t of trips) {
+    if (destinations.length >= MAX_DEST && companions.length >= MAX_COMP) break
+    if (t.destination && !destSet.has(t.destination)) {
+      destSet.add(t.destination)
+      if (destinations.length < MAX_DEST) destinations.push(t.destination)
+    }
+    if (t.companions && !compSet.has(t.companions)) {
+      compSet.add(t.companions)
+      if (companions.length < MAX_COMP) companions.push(t.companions)
+    }
   }
 
   return success({ destinations, companions })
@@ -1047,20 +1044,43 @@ async function notifyReportSubscribers(reporterOpenid, reporter, tripId, action,
   }
 }
 
+// sys_config 进程内缓存：热实例内复用，避免每次调用都读库
+// 数据库读操作与云函数调用同属「调用次数」配额；冷启动时缓存自然重建，不影响正确性
+let sysConfigCache = null
+let sysConfigCacheTime = 0
+const SYS_CONFIG_TTL = 5 * 60 * 1000 // 5 分钟
+
+/**
+ * 读取 sys_config 全量配置（带进程内缓存）
+ * 该集合仅约 39 条，一次 get 即可拿到所有配置，比按 key 分别查询更省数据库读次数
+ * @returns {Promise<Object>} key → value 映射
+ */
+async function getSysConfigMap() {
+  const now = Date.now()
+  if (sysConfigCache && (now - sysConfigCacheTime) < SYS_CONFIG_TTL) {
+    return sysConfigCache
+  }
+  try {
+    const res = await db.collection('sys_config').limit(100).get()
+    const map = {}
+    ;(res.data || []).forEach(item => {
+      if (item && item.key) map[item.key] = item.value
+    })
+    sysConfigCache = map
+    sysConfigCacheTime = now
+    return map
+  } catch (e) {
+    console.warn('读取 sys_config 失败:', e)
+    return sysConfigCache || {}
+  }
+}
+
 /**
  * 从 sys_config 读取 TIMEZONE_OFFSET（小时偏移量，默认 -3）
  */
 async function getTimezoneOffset() {
-  try {
-    const configRes = await db.collection('sys_config')
-      .where({ type: 'timezone', key: 'TIMEZONE_OFFSET' })
-      .limit(1)
-      .get()
-    if (configRes.data && configRes.data.length > 0) {
-      return configRes.data[0].value !== undefined ? configRes.data[0].value : -3
-    }
-  } catch (e) {}
-  return -3
+  const map = await getSysConfigMap()
+  return map.TIMEZONE_OFFSET !== undefined ? map.TIMEZONE_OFFSET : -3
 }
 
 /**
@@ -1068,16 +1088,8 @@ async function getTimezoneOffset() {
  * @returns {Promise<string[]>} 部门名称数组，读取失败返回空数组
  */
 async function getDepartmentOptions() {
-  try {
-    const configRes = await db.collection('sys_config')
-      .where({ type: 'department', key: 'DEPARTMENT_OPTIONS' })
-      .limit(1)
-      .get()
-    if (configRes.data && configRes.data.length > 0 && Array.isArray(configRes.data[0].value)) {
-      return configRes.data[0].value
-    }
-  } catch (e) {}
-  return []
+  const map = await getSysConfigMap()
+  return Array.isArray(map.DEPARTMENT_OPTIONS) ? map.DEPARTMENT_OPTIONS : []
 }
 
 /**
@@ -1085,16 +1097,8 @@ async function getDepartmentOptions() {
  * @returns {Promise<string[]>} 居住区域名称数组，读取失败返回空数组
  */
 async function getLivingAreaOptions() {
-  try {
-    const configRes = await db.collection('sys_config')
-      .where({ key: 'REPAIR_LIVING_AREAS' })
-      .limit(1)
-      .get()
-    if (configRes.data && configRes.data.length > 0 && Array.isArray(configRes.data[0].value)) {
-      return configRes.data[0].value
-    }
-  } catch (e) {}
-  return []
+  const map = await getSysConfigMap()
+  return Array.isArray(map.REPAIR_LIVING_AREAS) ? map.REPAIR_LIVING_AREAS : []
 }
 
 /**
@@ -1530,34 +1534,43 @@ async function getPersonTrips(openid, params) {
     return fail('缺少目标用户标识', 400)
   }
 
-  // 获取当前用户信息
-  const currentUserRes = await usersCollection.where({ openid }).limit(1).get()
-  if (!currentUserRes.data || currentUserRes.data.length === 0) {
+  // 一次查询同时取回「当前用户」与「目标用户」，省掉一次数据库读
+  // （数据库读操作与云函数调用同属「调用次数」配额）
+  const watchOpenids = targetOpenid === openid ? [openid] : [openid, targetOpenid]
+  const loadedUsersRes = await usersCollection
+    .where({ openid: _.in(watchOpenids) })
+    .limit(2)
+    .get()
+  const loadedUsers = loadedUsersRes.data || []
+  const currentUser = loadedUsers.find(u => u.openid === openid)
+  if (!currentUser) {
     return fail('用户不存在', 403)
   }
-  const currentUser = currentUserRes.data[0]
+  const targetUser = targetOpenid === openid
+    ? currentUser
+    : loadedUsers.find(u => u.openid === targetOpenid)
 
   const isLeader = currentUser.role === '馆员' && currentUser.department === '无' && !currentUser.isRestrictedLeader
   const isExpanded = currentUser.isExpandedPrivilege === true
   const isAdmin = currentUser.isAdmin
   const isDeptHead = currentUser.isDepartmentHead
   const isAreaManager = !!currentUser.isAreaManager
+  // 办负责人：可查看全体人员的记录，与 getBoardData 的 scopeType 判定保持同一表达式
+  const isBanHead = currentUser.role === '馆员' && currentUser.department === '办' && currentUser.isDepartmentHead === true
 
-  // 权限校验：管理员 / 领导 / 扩大权限 / 部门负责人 / 片长，或查看自己的记录
-  if (!isAdmin && !isLeader && !isExpanded && !isDeptHead && !isAreaManager) {
+  // 权限校验：管理员 / 领导 / 扩大权限 / 办负责人 / 部门负责人 / 片长，或查看自己的记录
+  if (!isAdmin && !isLeader && !isExpanded && !isBanHead && !isDeptHead && !isAreaManager) {
     // 普通用户仅能查看自己
     if (targetOpenid !== openid) return fail('无权查看该用户记录', 403)
   }
 
-  // 查目标用户
-  const targetUserRes = await usersCollection.where({ openid: targetOpenid }).limit(1).get()
-  if (!targetUserRes.data || targetUserRes.data.length === 0) {
+  if (!targetUser) {
     return fail('目标用户不存在', 404)
   }
-  const targetUser = targetUserRes.data[0]
 
   // 校验目标用户在当前用户权限范围内
-  if (!isAdmin && !isExpanded && !(isLeader && !isDeptHead)) {
+  // 管理员 / 扩大权限 / 办负责人 为全体范围，直接跳过校验
+  if (!isAdmin && !isExpanded && !isBanHead && !(isLeader && !isDeptHead)) {
     const inDept = isDeptHead && currentUser.department && targetUser.department === currentUser.department
     const inArea = isAreaManager && targetUser.livingArea && currentUser.livingArea === targetUser.livingArea
     const isSelf = targetOpenid === openid

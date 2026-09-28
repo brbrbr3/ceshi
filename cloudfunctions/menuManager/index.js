@@ -329,6 +329,78 @@ exports.main = async (event) => {
           }
         }
 
+      case 'addRatings': {
+        // 批量打分：一次调用提交多道菜的评分
+        // 原先前端逐菜串行调用 addRating，N 道菜会产生 N 次云函数调用 + 2N 次数据库操作；
+        // 云函数调用与数据库读写同属「调用次数」配额，合并后为 1 次调用 + 1 次查重 + N 次写入
+        const ratings = (ratingData && ratingData.ratings) || []
+        if (!ratingData || !ratingData.menuId || !Array.isArray(ratings) || ratings.length === 0) {
+          return {
+            code: 400,
+            message: '评分参数不完整'
+          }
+        }
+
+        for (const r of ratings) {
+          if (!r || !r.dishName || !r.score) {
+            return {
+              code: 400,
+              message: '评分参数不完整'
+            }
+          }
+          if (r.score < 1 || r.score > 5) {
+            return {
+              code: 400,
+              message: '分数必须在1-5之间'
+            }
+          }
+        }
+
+        const ratingMenuId = ratingData.menuId
+        const dishNames = ratings.map(r => r.dishName)
+
+        // 一次查出已打分的菜品（同一用户对同一菜单的同一道菜只能打一次）
+        const existingRes = await db.collection('menu_ratings')
+          .where({
+            menuId: ratingMenuId,
+            openid: openid,
+            dishName: db.command.in(dishNames)
+          })
+          .field({ dishName: true })
+          .limit(100)
+          .get()
+
+        const existedNames = new Set((existingRes.data || []).map(item => item.dishName))
+        const duplicated = dishNames.find(name => existedNames.has(name))
+        if (duplicated) {
+          return {
+            code: 403,
+            message: `您已经为「${duplicated}」打过分了`
+          }
+        }
+
+        const ratingCreatedAt = Date.now()
+        await Promise.all(ratings.map(r => db.collection('menu_ratings').add({
+          data: {
+            menuId: ratingMenuId,
+            openid: openid,
+            authorOpenid: openid,
+            authorName: user.name,
+            dishName: r.dishName,
+            score: r.score,
+            createdAt: ratingCreatedAt
+          }
+        })))
+
+        return {
+          code: 0,
+          message: '打分成功',
+          data: {
+            count: ratings.length
+          }
+        }
+      }
+
       case 'getRatings':
         if (!ratingData || !ratingData.menuId) {
           return {

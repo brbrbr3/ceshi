@@ -109,11 +109,11 @@
     <view wx:if="{{activeTab === 'stats' && canView}}">
       <!-- 排序切换 -->
       <view class="haircut-sort-bar">
-        <view class="haircut-sort-btn {{sortBy === 'time' ? 'is-active' : ''}}" bindtap="handleSortChange" data-sort="time">
-          按时间排序
-        </view>
         <view class="haircut-sort-btn {{sortBy === 'name' ? 'is-active' : ''}}" bindtap="handleSortChange" data-sort="name">
           按人员排序
+        </view>
+        <view class="haircut-sort-btn {{sortBy === 'time' ? 'is-active' : ''}}" bindtap="handleSortChange" data-sort="time">
+          按时间排序
         </view>
       </view>
 

@@ -26,6 +26,15 @@ Page({
   },
 
   onLoad() {
+    // 注册校验只在页面加载时做一次：guardRegistered 会触发 officeAuth 云函数调用，
+    // 放在 onShow 会在每次切回本页时重复调用（云函数调用计入「调用次数」配额）
+    app.guardRegistered().then((user) => {
+      if (!user) return
+      this._user = user
+      this.setData({ guardReady: true })
+      this.applyPermission(user)
+      this.refreshList()
+    })
   },
 
   onShow() {
@@ -35,13 +44,10 @@ Page({
     if (this.data.fontStyle !== fontStyle) {
       this.setData({ fontStyle })
     }
+    // 守卫尚未完成时，首屏加载由 onLoad 负责，这里直接返回避免重复请求
+    if (!this._user) return
     // 每次显示页面时刷新数据（从编辑页返回时自动更新）
-    app.guardRegistered().then((user) => {
-      if (!user) return
-      this.setData({ guardReady: true })
-      this.refreshList()
-      this.applyPermission(user)
-    })
+    this.refreshList()
   },
 
   applyPermission(user) {
@@ -111,6 +117,9 @@ Page({
   goMenuDetail(e) {
     app.subscribeOnTap(app.getSubscribeTypesForUser(app.globalData.userProfile))
     const id = e.currentTarget.dataset.id
+    // 列表项本身就是菜单文档，暂存给详情页复用，省掉详情页的一次数据库直读
+    const menu = (this.data.list || []).find(item => item._id === id)
+    app.globalData.menuCache = menu || null
     wx.navigateTo({
       url: `/pages/office/menu-detail/menu-detail?id=${id}`
     })

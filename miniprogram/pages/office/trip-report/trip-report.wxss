@@ -171,11 +171,9 @@
   flex: 1;
   height: var(--sp-100);
   border-radius: var(--sp-20);
-  font-size: var(--fs-28);
+  font-size: var(--fs-30);
   font-weight: 600;
-  padding-left: 0;
   transition: transform 0.3s ease, opacity 0.3s ease;
-  padding-right: 0;
   border: none;
   display: flex;
   align-items: center;

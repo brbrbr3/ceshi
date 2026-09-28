@@ -82,19 +82,21 @@ Page({
   },
 
   loadMenu() {
+    // 列表页刚读过同一份菜单文档，优先复用其内存数据，省掉一次数据库直读
+    // （数据库读操作与云函数调用同属「调用次数」配额；用完即清，后续仍走实时读取）
+    const cached = app.globalData.menuCache
+    if (cached && cached._id === this.data.menuId) {
+      app.globalData.menuCache = null
+      this.applyMenuData(cached)
+      return
+    }
+
     const db = wx.cloud.database()
     db.collection('menus')
       .doc(this.data.menuId)
       .get()
       .then(res => {
-        this.setData({
-          menu: {
-            ...res.data,
-            timeText: formatTime(res.data.createdAt)
-          }
-        })
-        // 菜单内容加载完成后，提取菜品并加载打分数据
-        this.loadRatings()
+        this.applyMenuData(res.data)
       })
       .catch(error => {
         console.error('加载菜单失败:', error)
@@ -103,6 +105,18 @@ Page({
           icon: 'none'
         })
       })
+  },
+
+  // 写入菜单数据，并触发菜品提取与打分数据加载
+  applyMenuData(data) {
+    this.setData({
+      menu: {
+        ...data,
+        timeText: formatTime(data.createdAt)
+      }
+    })
+    // 菜单内容加载完成后，提取菜品并加载打分数据
+    this.loadRatings()
   },
 
   loadComments() {
@@ -503,27 +517,27 @@ Page({
 
     wx.showLoading({ title: '提交中...', mask: true })
 
-    // 逐个提交评分（串行）
-    let promiseChain = Promise.resolve()
+    // 一次提交全部评分：原先逐菜串行调用 addRating，N 道菜会产生 N 次云函数调用 + 2N 次数据库操作，
+    // 而云函数调用与数据库读写同属「调用次数」配额，合并后只需 1 次调用
+    const ratings = keys.map(dishName => ({
+      dishName,
+      score: tempRatings[dishName]
+    }))
 
-    keys.forEach(dishName => {
-      const score = tempRatings[dishName]
-      promiseChain = promiseChain.then(() => {
-        return wx.cloud.callFunction({
-          name: 'menuManager',
-          data: {
-            action: 'addRating',
-            ratingData: {
-              menuId: this.data.menuId,
-              dishName,
-              score
-            }
-          }
-        })
-      })
-    })
-
-    promiseChain.then(() => {
+    wx.cloud.callFunction({
+      name: 'menuManager',
+      data: {
+        action: 'addRatings',
+        ratingData: {
+          menuId: this.data.menuId,
+          ratings
+        }
+      }
+    }).then((res) => {
+      const result = res.result || {}
+      if (result.code !== 0) {
+        throw new Error(result.message || '提交失败')
+      }
       wx.hideLoading()
       this.closeRatingPopup()
       this.loadRatings()

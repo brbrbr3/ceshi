@@ -91,7 +91,7 @@ Page({
     statsTotalCount: 0,
     loadingstats: false,
     statsAllLoaded: false,
-    sortBy: 'time',
+    sortBy: 'name', // 默认按人员排序（切换 Tab 时保留用户当前选择，不在此处重置）
 
     // 我的预约 Tab
     myList: [],
@@ -254,7 +254,7 @@ Page({
             isHoliday: true,
             isToday: calcDate.date === todayStr,
             isDisabled: true,
-            disableReason: '今日为节假日，不提供理发服务',
+            disableReason: '该日为节假日，不提供理发服务，祝假期愉快',
             reservationCount: 0
           })
         } else {
