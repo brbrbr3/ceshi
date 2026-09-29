@@ -804,37 +804,6 @@ Page({
     })
   },
 
-  handleReview(e) {
-    if (!this.data.canReview || this.data.actionLoading) {
-      return
-    }
-
-    const itemId = e.currentTarget.dataset.id
-    const decision = e.currentTarget.dataset.decision
-
-    if (this.data.selectedRequest) {
-      this.confirmReview(decision)
-      return
-    }
-
-    const target = (this.data.currentList || []).find((item) => item.id === itemId)
-    if (!target) {
-      utils.showToast({
-        title: '未找到申请记录',
-        icon: 'none'
-      })
-      return
-    }
-
-    this.setData({
-      selectedRequest: {
-        ...target.raw,
-        reviewRemark: target.reviewRemark
-      }
-    })
-
-    this.confirmReview(decision)
-  },
 
   confirmReview(decision) {
     const request = this.data.selectedRequest

@@ -47,16 +47,7 @@
   padding: var(--sp-20) var(--sp-40) var(--sp-40);
 }
 
-.menus-title {
-  font-size: var(--fs-48);
-  font-weight: 600;
-  color: #FFFFFF;
-}
 
-.menus-subtitle {
-  font-size: var(--fs-26);
-  color: rgba(255, 255, 255);
-}
 
 .menus-add-btn {
   align-self: flex-end;
@@ -202,17 +193,6 @@
   flex: 1;
 }
 
-.menu-item-icon {
-  width: var(--sp-72);
-  height: var(--sp-72);
-  border-radius: var(--sp-20);
-  background: #DCFCE7;
-  color: #16A34A;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  font-size: var(--fs-32);
-}
 
 .menu-item-main {
   flex: 1;

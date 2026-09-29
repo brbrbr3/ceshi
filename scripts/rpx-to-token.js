@@ -86,6 +86,25 @@ function desktopValue(value) {
   return `${px}px`
 }
 
+/** 收集全项目对 --sp-* 的引用名（样式文件与 wxml 内联样式都可能引用） */
+function collectReferencedTokenNames(dir = MP_ROOT, out = new Set()) {
+  for (const entry of fs.readdirSync(dir, { withFileTypes: true })) {
+    if (entry.name.startsWith('.')) continue
+    const full = path.join(dir, entry.name)
+    if (entry.isDirectory()) {
+      if (SKIP_DIRS.has(entry.name)) continue
+      collectReferencedTokenNames(full, out)
+    } else if (/\.(wxss|wxml|wxs|js)$/.test(entry.name)) {
+      let text = fs.readFileSync(full, 'utf8')
+      if (full.endsWith('app.wxss')) text = stripMarkedBlock(text, MARK_START, MARK_END)
+      const re = /var\(--sp-([\w]+)\)/g
+      let m
+      while ((m = re.exec(text))) out.add(m[1])
+    }
+  }
+  return out
+}
+
 /** 递归列出目录下的样式文件 */
 function listCssFiles(dir, out = []) {
   for (const entry of fs.readdirSync(dir, { withFileTypes: true })) {
@@ -230,9 +249,18 @@ function main() {
     if (file === 'miniprogram/app.wxss') text = stripMarkedBlock(text, MARK_START, MARK_END)
     collectValues(text, values)
   }
+  // 历史令牌合并：只保留「仍被引用」的取值，
+  // 否则引用了某令牌的样式被删除后，会留下永远无人引用的孤立令牌
   const appWxssText = fs.readFileSync(appWxssPath, 'utf8')
   const existingWxss = extractMarkedBlock(appWxssText, MARK_START, MARK_END)
-  if (existingWxss.found) collectValues(existingWxss.body, values)
+  if (existingWxss.found) {
+    const referenced = collectReferencedTokenNames()
+    const historical = new Set()
+    collectValues(existingWxss.body, historical)
+    for (const v of historical) {
+      if (referenced.has(tokenName(v))) values.add(v)
+    }
+  }
 
   // 排除 0：0rpx 会被替换为 0，无需令牌
   const sorted = Array.from(values)

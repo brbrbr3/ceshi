@@ -62,54 +62,6 @@ Page({
         implemented: true,
         featureKey: null
       },
-      /*  {
-        icon: '🏥',
-        label: '就医申请',
-        color: '#EF4444',
-        bg: '#FEE2E2',
-        implemented: true,
-        featureKey: 'medical_application'
-      },
-      {
-        icon: '🏢',
-        label: '会议室预约',
-        color: '#7C5CFC',
-        bg: '#E8E4FF',
-        implemented: true,
-        featureKey: 'meeting_room'
-      },
-      {
-        icon: '🛂',
-        label: '护照管理',
-        color: '#D97706',
-        bg: '#FEF3C7',
-        implemented: true,
-        featureKey: 'passport_application'
-      },
-      {
-        icon: '🔧',
-        label: '物业报修',
-        color: '#8B6F47',
-        bg: '#FDF3E1',
-        implemented: true,
-        featureKey: null
-      },
-      {
-        icon: '🚗',
-        label: '购车管理',
-        color: '#0891B2',
-        bg: '#ECFEFF',
-        implemented: true,
-        featureKey: 'car_purchase'
-      },
-      {
-        icon: '🏖️',
-        label: '休假申请',
-        color: '#065F46',
-        bg: '#D1FAE5',
-        implemented: true,
-        featureKey: 'leave_application'
-      }, */
       {
         icon: 'ℹ️',
         label: '生活资讯',
@@ -169,15 +121,12 @@ Page({
     this.setData({
       currentDateText: this.getCurrentDateText()
     })
-    //this.loadBgImage()
     this.syncUserProfile() //同步用户资料
     this.loadPermissionCache() //加载权限缓存
     this.syncNotifications() //同步消息推送
     app.syncSubStatus()// 刷新微信侧订阅状态到本地缓存（供 handleQuickAction tap 时同步读取）
     this.loadContentForms() //加载馆内动态
-    //this.loadArticles() //加载学习园地
     this.loadHolidayConfig() //加载节假日配置
-    //this.loadTodaySchedules() // 加载今日日程
     this.loadActiveTrip() // 加载外出状态
 
     // 弹窗队列：更新说明优先入队，其次兴趣班提示（更新说明异步加载，等其入队后再入队兴趣班）
@@ -197,7 +146,6 @@ Page({
     } else {
       enqueueInterestReminder()
     }
-    //this.loadSignature()//加载用户签名
   },
 
   // 切换夜间/日间主题
@@ -267,48 +215,6 @@ Page({
   /**
    * 加载用户是否有签名，没有则提示配置（不再使用）
    */
-  loadSignature() {
-    // 已提示过则不再弹窗
-    if (app.globalData.signaturePrompted) return
-
-    const db = wx.cloud.database()
-    db.collection('user_signatures')
-      .orderBy('index', 'asc')
-      .limit(2)
-      .get()
-      .then(res => {
-        const signatures = (res.data || []).map(item => ({
-          ...item
-        }))
-        this.setData({
-          signatures,
-          signatureLoaded: true
-        })
-        // 仅对需要签名的角色提示，且签名数量为0且本次启动未提示过
-        const needSignatureRoles = ['馆领导', '馆员', '工勤']
-        const userRole = (this.data.currentUser && this.data.currentUser.role) || (app.globalData.userProfile && app.globalData.userProfile.role) || ''
-        const isDeptHead = (this.data.currentUser && this.data.currentUser.isDepartmentHead) || (app.globalData.userProfile && app.globalData.userProfile.isDepartmentHead)
-        if (signatures.length === 0 && (needSignatureRoles.includes(userRole) || isDeptHead) && !app.globalData.signaturePrompted) {
-          app.globalData.signaturePrompted = true
-          wx.showModal({
-            title: '提示',
-            content: '您还未配置签名，部分审批流程需要签名，是否前往配置？',
-            confirmText: '去配置',
-            cancelText: '稍后',
-            success: (res) => {
-              if (res.confirm) {
-                wx.navigateTo({
-                  url: '/pages/office/signature-manage/signature-manage'
-                })
-              }
-            }
-          })
-        }
-      })
-      .catch(err => {
-        console.error('加载签字失败', err)
-      })
-  },
 
   /**
    * 每月首次进入首页时，弹窗提示更新兴趣班备案
@@ -437,11 +343,6 @@ Page({
     return
   },
 
-  goApprovalTab() {
-    wx.switchTab({
-      url: '/pages/office/approval/approval'
-    })
-  },
 
   syncNotifications() {
     // 只加载第一页数据，用于统计未读数量
@@ -540,18 +441,6 @@ Page({
     }
   },
 
-  formatAnnouncement(item) {
-    const typeInfo = this.getAnnouncementTypeInfo(item.type)
-    return {
-      _id: item._id,
-      title: item.title,
-      tag: typeInfo.text,
-      tagColor: typeInfo.color,
-      tagBg: typeInfo.bg,
-      time: formatTime(item.publishedAt),
-      unread: !item.readUsers || !item.readUsers.includes(app.globalData.openid)
-    }
-  },
 
   getAnnouncementTypeInfo(type) {
     const typeMap = {
@@ -574,44 +463,6 @@ Page({
     return typeMap[type] || typeMap.normal
   },
 
-  loadArticles() {
-    this.setData({
-      loadingArticles: true
-    })
-
-    wx.cloud.callFunction({
-      name: 'articleManager',
-      data: {
-        action: 'list',
-        params: {
-          page: 1,
-          pageSize: 3
-        }
-      }
-    }).then(res => {
-      const result = res.result
-      if (result && result.code === 0) {
-        const list = (result.data.list || []).map(item => ({
-          _id: item._id,
-          title: item.title,
-          authorName: item.authorName,
-          time: formatTime(item.createdAt),
-          isPinned: item.isPinned || false
-        }))
-        this.setData({
-          articles: list,
-          loadingArticles: false
-        })
-      } else {
-        throw new Error(result.message || '加载失败')
-      }
-    }).catch(error => {
-      console.error('加载学习园地失败:', error)
-      this.setData({
-        loadingArticles: false
-      })
-    })
-  },
 
   goLearning() {
     wx.navigateTo({
@@ -748,33 +599,6 @@ Page({
   /**
    * 加载今日订阅日程
    */
-  loadTodaySchedules() {
-    this.setData({
-      loadingSchedules: true
-    })
-
-    wx.cloud.callFunction({
-      name: 'scheduleManager',
-      data: {
-        action: 'getTodaySubscriptions'
-      }
-    }).then(res => {
-      if (res.result.code === 0) {
-        this.setData({
-          todaySchedules: res.result.data.list,
-          loadingSchedules: false
-        })
-      } else {
-        throw new Error(res.result.message)
-      }
-    }).catch(err => {
-      console.error('加载今日日程失败:', err)
-      this.setData({
-        loadingSchedules: false,
-        todaySchedules: []
-      })
-    })
-  },
 
   /**
    * 点击日程条目

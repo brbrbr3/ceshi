@@ -2,12 +2,6 @@ page {
   background: var(--bg-page);
 }
 
-/* 微信昵称输入提示 */
-.auth-nickname-tip {
-  margin-top: var(--sp-12);
-  font-size: var(--fs-24);
-  color: var(--text-muted);
-}
 
 /* 退回说明 */
 .register-review-banner {

@@ -22,9 +22,8 @@ const _ = db.command
 const appointmentsCollection = db.collection('haircut_appointments')
 const usersCollection = db.collection('office_users')
 
-// 时段配置
+// 时段配置（每日 15:00 开始，共 6 个时段）
 const TIME_SLOTS = [
-  { start: '14:30', end: '15:00', display: '14:30~15:00' },
   { start: '15:00', end: '15:30', display: '15:00~15:30' },
   { start: '15:30', end: '16:00', display: '15:30~16:00' },
   { start: '16:00', end: '16:30', display: '16:00~16:30' },
@@ -32,6 +31,9 @@ const TIME_SLOTS = [
   { start: '17:00', end: '17:30', display: '17:00~17:30' },
   { start: '17:30', end: '18:00', display: '17:30~18:00' }
 ]
+
+// 当日锁定截止时间（当地时间）：14:50 之后该日不再允许预约或自行取消，招待员不受限制
+const DAY_LOCK_DEADLINE_MINUTES = 14 * 60 + 50
 
 // 取消原因
 const CANCEL_REASONS = [
@@ -225,6 +227,22 @@ async function createAppointment(openid, appointmentData) {
     }
   }
 
+  // 当日锁定校验（招待员不受限制）
+  // 前端在 14:50 后已不显示可预约状态，这里补一道服务端校验，
+  // 避免停留过久的旧页面或直接调用云函数绕过限制
+  const isReceptionist = Array.isArray(user.position) && user.position.includes('招待员')
+  if (!isReceptionist) {
+    const offsetHours = await getTimezoneOffset()
+    const nowTs = Date.now()
+    const todayStr = formatLocalDate(nowTs, offsetHours)
+    if (date < todayStr) {
+      throw new Error('该日期已过，无法预约')
+    }
+    if (date === todayStr && localMinutesOfDay(nowTs, offsetHours) >= DAY_LOCK_DEADLINE_MINUTES) {
+      throw new Error('当日 14:50 后已锁定，请联系招待员')
+    }
+  }
+
   const now = Date.now()
 
   // 创建预约记录
@@ -246,7 +264,8 @@ async function createAppointment(openid, appointmentData) {
         throw new Error('该时段不可预约')
       }
       
-      // status 为 cancelled 或 completed，更新为新预约
+      // status 为 cancelled（招待员取消过）或 completed，复用该记录更新为新预约
+      // （本人取消是物理删除，不会留下记录）
       await appointmentsCollection.doc(existing._id).update({
         data: {
           appointeeName: appointeeName.trim(),
@@ -366,17 +385,30 @@ async function cancelAppointment(openid, appointmentId, cancelReason) {
     throw new Error('无权取消此预约')
   }
 
-  // 招待员取消他人预约需要填写原因
-  if (!isOwner && isReceptionist && !cancelReason) {
-    throw new Error('请选择取消原因')
+  const now = Date.now()
+
+  // 本人取消：直接物理删除该预约（不保留记录、不改状态）
+  // 并按当地时间校验当日锁定（14:50 之后不可自行取消，招待员不受限制）
+  if (isOwner) {
+    if (!isReceptionist) {
+      const offsetHours = await getTimezoneOffset()
+      if (isDateLockedAt(appointment.date, offsetHours, now)) {
+        throw new Error('当日 14:50 后已锁定，无法取消，请联系招待员')
+      }
+    }
+    await appointmentsCollection.doc(appointmentId).remove()
+    return success({}, '已取消预约')
   }
 
-  const now = Date.now()
+  // 招待员取消他人预约：保留记录、写入状态与操作人，并强制填写原因
+  if (!cancelReason) {
+    throw new Error('请选择取消原因')
+  }
 
   await appointmentsCollection.doc(appointmentId).update({
     data: {
       status: 'cancelled',
-      cancelReason: cancelReason || '用户主动取消',
+      cancelReason,
       cancelledAt: now,
       cancelledBy: user.name,
       updatedAt: now
@@ -735,6 +767,28 @@ function formatLocalDate(timestamp, offsetHours) {
   const local = new Date(utc + (offsetHours || 0) * 3600000)
   const pad = (n) => String(n).padStart(2, '0')
   return `${local.getFullYear()}-${pad(local.getMonth() + 1)}-${pad(local.getDate())}`
+}
+
+/**
+ * 取时间戳在指定时区的「当日分钟数」（0~1439），算法与 formatLocalDate 一致
+ */
+function localMinutesOfDay(timestamp, offsetHours) {
+  const date = new Date(timestamp)
+  const utc = date.getTime() + date.getTimezoneOffset() * 60000
+  const local = new Date(utc + (offsetHours || 0) * 3600000)
+  return local.getHours() * 60 + local.getMinutes()
+}
+
+/**
+ * 判断某个理发日在指定时区下是否已「当日锁定」
+ * 规则与前端 haircut.js 的 isDateLocked 保持一致：
+ *   过去日期 → 锁定；当天 → 以 14:50 为界；未来日期 → 未锁定
+ */
+function isDateLockedAt(dateStr, offsetHours, now) {
+  const todayStr = formatLocalDate(now, offsetHours)
+  if (dateStr < todayStr) return true
+  if (dateStr === todayStr) return localMinutesOfDay(now, offsetHours) >= DAY_LOCK_DEADLINE_MINUTES
+  return false
 }
 
 /**

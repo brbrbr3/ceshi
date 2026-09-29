@@ -5,24 +5,9 @@
   background: var(--bg-page);
 }
 
-/* 头部 - 使用圆角渐变 */
-.trip-header {
-  padding: var(--sp-40) var(--sp-32) var(--sp-30);
-}
 
-.trip-header-content {
-  color: #FFFFFF;
-}
 
-.trip-title {
-  font-size: var(--fs-44);
-  font-weight: 600;
-}
 
-.trip-subtitle {
-  font-size: var(--fs-26);
-  opacity: 0.9;
-}
 
 /* 状态卡片 - 参照 approval-modal-copy 风格 */
 .trip-status-card {
@@ -437,10 +422,6 @@
   color: var(--text-primary);
 }
 
-.trip-popup-subtitle {
-  font-size: var(--fs-28);
-  color: var(--text-primary);
-}
 
 .trip-popup-close {
   font-size: var(--fs-48);
@@ -534,15 +515,7 @@
   color: #2563EB;
 }
 
-/* 日期时间选择器 */
-.trip-datetime-picker {
-  display: flex;
-  gap: var(--sp-16);
-}
 
-.trip-datetime-picker picker {
-  flex: 1;
-}
 
 .trip-picker-value {
   background: var(--bg-input);
@@ -708,35 +681,13 @@
   color: #F97316;
 }
 
-.append-dest-current {
-  border-radius: var(--sp-16);
-  padding: var(--sp-20) var(--sp-24);
-  margin-bottom: var(--sp-24);
-}
 
-.append-dest-current-label {
-  font-size: var(--fs-24);
-  color: var(--text-muted);
-  margin-bottom: var(--sp-6);
-}
 
-.append-dest-current-value {
-  font-size: var(--fs-28);
-  color: var(--text-primary);
-  font-weight: 500;
-  word-break: break-all;
-}
 
 .append-dest-proxy {
   margin-top: var(--sp-16);
 }
 
-.append-dest-proxy-label {
-  font-size: var(--fs-30);
-  color: var(--text-muted);
-  margin-bottom: var(--sp-12);
-  padding-left: var(--sp-4);
-}
 
 .append-dest-proxy-item {
   display: flex;

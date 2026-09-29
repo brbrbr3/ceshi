@@ -496,24 +496,10 @@ Page({
   /**
    * 格式化日期为picker所需格式（YYYY-MM-DD）
    */
-  formatDateForPicker(date) {
-    const year = date.getFullYear()
-    const month = String(date.getMonth() + 1).padStart(2, '0')
-    const day = String(date.getDate()).padStart(2, '0')
-    return `${year}-${month}-${day}`
-  },
 
   /**
    * 格式化日期时间为picker所需格式（YYYY-MM-DD HH:mm）
    */
-  formatDateTimeForPicker(date) {
-    const year = date.getFullYear()
-    const month = String(date.getMonth() + 1).padStart(2, '0')
-    const day = String(date.getDate()).padStart(2, '0')
-    const hour = String(date.getHours()).padStart(2, '0')
-    const minute = String(date.getMinutes()).padStart(2, '0')
-    return `${year}-${month}-${day} ${hour}:${minute}`
-  },
 
   /**
    * 隐藏表单弹窗

@@ -1,19 +1,14 @@
 <page-meta page-style="{{pageStyle}}" />
 <view class="auth-page register-page {{themeClass}}" style="{{fontStyle}}">
   <view class="auth-hero">
-    <!-- <view wx:if="{{isDevEnv}}" class="auth-brand">注册</view> -->
     <view class="auth-title">填写注册申请</view>
     <view class="auth-subtitle">请按要求填写个人资料。提交后，管理员将收到一条新的注册申请并进行审核。</view>
     <view class="auth-tip-row">
-      <!-- <view wx:if="{{isDevEnv}}" class="auth-tip-pill">姓名</view> -->
-      <!-- <view wx:if="{{isDevEnv}}" class="auth-tip-pill">角色信息</view> -->
-      <!-- <view class="auth-tip-pill">管理员标记</view> -->
     </view>
   </view>
 
   <view class="auth-card">
     <view class="auth-card-title">填写个人资料</view>
-    <!-- <view class="auth-card-desc">审批通过后将自动成为本小程序正式用户。</view> -->
 
     <view wx:if="{{reviewRemark}}" class="register-review-banner">
       <view class="register-review-title">退回说明</view>
@@ -60,19 +55,6 @@
         </view>
       </view>
 
-      <!-- <view class="auth-field">
-        <view class="auth-field-label">手机 <text class="auth-field-optional">（选填）</text></view>
-        <view class="auth-input-shell">
-          <input value="{{form.mobile}}" placeholder="+55 61 " placeholder-class="auth-input-placeholder" bindinput="handleMobileInput" type="text" />
-        </view>
-      </view>
-
-      <view class="auth-field">
-        <view class="auth-field-label">座机 <text class="auth-field-optional">（选填）</text></view>
-        <view class="auth-input-shell">
-          <input value="{{form.landline}}" placeholder="+55 61 " placeholder-class="auth-input-placeholder" bindinput="handleLandlineInput" type="text" />
-        </view>
-      </view> -->
 
       <view class="auth-field">
         <view class="auth-field-label">是否为本系统管理员 <text style="color: var(--danger-text);">*</text></view>

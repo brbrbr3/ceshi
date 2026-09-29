@@ -71,9 +71,6 @@
   "themeLocation": "theme.json",
   "darkmode": false,
   "resizable": true,
-  "useExtendedLib": {
-    "weui": true
-  },
   "frameset": true,
   "__usePrivacyCheck__": true,
   "lazyCodeLoading": "requiredComponents"

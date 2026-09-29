@@ -30,54 +30,6 @@
         </view>
       </view>
 
-      <!-- <view class="help-card">
-        <view class="card-header">
-          <view class="card-icon">📢</view>
-          <view class="card-title">通知公告</view>
-        </view>
-        <view class="card-content">
-          <view class="card-desc">查看重要通知和公告信息，支持紧急/重要/普通三级分类，未读消息会有明显标记提醒。</view>
-          <view class="card-permission">
-            <view class="permission-label">权限要求：</view>
-            <view class="permission-value">无限制，所有用户可查看</view>
-          </view>
-        </view>
-      </view>
-
-
-      <view class="help-card">
-        <view class="card-header">
-          <view class="card-icon">🍱</view>
-          <view class="card-title">工作餐与副食</view>
-        </view>
-        <view class="card-content">
-          <view class="card-desc">管理工作餐入伙、退伙、临时停餐与加餐申请，以及副食预订和管理。支持以下功能：</view>
-          <view class="card-features">
-            <view class="feature-item">• 我的工作餐：办理入伙/退伙/停餐/加餐，查看个人工作餐调整记录。</view>
-            <view class="feature-item">• 工作餐管理：查看所有用户的餐食调整历史记录。</view>
-            <view class="feature-item">• 副食预订：查看当前征订活动并预订副食。</view>
-            <view class="feature-item">• 副食管理：发布副食征订、查看预订情况及导出PDF清单。</view>
-          </view>
-          <view class="card-permission">
-            <view class="permission-label">权限要求：</view>
-            <view class="permission-value">馆领导、各部门负责人、馆员、工勤可办理工作餐和预订副食。会计主管、会计、出纳、招待员、厨师可管理工作餐和副食。</view>
-          </view>
-        </view>
-      </view> 
-
-      <view class="help-card">
-        <view class="card-header">
-          <view class="card-icon">🏥</view>
-          <view class="card-title">就医申请</view>
-        </view>
-        <view class="card-content">
-          <view class="card-desc">在线提交就医申请，填写就诊人、就诊时间、医院等信息，提交后进入审批流程，可在"审批中心"查看实时审批进度。<text>\n</text>已批准的申请会显示在"就医申请记录"中，可导出为PDF文件。</view>
-          <view class="card-permission">
-            <view class="permission-label">权限要求：</view>
-            <view class="permission-value">配偶、家属请馆员代为申请。</view>
-          </view>
-        </view>
-      </view> -->
 
       <view class="help-card">
         <view class="card-header">
@@ -151,109 +103,6 @@
         </view>
       </view>
 
-      <!-- <view class="help-card">
-        <view class="card-header">
-          <view class="card-icon">🏢</view>
-          <view class="card-title">会议室预约</view>
-        </view>
-        <view class="card-content">
-          <view class="card-desc">查看会议室空闲状态，在线预约会议室。</view>
-          <view class="card-permission">
-            <view class="permission-label">权限要求：</view>
-            <view class="permission-value">在编馆员可预约，物业可查看。</view>
-          </view>
-        </view>
-      </view>
-
-      <view class="help-card">
-        <view class="card-header">
-          <view class="card-icon">🛂</view>
-          <view class="card-title">护照管理</view>
-        </view>
-        <view class="card-content">
-          <view class="card-desc">护照借用申请与管理，支持以下功能：</view>
-          <view class="card-features">
-            <view class="feature-item">• 护照借出：提交借用申请，查看借用记录</view>
-            <view class="feature-item">• 护照信息维护：填写护照信息，系统自动提醒即将在半年内过期的护照。</view>
-          </view>
-          <view class="card-permission">
-            <view class="permission-label">权限要求：</view>
-            <view class="permission-value">配偶、家属请馆员代为申请。</view>
-          </view>
-        </view>
-      </view>
-
-      <view class="help-card">
-        <view class="card-header">
-          <view class="card-icon">🔧</view>
-          <view class="card-title">物业报修</view>
-        </view>
-        <view class="card-content">
-          <view class="card-desc">在线提交物业报修申请，填写居住区、地址、报修内容并上传图片。提交后可查看报修状态和维修进度。</view>
-          <view class="card-features">
-            <view class="feature-item">• 我的报修：查看个人提交的报修记录，提交新报修。</view>
-            <view class="feature-item">• 全部报修（物业）：查看所有报修记录，按居住区筛选，标记维修完成。</view>
-          </view>
-          <view class="card-permission">
-            <view class="permission-label">权限要求：</view>
-            <view class="permission-value">所有用户可提交报修。物业可查看全部报修，对报修标记维修完成。</view>
-          </view>
-        </view>
-      </view> -->
-
-      <!--  <view class="help-card">
-        <view class="card-header">
-          <view class="card-icon">📚</view>
-          <view class="card-title">学习园地</view>
-        </view>
-        <view class="card-content">
-          <view class="card-desc">知识分享与学习交流平台，支持发布富文本文章（含图片），查看文章详情和阅读量统计。</view>
-          <view class="card-permission">
-            <view class="permission-label">权限要求：</view>
-            <view class="permission-value">所有用户可查看文章、发布文章。管理员可置顶文章。管理员、作者可删除文章。</view>
-          </view>
-        </view>
-      </view>
-
-      <view class="help-card">
-        <view class="card-header">
-          <view class="card-icon">🚗</view>
-          <view class="card-title">购车管理</view>
-        </view>
-        <view class="card-content">
-          <view class="card-desc">提交购车相关申请，追踪购车流程进度。支持以下功能：</view>
-          <view class="card-features">
-            <view class="feature-item">• 馆内购车申请：填写职别、车辆信息等，提交审批流程。系统根据职别自动匹配购车标准和最低限额。</view>
-            <view class="feature-item">• 馆内购车借款申请：填写赴任信息、车型价格，系统自动计算可借金额。</view>
-            <view class="feature-item">• 购车流程：6阶段纵向Checklist时间线，支持打钩、填写文本、上传文件、选择日期等操作，追踪购车全流程。</view>
-            <view class="feature-item">• 我的购车：查看个人购车记录和进度。购车管理（办公室人员）：查看全员购车记录。</view>
-          </view>
-          <view class="card-permission">
-            <view class="permission-label">权限要求：</view>
-            <view class="permission-value">供在编馆员使用。办公室人员可查看全员记录并操作办公室步骤；申请人可操作个人步骤。</view>
-          </view>
-        </view>
-      </view>
-
-      <view class="help-card">
-        <view class="card-header">
-          <view class="card-icon">🏖️</view>
-          <view class="card-title">休假申请</view>
-        </view>
-        <view class="card-content">
-          <view class="card-desc">在线提交休假申请，系统自动计算可用方案。支持以下功能：</view>
-          <view class="card-features">
-            <view class="feature-item">• 首次配置：填写参加工作日期、到任日期，系统自动计算年休假和任期假情况。</view>
-            <view class="feature-item">• 休假申请：选择日期后系统自动计算可用方案，支持年休假、任期假、组合假，可选回国（+2天）、公费/自费等。</view>
-            <view class="feature-item">• 补填记录：补填历史休假记录，供审批参考。</view>
-            <view class="feature-item">• 我的记录：按月分组查看休假记录，查看审批进度和详情。</view>
-          </view>
-          <view class="card-permission">
-            <view class="permission-label">权限要求：</view>
-            <view class="permission-value">需权限方可使用。</view>
-          </view>
-        </view>
-      </view> -->
 
       <view class="help-card">
         <view class="card-header">
@@ -319,54 +168,6 @@
 
     </view>
 
-    <!-- ========== 通讯录 ========== 
-    <view class="help-section">
-      <view class="section-title">通讯录</view>
-      <view class="help-card">
-        <view class="card-header">
-          <view class="card-icon">📒</view>
-          <view class="card-title">通讯录</view>
-        </view>
-        <view class="card-content">
-          <view class="card-desc">馆内联系人信息查询，按角色和部门分组展示。支持以下功能：</view>
-          <view class="card-features">
-            <view class="feature-item">• 搜索：按姓名搜索联系人。</view>
-            <view class="feature-item">• 部门筛选：横向滚动，按部门快速筛选。</view>
-            <view class="feature-item">• 分组展示：馆领导、各部门、物业、配偶分组，组内排序显示。</view>
-            <view class="feature-item">• 联系人详情：点击展开查看角色、岗位、手机号（可直接拨号）、座机号。</view>
-            <view class="feature-item">• 在线状态：在线、忙碌、外出中、离线状态标签。</view>
-          </view>
-          <view class="card-permission">
-            <view class="permission-label">权限要求：</view>
-            <view class="permission-value">所有用户可用。</view>
-          </view>
-        </view>
-      </view>
-    </view>
-
-     ========== 小绿书 ========== 
-    <view class="help-section">
-      <view class="section-title">小绿书</view>
-
-      <view class="help-card">
-        <view class="card-header">
-          <view class="card-icon">📗</view>
-          <view class="card-title">小绿书</view>
-        </view>
-        <view class="card-content">
-          <view class="card-desc">馆内生活分享社区，支持发布图文帖子、按分类浏览、搜索帖子。支持以下功能：</view>
-          <view class="card-features">
-            <view class="feature-item">• 发帖：上传图片并发布帖子，选择分类标签。</view>
-            <view class="feature-item">• 浏览：瀑布流展示帖子，按分类筛选和关键词搜索。</view>
-            <view class="feature-item">• 互动：查看帖子详情和评论。</view>
-          </view>
-          <view class="card-permission">
-            <view class="permission-label">权限要求：</view>
-            <view class="permission-value">所有用户可浏览、发帖和评论。</view>
-          </view>
-        </view>
-      </view>
-    </view> -->
 
     <!-- ========== 我的 ========== -->
     <view class="help-section">
@@ -400,33 +201,7 @@
         </view>
       </view>
 
-      <!-- <view class="help-card">
-        <view class="card-header">
-          <view class="card-icon">✍️</view>
-          <view class="card-title">签字管理</view>
-        </view>
-        <view class="card-content">
-          <view class="card-desc">管理个人手写签字，支持手写签名板录入、预览、替换和删除。保存的签字可用于后续文件签署等场景。每位用户最多保存2个签字。</view>
-          <view class="card-permission">
-            <view class="permission-label">权限要求：</view>
-            <view class="permission-value">所有用户可使用</view>
-          </view>
-        </view>
-      </view> -->
 
-      <!-- <view class="help-card">
-        <view class="card-header">
-          <view class="card-icon">💬</view>
-          <view class="card-title">意见反馈</view>
-        </view>
-        <view class="card-content">
-          <view class="card-desc">提交使用小程序的意见和问题反馈，支持查看管理员的回复。管理员会对反馈进行处理并回复。</view>
-          <view class="card-permission">
-            <view class="permission-label">权限要求：</view>
-            <view class="permission-value">无限制，所有用户可提交反馈，并可看到他人的反馈及回复。</view>
-          </view>
-        </view>
-      </view> -->
     </view>
 
     <!-- 权限说明 -->

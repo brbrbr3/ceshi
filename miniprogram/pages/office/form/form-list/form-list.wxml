@@ -1,10 +1,5 @@
 <page-meta page-style="{{pageStyle}}" />
 <view wx:if="{{guardReady}}" class="office-page form-list-page {{themeClass}}" style="{{fontStyle}}">
-  <!-- <view class="office-gradient-header form-list-header">
-    <view class="form-list-header-row">
-      <view class="form-list-title">馆内动态</view>
-    </view>
-  </view> -->
 
   <view class="office-content form-list-content">
     <!-- tag 筛选 -->

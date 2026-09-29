@@ -20,7 +20,6 @@ const {
 WxCalendar.use(LunarPlugin)
 
 // 配置节假日权限角色列表
-const CONFIG_HOLIDAY_ALLOWED_ROLES = ['admin', '会计', '会计主管']
 
 // 日程操作权限岗位列表
 const SCHEDULE_ALLOWED_POSITIONS = ['礼宾']
@@ -417,13 +416,6 @@ Page({
       // 初始化今日日期
       this.initTodayDate()
 
-      /* // 更新当前时间线
-      this.updateCurrentTime()
-
-      // 每分钟更新时间线
-      this.timeInterval = setInterval(() => {
-        this.updateCurrentTime()
-      }, 60000) */
     } finally {
       wx.hideLoading()
     }
@@ -498,27 +490,6 @@ Page({
   /**
    * 检查用户日程管理权限
    */
-  checkManageSchedulePermission() {
-    return app.checkUserRegistration().then((result) => {
-      if (result.registered && result.user) {
-        const user = result.user
-        const isAdmin = user.isAdmin || user.role === 'admin'
-        const canManageSchedule = isAdmin || (Array.isArray(user.position) && user.position.some(p => SCHEDULE_ALLOWED_POSITIONS.includes(p)))
-
-        // 物业/家属/配偶且无岗位的用户不显示时间轴日程列表
-        const hiddenRoles = ['物业', '家属', '配偶']
-        const shouldHideSchedule = hiddenRoles.includes(user.role) && (!Array.isArray(user.position) || user.position.length === 0)
-
-        this.setData({
-          currentUser: user,
-          canManageSchedule,
-          showScheduleSection: !shouldHideSchedule
-        })
-      }
-    }).catch(() => {
-      // 静默失败
-    })
-  },
 
   /**
    * 加载节假日配置（增量加载模式）
@@ -547,85 +518,12 @@ Page({
    * 设置日历标记（合并节假日和日程标记）
    * @param {Array} holidayDates 节假日日期列表
    */
-  setCalendarMarks(holidayDates) {
-    const marks = []
-
-    // 添加节假日角标
-    if (holidayDates && holidayDates.length > 0) {
-      holidayDates.forEach(date => {
-        marks.push({
-          date: date,
-          type: 'corner',
-          text: '休',
-          style: {
-            color: '#16A34A'
-          }
-        })
-      })
-    }
-
-    // 添加日程圆点标记
-    if (this.data.scheduleDates && this.data.scheduleDates.length > 0) {
-      this.data.scheduleDates.forEach(date => {
-        marks.push({
-          date: date,
-          type: 'schedule',
-          text: '',
-          style: {
-            color: '#EF4444'
-          } // 红色圆点
-        })
-      })
-    }
-
-    this.setData({
-      marks
-    })
-  },
 
   /**
    * 加载日程日期标记（增量加载模式）
    * @param {number} year 年份
    * @param {number} month 月份
    */
-  async loadScheduleMarks(year, month) {
-    const monthKey = `${year}-${String(month).padStart(2, '0')}`
-
-    // 已加载过该月份，跳过
-    if (this.loadedMonthsSet.has(monthKey)) {
-      return
-    }
-
-    try {
-      const res = await wx.cloud.callFunction({
-        name: 'scheduleManager',
-        data: {
-          action: 'getScheduleDates',
-          params: {
-            year,
-            month
-          }
-        }
-      })
-
-      if (res.result.code === 0) {
-        const newDates = res.result.data.dates
-
-        // 累加到 scheduleDatesSet
-        newDates.forEach(date => this.scheduleDatesSet.add(date))
-
-        // 记录已加载的月份
-        this.loadedMonthsSet.add(monthKey)
-
-        // 更新标记
-        this.updateMarks()
-      } else {
-        console.error('云函数返回错误:', res.result)
-      }
-    } catch (error) {
-      console.error('加载日程日期失败:', error)
-    }
-  },
 
   /**
    * 从缓存中移除指定月份的数据
@@ -786,7 +684,6 @@ Page({
       currentMonth: month
     })
 
-    //this.loadScheduleMarks(year, month)
   },
 
   /**
@@ -808,7 +705,6 @@ Page({
       brazilHolidayInfo: this.getBrazilHolidayInfo(checked)
     })
 
-    //this.loadSchedules(checked)
   },
 
   /**
@@ -833,7 +729,6 @@ Page({
       brazilHolidayInfo: this.getBrazilHolidayInfo(checked)
     })
 
-    //this.loadSchedules(checked)
 
     // 优先从 checked 获取月份信息（checked.month 已经是 1-12 格式）
     let newYear = checked ? checked.year : null
@@ -852,8 +747,6 @@ Page({
         currentMonth: newMonth
       })
 
-      // 加载新月份的日程日期标记
-      //this.loadScheduleMarks(newYear, newMonth)
 
       // 如果跨年，刷新节假日标记
       if (newYear !== currentYear) {
@@ -877,7 +770,6 @@ Page({
 
     // 切换到周视图时加载日程
     if (view === 'week' && this.data.selectedDate) {
-      //this.loadSchedules(this.data.selectedDate)
     }
   },
 
@@ -899,42 +791,6 @@ Page({
   /**
    * 加载日程数据
    */
-  async loadSchedules(date) {
-    if (!date) return
-
-    const dateStr = this.getDateString(date)
-
-    try {
-      const res = await wx.cloud.callFunction({
-        name: 'scheduleManager',
-        data: {
-          action: 'getByDate',
-          params: {
-            date: dateStr
-          }
-        }
-      })
-
-      if (res.result.code === 0) {
-        const {
-          all,
-          allDay,
-          timed
-        } = res.result.data
-
-        // 计算时间轴位置（包含重叠并排算法），传入当前日期处理跨日日程
-        const timedWithPosition = this.calculateScheduleLayout(timed, dateStr)
-
-        this.setData({
-          'schedules.all': all,
-          'schedules.allDay': allDay,
-          'schedules.timed': timedWithPosition
-        })
-      }
-    } catch (error) {
-      console.error('加载日程失败:', error)
-    }
-  },
 
   /**
    * 计算日程布局（包含重叠并排算法）
@@ -1805,7 +1661,6 @@ Page({
 
         // 重新加载当日日程
         if (this.data.selectedDate) {
-          //this.loadSchedules(this.data.selectedDate)
         }
 
         // 强制刷新日程标记（从服务器重新获取）
@@ -1884,7 +1739,6 @@ Page({
 
         // 重新加载当日日程
         if (this.data.selectedDate) {
-          //this.loadSchedules(this.data.selectedDate)
         }
 
         // 强制刷新日程标记（从服务器重新获取）

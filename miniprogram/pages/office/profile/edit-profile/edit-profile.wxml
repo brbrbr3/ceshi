@@ -3,7 +3,6 @@
 
 <view wx:if="{{guardReady}}" class="auth-page edit-profile-page {{themeClass}}" style="{{fontStyle}}">
   <view class="auth-hero">
-    <!-- <view class="auth-brand">编辑</view> -->
     <view class="auth-title">修改个人信息</view>
     <view class="auth-subtitle">请填写需要修改的个人信息。提交后，管理员将收到修改申请并进行审核。</view>
   </view>
@@ -72,19 +71,6 @@
         </view>
       </view>
 
-      <!-- <view class="auth-field">
-        <view class="auth-field-label">手机 <text class="auth-field-optional">（选填）</text></view>
-        <view class="auth-input-shell">
-          <input value="{{form.mobile}}" placeholder="+55 61 " placeholder-class="auth-input-placeholder" bindinput="handleMobileInput" type="text" />
-        </view>
-      </view>
-
-      <view class="auth-field">
-        <view class="auth-field-label">座机 <text class="auth-field-optional">（选填）</text></view>
-        <view class="auth-input-shell">
-          <input value="{{form.landline}}" placeholder="+55 61 " placeholder-class="auth-input-placeholder" bindinput="handleLandlineInput" type="text" />
-        </view>
-      </view> -->
 
       <view wx:if="{{showLivingArea}}" class="auth-field">
         <view class="auth-field-label">居住区域</view>

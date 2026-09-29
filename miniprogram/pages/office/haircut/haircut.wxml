@@ -1,12 +1,6 @@
 <page-meta page-style="{{pageStyle}}" />
 <view wx:if="{{guardReady}}" class="haircut-page {{themeClass}}" style="{{fontStyle}}">
   <!-- 渐变色头部 -->
-  <!-- <view class="office-gradient-header haircut-header">
-    <view class="haircut-header-content">
-      <view class="haircut-title">理发预约</view>
-      <view class="haircut-subtitle">服务时间：每周一三五下午 14:30~18:00</view> 
-    </view>
-  </view> -->
 
   <!-- Tab栏 -->
   <view class="haircut-tabs">
@@ -29,7 +23,7 @@
       <view wx:if="{{!isReviewer}}" class="haircut-info-card">
         <view class="haircut-info-text">
           每周一、三、五下午提供理发<text>\n</text>
-          当日14:20后该日锁定，不再允许预约或取消预约
+          当日14:50后该日锁定，不再允许预约或取消预约
           <text wx:if="{{isReceptionist}}">\n招待员对理发日和预约的操作不受限制</text>
         </view>
       </view>
@@ -73,7 +67,7 @@
                 </view>
                 <!-- 招待员取消他人预约按钮 -->
                 <view wx:if="{{isReceptionist && item.status === 'booked'}}" class="haircut-slot-action is-cancel" catchtap="handleSlotAction" data-slot="{{item}}">×</view>
-                <!-- 用户取消自己预约按钮（普通用户14:20后当天不显示） -->
+                <!-- 用户取消自己预约按钮（普通用户14:50后当天不显示） -->
                 <view wx:if="{{item.status === 'myBooked' && (isReceptionist || !selectedDateInfo.isDayLocked)}}" class="haircut-slot-action is-cancel" catchtap="handleSlotAction" data-slot="{{item}}">×</view>
               </view>
               <view class="haircut-slot-time">

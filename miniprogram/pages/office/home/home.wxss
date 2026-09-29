@@ -55,44 +55,12 @@ page {
 }
 
 /* 顶部渐变遮罩：从透明到半透明深色 */
-/* .home-bg-gradient {
-  position: absolute;
-  top: 0;
-  left: 0;
-  right: 0;
-  height: 50%;
-  background: linear-gradient(to bottom, #3b83f69f 0% , rgba(255, 255, 255, 0) 30%); 
-  pointer-events: none;
-} */
-
-.home-brand {
-  display: flex;
-  align-items: center;
-  gap: var(--sp-18);
-}
-
-.home-brand-mark {
-  width: var(--sp-64);
-  height: var(--sp-64);
-  border-radius: var(--sp-22);
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  background: rgba(255, 255, 255, 0.2);
-  font-size: var(--fs-28);
-  font-weight: 700;
-}
 
 .home-brand-name {
   font-size: var(--fs-24);
   opacity: 0.84;
 }
 
-.home-brand-sub {
-  margin-top: var(--sp-6);
-  font-size: var(--fs-22);
-  opacity: 0.72;
-}
 
 .home-actions {
   display: flex;
@@ -309,14 +277,7 @@ page {
   padding: 0 0 var(--sp-20);
 }
 
-.home-stat-item.stat-clickable {
-  cursor: pointer;
-  transition: opacity 0.2s;
-}
 
-.home-stat-item.stat-clickable:active {
-  opacity: 0.7;
-}
 
 .home-stat-badge {
   min-width: var(--sp-76);
@@ -336,9 +297,8 @@ page {
 }
 
 .home-grid-card,
-.home-list-card,
-.home-news-card,
-.home-schedule-card {
+  .home-news-card,
+  .home-schedule-card {
   padding: var(--sp-24);
 }
 
@@ -412,45 +372,11 @@ page {
   color: var(--text-muted);
 }
 
-.home-title-with-badge {
-  display: flex;
-  align-items: center;
-  gap: var(--sp-12);
-}
 
-.home-count-badge {
-  min-width: var(--sp-34);
-  height: var(--sp-34);
-  border-radius: var(--sp-17);
-  background: #F44336;
-  color: #FFFFFF;
-  font-size: var(--fs-22);
-  display: flex;
-  align-items: center;
-  justify-content: center;
-}
 
-.home-list-item {
-  display: flex;
-  align-items: center;
-  gap: var(--sp-20);
-  padding: var(--sp-18) 0;
-}
 
-.home-list-item + .home-list-item {
-  border-top: var(--sp-1) solid rgba(37, 99, 235, 0.1);
-}
 
-.home-list-main {
-  flex: 1;
-  min-width: 0;
-}
 
-.home-list-title-row {
-  display: flex;
-  align-items: center;
-  margin-bottom: var(--sp-6);
-}
 
 .home-list-name {
   font-size: var(--fs-26);
@@ -458,34 +384,14 @@ page {
   color: var(--text-primary);
 }
 
-.home-dot,
-.home-list-sub {
-  font-size: var(--fs-24);
-  color: var(--text-muted);
-  margin-left: var(--sp-8);
-}
 
-.home-list-type {
-  font-size: var(--fs-24);
-  color: var(--text-secondary);
-}
 
-.home-list-side {
-  display: flex;
-  flex-direction: column;
-  align-items: flex-end;
-  gap: var(--sp-10);
-}
 
 .home-list-time {
   font-size: var(--fs-22);
   color: var(--text-muted);
 }
 
-.home-mini-btn {
-  padding: var(--sp-10) var(--sp-20);
-  font-size: var(--fs-22);
-}
 
 .home-news-item {
   display: flex;
@@ -647,27 +553,7 @@ page {
   line-height: 1.4;
 }
 
-/* 群团活动首页模块 */
-.home-activity-icon {
-  width: var(--sp-48);
-  height: var(--sp-48);
-  border-radius: var(--sp-14);
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  font-size: var(--fs-28);
-  background: linear-gradient(135deg, #EDE9FE, #DDD6FE);
-  flex-shrink: 0;
-  margin-top: var(--sp-2);
-}
 
-.activity-home-tag {
-  flex-shrink: 0;
-  padding: var(--sp-4) var(--sp-16);
-  border-radius: var(--sp-999);
-  font-size: var(--fs-22);
-  font-weight: 500;
-}
 
 .tag-active {
   color: #10B981;

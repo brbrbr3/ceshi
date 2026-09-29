@@ -1,0 +1,2111 @@
+{
+  "generatedAt": "2026-09-29T00:42:12.467Z",
+  "sections": {
+    "commentedCode": [
+      {
+        "file": "miniprogram/components/pagination-loading/pagination-loading.wxml",
+        "line": 2,
+        "kind": "wxml-block",
+        "preview": [
+          "使用方法：",
+          "在页面 WXML 中引入："
+        ]
+      },
+      {
+        "file": "miniprogram/pages/auth/login/login.js",
+        "line": 398,
+        "endLine": 401,
+        "kind": "line-block",
+        "preview": [
+          "生物认证暂时关闭（部分设备未设置生物识别导致无法登录），后续如需恢复取消下方注释即可",
+          "try {"
+        ]
+      },
+      {
+        "file": "miniprogram/pages/auth/login/login.js",
+        "line": 403,
+        "endLine": 413,
+        "kind": "line-block",
+        "preview": [
+          "  // 先尝试人脸（iOS Face ID 优先）",
+          "  try {"
+        ]
+      },
+      {
+        "file": "miniprogram/pages/auth/login/login.js",
+        "line": 415,
+        "endLine": 427,
+        "kind": "line-block",
+        "preview": [
+          "  // 人脸不可用，再尝试指纹",
+          "  if (!authMode) {"
+        ]
+      },
+      {
+        "file": "miniprogram/pages/auth/login/login.js",
+        "line": 429,
+        "endLine": 433,
+        "kind": "line-block",
+        "preview": [
+          "  // 没有任何生物认证可用，返回",
+          "  if (!authMode) {"
+        ]
+      },
+      {
+        "file": "miniprogram/pages/auth/login/login.js",
+        "line": 435,
+        "endLine": 461,
+        "kind": "line-block",
+        "preview": [
+          "  // 2. 调起生物认证",
+          "  this.setData({"
+        ]
+      },
+      {
+        "file": "miniprogram/pages/auth/login/login.wxml",
+        "line": 14,
+        "kind": "wxml-block",
+        "preview": [
+          "<view class=\"auth-tip-row\">",
+          "<view wx:if=\"{{isDevEnv}}\" class=\"auth-tip-pill\">微信身份校验</view>"
+        ]
+      },
+      {
+        "file": "miniprogram/pages/auth/login/login.wxml",
+        "line": 25,
+        "kind": "wxml-block",
+        "preview": [
+          "<view wx:if=\"{{isRegistered && !isDesktop}}\" class=\"login-wechat-title-desc\">您的生物特征仅用于登录验证，小程序不会保存</…"
+        ]
+      },
+      {
+        "file": "miniprogram/pages/auth/login/login.wxml",
+        "line": 27,
+        "kind": "wxml-block",
+        "preview": [
+          "<view wx:if=\"{{isDevEnv}}\" class=\"login-wechat-icon\">生物特征</view>"
+        ]
+      },
+      {
+        "file": "miniprogram/pages/auth/login/login.wxml",
+        "line": 29,
+        "kind": "wxml-block",
+        "preview": [
+          "<view wx:if=\"{{isDevEnv}}\" class=\"login-wechat-title\">使用微信身份识别当前用户</view>"
+        ]
+      },
+      {
+        "file": "miniprogram/pages/auth/login/login.wxml",
+        "line": 36,
+        "kind": "wxml-block",
+        "preview": [
+          "<text wx:if=\"{{isDevEnv}}\" class=\"auth-card-desc\">已注册用户：点击下方按钮，验证人脸/指纹后登录",
+          "未注册用户：将跳转到注册页面填写基础资料</text>"
+        ]
+      },
+      {
+        "file": "miniprogram/pages/auth/login/login.wxml",
+        "line": 40,
+        "kind": "wxml-block",
+        "preview": [
+          "<view wx:if=\"{{statusCard && !isRegistered}}\" class=\"auth-card login-status-card {{statusCard.classN…",
+          "<view class=\"login-status-head\">"
+        ]
+      },
+      {
+        "file": "miniprogram/pages/auth/login/login.wxml",
+        "line": 50,
+        "kind": "wxml-block",
+        "preview": [
+          "<view wx:if=\"{{showRegisterLink}}\" class=\"login-bottom-link\" bindtap=\"goRegister\">尚未注册？去填写注册申请</view…"
+        ]
+      },
+      {
+        "file": "miniprogram/pages/auth/register/register.js",
+        "line": 14,
+        "endLine": 15,
+        "kind": "line-block",
+        "preview": [
+          "mobile: '+55 61 ',",
+          "landline: '+55 61 ',"
+        ]
+      },
+      {
+        "file": "miniprogram/pages/auth/register/register.js",
+        "line": 65,
+        "endLine": 66,
+        "kind": "line-block",
+        "preview": [
+          "mobile: result.request.mobile || '+55 61 ',",
+          "landline: result.request.landline || '+55 61 ',"
+        ]
+      },
+      {
+        "file": "miniprogram/pages/auth/register/register.wxml",
+        "line": 4,
+        "kind": "wxml-block",
+        "preview": [
+          "<view wx:if=\"{{isDevEnv}}\" class=\"auth-brand\">注册</view>"
+        ]
+      },
+      {
+        "file": "miniprogram/pages/auth/register/register.wxml",
+        "line": 8,
+        "kind": "wxml-block",
+        "preview": [
+          "<view wx:if=\"{{isDevEnv}}\" class=\"auth-tip-pill\">姓名</view>"
+        ]
+      },
+      {
+        "file": "miniprogram/pages/auth/register/register.wxml",
+        "line": 9,
+        "kind": "wxml-block",
+        "preview": [
+          "<view wx:if=\"{{isDevEnv}}\" class=\"auth-tip-pill\">角色信息</view>"
+        ]
+      },
+      {
+        "file": "miniprogram/pages/auth/register/register.wxml",
+        "line": 10,
+        "kind": "wxml-block",
+        "preview": [
+          "<view class=\"auth-tip-pill\">管理员标记</view>"
+        ]
+      },
+      {
+        "file": "miniprogram/pages/auth/register/register.wxml",
+        "line": 16,
+        "kind": "wxml-block",
+        "preview": [
+          "<view class=\"auth-card-desc\">审批通过后将自动成为本小程序正式用户。</view>"
+        ]
+      },
+      {
+        "file": "miniprogram/pages/auth/register/register.wxml",
+        "line": 63,
+        "kind": "wxml-block",
+        "preview": [
+          "<view class=\"auth-field\">",
+          "<view class=\"auth-field-label\">手机 <text class=\"auth-field-optional\">（选填）</text></view>"
+        ]
+      },
+      {
+        "file": "miniprogram/pages/office/approval/approval.wxml",
+        "line": 6,
+        "kind": "wxml-block",
+        "preview": [
+          "<view class=\"approval-subtitle\">馆领导、各部门负责人（isDepartmentHead）及管理员可处理申请<text>\\n</text>普通用户只能查看自己提交的申请<…"
+        ]
+      },
+      {
+        "file": "miniprogram/pages/office/approval/approval.wxml",
+        "line": 29,
+        "kind": "wxml-block",
+        "preview": [
+          "<view wx:if=\"{{activeTab == 'pending' && canReview}}\" class=\"office-card approval-type-card\">",
+          "<view class=\"approval-type-grid\">"
+        ]
+      },
+      {
+        "file": "miniprogram/pages/office/arrival-guide/arrival-guide.js",
+        "line": 854,
+        "endLine": 854,
+        "kind": "line-block",
+        "preview": [
+          "this.loadBgImage()"
+        ]
+      },
+      {
+        "file": "miniprogram/pages/office/calendar/calendar.js",
+        "line": 420,
+        "kind": "block",
+        "preview": [
+          "// 更新当前时间线",
+          "this.updateCurrentTime()"
+        ]
+      },
+      {
+        "file": "miniprogram/pages/office/calendar/calendar.js",
+        "line": 441,
+        "endLine": 445,
+        "kind": "line-block",
+        "preview": [
+          "每次显示时重新加载日程列表（时间轴）",
+          "注意：节假日和日程点标记已实现增量加载，不需要在 onShow 重复加载"
+        ]
+      },
+      {
+        "file": "miniprogram/pages/office/calendar/calendar.js",
+        "line": 476,
+        "endLine": 477,
+        "kind": "line-block",
+        "preview": [
+          "加载今日日程",
+          "this.loadSchedules(defaultDate)"
+        ]
+      },
+      {
+        "file": "miniprogram/pages/office/calendar/calendar.js",
+        "line": 734,
+        "endLine": 735,
+        "kind": "line-block",
+        "preview": [
+          "重新加载当前月份",
+          "await this.loadScheduleMarks(currentYear, currentMonth)"
+        ]
+      },
+      {
+        "file": "miniprogram/pages/office/calendar/calendar.js",
+        "line": 789,
+        "endLine": 789,
+        "kind": "line-block",
+        "preview": [
+          "this.loadScheduleMarks(year, month)"
+        ]
+      },
+      {
+        "file": "miniprogram/pages/office/calendar/calendar.js",
+        "line": 811,
+        "endLine": 811,
+        "kind": "line-block",
+        "preview": [
+          "this.loadSchedules(checked)"
+        ]
+      },
+      {
+        "file": "miniprogram/pages/office/calendar/calendar.js",
+        "line": 836,
+        "endLine": 836,
+        "kind": "line-block",
+        "preview": [
+          "this.loadSchedules(checked)"
+        ]
+      },
+      {
+        "file": "miniprogram/pages/office/calendar/calendar.js",
+        "line": 855,
+        "endLine": 856,
+        "kind": "line-block",
+        "preview": [
+          "加载新月份的日程日期标记",
+          "this.loadScheduleMarks(newYear, newMonth)"
+        ]
+      },
+      {
+        "file": "miniprogram/pages/office/calendar/calendar.js",
+        "line": 880,
+        "endLine": 880,
+        "kind": "line-block",
+        "preview": [
+          "this.loadSchedules(this.data.selectedDate)"
+        ]
+      },
+      {
+        "file": "miniprogram/pages/office/calendar/calendar.js",
+        "line": 1808,
+        "endLine": 1808,
+        "kind": "line-block",
+        "preview": [
+          "this.loadSchedules(this.data.selectedDate)"
+        ]
+      },
+      {
+        "file": "miniprogram/pages/office/calendar/calendar.js",
+        "line": 1887,
+        "endLine": 1887,
+        "kind": "line-block",
+        "preview": [
+          "this.loadSchedules(this.data.selectedDate)"
+        ]
+      },
+      {
+        "file": "miniprogram/pages/office/calendar/calendar.wxml",
+        "line": 32,
+        "kind": "wxml-block",
+        "preview": [
+          "<view class=\"schedule-section\" wx:if=\"{{isWeekView && showScheduleSection}}\">"
+        ]
+      },
+      {
+        "file": "miniprogram/pages/office/calendar/calendar.wxml",
+        "line": 57,
+        "kind": "wxml-block",
+        "preview": [
+          "Hour-line似乎没有必要，因为已经有了timeline-grid，注释掉",
+          "<view class=\"hour-line\"></view>"
+        ]
+      },
+      {
+        "file": "miniprogram/pages/office/calendar/calendar.wxss",
+        "line": 398,
+        "kind": "css-block",
+        "preview": [
+          ".hour-line {",
+          "flex: 1;"
+        ]
+      },
+      {
+        "file": "miniprogram/pages/office/form/form-detail/form-detail.wxml",
+        "line": 37,
+        "kind": "wxml-block",
+        "preview": [
+          "<view class=\"fd-card-label\">正文说明</view>"
+        ]
+      },
+      {
+        "file": "miniprogram/pages/office/form/form-detail/form-detail.wxml",
+        "line": 170,
+        "kind": "wxml-block",
+        "preview": [
+          "空控件提示",
+          "<view wx:if=\"{{blocks.length === 0}}\" class=\"office-card form-detail-card\">"
+        ]
+      },
+      {
+        "file": "miniprogram/pages/office/form/form-list/form-list.wxml",
+        "line": 3,
+        "kind": "wxml-block",
+        "preview": [
+          "<view class=\"office-gradient-header form-list-header\">",
+          "<view class=\"form-list-header-row\">"
+        ]
+      },
+      {
+        "file": "miniprogram/pages/office/form/form-result/form-result.wxml",
+        "line": 20,
+        "kind": "wxml-block",
+        "preview": [
+          "<view class=\"fr-block-count\">{{bk.type === 'activity' ? bk.registrationCount : bk.answerCount}} 人{{b…"
+        ]
+      },
+      {
+        "file": "miniprogram/pages/office/haircut/haircut.wxml",
+        "line": 4,
+        "kind": "wxml-block",
+        "preview": [
+          "<view class=\"office-gradient-header haircut-header\">",
+          "<view class=\"haircut-header-content\">"
+        ]
+      },
+      {
+        "file": "miniprogram/pages/office/help/help.wxml",
+        "line": 33,
+        "kind": "wxml-block",
+        "preview": [
+          "<view class=\"help-card\">",
+          "<view class=\"card-header\">"
+        ]
+      },
+      {
+        "file": "miniprogram/pages/office/help/help.wxml",
+        "line": 154,
+        "kind": "wxml-block",
+        "preview": [
+          "<view class=\"help-card\">",
+          "<view class=\"card-header\">"
+        ]
+      },
+      {
+        "file": "miniprogram/pages/office/help/help.wxml",
+        "line": 204,
+        "kind": "wxml-block",
+        "preview": [
+          "<view class=\"help-card\">",
+          "<view class=\"card-header\">"
+        ]
+      },
+      {
+        "file": "miniprogram/pages/office/help/help.wxml",
+        "line": 322,
+        "kind": "wxml-block",
+        "preview": [
+          "========== 通讯录 ==========",
+          "<view class=\"help-section\">"
+        ]
+      },
+      {
+        "file": "miniprogram/pages/office/help/help.wxml",
+        "line": 403,
+        "kind": "wxml-block",
+        "preview": [
+          "<view class=\"help-card\">",
+          "<view class=\"card-header\">"
+        ]
+      },
+      {
+        "file": "miniprogram/pages/office/help/help.wxml",
+        "line": 417,
+        "kind": "wxml-block",
+        "preview": [
+          "<view class=\"help-card\">",
+          "<view class=\"card-header\">"
+        ]
+      },
+      {
+        "file": "miniprogram/pages/office/home/home.js",
+        "line": 65,
+        "kind": "block",
+        "preview": [
+          "{",
+          "icon: '🏥',"
+        ]
+      },
+      {
+        "file": "miniprogram/pages/office/home/home.js",
+        "line": 172,
+        "endLine": 172,
+        "kind": "line-block",
+        "preview": [
+          "this.loadBgImage()"
+        ]
+      },
+      {
+        "file": "miniprogram/pages/office/home/home.js",
+        "line": 178,
+        "endLine": 178,
+        "kind": "line-block",
+        "preview": [
+          "this.loadArticles() //加载学习园地"
+        ]
+      },
+      {
+        "file": "miniprogram/pages/office/home/home.js",
+        "line": 180,
+        "endLine": 180,
+        "kind": "line-block",
+        "preview": [
+          "this.loadTodaySchedules() // 加载今日日程"
+        ]
+      },
+      {
+        "file": "miniprogram/pages/office/home/home.js",
+        "line": 200,
+        "endLine": 200,
+        "kind": "line-block",
+        "preview": [
+          "this.loadSignature()//加载用户签名"
+        ]
+      },
+      {
+        "file": "miniprogram/pages/office/home/home.wxml",
+        "line": 6,
+        "kind": "wxml-block",
+        "preview": [
+          "数据板",
+          "<view class=\"home-stats-card\">"
+        ]
+      },
+      {
+        "file": "miniprogram/pages/office/home/home.wxml",
+        "line": 35,
+        "kind": "wxml-block",
+        "preview": [
+          "<view class=\"home-calendar-tag\">全馆日历</view>"
+        ]
+      },
+      {
+        "file": "miniprogram/pages/office/home/home.wxml",
+        "line": 63,
+        "kind": "wxml-block",
+        "preview": [
+          "<view class=\"office-section-header\">",
+          "<view class=\"office-section-title\">功能面板</view>"
+        ]
+      },
+      {
+        "file": "miniprogram/pages/office/home/home.wxml",
+        "line": 102,
+        "kind": "wxml-block",
+        "preview": [
+          "今日日程",
+          "<view wx:if=\"false\" class=\"office-section\">"
+        ]
+      },
+      {
+        "file": "miniprogram/pages/office/home/home.wxss",
+        "line": 58,
+        "kind": "css-block",
+        "preview": [
+          ".home-bg-gradient {",
+          "position: absolute;"
+        ]
+      },
+      {
+        "file": "miniprogram/pages/office/profile/edit-profile/edit-profile.js",
+        "line": 30,
+        "endLine": 31,
+        "kind": "line-block",
+        "preview": [
+          "mobile: '+55 61 ',",
+          "landline: '+55 61 ',"
+        ]
+      },
+      {
+        "file": "miniprogram/pages/office/profile/edit-profile/edit-profile.js",
+        "line": 178,
+        "endLine": 179,
+        "kind": "line-block",
+        "preview": [
+          "mobile: user.mobile || '+55 61 ',",
+          "landline: user.landline || '+55 61 ',"
+        ]
+      },
+      {
+        "file": "miniprogram/pages/office/profile/edit-profile/edit-profile.wxml",
+        "line": 6,
+        "kind": "wxml-block",
+        "preview": [
+          "<view class=\"auth-brand\">编辑</view>"
+        ]
+      },
+      {
+        "file": "miniprogram/pages/office/profile/edit-profile/edit-profile.wxml",
+        "line": 75,
+        "kind": "wxml-block",
+        "preview": [
+          "<view class=\"auth-field\">",
+          "<view class=\"auth-field-label\">手机 <text class=\"auth-field-optional\">（选填）</text></view>"
+        ]
+      },
+      {
+        "file": "miniprogram/pages/office/profile/profile.js",
+        "line": 61,
+        "kind": "block",
+        "preview": [
+          "{",
+          "icon: '✍️',"
+        ]
+      },
+      {
+        "file": "miniprogram/pages/office/profile/profile.wxml",
+        "line": 4,
+        "kind": "wxml-block",
+        "preview": [
+          "<view class=\"profile-theme-switch\" bindtap=\"showComingSoon\">{{primaryTag}}</view>"
+        ]
+      },
+      {
+        "file": "miniprogram/pages/office/profile/profile.wxml",
+        "line": 16,
+        "kind": "wxml-block",
+        "preview": [
+          "<view class=\"profile-tag\">{{primaryTag}}</view>"
+        ]
+      },
+      {
+        "file": "miniprogram/pages/office/profile/profile.wxml",
+        "line": 20,
+        "kind": "wxml-block",
+        "preview": [
+          "<view class=\"profile-arrow\">›</view>"
+        ]
+      },
+      {
+        "file": "miniprogram/pages/office/profile/profile.wxml",
+        "line": 23,
+        "kind": "wxml-block",
+        "preview": [
+          "<view class=\"profile-stats-grid\">",
+          "<view class=\"profile-stat-item\" wx:for=\"{{stats}}\" wx:key=\"label\">"
+        ]
+      },
+      {
+        "file": "miniprogram/pages/office/profile/profile.wxml",
+        "line": 33,
+        "kind": "wxml-block",
+        "preview": [
+          "<view class=\"profile-reward-card\">",
+          "<view class=\"profile-reward-icon\">🏆</view>"
+        ]
+      },
+      {
+        "file": "miniprogram/pages/office/profile/profile.wxml",
+        "line": 72,
+        "kind": "wxml-block",
+        "preview": [
+          "<view class=\"profile-company-logo\">🏢</view>"
+        ]
+      },
+      {
+        "file": "miniprogram/pages/office/profile/profile.wxss",
+        "line": 105,
+        "kind": "css-block",
+        "preview": [
+          ".profile-tag.is-light {",
+          "background: rgba(255, 255, 255, 0.1);"
+        ]
+      },
+      {
+        "file": "miniprogram/pages/office/trip-board/trip-board.wxml",
+        "line": 5,
+        "kind": "wxml-block",
+        "preview": [
+          "第一组：统计图表（占位）",
+          "<view class=\"board-chart-section\">"
+        ]
+      },
+      {
+        "file": "miniprogram/pages/office/trip-report/trip-report.wxml",
+        "line": 4,
+        "kind": "wxml-block",
+        "preview": [
+          "<view class=\"office-gradient-header office-subpage-header\">",
+          "<view class=\"office-subpage-header-content\">"
+        ]
+      }
+    ],
+    "unusedFiles": [
+      "cloudfunctions/generateOrderPdf/package-lock.json",
+      "cloudfunctions/menuManager/package-lock.json",
+      "miniprogram/components/pagination-loading/pagination-loading.js",
+      "miniprogram/components/pagination-loading/pagination-loading.json",
+      "miniprogram/components/pagination-loading/pagination-loading.wxss"
+    ],
+    "unusedSymbols": [
+      {
+        "file": "miniprogram/app.js",
+        "line": 323,
+        "kind": "method",
+        "name": "watchThemeChange"
+      },
+      {
+        "file": "miniprogram/app.js",
+        "line": 329,
+        "kind": "method",
+        "name": "unWatchThemeChange"
+      },
+      {
+        "file": "miniprogram/app.js",
+        "line": 578,
+        "kind": "method",
+        "name": "restoreAuthState"
+      },
+      {
+        "file": "miniprogram/app.js",
+        "line": 642,
+        "kind": "method",
+        "name": "getUserOpenId"
+      },
+      {
+        "file": "miniprogram/app.js",
+        "line": 932,
+        "kind": "method",
+        "name": "ensureApprovedUser"
+      },
+      {
+        "file": "miniprogram/app.js",
+        "line": 1318,
+        "kind": "method",
+        "name": "switchTabWithPermission"
+      },
+      {
+        "file": "miniprogram/app.js",
+        "line": 1434,
+        "kind": "method",
+        "name": "getPermissionInfo"
+      },
+      {
+        "file": "miniprogram/app.js",
+        "line": 1628,
+        "kind": "method",
+        "name": "getConstant"
+      },
+      {
+        "file": "miniprogram/app.js",
+        "line": 1741,
+        "kind": "method",
+        "name": "getAllHolidaysSync"
+      },
+      {
+        "file": "miniprogram/pages/auth/login/login.js",
+        "line": 536,
+        "kind": "method",
+        "name": "goRegister"
+      },
+      {
+        "file": "miniprogram/pages/office/approval/approval.js",
+        "line": 807,
+        "kind": "method",
+        "name": "handleReview"
+      },
+      {
+        "file": "miniprogram/pages/office/calendar/calendar.js",
+        "line": 23,
+        "kind": "const",
+        "name": "CONFIG_HOLIDAY_ALLOWED_ROLES"
+      },
+      {
+        "file": "miniprogram/pages/office/calendar/calendar.js",
+        "line": 501,
+        "kind": "method",
+        "name": "checkManageSchedulePermission"
+      },
+      {
+        "file": "miniprogram/pages/office/calendar/calendar.js",
+        "line": 550,
+        "kind": "method",
+        "name": "setCalendarMarks"
+      },
+      {
+        "file": "miniprogram/pages/office/calendar/calendar.js",
+        "line": 591,
+        "kind": "method",
+        "name": "loadScheduleMarks"
+      },
+      {
+        "file": "miniprogram/pages/office/calendar/calendar.js",
+        "line": 902,
+        "kind": "method",
+        "name": "loadSchedules"
+      },
+      {
+        "file": "miniprogram/pages/office/haircut/haircut.js",
+        "line": 884,
+        "kind": "method",
+        "name": "handleConfirmCancelSlot"
+      },
+      {
+        "file": "miniprogram/pages/office/home/home.js",
+        "line": 270,
+        "kind": "method",
+        "name": "loadSignature"
+      },
+      {
+        "file": "miniprogram/pages/office/home/home.js",
+        "line": 440,
+        "kind": "method",
+        "name": "goApprovalTab"
+      },
+      {
+        "file": "miniprogram/pages/office/home/home.js",
+        "line": 543,
+        "kind": "method",
+        "name": "formatAnnouncement"
+      },
+      {
+        "file": "miniprogram/pages/office/home/home.js",
+        "line": 577,
+        "kind": "method",
+        "name": "loadArticles"
+      },
+      {
+        "file": "miniprogram/pages/office/home/home.js",
+        "line": 751,
+        "kind": "method",
+        "name": "loadTodaySchedules"
+      },
+      {
+        "file": "miniprogram/pages/office/menus/menus.js",
+        "line": 116,
+        "kind": "method",
+        "name": "loadMenus"
+      },
+      {
+        "file": "miniprogram/pages/office/profile/profile.js",
+        "line": 266,
+        "kind": "method",
+        "name": "onChangeStatus"
+      },
+      {
+        "file": "miniprogram/pages/office/trip-report/trip-report.js",
+        "line": 499,
+        "kind": "method",
+        "name": "formatDateForPicker"
+      },
+      {
+        "file": "miniprogram/pages/office/trip-report/trip-report.js",
+        "line": 509,
+        "kind": "method",
+        "name": "formatDateTimeForPicker"
+      },
+      {
+        "file": "cloudfunctions/officeAuth/index.js",
+        "line": 191,
+        "kind": "function",
+        "name": "getPositionOptions"
+      },
+      {
+        "file": "cloudfunctions/officeAuth/index.js",
+        "line": 201,
+        "kind": "function",
+        "name": "getRoleOptions"
+      },
+      {
+        "file": "cloudfunctions/officeAuth/index.js",
+        "line": 206,
+        "kind": "function",
+        "name": "getGenderOptions"
+      },
+      {
+        "file": "cloudfunctions/officeAuth/index.js",
+        "line": 279,
+        "kind": "function",
+        "name": "createRequestNo"
+      },
+      {
+        "file": "cloudfunctions/workflowEngine/index.js",
+        "line": 51,
+        "kind": "prop",
+        "name": "AUTO_APPROVE"
+      },
+      {
+        "file": "cloudfunctions/workflowEngine/index.js",
+        "line": 52,
+        "kind": "prop",
+        "name": "AUTO_REJECT"
+      },
+      {
+        "file": "cloudfunctions/workflowEngine/index.js",
+        "line": 53,
+        "kind": "prop",
+        "name": "ESCALATE"
+      }
+    ],
+    "frameworkHooks": [
+      {
+        "file": "miniprogram/app.js",
+        "line": 160,
+        "kind": "method",
+        "name": "onLaunch"
+      },
+      {
+        "file": "miniprogram/app.js",
+        "line": 299,
+        "kind": "method",
+        "name": "onShow"
+      },
+      {
+        "file": "miniprogram/app.js",
+        "line": 304,
+        "kind": "method",
+        "name": "onHide"
+      },
+      {
+        "file": "miniprogram/app.js",
+        "line": 308,
+        "kind": "method",
+        "name": "onThemeChange"
+      },
+      {
+        "file": "miniprogram/behaviors/customToast.js",
+        "line": 29,
+        "kind": "prop",
+        "name": "data"
+      },
+      {
+        "file": "miniprogram/behaviors/customToast.js",
+        "line": 39,
+        "kind": "prop",
+        "name": "methods"
+      },
+      {
+        "file": "miniprogram/behaviors/customToast.js",
+        "line": 62,
+        "kind": "method",
+        "name": "detached"
+      },
+      {
+        "file": "miniprogram/behaviors/modalAnimation.js",
+        "line": 17,
+        "kind": "prop",
+        "name": "data"
+      },
+      {
+        "file": "miniprogram/behaviors/modalAnimation.js",
+        "line": 21,
+        "kind": "prop",
+        "name": "methods"
+      },
+      {
+        "file": "miniprogram/behaviors/pagination.js",
+        "line": 20,
+        "kind": "prop",
+        "name": "behaviors"
+      },
+      {
+        "file": "miniprogram/behaviors/pagination.js",
+        "line": 22,
+        "kind": "prop",
+        "name": "data"
+      },
+      {
+        "file": "miniprogram/behaviors/pagination.js",
+        "line": 31,
+        "kind": "prop",
+        "name": "methods"
+      },
+      {
+        "file": "miniprogram/behaviors/pullDownClose.js",
+        "line": 28,
+        "kind": "prop",
+        "name": "methods"
+      },
+      {
+        "file": "miniprogram/components/approval-card/approval-card.js",
+        "line": 6,
+        "kind": "prop",
+        "name": "options"
+      },
+      {
+        "file": "miniprogram/components/approval-card/approval-card.js",
+        "line": 10,
+        "kind": "prop",
+        "name": "properties"
+      },
+      {
+        "file": "miniprogram/components/approval-card/approval-card.js",
+        "line": 28,
+        "kind": "prop",
+        "name": "data"
+      },
+      {
+        "file": "miniprogram/components/approval-card/approval-card.js",
+        "line": 37,
+        "kind": "prop",
+        "name": "methods"
+      },
+      {
+        "file": "miniprogram/components/approval-detail/approval-detail.js",
+        "line": 6,
+        "kind": "prop",
+        "name": "options"
+      },
+      {
+        "file": "miniprogram/components/approval-detail/approval-detail.js",
+        "line": 10,
+        "kind": "prop",
+        "name": "properties"
+      },
+      {
+        "file": "miniprogram/components/approval-detail/approval-detail.js",
+        "line": 43,
+        "kind": "prop",
+        "name": "data"
+      },
+      {
+        "file": "miniprogram/components/approval-detail/approval-detail.js",
+        "line": 59,
+        "kind": "prop",
+        "name": "observers"
+      },
+      {
+        "file": "miniprogram/components/approval-detail/approval-detail.js",
+        "line": 123,
+        "kind": "prop",
+        "name": "methods"
+      },
+      {
+        "file": "miniprogram/components/datetime-picker/datetime-picker.js",
+        "line": 7,
+        "kind": "prop",
+        "name": "properties"
+      },
+      {
+        "file": "miniprogram/components/datetime-picker/datetime-picker.js",
+        "line": 61,
+        "kind": "prop",
+        "name": "data"
+      },
+      {
+        "file": "miniprogram/components/datetime-picker/datetime-picker.js",
+        "line": 116,
+        "kind": "prop",
+        "name": "lifetimes"
+      },
+      {
+        "file": "miniprogram/components/datetime-picker/datetime-picker.js",
+        "line": 122,
+        "kind": "prop",
+        "name": "methods"
+      },
+      {
+        "file": "miniprogram/components/multiuse-modal/multiuse-modal.js",
+        "line": 25,
+        "kind": "prop",
+        "name": "options"
+      },
+      {
+        "file": "miniprogram/components/multiuse-modal/multiuse-modal.js",
+        "line": 29,
+        "kind": "prop",
+        "name": "properties"
+      },
+      {
+        "file": "miniprogram/components/multiuse-modal/multiuse-modal.js",
+        "line": 41,
+        "kind": "prop",
+        "name": "data"
+      },
+      {
+        "file": "miniprogram/components/multiuse-modal/multiuse-modal.js",
+        "line": 50,
+        "kind": "prop",
+        "name": "observers"
+      },
+      {
+        "file": "miniprogram/components/multiuse-modal/multiuse-modal.js",
+        "line": 60,
+        "kind": "prop",
+        "name": "lifetimes"
+      },
+      {
+        "file": "miniprogram/components/multiuse-modal/multiuse-modal.js",
+        "line": 66,
+        "kind": "prop",
+        "name": "methods"
+      },
+      {
+        "file": "miniprogram/components/pagination-loading/pagination-loading.js",
+        "line": 14,
+        "kind": "prop",
+        "name": "properties"
+      },
+      {
+        "file": "miniprogram/components/pagination-loading/pagination-loading.js",
+        "line": 32,
+        "kind": "prop",
+        "name": "data"
+      },
+      {
+        "file": "miniprogram/components/pagination-loading/pagination-loading.js",
+        "line": 36,
+        "kind": "prop",
+        "name": "methods"
+      },
+      {
+        "file": "miniprogram/components/watermark/watermark.js",
+        "line": 17,
+        "kind": "prop",
+        "name": "properties"
+      },
+      {
+        "file": "miniprogram/components/watermark/watermark.js",
+        "line": 80,
+        "kind": "prop",
+        "name": "data"
+      },
+      {
+        "file": "miniprogram/components/watermark/watermark.js",
+        "line": 87,
+        "kind": "prop",
+        "name": "lifetimes"
+      },
+      {
+        "file": "miniprogram/components/watermark/watermark.js",
+        "line": 102,
+        "kind": "prop",
+        "name": "observers"
+      },
+      {
+        "file": "miniprogram/components/watermark/watermark.js",
+        "line": 111,
+        "kind": "prop",
+        "name": "methods"
+      },
+      {
+        "file": "miniprogram/pages/auth/fill-detail/fill-detail.js",
+        "line": 4,
+        "kind": "prop",
+        "name": "data"
+      },
+      {
+        "file": "miniprogram/pages/auth/fill-detail/fill-detail.js",
+        "line": 28,
+        "kind": "method",
+        "name": "onLoad"
+      },
+      {
+        "file": "miniprogram/pages/auth/fill-detail/fill-detail.js",
+        "line": 32,
+        "kind": "method",
+        "name": "onShow"
+      },
+      {
+        "file": "miniprogram/pages/auth/login/login.js",
+        "line": 73,
+        "kind": "prop",
+        "name": "behaviors"
+      },
+      {
+        "file": "miniprogram/pages/auth/login/login.js",
+        "line": 75,
+        "kind": "prop",
+        "name": "data"
+      },
+      {
+        "file": "miniprogram/pages/auth/login/login.js",
+        "line": 132,
+        "kind": "method",
+        "name": "onShow"
+      },
+      {
+        "file": "miniprogram/pages/auth/login/login.js",
+        "line": 160,
+        "kind": "method",
+        "name": "onPullDownRefresh"
+      },
+      {
+        "file": "miniprogram/pages/auth/register/register.js",
+        "line": 5,
+        "kind": "prop",
+        "name": "data"
+      },
+      {
+        "file": "miniprogram/pages/auth/register/register.js",
+        "line": 21,
+        "kind": "method",
+        "name": "onLoad"
+      },
+      {
+        "file": "miniprogram/pages/auth/register/register.js",
+        "line": 29,
+        "kind": "method",
+        "name": "onShow"
+      },
+      {
+        "file": "miniprogram/pages/office/approval/approval.js",
+        "line": 239,
+        "kind": "prop",
+        "name": "behaviors"
+      },
+      {
+        "file": "miniprogram/pages/office/approval/approval.js",
+        "line": 240,
+        "kind": "prop",
+        "name": "data"
+      },
+      {
+        "file": "miniprogram/pages/office/approval/approval.js",
+        "line": 295,
+        "kind": "method",
+        "name": "onLoad"
+      },
+      {
+        "file": "miniprogram/pages/office/approval/approval.js",
+        "line": 371,
+        "kind": "method",
+        "name": "onShow"
+      },
+      {
+        "file": "miniprogram/pages/office/approval/approval.js",
+        "line": 577,
+        "kind": "method",
+        "name": "onReachBottom"
+      },
+      {
+        "file": "miniprogram/pages/office/approval/approval.js",
+        "line": 581,
+        "kind": "method",
+        "name": "onPullDownRefresh"
+      },
+      {
+        "file": "miniprogram/pages/office/arrival-guide/arrival-guide.js",
+        "line": 5,
+        "kind": "prop",
+        "name": "data"
+      },
+      {
+        "file": "miniprogram/pages/office/arrival-guide/arrival-guide.js",
+        "line": 848,
+        "kind": "method",
+        "name": "onLoad"
+      },
+      {
+        "file": "miniprogram/pages/office/arrival-guide/arrival-guide.js",
+        "line": 885,
+        "kind": "method",
+        "name": "onShow"
+      },
+      {
+        "file": "miniprogram/pages/office/calendar/calendar.js",
+        "line": 296,
+        "kind": "prop",
+        "name": "behaviors"
+      },
+      {
+        "file": "miniprogram/pages/office/calendar/calendar.js",
+        "line": 298,
+        "kind": "prop",
+        "name": "data"
+      },
+      {
+        "file": "miniprogram/pages/office/calendar/calendar.js",
+        "line": 384,
+        "kind": "method",
+        "name": "onLoad"
+      },
+      {
+        "file": "miniprogram/pages/office/calendar/calendar.js",
+        "line": 432,
+        "kind": "method",
+        "name": "onShow"
+      },
+      {
+        "file": "miniprogram/pages/office/calendar/calendar.js",
+        "line": 448,
+        "kind": "method",
+        "name": "onUnload"
+      },
+      {
+        "file": "miniprogram/pages/office/form/form-compare/form-compare.js",
+        "line": 11,
+        "kind": "prop",
+        "name": "data"
+      },
+      {
+        "file": "miniprogram/pages/office/form/form-compare/form-compare.js",
+        "line": 24,
+        "kind": "method",
+        "name": "onLoad"
+      },
+      {
+        "file": "miniprogram/pages/office/form/form-compare/form-compare.js",
+        "line": 38,
+        "kind": "method",
+        "name": "onShow"
+      },
+      {
+        "file": "miniprogram/pages/office/form/form-detail/form-detail.js",
+        "line": 101,
+        "kind": "prop",
+        "name": "behaviors"
+      },
+      {
+        "file": "miniprogram/pages/office/form/form-detail/form-detail.js",
+        "line": 103,
+        "kind": "prop",
+        "name": "data"
+      },
+      {
+        "file": "miniprogram/pages/office/form/form-detail/form-detail.js",
+        "line": 133,
+        "kind": "method",
+        "name": "onLoad"
+      },
+      {
+        "file": "miniprogram/pages/office/form/form-detail/form-detail.js",
+        "line": 146,
+        "kind": "method",
+        "name": "onShow"
+      },
+      {
+        "file": "miniprogram/pages/office/form/form-edit/form-edit.js",
+        "line": 109,
+        "kind": "prop",
+        "name": "behaviors"
+      },
+      {
+        "file": "miniprogram/pages/office/form/form-edit/form-edit.js",
+        "line": 111,
+        "kind": "prop",
+        "name": "data"
+      },
+      {
+        "file": "miniprogram/pages/office/form/form-edit/form-edit.js",
+        "line": 188,
+        "kind": "method",
+        "name": "onLoad"
+      },
+      {
+        "file": "miniprogram/pages/office/form/form-edit/form-edit.js",
+        "line": 212,
+        "kind": "method",
+        "name": "onShow"
+      },
+      {
+        "file": "miniprogram/pages/office/form/form-list/form-list.js",
+        "line": 7,
+        "kind": "prop",
+        "name": "behaviors"
+      },
+      {
+        "file": "miniprogram/pages/office/form/form-list/form-list.js",
+        "line": 9,
+        "kind": "prop",
+        "name": "data"
+      },
+      {
+        "file": "miniprogram/pages/office/form/form-list/form-list.js",
+        "line": 17,
+        "kind": "method",
+        "name": "onLoad"
+      },
+      {
+        "file": "miniprogram/pages/office/form/form-list/form-list.js",
+        "line": 38,
+        "kind": "method",
+        "name": "onShow"
+      },
+      {
+        "file": "miniprogram/pages/office/form/form-result/form-result.js",
+        "line": 6,
+        "kind": "prop",
+        "name": "data"
+      },
+      {
+        "file": "miniprogram/pages/office/form/form-result/form-result.js",
+        "line": 15,
+        "kind": "method",
+        "name": "onLoad"
+      },
+      {
+        "file": "miniprogram/pages/office/form/form-result/form-result.js",
+        "line": 26,
+        "kind": "method",
+        "name": "onShow"
+      },
+      {
+        "file": "miniprogram/pages/office/form/form-submissions/form-submissions.js",
+        "line": 13,
+        "kind": "prop",
+        "name": "data"
+      },
+      {
+        "file": "miniprogram/pages/office/form/form-submissions/form-submissions.js",
+        "line": 30,
+        "kind": "method",
+        "name": "onLoad"
+      },
+      {
+        "file": "miniprogram/pages/office/form/form-submissions/form-submissions.js",
+        "line": 41,
+        "kind": "method",
+        "name": "onShow"
+      },
+      {
+        "file": "miniprogram/pages/office/haircut/haircut.js",
+        "line": 63,
+        "kind": "prop",
+        "name": "behaviors"
+      },
+      {
+        "file": "miniprogram/pages/office/haircut/haircut.js",
+        "line": 65,
+        "kind": "prop",
+        "name": "data"
+      },
+      {
+        "file": "miniprogram/pages/office/haircut/haircut.js",
+        "line": 137,
+        "kind": "method",
+        "name": "onLoad"
+      },
+      {
+        "file": "miniprogram/pages/office/haircut/haircut.js",
+        "line": 146,
+        "kind": "method",
+        "name": "onShow"
+      },
+      {
+        "file": "miniprogram/pages/office/haircut/haircut.js",
+        "line": 161,
+        "kind": "method",
+        "name": "onPullDownRefresh"
+      },
+      {
+        "file": "miniprogram/pages/office/help/help.js",
+        "line": 9,
+        "kind": "prop",
+        "name": "data"
+      },
+      {
+        "file": "miniprogram/pages/office/help/help.js",
+        "line": 17,
+        "kind": "method",
+        "name": "onLoad"
+      },
+      {
+        "file": "miniprogram/pages/office/help/help.js",
+        "line": 24,
+        "kind": "method",
+        "name": "onReady"
+      },
+      {
+        "file": "miniprogram/pages/office/help/help.js",
+        "line": 31,
+        "kind": "method",
+        "name": "onShow"
+      },
+      {
+        "file": "miniprogram/pages/office/help/help.js",
+        "line": 68,
+        "kind": "method",
+        "name": "onHide"
+      },
+      {
+        "file": "miniprogram/pages/office/help/help.js",
+        "line": 75,
+        "kind": "method",
+        "name": "onUnload"
+      },
+      {
+        "file": "miniprogram/pages/office/help/help.js",
+        "line": 82,
+        "kind": "method",
+        "name": "onPullDownRefresh"
+      },
+      {
+        "file": "miniprogram/pages/office/help/help.js",
+        "line": 89,
+        "kind": "method",
+        "name": "onReachBottom"
+      },
+      {
+        "file": "miniprogram/pages/office/help/help.js",
+        "line": 96,
+        "kind": "method",
+        "name": "onShareAppMessage"
+      },
+      {
+        "file": "miniprogram/pages/office/home/home.js",
+        "line": 14,
+        "kind": "prop",
+        "name": "data"
+      },
+      {
+        "file": "miniprogram/pages/office/home/home.js",
+        "line": 155,
+        "kind": "method",
+        "name": "onShow"
+      },
+      {
+        "file": "miniprogram/pages/office/interest-class/interest-class.js",
+        "line": 10,
+        "kind": "prop",
+        "name": "behaviors"
+      },
+      {
+        "file": "miniprogram/pages/office/interest-class/interest-class.js",
+        "line": 12,
+        "kind": "prop",
+        "name": "data"
+      },
+      {
+        "file": "miniprogram/pages/office/interest-class/interest-class.js",
+        "line": 45,
+        "kind": "method",
+        "name": "onLoad"
+      },
+      {
+        "file": "miniprogram/pages/office/interest-class/interest-class.js",
+        "line": 49,
+        "kind": "method",
+        "name": "onShow"
+      },
+      {
+        "file": "miniprogram/pages/office/interest-class/interest-class.js",
+        "line": 434,
+        "kind": "method",
+        "name": "onReachBottom"
+      },
+      {
+        "file": "miniprogram/pages/office/interest-class/interest-class.js",
+        "line": 438,
+        "kind": "method",
+        "name": "onPullDownRefresh"
+      },
+      {
+        "file": "miniprogram/pages/office/menu-detail/menu-detail.js",
+        "line": 15,
+        "kind": "prop",
+        "name": "behaviors"
+      },
+      {
+        "file": "miniprogram/pages/office/menu-detail/menu-detail.js",
+        "line": 17,
+        "kind": "prop",
+        "name": "data"
+      },
+      {
+        "file": "miniprogram/pages/office/menu-detail/menu-detail.js",
+        "line": 39,
+        "kind": "method",
+        "name": "onLoad"
+      },
+      {
+        "file": "miniprogram/pages/office/menu-detail/menu-detail.js",
+        "line": 51,
+        "kind": "method",
+        "name": "onShow"
+      },
+      {
+        "file": "miniprogram/pages/office/menu-edit/menu-edit.js",
+        "line": 5,
+        "kind": "prop",
+        "name": "data"
+      },
+      {
+        "file": "miniprogram/pages/office/menu-edit/menu-edit.js",
+        "line": 17,
+        "kind": "method",
+        "name": "onLoad"
+      },
+      {
+        "file": "miniprogram/pages/office/menu-edit/menu-edit.js",
+        "line": 32,
+        "kind": "method",
+        "name": "onShow"
+      },
+      {
+        "file": "miniprogram/pages/office/menus/menus.js",
+        "line": 16,
+        "kind": "prop",
+        "name": "behaviors"
+      },
+      {
+        "file": "miniprogram/pages/office/menus/menus.js",
+        "line": 18,
+        "kind": "prop",
+        "name": "data"
+      },
+      {
+        "file": "miniprogram/pages/office/menus/menus.js",
+        "line": 28,
+        "kind": "method",
+        "name": "onLoad"
+      },
+      {
+        "file": "miniprogram/pages/office/menus/menus.js",
+        "line": 40,
+        "kind": "method",
+        "name": "onShow"
+      },
+      {
+        "file": "miniprogram/pages/office/menus/menus.js",
+        "line": 215,
+        "kind": "method",
+        "name": "onReachBottom"
+      },
+      {
+        "file": "miniprogram/pages/office/menus/menus.js",
+        "line": 222,
+        "kind": "method",
+        "name": "onPullDownRefresh"
+      },
+      {
+        "file": "miniprogram/pages/office/notifications/notifications.js",
+        "line": 9,
+        "kind": "prop",
+        "name": "behaviors"
+      },
+      {
+        "file": "miniprogram/pages/office/notifications/notifications.js",
+        "line": 11,
+        "kind": "prop",
+        "name": "data"
+      },
+      {
+        "file": "miniprogram/pages/office/notifications/notifications.js",
+        "line": 17,
+        "kind": "method",
+        "name": "onLoad"
+      },
+      {
+        "file": "miniprogram/pages/office/notifications/notifications.js",
+        "line": 33,
+        "kind": "method",
+        "name": "onShow"
+      },
+      {
+        "file": "miniprogram/pages/office/personnel-config/personnel-config.js",
+        "line": 30,
+        "kind": "prop",
+        "name": "behaviors"
+      },
+      {
+        "file": "miniprogram/pages/office/personnel-config/personnel-config.js",
+        "line": 32,
+        "kind": "prop",
+        "name": "data"
+      },
+      {
+        "file": "miniprogram/pages/office/personnel-config/personnel-config.js",
+        "line": 77,
+        "kind": "method",
+        "name": "onLoad"
+      },
+      {
+        "file": "miniprogram/pages/office/personnel-config/personnel-config.js",
+        "line": 86,
+        "kind": "method",
+        "name": "onShow"
+      },
+      {
+        "file": "miniprogram/pages/office/profile/edit-profile/edit-profile.js",
+        "line": 5,
+        "kind": "prop",
+        "name": "data"
+      },
+      {
+        "file": "miniprogram/pages/office/profile/edit-profile/edit-profile.js",
+        "line": 37,
+        "kind": "method",
+        "name": "onLoad"
+      },
+      {
+        "file": "miniprogram/pages/office/profile/edit-profile/edit-profile.js",
+        "line": 61,
+        "kind": "method",
+        "name": "onShow"
+      },
+      {
+        "file": "miniprogram/pages/office/profile/profile.js",
+        "line": 6,
+        "kind": "prop",
+        "name": "data"
+      },
+      {
+        "file": "miniprogram/pages/office/profile/profile.js",
+        "line": 102,
+        "kind": "method",
+        "name": "onShow"
+      },
+      {
+        "file": "miniprogram/pages/office/trip-board/trip-board.js",
+        "line": 15,
+        "kind": "prop",
+        "name": "behaviors"
+      },
+      {
+        "file": "miniprogram/pages/office/trip-board/trip-board.js",
+        "line": 17,
+        "kind": "prop",
+        "name": "data"
+      },
+      {
+        "file": "miniprogram/pages/office/trip-board/trip-board.js",
+        "line": 44,
+        "kind": "method",
+        "name": "onLoad"
+      },
+      {
+        "file": "miniprogram/pages/office/trip-board/trip-board.js",
+        "line": 62,
+        "kind": "method",
+        "name": "onShow"
+      },
+      {
+        "file": "miniprogram/pages/office/trip-board/trip-board.js",
+        "line": 589,
+        "kind": "method",
+        "name": "onPullDownRefresh"
+      },
+      {
+        "file": "miniprogram/pages/office/trip-report/trip-report.js",
+        "line": 44,
+        "kind": "prop",
+        "name": "behaviors"
+      },
+      {
+        "file": "miniprogram/pages/office/trip-report/trip-report.js",
+        "line": 46,
+        "kind": "prop",
+        "name": "data"
+      },
+      {
+        "file": "miniprogram/pages/office/trip-report/trip-report.js",
+        "line": 92,
+        "kind": "method",
+        "name": "onLoad"
+      },
+      {
+        "file": "miniprogram/pages/office/trip-report/trip-report.js",
+        "line": 110,
+        "kind": "method",
+        "name": "onShow"
+      },
+      {
+        "file": "miniprogram/pages/office/trip-report/trip-report.js",
+        "line": 144,
+        "kind": "method",
+        "name": "onHide"
+      },
+      {
+        "file": "miniprogram/pages/office/trip-report/trip-report.js",
+        "line": 1165,
+        "kind": "method",
+        "name": "onReachBottom"
+      },
+      {
+        "file": "miniprogram/pages/office/trip-report/trip-report.js",
+        "line": 1169,
+        "kind": "method",
+        "name": "onPullDownRefresh"
+      }
+    ],
+    "unusedClasses": [
+      {
+        "file": "miniprogram/app.wxss",
+        "className": "is-focused"
+      },
+      {
+        "file": "miniprogram/app.wxss",
+        "className": "plain-hint"
+      },
+      {
+        "file": "miniprogram/components/datetime-picker/datetime-picker.wxss",
+        "className": "picker-trigger--default"
+      },
+      {
+        "file": "miniprogram/components/datetime-picker/datetime-picker.wxss",
+        "className": "picker-trigger--card"
+      },
+      {
+        "file": "miniprogram/components/datetime-picker/datetime-picker.wxss",
+        "className": "picker-trigger--border"
+      },
+      {
+        "file": "miniprogram/components/datetime-picker/datetime-picker.wxss",
+        "className": "picker-column-item--year"
+      },
+      {
+        "file": "miniprogram/components/datetime-picker/datetime-picker.wxss",
+        "className": "picker-column-item--weekday"
+      },
+      {
+        "file": "miniprogram/pages/auth/register/register.wxss",
+        "className": "auth-nickname-tip"
+      },
+      {
+        "file": "miniprogram/pages/office/arrival-guide/arrival-guide.wxss",
+        "className": "nav-placeholder"
+      },
+      {
+        "file": "miniprogram/pages/office/calendar/calendar.wxss",
+        "className": "config-date-picker"
+      },
+      {
+        "file": "miniprogram/pages/office/calendar/calendar.wxss",
+        "className": "schedule-field-value-content-repeatEndDate"
+      },
+      {
+        "file": "miniprogram/pages/office/calendar/calendar.wxss",
+        "className": "schedule-time-row"
+      },
+      {
+        "file": "miniprogram/pages/office/calendar/calendar.wxss",
+        "className": "schedule-picker-wrapper"
+      },
+      {
+        "file": "miniprogram/pages/office/calendar/calendar.wxss",
+        "className": "schedule-picker-time"
+      },
+      {
+        "file": "miniprogram/pages/office/calendar/calendar.wxss",
+        "className": "date-picker-container"
+      },
+      {
+        "file": "miniprogram/pages/office/form/form-detail/form-detail.wxss",
+        "className": "fd-rich"
+      },
+      {
+        "file": "miniprogram/pages/office/form/form-detail/form-detail.wxss",
+        "className": "fd-text-block"
+      },
+      {
+        "file": "miniprogram/pages/office/form/form-edit/form-edit.wxss",
+        "className": "ql-editor"
+      },
+      {
+        "file": "miniprogram/pages/office/form/form-edit/form-edit.wxss",
+        "className": "ql-blank"
+      },
+      {
+        "file": "miniprogram/pages/office/form/form-edit/form-edit.wxss",
+        "className": "fe-picker"
+      },
+      {
+        "file": "miniprogram/pages/office/form/form-edit/form-edit.wxss",
+        "className": "fe-btn-preview"
+      },
+      {
+        "file": "miniprogram/pages/office/form/form-submissions/form-submissions.wxss",
+        "className": "fs-sort-btn"
+      },
+      {
+        "file": "miniprogram/pages/office/form/form-submissions/form-submissions.wxss",
+        "className": "fs-filter-btn"
+      },
+      {
+        "file": "miniprogram/pages/office/haircut/haircut.wxss",
+        "className": "date-item-right"
+      },
+      {
+        "file": "miniprogram/pages/office/haircut/haircut.wxss",
+        "className": "is-available"
+      },
+      {
+        "file": "miniprogram/pages/office/haircut/haircut.wxss",
+        "className": "is-myBooked"
+      },
+      {
+        "file": "miniprogram/pages/office/haircut/haircut.wxss",
+        "className": "is-unavailable"
+      },
+      {
+        "file": "miniprogram/pages/office/haircut/haircut.wxss",
+        "className": "haircut-slot-booker"
+      },
+      {
+        "file": "miniprogram/pages/office/haircut/haircut.wxss",
+        "className": "haircut-change-hint"
+      },
+      {
+        "file": "miniprogram/pages/office/haircut/haircut.wxss",
+        "className": "haircut-booking-btn"
+      },
+      {
+        "file": "miniprogram/pages/office/haircut/haircut.wxss",
+        "className": "is-cancelled"
+      },
+      {
+        "file": "miniprogram/pages/office/haircut/haircut.wxss",
+        "className": "is-completed"
+      },
+      {
+        "file": "miniprogram/pages/office/haircut/haircut.wxss",
+        "className": "haircut-item-reason"
+      },
+      {
+        "file": "miniprogram/pages/office/help/help.wxss",
+        "className": "feedback-header"
+      },
+      {
+        "file": "miniprogram/pages/office/help/help.wxss",
+        "className": "feedback-header-content"
+      },
+      {
+        "file": "miniprogram/pages/office/help/help.wxss",
+        "className": "feedback-title"
+      },
+      {
+        "file": "miniprogram/pages/office/help/help.wxss",
+        "className": "feedback-subtitle"
+      },
+      {
+        "file": "miniprogram/pages/office/help/help.wxss",
+        "className": "permission-type"
+      },
+      {
+        "file": "miniprogram/pages/office/home/home.wxss",
+        "className": "home-bg-gradient"
+      },
+      {
+        "file": "miniprogram/pages/office/home/home.wxss",
+        "className": "home-brand"
+      },
+      {
+        "file": "miniprogram/pages/office/home/home.wxss",
+        "className": "home-brand-mark"
+      },
+      {
+        "file": "miniprogram/pages/office/home/home.wxss",
+        "className": "home-brand-name"
+      },
+      {
+        "file": "miniprogram/pages/office/home/home.wxss",
+        "className": "home-brand-sub"
+      },
+      {
+        "file": "miniprogram/pages/office/home/home.wxss",
+        "className": "stat-clickable"
+      },
+      {
+        "file": "miniprogram/pages/office/home/home.wxss",
+        "className": "home-list-card"
+      },
+      {
+        "file": "miniprogram/pages/office/home/home.wxss",
+        "className": "home-title-with-badge"
+      },
+      {
+        "file": "miniprogram/pages/office/home/home.wxss",
+        "className": "home-count-badge"
+      },
+      {
+        "file": "miniprogram/pages/office/home/home.wxss",
+        "className": "home-list-item"
+      },
+      {
+        "file": "miniprogram/pages/office/home/home.wxss",
+        "className": "home-list-main"
+      },
+      {
+        "file": "miniprogram/pages/office/home/home.wxss",
+        "className": "home-list-title-row"
+      },
+      {
+        "file": "miniprogram/pages/office/home/home.wxss",
+        "className": "home-list-name"
+      },
+      {
+        "file": "miniprogram/pages/office/home/home.wxss",
+        "className": "home-dot"
+      },
+      {
+        "file": "miniprogram/pages/office/home/home.wxss",
+        "className": "home-list-sub"
+      },
+      {
+        "file": "miniprogram/pages/office/home/home.wxss",
+        "className": "home-list-type"
+      },
+      {
+        "file": "miniprogram/pages/office/home/home.wxss",
+        "className": "home-list-side"
+      },
+      {
+        "file": "miniprogram/pages/office/home/home.wxss",
+        "className": "home-list-time"
+      },
+      {
+        "file": "miniprogram/pages/office/home/home.wxss",
+        "className": "home-mini-btn"
+      },
+      {
+        "file": "miniprogram/pages/office/home/home.wxss",
+        "className": "home-activity-icon"
+      },
+      {
+        "file": "miniprogram/pages/office/home/home.wxss",
+        "className": "activity-home-tag"
+      },
+      {
+        "file": "miniprogram/pages/office/home/home.wxss",
+        "className": "tag-active"
+      },
+      {
+        "file": "miniprogram/pages/office/home/home.wxss",
+        "className": "tag-ended"
+      },
+      {
+        "file": "miniprogram/pages/office/interest-class/interest-class.wxss",
+        "className": "ic-submit-btn"
+      },
+      {
+        "file": "miniprogram/pages/office/menu-edit/menu-edit.wxss",
+        "className": "ql-editor"
+      },
+      {
+        "file": "miniprogram/pages/office/menu-edit/menu-edit.wxss",
+        "className": "ql-blank"
+      },
+      {
+        "file": "miniprogram/pages/office/menus/menus.wxss",
+        "className": "menus-title"
+      },
+      {
+        "file": "miniprogram/pages/office/menus/menus.wxss",
+        "className": "menus-subtitle"
+      },
+      {
+        "file": "miniprogram/pages/office/menus/menus.wxss",
+        "className": "menu-item-icon"
+      },
+      {
+        "file": "miniprogram/pages/office/personnel-config/personnel-config.wxss",
+        "className": "personnel-label-leader"
+      },
+      {
+        "file": "miniprogram/pages/office/personnel-config/personnel-config.wxss",
+        "className": "personnel-label-manager"
+      },
+      {
+        "file": "miniprogram/pages/office/personnel-config/personnel-config.wxss",
+        "className": "personnel-label-head"
+      },
+      {
+        "file": "miniprogram/pages/office/personnel-config/personnel-config.wxss",
+        "className": "personnel-label-head-manager"
+      },
+      {
+        "file": "miniprogram/pages/office/personnel-config/personnel-config.wxss",
+        "className": "personnel-label-curator"
+      },
+      {
+        "file": "miniprogram/pages/office/personnel-config/personnel-config.wxss",
+        "className": "personnel-label-other"
+      },
+      {
+        "file": "miniprogram/pages/office/personnel-config/personnel-config.wxss",
+        "className": "personnel-deactivate-wrap"
+      },
+      {
+        "file": "miniprogram/pages/office/personnel-config/personnel-config.wxss",
+        "className": "personnel-label-deactivated"
+      },
+      {
+        "file": "miniprogram/pages/office/profile/profile.wxss",
+        "className": "is-light"
+      },
+      {
+        "file": "miniprogram/pages/office/profile/profile.wxss",
+        "className": "profile-company-address"
+      },
+      {
+        "file": "miniprogram/pages/office/profile/profile.wxss",
+        "className": "fontsize-stepper-unit"
+      },
+      {
+        "file": "miniprogram/pages/office/trip-board/trip-board.wxss",
+        "className": "board-item--deactivated"
+      },
+      {
+        "file": "miniprogram/pages/office/trip-board/trip-board.wxss",
+        "className": "board-item-avatar"
+      },
+      {
+        "file": "miniprogram/pages/office/trip-report/trip-report.wxss",
+        "className": "trip-header"
+      },
+      {
+        "file": "miniprogram/pages/office/trip-report/trip-report.wxss",
+        "className": "trip-header-content"
+      },
+      {
+        "file": "miniprogram/pages/office/trip-report/trip-report.wxss",
+        "className": "trip-title"
+      },
+      {
+        "file": "miniprogram/pages/office/trip-report/trip-report.wxss",
+        "className": "trip-subtitle"
+      },
+      {
+        "file": "miniprogram/pages/office/trip-report/trip-report.wxss",
+        "className": "trip-popup-subtitle"
+      },
+      {
+        "file": "miniprogram/pages/office/trip-report/trip-report.wxss",
+        "className": "trip-datetime-picker"
+      },
+      {
+        "file": "miniprogram/pages/office/trip-report/trip-report.wxss",
+        "className": "append-dest-current"
+      },
+      {
+        "file": "miniprogram/pages/office/trip-report/trip-report.wxss",
+        "className": "append-dest-current-label"
+      },
+      {
+        "file": "miniprogram/pages/office/trip-report/trip-report.wxss",
+        "className": "append-dest-current-value"
+      },
+      {
+        "file": "miniprogram/pages/office/trip-report/trip-report.wxss",
+        "className": "append-dest-proxy-label"
+      }
+    ],
+    "unusedCloudFns": [],
+    "unusedAssets": [],
+    "staleEntries": [
+      {
+        "file": ".gitignore",
+        "entry": "cloudfunctions/newsFetcher/node_modules"
+      },
+      {
+        "file": ".gitignore",
+        "entry": "miniprogram/node_modules"
+      }
+    ]
+  }
+}

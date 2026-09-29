@@ -11,8 +11,6 @@ Page({
       name: '',
       gender: '男',
       isAdmin: false,
-      // mobile: '+55 61 ',
-      // landline: '+55 61 ',
       avatarUrl: '',
       nickName: ''
     }
@@ -62,8 +60,6 @@ Page({
             name: result.request.name || '',
             gender: result.request.gender || '男',
             isAdmin: !!result.request.isAdmin,
-            // mobile: result.request.mobile || '+55 61 ',
-            // landline: result.request.landline || '+55 61 ',
             avatarUrl: result.request.avatarUrl || '',
             nickName: result.request.nickName || ''
           }

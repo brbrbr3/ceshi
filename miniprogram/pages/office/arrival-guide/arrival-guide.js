@@ -851,7 +851,6 @@ Page({
     this.setData({
       statusBarHeight: systemInfo.statusBarHeight || 20
     })
-    //this.loadBgImage()
 
     // 验证用户角色
     app.checkUserRegistration().then((result) => {

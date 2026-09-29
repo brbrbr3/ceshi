@@ -4,29 +4,9 @@
   min-height: 100vh;
 }
 
-/* 头部区域 */
-.feedback-header {
-  padding: var(--sp-60) var(--sp-40) var(--sp-40);
-  background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
-}
 
-.feedback-header-content {
-  text-align: center;
-}
 
-.feedback-title {
-  font-size: var(--fs-48);
-  font-weight: bold;
-  color: #ffffff;
-  text-align: left;
-}
 
-.feedback-subtitle {
-  padding-top: var(--sp-5);
-  font-size: var(--fs-26);
-  color: rgba(255, 255, 255);
-  text-align: left;
-}
 
 /* 内容区域 */
 .feedback-content {
@@ -157,12 +137,6 @@
   line-height: var(--sp-40);
 }
 
-.permission-type {
-  font-size: var(--fs-26);
-  color: var(--text-secondary);
-  line-height: var(--sp-40);
-  margin-bottom: var(--sp-8);
-}
 
 /* 底部提示 */
 .help-footer {

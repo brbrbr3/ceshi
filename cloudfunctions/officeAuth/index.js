@@ -188,25 +188,12 @@ function normalizeBoolean(value) {
 }
 
 // 动态获取常量
-async function getPositionOptions() {
-  const constants = await getSystemConstants()
-  return constants.POSITION_OPTIONS || []
-}
 
 async function getDepartmentOptions() {
   const constants = await getSystemConstants()
   return constants.DEPARTMENT_OPTIONS || []
 }
 
-async function getRoleOptions() {
-  const constants = await getSystemConstants()
-  return constants.roles || []
-}
-
-async function getGenderOptions() {
-  const constants = await getSystemConstants()
-  return constants.genders || []
-}
 
 async function validateForm(formData) {
   const constants = await getSystemConstants()
@@ -276,14 +263,6 @@ async function validateForm(formData) {
   }
 }
 
-function createRequestNo() {
-  const now = new Date()
-  const year = now.getFullYear()
-  const month = String(now.getMonth() + 1).padStart(2, '0')
-  const date = String(now.getDate()).padStart(2, '0')
-  const suffix = Math.random().toString(36).slice(2, 8).toUpperCase()
-  return `REG${year}${month}${date}${suffix}`
-}
 
 async function findUserByOpenId(openid) {
   const result = await usersCollection.where({ openid }).limit(1).get()

@@ -34,7 +34,6 @@
 
     <!-- 正文说明（富文本） -->
     <view class="office-card form-detail-card" wx:if="{{form.description}}">
-      <!-- <view class="fd-card-label">正文说明</view> -->
       <mp-html
         container-style="font-size:var(--fs-30);color:var(--text-secondary);line-height:1.7"
         content="{{form.description}}"
@@ -167,10 +166,6 @@
       </view>
     </block>
 
-    <!-- 空控件提示 
-    <view wx:if="{{blocks.length === 0}}" class="office-card form-detail-card">
-      <view class="fd-empty">该动态暂无额外内容</view>
-    </view> -->
 
     <!-- 填写操作区（答题类型） -->
     <view class="fd-footer" wx:if="{{hasFillableBlocks && !isClosed && canSubmit && !isPreview && isQuiz}}">

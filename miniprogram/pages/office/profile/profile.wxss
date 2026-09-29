@@ -102,10 +102,6 @@ page {
   font-size: var(--fs-26);
 }
 
-/* .profile-tag.is-light {
-  background: rgba(255, 255, 255, 0.1);
-  opacity: 0.82;
-} */
 
 .profile-arrow {
   font-size: var(--fs-40);
@@ -322,11 +318,6 @@ page {
   border-right: var(--sp-2) solid var(--border-soft);
 }
 
-.fontsize-stepper-unit {
-  font-size: var(--fs-26);
-  color: var(--text-muted);
-  flex-shrink: 0;
-}
 
 .profile-menu-arrow {
   margin-left: var(--sp-12);

@@ -1,8 +1,8 @@
 {
-  "scope": "all",
+  "scope": "pilot",
   "apply": true,
-  "generatedAt": "2026-09-21T16:39:14.336Z",
-  "tokenCount": 77,
+  "generatedAt": "2026-09-29T01:04:39.872Z",
+  "tokenCount": 76,
   "tokens": [
     {
       "name": "--sp-0_5",
@@ -68,11 +68,6 @@
       "name": "--sp-16",
       "mobile": "16rpx",
       "desktop": "8px"
-    },
-    {
-      "name": "--sp-17",
-      "mobile": "17rpx",
-      "desktop": "8.5px"
     },
     {
       "name": "--sp-18",
@@ -395,144 +390,11 @@
       "file": "miniprogram/app.wxss",
       "replaced": 0,
       "tokenBlockRefreshed": true,
-      "changed": true,
-      "residualRpx": 77
-    },
-    {
-      "file": "miniprogram/components/approval-card/approval-card.wxss",
-      "replaced": 0,
-      "tokenBlockRefreshed": false,
       "changed": false,
-      "residualRpx": 0
-    },
-    {
-      "file": "miniprogram/components/approval-detail/approval-detail.wxss",
-      "replaced": 0,
-      "tokenBlockRefreshed": false,
-      "changed": false,
-      "residualRpx": 0
-    },
-    {
-      "file": "miniprogram/components/datetime-picker/datetime-picker.wxss",
-      "replaced": 0,
-      "tokenBlockRefreshed": false,
-      "changed": false,
-      "residualRpx": 0
-    },
-    {
-      "file": "miniprogram/components/multiuse-modal/multiuse-modal.wxss",
-      "replaced": 0,
-      "tokenBlockRefreshed": false,
-      "changed": false,
-      "residualRpx": 0
-    },
-    {
-      "file": "miniprogram/components/pagination-loading/pagination-loading.wxss",
-      "replaced": 0,
-      "tokenBlockRefreshed": false,
-      "changed": false,
-      "residualRpx": 0
-    },
-    {
-      "file": "miniprogram/components/watermark/watermark.wxss",
-      "replaced": 0,
-      "tokenBlockRefreshed": false,
-      "changed": false,
-      "residualRpx": 0
-    },
-    {
-      "file": "miniprogram/pages/auth/fill-detail/fill-detail.wxss",
-      "replaced": 0,
-      "tokenBlockRefreshed": false,
-      "changed": false,
-      "residualRpx": 0
+      "residualRpx": 76
     },
     {
       "file": "miniprogram/pages/auth/login/login.wxss",
-      "replaced": 0,
-      "tokenBlockRefreshed": false,
-      "changed": false,
-      "residualRpx": 0
-    },
-    {
-      "file": "miniprogram/pages/auth/register/register.wxss",
-      "replaced": 0,
-      "tokenBlockRefreshed": false,
-      "changed": false,
-      "residualRpx": 0
-    },
-    {
-      "file": "miniprogram/pages/office/approval/approval.wxss",
-      "replaced": 0,
-      "tokenBlockRefreshed": false,
-      "changed": false,
-      "residualRpx": 0
-    },
-    {
-      "file": "miniprogram/pages/office/arrival-guide/arrival-guide.wxss",
-      "replaced": 0,
-      "tokenBlockRefreshed": false,
-      "changed": false,
-      "residualRpx": 0
-    },
-    {
-      "file": "miniprogram/pages/office/calendar/calendar.wxss",
-      "replaced": 0,
-      "tokenBlockRefreshed": false,
-      "changed": false,
-      "residualRpx": 0
-    },
-    {
-      "file": "miniprogram/pages/office/form/form-compare/form-compare.wxss",
-      "replaced": 0,
-      "tokenBlockRefreshed": false,
-      "changed": false,
-      "residualRpx": 0
-    },
-    {
-      "file": "miniprogram/pages/office/form/form-detail/form-detail.wxss",
-      "replaced": 0,
-      "tokenBlockRefreshed": false,
-      "changed": false,
-      "residualRpx": 0
-    },
-    {
-      "file": "miniprogram/pages/office/form/form-edit/form-edit.wxss",
-      "replaced": 0,
-      "tokenBlockRefreshed": false,
-      "changed": false,
-      "residualRpx": 0
-    },
-    {
-      "file": "miniprogram/pages/office/form/form-list/form-list.wxss",
-      "replaced": 0,
-      "tokenBlockRefreshed": false,
-      "changed": false,
-      "residualRpx": 0
-    },
-    {
-      "file": "miniprogram/pages/office/form/form-result/form-result.wxss",
-      "replaced": 0,
-      "tokenBlockRefreshed": false,
-      "changed": false,
-      "residualRpx": 0
-    },
-    {
-      "file": "miniprogram/pages/office/form/form-submissions/form-submissions.wxss",
-      "replaced": 0,
-      "tokenBlockRefreshed": false,
-      "changed": false,
-      "residualRpx": 0
-    },
-    {
-      "file": "miniprogram/pages/office/haircut/haircut.wxss",
-      "replaced": 0,
-      "tokenBlockRefreshed": false,
-      "changed": false,
-      "residualRpx": 0
-    },
-    {
-      "file": "miniprogram/pages/office/help/help.wxss",
       "replaced": 0,
       "tokenBlockRefreshed": false,
       "changed": false,
@@ -546,70 +408,21 @@
       "residualRpx": 0
     },
     {
-      "file": "miniprogram/pages/office/interest-class/interest-class.wxss",
-      "replaced": 0,
-      "tokenBlockRefreshed": false,
-      "changed": false,
-      "residualRpx": 0
-    },
-    {
-      "file": "miniprogram/pages/office/menu-detail/menu-detail.wxss",
-      "replaced": 0,
-      "tokenBlockRefreshed": false,
-      "changed": false,
-      "residualRpx": 0
-    },
-    {
-      "file": "miniprogram/pages/office/menu-edit/menu-edit.wxss",
-      "replaced": 0,
-      "tokenBlockRefreshed": false,
-      "changed": false,
-      "residualRpx": 0
-    },
-    {
-      "file": "miniprogram/pages/office/menus/menus.wxss",
-      "replaced": 0,
-      "tokenBlockRefreshed": false,
-      "changed": false,
-      "residualRpx": 0
-    },
-    {
-      "file": "miniprogram/pages/office/notifications/notifications.wxss",
-      "replaced": 0,
-      "tokenBlockRefreshed": false,
-      "changed": false,
-      "residualRpx": 0
-    },
-    {
-      "file": "miniprogram/pages/office/personnel-config/personnel-config.wxss",
-      "replaced": 0,
-      "tokenBlockRefreshed": false,
-      "changed": false,
-      "residualRpx": 0
-    },
-    {
-      "file": "miniprogram/pages/office/profile/edit-profile/edit-profile.wxss",
-      "replaced": 0,
-      "tokenBlockRefreshed": false,
-      "changed": false,
-      "residualRpx": 0
-    },
-    {
-      "file": "miniprogram/pages/office/profile/profile.wxss",
-      "replaced": 0,
-      "tokenBlockRefreshed": false,
-      "changed": false,
-      "residualRpx": 0
-    },
-    {
-      "file": "miniprogram/pages/office/trip-board/trip-board.wxss",
-      "replaced": 0,
-      "tokenBlockRefreshed": false,
-      "changed": false,
-      "residualRpx": 0
-    },
-    {
       "file": "miniprogram/pages/office/trip-report/trip-report.wxss",
+      "replaced": 0,
+      "tokenBlockRefreshed": false,
+      "changed": false,
+      "residualRpx": 0
+    },
+    {
+      "file": "miniprogram/components/multiuse-modal/multiuse-modal.wxss",
+      "replaced": 0,
+      "tokenBlockRefreshed": false,
+      "changed": false,
+      "residualRpx": 0
+    },
+    {
+      "file": "miniprogram/components/datetime-picker/datetime-picker.wxss",
       "replaced": 0,
       "tokenBlockRefreshed": false,
       "changed": false,
@@ -619,12 +432,12 @@
       "file": "miniprogram/app.js",
       "replaced": 0,
       "tokenBlockRefreshed": true,
-      "changed": true,
+      "changed": false,
       "residualRpx": 0
     }
   ],
   "skipped": [],
   "warnings": [],
-  "backupDir": ".rpx-migration-backup/2026-09-21T16-39-14-335Z",
+  "backupDir": ".rpx-migration-backup/2026-09-29T01-04-39-871Z",
   "projectResidual": []
 }

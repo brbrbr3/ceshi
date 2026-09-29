@@ -407,14 +407,6 @@
   animation: blockIn 0.3s ease;
 }
 
-.fe-picker {
-  padding: var(--sp-20) var(--sp-24);
-  background: var(--bg-input);
-  border: var(--sp-2) solid var(--border-soft);
-  border-radius: var(--sp-16);
-  font-size: var(--fs-28);
-  color: var(--text-primary);
-}
 
 .fe-role-list {
   display: flex;
@@ -493,11 +485,6 @@
   border: var(--sp-2) solid var(--border-soft);
 }
 
-.fe-btn-preview {
-  background: var(--bg-card);
-  color: #2563EB;
-  border: var(--sp-2) solid #BFDBFE;
-}
 
 .fe-btn-publish {
   background: linear-gradient(135deg, #2563EB, #4F46E5);

@@ -218,21 +218,7 @@
   flex-shrink: 0;
 }
 
-.config-date-picker {
-  flex: 1;
-  display: flex;
-  align-items: center;
-  justify-content: space-between;
-  background: var(--bg-input);
-  border-radius: var(--sp-16);
-  padding: 0 var(--sp-24);
-  height: var(--sp-80);
-}
 
-.config-date-picker text:first-child {
-  font-size: var(--fs-28);
-  color: var(--text-primary);
-}
 
 .config-delete-btn {
   width: var(--sp-56);
@@ -668,9 +654,6 @@
   color: var(--text-tertiary);
 }
 
-.schedule-field-value-content-repeatEndDate{
-  margin-top: calc(var(--sp-40) * -1);
-}
 
 .schedule-field-value-content{
   padding-right: var(--sp-20);
@@ -709,24 +692,8 @@
   box-sizing: border-box;
 }
 
-/* 时间选择行 */
-.schedule-time-row {
-  display: flex;
-  gap: var(--sp-16);
-  margin-top: var(--sp-12);
-}
 
-/* datetime-picker 包装器样式 */
-.schedule-picker-wrapper {
-  flex: 1;
-  background: var(--bg-input);
-  border-radius: var(--sp-16);
-  overflow: hidden;
-}
 
-.schedule-picker-wrapper.schedule-picker-time {
-  flex: 0 0 var(--sp-180);
-}
 
 /* 全宽选择器样式 */
 .schedule-picker-full {
@@ -1046,13 +1013,6 @@
   color: var(--text-tertiary);
 }
 
-/* 日期选择器容器 */
-.date-picker-container {
-  padding: var(--sp-32);
-  background: var(--bg-input);
-  border-radius: var(--sp-16);
-  margin: var(--sp-16);
-}
 
 /* 占位符样式 */
 .is-placeholder {

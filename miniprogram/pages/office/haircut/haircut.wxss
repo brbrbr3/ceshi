@@ -169,10 +169,6 @@ page {
   font-weight: 500;
 }
 
-.date-item-right {
-  color: #EA580C;
-  font-size: var(--fs-35);
-}
 /* ========== 日期提示 ========== */
 .haircut-date-hint {
   padding: var(--sp-20) var(--sp-24);
@@ -278,13 +274,6 @@ page {
   gap: var(--sp-4);
 }
 
-/* 时段理发人姓名 */
-.haircut-slot-booker {
-  font-size: var(--fs-24);
-  color: #6B7280;
-  font-weight: normal;
-  margin-left: var(--sp-8);
-}
 
 /* 时段右侧 */
 .haircut-slot-right {
@@ -330,41 +319,13 @@ page {
   color: #DC2626;
 }
 
-/* 换日提示 */
-.haircut-change-hint {
-  font-size: var(--sp-28);
-  color: var(--text-tertiary);
-  margin-bottom: var(--sp-24);
-  line-height: 1.5;
-}
 
 .haircut-slot-item.is-selected .haircut-slot-status.is-available {
   background: #EA580C;
   color: #FFFFFF;
 }
 
-/* ========== 预约按钮 ========== */
-.haircut-booking-btn {
-  position: fixed;
-  left: var(--sp-28);
-  right: var(--sp-28);
-  bottom: calc(var(--sp-28) + env(safe-area-inset-bottom));
-  height: var(--sp-96);
-  background: linear-gradient(135deg, #EA580C 0%, #C2410C 100%);
-  color: #FFFFFF;
-  font-size: var(--fs-32);
-  font-weight: 600;
-  border-radius: var(--sp-16);
-  border: none;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  z-index: 100;
-}
 
-.haircut-booking-btn[disabled] {
-  background: var(--text-muted);
-}
 
 /* ========== 排序切换 ========== */
 .haircut-sort-bar {

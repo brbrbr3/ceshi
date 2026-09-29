@@ -113,9 +113,6 @@ Page({
     })
   },
 
-  loadMenus(loadMore = false) {
-    this.loadListData(loadMore)
-  },
 
   goMenuDetail(e) {
     app.subscribeOnTap(app.getSubscribeTypesForUser(app.globalData.userProfile))

@@ -248,18 +248,6 @@
   border-left: var(--sp-2) solid;
 }
 
-.board-item-avatar {
-  width: var(--sp-18);
-  height: var(--sp-18);
-  border-radius: 50%;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  font-size: var(--fs-40);
-  font-weight: 500;
-  flex-shrink: 0;
-  margin-left: var(--sp-10);
-}
 
 .board-item-main {
   flex: 1;

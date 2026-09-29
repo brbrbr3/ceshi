@@ -3,7 +3,6 @@
   <view class="office-gradient-header approval-header">
     <view class="office-header-top">
       <view>
-      <!-- <view class="approval-subtitle">馆领导、各部门负责人（isDepartmentHead）及管理员可处理申请<text>\n</text>普通用户只能查看自己提交的申请</view> -->
         <view class="approval-title">审批中心（仅管理员）</view>
       </view>
       <view class="approval-launch-btn" bindtap="showLaunchTip">
@@ -26,14 +25,6 @@
   </view>
 
   <view class="office-content">
-    <!-- <view wx:if="{{activeTab == 'pending' && canReview}}" class="office-card approval-type-card">
-      <view class="approval-type-grid">
-        <view class="approval-type-item" wx:for="{{approvalTypes}}" wx:key="label">
-          <view class="approval-type-icon" style="background: {{item.bg}}; color: {{item.color}};">{{item.icon}}</view>
-          <view class="approval-type-label">{{item.label}}</view>
-        </view>
-      </view>
-    </view> -->
 
     <view wx:if="{{!canReview}}" class="office-card approval-note-card">
       <view class="approval-note-title">当前账号暂无审批权限</view>

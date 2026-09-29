@@ -58,10 +58,6 @@ Page({
             icon: '🔔',
             label: '消息中心'
           },
-          /* {
-            icon: '✍️',
-            label: '签字管理'
-          }, */
           {
             icon: '👤',
             label: '修改个人信息'
@@ -263,51 +259,6 @@ Page({
     }
   },
 
-  onChangeStatus() {
-    const currentStatus = this.data.avatarStatusClass.replace('status-', '')
-    // status-out: 外出中，不允许手动切换
-    if (currentStatus === 'out') {
-      wx.showToast({
-        title: '外出中无法切换状态',
-        icon: 'none'
-      })
-      return
-    }
-    // online ↔ busy 互切
-    wx.showLoading({
-      title: '切换状态中...',
-      mask: true
-    })
-    const nextStatus = currentStatus === 'online' ? 'busy' : 'online'
-    app.callOfficeAuth('updateUserStatus', {
-      userStatus: nextStatus
-    }).then(() => {
-      // 即时更新 UI
-      const STATUS_MAP = {
-        online: {
-          label: '在线',
-          cls: 'status-online'
-        },
-        busy: {
-          label: '忙碌',
-          cls: 'status-busy'
-        }
-      }
-      const info = STATUS_MAP[nextStatus]
-      this.setData({
-        secondaryTag: '状态：' + info.label,
-        avatarStatusClass: info.cls
-      })
-    }).catch(err => {
-      console.warn('更新状态失败:', err)
-      wx.showToast({
-        title: '状态切换失败',
-        icon: 'none'
-      })
-    }).finally(() => {
-      wx.hideLoading()
-    })
-  },
 
 
   handleClearCache() {

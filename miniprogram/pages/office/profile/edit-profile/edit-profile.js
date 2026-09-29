@@ -27,8 +27,6 @@ Page({
       relativeName: '',
       department: '',
       isDepartmentHead: false,
-      // mobile: '+55 61 ',
-      // landline: '+55 61 ',
       livingArea: ''
     },
     guardReady: false
@@ -175,8 +173,6 @@ Page({
         relativeName: user.relativeName || '',
         department: department,
         isDepartmentHead: isDepartmentHead,
-        // mobile: user.mobile || '+55 61 ',
-        // landline: user.landline || '+55 61 ',
         livingArea: livingArea
       }
     })

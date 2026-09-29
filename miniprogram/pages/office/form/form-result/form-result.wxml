@@ -17,7 +17,6 @@
       <view class="fr-block-head">
         <view class="fr-block-icon" style="background: {{bk.typeColor}}20; color: {{bk.typeColor}};">{{bk.typeIcon}}</view>
         <view class="fr-block-title">{{bk.title}}</view>
-        <!-- <view class="fr-block-count">{{bk.type === 'activity' ? bk.registrationCount : bk.answerCount}} 人{{bk.type === 'activity' ? '报名' : '提交'}}</view> -->
         <view class="fr-block-count">{{bk.answerCount}} 人{{bk.type === 'quiz' ? '作答' : '提交'}}</view>
       </view>
 

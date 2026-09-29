@@ -48,9 +48,7 @@ const APPROVER_TYPE = {
 }
 
 const TIMEOUT_ACTION = {
-  AUTO_APPROVE: 'auto_approve',
-  AUTO_REJECT: 'auto_reject',
-  ESCALATE: 'escalate',
+
   REMIND: 'remind'
 }
 

@@ -533,11 +533,6 @@ Page({
       })
   },
 
-  goRegister() {
-    wx.navigateTo({
-      url: '/pages/auth/register/register'
-    })
-  },
 
   toggleDebugPanel() {
     if (!this.data.isAdmin || !this.data.isDevEnv) {

@@ -529,29 +529,8 @@
   transform: scale(0.95);
 }
 
-/* 提交按钮 */
-.ic-submit-btn {
-  width: 100%;
-  height: var(--sp-96);
-  border-radius: var(--sp-20);
-  font-size: var(--fs-32);
-  font-weight: 600;
-  background: linear-gradient(135deg, #2563EB 0%, #4F46E5 100%);
-  color: #FFFFFF;
-  border: none;
-  margin-top: var(--sp-16);
-  box-shadow: 0 var(--sp-8) var(--sp-24) rgba(37, 99, 235, 0.3);
-  transition: all 0.2s ease;
-}
 
-.ic-submit-btn:active {
-  transform: scale(0.98);
-}
 
-.ic-submit-btn[disabled] {
-  background: var(--text-muted);
-  box-shadow: none;
-}
 
 /* ========== 详情弹窗 ========== */
 .ic-detail-content {

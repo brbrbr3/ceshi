@@ -588,6 +588,7 @@ input {
   color: var(--primary-text);
 }
 
+
 /* SP-TOKENS:START 由 scripts/rpx-to-token.js 自动生成，请勿手工修改 */
 page {
   --sp-0_5: 0.5rpx;
@@ -603,6 +604,7 @@ page {
   --sp-14: 14rpx;
   --sp-15: 15rpx;
   --sp-16: 16rpx;
+  --sp-17: 17rpx;
   --sp-18: 18rpx;
   --sp-20: 20rpx;
   --sp-22: 22rpx;

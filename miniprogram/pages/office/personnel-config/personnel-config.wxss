@@ -451,15 +451,6 @@
 }
 .personnel-btn-save::after { border: none; }
 
-/* 注销按钮 */
-.personnel-deactivate-wrap {
-  width: 100%;
-  display: flex;
-  justify-content: center;
-  padding-bottom: var(--sp-16);
-  border-bottom: var(--sp-1) solid var(--bg-soft-2);
-  margin-bottom: var(--sp-16);
-}
 
 .personnel-btn-deactivate {
   background: var(--bg-card);

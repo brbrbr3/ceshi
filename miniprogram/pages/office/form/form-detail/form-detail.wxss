@@ -73,11 +73,6 @@
   margin-bottom: var(--sp-16);
 }
 
-.fd-rich {
-  font-size: var(--fs-30);
-  color: var(--text-secondary);
-  line-height: 1.7;
-}
 
 .fd-block-head {
   display: flex;
@@ -124,14 +119,6 @@
   margin-top: var(--sp-6);
 }
 
-.fd-text-block {
-  font-size: var(--fs-28);
-  color: var(--text-secondary);
-  line-height: 1.7;
-  padding: var(--sp-16);
-  background: var(--bg-input);
-  border-radius: var(--sp-12);
-}
 
 /* ===== 分节标题（text 说明块，不套卡片、不编号） ===== */
 .fd-section-block {

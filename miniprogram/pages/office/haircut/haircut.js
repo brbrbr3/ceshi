@@ -21,13 +21,8 @@ const CANCEL_REASONS = [
   '预约人失约'
 ]
 
-// 时段配置（与后端保持一致）
+// 时段配置（与后端保持一致；每日 15:00 开始，共 6 个时段）
 const TIME_SLOTS = [{
-    start: '14:30',
-    end: '15:00',
-    display: '14:30~15:00'
-  },
-  {
     start: '15:00',
     end: '15:30',
     display: '15:00~15:30'
@@ -263,7 +258,7 @@ Page({
 
           // 检查该日期是否已锁定（招待员不受限制）
           const isDayLocked = this.isDateLocked(calcDate.date) && !this.data.isReceptionist
-          // 仅"该日已过去"才置为 isDisabled（灰掉、不可选）；过了14:20的当天不灰掉，仅锁定预约
+          // 仅"该日已过去"才置为 isDisabled（灰掉、不可选）；过了14:50的当天不灰掉，仅锁定预约
           const isPastDate = calcDate.date < todayStr
 
           displayDates.push({
@@ -409,20 +404,20 @@ Page({
   },
 
   /**
-   * 判断当前时间是否已过截止时间（当日14:20）
+   * 判断当前时间是否已过截止时间（当日14:50）
    */
   isAfterDeadline() {
     const now = new Date()
     const currentHour = now.getHours()
     const currentMinute = now.getMinutes()
     const currentTime = currentHour * 60 + currentMinute
-    const deadlineTime = 14 * 60 + 20 // 14:20
+    const deadlineTime = 14 * 60 + 50 // 14:50
     return currentTime >= deadlineTime
   },
 
   /**
-   * 判断指定日期是否已锁定（该日期的14:20已过，且锁永不解除）
-   * 规则：如果指定日期 <= 今天，且（指定日期 < 今天 或 今天已过14:20），则该日期已锁定
+   * 判断指定日期是否已锁定（该日期的14:50已过，且锁永不解除）
+   * 规则：如果指定日期 <= 今天，且（指定日期 < 今天 或 今天已过14:50），则该日期已锁定
    */
   isDateLocked(dateStr) {
     const todayStr = this.formatLocalDate(new Date())
@@ -431,7 +426,7 @@ Page({
       return true
     }
     if (dateStr === todayStr) {
-      // 今天，看是否过了14:20
+      // 今天，看是否过了14:50
       return this.isAfterDeadline()
     }
     // 未来的日期，未锁定
@@ -620,7 +615,7 @@ Page({
           bookingInfo.bookerId === this.data.userOpenId
 
         // 确定时段状态
-        // 日期已锁定（今天过了14:20）或已过去时，未预约的时段不再显示"可预约"
+        // 日期已锁定（今天过了14:50）或已过去时，未预约的时段不再显示"可预约"
         const isDateUnbookable = !!(dateInfo && (dateInfo.isDayLocked || dateInfo.isDisabled))
 
         let slotStatus = 'available' // 默认可预约
@@ -677,7 +672,7 @@ Page({
     const slot = e.currentTarget.dataset.slot
     if (!slot) return
 
-    // 当日时段已锁定（普通用户14:20后）
+    // 当日时段已锁定（普通用户14:50后）
     if (this.data.selectedDateInfo && this.data.selectedDateInfo.isDayLocked) {
       wx.showModal({
         title: '提示',
@@ -881,61 +876,6 @@ Page({
   /**
    * 确认取消预约（招待员）
    */
-  async handleConfirmCancelSlot() {
-    if (!this.data.cancelReason) {
-      wx.showToast({
-        title: '请选择取消原因',
-        icon: 'none'
-      })
-      return
-    }
-
-    const slot = this.data.cancellingSlot
-    if (!slot) return
-
-    this.setData({
-      cancelling: true
-    })
-    try {
-      const res = await wx.cloud.callFunction({
-        name: 'haircutManager',
-        data: {
-          action: 'cancelAppointmentByReceptionist',
-          date: this.data.selectedDate,
-          timeSlot: slot.start,
-          cancelReason: this.data.cancelReason
-        }
-      })
-
-      if (res.result.code === 0) {
-        wx.showToast({
-          title: '取消成功',
-          icon: 'success'
-        })
-        this.setData({
-          showCancelPopup: false,
-          cancellingSlot: null,
-          cancelReason: ''
-        })
-        this.loadDisplayDates()
-      } else {
-        wx.showToast({
-          title: res.result.message || '取消失败',
-          icon: 'none'
-        })
-      }
-    } catch (error) {
-      console.error('取消失败:', error)
-      wx.showToast({
-        title: '取消失败',
-        icon: 'none'
-      })
-    } finally {
-      this.setData({
-        cancelling: false
-      })
-    }
-  },
 
   /**
    * 显示预约表单
@@ -1502,7 +1442,7 @@ Page({
       if (res.result.code === 0) {
         const list = res.result.data.list || []
         const total = res.result.data.total || 0
-        // 为每条预约标记是否已锁定（已过该日期的14:20）
+        // 为每条预约标记是否已锁定（已过该日期的14:50）
         const enrichedList = list.map(item => ({
           ...item,
           isDateLocked: this.isDateLocked(item.date),

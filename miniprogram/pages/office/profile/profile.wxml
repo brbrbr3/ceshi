@@ -1,7 +1,6 @@
 <page-meta page-style="{{pageStyle}}" />
 <view class="office-page profile-page {{themeClass}}" style="{{fontStyle}}">
   <view class="office-gradient-header profile-header">
-    <!-- <view class="profile-theme-switch" bindtap="showComingSoon">{{primaryTag}}</view> -->
 
     <view class="profile-user-row">
       <view class="profile-avatar-wrap">
@@ -13,42 +12,14 @@
         <view class="profile-name">{{userName}}</view>
         <view class="profile-role">{{roleLabel}}</view>
         <view class="profile-tags">
-          <!-- <view class="profile-tag">{{primaryTag}}</view> -->
           <view class="profile-tag">{{secondaryTag}}</view>
         </view>
       </view>
-      <!-- <view class="profile-arrow">›</view> -->
     </view>
 
-    <!-- <view class="profile-stats-grid">
-      <view class="profile-stat-item" wx:for="{{stats}}" wx:key="label">
-        <view class="profile-stat-icon">{{item.icon}}</view>
-        <view class="profile-stat-value">{{item.value}}</view>
-        <view class="profile-stat-label">{{item.label}}</view>
-      </view>
-    </view> -->
   </view>
 
   <view class="office-content">
-    <!-- <view class="profile-reward-card">
-      <view class="profile-reward-icon">🏆</view>
-      <view class="profile-reward-main">
-        <view class="profile-reward-title">本月全勤奖励（占位）</view>
-        <view class="profile-reward-sub">坚持打卡已获得 100 积分</view>
-      </view>
-      <view class="profile-reward-btn" bindtap="showComingSoon">领取</view>
-    </view>
-
-<view class="profile-info-grid">
-      <view class="office-card profile-info-card" wx:for="{{quickInfo}}" wx:key="title">
-        <view class="profile-info-top">
-          <view class="profile-info-icon">{{item.icon}}</view>
-          <view class="profile-info-title">{{item.title}}</view>
-        </view>
-        <view class="profile-info-value" style="color: {{item.valueColor}};">{{item.value}}</view>
-        <view class="profile-info-desc">{{item.desc}}</view>
-      </view>
-    </view> -->
 
     <view class="profile-group" wx:for="{{menuGroups}}" wx:key="title">
       <view class="profile-group-title">{{item.title}}</view>
@@ -69,7 +40,6 @@
 
     <view class="office-card profile-company-card">
       <view class="profile-company-head">
-        <!-- <view class="profile-company-logo">🏢</view> -->
         <view>
           <view class="profile-company-row"><text class="profile-company-name" user-select="true">地址：{{(isReviewer? '123456' : 'Quadra 813 Lote 52, Avenida das Nações, SES, Asa Sul, Brasília-DF, Brasil')}}</text></view>
           <view wx:if="{{!isReviewer}}" class="profile-company-row"><text  class="profile-company-name" user-select="true">邮编（CEP）：70443-900</text></view>

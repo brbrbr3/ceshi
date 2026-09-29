@@ -11,43 +11,22 @@
     <view wx:if="{{isDevEnv}}" class="auth-brand">DevEnv</view>
     <view class="auth-title">{{(isRegistered && !isPendingApproval ? '巴西利亚' : 'BXLY')}}报备助手</view>
     <view class="auth-subtitle">欢迎使用{{(isRegistered && !isPendingApproval ? '巴西利亚' : 'BXLY')}}报备助手！</view>
-    <!-- <view class="auth-tip-row">
-      <view wx:if="{{isDevEnv}}" class="auth-tip-pill">微信身份校验</view>
-      <view wx:if="{{isDevEnv}}" class="auth-tip-pill">管理员审批</view>
-      <view wx:if="{{isDevEnv}}" class="auth-tip-pill">人脸/指纹登录</view>
-    </view> -->
   </view>
 
   <view class="auth-card">
     <view class="login-wechat-title {{statusCard.className === 'is-rejected' ? 'is-rejected' : ''}}">{{loginTitleText}}</view>
     <button class="auth-submit-btn login-submit-btn {{loading || statusLoading || statusTimeout || !constantsReady || loginButtonText === '不可用' ? 'is-disabled' : ''}} {{isPendingApproval ? 'is-pending' : ''}}" loading="{{loading || statusLoading || !constantsReady || loginButtonText === '不可用'}}" disabled="{{loading || statusLoading || statusTimeout || !constantsReady || loginButtonText === '不可用'}}" bindtap="handleWxLogin">{{loginButtonText}}</button>
     <view wx:if="{{!isRegistered && !isPendingApproval && !statusLoading}}" class="login-reviewer-link" bindtap="showReviewerModal">账号密码登录（仅供审核人员）</view>
-    <!-- <view wx:if="{{isRegistered && !isDesktop}}" class="login-wechat-title-desc">您的生物特征仅用于登录验证，小程序不会保存</view> -->
     <view class="login-wechat-panel">
-      <!-- <view wx:if="{{isDevEnv}}" class="login-wechat-icon">生物特征</view> -->
       <view>
-        <!-- <view wx:if="{{isDevEnv}}" class="login-wechat-title">使用微信身份识别当前用户</view> -->
         <view class="login-wechat-desc">注意事项：</view>
         <view class="login-wechat-desc">1.小程序将采集您的部分个人信息（微信头像、微信昵称）用于注册验证，请后续<text style="font-weight: 700; color: var(--danger-text);">在“用户隐私保护提示”弹窗中点击“同意”</text>，否则将无法正常使用小程序</view>
         <view class="login-wechat-desc">2.为正常使用小程序的微信消息推送功能，请后续<text style="font-weight: 700; color: var(--danger-text);">在小程序向您申请发送消息的弹窗中打开相关通知推送，并点击“允许”</text>，否则将无法正常使用小程序</view>
       </view>
     </view>
     <view class="auth-card-title"></view>
-    <!-- <text wx:if="{{isDevEnv}}" class="auth-card-desc">已注册用户：点击下方按钮，验证人脸/指纹后登录
-      未注册用户：将跳转到注册页面填写基础资料</text> -->
   </view>
 
-  <!-- <view wx:if="{{statusCard && !isRegistered}}" class="auth-card login-status-card {{statusCard.className}}">
-    <view class="login-status-head">
-      <view class="login-status-title">{{statusCard.title}}</view>
-      <view class="login-status-tag">{{statusCard.tag}}</view>
-    </view>
-    <view class="login-status-desc">{{statusCard.desc}}</view>
-    <view wx:if="{{statusCard.extra}}" class="login-status-extra">{{statusCard.extra}}</view>
-    <view wx:if="{{statusCard.time}}" class="login-status-time">{{statusCard.time}}</view>
-  </view> -->
-
-  <!-- <view wx:if="{{showRegisterLink}}" class="login-bottom-link" bindtap="goRegister">尚未注册？去填写注册申请</view> -->
 
   <view wx:if="{{bootstrapStatus.canBootstrap && !isAdmin}}" class="auth-bootstrap-card">
     <view class="auth-bootstrap-title">首个管理员初始化</view>
