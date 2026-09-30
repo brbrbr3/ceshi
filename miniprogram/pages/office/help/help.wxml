@@ -37,10 +37,11 @@
           <view class="card-title">外出报备</view>
         </view>
         <view class="card-content">
-          <view class="card-desc">报备外出和返回：</view>
+          <view class="card-desc">报备8小时之外个人外出和返回，亦可补填外出记录：</view>
           <view class="card-features">
-          <view class="feature-item">• 出行时可自动为同行人代报备（同行人需为本系统注册用户），返回时可为同行人报备返回。</view>
-          <view class="feature-item">• 报备后5分钟内可撤回，可为进行中的外出追加目的地。</view>
+          <view class="feature-item">• 报备外出、返回，均会向本部门负责人及居住区片长推送微信消息。</view>
+          <view class="feature-item">• 报备出行时若填写同行人，且同行人为本小程序用户，可自动代为报备；返回时亦可为同行人报备返回。</view>
+          <view class="feature-item">• 报备后5分钟内可撤回。可为进行中的外出追加新的目的地。</view>
           <view class="feature-item">• 当日超23时未归计为超时，将对超时用户推送消息提醒。</view>
           </view>
           <view class="card-permission">
@@ -56,10 +57,10 @@
           <view class="card-title">兴趣班备案</view>
         </view>
         <view class="card-content">
-          <view class="card-desc">登记当前参与的兴趣班信息，便于馆内备案备查。支持以下功能：</view>
+          <view class="card-desc">登记当前本人或家属参与的兴趣班情况用于备查。支持以下功能：</view>
           <view class="card-features">
-            <view class="feature-item">• 新增备案：填写参与人姓名、兴趣班名称、时段、教学模式、陪同人、备注等。</view>
-            <view class="feature-item">• 编辑备案：编辑会结束原备案记录，并新增一条新的备案记录。</view>
+            <view class="feature-item">• 新增备案：填写参与人姓名、兴趣班名称、地点、时段、教学模式、陪同人、备注等。</view>
+            <view class="feature-item">• 编辑备案：编辑一条备案，会结束原备案记录，并增加一条新的备案记录。</view>
             <view class="feature-item">• 结束兴趣班：将备案标记为"已结束"，记录保留不删除。</view>
             <view class="feature-item">• 每月提醒：每月月初提醒全体用户更新备案。</view>
           </view>
@@ -79,7 +80,7 @@
           <view class="card-desc">查看每周工作餐菜单安排。</view>
           <view class="card-permission">
             <view class="permission-label">权限要求：</view>
-            <view class="permission-value">所有用户可查看菜单并打分、评论，仅厨师、部分特定岗位人员可发布、编辑、删除菜单。</view>
+            <view class="permission-value">所有用户可查看菜单并打分、评论，仅厨师、部分特定岗位人员可发布、编辑、删除菜单，后勤管理人员可导出菜单评分。</view>
           </view>
         </view>
       </view>
@@ -93,7 +94,7 @@
           <view class="card-desc">在线预约理发服务，支持以下功能：</view>
           <view class="card-features">
             <view class="feature-item">• 预约理发：选择日期和时段进行预约，支持为他人代约。招待员可进行理发日更换、时段管理。</view>
-            <view class="feature-item">• 理发统计：按月统计每人理发次数。</view>
+            <view class="feature-item">• 理发统计（仅供授权人员查看）：按月统计每人理发次数。</view>
             <view class="feature-item">• 我的预约：查看历史预约记录。</view>
           </view>
           <view class="card-permission">
@@ -127,7 +128,7 @@
           <view class="card-desc">查看和审批小程序用户提交的各类申请。</view>
           <view class="card-permission">
             <view class="permission-label">权限要求：</view>
-            <view class="permission-value">当前仅限管理员使用。</view>
+            <view class="permission-value">当前仅限小程序管理员使用。</view>
           </view>
         </view>
       </view>
@@ -141,7 +142,7 @@
           <view class="card-desc">发布公告、副食订购、活动报名、问卷、答题等各类信息，供用户查看、填报。</view>
           <view class="card-permission">
             <view class="permission-label">权限要求：</view>
-            <view class="permission-value">馆员和获授权人员可发布。</view>
+            <view class="permission-value">馆员和获授权人员可发布。发布者可查看订购、报名等情况并导出PDF。</view>
           </view>
         </view>
       </view>
@@ -158,7 +159,7 @@
           <view class="card-title">出行数据板</view>
         </view>
         <view class="card-content">
-          <view class="card-desc">可查看当前人员外出情况，查看个人外出历史记录。</view>
+          <view class="card-desc">可查看当前人员外出情况、外出历史记录。</view>
           <view class="card-permission">
             <view class="permission-label">权限要求：</view>
             <view class="permission-value">领导，部门负责人、报备接收人、居住区片长可查看管辖范围人员出行情况。</view>

@@ -7,44 +7,12 @@ Page({
     version: config.MINIAPP_VERSION,
     userName: '未登录用户',
     roleLabel: '点击登录后查看资料',
-    primaryTag: '微信身份',
     secondaryTag: '状态：未注册',
     avatarStatusClass: 'status-offline',
     avatarText: '未',
     userAvatarUrl: '',
     isAdmin: false,
     isReviewer: false,
-    stats: [{
-        label: '本月出勤（占位）',
-        value: '7天',
-        icon: '📅'
-      },
-      {
-        label: '年假余额（占位）',
-        value: '8天',
-        icon: '🏖️'
-      },
-      {
-        label: '绩效得分（占位）',
-        value: '92分',
-        icon: '⭐'
-      }
-    ],
-    quickInfo: [{
-        title: '今日工作时长（占位）',
-        value: '7h 32m',
-        desc: '08:52 上班 · 在岗中',
-        icon: '📈',
-        valueColor: '#2563EB'
-      },
-      {
-        title: '积分余额（占位）',
-        value: '1,280',
-        desc: '本月获得 +100',
-        icon: '✨',
-        valueColor: '#FF9800'
-      }
-    ],
     menuGroups: [{
         title: '系统设置',
         items: [{
@@ -83,6 +51,10 @@ Page({
       },
       {
         label: '居住区域',
+        value: '未填写'
+      },
+      {
+        label: '片长',
         value: '未填写'
       },
       {
@@ -192,13 +164,11 @@ Page({
         value: user.livingArea || '未填写'
       })
 
-      // 如果有亲属信息，添加到信息卡片中
-      if (user.relativeName) {
-        companyInfo.push({
-          label: '亲属',
-          value: user.relativeName
-        })
-      }
+      //是否片长
+      companyInfo.push({
+        label: '片长',
+        value: user.isAreaManager ? '是' : '否'
+      })
 
       // 系统管理员（是/否）
       companyInfo.push({
@@ -240,9 +210,8 @@ Page({
 
       this.setData({
         userName: user.name,
-        roleLabel: (user.role || '馆员') + (user.isDepartmentHead ? ' · 负责人' : '') + (user.isAdmin ? ' · 管理员' : ''),
-        primaryTag: user.isAdmin ? '系统管理员' : '非系统管理员',
-        secondaryTag: '状态：' + statusInfo.label,
+        roleLabel: (user.role || '馆员') + (user.isDepartmentHead ? ' · 部门负责人' : '') + (user.isAreaManager ? ' · 片长' : '') + (user.isAdmin ? ' · 管理员' : ''),
+        secondaryTag: statusInfo.label,
         avatarText: (user.avatarText || user.name || '巴').slice(0, 1),
         avatarStatusClass: statusInfo.cls,
         isAdmin: !!user.isAdmin,

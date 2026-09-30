@@ -224,12 +224,12 @@ page {
 }
 
 .profile-info-title,
-.profile-company-name,
-.profile-menu-label {
+.profile-menu-label,
+.profile-company-name{
   margin-left: var(--sp-16);
-  font-size: var(--fs-30);
+  font-size: var(--fs-32);
   color: var(--text-primary);
-  font-weight: 600;
+  font-weight: 500;
 }
 
 .profile-company-row:not(:last-child) {
@@ -245,7 +245,7 @@ page {
 .profile-info-desc,
 .profile-group-title,
 .profile-company-label {
-  font-size: var(--fs-28);
+  font-size: var(--fs-30);
   color: var(--text-muted);
 }
 
@@ -313,7 +313,7 @@ page {
   text-align: center;
   font-size: var(--fs-28);
   color: var(--text-primary);
-  font-weight: 600;
+  font-weight: 500;
   border-left: var(--sp-2) solid var(--border-soft);
   border-right: var(--sp-2) solid var(--border-soft);
 }

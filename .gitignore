@@ -1,6 +1,4 @@
 cloudfunctions/generateOrderPdf/node_modules/
 node_modules/
 miniprogram/miniprogram_npm
-.codebuddy/rules/
-.codebuddy/plans/
-.codebuddy/rules/tcb/
+.codebuddy/

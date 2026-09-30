@@ -22,9 +22,9 @@
       <!-- 提示信息 -->
       <view wx:if="{{!isReviewer}}" class="haircut-info-card">
         <view class="haircut-info-text">
-          每周一、三、五下午提供理发<text>\n</text>
-          当日14:50后该日锁定，不再允许预约或取消预约
-          <text wx:if="{{isReceptionist}}">\n招待员对理发日和预约的操作不受限制</text>
+          工作日每周一、三、五下午提供理发<text>\n</text>
+          当日14:50后时段锁定，不再允许预约或取消
+          <text wx:if="{{isReceptionist}}">\n招待员对理发日、时段和预约的操作不受限</text>
         </view>
       </view>
 
