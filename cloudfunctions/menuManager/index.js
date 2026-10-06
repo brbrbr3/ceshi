@@ -272,7 +272,8 @@ exports.main = async (event) => {
         return {
           code: 0,
           message: 'ok',
-          data: { comments, canViewAll: true }
+          // canViewAll 是"范围由云端决定"时代的残留字段（前端无人读取，全项目仅此一处出现），已移除
+          data: { comments }
         }
       }
 

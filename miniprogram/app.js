@@ -713,6 +713,7 @@ App({
         openid: this.globalData.openid,
         user: this.globalData.userProfile,
         request: null,
+        authStatus: null, // 缓存命中时未与云端核对，状态未知（不可沿用旧值，避免用过期状态判断）
         _fromCache: true
       })
     }
@@ -778,6 +779,11 @@ App({
         openid: data.openid,
         user: this.globalData.userProfile,
         request: data.request || null,
+        // 透传云端判定的账号状态（approved / deactivated / unregistered / pending / rejected）。
+        // 必须透传：'deactivated' 只能由 authStatus 承载 —— 它的载荷是
+        // registered:false + request:null，与「真未注册」完全相同，漏传就无法区分二者，
+        // 登录页会把已注销用户显示成「您尚未注册」
+        authStatus: data.authStatus || null,
         _fromCache: false
       }
     }).catch((error) => {
@@ -790,6 +796,7 @@ App({
           openid: this.globalData.openid,
           user: this.globalData.userProfile,
           request: null,
+          authStatus: null, // 未与云端核对，状态未知（不可沿用旧值，避免用过期状态判断）
           _fromCache: true
         })
       }
@@ -831,6 +838,17 @@ App({
     this._silentRefreshPromise = this.callOfficeAuth('checkRegistration', {
       cachedUpdatedAt: cachedUpdatedAt
     }).then((data) => {
+      // 云端判定账号已非「已批准」（已注销 / 未注册 / 已退回）：立即清掉全部本地缓存。
+      // 这条静默路径原先只处理 profile，于是「注销前已登录」的用户能靠缓存放行：
+      // checkUserRegistration 命中 AUTH_CORE_KEY.hasLogin 就直接返回 registered:true，
+      // 既不发起 checkRegistration，也就没机会执行清缓存逻辑。
+      // 清掉缓存后 hasLogin 归零，各页守卫（guardRegistered）下次调用必然走网络并被踢到登录页，
+      // 因此这里不需要（也不应该）自己跳转，避免与页面守卫重复跳转。
+      if (data.registered === false) {
+        console.log('后台静默刷新：账号状态已失效，清除本地缓存')
+        this.clearOverallState()
+        return
+      }
       if (data.profileNotModified) {
         console.log('后台静默刷新：profile 未变化')
         return
@@ -1168,7 +1186,25 @@ App({
   // ========== 权限管理相关方法 ==========
 
   /**
- * 功能：直接调用云函数检查用户是否有指定功能的访问权限
+   * 判断用户是否可发布馆内动态（前端唯一入口）
+   *
+   * 口径：管理员 / 馆员（角色）/ 办公室内聘（岗位）
+   * ⚠️ 必须与云端 contentFormManager.canPublish 保持一致，改一处要同步另一处。
+   * 前端各处（form-list 按钮显隐、form-edit 进页面拦截与提交校验）统一调用本方法，
+   * 前端判断只负责交互，最终以云端校验为准。
+   *
+   * @param {Object} user - 用户对象（来自 checkUserRegistration / guardRegistered）
+   * @returns {boolean}
+   */
+  canPublishForm(user) {
+    if (!user) return false
+    if (user.isAdmin) return true
+    if (Array.isArray(user.position) && user.position.includes('办公室内聘')) return true
+    return user.role === '馆员'
+  },
+
+  /**
+   * 功能：直接调用云函数检查用户是否有指定功能的访问权限
  * 注意：该函数不应为外部调用。外部检查权限应统一调用navigateWithPermission()方法
  * @param {string} featureKey - 功能标识，如 'medical_application'
  * @returns {Promise<boolean>} 是否有权限

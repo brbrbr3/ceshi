@@ -221,10 +221,13 @@ Page({
   },
 
   /**
-   * 检查发布权限（馆员 / 管理员），user 由守卫传入
+   * 检查发布权限，user 由守卫传入
+   * 判定口径统一在 app.canPublishForm（与云端 contentFormManager.canPublish 一致）；
+   * 本页只负责"无权限则提示并返回"，不再自己写规则。
+   * 提交前校验 validateBasic 读取同一份 data.canPublish，因此也自动统一。
    */
   checkPublishPermission(user) {
-    const canPublish = !!user.isAdmin || user.role === '馆员'
+    const canPublish = app.canPublishForm(user)
     this.setData({
       canPublish
     })

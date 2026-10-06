@@ -51,11 +51,11 @@ Page({
   },
 
   /**
-   * 设置发布权限（馆员 / 管理员 / 办公室内聘岗位），user 由守卫传入
+   * 设置发布权限，user 由守卫传入
+   * 判定口径统一在 app.canPublishForm（与云端 contentFormManager.canPublish 一致）
    */
   checkPublishPermission(user) {
-    const isOfficeServant = Array.isArray(user.position) && user.position.includes('办公室内聘')
-    const canPublish = !!user.isAdmin || user.role === '馆员' || isOfficeServant
+    const canPublish = app.canPublishForm(user)
     this.setData({ 
       canPublish
     })

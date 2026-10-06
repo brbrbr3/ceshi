@@ -113,7 +113,7 @@
             </view>
           </view>
         </view>
-      <view class="menu-comment-scope">【{{commentScopeText}}】</view>
+      <view wx:if="{{commentScopeText}}" class="menu-comment-scope">【{{commentScopeText}}】</view>
       </view>
     </view>
   </view>

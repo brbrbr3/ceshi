@@ -399,17 +399,22 @@ Page({
         newItems.forEach(item => {
           if (!item.departAt) return
           const date = new Date(item.departAt)
-          const monthKey = date.getFullYear() + '年' + (date.getMonth() + 1) + '月'
-          let group = groups.find(g => g.month === monthKey)
+          // 排序键与展示文案必须分开（与 trip-report / haircut 的分组写法保持一致）：
+          // 排序用补零的 'YYYY-MM'，可直接字典序比较；展示用 'YYYY年M月'。
+          // 不能拿展示文案排序 —— '2026年10月' 与 '2026年9月' 第 6 个字符是 '1' < '9'，
+          // 字典序下 10 月比 9 月小，降序时会掉到列表最后。
+          const monthKey = `${date.getFullYear()}-${String(date.getMonth() + 1).padStart(2, '0')}`
+          const monthText = `${date.getFullYear()}年${date.getMonth() + 1}月`
+          let group = groups.find(g => g.monthKey === monthKey)
           if (!group) {
-            group = { month: monthKey, items: [] }
+            group = { monthKey, month: monthText, items: [] }
             groups.push(group)
           }
           group.items.push(item)
         })
 
-        // 月份降序排序
-        groups.sort((a, b) => b.month.localeCompare(a.month))
+        // 月份降序排序（按补零的 YYYY-MM，跨年、跨 10 月均正确）
+        groups.sort((a, b) => b.monthKey.localeCompare(a.monthKey))
 
         this.setData({
           personPopupData: {

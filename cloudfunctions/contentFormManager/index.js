@@ -42,8 +42,10 @@ const VALID_TAGS = ['announcement', 'questionnaire', 'side_dish', 'activity', 'q
 // 合法控件类型
 const VALID_BLOCK_TYPES = ['text', 'radio', 'checkbox', 'judge', 'textarea', 'side_dish', 'activity']
 
-// 可发布角色（馆员及以上）
-const PUBLISH_ROLES = ['馆领导', '馆员']
+// 发布权限口径（唯一真相源）：管理员 / 馆员（角色）/ 办公室内聘（岗位）
+// ⚠️ 与前端 app.canPublishForm 保持一致，改一处必须同步另一处
+const PUBLISH_ROLES = ['馆员']
+const PUBLISH_POSITION = '办公室内聘'
 
 // 未读消息提醒订阅消息模板 ID（新馆内动态通知）
 const UNREAD_MESSAGE_TEMPLATE_ID = 'mJ1CGM8OvpgomnYy0yot4Kk8hD8S-NH06A6ZDywdpGc'
@@ -82,13 +84,16 @@ async function getUser(openid) {
 
 /**
  * 判断用户是否可发布
- * 规则：管理员、部门负责人、馆领导、馆员、办公室内聘岗位可发布
+ * 规则：管理员 / 馆员（角色）/ 办公室内聘（岗位）
+ * ⚠️ 与前端 app.canPublishForm 保持一致，改一处必须同步另一处
+ *
+ * 注意：本函数还被 getForm 的"定向可见"豁免逻辑复用（见 hasRestriction 分支），
+ * 口径变化会连带影响该处可见性判断。
  */
 function canPublish(user) {
   if (!user) return false
   if (user.isAdmin) return true
-  if (user.isDepartmentHead) return true
-  if (Array.isArray(user.position) && user.position.includes('办公室内聘')) return true
+  if (Array.isArray(user.position) && user.position.includes(PUBLISH_POSITION)) return true
   return PUBLISH_ROLES.includes(user.role)
 }
 
