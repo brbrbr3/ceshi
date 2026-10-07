@@ -112,11 +112,6 @@ Page({
     // 时间状态
     todayStr: '',
 
-    // 预约成功弹窗
-    successModalVisible: false,
-    successModalTitle: '',
-    successModalInfo: '',
-
     // 换日功能（招待员）
     showChangeDatePicker: false,
     changeDateStart: '',
@@ -713,7 +708,7 @@ Page({
 
     const res = await wx.showModal({
       title: '确认取消',
-      content: `确定要取消 ${this.data.selectedDate} ${slot.display} 的预约吗？`,
+      content: `确定要取消您于 ${this.data.selectedDate} ${slot.display} 的理发预约吗？`,
       confirmText: '确认取消',
       confirmColor: '#DC2626'
     })
@@ -758,8 +753,19 @@ Page({
     const slot = e.currentTarget.dataset.slot
     if (!slot) return
 
-    // 已被他人预约 - 取消预约
+    // 已被他人预约 - 先确认，再进入「选择取消原因」
+    // 对话框样式与「设为不可预约」保持一致（标题、文案结构、确认按钮与橙色都相同）
     if (slot.status === 'booked') {
+      const res = await wx.showModal({
+        title: '取消预约',
+        content: `确定取消 ${slot.bookingInfo.appointeeName} 在 ${this.data.selectedDate} ${slot.display} 的理发预约吗？`,
+        confirmText: '确认',
+        confirmColor: '#EA580C'
+      })
+
+      if (!res.confirm) return
+
+      // 确认后再弹出「选择取消原因」，由该弹窗完成最终取消
       this.showCancelSlotPopup(slot)
       return
     }
@@ -936,11 +942,13 @@ Page({
 
       if (res.result.code === 0) {
         this.hideBookingPopup()
-        // 弹窗提示预约成功
-        this.setData({
-          successModalVisible: true,
-          successModalTitle: '预约成功',
-          successModalInfo: `时段：${this.data.selectedDate} ${this.data.selectedSlotDisplay}\n理发人：${appointeeName.trim()}\n请等待招待员在相应时段与您联系`
+        // 预约成功提示（系统原生 Modal）
+        wx.showModal({
+          title: '预约成功',
+          content: `时段：${this.data.selectedDate} ${this.data.selectedSlotDisplay}\n理发人：${appointeeName.trim()}\n请等待招待员在相应时段与您联系`,
+          showCancel: false,
+          confirmText: '好的',
+          confirmColor: '#EA580C'
         })
         // 刷新时段与日期列表（loadDisplayDates 内部会复用缓存刷新时段）
         this.loadDisplayDates()
@@ -961,13 +969,6 @@ Page({
         submitting: false
       })
     }
-  },
-
-  /**
-   * 关闭预约成功弹窗
-   */
-  closeSuccessModal() {
-    this.setData({ successModalVisible: false })
   },
 
   // ==================== 换日功能（招待员） ====================
@@ -1084,11 +1085,14 @@ Page({
       })
 
       if (res.result.code === 0) {
-        this.setData({
-          changeDateConfirmVisible: false,
-          successModalVisible: true,
-          successModalTitle: '理发日调整成功',
-          successModalInfo: `理发日已由${this.formatChineseDate(sourceDate)}改至 ${this.formatChineseDate(targetDate)}，预约（如有）已同步调整至新日期。`
+        this.setData({ changeDateConfirmVisible: false })
+        // 换日成功提示（系统原生 Modal）
+        wx.showModal({
+          title: '理发日调整成功',
+          content: `理发日已由${this.formatChineseDate(sourceDate)}改至 ${this.formatChineseDate(targetDate)}，预约（如有）已同步调整至新日期。`,
+          showCancel: false,
+          confirmText: '好的',
+          confirmColor: '#EA580C'
         })
         this.loadDisplayDates()
       } else {
@@ -1495,7 +1499,7 @@ Page({
 
     const res = await wx.showModal({
       title: '确认取消',
-      content: `确定要取消 ${item.date} ${item.timeSlotDisplay} 的预约吗？`,
+      content: `确定要取消您于 ${item.date} ${item.timeSlotDisplay} 的理发预约吗？`,
       confirmText: '确认取消',
       confirmColor: '#DC2626'
     })

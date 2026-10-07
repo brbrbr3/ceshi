@@ -35,7 +35,7 @@
   border-radius: var(--sp-24);
   overflow: hidden;
   background: var(--bg-input);
-  border: var(--sp-2) solid transparent;
+  border: var(--sp-1) solid var(--border-soft);
 }
 
 .menu-editor-wrapper editor {

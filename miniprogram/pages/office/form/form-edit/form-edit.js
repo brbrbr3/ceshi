@@ -81,7 +81,10 @@ function createDefaultBlock(type) {
     id: genId('b'),
     type,
     title: '',
-    required: false
+    // 新控件默认「必填」：多数场景题干都需要作答，默认打开可少点一次开关。
+    // 注意 text（说明文字）必须保持 false —— 它没有作答项，前端 validateRequired 会跳过它，
+    // 但云端 validateAnswer 只看 required，置 true 会导致整份提交被拒。
+    required: type !== 'text'
   }
   if (type === 'radio') {
     base.options = ['', '']
@@ -175,6 +178,9 @@ Page({
     showBlockModal: false,
     editingIndex: -1,
     editingBlock: null,
+    // 弹窗内「题干 / 标题」文案（由 openBlockModal 按控件类型给定，WXML 只负责渲染）
+    editingBlockTitleLabel: '题干',
+    editingBlockTitlePlaceholder: '请输入题干',
     // 删除动画
     removingIndex: -1,
     // 草稿
@@ -629,11 +635,18 @@ Page({
    * 打开控件配置弹窗
    */
   openBlockModal(block, index) {
+    const editingBlock = utils.deepClone(block)
+    // 「题干 / 标题」文案按控件类型在 JS 侧算好：
+    // 副食（side_dish）与活动（activity）填的是"标题"，其余填写控件填的是"题干"。
+    // 项目约定不在 WXML 里写复杂表达式，派生文案统一在这里给出。
+    const isTitle = editingBlock.type === 'side_dish' || editingBlock.type === 'activity'
     this.setData({
       showBlockModal: true,
       modalAnimating: false,
       editingIndex: index,
-      editingBlock: utils.deepClone(block)
+      editingBlock,
+      editingBlockTitleLabel: isTitle ? '标题' : '题干',
+      editingBlockTitlePlaceholder: isTitle ? '请输入标题' : '请输入题干'
     })
     this.syncEditingOptions()
   },

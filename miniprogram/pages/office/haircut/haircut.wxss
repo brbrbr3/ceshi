@@ -240,6 +240,13 @@ page {
   color: var(--text-muted);
 }
 
+/* 招待员视角：已被预约的时段时间与预约人姓名用正常文字色，便于核对；
+   只覆盖文字色 —— 背景色、边框、以及 .is-booked 上的整体透明度都保持原样。
+   选择器权重与上一条相同，靠源码顺序覆盖，因此必须写在这里之后。 */
+.haircut-slot-item.is-receptionist-view .haircut-slot-time {
+  color: var(--text-primary);
+}
+
 .haircut-slot-status {
   font-size: var(--fs-24);
   padding: var(--sp-6) var(--sp-16);
@@ -610,6 +617,7 @@ page {
   height: var(--sp-88);
   display: flex;
   align-items: center;
+  border: var(--sp-1) solid var(--border-soft);
 }
 
 .haircut-input {

@@ -255,28 +255,21 @@
     </view>
   </view>
 
-  <!-- 控件配置弹窗 -->
+  <!-- 组件配置弹窗 -->
   <view class="fe-modal-mask {{modalAnimating ? 'is-closing' : ''}}" wx:if="{{showBlockModal}}" catchtap="closeBlockModal" catchtouchmove="stopPropagation">
     <view class="fe-modal-container" catchtap="stopPropagation">
       <view class="fe-modal-header">
-        <view class="fe-modal-title">{{editingIndex >= 0 ? '编辑控件' : '添加控件'}}</view>
+        <view class="fe-modal-title">{{editingIndex >= 0 ? '编辑组件' : '添加组件'}}</view>
         <view class="fe-modal-close" catchtap="closeBlockModal">×</view>
       </view>
 
       <scroll-view class="fe-modal-body" scroll-y enhanced show-scrollbar="false" wx:if="{{editingBlock}}">
-        <!-- 题干 -->
+        <!-- 题干 / 标题：side_dish、activity 为「标题」，其余为「题干」
+             文案由 openBlockModal 在 JS 侧给定，这里只渲染，避免重复的输入结构与三元表达式 -->
         <view class="fe-modal-field" wx:if="{{editingBlock.type !== 'text'}}">
-          <view wx:if="{{editingBlock.type === 'side_dish' || editingBlock.type === 'activity'}}">
-            <view class="fe-modal-label">标题</view>
-            <view class="auth-input-shell">
-              <input value="{{editingBlock.title}}" bindinput="onBlockTitleInput" placeholder="请输入标题" placeholder-class="auth-input-placeholder" maxlength="100" />
-            </view>
-          </view>
-          <view wx:else>
-            <view class="fe-modal-label">题干</view>
-            <view class="auth-input-shell">
-              <input value="{{editingBlock.title}}" bindinput="onBlockTitleInput" placeholder="请输入题干" placeholder-class="auth-input-placeholder" maxlength="100" />
-            </view>
+          <view class="fe-modal-label">{{editingBlockTitleLabel}}</view>
+          <view class="auth-input-shell">
+            <input value="{{editingBlock.title}}" bindinput="onBlockTitleInput" placeholder="{{editingBlockTitlePlaceholder}}" placeholder-class="auth-input-placeholder" maxlength="100" />
           </view>
         </view>
 
