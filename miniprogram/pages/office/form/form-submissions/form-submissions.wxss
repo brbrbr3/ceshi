@@ -72,8 +72,8 @@
 
 
 .fs-btn-arrow {
-  font-size: var(--fs-24);
-  color: var(--text-muted);
+  font-size: var(--fs-26);
+  color: var(--checklist-on-text);
 }
 
 .fs-toggle-all {
@@ -81,9 +81,9 @@
   padding: var(--sp-22) 0;
   text-align: center;
   background: var(--bg-card);
-  border: var(--sp-2) solid var(--border-soft);
+  border: var(--sp-2) solid var(--checklist-on-border);
   border-radius: var(--sp-48);
-  color: #2563EB;
+  color: var(--checklist-on-text);
   font-size: var(--fs-32);
   font-weight: 600;
   box-shadow: 0 var(--sp-8) var(--sp-24) rgba(37, 99, 235, 0.18);

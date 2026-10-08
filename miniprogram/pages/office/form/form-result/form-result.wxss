@@ -129,7 +129,7 @@
 }
 
 .fr-side-total {
-  font-size: var(--fs-28);
+  font-size: var(--fs-32);
   font-weight: 600;
   color: #16A34A;
   margin-bottom: var(--sp-16);
@@ -146,12 +146,12 @@
 }
 
 .fr-side-name {
-  font-size: var(--fs-26);
+  font-size: var(--fs-30);
   color: var(--text-secondary);
 }
 
 .fr-side-count {
-  font-size: var(--fs-26);
+  font-size: var(--fs-30);
   font-weight: 600;
   color: var(--text-primary);
 }

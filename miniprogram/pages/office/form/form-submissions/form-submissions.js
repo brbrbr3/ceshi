@@ -3,6 +3,8 @@ const utils = require('../../../../common/utils.js')
 
 // 排序模式循环顺序与文案
 const SORT_MODES = ['time', 'score', 'department']
+// 无分数表单（副食等）：只在「按提交时间 / 按部门分组」之间循环，不出现「按分数」
+const SORT_MODES_NO_SCORE = ['department', 'time']
 const SORT_MODE_TEXT = {
   time: '按提交时间',
   score: '按分数',
@@ -19,6 +21,8 @@ Page({
     displayList: [],
     sortMode: 'time',
     sortModeText: '按提交时间',
+    showSortToggle: false, // 排序按钮是否显示（答题 / 副食）
+    departmentOrder: [],   // sys_config.DEPARTMENT_OPTIONS：部门分组的先后顺序
     filterMode: 'all',
     maxSubmissions: 1,
     loading: true,
@@ -52,7 +56,7 @@ Page({
     wx.cloud.callFunction({
       name: 'contentFormManager',
       data: { action: 'listSubmissions', params: { formId } }
-    }).then(res => {
+    }).then(async res => {
       wx.hideLoading()
       const result = res.result || {}
       if (result.code !== 0) {
@@ -61,15 +65,24 @@ Page({
       const form = result.data.form || {}
       const blocks = form.blocks || []
       const isQuiz = form.tag === 'quiz'
+      const isSideDish = form.tag === 'side_dish'
+      const showSortToggle = isQuiz || isSideDish
+      // 有排序按钮的表单（答题 / 副食）默认按部门分开展示
+      const defaultSortMode = showSortToggle ? 'department' : 'time'
       const list = (result.data.list || []).map(s => this.formatSubmission(s, blocks, isQuiz))
+      // 默认按部门分组，需要先拿到部门顺序；读取失败时退化为「按出现顺序」，不阻断页面
+      if (showSortToggle) {
+        await this.loadDepartmentOrder()
+      }
       this.setData({
         title: form.title || '',
         tag: form.tag || '',
         isQuiz,
+        showSortToggle,
         maxSubmissions: Math.max(1, Number(form.maxSubmissions) || 1),
         list,
-        sortMode: 'time',
-        sortModeText: '按提交时间',
+        sortMode: defaultSortMode,
+        sortModeText: SORT_MODE_TEXT[defaultSortMode] || '按提交时间',
         filterMode: 'all',
         loading: false
       })
@@ -143,18 +156,24 @@ Page({
       list.sort((a, b) => (b.scoreTotal || 0) - (a.scoreTotal || 0))
       displayList = list
     } else if (sortMode === 'department') {
-      // 按部门分组，组内按分数从高到低
+      // 按部门分组：组序与 trip-board 一致（见 buildDeptGroupKey / compareDeptGroup 的注释）
+      // 组内：答题表单按分数降序；无分数表单（副食等）按提交时间正序
       const groups = {}
-      const order = []
+      const keys = []
       list.forEach(item => {
-        const dept = item.department || '未分配部门'
-        if (!groups[dept]) { groups[dept] = []; order.push(dept) }
-        groups[dept].push(item)
+        const key = this.buildDeptGroupKey(item)
+        if (!groups[key]) { groups[key] = []; keys.push(key) }
+        groups[key].push(item)
       })
-      order.forEach(dept => {
-        groups[dept].sort((a, b) => (b.scoreTotal || 0) - (a.scoreTotal || 0))
-        displayList.push({ key: `g_${dept}`, isGroup: true, name: dept, count: groups[dept].length })
-        displayList = displayList.concat(groups[dept])
+      keys.sort((a, b) => this.compareDeptGroup(a, b))
+      keys.forEach(key => {
+        if (this.data.isQuiz) {
+          groups[key].sort((a, b) => (b.scoreTotal || 0) - (a.scoreTotal || 0))
+        } else {
+          groups[key].sort((a, b) => (a.submittedAt || 0) - (b.submittedAt || 0))
+        }
+        displayList.push({ key: `g_${key}`, isGroup: true, name: key, count: groups[key].length })
+        displayList = displayList.concat(groups[key])
       })
     } else {
       // 按提交时间从早到晚
@@ -163,6 +182,58 @@ Page({
     }
 
     this.setData({ displayList, sortModeText: SORT_MODE_TEXT[sortMode] || '按提交时间' })
+  },
+
+  /**
+   * 部门分组的组名规则（与 trip-board 保持一致，改一处必须同步另一处）
+   * - 部门为「无」（可选领导的馆员）→ 空组名，置顶
+   * - 待赴任馆员 → 排在各部门之后
+   * - 角色「其他」→ 归入「其他人员」，置底
+   * - 其余 → 部门名，为空则「未分配部门」
+   */
+  buildDeptGroupKey(item) {
+    const department = item.department || ''
+    const role = item.role || ''
+    if (department === '无') return ''
+    if (role === '待赴任馆员') return '待赴任馆员'
+    if (role === '其他') return '其他人员'
+    return department || '未分配部门'
+  },
+
+  /**
+   * 部门组的先后顺序（与云端 tripBoard.getBoardData 的排序规则一致）
+   * 空组名置顶 → 按 sys_config.DEPARTMENT_OPTIONS 顺序 → 「待赴任馆员」紧随最后一个部门
+   * → 未配置的部门（如「未分配部门」）排在其后 → 「其他人员」置底
+   */
+  compareDeptGroup(a, b) {
+    if (a === b) return 0
+    if (a === '') return -1
+    if (b === '') return 1
+    if (a === '其他人员') return 1
+    if (b === '其他人员') return -1
+    const order = this.data.departmentOrder || []
+    const indexOf = name => {
+      if (name === '待赴任馆员') return order.length
+      const i = order.indexOf(name)
+      return i === -1 ? Number.MAX_SAFE_INTEGER : i
+    }
+    const ai = indexOf(a)
+    const bi = indexOf(b)
+    if (ai !== bi) return ai - bi
+    return a.localeCompare(b, 'zh')
+  },
+
+  /**
+   * 读取部门顺序（sys_config.DEPARTMENT_OPTIONS，与 trip-board 的分组顺序同源）
+   * 失败不阻断：departmentOrder 为空时，部门分组退化为「按出现顺序」
+   */
+  async loadDepartmentOrder() {
+    try {
+      const allConstants = await app.getAllConstants()
+      this.setData({ departmentOrder: allConstants.DEPARTMENT_OPTIONS || [] })
+    } catch (e) {
+      console.warn('读取部门顺序失败，部门分组将按出现顺序:', e)
+    }
   },
 
   /**
@@ -204,11 +275,14 @@ Page({
   },
 
   /**
-   * 循环切换排序方式（答题表单）：时间 → 分数 → 部门 → 时间
+   * 循环切换排序方式
+   * 答题表单：时间 → 分数 → 部门 → 时间
+   * 无分数表单（副食）：时间 → 部门 → 时间（不出现「按分数」）
    */
   onSortToggle() {
-    const idx = SORT_MODES.indexOf(this.data.sortMode)
-    const next = SORT_MODES[(idx + 1) % SORT_MODES.length]
+    const modes = this.data.isQuiz ? SORT_MODES : SORT_MODES_NO_SCORE
+    const idx = modes.indexOf(this.data.sortMode)
+    const next = modes[(idx + 1) % modes.length]
     this.setData({ sortMode: next })
     this.applySort()
   },
@@ -232,9 +306,18 @@ Page({
     this.setData({ exporting: true })
     wx.showLoading({ title: '生成PDF...', mask: true })
 
+    // 导出内容跟随当前排序：部门分组时把组的先后顺序一并传给云端，保证 PDF 与页面一致
+    const groupOrder = this.data.sortMode === 'department'
+      ? this.data.displayList.filter(d => d.isGroup).map(d => d.name)
+      : []
     wx.cloud.callFunction({
       name: 'generateOrderPdf',
-      data: { type: 'contentFormSideDish', formId: this.data.formId }
+      data: {
+        type: 'contentFormSideDish',
+        formId: this.data.formId,
+        sortMode: this.data.sortMode,
+        groupOrder
+      }
     }).then(async res => {
       wx.hideLoading()
       const result = res.result || {}

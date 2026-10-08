@@ -580,11 +580,28 @@ async function generateSideDishBookingPdf(orderId) {
 }
 
 /**
+ * 副食清单分组名（与前端 form-submissions.buildDeptGroupKey 规则一致，改一处必须同步另一处）
+ * - 部门为「无」（可选领导的馆员）→ 空组名，置顶
+ * - 待赴任馆员 → 各部门之后；角色「其他」→「其他人员」置底
+ */
+function buildDeptGroupName(sub) {
+  const department = sub.department || ''
+  const role = sub.role || ''
+  if (department === '无') return ''
+  if (role === '待赴任馆员') return '待赴任馆员'
+  if (role === '其他') return '其他人员'
+  return department || '未分配部门'
+}
+
+/**
  * 馆内动态系统 - 副食订购汇总清单 PDF 导出
  * 接收 formId（content_forms._id），从 blocks 中取 side_dish 块及 categories，
  * 从 content_form_submissions 的 answers 中汇总每人预订份数，生成表格 PDF。
+ * sortMode / groupOrder 由页面传入，用于让导出顺序与页面当前显示一致：
+ * - sortMode='department'：按 groupOrder（页面上组的先后）分组，组内按提交时间正序
+ * - 其它（含默认）：按提交时间正序
  */
-async function generateContentFormSideDishPdf(formId) {
+async function generateContentFormSideDishPdf(formId, sortMode, groupOrder) {
   // 1. 查询表单
   const formRes = await db.collection('content_forms').doc(formId).get()
   if (!formRes.data) {
@@ -613,8 +630,39 @@ async function generateContentFormSideDishPdf(formId) {
     const answer = (s.answers || []).find(a => a.blockId === blockId)
     const items = (answer && Array.isArray(answer.value)) ? answer.value : []
     const count = items.reduce((sum, i) => sum + (Number(i.count) || 0), 0)
-    return { name: s.userName || '匿名', items, count, createdAt: s.submittedAt }
+    return {
+      name: s.userName || '匿名',
+      items,
+      count,
+      createdAt: s.submittedAt,
+      // 分组名：规则与前端 form-submissions.buildDeptGroupKey 一致
+      groupName: buildDeptGroupName(s)
+    }
   }).filter(b => b.items.length > 0)
+
+  // 排序：与页面当前显示保持一致
+  // - 按部门分组：组序取前端传入的 groupOrder（页面上的组先后），组内按提交时间正序
+  // - 其它：按提交时间正序（与原来的默认行为一致）
+  const deptRank = new Map()
+  ;(Array.isArray(groupOrder) ? groupOrder : []).forEach((name, i) => deptRank.set(name, i))
+  const rankOf = name => (deptRank.has(name) ? deptRank.get(name) : Number.MAX_SAFE_INTEGER)
+  const byTimeAsc = (a, b) => (a.createdAt || 0) - (b.createdAt || 0)
+  if (sortMode === 'department') {
+    bookings.sort((a, b) => {
+      const ra = rankOf(a.groupName)
+      const rb = rankOf(b.groupName)
+      if (ra !== rb) return ra - rb
+      return byTimeAsc(a, b)
+    })
+  } else {
+    bookings.sort(byTimeAsc)
+  }
+
+  // 各组人数（用于组标题行）
+  const groupCounts = {}
+  bookings.forEach(b => {
+    groupCounts[b.groupName] = (groupCounts[b.groupName] || 0) + 1
+  })
 
   const totalCount = bookings.reduce((sum, b) => sum + b.count, 0)
 
@@ -744,8 +792,22 @@ async function generateContentFormSideDishPdf(formId) {
 
       pdfDoc.fillColor('#000000')
       let rowY = tableTop + 28
+      let currentGroup = null
 
       bookings.forEach((b, idx) => {
+        // 按部门分组导出：组变化时插入组标题行；标题不留页底（至少给它带一行数据的空间）
+        if (sortMode === 'department' && b.groupName !== currentGroup) {
+          currentGroup = b.groupName
+          if (rowY + 26 * 2 > 780) {
+            pdfDoc.addPage()
+            rowY = 50
+          }
+          pdfDoc.rect(50, rowY, 495, 26).fill('#EEF2FF')
+          pdfDoc.fontSize(9).font('ChineseFont').fillColor('#1E293B')
+            .text(`${currentGroup || '（部门无）'}（${groupCounts[currentGroup] || 0} 人）`, 60, rowY + 8)
+          pdfDoc.fillColor('#000000')
+          rowY += 26
+        }
         if (rowY > 750) {
           pdfDoc.addPage()
           rowY = 50
@@ -1174,7 +1236,7 @@ exports.main = async (event) => {
     return fail('获取微信身份失败，请稍后重试', 401)
   }
 
-  const { orderId, type, formId, menuIds } = event || {}
+  const { orderId, type, formId, menuIds, sortMode, groupOrder } = event || {}
 
   // 菜单评分导出
   if (type === 'menuRatings') {
@@ -1206,7 +1268,7 @@ exports.main = async (event) => {
       return fail('缺少 formId 参数', 400)
     }
     try {
-      return await generateContentFormSideDishPdf(formId)
+      return await generateContentFormSideDishPdf(formId, sortMode, groupOrder)
     } catch (error) {
       return fail(error.message || '生成副食清单失败', 500)
     }
