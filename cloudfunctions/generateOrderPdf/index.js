@@ -13,6 +13,9 @@ const db = cloud.database()
 const FONT_DIR = '/tmp/fonts'
 const FONT_FILE = path.join(FONT_DIR, 'SourceHanSansSC-Regular.otf')
 const FONT_FILE_ID = 'cloud://cloud1-d2gyip4xi1fcf54bd.636c-cloud1-d2gyip4xi1fcf54bd-1390912780/fonts/SourceHanSansSC-Regular.otf'
+// 粗体字（表头用）
+const FONT_FILE_BOLD = path.join(FONT_DIR, 'SourceHanSansSC-Bold.otf')
+const FONT_FILE_ID_BOLD = 'cloud://cloud1-d2gyip4xi1fcf54bd.636c-cloud1-d2gyip4xi1fcf54bd-1390912780/fonts/SourceHanSansSC-Bold.otf'
 
 /**
  * 确保字体文件已下载到本地（/tmp 缓存，同一实例只下载一次）
@@ -29,6 +32,29 @@ async function ensureFont() {
   const res = await cloud.downloadFile({ fileID: FONT_FILE_ID })
   fs.writeFileSync(FONT_FILE, res.fileContent)
   return FONT_FILE
+}
+
+/**
+ * 确保粗体字文件已下载到本地（/tmp 缓存，同一实例只下载一次）
+ * 下载失败时返回 null —— 调用方回退为常规字体，避免因字体缺失导致整个导出失败
+ */
+async function ensureBoldFont() {
+  try {
+    if (fs.existsSync(FONT_FILE_BOLD)) {
+      return FONT_FILE_BOLD
+    }
+
+    if (!fs.existsSync(FONT_DIR)) {
+      fs.mkdirSync(FONT_DIR, { recursive: true })
+    }
+
+    const res = await cloud.downloadFile({ fileID: FONT_FILE_ID_BOLD })
+    fs.writeFileSync(FONT_FILE_BOLD, res.fileContent)
+    return FONT_FILE_BOLD
+  } catch (e) {
+    console.warn('粗体字体下载失败，表头回退为常规字体:', e.message)
+    return null
+  }
 }
 
 /**
@@ -681,12 +707,16 @@ async function generateContentFormSideDishPdf(formId, sortMode, groupOrder) {
 
   // 4. 生成 PDF
   const fontPath = await ensureFont()
+  const boldFontPath = await ensureBoldFont()
 
   const pdfDoc = new PDFDocument({
     size: 'A4',
-    margins: { top: 50, bottom: 50, left: 50, right: 50 }
+    margins: { top: 50, bottom: 50, left: 50, right: 50 },
+    bufferPages: true // 需要在全部页面生成完后回填页码（每页底部「第X页」）
   })
   pdfDoc.registerFont('ChineseFont', fontPath)
+  // 粗体缺失时回退常规字体，保证导出不失败
+  pdfDoc.registerFont('ChineseFontBold', boldFontPath || fontPath)
 
   const buffers = []
   pdfDoc.on('data', buffers.push.bind(buffers))
@@ -759,39 +789,58 @@ async function generateContentFormSideDishPdf(formId, sortMode, groupOrder) {
 
     // ===== 明细表格 =====
     if (categories.length > 0) {
-      // 有类别模式：序号 | 姓名 | 各类别份数 | 合计 | 提交时间
+      // 有类别模式：序号 | 姓名 | 各类别份数 | 合计 | 提交时间 | 签收
+      // 列宽集中定义，表头与行内渲染共用同一组常量，避免错列
       const catColCount = categories.length
-      const fixedWidth = 50 + 80 + 50 + 80
+      const COL_W = { index: 50, name: 80, total: 50, time: 76, sign: 46 }
+      const fixedWidth = COL_W.index + COL_W.name + COL_W.total + COL_W.time + COL_W.sign
       const remainingWidth = 495 - fixedWidth
-      const catColWidth = Math.max(50, Math.floor(remainingWidth / catColCount))
+      const catColWidth = Math.max(36, Math.floor(remainingWidth / catColCount))
 
       const colX = [50]
       let xPos = 50
-      xPos += 50
-      colX.push(xPos)
-      xPos += 80
+      xPos += COL_W.index
+      colX.push(xPos)              // 姓名
+      xPos += COL_W.name
       for (let i = 0; i < catColCount; i++) {
-        colX.push(xPos)
+        colX.push(xPos)            // 各副食类别
         xPos += catColWidth
       }
-      colX.push(xPos)
-      xPos += 50
-      colX.push(xPos)
+      colX.push(xPos)              // 合计
+      xPos += COL_W.total
+      colX.push(xPos)              // 提交时间
+      xPos += COL_W.time
+      colX.push(xPos)              // 签收
 
-      const tableTop = pdfDoc.y
-      pdfDoc.rect(50, tableTop, 495, 28).fill('#EEF2FF')
-      pdfDoc.fillColor('#1E293B').fontSize(9).font('ChineseFont')
+      const HEADER_H = 28
 
-      pdfDoc.text('序号', colX[0], tableTop + 8, { width: 50, align: 'center' })
-      pdfDoc.text('姓名', colX[1], tableTop + 8, { width: 80, align: 'center' })
-      categories.forEach((cat, ci) => {
-        pdfDoc.text(cat.name, colX[2 + ci], tableTop + 8, { width: catColWidth, align: 'center' })
-      })
-      pdfDoc.text('合计', colX[2 + catColCount], tableTop + 8, { width: 50, align: 'center' })
-      pdfDoc.text('提交时间', colX[2 + catColCount + 1], tableTop + 8, { width: 80, align: 'center' })
+      /**
+       * 绘制表头（首屏与每个新页都调用），返回表头下方的起始 y
+       * 使用粗体字库 SourceHanSansSC-Bold，不再用偏移重绘模拟加粗
+       */
+      const drawTableHeader = (y) => {
+        // 表头底：淡绿（与部门分组标题的淡蓝 #EEF2FF 区分）
+        pdfDoc.rect(50, y, 495, HEADER_H).fill('#DCFCE7')
+        pdfDoc.fillColor('#1E293B').fontSize(11).font('ChineseFontBold')
+        pdfDoc.text('序号', colX[0], y + 7, { width: COL_W.index, align: 'center', lineBreak: false })
+        pdfDoc.text('姓名', colX[1], y + 7, { width: COL_W.name, align: 'center', lineBreak: false })
+        categories.forEach((cat, ci) => {
+          pdfDoc.text(cat.name, colX[2 + ci], y + 7, { width: catColWidth, align: 'center', lineBreak: false })
+        })
+        pdfDoc.text('合计', colX[2 + catColCount], y + 7, { width: COL_W.total, align: 'center', lineBreak: false })
+        pdfDoc.text('提交时间', colX[3 + catColCount], y + 7, { width: COL_W.time, align: 'center', lineBreak: false })
+        pdfDoc.text('签收', colX[4 + catColCount], y + 7, { width: COL_W.sign, align: 'center', lineBreak: false })
+        // 表头下方加深色分割线，与数据行分开。
+        // 注意上移 1pt：首行的浅灰边框（#EEEEEE，1pt）正好画在 y+HEADER_H 这条共用边上，
+        // 且晚于本行绘制会把它覆盖，所以深色线画在边界内侧一点点。
+        // 画完把线宽还原，否则后续表格细线与签收方框也会变粗。
+        pdfDoc.lineWidth(1.2).moveTo(50, y + HEADER_H - 1).lineTo(545, y + HEADER_H - 1).stroke('#334155')
+        pdfDoc.lineWidth(1)
+        pdfDoc.fillColor('#000000')
+        return y + HEADER_H
+      }
 
-      pdfDoc.fillColor('#000000')
-      let rowY = tableTop + 28
+      let rowY = drawTableHeader(pdfDoc.y)
       let currentGroup = null
 
       bookings.forEach((b, idx) => {
@@ -800,40 +849,45 @@ async function generateContentFormSideDishPdf(formId, sortMode, groupOrder) {
           currentGroup = b.groupName
           if (rowY + 26 * 2 > 780) {
             pdfDoc.addPage()
-            rowY = 50
+            rowY = drawTableHeader(50) // 新页顶部重复表头
           }
+          // 分组标题：淡蓝底 + 粗体（与淡绿底的表头区分）
           pdfDoc.rect(50, rowY, 495, 26).fill('#EEF2FF')
-          pdfDoc.fontSize(9).font('ChineseFont').fillColor('#1E293B')
+          pdfDoc.fontSize(9).font('ChineseFontBold').fillColor('#1E293B')
             .text(`${currentGroup || '（部门无）'}（${groupCounts[currentGroup] || 0} 人）`, 60, rowY + 8)
           pdfDoc.fillColor('#000000')
           rowY += 26
         }
         if (rowY > 750) {
           pdfDoc.addPage()
-          rowY = 50
+          rowY = drawTableHeader(50) // 新页顶部重复表头
         }
         if (idx % 2 === 0) {
           pdfDoc.rect(50, rowY, 495, 26).fill('#FAFAFA')
         }
         pdfDoc.rect(50, rowY, 495, 26).stroke('#EEEEEE')
 
+        // 提交时间精确到分：formatLocalTime 返回 'YYYY/MM/DD HH:mm:ss'，取前 16 位即到「时:分」
         const timeStr = b.createdAt
-          ? formatLocalTime(new Date(b.createdAt), timezoneOffset).split(' ')[0]
+          ? formatLocalTime(new Date(b.createdAt), timezoneOffset).slice(0, 16)
           : '-'
 
         pdfDoc.fontSize(9).font('ChineseFont').fillColor('#334155')
-        pdfDoc.text(String(idx + 1), colX[0], rowY + 8, { width: 50, align: 'center' })
-        pdfDoc.text(b.name || '-', colX[1], rowY + 8, { width: 80, align: 'center' })
+        pdfDoc.text(String(idx + 1), colX[0], rowY + 8, { width: COL_W.index, align: 'center' })
+        pdfDoc.text(b.name || '-', colX[1], rowY + 8, { width: COL_W.name, align: 'center' })
 
         categories.forEach((cat, ci) => {
           let catCount = 0
           const item = b.items.find(i => i.categoryId === cat.id)
           if (item) catCount = Number(item.count) || 0
-          pdfDoc.text(String(catCount), colX[2 + ci], rowY + 8, { width: catColWidth, align: 'center' })
+          pdfDoc.text(`${catCount}份`, colX[2 + ci], rowY + 8, { width: catColWidth, align: 'center' })
         })
 
-        pdfDoc.text(String(b.count), colX[2 + catColCount], rowY + 8, { width: 50, align: 'center' })
-        pdfDoc.text(timeStr, colX[2 + catColCount + 1], rowY + 8, { width: 80, align: 'center' })
+        pdfDoc.text(`${b.count}份`, colX[2 + catColCount], rowY + 8, { width: COL_W.total, align: 'center' })
+        pdfDoc.text(timeStr, colX[3 + catColCount], rowY + 8, { width: COL_W.time, align: 'center' })
+
+        // 签收栏：每行画一个 12×12 空方框（行高 26，垂直居中），供现场手写勾选
+        pdfDoc.rect(colX[4 + catColCount] + (COL_W.sign - 12) / 2, rowY + 7, 12, 12).stroke('#64748B')
 
         rowY += 26
       })
@@ -856,6 +910,21 @@ async function generateContentFormSideDishPdf(formId, sortMode, groupOrder) {
       pdfDoc.fontSize(12).fillColor('#94A3B8')
         .text('该表单未配置副食类别', { align: 'center' })
       pdfDoc.fillColor('#000000')
+    }
+
+    // ===== 页码：每页底部居中「第X页」 =====
+    // bufferPages 模式下可在收尾前回填到每一页。
+    // 页码要落在下边距之外（内容区下方），先临时把该页下边距设为 0：
+    // pdfkit 的防孤行检查在每次 text() 时才读取 page.maxY()，
+    // 不放开会导致它判定「超出页面」而插入新页（页码反而跑到下一页）。
+    const pageRange = pdfDoc.bufferedPageRange()
+    for (let i = 0; i < pageRange.count; i++) {
+      pdfDoc.switchToPage(pageRange.start + i)
+      const bottomMargin = pdfDoc.page.margins.bottom
+      pdfDoc.page.margins.bottom = 0
+      pdfDoc.fontSize(9).font('ChineseFont').fillColor('#94A3B8')
+        .text(`第${i + 1}页`, 50, 800, { width: 495, align: 'center', lineBreak: false })
+      pdfDoc.page.margins.bottom = bottomMargin
     }
 
     pdfDoc.end()
@@ -1228,6 +1297,375 @@ async function generateMenuRatingsPdf(openid, menuIds) {
   })
 }
 
+// ===== 理发统计导出（管理员 / 办公室内聘岗位）=====
+// 可导出理发统计的用户：管理员 或 岗位含「办公室内聘」
+// （与前端 haircut 页 canExportStats 口径一致，改一处需同步另一处）
+const HAIRCUT_EXPORT_POSITION = '办公室内聘'
+const HAIRCUT_APPOINTMENTS = 'haircut_appointments'
+const HAIRCUT_STATS_BATCH = 100
+
+/**
+ * 从 sys_config 读取部门选项列表（作为部门分组的先后顺序）
+ * 读取失败不阻断：返回空数组时，部门分组退化为按名称排序
+ */
+async function getDepartmentOptions() {
+  try {
+    const res = await db.collection('sys_config').where({ key: 'DEPARTMENT_OPTIONS' }).limit(1).get()
+    if (res.data && res.data.length > 0 && Array.isArray(res.data[0].value)) {
+      return res.data[0].value
+    }
+  } catch (e) {
+    console.warn('读取部门顺序失败，部门分组将按名称排序:', e.message)
+  }
+  return []
+}
+
+/**
+ * 部门组排序（与前端 form-submissions.compareDeptGroup、trip-board 分组规则同源）
+ * 顺序：按 sys_config.DEPARTMENT_OPTIONS →「待赴任馆员」紧随最后一个部门
+ *      → 未配置的部门（如「未分配部门」）→「其他人员」置底
+ */
+function compareDeptGroupName(a, b, order) {
+  if (a === b) return 0
+  if (a === '其他人员') return 1
+  if (b === '其他人员') return -1
+  const indexOf = name => {
+    if (name === '待赴任馆员') return order.length
+    const i = order.indexOf(name)
+    return i === -1 ? Number.MAX_SAFE_INTEGER : i
+  }
+  const ai = indexOf(a)
+  const bi = indexOf(b)
+  if (ai !== bi) return ai - bi
+  return a.localeCompare(b, 'zh')
+}
+
+/**
+ * 理发统计 PDF 导出
+ *
+ * 权限：管理员 或 岗位含「办公室内聘」的用户（与前端一致）
+ * 参数：months = ['2026-10', '2026-09']（可多选，不设上限）
+ * 口径：与页面「理发统计」一致 —— 排除已取消（cancelled）的记录
+ * 结构：按月一节 → 按【预约人】所在部门分组（预约人一定是注册用户，能稳定匹配到部门；
+ *      理发人姓名可随意填写，因此不作为分组依据）→ 组内按【预约人】的理发次数降序、
+ *      同一预约人内按（理发人）次数降序
+ * 字段：每行给出【预约人】【理发人】与二者配对的次数
+ */
+async function generateHaircutStatsPdf(openid, months) {
+  const _ = db.command
+
+  // 1. 权限校验：管理员 或「办公室内聘」岗位
+  const userRes = await db.collection('office_users').where({ openid, status: 'approved' }).limit(1).get()
+  if (!userRes.data || userRes.data.length === 0) {
+    throw new Error('无导出权限')
+  }
+  const exporter = userRes.data[0]
+  const positions = Array.isArray(exporter.position) ? exporter.position : []
+  if (!exporter.isAdmin && !positions.includes(HAIRCUT_EXPORT_POSITION)) {
+    throw new Error('仅管理员及「办公室内聘」岗位可导出理发统计')
+  }
+
+  // 2. 月份归一化：去重 + 校验格式 + 升序
+  const monthKeys = [...new Set((months || []).filter(m => typeof m === 'string' && /^\d{4}-\d{2}$/.test(m)))].sort()
+  if (monthKeys.length === 0) {
+    throw new Error('未选择月份')
+  }
+
+  // 3. 查询预约记录：按月生成日期区间，用 _.or 组合为一次查询
+  //    status 只取 booked / completed（与页面统计一致，已取消不计入；
+  //    unavailable 是招待员关闭的时段，本身没有预约人，也不会命中）
+  const whereCondition = _.or(monthKeys.map(m => {
+    const [y, mo] = m.split('-').map(Number)
+    const nextMonthStart = mo === 12
+      ? `${y + 1}-01-01`
+      : `${y}-${String(mo + 1).padStart(2, '0')}-01`
+    return {
+      date: _.gte(`${m}-01`).and(_.lt(nextMonthStart)),
+      status: _.in(['booked', 'completed'])
+    }
+  }))
+
+  const countRes = await db.collection(HAIRCUT_APPOINTMENTS).where(whereCondition).count()
+  const totalRecords = countRes.total || 0
+  const records = []
+  if (totalRecords > 0) {
+    const batches = Math.ceil(totalRecords / HAIRCUT_STATS_BATCH)
+    for (let i = 0; i < batches; i++) {
+      const batchRes = await db.collection(HAIRCUT_APPOINTMENTS)
+        .where(whereCondition)
+        .orderBy('date', 'asc')
+        .orderBy('timeSlot', 'asc')
+        .skip(i * HAIRCUT_STATS_BATCH)
+        .limit(HAIRCUT_STATS_BATCH)
+        .get()
+      records.push(...(batchRes.data || []))
+    }
+  }
+
+  // 4. 预约人（bookerId）→ 用户（取部门）：只查用到的这批 openid
+  const bookerIds = [...new Set(records.map(r => r.bookerId).filter(Boolean))]
+  const userMap = {}
+  for (let i = 0; i < bookerIds.length; i += HAIRCUT_STATS_BATCH) {
+    const chunk = bookerIds.slice(i, i + HAIRCUT_STATS_BATCH)
+    const chunkRes = await db.collection('office_users')
+      .where({ openid: _.in(chunk) })
+      .limit(HAIRCUT_STATS_BATCH)
+      .get()
+    ;(chunkRes.data || []).forEach(u => {
+      if (u.openid) userMap[u.openid] = u
+    })
+  }
+  const deptOrder = await getDepartmentOptions()
+
+  // 5. 聚合：月 → 部门 → 预约人 → （理发人, 次数）
+  const monthMap = new Map()
+  records.forEach(r => {
+    const monthKey = (r.date || '').substring(0, 7)
+    if (!monthKey) return
+
+    const booker = r.bookerId ? userMap[r.bookerId] : null
+    // 部门取名沿用项目统一规则（部门为「无」或角色为「其他」→「其他人员」，排在最末）
+    const deptName = booker ? (buildDeptGroupName(booker) || '其他人员') : '未分配部门'
+    const bookerKey = r.bookerId || `name:${r.bookerName || ''}`
+    const bookerName = (booker && booker.name) || r.bookerName || '未知预约人'
+    const appointeeName = r.appointeeName || '未知理发人'
+
+    if (!monthMap.has(monthKey)) {
+      const [y, m] = monthKey.split('-')
+      monthMap.set(monthKey, {
+        monthKey,
+        monthLabel: `${Number(y)}年${Number(m)}月`,
+        count: 0,
+        deptMap: new Map()
+      })
+    }
+    const month = monthMap.get(monthKey)
+    month.count++
+
+    if (!month.deptMap.has(deptName)) {
+      month.deptMap.set(deptName, { name: deptName, bookerMap: new Map() })
+    }
+    const dept = month.deptMap.get(deptName)
+
+    if (!dept.bookerMap.has(bookerKey)) {
+      dept.bookerMap.set(bookerKey, { bookerName, total: 0, pairMap: new Map() })
+    }
+    const person = dept.bookerMap.get(bookerKey)
+    person.total++
+    person.pairMap.set(appointeeName, (person.pairMap.get(appointeeName) || 0) + 1)
+  })
+
+  const monthGroups = [...monthMap.values()]
+    .sort((a, b) => b.monthKey.localeCompare(a.monthKey))
+    .map(m => ({
+      monthKey: m.monthKey,
+      monthLabel: m.monthLabel,
+      count: m.count,
+      bookerCount: [...m.deptMap.values()].reduce((sum, d) => sum + d.bookerMap.size, 0),
+      deptGroups: [...m.deptMap.values()]
+        .sort((a, b) => compareDeptGroupName(a.name, b.name, deptOrder))
+        .map(d => ({
+          name: d.name,
+          people: [...d.bookerMap.values()]
+            .sort((a, b) => b.total - a.total || a.bookerName.localeCompare(b.bookerName, 'zh'))
+            .map(p => ({
+              bookerName: p.bookerName,
+              total: p.total,
+              pairs: [...p.pairMap.entries()]
+                .map(([appointeeName, count]) => ({ appointeeName, count }))
+                .sort((a, b) => b.count - a.count || a.appointeeName.localeCompare(b.appointeeName, 'zh'))
+            }))
+        }))
+    }))
+
+  // 6. 生成 PDF
+  const fontPath = await ensureFont()
+  const boldFontPath = await ensureBoldFont()
+  const timezoneOffset = await getTimezoneOffset()
+
+  const pdfDoc = new PDFDocument({
+    size: 'A4',
+    margins: { top: 50, bottom: 50, left: 50, right: 50 },
+    bufferPages: true // 收尾时回填页码
+  })
+  pdfDoc.registerFont('ChineseFont', fontPath)
+  pdfDoc.registerFont('ChineseFontBold', boldFontPath || fontPath)
+
+  const buffers = []
+  pdfDoc.on('data', buffers.push.bind(buffers))
+
+  return new Promise((resolve, reject) => {
+    pdfDoc.on('end', async () => {
+      try {
+        const pdfBuffer = Buffer.concat(buffers)
+        const fileName = `理发统计_${Date.now()}.pdf`
+        const uploadResult = await cloud.uploadFile({
+          cloudPath: `haircut_stats_pdfs/${fileName}`,
+          fileContent: pdfBuffer
+        })
+        resolve({ code: 0, message: 'ok', data: { fileID: uploadResult.fileID } })
+      } catch (err) {
+        reject(new Error('PDF上传失败: ' + err.message))
+      }
+    })
+    pdfDoc.on('error', (err) => reject(new Error('PDF生成失败: ' + err.message)))
+
+    const ROW_HEIGHT = 17
+    // 列位置（A4 内容区 50 ~ 545）
+    const COL_NO = 58
+    const COL_BOOKER = 100
+    const COL_APPOINTEE = 245
+    const COL_COUNT = 400
+
+    /**
+     * 渲染每行前调用：确保整行放得进本页，放不下先换页。
+     * 与菜单评分导出同款写法：行由多个绝对坐标的 text() 拼成，中间不会推进 pdfDoc.y，
+     * 一旦贴底触发 pdfkit 内部的防孤行插页，各列会被拆到不同页。
+     */
+    const prepareRow = (fontSize = 11) => {
+      pdfDoc.fontSize(fontSize).font('ChineseFont')
+      const lineHeight = Math.max(pdfDoc.currentLineHeight(true), ROW_HEIGHT)
+      if (pdfDoc.y + lineHeight + 4 > pdfDoc.page.maxY()) {
+        pdfDoc.addPage()
+        return true
+      }
+      return false
+    }
+
+    // 表格列头（每个部门组开头画一次；跨页后重画，保证列名始终可见）
+    const drawColumnHeader = () => {
+      const rowY = pdfDoc.y
+      pdfDoc.fontSize(10).font('ChineseFontBold').fillColor('#64748B')
+      pdfDoc.text('序号', COL_NO, rowY, { width: 40, lineBreak: false })
+      pdfDoc.text('预约人', COL_BOOKER, rowY, { width: 140, lineBreak: false })
+      pdfDoc.text('理发人', COL_APPOINTEE, rowY, { width: 140, lineBreak: false })
+      pdfDoc.text('次数', COL_COUNT, rowY, { width: 60, lineBreak: false })
+      pdfDoc.y = rowY + ROW_HEIGHT - 2
+      pdfDoc.moveTo(50, pdfDoc.y).lineTo(545, pdfDoc.y).stroke('#E2E8F0')
+      pdfDoc.y = pdfDoc.y + 4
+      pdfDoc.font('ChineseFont')
+    }
+
+    // ===== 标题 =====
+    pdfDoc.fontSize(22).font('ChineseFont').fillColor('#1E293B').text('理发统计', { align: 'center' })
+    pdfDoc.moveDown(0.6)
+    pdfDoc.moveTo(50, pdfDoc.y).lineTo(545, pdfDoc.y).stroke('#EA580C')
+    pdfDoc.moveDown(0.6)
+    // 生成时间 / 统计范围：左对齐、黑色字体
+    pdfDoc.fontSize(10).font('ChineseFont').fillColor('#000000')
+      .text(`生成时间：${formatLocalTime(new Date(), timezoneOffset)}`, { align: 'left' })
+    pdfDoc.moveDown(0.3)
+    pdfDoc.fontSize(10).font('ChineseFont').fillColor('#000000').text(
+      `统计范围：${monthKeys.slice().sort().reverse().map(m => {
+        const [y, mo] = m.split('-')
+        return `${Number(y)}年${Number(mo)}月`
+      }).join('、')}（共 ${records.length} 次，已取消记录不计入）`,
+      { align: 'left' }
+    )
+    pdfDoc.moveDown(1)
+
+    if (monthGroups.length === 0) {
+      pdfDoc.fontSize(11).font('ChineseFont').fillColor('#94A3B8').text('所选月份暂无预约记录', 60)
+    }
+
+    // ===== 按月一节 =====
+    monthGroups.forEach((month, monthIdx) => {
+      if (monthIdx > 0) pdfDoc.moveDown(0.4)
+      // 月份标题不落在页面底部
+      if (pdfDoc.y > 700) pdfDoc.addPage()
+
+      const titleY = pdfDoc.y
+      pdfDoc.rect(50, titleY - 2, 495, 22).fill('#FFF7ED')
+      pdfDoc.fontSize(14).font('ChineseFontBold').fillColor('#C2410C')
+        .text(`${month.monthLabel}`, 60, titleY + 3, { lineBreak: false })
+      pdfDoc.fontSize(10).font('ChineseFont').fillColor('#EA580C')
+        .text(`共 ${month.count} 次 · ${month.bookerCount} 人`, 360, titleY + 6, { width: 180, align: 'right', lineBreak: false })
+      pdfDoc.y = titleY + 30
+      pdfDoc.fillColor('#1E293B')
+
+      month.deptGroups.forEach(dept => {
+        if (pdfDoc.y > 720) pdfDoc.addPage()
+
+        // 部门组标题（淡蓝底，与其它导出保持一致；不加【】括号）
+        const deptY = pdfDoc.y
+        pdfDoc.rect(50, deptY - 2, 495, 20).fill('#EFF6FF')
+        pdfDoc.fontSize(12).font('ChineseFontBold').fillColor('#1E40AF')
+          .text(dept.name, 60, deptY + 2, { lineBreak: false })
+        pdfDoc.y = deptY + 26
+        pdfDoc.fillColor('#1E293B')
+
+        drawColumnHeader()
+
+        let rowNo = 0
+        dept.people.forEach(person => {
+          person.pairs.forEach((pair, pairIdx) => {
+            if (prepareRow()) drawColumnHeader()
+            const rowY = pdfDoc.y
+            rowNo++
+
+            pdfDoc.fontSize(10).font('ChineseFont').fillColor('#94A3B8')
+              .text(String(rowNo), COL_NO, rowY, { width: 40, lineBreak: false })
+
+            // 预约人只在本人第一条明细上显示，视觉上把同一人的记录聚成一块
+            if (pairIdx === 0) {
+              pdfDoc.fontSize(11).font('ChineseFontBold').fillColor('#1E293B')
+                .text(person.bookerName, COL_BOOKER, rowY, { width: 140, ellipsis: true, lineBreak: false })
+            }
+
+            pdfDoc.fontSize(11).font('ChineseFont').fillColor('#334155')
+              .text(pair.appointeeName, COL_APPOINTEE, rowY, { width: 140, ellipsis: true, lineBreak: false })
+            pdfDoc.fillColor('#EA580C')
+              .text(`${pair.count} 次`, COL_COUNT, rowY, { width: 60, lineBreak: false })
+
+            pdfDoc.y = rowY + ROW_HEIGHT
+          })
+        })
+
+        // 该部门小计（贴底时先换页，避免小计与所属分组被拆到两页）
+        const deptTotal = dept.people.reduce((sum, p) => sum + p.total, 0)
+        if (pdfDoc.y + 24 > pdfDoc.page.maxY()) pdfDoc.addPage()
+        pdfDoc.fontSize(10).font('ChineseFont').fillColor('#64748B')
+          .text(`小计：${deptTotal} 次 · ${dept.people.length} 人`, 380, pdfDoc.y, { width: 165, align: 'right' })
+        pdfDoc.moveDown(0.7)
+      })
+    })
+
+    // ===== 签字栏：统计内容之后空 2~3 行，页面右侧留「招待员签字」 =====
+    // 空间不足时先换页，避免签字栏贴着页脚或被拆开
+    const signFontSize = 14
+    const signLabel = '招待员签字：'
+    const signLineWidth = 170 // 签字横线长度（pt）
+    if (pdfDoc.y + 90 > pdfDoc.page.maxY()) pdfDoc.addPage()
+
+    pdfDoc.fontSize(signFontSize).font('ChineseFont')
+    pdfDoc.moveDown(2.6)
+
+    const signBaseY = pdfDoc.y
+    const signLabelWidth = pdfDoc.widthOfString(signLabel)
+    const signLineStartX = 545 - signLineWidth
+    const signLabelX = signLineStartX - signLabelWidth - 6
+    pdfDoc.fillColor('#000000').text(signLabel, signLabelX, signBaseY, { lineBreak: false })
+    // 签字横线用绘制线条（下划线字符 "_" 在不同字体下容易断续，字号放大后更明显）
+    const signLineY = signBaseY + signFontSize * 1.05
+    pdfDoc.lineWidth(1).strokeColor('#000000')
+      .moveTo(signLineStartX, signLineY).lineTo(545, signLineY).stroke()
+    pdfDoc.y = signBaseY + signFontSize * 1.5
+
+    // ===== 页码：每页底部居中「第X页」 =====
+    const pageRange = pdfDoc.bufferedPageRange()
+    for (let i = 0; i < pageRange.count; i++) {
+      pdfDoc.switchToPage(pageRange.start + i)
+      const bottomMargin = pdfDoc.page.margins.bottom
+      pdfDoc.page.margins.bottom = 0
+      pdfDoc.fontSize(9).font('ChineseFont').fillColor('#94A3B8')
+        .text(`第${i + 1}页`, 50, 800, { width: 495, align: 'center', lineBreak: false })
+      pdfDoc.page.margins.bottom = bottomMargin
+    }
+
+    pdfDoc.end()
+  })
+}
+
 exports.main = async (event) => {
   const wxContext = cloud.getWXContext()
   const openid = wxContext.OPENID
@@ -1236,7 +1674,19 @@ exports.main = async (event) => {
     return fail('获取微信身份失败，请稍后重试', 401)
   }
 
-  const { orderId, type, formId, menuIds, sortMode, groupOrder } = event || {}
+  const { orderId, type, formId, menuIds, sortMode, groupOrder, months } = event || {}
+
+  // 理发统计导出（管理员 / 办公室内聘，按月多选）
+  if (type === 'haircutStats') {
+    if (!Array.isArray(months) || months.length === 0) {
+      return fail('未选择月份', 400)
+    }
+    try {
+      return await generateHaircutStatsPdf(openid, months)
+    } catch (error) {
+      return fail(error.message || '生成理发统计PDF失败', 500)
+    }
+  }
 
   // 菜单评分导出
   if (type === 'menuRatings') {

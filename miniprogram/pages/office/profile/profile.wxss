@@ -216,7 +216,7 @@ page {
   height: var(--sp-64);
   border-radius: var(--sp-20);
   background: var(--bg-soft);
-  color: #2563EB;
+  color: var(--checklist-on-text);
   display: flex;
   align-items: center;
   justify-content: center;
@@ -298,7 +298,7 @@ page {
   align-items: center;
   justify-content: center;
   font-size: var(--fs-36);
-  color: #2563EB;
+  color: var(--checklist-on-text);
   background: var(--bg-soft-2);
   transition: background 0.2s;
 }

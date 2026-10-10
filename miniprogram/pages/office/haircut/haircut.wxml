@@ -100,9 +100,9 @@
     </view>
 
     <!-- Tab 2: 理发统计 -->
-    <view wx:if="{{activeTab === 'stats' && canView}}">
-      <!-- 排序切换 -->
-      <view class="haircut-sort-bar">
+    <view wx:if="{{activeTab === 'stats' && canView}}" class="haircut-stats-tab">
+      <!-- 排序切换（导出选择模式下隐藏，避免误操作） -->
+      <view class="haircut-sort-bar" wx:if="{{!exportMode}}">
         <view class="haircut-sort-btn {{sortBy === 'name' ? 'is-active' : ''}}" bindtap="handleSortChange" data-sort="name">
           按人员排序
         </view>
@@ -111,8 +111,20 @@
         </view>
       </view>
 
+      <!-- 导出选择模式：按月收起条目，只保留月份标题 + 复选框（可多选） -->
+      <block wx:if="{{exportMode}}">
+        <view class="haircut-export-tip">请选择要导出理发统计的月份（已选 {{selectedMonths.length}} 个月）</view>
+        <view class="haircut-export-month {{item.checked ? 'is-checked' : ''}}" wx:for="{{exportGroups}}" wx:key="monthKey" bindtap="handleToggleMonth" data-monthkey="{{item.monthKey}}" style="animation-delay: {{index * 40}}ms">
+          <view class="haircut-month-checkbox">
+            <text wx:if="{{item.checked}}" class="haircut-month-checkbox-tick">✓</text>
+          </view>
+          <view class="haircut-export-month-title">{{item.monthLabel}}</view>
+          <view class="haircut-export-month-count">{{item.count}} 条</view>
+        </view>
+      </block>
+
       <!-- 按时间排序 -->
-      <block wx:if="{{sortBy === 'time'}}">
+      <block wx:if="{{!exportMode && sortBy === 'time'}}">
         <view class="haircut-stats-month-group" wx:for="{{statsGrouped}}" wx:key="monthKey" wx:for-item="group">
           <view class="haircut-stats-month-title">{{group.monthLabel}}</view>
           <view class="haircut-list">
@@ -145,19 +157,14 @@
           <text class="loading-text">加载中...</text>
         </view>
 
-        <!-- 分页：点击加载更多（按时间排序） -->
-        <view class="pagination-load-more" wx:if="{{!loadingstats && statsHasMore && sortBy === 'time'}}" bindtap="loadMoreStatsAppointments">
-          <text class="load-more-text">点击加载更多</text>
-        </view>
-
-        <!-- 分页：没有更多数据 -->
-        <view class="pagination-no-more" wx:if="{{!loadingstats && !statsHasMore && statsList.length > 0 && sortBy === 'time'}}">
+        <!-- 分页：没有更多数据（加载方式已改为触底自动，不再有「点击加载更多」按钮） -->
+        <view class="pagination-no-more" wx:if="{{!loadingstats && !statsHasMore && statsList.length > 0}}">
           <text class="no-more-text">没有更多数据了</text>
         </view>
       </block>
 
       <!-- 按人员排序 -->
-      <block wx:if="{{sortBy === 'name'}}">
+      <block wx:if="{{!exportMode && sortBy === 'name'}}">
         <view class="haircut-stats-month-group" wx:for="{{statsGrouped}}" wx:key="monthKey" wx:for-item="group">
           <view class="haircut-stats-month-title">{{group.monthLabel}}</view>
           <view class="haircut-stats-name-list" user-select="true">
@@ -169,14 +176,16 @@
         </view>
       </block>
 
-      <!-- 分页加载状态 -->
-      <view class="haircut-loading" wx:if="{{loadingstats}}">
-        <view class="haircut-loading-text">加载中...</view>
-      </view>
-      <view class="haircut-empty" wx:if="{{!loadingstats && statsGrouped.length === 0}}">
-        <view class="haircut-empty-icon">💈</view>
-        <view class="haircut-empty-text">本年暂无预约记录</view>
-      </view>
+      <!-- 分页加载状态（导出选择模式下不显示） -->
+      <block wx:if="{{!exportMode}}">
+        <view class="haircut-loading" wx:if="{{loadingstats}}">
+          <view class="haircut-loading-text">加载中...</view>
+        </view>
+        <view class="haircut-empty" wx:if="{{!loadingstats && statsGrouped.length === 0}}">
+          <view class="haircut-empty-icon">💈</view>
+          <view class="haircut-empty-text">本年暂无预约记录</view>
+        </view>
+      </block>
     </view>
 
     <!-- Tab 3: 我的预约 -->
@@ -216,10 +225,16 @@
         <view class="haircut-loading-text">加载中...</view>
       </view>
 
-      <!-- 加载更多 -->
-      <view wx:if="{{hasMoreMine}}" class="haircut-loading" bindtap="loadMoreMyAppointments">
-        <view class="haircut-loading-text">点击加载更多</view>
-      </view>
+      <!-- 加载更多：触底自动加载（无按钮） -->
+    </view>
+  </view>
+
+  <!-- 导出统计 PDF：底部居中悬浮按钮（仅「理发统计」Tab + 管理员 / 办公室内聘岗位） -->
+  <!-- 点击后按钮一分为二：取消 / 导出PDF -->
+  <view wx:if="{{activeTab === 'stats' && canView && canExportStats && !showCancelPopup}}" class="haircut-export-bar {{exportMode ? 'is-exporting' : ''}}">
+    <view class="haircut-fab haircut-fab-cancel" bindtap="handleCancelExport">取消</view>
+    <view class="haircut-fab haircut-fab-main {{exportMode && (selectedMonths.length === 0 || exporting) ? 'is-disabled' : ''}}" bindtap="{{exportMode ? 'handleExportStats' : 'handleStartExport'}}">
+      {{exporting ? '生成中...' : (exportMode ? '导出PDF' : '导出理发统计PDF')}}
     </view>
   </view>
 

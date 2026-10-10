@@ -909,42 +909,62 @@ async function checkOvertime() {
 }
 
 /**
- * 获取历史记录（目的地和同行人）
- * 一次读取近期记录，在本地去重后取满 10 个目的地和 5 组同行人
- * 说明：原实现用 while + skip 循环翻页，记录多时会触发多次数据库读；
- * 读操作同样计入「调用次数」配额，且 skip 深分页本身效率低，故改为单次读取 + 本地去重。
+ * 获取历史记录（常用目的地 / 常用同行组合）
+ * 规则：
+ * - 只统计最近 HISTORY_DAYS 个自然日（含今天，按 sys_config 时区计算）
+ * - 单次读取最近 SCAN_LIMIT 条记录，在内存里按出现次数排序（恒定 1 次数据库读）
+ * - 次数相同的，最近使用过的排在前
+ * - 窗口内确实没有记录时返回空数组，前端据此清空本地缓存
+ * 说明：曾用 while + skip 循环翻页，记录多时会产生多次数据库读；
+ * 读操作同样计入「调用次数」配额，故保持单次读取 + 本地统计。
  */
 async function getHistory(openid) {
-  const MAX_DEST = 10
+  const MAX_DEST = 20
   const MAX_COMP = 5
   const SCAN_LIMIT = 200 // 单次最多扫描的近期记录条数（恒定 1 次数据库读）
+  const HISTORY_DAYS = 90
+
+  // 90 天窗口起点 = 当地"今天 00:00"往前推 89 天（含今天共 90 个自然日）。
+  // 用时间戳 + 时区偏移换算当地日期，不依赖云函数容器的时区设置。
+  const offsetHours = await getTimezoneOffset()
+  const localNow = new Date(Date.now() + offsetHours * 3600000)
+  const todayStartUtc = Date.UTC(localNow.getUTCFullYear(), localNow.getUTCMonth(), localNow.getUTCDate())
+  const cutoff = todayStartUtc - offsetHours * 3600000 - (HISTORY_DAYS - 1) * 86400000
 
   const result = await tripReportsCollection
-    .where({ _openid: openid })
+    .where({ _openid: openid, departAt: _.gte(cutoff) })
     .orderBy('departAt', 'desc')
     .limit(SCAN_LIMIT)
     .field({ destination: true, companions: true })
     .get()
 
   const trips = result.data || []
-  const destSet = new Set()
-  const compSet = new Set()
-  const destinations = []
-  const companions = []
+  const destStat = new Map() // destination -> { count, lastAt }
+  const compStat = new Map() // companions 整串 -> { count, lastAt }
 
   for (const t of trips) {
-    if (destinations.length >= MAX_DEST && companions.length >= MAX_COMP) break
-    if (t.destination && !destSet.has(t.destination)) {
-      destSet.add(t.destination)
-      if (destinations.length < MAX_DEST) destinations.push(t.destination)
+    if (t.destination) {
+      const s = destStat.get(t.destination)
+      if (s) s.count++
+      else destStat.set(t.destination, { count: 1, lastAt: t.departAt || 0 })
     }
-    if (t.companions && !compSet.has(t.companions)) {
-      compSet.add(t.companions)
-      if (companions.length < MAX_COMP) companions.push(t.companions)
+    if (t.companions) {
+      const s = compStat.get(t.companions)
+      if (s) s.count++
+      else compStat.set(t.companions, { count: 1, lastAt: t.departAt || 0 })
     }
   }
 
-  return success({ destinations, companions })
+  // 次数降序；次数相同看最近使用时间
+  const pickTop = (statMap, limit) => [...statMap.entries()]
+    .sort((a, b) => b[1].count - a[1].count || b[1].lastAt - a[1].lastAt)
+    .slice(0, limit)
+    .map(([name]) => name)
+
+  return success({
+    destinations: pickTop(destStat, MAX_DEST),
+    companions: pickTop(compStat, MAX_COMP)
+  })
 }
 
 /**

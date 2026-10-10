@@ -326,19 +326,12 @@ Page({
       wx.navigateTo({
         url: '/pages/office/notifications/notifications'
       })
-    } else if (label === '签字管理') {
-      wx.navigateTo({
-        url: '/pages/office/signature-manage/signature-manage'
-      })
-    } else if (label === '意见反馈') {
-      wx.navigateTo({
-        url: '/pages/office/feedback/feedback'
-      })
     } else if (label === '帮助中心') {
       wx.navigateTo({
         url: '/pages/office/help/help'
       })
-    } else if (label === '字体大小') {    } else if (label === '人员配置') {
+    } else if (label === '字体大小') {
+    } else if (label === '人员配置') {
       wx.navigateTo({
         url: '/pages/office/personnel-config/personnel-config'
       })

@@ -204,6 +204,15 @@
           hover-stay-time="120"
           bindtap="{{editUser._deactivated ? '' : 'handleDeactivateUser'}}"
         >{{editUser._deactivated ? '该用户已被注销' : '注销该用户'}}</view>
+
+        <!-- 已注销用户：恢复账号（管理权限由云函数侧校验） -->
+        <view
+          wx:if="{{editUser._deactivated}}"
+          class="personnel-btn-restore"
+          hover-class="personnel-btn-active"
+          hover-stay-time="120"
+          bindtap="handleRestoreUser"
+        >恢复用户账号</view>
       </view>
       
       <view class="personnel-modal-footer">

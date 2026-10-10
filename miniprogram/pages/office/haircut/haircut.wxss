@@ -259,8 +259,8 @@ page {
 }
 
 .haircut-slot-status.is-booked {
-  background: #FEE2E2;
-  color: #DC2626;
+  background: var(--danger-soft-bg);
+  color: var(--danger-text);
 }
 
 /* 我已预约 - 黄色 */
@@ -399,12 +399,13 @@ page {
   font-size: var(--fs-24);
   padding: var(--sp-6) var(--sp-16);
   border-radius: var(--sp-8);
-  font-weight: 500;
+  font-weight: 400;
 }
 
+/* 已预约 状态 */
 .haircut-item-status.is-booked {
-  background: #DCFCE7;
-  color: #16A34A;
+  background: var(--success-soft-bg);
+  color: var(--success-text);
 }
 
 .haircut-item-status.is-cancelled {
@@ -412,9 +413,10 @@ page {
   color: #DC2626;
 }
 
+/* 已完成 状态 */
 .haircut-item-status.is-completed {
   background: var(--bg-soft);
-  color: #2563EB;
+  color: var(--checklist-on-text);
 }
 
 .haircut-item-body {
@@ -850,4 +852,201 @@ page {
 .no-more-text {
   font-size: var(--fs-24);
   color: #ccc;
+}
+
+/* ========== 理发统计：导出选择模式 ========== */
+
+/* 统计 Tab 底部留白：避免悬浮按钮遮住最后一条 */
+.haircut-stats-tab {
+  padding-bottom: calc(var(--sp-160) + var(--sp-32));
+}
+
+/*
+  底部居中悬浮按钮（样式参考 form-submission 页的底部悬浮条）：
+  - 默认：单个主按钮居中收窄
+  - 进入导出模式：主按钮过渡为等分宽度，取消按钮由「宽 0」展开，形成一分为二的动画
+  - 容器本身不吃点击（pointer-events: none），避免遮挡列表；按钮各自恢复点击
+*/
+.haircut-export-bar {
+  position: fixed;
+  left: var(--sp-32);
+  right: var(--sp-32);
+  bottom: calc(var(--sp-32) + env(safe-area-inset-bottom));
+  z-index: 50;
+  display: flex;
+  align-items: stretch;
+  justify-content: center;
+  gap: 0;
+  pointer-events: none;
+  animation: haircutFabRise 0.28s cubic-bezier(0.25, 0.1, 0.25, 1);
+}
+
+.haircut-export-bar.is-exporting {
+  gap: var(--sp-16);
+}
+
+.haircut-fab {
+  pointer-events: auto;
+  padding: var(--sp-22) 0;
+  text-align: center;
+  background: var(--bg-card);
+  border: var(--sp-2) solid var(--checklist-on-border);
+  border-radius: var(--sp-48);
+  color: var(--checklist-on-text);
+  font-size: var(--fs-32);
+  font-weight: 600;
+  box-shadow: 0 var(--sp-8) var(--sp-24) rgba(37, 99, 235, 0.18);
+  transition: all 0.3s cubic-bezier(0.25, 0.1, 0.25, 1);
+}
+
+.haircut-fab:active {
+  transform: scale(0.95);
+  opacity: 0.7;
+}
+
+/* 主按钮：未进入选择模式时居中收窄（固定 68% 宽） */
+.haircut-fab-main {
+  flex: 0 0 68%;
+}
+
+.haircut-export-bar.is-exporting .haircut-fab-main {
+  flex: 1 1 0;
+}
+
+/*
+  一分为二时两颗按钮必须左右等宽。
+  坑：flex-basis 为 0 时，元素在 content-box 下的实际宽度 = 平分到的宽度 + 自身水平内边距，
+  两颗按钮若内边距不同（主按钮 0、取消按钮 sp-22），最终就会一大一小。
+  因此这里给两颗按钮补上相同的水平内边距。
+*/
+.haircut-export-bar.is-exporting .haircut-fab {
+  padding-left: var(--sp-22);
+  padding-right: var(--sp-22);
+}
+
+.haircut-fab-main.is-disabled {
+  opacity: 0.5;
+  pointer-events: none;
+}
+
+/* 取消按钮：默认完全收起（宽 0 + 无内边距/边框 + 透明），进入选择模式后展开 */
+.haircut-fab-cancel {
+  flex: 1 1 0;
+  max-width: 0;
+  padding-left: 0;
+  padding-right: 0;
+  border-width: 0;
+  opacity: 0;
+  overflow: hidden;
+  white-space: nowrap;
+  transform: translateX(var(--sp-40)) scale(0.92);
+}
+
+.haircut-export-bar.is-exporting .haircut-fab-cancel {
+  max-width: 1000rpx;
+  padding-left: var(--sp-22);
+  padding-right: var(--sp-22);
+  border-width: var(--sp-2);
+  opacity: 1;
+  transform: none;
+}
+
+@keyframes haircutFabRise {
+  from {
+    opacity: 0;
+    transform: translateY(var(--sp-40));
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+/* 导出选择模式的月份行：沿用月份分组标题的样式语言 + 复选框 */
+.haircut-export-tip {
+  font-size: var(--fs-30);
+  color: var(--text-muted);
+  padding: var(--sp-8) var(--sp-24) var(--sp-20);
+}
+
+.haircut-export-month {
+  display: flex;
+  align-items: center;
+  gap: var(--sp-20);
+  margin-bottom: var(--sp-20);
+  padding: var(--sp-16) var(--sp-24);
+  border-left: var(--sp-6) solid #EA580C;
+  background: var(--bg-card);
+  border-radius: 0 var(--sp-12) var(--sp-12) 0;
+  transition: background 0.2s ease, opacity 0.2s ease;
+  animation: haircutMonthIn 0.3s cubic-bezier(0.25, 0.1, 0.25, 1) both;
+}
+
+.haircut-export-month:active {
+  opacity: 0.85;
+}
+
+.haircut-export-month.is-checked {
+  background: var(--selected-bg);
+}
+
+.haircut-export-month-title {
+  flex: 1;
+  font-size: var(--fs-32);
+  font-weight: 600;
+  color: var(--text-primary);
+}
+
+.haircut-export-month-count {
+  font-size: var(--fs-28);
+  color: var(--text-muted);
+}
+
+/* 方形复选框（与 menus 页导出评分的复选框一致，主色换成本页橙色） */
+.haircut-month-checkbox {
+  width: var(--sp-40);
+  height: var(--sp-40);
+  border-radius: var(--sp-8);
+  border: var(--sp-3) solid #CBD5E1;
+  background: var(--bg-card);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  flex-shrink: 0;
+  transition: all 0.18s ease;
+}
+
+.haircut-export-month.is-checked .haircut-month-checkbox {
+  border-color: #EA580C;
+  background: #EA580C;
+  transform: scale(1.08);
+}
+
+.haircut-month-checkbox-tick {
+  color: #FFFFFF;
+  font-size: var(--fs-26);
+  font-weight: 700;
+  animation: haircutTickIn 0.2s cubic-bezier(0.34, 1.56, 0.64, 1);
+}
+
+@keyframes haircutMonthIn {
+  from {
+    opacity: 0;
+    transform: translateY(var(--sp-20)) scale(0.98);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0) scale(1);
+  }
+}
+
+@keyframes haircutTickIn {
+  from {
+    opacity: 0;
+    transform: scale(0.5);
+  }
+  to {
+    opacity: 1;
+    transform: scale(1);
+  }
 }

@@ -15,6 +15,7 @@ function fail(msg, code) { return { code: code || 500, message: msg || 'error', 
  * - getAllPersonnel: 获取全部已批准及已注销用户及其配置
  * - updatePersonnel: 更新单个用户的配置
  * - deactivateUser: 管理员注销用户
+ * - restoreUser: 管理员恢复已注销用户
  */
 exports.main = async (event, context) => {
   const { action, params } = event
@@ -54,6 +55,7 @@ exports.main = async (event, context) => {
       case 'updatePersonnel': return await updatePersonnel(params)
       case 'updateBatchReportTo': return await updateBatchReportTo(params)
       case 'deactivateUser': return await deactivateUser(openid, params)
+      case 'restoreUser': return await restoreUser(openid, params)
       default: return fail('未知操作', 400)
     }
   } catch (error) {
@@ -243,4 +245,36 @@ async function deactivateUser(operatorOpenid, params) {
   }
 
   return success(null, '注销成功')
+}
+
+/**
+ * 管理员恢复已注销用户
+ * - 只把状态改回 approved 并记录恢复痕迹；注销时的连带处理（结束外出/兴趣班）不回滚
+ * - 必须刷新 updatedAt：恢复后会走客户端 updatedAt 比对，否则部分设备会一直用旧资料
+ * @param {string} operatorOpenid - 操作者 openid
+ * @param {Object} params
+ * @param {string} params.targetOpenid - 要恢复的用户 openid
+ */
+async function restoreUser(operatorOpenid, params) {
+  const { targetOpenid } = params || {}
+  if (!targetOpenid) return fail('缺少目标用户', 400)
+
+  // 校验目标用户存在且当前为已注销状态
+  const res = await usersCollection.where({ openid: targetOpenid }).limit(1).get()
+  if (!res.data || !res.data.length) return fail('用户不存在', 404)
+  const target = res.data[0]
+  if (target.status !== 'deactivated') return fail('该用户当前不是已注销状态', 400)
+
+  const now = Date.now()
+  await usersCollection.where({ openid: targetOpenid }).update({
+    data: {
+      status: 'approved',
+      restoredAt: now,
+      restoredBy: operatorOpenid,
+      updatedAt: now
+      // 保留 deactivatedAt / deactivatedBy 作为注销痕迹
+    }
+  })
+
+  return success(null, '账号已恢复')
 }

@@ -425,7 +425,7 @@ async function cancelAppointment(openid, appointmentId, cancelReason) {
  * @param {number} params.month - 月份（可选）
  * @param {string} params.sortBy - 排序方式：time(默认) / name
  * @param {number} params.page - 页码（默认1，按时间排序时生效）
- * @param {number} params.pageSize - 每页条数（默认10，按时间排序时生效）
+ * @param {number} params.pageSize - 每页条数（默认20，按时间排序时生效）
  */
 async function getAppointments(openid, params = {}) {
   const {
@@ -433,7 +433,7 @@ async function getAppointments(openid, params = {}) {
     month,
     sortBy = 'time',
     page = 1,
-    pageSize = 10
+    pageSize = 20
   } = params
 
   // 验证用户权限

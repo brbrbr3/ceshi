@@ -15,6 +15,9 @@ const modalAnimation = require('../../../behaviors/modalAnimation.js')
 // 可查看理发预约的岗位
 const HAIRCUT_VIEWER_POSITIONS = ['招待员', '会计主管', '会计', '办公室内聘']
 
+// 统计列表每页条数（按时间排序时生效，触底自动加载下一页）
+const STATS_PAGE_SIZE = 20
+
 // 取消原因
 const CANCEL_REASONS = [
   '招待员未履约',
@@ -61,6 +64,7 @@ Page({
     // 用户权限
     canView: false,
     isReceptionist: false,
+    canExportStats: false, // 导出统计PDF：管理员 /「办公室内聘」岗位
     userName: '',
     userOpenId: '',
     isReviewer: false,
@@ -87,6 +91,13 @@ Page({
     loadingstats: false,
     statsAllLoaded: false,
     sortBy: 'name', // 默认按人员排序（切换 Tab 时保留用户当前选择，不在此处重置）
+
+    // 导出统计 PDF（选择模式）
+    exportMode: false,
+    exportGroups: [],      // 可选月份列表（全量数据）：{ monthKey, monthLabel, count, checked }
+    selectedMonths: [],    // 已选月份的 monthKey
+    exporting: false,       // 正在生成 PDF：按钮置灰防重入
+    preparingExport: false, // 正在准备选择数据（时间排序下需补拉全量）
 
     // 我的预约 Tab
     myList: [],
@@ -155,6 +166,21 @@ Page({
   },
 
   /**
+   * 触底自动加载下一页
+   * 与项目其它列表页一致：不再依赖「点击加载更多」按钮
+   */
+  onReachBottom() {
+    if (this.data.exportMode) return // 选择模式下列表已收起，不触发分页
+    if (this.data.activeTab === 'stats') {
+      if (this.data.sortBy === 'time') this.loadMoreStatsAppointments()
+      return
+    }
+    if (this.data.activeTab === 'mine') {
+      this.loadMoreMyAppointments()
+    }
+  },
+
+  /**
    * 设置用户权限（user 由守卫传入）
    */
   applyPermission(user) {
@@ -165,9 +191,13 @@ Page({
     //管理员、领导、办负责人、其他允许的岗位人员，可以看到‘理发统计’tab
     const canView = isAdmin || isLeader || isBanHead || isAllowedPositions
     const isReceptionist = Array.isArray(user.position) && user.position.includes('招待员')
+    // 导出理发统计 PDF：管理员 /「办公室内聘」岗位
+    // （与云端 generateOrderPdf.generateHaircutStatsPdf 校验口径一致，改一处需同步另一处）
+    const canExportStats = isAdmin || (Array.isArray(user.position) && user.position.includes('办公室内聘'))
     this.setData({
       canView,
       isReceptionist,
+      canExportStats,
       userName: user.name,
       userOpenId: user.openid || '',
       isReviewer: !!user.isReviewer
@@ -203,7 +233,11 @@ Page({
     if (tab === this.data.activeTab) return
 
     this.setData({
-      activeTab: tab
+      activeTab: tab,
+      // 切 Tab 时退出导出选择模式（悬浮按钮只在统计 Tab 显示）
+      exportMode: false,
+      exportGroups: [],
+      selectedMonths: []
     })
     this.loadData()
   },
@@ -440,7 +474,7 @@ Page({
 
   /**
    * 计算应该显示的日期（本地时间）
-   * 规则：周五18:00后、周六、周日显示下周的周一三五，否则显示本周的周一三五
+   * 规则：周日 0 点起显示下周的周一三五，否则显示本周的周一三五
    */
   /**
    * 构建日期显示信息（weekDay/monthDay/dayOfWeek）
@@ -487,13 +521,10 @@ Page({
   calculateDisplayDates() {
     const now = new Date()
     const currentDayOfWeek = now.getDay() // 0=周日, 5=周五, 6=周六
-    const currentHour = now.getHours()
 
-    // 判断是否应该显示下周
-    // 周五22:00后、周六(6)、周日(0) 都显示下周
-    const shouldShowNextWeek = (currentDayOfWeek === 5 && currentHour >= 22) ||
-      currentDayOfWeek === 6 ||
-      currentDayOfWeek === 0
+    // 判断是否应该显示下周：周日 0 点起显示下周
+    // （周六仍显示本周的周一/周三/周五，这三天已过，会呈"已过期"状态）
+    const shouldShowNextWeek = currentDayOfWeek === 0
 
     // 计算本周的周一
     const mondayOfThisWeek = new Date(now)
@@ -1135,10 +1166,10 @@ Page({
         sortBy: this.data.sortBy
       }
 
-      // 按时间排序时启用分页
+      // 按时间排序时启用分页（每页 20 条，与项目其它列表页一致）
       if (this.data.sortBy === 'time') {
         params.page = this.data.statsPage
-        params.pageSize = 10
+        params.pageSize = STATS_PAGE_SIZE
       }
 
       const res = await wx.cloud.callFunction({
@@ -1299,6 +1330,176 @@ Page({
       sortBy
     })
     this.loadstatsAppointments()
+  },
+
+  // ==================== 导出统计 PDF（仅办公室内聘） ====================
+
+  /**
+   * 按人员排序的全量接口（不分页），导出选择模式需要完整月份列表时复用
+   * 与 fetchStatsAppointments 的按人员分支同源，只是不写入页面统计 data
+   */
+  async fetchAllStatsAppointments() {
+    const res = await wx.cloud.callFunction({
+      name: 'haircutManager',
+      data: {
+        action: 'getAppointments',
+        params: { sortBy: 'name' }
+      }
+    })
+    const result = res.result || {}
+    if (result.code !== 0) {
+      throw new Error(result.message || '加载失败')
+    }
+    return (result.data && result.data.list) || []
+  },
+
+  /**
+   * 由原始记录生成可选月份列表（口径与页面统计一致：排除已取消）
+   * checked 在 JS 侧预计算 —— WXML 不支持 indexOf 调用
+   */
+  buildExportGroups(list) {
+    const map = {}
+    ;(list || []).forEach(item => {
+      if (item.status === 'cancelled') return
+      const monthKey = (item.date || '').substring(0, 7)
+      if (!monthKey) return
+      if (!map[monthKey]) {
+        const [y, m] = monthKey.split('-')
+        map[monthKey] = {
+          monthKey,
+          monthLabel: `${parseInt(y)}年${parseInt(m)}月`,
+          count: 0,
+          checked: false
+        }
+      }
+      map[monthKey].count++
+    })
+    return Object.values(map).sort((a, b) => b.monthKey.localeCompare(a.monthKey))
+  },
+
+  /**
+   * 进入导出选择模式：按月收起条目 + 月份复选框
+   * 「按时间排序」是分页的，已加载数据可能缺月份 → 先补拉一份全量再列月份
+   */
+  async handleStartExport() {
+    if (this.data.exporting || this.data.preparingExport) return
+    if (!this.data.canExportStats) return
+
+    this.setData({ preparingExport: true })
+    wx.showLoading({ title: '准备数据...', mask: true })
+    try {
+      // 按人员排序时 statsList 本身就是全量，无需额外请求
+      const list = this.data.sortBy === 'name'
+        ? this.data.statsList
+        : await this.fetchAllStatsAppointments()
+
+      const exportGroups = this.buildExportGroups(list)
+      wx.hideLoading()
+      this.setData({ preparingExport: false })
+
+      if (exportGroups.length === 0) {
+        wx.showToast({ title: '暂无可导出的月份', icon: 'none' })
+        return
+      }
+      this.setData({
+        exportMode: true,
+        exportGroups,
+        selectedMonths: []
+      })
+    } catch (error) {
+      wx.hideLoading()
+      this.setData({ preparingExport: false })
+      console.error('准备导出数据失败:', error)
+      wx.showToast({ title: '数据加载失败，请重试', icon: 'none' })
+    }
+  },
+
+  /**
+   * 退出导出选择模式
+   */
+  handleCancelExport() {
+    if (this.data.exporting) return
+    this.setData({
+      exportMode: false,
+      exportGroups: [],
+      selectedMonths: []
+    })
+  },
+
+  /**
+   * 勾选 / 取消勾选某个月份（可多选）
+   */
+  handleToggleMonth(e) {
+    if (this.data.exporting) return
+    const monthKey = e.currentTarget.dataset.monthkey
+    if (!monthKey) return
+
+    const selected = [...this.data.selectedMonths]
+    const idx = selected.indexOf(monthKey)
+    if (idx >= 0) {
+      selected.splice(idx, 1)
+    } else {
+      selected.push(monthKey)
+    }
+    // 预计算每项 checked，避免 WXML 调用 indexOf
+    const exportGroups = this.data.exportGroups.map(g => ({
+      ...g,
+      checked: selected.indexOf(g.monthKey) >= 0
+    }))
+    this.setData({ selectedMonths: selected, exportGroups })
+  },
+
+  /**
+   * 导出选中月份的理发统计 PDF
+   */
+  async handleExportStats() {
+    if (this.data.exporting) return
+    const months = this.data.selectedMonths
+    if (!months.length) {
+      wx.showToast({ title: '请先选择至少一个月份', icon: 'none' })
+      return
+    }
+
+    this.setData({ exporting: true })
+    wx.showLoading({ title: '生成中...', mask: true })
+    try {
+      const res = await wx.cloud.callFunction({
+        name: 'generateOrderPdf',
+        data: { type: 'haircutStats', months }
+      })
+      wx.hideLoading()
+      const result = res.result || {}
+      if (result.code !== 0) {
+        throw new Error(result.message || '生成失败')
+      }
+      const fileID = result.data && result.data.fileID
+      if (!fileID) throw new Error('未获取到文件')
+
+      // 下载并打开 PDF
+      const dl = await wx.cloud.downloadFile({ fileID })
+      wx.openDocument({
+        filePath: dl.tempFilePath,
+        fileType: 'pdf',
+        showMenu: true,
+        success: () => {
+          this.setData({
+            exportMode: false,
+            exportGroups: [],
+            selectedMonths: [],
+            exporting: false
+          })
+        },
+        fail: () => {
+          this.setData({ exporting: false })
+          wx.showToast({ title: '打开失败', icon: 'none' })
+        }
+      })
+    } catch (error) {
+      wx.hideLoading()
+      this.setData({ exporting: false })
+      console.error('导出理发统计失败:', error)
+      wx.showToast({ title: error.message || '导出失败', icon: 'none' })
+    }
   },
 
   /**

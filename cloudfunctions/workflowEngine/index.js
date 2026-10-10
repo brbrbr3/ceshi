@@ -1634,7 +1634,6 @@ async function completeWorkflow(orderId, decision, approverId, approverName, com
         isAdmin: !!businessData.isAdmin,
         isDepartmentHead: !!businessData.isDepartmentHead,
         relativeName: businessData.relativeName || '',
-        position: Array.isArray(businessData.position) ? businessData.position : [],
         department: businessData.department || '',
         mobile: businessData.mobile || '',
         landline: businessData.landline || '',

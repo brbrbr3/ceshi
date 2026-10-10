@@ -28,7 +28,7 @@ const STATUS_STYLE = {
 // 历史记录存储key
 const STORAGE_KEY_DESTINATION = 'trip_destination_history'
 const STORAGE_KEY_COMPANIONS = 'trip_companions_history'
-const MAX_DESTINATION_HISTORY = 10
+const MAX_DESTINATION_HISTORY = 20 // 常用目的地：与云端 getHistory 的 MAX_DEST 保持一致
 const MAX_COMPANIONS_HISTORY = 5
 
 /**
@@ -197,22 +197,18 @@ Page({
         const {
           destinations,
           companions
-        } = res.result.data
+        } = res.result.data || {}
 
-        // 如果数据库有数据，优先使用
-        if (destinations.length > 0 || companions.length > 0) {
+        // 云端成功即为权威结果（可能为空数组）：窗口内确实没有记录时，连本地缓存一起清空，
+        // 否则会一直显示过期的"常用"目的地。
+        // 只有两个字段都是数组时才覆盖，避免云端异常返回把缓存误清。
+        if (Array.isArray(destinations) && Array.isArray(companions)) {
           this.setData({
-            destinationHistory: destinations.length > 0 ? destinations : localDestHistory,
-            companionsHistory: companions.length > 0 ? companions : localCompHistory
+            destinationHistory: destinations,
+            companionsHistory: companions
           })
-
-          // 同步更新本地缓存
-          if (destinations.length > 0) {
-            wx.setStorageSync(STORAGE_KEY_DESTINATION, destinations)
-          }
-          if (companions.length > 0) {
-            wx.setStorageSync(STORAGE_KEY_COMPANIONS, companions)
-          }
+          wx.setStorageSync(STORAGE_KEY_DESTINATION, destinations)
+          wx.setStorageSync(STORAGE_KEY_COMPANIONS, companions)
         }
       }
     } catch (error) {
@@ -238,7 +234,7 @@ Page({
     // 添加到最前面
     history.unshift(value)
 
-    // 最多保留对应条数（目的地10条，同行人5条）
+    // 最多保留对应条数（目的地20条，同行人5条）
     const maxCount = key === 'destination' ? MAX_DESTINATION_HISTORY : MAX_COMPANIONS_HISTORY
     if (history.length > maxCount) {
       history = history.slice(0, maxCount)

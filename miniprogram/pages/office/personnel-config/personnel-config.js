@@ -750,6 +750,55 @@ Page({
     }
   },
 
+  // ==================== 恢复用户账号 ====================
+
+  /**
+   * 恢复已注销用户：确认后调用云函数
+   * 恢复是可逆操作，一次确认即可（与注销的两次确认 + 倒计时不同）
+   */
+  handleRestoreUser() {
+    if (!this.data.canEdit) {
+      utils.showToast({ title: '只读模式，如需修改请联系管理员', icon: 'none' })
+      return
+    }
+    if (!this.data.editUser) return
+
+    const userName = this.data.editUser.name || '该用户'
+    wx.showModal({
+      title: '恢复用户账号',
+      content: '确定恢复「' + userName + '」的账号吗？\n恢复后该用户可重新登录并使用小程序。',
+      confirmText: '确认恢复',
+      confirmColor: '#10B981',
+      cancelText: '取消',
+      success: (res) => {
+        if (!res.confirm) return
+        this.doRestoreUser()
+      }
+    })
+  },
+
+  async doRestoreUser() {
+    if (!this.data.editUser) return
+    wx.showLoading({ title: '恢复中...', mask: true })
+    try {
+      const result = await wx.cloud.callFunction({
+        name: 'personnelManager',
+        data: {
+          action: 'restoreUser',
+          params: { targetOpenid: this.data.editUser.openid }
+        }
+      })
+      wx.hideLoading()
+      if (result.result.code !== 0) throw new Error(result.result.message)
+      utils.showToast({ title: '账号已恢复', icon: 'success' })
+      this.setData({ showEditModal: false, editUser: null })
+      await this.loadUsers()
+    } catch (err) {
+      wx.hideLoading()
+      utils.showToast({ title: err.message || '恢复失败', icon: 'none' })
+    }
+  },
+
   stopPropagation() {},
 
   // ==================== 已注销用户分组折叠 ====================
