@@ -3,12 +3,12 @@ const utils = require('../../../common/utils.js')
 const modalAnimation = require('../../../behaviors/modalAnimation.js')
 const pullDownClose = require('../../../behaviors/pullDownClose.js')
 
-// 状态样式映射
+// 状态样式映射（颜色走主题 token，深色模式自动换成「亮字 + 深底」）
 const STATUS_STYLE = {
-  out: { color: '#F59E0B', bg: '#FFFBEB', text: '外出中' },
-  returned: { color: '#16A34A', bg: '#DCFCE7', text: '已返回' },
-  overtime: { color: '#DC2626', bg: '#FEE2E2', text: '超时' },
-  none: { color: '#94A3B8', bg: '#F1F5F9', text: '🏢在馆' }
+  out: { color: 'var(--chip-amber-text)', bg: 'var(--chip-amber-bg)', text: '外出中' },
+  returned: { color: 'var(--chip-green-text)', bg: 'var(--chip-green-bg)', text: '已返回' },
+  overtime: { color: 'var(--chip-red-text)', bg: 'var(--chip-red-bg)', text: '超时' },
+  none: { color: 'var(--text-muted)', bg: 'var(--bg-soft-2)', text: '🏢在馆' }
 }
 
 Page({
@@ -196,8 +196,8 @@ Page({
         avatarText,
         avatarColor: utils.getAvatarColor(item.userName),
         statusText: '已注销',
-        statusColor: '#94A3B8',
-        statusBg: '#F1F5F9',
+        statusColor: 'var(--text-muted)',
+        statusBg: 'var(--bg-soft-2)',
         departTimeStr: '',
         livingArea,
         hasTrip: false,
@@ -218,19 +218,22 @@ Page({
       const isLeader = user.role === '馆员' && user.department === '无'
       if (isLeader) {
         roleLabel = '领导'
-        statusColor = '#DC2626'
-        statusBg = '#FEF2F2'
+        // 角色徽标：红色语义，深色模式下自动换「亮字 + 深底」
+        statusColor = 'var(--chip-red-text)'
+        statusBg = 'var(--chip-red-bg)'
       } else if (groupBy === 'department') {
         if (user.isDepartmentHead) {
           roleLabel = '负责人'
-          statusColor = '#2563EB'
-          statusBg = '#EFF6FF'
+          // 角色徽标：蓝色语义，深色模式下自动换浅蓝
+          statusColor = 'var(--primary-text)'
+          statusBg = 'var(--primary-soft)'
         }
       } else if (groupBy === 'livingArea') {
         if (user.isAreaManager) {
           roleLabel = '片长'
-          statusColor = '#7C3AED'
-          statusBg = '#F5F3FF'
+          // 角色徽标：紫色语义，深色模式下自动换「亮字 + 深底」
+          statusColor = 'var(--chip-purple-text)'
+          statusBg = 'var(--chip-purple-bg)'
         }
       }
 

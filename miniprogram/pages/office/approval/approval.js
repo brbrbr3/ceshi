@@ -5,8 +5,8 @@ const utils = require('../../../common/utils.js')
 // 审批类型图标配置（静态配置）
 const approvalTypeIcons = {
   'medical_application': { icon: '🏥', label: '就医申请', color: '#EF4444', bg: '#FEE2E2' },
-  'user_registration': { icon: '📝', label: '注册申请', color: '#2563EB', bg: '#EFF6FF' },
-  'user_profile_update': { icon: '📝', label: '信息修改', color: '#2563EB', bg: '#EFF6FF' },
+  'user_registration': { icon: '📝', label: '注册申请', color: 'var(--primary-text)', bg: 'var(--primary-soft)' },
+  'user_profile_update': { icon: '📝', label: '信息修改', color: 'var(--primary-text)', bg: 'var(--primary-soft)' },
   'car_purchase_application': { icon: '🚗', label: '购车申请', color: '#0891B2', bg: '#ECFEFF' },
   'car_purchase_loan': { icon: '💰', label: '购车借款', color: '#D97706', bg: '#FEF3C7' },
   'passport_application': { icon: '📕', label: '护照借用', color: '#7C3AED', bg: '#F3E8FF' }
@@ -25,7 +25,7 @@ const roleIcons = {
 // 动态生成的审批类型列表
 let approvalTypes = [
   { icon: '🏥', label: '就医申请', color: '#EF4444', bg: '#FEE2E2' },
-  { icon: '📝', label: '注册申请', color: '#2563EB', bg: '#EFF6FF' }
+  { icon: '📝', label: '注册申请', color: 'var(--primary-text)', bg: 'var(--primary-soft)' }
 ]
 
 // 全局常量缓存
@@ -326,7 +326,7 @@ Page({
       if (roleOptions.length > 0) {
         approvalTypes = [
           { icon: '🏥', label: '就医申请', color: '#EF4444', bg: '#FEE2E2' },
-          { icon: '📝', label: '注册申请', color: '#2563EB', bg: '#EFF6FF' },
+          { icon: '📝', label: '注册申请', color: 'var(--primary-text)', bg: 'var(--primary-soft)' },
           ...roleOptions.map(role => ({
             icon: roleIcons[role]?.icon || '👤',
             label: role,
@@ -699,7 +699,7 @@ Page({
 
   showLaunchTip() {
     wx.showToast({
-      title: this.data.canReview ? '当前页面用于审批用户的申请' : '当前账号仅可查看自己的申请状态',
+      title: this.data.canReview ? '当前页面用于管理员审批用户的申请' : '当前账号仅可查看自己的申请状态',
       icon: 'none'
     })
   },

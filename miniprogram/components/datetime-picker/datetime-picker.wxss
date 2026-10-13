@@ -93,7 +93,7 @@
 
 .icon-arrow {
   font-size: var(--fs-22);
-  color: #2563EB;
+  color: var(--primary-text);
   transition: transform 0.3s ease;
 }
 
@@ -233,7 +233,7 @@
 .picker-column-num {
   font-size: var(--fs-36);
   font-weight: 600;
-  color: #2563EB;
+  color: var(--primary-text);
   text-align: center;
 }
 

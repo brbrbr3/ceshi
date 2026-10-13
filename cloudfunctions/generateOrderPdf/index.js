@@ -1341,15 +1341,43 @@ function compareDeptGroupName(a, b, order) {
 }
 
 /**
+ * 理发统计用：建立「姓名 → 用户列表」索引（分页拉全量，只取匹配所需字段）
+ * 同名会有多条，调用方按「唯一匹配才算命中」处理，避免把理发算错人
+ */
+async function buildUserNameIndex() {
+  const index = {}
+  const BATCH = 1000
+  for (let skip = 0; ; skip += BATCH) {
+    const res = await db.collection('office_users')
+      .field({ openid: true, name: true, department: true, role: true, position: true })
+      .orderBy('_id', 'asc') // 分页稳定性：skip/limit 需要确定的顺序
+      .skip(skip)
+      .limit(BATCH)
+      .get()
+    const list = res.data || []
+    list.forEach(u => {
+      if (!u.name) return
+      if (!index[u.name]) index[u.name] = []
+      index[u.name].push(u)
+    })
+    if (list.length < BATCH) break
+  }
+  return index
+}
+
+/**
  * 理发统计 PDF 导出
  *
  * 权限：管理员 或 岗位含「办公室内聘」的用户（与前端一致）
  * 参数：months = ['2026-10', '2026-09']（可多选，不设上限）
  * 口径：与页面「理发统计」一致 —— 排除已取消（cancelled）的记录
- * 结构：按月一节 → 按【预约人】所在部门分组（预约人一定是注册用户，能稳定匹配到部门；
- *      理发人姓名可随意填写，因此不作为分组依据）→ 组内按【预约人】的理发次数降序、
- *      同一预约人内按（理发人）次数降序
- * 字段：每行给出【预约人】【理发人】与二者配对的次数
+ * 归属：每次理发算在谁头上（统计主体）
+ *      · 理发人唯一匹配到系统用户 → 计入该用户（代约时不再算在预约人身上）
+ *      · 理发人未匹配到 / 同名不唯一 → 计入预约人
+ * 结构：所选月份的记录【合并统计】（不按月分组）→ 区间标题列出选中的月份（按时间从先到后）
+ *      → 按【统计主体】所在部门分组 → 组内按统计主体的理发次数降序，
+ *      同一人内按（预约人 + 理发人）配对的次数降序
+ * 字段：表头【姓名】【预约人】【理发人】【次数】，序号全篇连续（不因新分组归 1）
  */
 async function generateHaircutStatsPdf(openid, months) {
   const _ = db.command
@@ -1415,68 +1443,75 @@ async function generateHaircutStatsPdf(openid, months) {
       if (u.openid) userMap[u.openid] = u
     })
   }
+  // 4.1 理发人姓名 → 用户（用于判定「这次理发算谁的」）
+  // 只有「唯一同名」才算命中；同名两人无法判断是谁，一律按未匹配处理（计入预约人）
+  const nameIndex = await buildUserNameIndex()
+  const matchAppointee = (name) => {
+    const list = nameIndex[name]
+    return (list && list.length === 1) ? list[0] : null
+  }
+
   const deptOrder = await getDepartmentOptions()
 
-  // 5. 聚合：月 → 部门 → 预约人 → （理发人, 次数）
-  const monthMap = new Map()
+  // 5. 聚合：部门 → 统计主体 → （预约人 + 理发人, 次数）
+  //    所选月份的记录合并统计（不按月分组）
+  //    统计主体（这次理发算谁头上）：
+  //      · 理发人唯一匹配到系统用户 → 计入该用户（无论谁约的）
+  //      · 理发人未匹配到 / 同名不唯一 → 计入预约人
+  //      · 部门随统计主体（两者都是系统用户，都能取到部门）
+  const deptMap = new Map()
   records.forEach(r => {
-    const monthKey = (r.date || '').substring(0, 7)
-    if (!monthKey) return
-
     const booker = r.bookerId ? userMap[r.bookerId] : null
-    // 部门取名沿用项目统一规则（部门为「无」或角色为「其他」→「其他人员」，排在最末）
-    const deptName = booker ? (buildDeptGroupName(booker) || '其他人员') : '未分配部门'
-    const bookerKey = r.bookerId || `name:${r.bookerName || ''}`
     const bookerName = (booker && booker.name) || r.bookerName || '未知预约人'
     const appointeeName = r.appointeeName || '未知理发人'
 
-    if (!monthMap.has(monthKey)) {
-      const [y, m] = monthKey.split('-')
-      monthMap.set(monthKey, {
-        monthKey,
-        monthLabel: `${Number(y)}年${Number(m)}月`,
-        count: 0,
-        deptMap: new Map()
-      })
-    }
-    const month = monthMap.get(monthKey)
-    month.count++
+    const matchedAppointee = matchAppointee(appointeeName)
+    const owner = matchedAppointee || booker
+    const ownerName = (owner && owner.name) || bookerName
+    const ownerKey = owner ? (owner.openid || `name:${owner.name}`) : `name:${bookerName}`
+    // 部门取名沿用项目统一规则（部门为「无」或角色为「其他」→「其他人员」，排在最末）
+    const deptName = owner ? (buildDeptGroupName(owner) || '其他人员') : '未分配部门'
 
-    if (!month.deptMap.has(deptName)) {
-      month.deptMap.set(deptName, { name: deptName, bookerMap: new Map() })
+    if (!deptMap.has(deptName)) {
+      deptMap.set(deptName, { name: deptName, ownerMap: new Map() })
     }
-    const dept = month.deptMap.get(deptName)
+    const dept = deptMap.get(deptName)
 
-    if (!dept.bookerMap.has(bookerKey)) {
-      dept.bookerMap.set(bookerKey, { bookerName, total: 0, pairMap: new Map() })
+    if (!dept.ownerMap.has(ownerKey)) {
+      dept.ownerMap.set(ownerKey, { ownerName, total: 0, pairMap: new Map() })
     }
-    const person = dept.bookerMap.get(bookerKey)
+    const person = dept.ownerMap.get(ownerKey)
     person.total++
-    person.pairMap.set(appointeeName, (person.pairMap.get(appointeeName) || 0) + 1)
+    // 明细按「预约人 + 理发人」聚合，便于看清这几次是谁约的、给谁理的
+    const pairKey = `${bookerName}\u0000${appointeeName}`
+    const pair = person.pairMap.get(pairKey) || { bookerName, appointeeName, count: 0 }
+    pair.count++
+    person.pairMap.set(pairKey, pair)
   })
 
-  const monthGroups = [...monthMap.values()]
-    .sort((a, b) => b.monthKey.localeCompare(a.monthKey))
-    .map(m => ({
-      monthKey: m.monthKey,
-      monthLabel: m.monthLabel,
-      count: m.count,
-      bookerCount: [...m.deptMap.values()].reduce((sum, d) => sum + d.bookerMap.size, 0),
-      deptGroups: [...m.deptMap.values()]
-        .sort((a, b) => compareDeptGroupName(a.name, b.name, deptOrder))
-        .map(d => ({
-          name: d.name,
-          people: [...d.bookerMap.values()]
-            .sort((a, b) => b.total - a.total || a.bookerName.localeCompare(b.bookerName, 'zh'))
-            .map(p => ({
-              bookerName: p.bookerName,
-              total: p.total,
-              pairs: [...p.pairMap.entries()]
-                .map(([appointeeName, count]) => ({ appointeeName, count }))
-                .sort((a, b) => b.count - a.count || a.appointeeName.localeCompare(b.appointeeName, 'zh'))
-            }))
+  const deptGroups = [...deptMap.values()]
+    .sort((a, b) => compareDeptGroupName(a.name, b.name, deptOrder))
+    .map(d => ({
+      name: d.name,
+      people: [...d.ownerMap.values()]
+        .sort((a, b) => b.total - a.total || a.ownerName.localeCompare(b.ownerName, 'zh'))
+        .map(p => ({
+          ownerName: p.ownerName,
+          total: p.total,
+          pairs: [...p.pairMap.values()]
+            .sort((a, b) => b.count - a.count
+              || a.bookerName.localeCompare(b.bookerName, 'zh')
+              || a.appointeeName.localeCompare(b.appointeeName, 'zh'))
         }))
     }))
+
+  // 统计区间文案：选中的月份按自然时间从先到后
+  const monthText = monthKeys.map(m => {
+    const [y, mo] = m.split('-')
+    return `${Number(y)}年${Number(mo)}月`
+  }).join('、')
+  const totalCount = records.length
+  const personCount = deptGroups.reduce((sum, d) => sum + d.people.length, 0)
 
   // 6. 生成 PDF
   const fontPath = await ensureFont()
@@ -1511,11 +1546,13 @@ async function generateHaircutStatsPdf(openid, months) {
     pdfDoc.on('error', (err) => reject(new Error('PDF生成失败: ' + err.message)))
 
     const ROW_HEIGHT = 17
+    const HEADER_FONT_SIZE = 13 // 表格列头字号：改这里即可整体缩放，下划线位置会自动跟随
     // 列位置（A4 内容区 50 ~ 545）
     const COL_NO = 58
-    const COL_BOOKER = 100
-    const COL_APPOINTEE = 245
-    const COL_COUNT = 400
+    const COL_OWNER = 94
+    const COL_BOOKER = 208
+    const COL_APPOINTEE = 322
+    const COL_COUNT = 436
 
     /**
      * 渲染每行前调用：确保整行放得进本页，放不下先换页。
@@ -1532,17 +1569,22 @@ async function generateHaircutStatsPdf(openid, months) {
       return false
     }
 
-    // 表格列头（每个部门组开头画一次；跨页后重画，保证列名始终可见）
+    // 表格列头（整份文档只画一次）
     const drawColumnHeader = () => {
       const rowY = pdfDoc.y
-      pdfDoc.fontSize(10).font('ChineseFontBold').fillColor('#64748B')
-      pdfDoc.text('序号', COL_NO, rowY, { width: 40, lineBreak: false })
-      pdfDoc.text('预约人', COL_BOOKER, rowY, { width: 140, lineBreak: false })
-      pdfDoc.text('理发人', COL_APPOINTEE, rowY, { width: 140, lineBreak: false })
-      pdfDoc.text('次数', COL_COUNT, rowY, { width: 60, lineBreak: false })
-      pdfDoc.y = rowY + ROW_HEIGHT - 2
-      pdfDoc.moveTo(50, pdfDoc.y).lineTo(545, pdfDoc.y).stroke('#E2E8F0')
-      pdfDoc.y = pdfDoc.y + 4
+      pdfDoc.fontSize(HEADER_FONT_SIZE).font('ChineseFontBold').fillColor('#000000')
+      pdfDoc.text('序号', COL_NO, rowY, { width: 32, lineBreak: false })
+      pdfDoc.text('姓名', COL_OWNER, rowY, { width: 110, lineBreak: false })
+      pdfDoc.text('预约人', COL_BOOKER, rowY, { width: 110, lineBreak: false })
+      pdfDoc.text('理发人', COL_APPOINTEE, rowY, { width: 110, lineBreak: false })
+      pdfDoc.text('次数', COL_COUNT, rowY, { width: 96, lineBreak: false })
+      // 下划线按「当前字体的实际行高」定位，而不是写死的 ROW_HEIGHT - 2：
+      // pdfkit 的 lineHeight 含下行部（ascender + lineGap - descender），
+      // 13pt 中文的行盒约 13pt、字形下沿正好落在 ROW_HEIGHT-2 = 15 附近，所以之前会穿字。
+      const headerLineHeight = pdfDoc.currentLineHeight(true)
+      pdfDoc.y = rowY + headerLineHeight + 5
+      pdfDoc.moveTo(50, pdfDoc.y).lineTo(545, pdfDoc.y).stroke('#000000')
+      pdfDoc.y = pdfDoc.y + 6
       pdfDoc.font('ChineseFont')
     }
 
@@ -1556,79 +1598,101 @@ async function generateHaircutStatsPdf(openid, months) {
       .text(`生成时间：${formatLocalTime(new Date(), timezoneOffset)}`, { align: 'left' })
     pdfDoc.moveDown(0.3)
     pdfDoc.fontSize(10).font('ChineseFont').fillColor('#000000').text(
-      `统计范围：${monthKeys.slice().sort().reverse().map(m => {
-        const [y, mo] = m.split('-')
-        return `${Number(y)}年${Number(mo)}月`
-      }).join('、')}（共 ${records.length} 次，已取消记录不计入）`,
+      `统计范围：${monthText}（共 ${totalCount} 次，已取消记录不计入）`,
+      { align: 'left' }
+    )
+    pdfDoc.moveDown(0.3)
+    pdfDoc.fontSize(10).font('ChineseFont').fillColor('#000000').text(
+      '统计口径：每次理发计入【理发人】；理发人未能唯一匹配到系统用户时，计入【预约人】',
       { align: 'left' }
     )
     pdfDoc.moveDown(1)
 
-    if (monthGroups.length === 0) {
+    // ===== 表头：整份文档只画一次；序号连续（不归 1） =====
+    let rowNo = 0
+    if (deptGroups.length === 0) {
       pdfDoc.fontSize(11).font('ChineseFont').fillColor('#94A3B8').text('所选月份暂无预约记录', 60)
-    }
+    } else {
+      // 表头是一组绝对坐标绘制的行列，贴底时必须整块换页，否则会被 pdfkit 拆到两页
+      if (pdfDoc.y + HEADER_FONT_SIZE * 2 + 20 > pdfDoc.page.maxY()) pdfDoc.addPage()
+      drawColumnHeader()
+      pdfDoc.moveDown(0.5)
 
-    // ===== 按月一节 =====
-    monthGroups.forEach((month, monthIdx) => {
-      if (monthIdx > 0) pdfDoc.moveDown(0.4)
-      // 月份标题不落在页面底部
-      if (pdfDoc.y > 700) pdfDoc.addPage()
-
+      // ===== 统计区间标题：选中的月份（按自然时间从先到后）+ 合计 =====
+      if (pdfDoc.y > 690) pdfDoc.addPage()
       const titleY = pdfDoc.y
-      pdfDoc.rect(50, titleY - 2, 495, 22).fill('#FFF7ED')
-      pdfDoc.fontSize(14).font('ChineseFontBold').fillColor('#C2410C')
-        .text(`${month.monthLabel}`, 60, titleY + 3, { lineBreak: false })
-      pdfDoc.fontSize(10).font('ChineseFont').fillColor('#EA580C')
-        .text(`共 ${month.count} 次 · ${month.bookerCount} 人`, 360, titleY + 6, { width: 180, align: 'right', lineBreak: false })
-      pdfDoc.y = titleY + 30
+      const monthBoxWidth = 330 // 右侧留给「共 N 次 · M 人」
+      let monthFontSize = 13
+      pdfDoc.fontSize(monthFontSize)
+      while (monthFontSize > 10 && pdfDoc.widthOfString(monthText) > monthBoxWidth) {
+        monthFontSize -= 0.5
+        pdfDoc.fontSize(monthFontSize)
+      }
+
+      if (pdfDoc.widthOfString(monthText) <= monthBoxWidth) {
+        // 常见情况：月份不多，区间文案与合计同一行
+        pdfDoc.rect(50, titleY - 2, 495, 24).fill('#FFF7ED')
+        pdfDoc.fontSize(monthFontSize).font('ChineseFontBold').fillColor('#C2410C')
+          .text(monthText, 60, titleY + 4, { width: monthBoxWidth, lineBreak: false })
+        pdfDoc.fontSize(10).font('ChineseFont').fillColor('#EA580C')
+          .text(`共 ${totalCount} 次 · ${personCount} 人`, 360, titleY + 7, { width: 180, align: 'right', lineBreak: false })
+        pdfDoc.y = titleY + 32
+      } else {
+        // 选了很多月份：区间文案换行显示，合计另起一行右对齐
+        pdfDoc.fontSize(12).font('ChineseFontBold')
+        const monthTextHeight = pdfDoc.heightOfString(monthText, { width: 420, lineGap: 2 })
+        const bandHeight = monthTextHeight + 28
+        pdfDoc.rect(50, titleY - 2, 495, bandHeight).fill('#FFF7ED')
+        pdfDoc.fillColor('#C2410C').text(monthText, 60, titleY + 4, { width: 420, lineGap: 2 })
+        pdfDoc.fontSize(10).font('ChineseFont').fillColor('#EA580C')
+          .text(`共 ${totalCount} 次 · ${personCount} 人`, 360, titleY + monthTextHeight + 8, { width: 180, align: 'right', lineBreak: false })
+        pdfDoc.y = titleY + bandHeight + 8
+      }
       pdfDoc.fillColor('#1E293B')
 
-      month.deptGroups.forEach(dept => {
-        if (pdfDoc.y > 720) pdfDoc.addPage()
+      deptGroups.forEach(dept => {
+        if (pdfDoc.y > 700) pdfDoc.addPage()
 
-        // 部门组标题（淡蓝底，与其它导出保持一致；不加【】括号）
+        // 部门组标题（淡蓝底，不加【】括号）：名称在左，小计贴最右端
+        const deptTotal = dept.people.reduce((sum, p) => sum + p.total, 0)
         const deptY = pdfDoc.y
         pdfDoc.rect(50, deptY - 2, 495, 20).fill('#EFF6FF')
         pdfDoc.fontSize(12).font('ChineseFontBold').fillColor('#1E40AF')
           .text(dept.name, 60, deptY + 2, { lineBreak: false })
-        pdfDoc.y = deptY + 26
+        pdfDoc.fontSize(10).font('ChineseFont').fillColor('#1E40AF')
+          .text(`小计：${deptTotal} 次 · ${dept.people.length} 人`, 340, deptY + 4, { width: 200, align: 'right', lineBreak: false })
+        pdfDoc.y = deptY + 28
         pdfDoc.fillColor('#1E293B')
 
-        drawColumnHeader()
-
-        let rowNo = 0
         dept.people.forEach(person => {
           person.pairs.forEach((pair, pairIdx) => {
-            if (prepareRow()) drawColumnHeader()
+            prepareRow() // 表头只在最上方画一次，换页不重画
             const rowY = pdfDoc.y
             rowNo++
 
             pdfDoc.fontSize(10).font('ChineseFont').fillColor('#94A3B8')
-              .text(String(rowNo), COL_NO, rowY, { width: 40, lineBreak: false })
+              .text(String(rowNo), COL_NO, rowY, { width: 32, lineBreak: false })
 
-            // 预约人只在本人第一条明细上显示，视觉上把同一人的记录聚成一块
+            // 姓名只在本人第一条明细上显示，视觉上把同一人的记录聚成一块
             if (pairIdx === 0) {
               pdfDoc.fontSize(11).font('ChineseFontBold').fillColor('#1E293B')
-                .text(person.bookerName, COL_BOOKER, rowY, { width: 140, ellipsis: true, lineBreak: false })
+                .text(person.ownerName, COL_OWNER, rowY, { width: 110, ellipsis: true, lineBreak: false })
             }
 
-            pdfDoc.fontSize(11).font('ChineseFont').fillColor('#334155')
-              .text(pair.appointeeName, COL_APPOINTEE, rowY, { width: 140, ellipsis: true, lineBreak: false })
-            pdfDoc.fillColor('#EA580C')
-              .text(`${pair.count} 次`, COL_COUNT, rowY, { width: 60, lineBreak: false })
+            pdfDoc.fontSize(10.5).font('ChineseFont').fillColor('#334155')
+              .text(pair.bookerName, COL_BOOKER, rowY, { width: 110, ellipsis: true, lineBreak: false })
+            pdfDoc.fontSize(10.5).font('ChineseFont').fillColor('#334155')
+              .text(pair.appointeeName, COL_APPOINTEE, rowY, { width: 110, ellipsis: true, lineBreak: false })
+            pdfDoc.fontSize(11).font('ChineseFont').fillColor('#EA580C')
+              .text(`${pair.count} 次`, COL_COUNT, rowY, { width: 96, lineBreak: false })
 
             pdfDoc.y = rowY + ROW_HEIGHT
           })
         })
 
-        // 该部门小计（贴底时先换页，避免小计与所属分组被拆到两页）
-        const deptTotal = dept.people.reduce((sum, p) => sum + p.total, 0)
-        if (pdfDoc.y + 24 > pdfDoc.page.maxY()) pdfDoc.addPage()
-        pdfDoc.fontSize(10).font('ChineseFont').fillColor('#64748B')
-          .text(`小计：${deptTotal} 次 · ${dept.people.length} 人`, 380, pdfDoc.y, { width: 165, align: 'right' })
         pdfDoc.moveDown(0.7)
       })
-    })
+    }
 
     // ===== 签字栏：统计内容之后空 2~3 行，页面右侧留「招待员签字」 =====
     // 空间不足时先换页，避免签字栏贴着页脚或被拆开

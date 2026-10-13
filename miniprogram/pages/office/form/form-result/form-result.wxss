@@ -116,7 +116,7 @@
 
 .fr-text-user {
   font-size: var(--fs-24);
-  color: #2563EB;
+  color: var(--primary-text);
   font-weight: 600;
   margin-bottom: var(--sp-6);
 }

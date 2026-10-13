@@ -33,7 +33,7 @@ Page({
       {
         icon: '🛴',
         label: '外出报备',
-        color: '#2563EB',
+        color: 'var(--primary-text)',
         bg: 'var(--bg-soft)',
         implemented: true,
         featureKey: 'trip_report'
@@ -41,7 +41,7 @@ Page({
       {
         icon: '🛹',
         label: '兴趣班备案',
-        color: '#2563EB',
+        color: 'var(--primary-text)',
         bg: 'var(--bg-soft)',
         implemented: true,
         featureKey: 'interest_class_report'
@@ -73,7 +73,7 @@ Page({
       {
         icon: '📝',
         label: '审批中心',
-        color: '#2563EB',
+        color: 'var(--primary-text)',
         bg: 'var(--bg-soft)',
         implemented: true,
         featureKey: 'approval'

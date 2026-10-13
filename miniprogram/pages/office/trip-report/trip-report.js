@@ -3,23 +3,23 @@ const utils = require('../../../common/utils.js')
 const paginationBehavior = require('../../../behaviors/pagination.js')
 const modalAnimation = require('../../../behaviors/modalAnimation.js')
 
-// 状态样式映射
+// 状态样式映射（颜色走主题 token，深色模式自动换成「亮字 + 深底」）
 const STATUS_STYLE = {
   out: {
-    color: '#F59E0B',
-    bg: '#FFFBEB',
+    color: 'var(--chip-amber-text)',
+    bg: 'var(--chip-amber-bg)',
     icon: '🚗',
     text: '外出中'
   },
   returned: {
-    color: '#16A34A',
-    bg: '#DCFCE7',
+    color: 'var(--chip-green-text)',
+    bg: 'var(--chip-green-bg)',
     icon: '🏠',
     text: '已返回'
   },
   overtime: {
-    color: '#DC2626',
-    bg: '#FEE2E2',
+    color: 'var(--chip-red-text)',
+    bg: 'var(--chip-red-bg)',
     icon: '❌',
     text: '超时'
   }
@@ -275,11 +275,11 @@ Page({
           // 计算已外出时长
           activeTrip.elapsedTimeText = this.calcElapsedTime(activeTrip.departAt)
 
-          // 判断是否在5分钟撤回报备窗口内
+          // 判断是否在5分钟撤回报备窗口内（自己发起的、被他人代报备的都一样，都只能撤回自己那条）
           const now = Date.now()
           const CANCEL_WINDOW = 5 * 60 * 1000
           const elapsed = now - activeTrip.departAt
-          const canCancel = elapsed <= CANCEL_WINDOW && !activeTrip.createdByOpenid
+          const canCancel = elapsed <= CANCEL_WINDOW
 
           this.setData({ canCancelTrip: canCancel })
 
@@ -1110,9 +1110,13 @@ Page({
    */
   handleCancelTrip() {
     app.subscribeOnTap(app.getSubscribeTypesForUser(app.globalData.userProfile))
+    // 我发起的出行：连带撤回我为同行人代报备的记录；被他人代报备的出行：只撤回自己这条
+    const isCreator = !(this.data.activeTrip && this.data.activeTrip.createdByOpenid)
     wx.showModal({
       title: '撤回报备',
-      content: '外出报备5分钟内可撤回，将删除报备记录（包括同行人的报备记录）。是否撤回？',
+      content: isCreator
+        ? '外出报备5分钟内可撤回，将删除报备记录（包括我为同行人代报备的记录）。是否撤回？'
+        : '外出报备5分钟内可撤回，将只删除您本人的报备记录（同行的其他成员不受影响）。是否撤回？',
       confirmText: '确认撤回',
       confirmColor: '#DC2626',
       success: (res) => {

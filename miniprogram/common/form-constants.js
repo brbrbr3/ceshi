@@ -45,13 +45,13 @@ function getTagBlocks() {
 // 单个 tag 配置，读不到返回兜底展示配置
 function getTagConfig(tag) {
   const cfg = getTagList().find(t => t.key === tag)
-  return cfg || { key: tag, label: tag, icon: '📄', color: '#64748B', bg: '#F1F5F9' }
+  return cfg || { key: tag, label: tag, icon: '📄', color: 'var(--text-tertiary)', bg: 'var(--bg-soft-2)' }
 }
 
 // 单个控件类型配置，读不到返回兜底展示配置
 function getBlockTypeConfig(type) {
   const cfg = getBlockTypeList().find(b => b.type === type)
-  return cfg || { type, label: type, icon: '📄', color: '#64748B', bg: '#F1F5F9' }
+  return cfg || { type, label: type, icon: '📄', color: 'var(--text-tertiary)', bg: 'var(--bg-soft-2)' }
 }
 
 // 根据 tag 过滤可用控件（list 可选，默认用缓存中的 BLOCK_TYPE_LIST）

@@ -54,13 +54,13 @@
 }
 
 .menu-action-btn.is-delete {
-  background: #FEE2E2;
-  color: #DC2626;
+  background: var(--danger-soft-bg);
+  color: var(--danger-text);
 }
 
 .menu-detail-link {
   padding-right: var(--sp-10);
-  font-size: var(--fs-28);
+  font-size: var(--fs-30);
 }
 
 .menu-comments-card {
@@ -249,7 +249,7 @@
 
 .rating-tag.is-rated {
   background: var(--bg-soft);
-  color: #2563EB;
+  color: var(--primary-text);
 }
 
 .menu-rating-btn-wrap {
@@ -377,7 +377,7 @@
 
 .rating-already-tag {
   font-size: var(--fs-24);
-  color: #2563EB;
+  color: var(--primary-text);
   margin-left: var(--sp-12);
 }
 

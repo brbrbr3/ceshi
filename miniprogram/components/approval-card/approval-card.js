@@ -29,8 +29,8 @@ Component({
     // 申请类型图标配置
     approvalTypeIcons: {
       'medical_application': { icon: '🏥', label: '就医申请', color: '#EF4444', bg: '#FEE2E2' },
-      'user_registration': { icon: '📝', label: '注册申请', color: '#2563EB', bg: '#EFF6FF' },
-      'user_profile_update': { icon: '📝', label: '信息修改', color: '#2563EB', bg: '#EFF6FF' }
+      'user_registration': { icon: '📝', label: '注册申请', color: 'var(--primary-text)', bg: 'var(--primary-soft)' },
+      'user_profile_update': { icon: '📝', label: '信息修改', color: 'var(--primary-text)', bg: 'var(--primary-soft)' }
     }
   },
 

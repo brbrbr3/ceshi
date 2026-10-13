@@ -32,8 +32,8 @@
 }
 
 .approval-person-name {
-  font-size: var(--fs-30);
-  font-weight: 600;
+  font-size: var(--fs-35);
+  font-weight: 500;
   color: var(--text-primary);
 }
 
@@ -44,26 +44,26 @@
 
 .approval-type-title {
   margin-top: var(--sp-22);
-  font-size: var(--fs-30);
-  font-weight: 600;
+  font-size: var(--fs-34);
+  font-weight: 400;
   color: var(--text-primary);
 }
 
 .approval-detail {
   margin-top: var(--sp-12);
-  font-size: var(--fs-24);
+  font-size: var(--fs-28);
   color: var(--text-secondary);
 }
 
 .approval-meta {
   margin-top: var(--sp-8);
-  font-size: var(--fs-24);
+  font-size: var(--fs-28);
   color: var(--text-muted);
 }
 
 .approval-time {
   margin-top: var(--sp-10);
-  font-size: var(--fs-24);
+  font-size: var(--fs-28);
   color: var(--text-muted);
 }
 
@@ -187,6 +187,6 @@
   align-items: center;
   justify-content: center;
   color: #FFFFFF;
-  font-size: var(--fs-28);
+  font-size: var(--fs-32);
   font-weight: 600;
 }

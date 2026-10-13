@@ -85,7 +85,7 @@
   height: var(--sp-72);
   border-radius: 50%;
   background: linear-gradient(135deg, #E0E7FF 0%, #C7D2FE 100%);
-  color: #2563EB;
+  color: var(--primary-text);
   font-size: var(--fs-36);
   font-weight: 700;
   display: flex;

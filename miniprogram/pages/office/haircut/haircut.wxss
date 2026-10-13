@@ -49,7 +49,7 @@ page {
   text-align: center;
   padding: var(--sp-28) 0;
   font-size: var(--fs-32);
-  color: var(--text-tertiary);
+  color: var(--text-primary);
   font-weight: 500;
   position: relative;
   transition: all 0.3s ease;
@@ -101,10 +101,10 @@ page {
 }
 
 .date-item {
-  min-width: var(--sp-120);
-  padding: var(--sp-20) var(--sp-24);
+  min-width: var(--sp-130);
+  padding: var(--sp-24) var(--sp-24);
   border-radius: var(--sp-24);
-  background: var(--bg-input);
+  background: var(--bg-soft-2);
   border: var(--sp-3) solid transparent;
   display: flex;
   align-items: center;
@@ -136,12 +136,12 @@ page {
 }
 
 .date-weekday {
-  font-size: var(--fs-28);
-  color: var(--text-muted);
+  font-size: var(--fs-30);
+  color: var(--text-secondary);
 }
 
 .date-day {
-  font-size: var(--fs-28);
+  font-size: var(--fs-30);
   font-weight: 600;
   color: var(--text-primary);
 }
@@ -160,11 +160,12 @@ page {
   display: flex;
   align-items: center;
   justify-content: center;
-  margin-top: var(--sp-4);
+  margin-top: var(--sp-10);
+  margin-bottom: var(--sp-9);
 }
 
 .date-count-badge text {
-  font-size: var(--fs-24);
+  font-size: var(--fs-26);
   color: #FFFFFF;
   font-weight: 500;
 }
@@ -179,7 +180,7 @@ page {
 }
 
 .haircut-date-hint-text {
-  font-size: var(--fs-26);
+  font-size: var(--fs-28);
   color: var(--hint-warn-text);
 }
 
@@ -254,19 +255,19 @@ page {
 }
 
 .haircut-slot-status.is-available {
-  background: #DCFCE7;
-  color: #16A34A;
+  background: var(--chip-green-bg);
+  color: var(--chip-green-text);
 }
 
 .haircut-slot-status.is-booked {
-  background: var(--danger-soft-bg);
-  color: var(--danger-text);
+  background: var(--chip-red-bg);
+  color: var(--chip-red-text);
 }
 
 /* 我已预约 - 黄色 */
 .haircut-slot-status.is-myBooked {
-  background: var(--hint-warn-bg);
-  color: var(--hint-warn-text);
+  background: var(--chip-amber-bg);
+  color: var(--chip-amber-text);
 }
 
 /* 不可预约 - 灰色 */
@@ -380,7 +381,10 @@ page {
 
 .haircut-item-datetime {
   display: flex;
-  flex-direction: column;
+  flex-direction: row;
+  /* 日期(30rpx) 与时段(26rpx) 字号不同，靠容器居中对齐两者的垂直中心；
+     align-items / justify-content 是「容器」属性，写在 .haircut-item-time 上不生效 */
+  align-items: center;
 }
 
 .haircut-item-date {
@@ -390,9 +394,9 @@ page {
 }
 
 .haircut-item-time {
-  font-size: var(--fs-24);
+  font-size: var(--fs-26);
   color: var(--text-tertiary);
-  margin-top: var(--sp-4);
+  margin-left: var(--sp-24);
 }
 
 .haircut-item-status {
@@ -404,19 +408,19 @@ page {
 
 /* 已预约 状态 */
 .haircut-item-status.is-booked {
-  background: var(--success-soft-bg);
-  color: var(--success-text);
+  background: var(--chip-amber-bg);
+  color: var(--chip-amber-text);
 }
 
 .haircut-item-status.is-cancelled {
-  background: #FEE2E2;
-  color: #DC2626;
+  background: var(--chip-red-bg);
+  color: var(--chip-red-text);
 }
 
 /* 已完成 状态 */
 .haircut-item-status.is-completed {
-  background: var(--bg-soft);
-  color: var(--checklist-on-text);
+  background: var(--chip-green-bg);
+  color: var(--chip-green-text);
 }
 
 .haircut-item-body {
@@ -738,8 +742,8 @@ page {
 }
 
 .haircut-info-text {
-  font-size: var(--fs-28);
-  color: var(--text-primary);
+  font-size: var(--fs-30);
+  color: var(--text-secondary);
   line-height: 1.6;
 }
 
@@ -759,7 +763,7 @@ page {
   margin-bottom: var(--sp-16);
 }
 
-/* ========== 按人员排序 - 人名列表 ========== */
+/* ========== 按人员统计 - 人名列表 ========== */
 .haircut-stats-name-list {
   background: var(--bg-card);
   border-radius: var(--sp-16);
@@ -890,12 +894,12 @@ page {
   padding: var(--sp-22) 0;
   text-align: center;
   background: var(--bg-card);
-  border: var(--sp-2) solid var(--checklist-on-border);
+  border: var(--sp-2) solid var(--primary-border);
   border-radius: var(--sp-48);
-  color: var(--checklist-on-text);
+  color: var(--primary-text-strong);
   font-size: var(--fs-32);
   font-weight: 600;
-  box-shadow: 0 var(--sp-8) var(--sp-24) rgba(37, 99, 235, 0.18);
+  box-shadow: 0 var(--sp-8) var(--sp-24) var(--primary-glow);
   transition: all 0.3s cubic-bezier(0.25, 0.1, 0.25, 1);
 }
 

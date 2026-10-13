@@ -238,15 +238,15 @@
 }
 
 .ic-card-name {
-  font-size: var(--fs-34);
+  font-size: var(--fs-35);
   font-weight: 600;
   color: var(--text-primary);
 }
 
 .ic-card-role-tag {
   font-size: var(--fs-26);
-  color: #64748B;
-  background: var(--bg-soft-2);
+  color: var(--primary-text);
+  background: var(--primary-soft);
   padding: var(--sp-4) var(--sp-14);
   border-radius: var(--sp-8);
 }
@@ -260,8 +260,8 @@
 }
 
 .ic-card-status.is-active {
-  background: #DCFCE7;
-  color: #16A34A;
+  background: var(--chip-green-bg);
+  color: var(--chip-green-text);
 }
 
 .ic-card-status.is-ended {
@@ -278,7 +278,7 @@
 .ic-card-classname {
   font-size: var(--fs-30);
   font-weight: 600;
-  color: #2563EB;
+  color: var(--primary-text);
   line-height: 1.4;
 }
 
@@ -347,7 +347,7 @@
 
 .ic-card-btn-edit {
   background: var(--bg-soft);
-  color: #2563EB;
+  color: var(--primary-text);
 }
 
 .ic-card-btn-end {
@@ -457,7 +457,7 @@
 .ic-form-section-title {
   font-size: var(--fs-32);
   font-weight: 600;
-  color: #2563EB;
+  color: var(--primary-text);
   margin-bottom: var(--sp-20);
   padding-left: var(--sp-16);
   border-left: var(--sp-6) solid #2563EB;
@@ -551,8 +551,8 @@
 }
 
 .ic-detail-status.is-active {
-  background: #DCFCE7;
-  color: #16A34A;
+  background: var(--chip-green-bg);
+  color: var(--chip-green-text);
 }
 
 .ic-detail-status.is-ended {
@@ -570,7 +570,7 @@
 .ic-detail-classname {
   font-size: var(--fs-32);
   font-weight: 600;
-  color: #2563EB;
+  color: var(--primary-text);
   margin-bottom: var(--sp-32);
 }
 

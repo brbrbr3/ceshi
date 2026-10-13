@@ -514,7 +514,7 @@ async function getAppointments(openid, params = {}) {
     }
   }
 
-  // 按人员排序：一次性返回全部原始记录（前端按月聚合统计，不需要分页）
+  // 按人员统计：一次性返回全部原始记录（前端按月聚合统计，不需要分页）
   const MAX_LIMIT = 100
   const countResult = await appointmentsCollection.where(whereCondition).count()
   const total = countResult.total

@@ -48,10 +48,10 @@
 .form-detail-submitted-tip {
   margin-bottom: var(--sp-20);
   padding: var(--sp-20) var(--sp-28);
-  background: #DCFCE7;
+  background: var(--success-soft-bg);
+  color: var(--success-text);
   border: var(--sp-2) solid #86EFAC;
   border-radius: var(--sp-16);
-  color: #16A34A;
   font-size: var(--fs-28);
 }
 
@@ -86,7 +86,7 @@
   height: var(--sp-40);
   border-radius: 50%;
   background: var(--bg-soft);
-  color: var(--checklist-on-text);
+  color: var(--primary-text-strong);
   font-size: var(--fs-28);
   font-weight: 600;
   display: flex;
@@ -266,7 +266,7 @@
   height: var(--sp-56);
   border-radius: var(--sp-12);
   background: var(--bg-soft);
-  color: var(--checklist-on-text);
+  color: var(--primary-text-strong);
   font-size: var(--fs-32);
   display: flex;
   align-items: center;
@@ -297,7 +297,7 @@
   border-radius: var(--sp-16);
   background: var(--bg-soft);
   border: var(--sp-2) solid #2563EB;
-  color: #2563EB;
+  color: var(--primary-text);
   font-size: var(--fs-30);
   font-weight: 600;
   transition: all 0.2s ease;
@@ -365,7 +365,7 @@
 
 .fd-footer-btn.is-ghost {
   background: var(--bg-card);
-  color: var(--checklist-on-text);
+  color: var(--primary-text-strong);
 }
 
 .fd-footer-btn.is-danger {
@@ -504,7 +504,7 @@
   line-height: var(--sp-72);
   text-align: center;
   background: var(--bg-soft);
-  color: #2563EB;
+  color: var(--primary-text);
   border-radius: var(--sp-12);
   font-size: var(--fs-28);
   font-weight: 600;

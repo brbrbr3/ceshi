@@ -337,8 +337,8 @@ page {
 }
 
 .auth-debug-result-status.is-success {
-  background: var(--success-soft-bg);
-  color: var(--success-text);
+  background: var(--chip-green-bg);
+  color: var(--chip-green-text);
 }
 
 .auth-debug-result-status.is-fail {
@@ -504,8 +504,8 @@ page {
 }
 
 .login-status-card.is-approved .login-status-tag {
-  background: var(--success-soft-bg);
-  color: var(--success-text);
+  background: var(--chip-green-bg);
+  color: var(--chip-green-text);
 }
 
 .login-status-card.is-error {

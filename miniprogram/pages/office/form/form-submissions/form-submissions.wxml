@@ -21,7 +21,7 @@
 
       <view wx:else class="office-card form-submissions-item">
         <view class="fs-item-head" bindtap="handleToggleExpand" data-id="{{item._id}}">
-          <view class="fs-user-avatar" style="background: {{item.role === '馆员' ? '#EFF6FF' : '#F1F5F9'}}; color: {{item.role === '馆员' ? '#2563EB' : '#64748B'}};">{{item.userName ? item.userName[0] : '?'}}</view>
+          <view class="fs-user-avatar" style="background: {{item.role === '馆员' ? 'var(--primary-soft)' : 'var(--bg-soft-2)'}}; color: {{item.role === '馆员' ? 'var(--primary-text)' : 'var(--text-tertiary)'}};">{{item.userName ? item.userName[0] : '?'}}</view>
           <view class="fs-user-info">
             <view class="fs-user-name">{{item.userName || '匿名'}}</view>
             <view class="fs-user-time">{{item.timeText}}</view>

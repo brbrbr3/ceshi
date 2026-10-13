@@ -94,7 +94,7 @@
     </view>
 
     <!-- 截止时间 -->
-    <view class="office-card form-edit-card">
+    <view wx:if="{{!(tag === '')}}" class="office-card form-edit-card">
       <view class="fe-switch-row">
         <view class="fe-label" style="margin: 0;">设置截止时间</view>
         <view class="fe-switch {{showDeadline ? 'is-on' : ''}}" bindtap="handleToggleDeadline">

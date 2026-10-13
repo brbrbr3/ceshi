@@ -8,7 +8,7 @@
 
     <!-- 背景装饰图片 -->
     <view class="home-bg-image-wrapper">
-      <image class="home-bg-image" src="/image/nm-low.jpg" mode="widthFix" />
+      <image class="home-bg-image" src="/image/bc-low.jpg" mode="widthFix" />
     </view>
   </view>
 

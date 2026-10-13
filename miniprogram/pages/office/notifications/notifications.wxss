@@ -98,7 +98,7 @@
 }
 
 .notification-title.is-unread {
-  color: #2563EB;
+  color: var(--primary-text);
   font-weight: 600;
 }
 

@@ -97,7 +97,7 @@
   height: var(--sp-40);
   border-radius: 50%;
   background: var(--bg-soft);
-  color: #2563EB;
+  color: var(--primary-text);
   font-size: var(--fs-24);
   font-weight: 600;
   display: flex;

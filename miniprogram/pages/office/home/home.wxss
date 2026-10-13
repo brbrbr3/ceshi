@@ -49,7 +49,7 @@ page {
   position: absolute;
   top: 50%;
   left: 0;
-  transform: translateY(-52%);
+  transform: translateY(-53%);
   display: block;
   border-radius: 0;
 }
@@ -228,13 +228,13 @@ page {
 }
 
 .home-calendar-title {
-  font-size: var(--fs-30);
-  font-weight: 600;
+  font-size: var(--fs-35);
+  font-weight: 400;
 }
 
 .home-calendar-desc {
   margin-top: var(--sp-6);
-  font-size: var(--fs-26);
+  font-size: var(--fs-28);
 }
 
 .home-calendar-tag {
@@ -336,6 +336,7 @@ page {
 }
 
 .home-link {
+  font-size: var(--fs-30);
   padding-bottom: var(--sp-20);
 }
 
@@ -443,8 +444,8 @@ page {
 .home-news-closed {
   flex-shrink: 0;
   margin-top: var(--sp-2);
-  color: var(--danger-text);
-  background: var(--danger-soft-bg);
+  background: var(--chip-red-bg);
+  color: var(--chip-red-text);
 }
 
 .home-news-loading {

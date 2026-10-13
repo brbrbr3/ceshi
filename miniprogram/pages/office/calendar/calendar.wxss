@@ -69,12 +69,12 @@
 .brazil-holiday-pt {
   font-size: var(--fs-32);
   font-weight: 600;
-  color: var(--checklist-on-text);
+  color: var(--primary-text-strong);
 }
 
 .brazil-holiday-zh {
   font-size: var(--fs-28);
-  color: var(--checklist-on-text);
+  color: var(--primary-text-strong);
 }
 
 /* 配置弹窗遮罩 */
@@ -187,7 +187,7 @@
 
 .config-year-picker text:first-child {
   font-size: var(--fs-28);
-  color: #2563EB;
+  color: var(--primary-text);
   font-weight: 600;
 }
 
@@ -245,7 +245,7 @@
   border: none;
   background: var(--bg-soft);
   border: var(--sp-2) dashed #2563EB;
-  color: #2563EB;
+  color: var(--primary-text);
 }
 
 .config-add-icon {
@@ -593,7 +593,7 @@
 
 .schedule-popup-save {
   font-size: var(--fs-28);
-  color: #2563EB;
+  color: var(--primary-text);
   font-weight: 600;
   padding: var(--sp-8) var(--sp-16);
 }
@@ -831,7 +831,7 @@
 
 .type-item-check {
   font-size: var(--fs-32);
-  color: #2563EB;
+  color: var(--primary-text);
   font-weight: 600;
 }
 
@@ -900,7 +900,7 @@
 
 .detail-popup-edit {
   font-size: var(--fs-28);
-  color: #2563EB;
+  color: var(--primary-text);
   font-weight: 600;
 }
 

@@ -512,7 +512,7 @@
   transform: scale(0.95);
   background: var(--bg-page);
   border-color: #2563EB;
-  color: #2563EB;
+  color: var(--primary-text);
 }
 
 

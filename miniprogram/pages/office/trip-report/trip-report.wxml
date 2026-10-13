@@ -244,7 +244,7 @@
         <view class="trip-popup-close" bindtap="hideProxyReturnModal">×</view>
       </view>
       <scroll-view class="trip-popup-body" scroll-y enhanced show-scrollbar="{{false}}">
-        <view class="proxy-return-tip">检测到您本次出行曾为以下人员代报备外出，是否一并报备返回？</view>
+        <view class="proxy-return-tip">检测到您本次出行与以下人员同行，是否一并报备返回？</view>
         <view class="proxy-return-list">
           <view wx:for="{{proxyTrips}}" wx:key="_id" class="proxy-return-item {{item.checked ? 'is-selected' : ''}}" data-id="{{item._id}}" bindtap="handleToggleProxySelect">
             <view class="proxy-return-checkbox">
@@ -291,7 +291,7 @@
             </view>
           </view>
           <view wx:if="{{appendDestProxyTrips.length > 0}}" class="append-dest-proxy">
-            <view class="trip-field-label">为以下代报备人员同步追加：</view>
+            <view class="trip-field-label">为以下同行人同步追加：</view>
             <view wx:for="{{appendDestProxyTrips}}" wx:key="_id" class="append-dest-proxy-item {{item.checked ? 'is-selected' : ''}}" data-id="{{item._id}}" bindtap="handleToggleAppendProxySelect">
               <view class="append-dest-proxy-checkbox">
                 <text wx:if="{{item.checked}}">✓</text>

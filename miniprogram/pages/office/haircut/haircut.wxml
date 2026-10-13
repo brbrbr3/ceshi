@@ -104,7 +104,7 @@
       <!-- 排序切换（导出选择模式下隐藏，避免误操作） -->
       <view class="haircut-sort-bar" wx:if="{{!exportMode}}">
         <view class="haircut-sort-btn {{sortBy === 'name' ? 'is-active' : ''}}" bindtap="handleSortChange" data-sort="name">
-          按人员排序
+          按人员统计
         </view>
         <view class="haircut-sort-btn {{sortBy === 'time' ? 'is-active' : ''}}" bindtap="handleSortChange" data-sort="time">
           按时间排序
@@ -163,7 +163,7 @@
         </view>
       </block>
 
-      <!-- 按人员排序 -->
+      <!-- 按人员统计 -->
       <block wx:if="{{!exportMode && sortBy === 'name'}}">
         <view class="haircut-stats-month-group" wx:for="{{statsGrouped}}" wx:key="monthKey" wx:for-item="group">
           <view class="haircut-stats-month-title">{{group.monthLabel}}</view>

@@ -73,7 +73,7 @@
 
 .fs-btn-arrow {
   font-size: var(--fs-26);
-  color: var(--checklist-on-text);
+  color: var(--primary-text-strong);
 }
 
 .fs-toggle-all {
@@ -81,12 +81,12 @@
   padding: var(--sp-22) 0;
   text-align: center;
   background: var(--bg-card);
-  border: var(--sp-2) solid var(--checklist-on-border);
+  border: var(--sp-2) solid var(--primary-border);
   border-radius: var(--sp-48);
-  color: var(--checklist-on-text);
+  color: var(--primary-text-strong);
   font-size: var(--fs-32);
   font-weight: 600;
-  box-shadow: 0 var(--sp-8) var(--sp-24) rgba(37, 99, 235, 0.18);
+  box-shadow: 0 var(--sp-8) var(--sp-24) var(--primary-glow);
 }
 
 .fs-toggle-all,

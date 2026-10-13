@@ -30,6 +30,23 @@ page {
   --auth-grad-3: #F8FAFC;
   --primary-text: #2563EB;
   --primary-border: #93C5FD;
+  /* 蓝色族补充（深色模式下换成浅蓝/亮蓝，避免 #2563EB 在深底上只剩 2.8:1 对比度） */
+  --primary-text-strong: #1D4ED8;   /* 需要更深的蓝字（强调、可点击） */
+  --primary-solid: #2563EB;         /* 实心蓝底（配白字）：深浅色通用，白字始终 5.2:1 */
+  --primary-solid-strong: #1D4ED8;  /* 实心蓝底的渐变末端 / 按压态 */
+  --primary-soft: #EFF6FF;          /* 浅蓝底块（标签底、图标底） */
+  --primary-soft-strong: #DBEAFE;   /* 更明显的浅蓝底 */
+  --primary-glow: rgba(37, 99, 235, 0.16); /* 蓝色投影 */
+  /* 状态标签（徽标）配色：浅色=饱和字 + 极浅底，深色=亮字 + 深底（对比度 8~10:1）。
+     蓝色徽标直接用 --primary-soft / --primary-text */
+  --chip-amber-bg: #FFFBEB;
+  --chip-amber-text: #F59E0B;
+  --chip-green-bg: #DCFCE7;
+  --chip-green-text: #16A34A;
+  --chip-red-bg: #FEE2E2;
+  --chip-red-text: #DC2626;
+  --chip-purple-bg: #F5F3FF;
+  --chip-purple-text: #7C3AED;
   --success-soft-bg: #ECFDF5;
   --success-text: #166534;
   --danger-soft-bg: #FEF2F2;
@@ -75,6 +92,20 @@ page {
     --auth-grad-3: #0B1220;
     --primary-text: #60A5FA;
     --primary-border: #3B82F6;
+    --primary-text-strong: #93C5FD;
+    --primary-solid: #2563EB;
+    --primary-solid-strong: #1D4ED8;
+    --primary-soft: #1E3A5F;
+    --primary-soft-strong: #1E3A8A;
+    --primary-glow: rgba(59, 130, 246, 0.30);
+    --chip-amber-bg: #3F2D08;
+    --chip-amber-text: #FCD34D;
+    --chip-green-bg: #12321F;
+    --chip-green-text: #86EFAC;
+    --chip-red-bg: #3B1518;
+    --chip-red-text: #FCA5A5;
+    --chip-purple-bg: #2E1065;
+    --chip-purple-text: #C4B5FD;
     --success-soft-bg: #12321F;
     --success-text: #86EFAC;
     --danger-soft-bg: #3B1518;
@@ -114,6 +145,20 @@ page {
   --auth-grad-3: #0B1220;
   --primary-text: #60A5FA;
   --primary-border: #3B82F6;
+  --primary-text-strong: #93C5FD;
+  --primary-solid: #2563EB;
+  --primary-solid-strong: #1D4ED8;
+  --primary-soft: #1E3A5F;
+  --primary-soft-strong: #1E3A8A;
+  --primary-glow: rgba(59, 130, 246, 0.30);
+  --chip-amber-bg: #3F2D08;
+  --chip-amber-text: #FCD34D;
+  --chip-green-bg: #12321F;
+  --chip-green-text: #86EFAC;
+  --chip-red-bg: #3B1518;
+  --chip-red-text: #FCA5A5;
+  --chip-purple-bg: #2E1065;
+  --chip-purple-text: #C4B5FD;
   --success-soft-bg: #12321F;
   --success-text: #86EFAC;
   --danger-soft-bg: #3B1518;
@@ -151,6 +196,20 @@ page {
   --auth-grad-3: #F8FAFC;
   --primary-text: #2563EB;
   --primary-border: #93C5FD;
+  --primary-text-strong: #1D4ED8;
+  --primary-solid: #2563EB;
+  --primary-solid-strong: #1D4ED8;
+  --primary-soft: #EFF6FF;
+  --primary-soft-strong: #DBEAFE;
+  --primary-glow: rgba(37, 99, 235, 0.16);
+  --chip-amber-bg: #FFFBEB;
+  --chip-amber-text: #F59E0B;
+  --chip-green-bg: #DCFCE7;
+  --chip-green-text: #16A34A;
+  --chip-red-bg: #FEE2E2;
+  --chip-red-text: #DC2626;
+  --chip-purple-bg: #F5F3FF;
+  --chip-purple-text: #7C3AED;
   --success-soft-bg: #ECFDF5;
   --success-text: #166534;
   --danger-soft-bg: #FEF2F2;
@@ -255,7 +314,7 @@ input {
 
 .office-link {
   font-size: var(--fs-26);
-  color: #2563EB;
+  color: var(--primary-text);
 }
 
 .office-pill {
@@ -274,11 +333,11 @@ input {
   justify-content: center;
   padding: var(--sp-18) var(--sp-32);
   border-radius: var(--sp-999);
-  background: #2563EB;
+  background: var(--primary-solid);
   color: #FFFFFF;
   font-size: var(--fs-24);
   font-weight: 600;
-  box-shadow: 0 var(--sp-14) var(--sp-28) rgba(37, 99, 235, 0.16);
+  box-shadow: 0 var(--sp-14) var(--sp-28) var(--primary-glow);
   transition: all 0.3s ease;
 }
 
@@ -294,7 +353,7 @@ input {
   padding: var(--sp-18) var(--sp-32);
   border-radius: var(--sp-999);
   background: var(--bg-soft);
-  color: #2563EB;
+  color: var(--primary-text);
   font-size: var(--fs-24);
   font-weight: 600;
   transition: all 0.3s ease;

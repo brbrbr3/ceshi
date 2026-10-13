@@ -27,7 +27,7 @@
     <view class="office-section">
       <view class="office-section-header">
         <view class="office-section-title">菜品评分</view>
-        <view class="office-link" wx:if="{{dishRatings.length > 0}}">{{dishRatings.length}}道菜</view>
+        <view class="office-link menu-detail-link" wx:if="{{dishRatings.length > 0}}">{{dishRatings.length}}道菜</view>
       </view>
 
       <view class="office-card menu-ratings-card">

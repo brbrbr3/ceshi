@@ -293,7 +293,7 @@
   padding: var(--sp-10) 0;
   border-radius: var(--sp-12);
   background: var(--bg-soft);
-  color: #2563EB;
+  color: var(--primary-text);
   font-size: var(--fs-24);
   transition: all 0.3s ease;
 }
@@ -360,7 +360,7 @@
   height: var(--sp-56);
   border-radius: var(--sp-12);
   background: var(--bg-soft);
-  color: #2563EB;
+  color: var(--primary-text);
   font-size: var(--fs-32);
   display: flex;
   align-items: center;
@@ -428,7 +428,7 @@
 .fe-role-item.is-active {
   background: var(--bg-soft);
   border-color: #2563EB;
-  color: #2563EB;
+  color: var(--primary-text);
 }
 
 /* 部门横向滚动列表 */
@@ -631,7 +631,7 @@
   text-align: center;
   border: var(--sp-2) dashed #CBD5E1;
   border-radius: var(--sp-12);
-  color: #2563EB;
+  color: var(--primary-text);
   font-size: var(--fs-26);
 }
 
@@ -758,7 +758,7 @@
 }
 
 .fe-score-mode-item.is-active .fe-score-mode-label {
-  color: #2563EB;
+  color: var(--primary-text);
 }
 
 .fe-score-mode-desc {
@@ -790,7 +790,7 @@
 .fe-choice-row.is-active {
   background: var(--bg-soft);
   border-color: #2563EB;
-  color: #2563EB;
+  color: var(--primary-text);
 }
 
 .fe-choice-dot {

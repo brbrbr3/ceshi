@@ -90,7 +90,7 @@ Page({
     statsTotalCount: 0,
     loadingstats: false,
     statsAllLoaded: false,
-    sortBy: 'name', // 默认按人员排序（切换 Tab 时保留用户当前选择，不在此处重置）
+    sortBy: 'name', // 默认按人员统计（切换 Tab 时保留用户当前选择，不在此处重置）
 
     // 导出统计 PDF（选择模式）
     exportMode: false,
@@ -1158,7 +1158,7 @@ Page({
   },
 
   /**
-   * 获取理发统计数据（按时间排序时分页，按人员排序时全量获取）
+   * 获取理发统计数据（按时间排序时分页，按人员统计时全量获取）
    */
   async fetchStatsAppointments() {
     try {
@@ -1202,7 +1202,7 @@ Page({
 
           this.processStatsByTime(mergedList)
         } else {
-          // 按人员排序：全量获取，一次性聚合
+          // 按人员统计：全量获取，一次性聚合
           const allList = data.list || []
           this.setData({
             statsAllLoaded: true,
@@ -1276,7 +1276,7 @@ Page({
   },
 
   /**
-   * 按人员排序：按月分组，每月内统计每人理发次数并倒序
+   * 按人员统计：按月分组，每月内统计每人理发次数并倒序
    */
   processStatsByName(list) {
     // 只统计非取消的记录
@@ -1335,7 +1335,7 @@ Page({
   // ==================== 导出统计 PDF（仅办公室内聘） ====================
 
   /**
-   * 按人员排序的全量接口（不分页），导出选择模式需要完整月份列表时复用
+   * 按人员统计的全量接口（不分页），导出选择模式需要完整月份列表时复用
    * 与 fetchStatsAppointments 的按人员分支同源，只是不写入页面统计 data
    */
   async fetchAllStatsAppointments() {
@@ -1388,7 +1388,7 @@ Page({
     this.setData({ preparingExport: true })
     wx.showLoading({ title: '准备数据...', mask: true })
     try {
-      // 按人员排序时 statsList 本身就是全量，无需额外请求
+      // 按人员统计时 statsList 本身就是全量，无需额外请求
       const list = this.data.sortBy === 'name'
         ? this.data.statsList
         : await this.fetchAllStatsAppointments()
