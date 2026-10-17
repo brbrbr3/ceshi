@@ -1,10 +1,10 @@
 <page-meta page-style="{{pageStyle}}" />
 <view wx:if="{{guardReady}}" class="office-page notifications-page {{themeClass}}" style="{{fontStyle}}">
-  <view class="office-header">
-    <view class="office-header-title">消息中心</view>
-    <view class="office-header-actions">
-      <view class="office-link" bindtap="markAllAsRead" wx:if="{{hasUnreadNotifications}}">全部已读</view>
-      <view class="office-link" bindtap="clearAll">清空</view>
+  <view class="notifications-header">
+    <view class="notifications-header-title">消息中心</view>
+    <view class="notifications-header-actions">
+      <view class="office-link notification-link" bindtap="markAllAsRead" wx:if="{{hasUnreadNotifications}}">全部已读</view>
+      <view class="office-link notification-link" bindtap="clearAll">清空</view>
     </view>
   </view>
 

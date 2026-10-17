@@ -237,6 +237,14 @@ page {
   font-size: var(--fs-28);
 }
 
+/* 管理员节假日配置提醒：12 月查下一年度、其余月份查本年度，未配置时显示在日历卡片内 */
+.home-calendar-notice {
+  margin-top: var(--sp-6);
+  font-size: var(--fs-24);
+  line-height: 1.4;
+  color: var(--hint-warn-text);
+}
+
 .home-calendar-tag {
   margin-right: calc(var(--sp-20) * -1);
   min-width: var(--sp-106);

@@ -814,10 +814,12 @@ App({
   _refreshProfileSilently() {
     const now = Date.now()
 
-    // 节流：10 分钟内不重复请求
-    // 每次静默刷新 = 1 次云函数调用 + 1 次数据库读，两者都计入「调用次数」配额；
-    // 用户资料变更由「编辑资料 → 提交」链路主动清缓存，此处的兜底比对无需高频执行
-    const SILENT_REFRESH_INTERVAL = 10 * 60 * 1000
+    // 节流：30 秒内不重复请求
+    // 每次静默刷新 = 1 次云函数调用 + 1 次数据库读，两者都计入「调用次数」配额。
+    // 资料变更（改自己 / 被别人改）不做任何本地直写，统一靠这条服务端比对生效——
+    // 这样所有设备的生效路径只有一条，不会出现「改自己快、改别人慢」的假象。
+    // 若配额吃紧，只调这一个常量即可（例如 60~120 秒）。
+    const SILENT_REFRESH_INTERVAL = 30 * 1000
     if (this._silentRefreshAt && now - this._silentRefreshAt < SILENT_REFRESH_INTERVAL) {
       console.log('后台静默刷新跳过：10 分钟内不重复请求')
       return
@@ -1599,13 +1601,30 @@ App({
   },
 
   /**
-   * 判断节假日缓存是否有效：跨年失效 + 版本失效
+   * 判断节假日缓存是否有效：版本失效 + 按「数据年份」判定
+   *
+   * 判定口径（纯按数据判，不看取缓存的月份/年份）：
+   * · 调用方声明了 neededYears（如 haircut 页 12 月底会传 [2026, 2027]）：
+   *   所需年份在缓存里都有真实条目 ⇒ 有效 —— 无论缓存是何时取的（12 月取到次年的，
+   *   跨年后也不再刷新）；缺任一 ⇒ 失效 ⇒ 重新拉取。该年份若尚未配置，
+   *   会「每次进页都拉，直到管理员配好」，配置完成的下一次访问立即生效 ——
+   *   刻意如此：宁可多几次调用，也不要拿旧数据判定节假日。
+   * · 未声明 neededYears（home/calendar 等旧调用方）⇒ 沿用原有规则：缓存必须是今年取的。
+   *
+   * @param {Object} cached { list, cachedAt, version }
+   * @param {number[]} neededYears 调用方本次真正要用到的年份
    */
-  _isHolidayCacheValid(cached) {
+  _isHolidayCacheValid(cached, neededYears) {
     if (!cached || !cached.list) return false
     if (cached.version !== config.CACHE_VERSION) return false
-    const cacheYear = new Date(cached.cachedAt).getFullYear()
-    return cacheYear === new Date().getFullYear()
+
+    const years = (neededYears || []).map(Number)
+    if (years.length > 0) {
+      const hasYear = y => cached.list.some(i => Number(i.year) === Number(y))
+      return years.every(hasYear)
+    }
+
+    return new Date(cached.cachedAt).getFullYear() === new Date().getFullYear()
   },
 
   /**
@@ -1622,20 +1641,26 @@ App({
   },
 
   /**
-   * 获取全部年份节假日（异步，长期缓存，跨年/版本失效）
+   * 获取全部年份节假日（异步，长期缓存）
    * @param {boolean} forceRefresh 是否强制刷新
+   * @param {number[]} neededYears 调用方本次要用到的年份；传了则按「数据是否齐全」判缓存（见 _isHolidayCacheValid）
    * @returns {Promise<Array>} 全部年份节假日列表 [{ year, dates, updatedAt }]
    */
-  async getAllHolidays(forceRefresh) {
+  async getAllHolidays(forceRefresh, neededYears) {
     const cached = this.getHolidaysCache()
-    if (!forceRefresh && this._isHolidayCacheValid(cached)) {
+    if (!forceRefresh && this._isHolidayCacheValid(cached, neededYears)) {
       return cached.list
     }
     const res = await wx.cloud.callFunction({
       name: 'holidayManager',
       data: { action: 'getAllYears' }
     })
-    const list = (res.result.code === 0 && res.result.data && res.result.data.list) || []
+    // 拉取失败直接抛错，不把空列表写进缓存：否则会把原本可用的旧数据清掉。
+    // 现有调用方（home/calendar/haircut）均有 catch，抛错后按无节假日渲染，旧缓存保留、下次再试
+    if (!res.result || res.result.code !== 0) {
+      throw new Error((res.result && res.result.message) || '节假日数据获取失败')
+    }
+    const list = (res.result.data && res.result.data.list) || []
     this.persistHolidaysCache(list)
     return list
   },

@@ -137,10 +137,14 @@ Page({
 
   onLoad() {
     this._slotsByDateCache = null
-    app.guardRegistered().then((user) => {
-      if (!user) return
+    // 权限（含 isReceptionist）就绪的 Promise：
+    // onShow 触发的 loadData 会早于下面的 .then 执行，若不等待，
+    // 首屏会用「非招待员」的口径计算 isDayLocked，与切 Tab 后的结果不一致
+    this._permReady = app.guardRegistered().then((user) => {
+      if (!user) return null
       this.setData({ guardReady: true })
       this.applyPermission(user)
+      return user
     })
   },
 
@@ -249,6 +253,9 @@ Page({
    * 流程：本地计算日期 -> 获取节假日 -> 过滤节假日 -> 获取预约情况 -> 组合数据
    */
   async loadDisplayDates() {
+    // 等权限就绪：isReceptionist 参与 isDayLocked 计算（招待员不受锁定限制），
+    // 未就绪就计算会导致首屏与切 Tab 后的结果不一致
+    if (this._permReady) await this._permReady
     try {
       // 1. 本地计算应该显示的日期（基于本地时间）
       const calculatedDates = this.calculateDisplayDates()
@@ -258,8 +265,8 @@ Page({
       // 1.5 计算候选日期（今天到下周五的工作日，用于查询临时理发日）
       const candidateDates = this.calculateCandidateDates()
 
-      // 2. 获取节假日配置（全量缓存）
-      const holidaySet = await this.fetchHolidays()
+      // 2. 获取节假日配置（全量缓存；传入本次会用到的年份，处理跨年未配置时的重拉）
+      const holidaySet = await this.fetchHolidays(calculatedDates, candidateDates)
 
       // 3. 过滤节假日，生成最终显示的日期列表
       const displayDates = []
@@ -412,14 +419,23 @@ Page({
 
   /**
    * 获取节假日配置（跨年处理）
-   * @param {Array} dates - 日期列表，每项包含 date 字段
+   * @param {Array} displayDates - 标准 135 日期列表（元素含 date 字段）
+   * @param {Array} candidateDates - 候选日期列表（今天到下周五，元素为日期字符串）
    * @returns {Set} 节假日日期集合
    */
-  async fetchHolidays() {
+  async fetchHolidays(displayDates, candidateDates) {
     const holidaySet = new Set()
 
     try {
-      const allList = await app.getAllHolidays()
+      // 把本次真正会用到的年份传给缓存判定（12 月最后一周列表会跨到次年）：
+      // 缓存里缺次年的数据（未配置）就会重新拉取 —— 未配置期间每次都拉，直到管理员配好
+      const neededYears = [...new Set(
+        [...(displayDates || []), ...(candidateDates || [])]
+          .map(d => (d && d.date) || d || '')
+          .map(s => String(s).substring(0, 4))
+          .filter(y => /^\d{4}$/.test(y))
+      )]
+      const allList = await app.getAllHolidays(false, neededYears)
       allList.forEach(item => {
         if (item.dates && Array.isArray(item.dates)) {
           item.dates.forEach(d => holidaySet.add(d))
@@ -585,10 +601,9 @@ Page({
       slots: []
     })
 
-    // 仅节假日阻止加载时段，截止时间锁定的日期仍可查看
-    if (dateInfo.isDisabled && !dateInfo.isDayLocked) {
-      return
-    }
+    // 仅节假日不加载时段；「该日已过去 / 时段已锁定」的日期仍可查看预约情况
+    //（旧条件 isDisabled && !isDayLocked 会把招待员的过去日期也挡掉，因为招待员的 isDayLocked 恒为 false）
+    if (dateInfo.isHoliday) return
 
     // 本地生成时段列表
     this.buildSlots(dateInfo)

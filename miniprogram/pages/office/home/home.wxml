@@ -21,6 +21,7 @@
         <view>
           <view class="home-calendar-title">{{currentDateText}}</view>
           <view class="home-calendar-desc">{{todayTypeText}}</view>
+          <view wx:if="{{holidayConfigNotice}}" class="home-calendar-notice">{{holidayConfigNotice}}</view>
         </view>
       </view>
     </view>

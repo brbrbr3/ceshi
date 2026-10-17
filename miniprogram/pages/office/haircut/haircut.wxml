@@ -22,9 +22,9 @@
       <!-- 提示信息 -->
       <view wx:if="{{!isReviewer}}" class="haircut-info-card">
         <view class="haircut-info-text">
-          工作日每周一、三、五下午提供理发<text>\n</text>
-          当日14:50后时段锁定，不再允许预约或取消
-          <text wx:if="{{isReceptionist}}">\n招待员对理发日、时段和预约的操作不受限</text>
+          <view>工作日每周一、三、五下午提供理发</view>
+          <view>当日14:50后时段锁定，不再允许预约或取消</view>
+          <view wx:if="{{isReceptionist}}">招待员对理发日、时段和预约的操作不受限</view>
         </view>
       </view>
 
@@ -54,7 +54,9 @@
       </view>
 
       <!-- 时段列表（审核模式固定显示空状态） -->
-      <view class="haircut-slots-section" wx:if="{{isReviewer || selectedDate && (selectedDateInfo && !selectedDateInfo.isDisabled) || (selectedDateInfo && selectedDateInfo.isDayLocked)}}">
+      <!-- 展示条件按「是否节假日」判定：过去 / 锁定 / 可用日期都展示时段（招待员看过去日期也要能看），
+           节假日不展示；审核模式固定展示空状态 -->
+      <view class="haircut-slots-section" wx:if="{{isReviewer || (selectedDateInfo && !selectedDateInfo.isHoliday)}}">
         <view class="haircut-slots-title" wx:if="{{!isReviewer}}">选择时段</view>
         <view class="haircut-slots-list">
           <view class="haircut-slot-item {{selectedSlot === item.start ? 'is-selected' : ''}} {{item.status === 'booked' || item.status === 'unavailable' ? 'is-booked' : ''}} {{item.status === 'myBooked' ? 'is-my-booked' : ''}} {{isReceptionist && item.status === 'booked' ? 'is-receptionist-view' : ''}}" wx:for="{{slots}}" wx:key="start" bindtap="handleSlotSelect" data-slot="{{item}}">
@@ -302,29 +304,12 @@
       </view>
       <view class="haircut-popup-form" style="padding-bottom: var(--sp-400);">
         <view class="haircut-field-label">将理发日 {{changeDateSource}} 及该日的预约改到以下日期：</view>
-        <datetime-picker
-          class="haircut-change-picker"
-          value=""
-          fields="{{['year','month','day','weekday']}}"
-          startDate="{{changeDateStart}}"
-          endDate="{{changeDateEnd}}"
-          bind:change="handleChangeDatePicked"
-        />
+        <datetime-picker class="haircut-change-picker" value="" fields="{{['year','month','day','weekday']}}" startDate="{{changeDateStart}}" endDate="{{changeDateEnd}}" bind:change="handleChangeDatePicked" />
       </view>
     </view>
   </view>
 
   <!-- 换日二次确认弹窗 -->
-  <multiuse-modal
-    visible="{{changeDateConfirmVisible}}"
-    title="理发日调整"
-    content="{{changeDateConfirmInfo}}"
-    confirmText="确认调整"
-    cancelText="取消"
-    danger="{{true}}"
-    confirmLoading="{{changingDate}}"
-    bind:confirm="handleChangeDateConfirm"
-    bind:cancel="closeChangeDateConfirm"
-  />
+  <multiuse-modal visible="{{changeDateConfirmVisible}}" title="理发日调整" content="{{changeDateConfirmInfo}}" confirmText="确认调整" cancelText="取消" danger="{{true}}" confirmLoading="{{changingDate}}" bind:confirm="handleChangeDateConfirm" bind:cancel="closeChangeDateConfirm" />
 
 </view>

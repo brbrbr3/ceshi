@@ -3,7 +3,7 @@
   min-height: 100vh;
 }
 
-.office-header {
+.notifications-header {
   background: var(--bg-card);
   padding: var(--sp-24) var(--sp-32) var(--sp-20);
   display: flex;
@@ -13,15 +13,19 @@
   padding-top: calc(var(--sp-24) + env(safe-area-inset-top));
 }
 
-.office-header-title {
+.notifications-header-title {
   font-size: var(--fs-36);
   font-weight: 600;
   color: var(--text-primary);
 }
 
-.office-header-actions {
+.notifications-header-actions {
   display: flex;
   gap: var(--sp-24);
+}
+
+.notification-link {
+  font-size: var(--fs-30);
 }
 
 .notifications-content {

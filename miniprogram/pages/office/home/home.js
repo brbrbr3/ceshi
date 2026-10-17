@@ -16,6 +16,7 @@ Page({
     greetingText: '欢迎使用报备助手',
     currentDateText: '',
     todayTypeText: '今天是工作日', // 动态显示日期类型
+    holidayConfigNotice: '', // 管理员节假日配置提醒（12 月查下一年度、其余月份查本年度）
     roleLabel: '待认证用户',
     unreadNotificationCount: 0,
     loading: false,
@@ -127,6 +128,7 @@ Page({
     app.syncSubStatus()// 刷新微信侧订阅状态到本地缓存（供 handleQuickAction tap 时同步读取）
     this.loadContentForms() //加载馆内动态
     this.loadHolidayConfig() //加载节假日配置
+    this.checkHolidayConfigNotice() //管理员节假日配置提醒（12 月查下一年度，其余月份查本年度）
     this.loadActiveTrip() // 加载外出状态
 
     // 弹窗队列：更新说明优先入队，其次兴趣班提示（更新说明异步加载，等其入队后再入队兴趣班）
@@ -568,6 +570,41 @@ Page({
       this.setData({
         todayTypeText: todayType
       })
+    }
+  },
+
+  /**
+   * 管理员节假日配置提醒：12 月检查「下一年度」、其余月份检查「本年度」是否已配置
+   * 未配置（无该年份条目，或条目 dates 为空）则在日历卡片内显示提醒，直到配置完成。
+   * 走全局缓存并把目标年份传给缓存判定（纯数据口径）：目标年份缺数据会重拉，
+   * 因此管理员在日历页保存配置后（保存会清全局缓存）回到本页，提醒即自动消失。
+   * 审核模式下不提醒（节假日走 mock，数据恒为空）。
+   */
+  async checkHolidayConfigNotice() {
+    const user = this.data.currentUser || app.globalData.userProfile
+    const isAdmin = !!(user && user.isAdmin)
+
+    if (app.globalData.isReviewer || !isAdmin) {
+      if (this.data.holidayConfigNotice) {
+        this.setData({ holidayConfigNotice: '' })
+      }
+      return
+    }
+
+    const now = new Date()
+    const currentYear = now.getFullYear()
+    const targetYear = now.getMonth() >= 11 ? currentYear + 1 : currentYear
+
+    try {
+      const list = await app.getAllHolidays(false, [targetYear])
+      const item = list.find(i => Number(i.year) === Number(targetYear))
+      const configured = !!(item && Array.isArray(item.dates) && item.dates.length > 0)
+      const holidayConfigNotice = configured
+        ? ''
+        : `⚠️ ${targetYear === currentYear ? '本年度' : '下一年度'}（${targetYear}年）节假日尚未配置，点击去配置`
+      this.setData({ holidayConfigNotice })
+    } catch (error) {
+      console.error('检查节假日配置提醒失败:', error)
     }
   },
 
